@@ -473,6 +473,11 @@ properties:
    piAgility = 25
    piAim = 25
 
+   % Emulates tumbling skill, 0 is no evasion, 100 is total evasion
+   piTumbling = 0
+
+   % Supports enchantments with monsters as targets
+   plEnchantments = $
    piEnch_flags = 0
 
    piDrawfx = 0
@@ -2344,7 +2349,7 @@ messages:
       {
          iDamage = damage;
       }
-      
+
       foreach i in plChampionAbilities
       {
          if First(i) = CHAMPION_ABIL_MAGIC_RESISTANCE
@@ -2357,6 +2362,13 @@ messages:
          {
             iDamage = (iDamage * (100-Nth(i,2)) / 100);
          }
+      }
+
+      if IsClass(what,&Player)
+         AND Send(what,@GetStance) <> $
+      {
+         iDamage = Send(Send(what,@GetStance),@LastPriorityModifyDamage,
+                         #who=what,#what=self,#damage=iDamage);
       }
 
       % Set a predamage mark... we'll compare to it to see if threshold crossed.
@@ -7489,7 +7501,7 @@ messages:
    {
       return plResistances;
    }
-   
+
    GetBoostedLevel()
    {
       return piBoostedLevel;
@@ -7793,6 +7805,11 @@ messages:
       }
 
       propagate;
+   }
+
+   GetTumbling()
+   {
+      return piTumbling;
    }
 
 end
