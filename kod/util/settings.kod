@@ -242,6 +242,26 @@ properties:
    % serves as a baseline for calculation.
    piBaseRating = 0
 
+   % Do we do elemental status effects at all?
+   piEnableElementalStatusEffects = TRUE
+
+   % Status effect multiples
+   % Shocked temporarily reduces defense by a multiple of damage taken (X*m defense)
+   % Chilled temporarily slows attack and cast timers (X*m ms)
+   % Burning temporarily deals burning damage over time by a divisor (X/m damage)
+   % Corrode temporarily lowers armor (X/m armor)
+   % Humbled temporarily lowers resistances (X/m resist)
+   % Mantled temporarily lowers the effect of healing on the victim (X/m healing)
+   piShockedMultiple = 4
+   piChilledMultiple = 30
+   piBurningDivisor = 3
+   piCorrodeDivisor = 6
+   piHumbledDivisor = 3
+   piMantledDivisor = 6
+   
+   piStatusEffectReductionTime = 3000
+   piStatusEffectReductionAmount = 10
+
    % Percent of mana required/used for broadcasting. Default 0 (no cost).
    piBroadcastManaPercent = 0
 
@@ -658,6 +678,45 @@ messages:
    {
       return piBaseRating;
    }
+   
+   GetElementalMultiple(type=STATUS_SHOCKED)
+   {
+      if type = STATUS_SHOCKED
+      {
+         return piShockedMultiple;
+      }
+      if type = STATUS_CHILLED
+      {
+         return piChilledMultiple;
+      }
+      if type = STATUS_BURNING
+      {
+         return bound(piBurningDivisor,2,100);
+      }
+      if type = STATUS_CORRODE
+      {
+         return bound(piCorrodeDivisor,1,100);
+      }
+      if type = STATUS_HUMBLED
+      {
+         return bound(piHumbledDivisor,1,100);
+      }
+      if type = STATUS_MANTLED
+      {
+         return bound(piMantledDivisor,1,100);
+      }
+      return 0;
+   }
+   
+   GetStatusEffectReductionTime()
+   {
+      return piStatusEffectReductionTime;
+   }
+   
+   GetStatusEffectReductionAmount()
+   {
+      return piStatusEffectReductionAmount;
+   }
 
    GetBroadcastManaCost()
    {
@@ -697,6 +756,11 @@ messages:
    GetPostMaxHPBuildingSystem()
    {
       return piPostMaxHPBuildingSystem;
+   }
+   
+   GetEnableElementalStatusEffects()
+   {
+      return piEnableElementalStatusEffects;
    }
 
 end
