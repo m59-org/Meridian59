@@ -133,11 +133,22 @@ messages:
 
    SetForSale()
    {
-      plFor_sale = [ $,
-                     $,
-                     [ SID_PURGE, SID_CRYSTALIZE_MANA ],
-                     $
-                   ];
+      if Send(SETTINGS_OBJECT,@GetSorcerySchoolExpansion)
+      {
+         plFor_sale = [ $,
+                        [ SKID_EFFICIENCY ] ,
+                        [ SID_PURGE, SID_CRYSTALIZE_MANA ],
+                        $
+                      ];
+      }
+      else
+      {
+         plFor_sale = [ $,
+                        $,
+                        [ SID_PURGE, SID_CRYSTALIZE_MANA ],
+                        $
+                      ];
+      }
 
       return;
    }

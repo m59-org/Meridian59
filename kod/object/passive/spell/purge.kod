@@ -125,6 +125,16 @@ messages:
             }
          }
       }
+      
+      if NOT bHasEnchantment
+         AND Send(SETTINGS_OBJECT,@GetReservedSpellsPurgeable)
+      {
+         lEnchantment = Send(target,@GetReservedSpells);
+         if lEnchantment <> $
+         {
+            bHasEnchantment = TRUE;
+         }
+      }
 
       if NOT bHasEnchantment
       {
@@ -247,6 +257,16 @@ messages:
             AND NOT Send(oSpell,@IsHarmful)
          {
             lEnchantments = cons(oSpell,lEnchantments);
+         }
+      }
+      
+      if Send(SETTINGS_OBJECT,@GetReservedSpellsPurgeable)
+      {
+         lList = Send(who,@GetReservedSpells);
+
+         foreach oEnchantment in lList
+         {
+            lEnchantments = Cons(Nth(oEnchantment,1),lEnchantments);
          }
       }
 

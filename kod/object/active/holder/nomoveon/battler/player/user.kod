@@ -96,6 +96,8 @@ resources:
 
    user_said_str = "%s says, \"%q~n\""
    user_said_echo_str = "You say, \"%q~n\""
+   user_mantra_str = "~wAs %s shifts %s stance, %s intones, \"~I%q...~I\""
+   user_mantra_echo_str = "~wAs you shift your stance, you intone, \"~I%q...~I\""
    user_yelled_str = "%s yells, \"%q~n\""
    user_yelled_nearby_str = "You hear %s yelling, \"%q~n\""
    user_yelled_echo_str = "You yell, \"%q~n\""
@@ -3563,7 +3565,7 @@ messages:
             oSpell = Send(SYS,@FindSpellByNum,#num=Send(self,@DecodeSpellNum,
                                                         #compound=i));
             Send(self,@ToCliObject,#what=oSpell);
-            AddPacket(1,Send(oSpell,@GetNumSpellTargets));
+            AddPacket(1,Send(oSpell,@GetNumSpellTargets,#who=self));
             AddPacket(1,Send(oSpell,@GetSchool));
          }
 
@@ -3602,7 +3604,7 @@ messages:
          AddPacket(1, BP_SPELL_ADD);
          
          Send(self,@ToCliObject,#what=oSpell);
-         AddPacket(1,Send(oSpell,@GetNumSpellTargets));
+         AddPacket(1,Send(oSpell,@GetNumSpellTargets,#who=self));
          AddPacket(1,Send(oSpell,@GetSchool));
          SendPacket(poSession);
 
@@ -3630,6 +3632,11 @@ messages:
       if pbLogged_on
       {
          Send(self,@ToCliStats,#group=4);
+         
+         if IsClass(oSkill,&SpiritLink)
+         {
+            Send(self,@ToCliSpells);
+         }
       }
 
       return;
@@ -5117,74 +5124,26 @@ messages:
             return;
          }
 
-         if StringContain(String,"stance none")
+         if (StringEqual(String,"Om")
+                OR StringEqual(String,"om"))
             AND Send(self,@GetStance) <> $
          {
             Send(self,@ClearStance);
-            return;
+            type = SAY_MANTRA;
          }
 
-         if StringContain(String,"stance normal")
-            AND Send(self,@GetStance) <> $
+         foreach i in Send(SYS,@GetStanceMantras)
          {
-            Send(self,@ClearStance);
-            return;
-         }
-
-         if StringContain(String,"stance charged clutch")
-            AND Send(self,@GetSkillAbility,#skill_num=SKID_CHARGED_CLUTCH) > 0
-            AND Send(self,@GetStance) <> Send(SYS,@FindSkillByNum,#num=SKID_CHARGED_CLUTCH)
-         {
-            Send(Send(SYS,@FindSkillByNum,#num=SKID_CHARGED_CLUTCH),@BeginStance,#who=self);
-            return;
-         }
-
-         if StringContain(String,"stance poised soul")
-            AND Send(self,@GetSkillAbility,#skill_num=SKID_POISED_SOUL) > 0
-            AND Send(self,@GetStance) <> Send(SYS,@FindSkillByNum,#num=SKID_POISED_SOUL)
-         {
-            Send(Send(SYS,@FindSkillByNum,#num=SKID_POISED_SOUL),@BeginStance,#who=self);
-            return;
-         }
-
-         if StringContain(String,"stance focused mind")
-            AND Send(self,@GetSkillAbility,#skill_num=SKID_FOCUSED_MIND) > 0
-            AND Send(self,@GetStance) <> Send(SYS,@FindSkillByNum,#num=SKID_FOCUSED_MIND)
-         {
-            Send(Send(SYS,@FindSkillByNum,#num=SKID_FOCUSED_MIND),@BeginStance,#who=self);
-            return;
-         }
-
-         if StringContain(String,"stance reckless heart")
-            AND Send(self,@GetSkillAbility,#skill_num=SKID_RECKLESS_HEART) > 0
-            AND Send(self,@GetStance) <> Send(SYS,@FindSkillByNum,#num=SKID_RECKLESS_HEART)
-         {
-            Send(Send(SYS,@FindSkillByNum,#num=SKID_RECKLESS_HEART),@BeginStance,#who=self);
-            return;
-         }
-
-         if StringContain(String,"stance heavy arms")
-            AND Send(self,@GetSkillAbility,#skill_num=SKID_HEAVY_ARMS) > 0
-            AND Send(self,@GetStance) <> Send(SYS,@FindSkillByNum,#num=SKID_HEAVY_ARMS)
-         {
-            Send(Send(SYS,@FindSkillByNum,#num=SKID_HEAVY_ARMS),@BeginStance,#who=self);
-            return;
-         }
-
-         if StringContain(String,"stance swift hands")
-            AND Send(self,@GetSkillAbility,#skill_num=SKID_SWIFT_HANDS) > 0
-            AND Send(self,@GetStance) <> Send(SYS,@FindSkillByNum,#num=SKID_SWIFT_HANDS)
-         {
-            Send(Send(SYS,@FindSkillByNum,#num=SKID_SWIFT_HANDS),@BeginStance,#who=self);
-            return;
-         }
-
-         if StringContain(String,"stance light feet")
-            AND Send(self,@GetSkillAbility,#skill_num=SKID_LIGHT_FEET) > 0
-            AND Send(self,@GetStance) <> Send(SYS,@FindSkillByNum,#num=SKID_LIGHT_FEET)
-         {
-            Send(Send(SYS,@FindSkillByNum,#num=SKID_LIGHT_FEET),@BeginStance,#who=self);
-            return;
+            if StringEqual(string,Nth(i,1))
+               AND Send(self,@GetSkillAbility,#skill_num=Nth(i,2)) > 0
+               AND Send(self,@GetStance) <> Send(SYS,@FindSkillByNum,
+                                                  #num=Nth(i,2))
+            {
+               Send(Send(SYS,@FindSkillByNum,#num=Nth(i,2)),
+                     @BeginStance,#who=self);
+               type = SAY_MANTRA;
+               break;
+            }
          }
 
          if StringContain(string,user_say_survival)
@@ -5328,6 +5287,15 @@ messages:
          {
             Send(SYS,@SystemBroadcast,#what=self,#type=type,#string=string);
          }
+
+         return;
+      }
+
+      if type = SAY_MANTRA
+      {
+         % This avoids squelches, since it's really an ability.
+         % Notably, Mantras can be suppressed by Silence.
+         Send(poOwner,@SomeoneSaidRoom,#what=self,#type=type,#string=string);
 
          return;
       }
@@ -8282,6 +8250,24 @@ messages:
 
             SendPacket(poSession);
 
+            propagate;
+         }
+         
+         if type = SAY_MANTRA
+         {
+            if what = self
+            {
+               Send(self,@MsgSendUser,#message_rsc=user_mantra_echo_str,
+                     #parm1=string);
+            }
+            else
+            {
+               Send(self,@MsgSendUser,#message_rsc=user_mantra_str,
+                     #parm1=Send(what,@GetName),
+                     #parm2=Send(what,@GetHisHer),
+                     #parm3=Send(what,@GetHeShe),
+                     #parm4=string);
+            }
             propagate;
          }
 
