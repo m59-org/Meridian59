@@ -138,7 +138,7 @@ messages:
    DoSpell(what=$,oTarget=$,iDuration=$,report=TRUE,bAllowFreeAction=TRUE)
    "Holds target for duration seconds."
    {
-      local i, oSpell;
+      local i, oSpell, iTotalDuration;
 
       if oTarget = $
       {
@@ -169,6 +169,13 @@ messages:
             {
                % Resisted completely
                return FALSE;
+            }
+      
+            if IsClass(oTarget,&Monster)
+               AND Send(oTarget,@GetHoldResistance) <> 0
+            {
+               iTotalDuration = 
+                 (iTotalDuration * (100-Send(oTarget,@GetHoldResistance)))/100;
             }
 
             iDuration = Bound(iDuration,500,10000);
