@@ -2138,7 +2138,8 @@ messages:
    AssessDamage(what=$,damage=$,atype=0,aspell=0,bonus=0,scalefactor=1000,
       absolute=FALSE,precision=FALSE)
    {
-      local iDamage, iResist, iPercentClass, i, each_obj, bAttackerEmpowered;
+      local iDamage, iResist, iPercentClass, i, each_obj, bAttackerEmpowered,
+            oSpell;
 
       if NOT precision
       {
@@ -2155,24 +2156,22 @@ messages:
       % Attacks against a minion master will cause minions to defend the master
       Send(self,@CommandMinionAttack,#oMaster=self,#oTarget=what);
 
-      % Increase initial damage by 35 percent if attacker damage rod is active
-      bAttackerEmpowered = FALSE;
-      if what <> $
-         AND IsClass(what,&Player)
+      % Check for attacker's damage rod
+      oSpell = Send(SYS,@FindSpellByNum,#num=SID_DAMAGE_ROD_BUFF);
+      if Send(what,@IsEnchanted,#what=oSpell)
       {
-         foreach i in Send(what,@GetHolderPassive)
-         {
-            if IsClass(i,&DamageRod)
-               AND Send(i,@IsActive)
-            {
-               bAttackerEmpowered = TRUE;
-            }
-         }
+         damage = Send(oSpell,@SpecialModifyDamage,#who=self,
+                        #what=what,#damage=damage,
+                        #atype=atype,#aspell=aspell);
       }
 
-      if bAttackerEmpowered
+      oSpell = Send(SYS,@FindSpellByNum,#num=SID_SHIELD_ROD_BUFF);
+      if Send(self,@IsEnchanted,#what=oSpell)
       {
-         damage = damage * 135 / 100;
+         damage = Send(oSpell,@LastModifyDefenseDamage,#who=self,
+                        #what=what,#damage=damage,
+                        #atype=atype,#aspell=aspell,
+                        #precision=precision);
       }
 
       % check for any applicable resistances.

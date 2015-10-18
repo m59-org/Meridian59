@@ -29,6 +29,8 @@ BOFS = anon.bof \
        respois.bof \
        shadform.bof \
        strength.bof \
-       touchatk.bof
+       touchatk.bof \
+       shieldrodbuff.bof \
+       damagerodbuff.bof
 
 !include $(KODDIR)\kod.mak

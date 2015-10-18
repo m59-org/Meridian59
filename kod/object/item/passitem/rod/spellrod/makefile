@@ -5,6 +5,7 @@
 !include $(TOPDIR)\common.mak
 
 DEPEND = ..\spellrod.bof
-BOFS = gortrod.bof blessrod.bof strengthrod.bof detectinvisrod.bof
+BOFS = gortrod.bof blessrod.bof strengthrod.bof detectinvisrod.bof \
+       shieldrod.bof damagerod.bof
 
 !include $(KODDIR)\kod.mak
