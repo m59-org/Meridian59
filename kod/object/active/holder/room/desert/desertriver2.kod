@@ -55,7 +55,7 @@ messages:
          Send(SYS,@UtilGoNearSquare,#what=what,
               #where=Send(SYS,@FindRoomByNum,#num=RID_DESERTRIVER1),
               #new_row=37,#new_col=6,#fine_row=52,#fine_col=1,
-              #new_angle=ANGLE_NORTH);
+              #new_angle=Send(what,@GetAngle));
          return;
       }
 
@@ -64,10 +64,65 @@ messages:
          Send(SYS,@UtilGoNearSquare,#what=what,
               #where=Send(SYS,@FindRoomByNum,#num=RID_DESERTRIVER1),
               #new_row=37,#new_col=18,#fine_row=42,#fine_col=12,
-              #new_angle=ANGLE_NORTH_WEST);
+              #new_angle=Send(what,@GetAngle));
               
          return;
       }
+
+      propagate;
+   }
+
+   CreateStandardObjects()
+   {
+
+      Send(self,@NewHold,#what=Create(&FogCloud,#Duration=$),#new_row=12,
+            #new_col=16,#fine_row=43,#fine_col=20);
+      Send(self,@NewHold,#what=Create(&FogCloud,#Duration=$),#new_row=12,
+            #new_col=16,#fine_row=0,#fine_col=0);
+      Send(self,@NewHold,#what=Create(&FogCloud,#Duration=$),#new_row=12,
+            #new_col=16,#fine_row=63,#fine_col=63);
+      Send(self,@NewHold,#what=Create(&FogCloud,#Duration=$),#new_row=12,
+            #new_col=16,#fine_row=56,#fine_col=12);
+      Send(self,@NewHold,#what=Create(&FogCloud,#Duration=$),#new_row=14,
+            #new_col=19,#fine_row=44,#fine_col=36);
+      Send(self,@NewHold,#what=Create(&FogCloud,#Duration=$),#new_row=14,
+            #new_col=19,#fine_row=63,#fine_col=63);
+      Send(self,@NewHold,#what=Create(&FogCloud,#Duration=$),#new_row=14,
+            #new_col=19,#fine_row=0,#fine_col=0);
+      Send(self,@NewHold,#what=Create(&FogCloud,#Duration=$),#new_row=14,
+            #new_col=19,#fine_row=56,#fine_col=12);
+      Send(self,@NewHold,#what=Create(&FogCloud,#Duration=$),#new_row=14,
+            #new_col=17,#fine_row=43,#fine_col=18);
+
+      propagate;
+   }
+   
+   Delete()
+   {
+      local i;
+      
+      foreach i in plPassive
+      {
+         if IsClass(First(i),&FogCloud)
+         {
+            Send(First(i),@Delete);
+         }
+      }
+      
+      propagate;
+   }
+
+   StartRain()
+   {
+      local i;
+
+      if Send(SYS,@GetDayPhase) <> DAY_PHASE_DUSK
+      {
+         return;
+      }
+
+      Send(self,@ChangeTexture,#id=14,#new_texture=09363,
+            #flags=CTF_BELOWWALL);
 
       propagate;
    }
