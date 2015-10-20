@@ -22,11 +22,32 @@ resources:
    room_name_desertriver2 = "Abyssal Bore"
 
    waterfall_sound_into_lava = wfall2.wav
+   flame_sound = fire02.wav
+   quake_sound = earthquake03.wav
 
+   entrance_warning = \
+      "~rSulfuric gasses taint the air. Vast heat radiates from the earth. "
+      "This is a place of fire and death, and you know instinctively "
+      "that ~Ba single misstep here could get you killed."
    rumble_msg = "The bore rumbles ominously."
    lava_kill_msg = \
-      "As you plummet into the lava, you have time only to regret your "
+      "~rAs the lava rises up to meet you, you have time only to regret your "
       "choice of step."
+   weak_damage_msg = \
+      "~rThe rising heat singes your skin and hurts your lungs."
+   painful_damage_msg = \
+      "~rThe oppressive heat sears your limbs!"
+   deadly_damage_msg = \
+      "~rVolcanic heat melts your skin!"
+   catastrophic_damage_msg = \
+      "~B~rYou are cooking from the inside out!~B"
+
+   cannot_phase_here = \
+      "The fabric of reality here rages chaotically around the epicenter of a "
+      "rupture. You cannot risk phasing out unless you can manage to reach "
+      "the convergence itself."
+   phase_success = \
+      "You phase out of this plane of existence - and directly into another!"
 
 classvars:
 
@@ -49,6 +70,8 @@ properties:
    pbPrismOpen = FALSE
    
    plLavaDanger = $
+   
+   ptRumbleTimer = $
 
 messages:
 
@@ -61,13 +84,9 @@ messages:
          case DAY_PHASE_DAWN:
             break;
          case DAY_PHASE_DAY:
-            Post(self,@Rumble,#duration=2000);
-            foreach i in plActive
+            if ptRumbleTimer = $
             {
-               if IsClass(First(i),&Player)
-               {
-                  Post(First(i),@MsgSendUser,#message_rsc=rumble_msg);
-               }
+               ptRumbleTimer = CreateTimer(self,@RumbleBore,6000);
             }
             break;
          case DAY_PHASE_DUSK:
@@ -77,6 +96,87 @@ messages:
       }
 
       propagate;
+   }
+   
+   FirstUserEntered()
+   {
+      if ptRumbleTimer = $
+      {
+         ptRumbleTimer=CreateTimer(self,@RumbleBore,Random(6000,12000));
+      }
+      propagate;
+   }
+
+   LastUserLeft()
+   {
+      if ptRumbleTimer <> $
+      {
+         DeleteTimer(ptRumbleTimer);
+         ptRumbleTimer = $;
+      }
+      propagate;
+   }
+
+   RumbleBore()
+   {
+      local i;
+
+      ptRumbleTimer = $;
+      Send(self,@Rumble,#duration=3000);
+
+      foreach i in plActive
+      {
+         if IsClass(First(i),&Player)
+         {
+            Send(self,@DealLavaHeatDamage,#who=First(i));
+         }
+      }
+
+      ptRumbleTimer=CreateTimer(self,@RumbleBore,Random(6000,12000));
+
+      return;
+   }
+   
+   DealLavaHeatDamage(who=$)
+   {
+      local iHeight, iDamage, iDamageResult;
+      
+      iHeight = Send(who,@GetHeightAtObject);
+      
+      iDamage = 9000;
+
+      iDamage = Bound(iDamage - 2*iHeight,1,$);
+      
+      if iDamage > 6600
+      {
+         Send(who,@MsgSendUser,#message_rsc=catastrophic_damage_msg);
+      }
+      else if iDamage > 4400
+      {
+         Send(who,@MsgSendUser,#message_rsc=deadly_damage_msg);
+      }
+      else if iDamage > 2200
+      {
+         Send(who,@MsgSendUser,#message_rsc=painful_damage_msg);
+      }
+      else
+      {
+         Send(who,@MsgSendUser,#message_rsc=weak_damage_msg);
+      }
+
+      Send(who,@WaveSendUser,#wave_rsc=flame_sound);
+      
+      iDamageResult = Send(who,@AssessDamage,#what=self,
+                            #damage=iDamage,
+                            #aspell=ATCK_SPELL_FIRE,#report=FALSE,
+                            #precision=TRUE);
+      
+      if iDamageResult = $
+      {
+         Send(who,@Killed,#what=who);
+      }
+   
+      return;
    }
    
    SomethingMoved(what=$,new_row=0,new_col=0,fine_row=0,fine_col=0)
@@ -113,18 +213,14 @@ messages:
                       prmRoom, iQflags, new_row, new_col, fine_row, fine_col,
                       *iRflags, *iHeightF, *iHeightFWD, *iHeightC, *iServerID)
       {
-         if iServerID = 46
-            AND pbPrismOpen
-         {
-            Post(Send(SYS,@FindRoomByNum,#num=RID_ELEMENTAL_DUNGEON1),
-                  @Teleport,#what=what);
-            propagate;
-         }
-
          % Section 44 is the lava
          if iServerID = 44
          {
             Send(self,@LavaStep,#who=what);
+         }
+         else
+         {
+            Send(self,@NonLavaStep,#who=what);
          }
       }
 
@@ -150,6 +246,30 @@ messages:
       
       plLavaDanger = Cons([who,CreateTimer(self,@FellInLava,2000)],
                      plLavaDanger);
+      
+      return;
+   }
+   
+   NonLavaStep(who=$)
+   {
+      local i;
+      
+      if who = $
+      {
+         return;
+      }
+
+      foreach i in plLavaDanger
+      {
+         if First(i) = who
+         {
+            DeleteTimer(Nth(i,2));
+            SetNth(i,2,$);
+            SetNth(i,1,$);
+            plLavaDanger = DelListElem(plLavaDanger,i);
+            return;
+         }
+      }
       
       return;
    }
@@ -209,7 +329,8 @@ messages:
    Constructed()
    {
       plLooping_sounds = [[ waterfall_sound_into_lava, 12, 16, 120, 100 ]];
-      plLooping_sounds = Cons([ room_lava_sound, 18, 14, 300, 100 ],
+      plLooping_sounds = Cons([ quake_sound, 0, 0, 300, 100],plLooping_sounds);
+      plLooping_sounds = Cons([ room_lava_sound, 0, 0, 300, 100 ],
                               plLooping_sounds);
       propagate;
    }
@@ -235,12 +356,20 @@ messages:
          plLavaDanger = DelListElem(plLavaDanger,i);
       }
       
+      if ptRumbleTimer <> $
+      {
+         DeleteTimer(ptRumbleTimer);
+         ptRumbleTimer = $;
+      }
+      
       propagate;
    }
 
    StartRain()
    {
       local i;
+      
+      return;
 
       if Send(SYS,@GetDayPhase) <> DAY_PHASE_DUSK
       {
@@ -250,6 +379,20 @@ messages:
       Send(self,@ChangeTexture,#id=14,#new_texture=09363,
             #flags=CTF_BELOWWALL);
 
+      propagate;
+   }
+   
+   EndRain()
+   {
+      return;
+   }
+   
+   NewHold(what = $)
+   {
+      if IsClass(what,&Player)
+      {
+         Send(what,@MsgSendUser,#message_rsc=entrance_warning);
+      }
       propagate;
    }
    
@@ -311,9 +454,22 @@ messages:
       pbPrismOpen = FALSE;
       return;
    }
+   
+   StartBrightHeat()
+   {
+      % No need for region's heat danger. Trust me.
+      return;
+   }
+   
+   EndBrightHeat()
+   {
+      return;
+   }
 
    StartSnow(bOnGround=TRUE)
    {
+      return;
+      
       if bOnGround
       {
          if pbSnowGroundTexture
@@ -339,6 +495,8 @@ messages:
    EndSnow(override=FALSE)
    {
       local i;
+      
+      return;
 
       if pbSnowGroundTexture
          OR override
@@ -365,6 +523,45 @@ messages:
    EndHeat()
    {
       Send(self,@ClosePrismOfFireEntrance);
+      propagate;
+   }
+
+   ReqSpellCast(who = $, oSpell = $)
+   {
+      local iQflags, iRflags, iHeightF, iHeightFWD, iHeightC, iServerID;
+
+      if IsClass(oSpell,&Phase)
+      {
+         if NOT IsClass(who,&Player)
+         {
+            propagate;
+         }
+
+         iQflags = LIQ_GET_SECTORINFO;
+
+         if GetLocationInfoBSP(
+                      prmRoom, iQflags, Send(who,@GetRow),
+                      Send(who,@GetCol),
+                      Send(who,@GetFineRow),
+                      Send(who,@GetFineCol),
+                      *iRflags, *iHeightF, *iHeightFWD, *iHeightC, *iServerID)
+         {
+            if iServerID = 46
+               AND pbPrismOpen
+            {
+               Post(who,@MsgSendUser,#message_rsc=phase_success);
+               Post(Send(SYS,@FindRoomByNum,#num=RID_ELEMENTAL_DUNGEON1),
+                     @Teleport,#what=who);
+               return FALSE;
+            }
+            else
+            {
+               Send(who,@MsgSendUser,#message_rsc=cannot_phase_here);
+               return FALSE;
+            }
+         }
+      }
+
       propagate;
    }
 

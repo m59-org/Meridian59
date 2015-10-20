@@ -19,6 +19,11 @@ resources:
    room_name_elementaldungeon1 = "Prism of Fire"
    room_elementaldungeon1 = elementaldungeon1.roo
    elementaldungeon1_music = cave.mp3
+   
+   fire_prism_phase_out = \
+      "You phase out of the elemental plane of fire, and are drawn along "
+      "the natural curvature of the region's mana flows. Singed, but alive, "
+      "you find yourself at a familiar oasis."
 
 classvars:
 
@@ -67,14 +72,25 @@ messages:
       propagate;
    }
 
-   CreateStandardExits()
+   ReqSpellCast(who = $, oSpell = $)
    {
-      plEdge_Exits = $;
-      plEdge_Exits = Cons([LEAVE_EAST, RID_ELEMENTAL_DUNGEON2, 5, 5, 
-            ROTATE_NONE], plEdge_exits);
+      local iQflags, iRflags, iHeightF, iHeightFWD, iHeightC, iServerID;
 
-      return;
-   }         
+      if IsClass(oSpell,&Phase)
+      {
+         if NOT IsClass(who,&Player)
+         {
+            propagate;
+         }
+
+         Post(who,@MsgSendUser,#message_rsc=fire_prism_phase_out);
+         Post(Send(SYS,@FindRoomByNum,#num=RID_WAYLAYOASIS),
+               @Teleport,#what=who);
+         return FALSE;
+      }
+
+      propagate;
+   }
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
