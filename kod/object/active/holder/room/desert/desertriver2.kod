@@ -21,12 +21,21 @@ resources:
    room_desertriver2 = desertriver2.roo
    room_name_desertriver2 = "Abyssal Bore"
 
+   waterfall_sound_into_lava = wfall2.wav
+
+   rumble_msg = "The bore rumbles ominously."
+   lava_kill_msg = \
+      "As you plummet into the lava, you have time only to regret your "
+      "choice of step."
+
 classvars:
 
    vrName = room_name_desertriver2
 
-   viTeleport_row = 4
-   viTeleport_col = 7
+   viTeleport_row = 8
+   viTeleport_col = 18
+
+   viTerrain_type = TERRAIN_MOUNTAIN | TERRAIN_LAVA
 
 properties:
 
@@ -37,19 +46,43 @@ properties:
 
    prRoom = room_desertriver2
    piRoom_num = RID_DESERTRIVER2
+   pbPrismOpen = FALSE
+   
+   plLavaDanger = $
 
 messages:
 
- 
-   CreateStandardExits()
+   RecalcLightAndWeather()
    {
-      plEdge_Exits = $;
+      local i;
+
+      switch(Send(SYS,@GetDayPhase))
+      {
+         case DAY_PHASE_DAWN:
+            break;
+         case DAY_PHASE_DAY:
+            Post(self,@Rumble,#duration=2000);
+            foreach i in plActive
+            {
+               if IsClass(First(i),&Player)
+               {
+                  Post(First(i),@MsgSendUser,#message_rsc=rumble_msg);
+               }
+            }
+            break;
+         case DAY_PHASE_DUSK:
+            break;
+         case DAY_PHASE_NIGHT:
+            break;
+      }
 
       propagate;
    }
-
-   SomethingMoved(what = $,new_row = $, new_col = $)
+   
+   SomethingMoved(what=$,new_row=0,new_col=0,fine_row=0,fine_col=0)
    {
+      local iQflags, iRflags, iHeightF, iHeightFWD, iHeightC, iServerID;
+
       if new_row < 2 and (new_col < 15)
       {
          Send(SYS,@UtilGoNearSquare,#what=what,
@@ -69,12 +102,159 @@ messages:
          return;
       }
 
+      if NOT IsClass(what,&Player)
+      {
+         propagate;
+      }
+
+      iQflags = LIQ_GET_SECTORINFO;
+
+      if GetLocationInfoBSP(
+                      prmRoom, iQflags, new_row, new_col, fine_row, fine_col,
+                      *iRflags, *iHeightF, *iHeightFWD, *iHeightC, *iServerID)
+      {
+         if iServerID = 46
+            AND pbPrismOpen
+         {
+            Post(Send(SYS,@FindRoomByNum,#num=RID_ELEMENTAL_DUNGEON1),
+                  @Teleport,#what=what);
+            propagate;
+         }
+
+         % Section 44 is the lava
+         if iServerID = 44
+         {
+            Send(self,@LavaStep,#who=what);
+         }
+      }
+
+      propagate;
+   }
+   
+   LavaStep(who=$)
+   {
+      local i;
+      
+      if who = $
+      {
+         return;
+      }
+
+      foreach i in plLavaDanger
+      {
+         if First(i) = who
+         {
+            return;
+         }
+      }
+      
+      plLavaDanger = Cons([who,CreateTimer(self,@FellInLava,2000)],
+                     plLavaDanger);
+      
+      return;
+   }
+   
+   FellInLava(timer=$)
+   {
+      local i, iQflags, iRflags, iHeightF, iHeightFWD, iHeightC, iServerID;
+      
+      foreach i in plLavaDanger
+      {
+         if Nth(i,2) = timer
+         {
+            SetNth(i,2,$);
+            iQflags = LIQ_GET_SECTORINFO;
+            
+            if Send(First(i),@GetOwner) <> self
+            {
+               plLavaDanger = DelListElem(plLavaDanger,i);
+               return;
+            }
+
+            if GetLocationInfoBSP(
+                      prmRoom, iQflags, Send(First(i),@GetRow),
+                      Send(First(i),@GetCol),
+                      Send(First(i),@GetFineRow),
+                      Send(First(i),@GetFineCol),
+                      *iRflags, *iHeightF, *iHeightFWD, *iHeightC, *iServerID)
+            {
+               % They're still in the lava!
+               if iServerID = 44
+               {
+                  Send(self,@LavaBootPlayer,#who=First(i));
+               }
+            }
+            
+            plLavaDanger = DelListElem(plLavaDanger,i);
+         }
+      }
+      
+      return;
+   }
+   
+   LavaBootPlayer(who=$)
+   {
+      Send(who,@MsgSendUser,#message_rsc=lava_kill_msg);
+      Send(who,@Killed);
+      return;
+   }
+
+   CreateStandardExits()
+   {
+      plEdge_Exits = $;
+
+      propagate;
+   }
+   
+   Constructed()
+   {
+      plLooping_sounds = [[ waterfall_sound_into_lava, 12, 16, 120, 100 ]];
+      plLooping_sounds = Cons([ room_lava_sound, 18, 14, 300, 100 ],
+                              plLooping_sounds);
       propagate;
    }
 
    CreateStandardObjects()
    {
+      Send(self,@CreateFogClouds);
 
+      propagate;
+   }
+   
+   Delete()
+   {
+      local i;
+
+      Send(self,@DeleteFogClouds);
+      
+      foreach i in plLavaDanger
+      {
+         DeleteTimer(Nth(i,2));
+         SetNth(i,2,$);
+         SetNth(i,1,$);
+         plLavaDanger = DelListElem(plLavaDanger,i);
+      }
+      
+      propagate;
+   }
+
+   StartRain()
+   {
+      local i;
+
+      if Send(SYS,@GetDayPhase) <> DAY_PHASE_DUSK
+      {
+         return;
+      }
+
+      Send(self,@ChangeTexture,#id=14,#new_texture=09363,
+            #flags=CTF_BELOWWALL);
+
+      propagate;
+   }
+   
+   CreateFogClouds()
+   {
       Send(self,@NewHold,#what=Create(&FogCloud,#Duration=$),#new_row=12,
             #new_col=16,#fine_row=43,#fine_col=20);
       Send(self,@NewHold,#what=Create(&FogCloud,#Duration=$),#new_row=12,
@@ -94,10 +274,10 @@ messages:
       Send(self,@NewHold,#what=Create(&FogCloud,#Duration=$),#new_row=14,
             #new_col=17,#fine_row=43,#fine_col=18);
 
-      propagate;
+      return;
    }
    
-   Delete()
+   DeleteFogClouds()
    {
       local i;
       
@@ -109,21 +289,82 @@ messages:
          }
       }
       
+      return;
+   }
+   
+   OpenPrismOfFireEntrance()
+   {
+      Send(self,@SetSector,#sector=46,
+            #animation=ANIMATE_FLOOR_LIFT,#height=0,#speed=40);
+      % Texture the portal..
+      Send(self,@ChangeTexture,#id=46,#new_texture=07702,
+            #flags=CTF_FLOOR);
+      pbPrismOpen = TRUE;
+      return;
+   }
+   
+   ClosePrismOfFireEntrance()
+   {
+      Send(self,@RemoveTextureChange,#id=46);
+      Send(self,@SetSector,#sector=46,
+            #animation=ANIMATE_FLOOR_LIFT,#height=6,#speed=1);
+      pbPrismOpen = FALSE;
+      return;
+   }
+
+   StartSnow(bOnGround=TRUE)
+   {
+      if bOnGround
+      {
+         if pbSnowGroundTexture
+         {
+            % Hell freezes over at night.
+         
+            % Add snow to floor regions that are also sometimes lava.
+            Send(self,@ChangeTexture,#id=44,#new_texture=61015,
+                  #flags=CTF_FLOOR);
+            Send(self,@SetSectorFlags,#sector=44,#depth=SF_DEPTH0,
+                  #scrollSpeed=SCROLL_NONE);
+
+            % Frozen waterfall makes no steam.
+            Send(self,@DeleteFogClouds);
+            % Remove waterfall sound.
+            Send(self,@RemoveLoopingSound,#sound_rsc=waterfall_sound_into_lava);
+         }
+      }
+
       propagate;
    }
 
-   StartRain()
+   EndSnow(override=FALSE)
    {
       local i;
 
-      if Send(SYS,@GetDayPhase) <> DAY_PHASE_DUSK
+      if pbSnowGroundTexture
+         OR override
       {
-         return;
+         % Remove snow from lava floors.
+         Send(self,@RemoveTextureChange,#id=44);
+         Send(self,@RemoveSectorFlagChange,#id=44);
+
+         % Resume steam.
+         Send(self,@CreateFogClouds);
+         plLooping_sounds = [[ waterfall_sound_into_lava, 12, 16, 65, 100 ]];
       }
 
-      Send(self,@ChangeTexture,#id=14,#new_texture=09363,
-            #flags=CTF_BELOWWALL);
+      propagate;
+   }
 
+   BeginHeat()
+   {
+      % Prism of Fire opens during the Day phase
+      Send(self,@OpenPrismOfFireEntrance);
+      propagate;
+   }
+   
+   EndHeat()
+   {
+      Send(self,@ClosePrismOfFireEntrance);
       propagate;
    }
 
