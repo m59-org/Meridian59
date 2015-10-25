@@ -4,7 +4,7 @@
 
 !include $(TOPDIR)\common.mak
 
-DEPEND = ..\objectatt.bof
-BOFS = weaponobjectatt.bof defmodobjectatt.bof roomobjectatt.bof
+DEPEND = ..\roomstorm.bof
+BOFS = gortstorm.bof
 
 !include $(KODDIR)\kod.mak

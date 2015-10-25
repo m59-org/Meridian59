@@ -2164,6 +2164,12 @@ messages:
 
       % first send room icons
       Send(self,@SendRoomIcons,#what=what);
+      
+      % next send special room events
+      foreach i in plObject_attributes
+      {
+         Send(what,@ShowAddEnchantment,#what=i,#type=ENCHANTMENT_ROOM);
+      }
 
       foreach i in plEnchantments
       {
