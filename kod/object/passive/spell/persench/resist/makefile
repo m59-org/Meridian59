@@ -6,6 +6,6 @@
 
 DEPEND = ..\resist.bof
 BOFS = resfire.bof resshock.bof rescold.bof resgood.bof resmagic.bof \
-	resevil.bof resacid.bof
+	resevil.bof resacid.bof acidstormbuff.bof shockstormbuff.bof
 
 !include $(KODDIR)\kod.mak

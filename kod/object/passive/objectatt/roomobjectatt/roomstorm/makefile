@@ -5,6 +5,6 @@
 !include $(TOPDIR)\common.mak
 
 DEPEND = ..\roomstorm.bof
-BOFS = gortstorm.bof
+BOFS = gortstorm.bof acidstorm.bof shockstorm.bof
 
 !include $(KODDIR)\kod.mak

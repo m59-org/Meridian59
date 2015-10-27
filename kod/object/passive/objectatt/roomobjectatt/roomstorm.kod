@@ -26,11 +26,15 @@ resources:
       "A storm of arcane energies overtakes the area!"
    default_storm_end_msg = \
       "The storm of arcane energies passes."
+   default_bubble_sound = flamewind.wav
+   default_bubble_expire_sound = whoosh04.wav
 
 classvars:
 
    viStormBeginMsg = default_storm_begin_msg
    viStormEndMsg = default_storm_end_msg
+   vBubbleSound = default_bubble_sound
+   vBubbleExpireSound = default_bubble_expire_sound
 
 properties:
 
@@ -64,11 +68,16 @@ properties:
    % These are our bubbles.
    % [light object, intensity timer, intensity increment, end timer]
    plBubbles = $
+   
+   pbPlayBubbleSound = FALSE
+   pbPlayBubbleExpireSound = FALSE
 
 messages:
 
-   Constructor(iDuration=$)
+   Constructor(iDuration=$,iPower=$,report=TRUE,host_object=$)
    {
+      local i;
+
       % $ iDuration means indefinite
       if iDuration <> $
          AND iDuration > 0
@@ -80,31 +89,30 @@ messages:
       {
          ptStormTimer = CreateTimer(self,@EndStorm,piStormTime);
       }
+      
+      if iPower <> $
+      {
+         piSpellPower = iPower;
+      }
 
       poSpell = Send(SYS,@FindSpellByNum,#num=piSpellID);
-      
-      ptBubblesTimer = CreateTimer(self,@CreateBubble,piBubblesTime);
-      propagate;
-   }
 
-   Constructed()
-   {
-      local i;
-      
-      foreach i in Send(poHostObject,@GetHolderActive)
+      foreach i in Send(host_object,@GetHolderActive)
       {
          if IsClass(First(i),&User)
+            AND report
          {
             Send(First(i),@MsgSendUser,#message_rsc=viStormBeginMsg);
          }
       }
       
+      ptBubblesTimer = CreateTimer(self,@CreateBubble,piBubblesTime);
       propagate;
    }
 
    CreateBubble(timer=$)
    {
-      local oLight, iIncrement;
+      local i, oLight, iIncrement;
 
       ptBubblesTimer = $;
       if Length(plBubbles) < piBubblesMax
@@ -117,6 +125,18 @@ messages:
          Send(poHostObject,@NewHold,#what=oLight,
                #new_row=Random(1,Send(poHostObject,@GetRoomRows)-1),
                #new_col=Random(1,Send(poHostObject,@GetRoomCols)-1));
+
+         if pbPlayBubbleSound
+         {
+            foreach i in Send(poHostObject,@GetHolderActive)
+            {
+               if IsClass(First(i),&User)
+               {
+                  Send(First(i),@WaveSendUser,#wave_rsc=vBubbleSound,
+                        #source_obj=oLight);
+               }
+            }
+         }
 
          plBubbles = Cons([oLight,
                            CreateTimer(self,@BrightenBubble,INTENSIFY_TIME),
@@ -160,32 +180,45 @@ messages:
             if Send(First(i),@SquaredFineDistanceTo3D,#what=what)
                   <= piBubblesRadiusFine*piBubblesRadiusFine
             {
-               Send(self,@ApplyDirectEffect,#who=First(i));
+               Send(self,@ApplyDirectEffect,#who=First(i),#what=what);
             }
          }
       }
       return;
    }
    
-   ApplyDirectEffect(who=$)
+   ApplyDirectEffect(who=$,what=$)
    {
       if poSpell <> $
          AND NOT Send(who,@IsEnchanted,#what=poSpell)
       {
-         Send(poSpell,@CastSpell,#who=self,#lTargets=[who],
-               #iSpellPower=piSpellPower,#bItemCast=TRUE);
+         Send(poSpell,@CastSpell,#who=what,#lTargets=[who],
+               #iSpellPower=piSpellPower);
       }
       return;
    }
 
    EndBubble(timer=$)
    {
-      local i;
+      local i, n;
       
       foreach i in plBubbles
       {
          if Nth(i,4) = timer
          {
+            if pbPlayBubbleExpireSound
+            {
+               foreach n in Send(poHostObject,@GetHolderActive)
+               {
+                  if IsClass(First(n),&User)
+                  {
+                     Send(First(n),@WaveSendUser,
+                           #wave_rsc=vBubbleExpireSound,
+                           #row=Send(First(i),@GetRow),
+                           #col=Send(First(i),@GetCol));
+                  }
+               }
+            }
             Send(First(i),@Delete);
             SetNth(i,1,$);
             DeleteTimer(Nth(i,2));
@@ -202,9 +235,6 @@ messages:
    EndStorm()
    {
       local i;
-
-      ptStormTimer = $;
-      Send(self,@Delete);
       
       foreach i in Send(poHostObject,@GetHolderActive)
       {
@@ -213,6 +243,10 @@ messages:
             Send(First(i),@MsgSendUser,#message_rsc=viStormEndMsg);
          }
       }
+
+      ptStormTimer = $;
+
+      Send(self,@Delete);
       return;
    }
 

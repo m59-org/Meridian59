@@ -72,15 +72,14 @@ classvars:
    
    viBlizzardVigorDrop = 50000
    vbDoBlizzard = TRUE
-
+   
    viHeatVigorDrop = 30000
    vbDoHeat = TRUE
    
    viAcidRainVigorDrop = 10000
    vbDoAcidRain = TRUE
-   
-   viStaticShockManaDrop = 5
-   vbDoStaticShock = TRUE
+
+   vbDoShockStorm = TRUE
 
 properties:
 
@@ -221,6 +220,31 @@ messages:
       return;
    }
 
+   BeginShockStorm()
+   {
+      if pbUser_in_room
+         AND vbDoShockStorm
+         AND Send(SYS,@GetDayPhase) = DAY_PHASE_DAWN
+      {
+         Create(&ShockStorm,#host_object=self,#report=FALSE,#iDuration=$);
+      }
+      return;
+   }
+   
+   EndShockStorm()
+   {
+      local i;
+      
+      foreach i in plObject_attributes
+      {
+         if IsClass(i,&ShockStorm)
+         {
+            Send(i,@Delete);
+         }
+      }
+      return;
+   }
+
    DealAcidRainDamage()
    {
       local i, iDamageResult;
@@ -337,6 +361,7 @@ messages:
       Post(self,@BeginHeat);
       Post(self,@BeginBlizzard);
       Post(self,@BeginAcidRain);
+      Post(self,@BeginShockStorm);
 
       propagate;
    }
@@ -346,6 +371,7 @@ messages:
       Post(self,@EndHeat);
       Post(self,@EndBlizzard);
       Post(self,@EndAcidRain);
+      Post(self,@EndShockStorm);
 
       propagate;
    }
@@ -521,7 +547,9 @@ messages:
    Delete()
    {
       Send(self,@EndHeat);
+      Send(self,@EndRain);
       Send(self,@EndBlizzard);
+      Send(self,@EndShockStorm);
       propagate;
    }
 
