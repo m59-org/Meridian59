@@ -567,16 +567,42 @@ messages:
       % Acid rain makes the water gross.
       Send(self,@ChangeTexture,#id=48,#new_texture=09363,
             #flags=CTF_FLOOR);
+      Send(self,@ChangeTexture,#id=49,#new_texture=09363,
+            #flags=CTF_FLOOR);
       Send(self,@ChangeTexture,#id=90,#new_texture=09363,
             #flags=CTF_BELOWWALL);
 
+      if pbPrismOfFireDefeated
+      {
+         Send(self,@ChangeTexture,#id=44,#new_texture=09363,
+               #flags=CTF_FLOOR);
+         Send(self,@ChangeTexture,#id=45,#new_texture=09363,
+               #flags=CTF_FLOOR);
+         Send(self,@ChangeTexture,#id=46,#new_texture=09363,
+               #flags=CTF_FLOOR);
+         Send(self,@ChangeTexture,#id=47,#new_texture=09363,
+               #flags=CTF_FLOOR);
+      }
       propagate;
    }
 
    EndRain()
    {
       Send(self,@RemoveTextureChange,#id=48);
+      Send(self,@RemoveTextureChange,#id=49);
       Send(self,@RemoveTextureChange,#id=90);
+
+      if pbPrismOfFireDefeated
+      {
+         Send(self,@ChangeTexture,#id=44,#new_texture=08968,
+               #flags=CTF_FLOOR);
+         Send(self,@ChangeTexture,#id=45,#new_texture=08968,
+               #flags=CTF_FLOOR);
+         Send(self,@ChangeTexture,#id=46,#new_texture=08968,
+               #flags=CTF_FLOOR);
+         Send(self,@ChangeTexture,#id=47,#new_texture=08968,
+               #flags=CTF_FLOOR);
+      }
 
       propagate;
    }
@@ -680,6 +706,8 @@ messages:
             #scrollSpeed=SCROLL_NONE);
       Send(self,@SetSectorFlags,#sector=48,#depth=SF_DEPTH3,
             #scrollSpeed=SCROLL_NONE);
+      Send(self,@SetSectorFlags,#sector=49,#depth=SF_DEPTH3,
+            #scrollSpeed=SCROLL_FAST);
       Send(self,@SetSectorFlags,#sector=13,#depth=SF_DEPTH2,
             #scrollSpeed=SCROLL_FAST);
       Send(self,@SetSectorLight,#sector=46,#light_effect=80);

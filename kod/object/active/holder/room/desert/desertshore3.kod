@@ -23,6 +23,8 @@ resources:
 
    no_travel_into_sea3 = \
       "The underwater terrain drops off sharply here, preventing progress."
+   travel_into_sea3 = \
+      "You set out onto the oceanic ice."
 
 classvars:
 
@@ -45,6 +47,8 @@ messages:
 
    SomethingMoved(what = $,new_row = $, new_col = $)
    {
+      local oTargetRoom;
+
       if new_col > (Send(self,@GetRoomCols)-2)
       {
          Send(SYS,@UtilGoNearSquare,#what=what,
@@ -61,7 +65,22 @@ messages:
       {
          if IsClass(what,&User)
          {
-            Send(what,@MsgSendUser,#message_rsc=no_travel_into_sea3);
+            if Send(self,@CheckRoomFlag,#flag=ROOM_SNOWING)
+            {
+               oTargetRoom = Send(SYS,@FindRoomByNum,#num=RID_DESERTSANDBAR);
+               Send(what,@MsgSendUser,#message_rsc=travel_into_sea3);
+               Send(SYS,@UtilGoNearSquare,#what=what,
+                    #where=oTargetRoom,
+                    #new_row=Send(what,@GetRow),
+                    #new_col=Send(oTargetRoom,@GetRoomCols)-3,
+                    #fine_row=Send(what,@GetFineRow),
+                    #fine_col=0,
+                    #new_angle=Send(what,@GetAngle));
+            }
+            else
+            {
+               Send(what,@MsgSendUser,#message_rsc=no_travel_into_sea3);
+            }
          }
          return;
       }
