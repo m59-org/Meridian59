@@ -5,6 +5,7 @@
 !include $(TOPDIR)\common.mak
 
 DEPEND = ..\roomthreat.bof
-BOFS = coldthreat.bof heatthreat.bof acidthreat.bof
+BOFS = coldthreat.bof heatthreat.bof acidthreat.bof lavathreat.bof \
+       fallthreat.bof
 
 !include $(KODDIR)\kod.mak

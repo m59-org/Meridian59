@@ -138,13 +138,6 @@ messages:
 
    StartRain()
    {
-      local i;
-
-      if Send(SYS,@GetDayPhase) <> DAY_PHASE_DUSK
-      {
-         return;
-      }
-
       % This area has special tunnels that overflow.
       % ID 31 covers a group of sectors that are naturally flowing
       % but most of the time we cover that up.
@@ -171,8 +164,6 @@ messages:
    
    EndRain()
    {
-      local i;
-
       % Stop water scroll effect and remove depth to hide flow behavior.
       Send(self,@SetSectorFlags,#sector=31,#depth=SF_DEPTH0,
             #scrollSpeed=SCROLL_NONE);

@@ -123,7 +123,7 @@ messages:
             Send(First(i),@MsgSendUser,#message_rsc=viThreatDamageMsg);
             
             % Some threats apply other effects.
-            Send(self,@ApplyDirectEffect,#who=who);
+            Send(self,@ApplyDirectEffect,#who=First(i));
             
             iDamageResult = Send(First(i),@AssessDamage,#what=self,
                   #damage=Random(piDamageMin,piDamageMax),
@@ -163,9 +163,16 @@ messages:
 
    EndThreat()
    {
-      local i;
 
       ptThreatTimer = $;
+
+      Send(self,@Delete);
+      return;
+   }
+
+   Delete()
+   {
+      local i;
 
       foreach i in Send(poHostObject,@GetHolderActive)
       {
@@ -175,12 +182,6 @@ messages:
          }
       }
 
-      Send(self,@Delete);
-      return;
-   }
-
-   Delete()
-   {
       if ptThreatTimer <> $
       {
          DeleteTimer(ptThreatTimer);

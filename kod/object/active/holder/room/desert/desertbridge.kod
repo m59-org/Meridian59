@@ -47,14 +47,6 @@ classvars:
    viTeleport_row = 5
    viTeleport_col = 5
 
-   % Never has other Prism effects.
-   vbDoBlizzard = FALSE
-   vbDoHeat = FALSE
-   vbDoAcidRain = FALSE
-
-   % Always has its own Prism effect.
-   vbDoShockStorm = TRUE
-
 properties:
 
    piBaseLight = LIGHT_DARK
@@ -84,74 +76,26 @@ messages:
       propagate;
    }
 
-   FirstUserEntered()
+   RecalcLightAndWeather()
    {
-      Send(self,@BeginShockStorm);
+      local SysDayPhase;
+
+      SysDayPhase = Send(SYS,@GetDayPhase);
+
+      % We're crossing over into a new quarter.
+      % Collapsed Causeway does not get threats other than shock storms.
+      % It does simulate rain and snow, though.
+      if piPreviousPhase <> SysDayPhase
+      {
+         Send(self,@DoPhaseWeather);
+      }
+
       propagate;
    }
-   
-   LastUserLeft()
-   {
-      Send(self,@EndShockStorm);
-      propagate;
-   }
 
-   BeginShockStorm()
+   GetPhaseThreat()
    {
-      if pbUser_in_room
-         AND vbDoShockStorm
-         AND NOT Send(self,@HasObjectAttribute,#cClass=&ShockStorm)
-      {
-         Create(&ShockStorm,#host_object=self,#report=FALSE,#iDuration=$);
-      }
-      return;
-   }
-   
-   EndShockStorm()
-   {
-      local i;
-      
-      foreach i in plObject_attributes
-      {
-         if IsClass(i,&ShockStorm)
-         {
-            Send(i,@Delete);
-         }
-      }
-      return;
-   }
-
-   StartBrightHeat()
-   {
-      % No heat danger here.
-      return;
-   }
-   
-   EndBrightHeat()
-   {
-      return;
-   }
-
-   StartRain()
-   {
-      % Never rains here.
-      return;
-   }
-   
-   EndRain()
-   {
-      return;
-   }
-
-   StartSnow(bOnGround=TRUE)
-   {
-      % Never snows here.
-      return;
-   }
-
-   EndSnow(override=FALSE)
-   {
-      return;
+      return &ShockStorm;
    }
 
 end

@@ -33,6 +33,9 @@ WaylayOasis is GuildHall
 % with enemies might happen (since the dungeons are crazy hard).
 %
 %
+% Waylay Oasis is balanced at just the right spot between Prism energies
+% to avoid storms and threats. Mostly because it would be annoying,
+% but also because we want clean and non-laggy PvP.
 
 constants:
 
@@ -137,6 +140,7 @@ properties:
    prMusic = waylayoasis_music
 
    pbSnowGroundTexture = TRUE
+   piPreviousPhase = 0
 
 messages:
 
@@ -171,6 +175,32 @@ messages:
 
    RecalcLightAndWeather()
    {
+      local SysDayPhase, i;
+
+      SysDayPhase = Send(SYS,@GetDayPhase);
+
+      % We're crossing over into a new quarter.
+      % Waylay Oasis does not experience storms and threats.
+      % It does simulate rain and snow, though.
+      if piPreviousPhase <> SysDayPhase
+      {
+         Send(self,@DoPhaseWeather);
+         prMusic = Send(self,@GetPhaseMusic);
+         foreach i in plActive
+         {
+            if IsClass(First(i),&User)
+            {
+               Send(First(i),@SendRoomMusic,#music_rsc=prMusic);
+            }
+         }
+      }
+
+      piPreviousPhase = SysDayPhase;
+      propagate;
+   }
+
+   DoPhaseWeather()
+   {
       switch(Send(SYS,@GetDayPhase))
       {
          case DAY_PHASE_DAWN:
@@ -198,8 +228,23 @@ messages:
             }
             break;
       }
+      return;
+   }
 
-      propagate;
+   GetPhaseMusic()
+   {
+      switch(Send(SYS,@GetDayPhase))
+      {
+         case DAY_PHASE_DAWN:
+            return waylayoasis_music_static_shock;
+         case DAY_PHASE_DAY:
+            return waylayoasis_music;
+         case DAY_PHASE_DUSK:
+            return waylayoasis_music_acid_rain;
+         case DAY_PHASE_NIGHT:
+            return waylayoasis_music_snow;
+      }
+      return desert_music;
    }
 
    SomethingTryGo(what=$, row=$,  col = $)
@@ -589,8 +634,6 @@ messages:
 
    StartSnow(bOnGround=TRUE)
    {
-      local i;
-
       if bOnGround
       {
          if pbSnowGroundTexture
@@ -614,24 +657,12 @@ messages:
          }
       }
 
-      prMusic = waylayoasis_music_snow;
-
-      foreach i in plActive
-      {
-         if IsClass(First(i),&User)
-         {
-            Send(First(i),@SendRoomMusic,#music_rsc=prMusic);
-         }
-      }
-
       propagate;
    }
 
    EndSnow(override=FALSE)
    "Use override if rooms have manually placed textures."
    {
-      local i;
-
       if pbSnowGroundTexture
          OR override
       {
@@ -648,28 +679,11 @@ messages:
             #lSoundData=[waterfall_sound_oasis, 21, 40, 65, 100]);
       }
 
-      prMusic = waylayoasis_music;
-
-      foreach i in plActive
-      {
-         if IsClass(First(i),&User)
-         {
-            Send(First(i),@SendRoomMusic,#music_rsc=prMusic);
-         }
-      }
-
       propagate;
    }
 
    StartRain()
    {
-      local i;
-
-      if Send(SYS,@GetDayPhase) <> DAY_PHASE_DUSK
-      {
-         return;
-      }
-
       % Acid rain darkens the sand and pock marks rock.
       Send(self,@ChangeTexture,#id=0,#new_texture=09080,#flags=CTF_FLOOR);
       % Acid rain makes the water gross.
@@ -679,24 +693,11 @@ messages:
             #flags=CTF_NORMALWALL);
       Send(self,@SetSectorFlags,#sector=13,#depth=SF_DEPTH1,
             #scrollSpeed=SCROLL_SLOW);
-
-      prMusic = waylayoasis_music_acid_rain;
-
-      foreach i in plActive
-      {
-         if IsClass(First(i),&User)
-         {
-            Send(First(i),@SendRoomMusic,#music_rsc=prMusic);
-            Send(First(i),@MsgSendUser,#message_rsc=acid_rain_began_msg);
-         }
-      }
       propagate;
    }
    
    EndRain()
    {
-      local i;
-
       % Remove gross sand.
       Send(self,@RemoveTextureChange,#id=0);
       % Remove sludge water textures.
@@ -705,17 +706,6 @@ messages:
       Send(self,@RemoveTextureChange,#id=14);
       % Reset sector flag changes to sludge water.
       Send(self,@RemoveSectorFlagChange,#id=13);
-
-      prMusic = waylayoasis_music;
-
-      foreach i in plActive
-      {
-         if IsClass(First(i),&User)
-         {
-            Send(First(i),@SendRoomMusic,#music_rsc=prMusic);
-            Send(First(i),@MsgSendUser,#message_rsc=acid_rain_ended_msg);
-         }
-      }
       propagate;
    }
 

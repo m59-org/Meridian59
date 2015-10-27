@@ -38,11 +38,6 @@ classvars:
 
    viTerrain_type = TERRAIN_BADLANDS 
 
-   vbDoBlizzard = TRUE
-   vbDoHeat = TRUE
-   vbDoAcidRain = TRUE
-   vbDoShockStorm = TRUE
-
 properties:
 
    pbSnowGroundTexture = TRUE
@@ -54,7 +49,7 @@ messages:
 
    RecalcLightAndWeather()
    {
-      local SysDayPhase, cPhaseThreat, i;
+      local SysDayPhase, i;
 
       SysDayPhase = Send(SYS,@GetDayPhase);
 
@@ -115,10 +110,11 @@ messages:
       return &ShockStorm;
    }
 
-   BeginThreat(cClass=&ShockStorm,report=TRUE)
+   StartThreat(cClass=&ShockStorm,report=TRUE)
    {
       % Don't start a threat if one already exists.
-      if NOT Send(self,@HasObjectAttribute,#cClass=&RoomThreat)
+      if cClass <> $
+         AND NOT Send(self,@HasObjectAttribute,#cClass=&RoomThreat)
       {
          Create(cClass,#host_object=self,#iDuration=$,#report=report);
       }
@@ -152,7 +148,7 @@ messages:
 
    FirstUserEntered()
    {
-      Post(self,@BeginThreat,#cClass=Send(self,@GetPhaseThreat),#report=FALSE);
+      Post(self,@StartThreat,#cClass=Send(self,@GetPhaseThreat),#report=FALSE);
 
       propagate;
    }
@@ -235,7 +231,40 @@ messages:
 
       propagate;
    }
-   
+
+   DoPhaseWeather()
+   "Called to simulate weather by some rooms."
+   {
+      switch(Send(SYS,@GetDayPhase))
+      {
+         case DAY_PHASE_DAWN:
+            if Send(self,@CheckRoomFlag,#flag=ROOM_SNOWING)
+            {
+               Send(self,@EndSnow);
+            }
+            break;
+         case DAY_PHASE_DAY:
+            break;
+         case DAY_PHASE_DUSK:
+            if NOT Send(self,@CheckRoomFlag,#flag=ROOM_RAINING)
+            {
+               Send(self,@StartRain);
+            }
+            break;
+         case DAY_PHASE_NIGHT:
+            if Send(self,@CheckRoomFlag,#flag=ROOM_RAINING)
+            {
+               Send(self,@EndRain);
+            }
+            if NOT Send(self,@CheckRoomFlag,#flag=ROOM_SNOWING)
+            {
+               Send(self,@StartSnow);
+            }
+            break;
+      }
+      return;
+   }
+
    Delete()
    {
       Send(self,@EndAllThreats);
@@ -253,7 +282,7 @@ messages:
          % by threats.
          if IsClass(i,&RoomThreat)
          {
-            if NOT Send(i,@ReqSomethingUse,#what=what,#use_item=use_item);
+            if NOT Send(i,@ReqSomethingUse,#what=what,#use_item=use_item)
             {
                return FALSE;
             }
