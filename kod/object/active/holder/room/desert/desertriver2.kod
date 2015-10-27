@@ -81,6 +81,8 @@ properties:
    ptFireElementsTimer = $
    vrWading_Sound = burning_step_sound
    vrName = room_name_desertriver2
+   
+   pbPrismOfFireDefeated = FALSE
 
 messages:
    
@@ -159,8 +161,10 @@ messages:
            #iIntensity=iBr),#new_row=41,#new_col=44,#fine_row=59,#fine_col=15);
       Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_RED,
            #iIntensity=iBr),#new_row=45,#new_col=35,#fine_row=37,#fine_col=54);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_RED,
-           #iIntensity=iBr),#new_row=41,#new_col=19,#fine_row=39,#fine_col=63);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_FIRE,
+           #iIntensity=iBr),#new_row=46,#new_col=27,#fine_row=55,#fine_col=58);
+%      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_RED,
+%           #iIntensity=iBr),#new_row=41,#new_col=19,#fine_row=39,#fine_col=63);
 
       Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_ORANGE,
            #iIntensity=iBr),#new_row=32,#new_col=13,#fine_row=56,#fine_col=1);
@@ -218,7 +222,8 @@ messages:
          if iServerID = 44
          {
             Send(self,@NewHold,#what=Create(&PassiveWallofFire,#Duration=10),
-                  #new_row=iRandomRow,#new_col=iRandomCol);
+                  #new_row=iRandomRow,#new_col=iRandomCol,
+                  #fine_row=iRandomFineRow,#fine_col=iRandomFineCol);
          }
       }
 
@@ -347,7 +352,9 @@ messages:
          return;
       }
 
+      % Don't kill people if the lava is gone.
       if NOT IsClass(what,&Player)
+         OR pbPrismOfFireDefeated
       {
          propagate;
       }
@@ -459,8 +466,11 @@ messages:
    
    LavaBootPlayer(who=$)
    {
-      Send(who,@MsgSendUser,#message_rsc=lava_kill_msg);
-      Send(who,@Killed);
+      if NOT pbPrismOfFireDefeated
+      {
+         Send(who,@MsgSendUser,#message_rsc=lava_kill_msg);
+         Send(who,@Killed);
+      }
       return;
    }
 
@@ -474,6 +484,10 @@ messages:
    Constructed()
    {
       plLooping_sounds = Cons([ waterfall_sound_into_lava, 13, 18, 180, 100 ],
+                              plLooping_sounds);
+      plLooping_sounds = Cons([ waterfall_sound_into_lava, 47, 28, 180, 100 ],
+                              plLooping_sounds);
+      plLooping_sounds = Cons([ waterfall_sound_into_lava, 49, 29, 180, 100 ],
                               plLooping_sounds);
       plLooping_sounds = Cons([ quake_sound, 0, 0, 300, 100],plLooping_sounds);
       plLooping_sounds = Cons([ room_lava_sound, 0, 0, 300, 100 ],
@@ -561,6 +575,7 @@ messages:
    
    CreateFogClouds()
    {
+      % North waterfall
       Send(self,@NewHold,#what=Create(&FogCloud,#Duration=$),#new_row=12,
             #new_col=16,#fine_row=43,#fine_col=20);
       Send(self,@NewHold,#what=Create(&FogCloud,#Duration=$),#new_row=12,
@@ -579,6 +594,16 @@ messages:
             #new_col=19,#fine_row=56,#fine_col=12);
       Send(self,@NewHold,#what=Create(&FogCloud,#Duration=$),#new_row=14,
             #new_col=17,#fine_row=43,#fine_col=18);
+
+      % South waterfall
+      Send(self,@NewHold,#what=Create(&FogCloud,#Duration=$),#new_row=46,
+            #new_col=26,#fine_row=57,#fine_col=31);
+      Send(self,@NewHold,#what=Create(&FogCloud,#Duration=$),#new_row=47,
+            #new_col=27,#fine_row=62,#fine_col=21);
+      Send(self,@NewHold,#what=Create(&FogCloud,#Duration=$),#new_row=46,
+            #new_col=28,#fine_row=27,#fine_col=1);
+      Send(self,@NewHold,#what=Create(&FogCloud,#Duration=$),#new_row=46,
+            #new_col=28,#fine_row=49,#fine_col=62);
 
       return;
    }
@@ -600,12 +625,15 @@ messages:
    
    OpenPrismOfFireEntrance()
    {
-      Send(self,@SetSector,#sector=46,
-            #animation=ANIMATE_FLOOR_LIFT,#height=0,#speed=40);
-      % Texture the portal..
-      Send(self,@ChangeTexture,#id=46,#new_texture=07702,
-            #flags=CTF_FLOOR);
-      pbPrismOpen = TRUE;
+      if NOT pbPrismOfFireDefeated
+      {
+         Send(self,@SetSector,#sector=46,
+               #animation=ANIMATE_FLOOR_LIFT,#height=0,#speed=40);
+         % Texture the portal..
+         Send(self,@ChangeTexture,#id=46,#new_texture=07702,
+               #flags=CTF_FLOOR);
+         pbPrismOpen = TRUE;
+      }
       return;
    }
    
@@ -678,8 +706,25 @@ messages:
 
    BeginHeat()
    {
-      % Prism of Fire opens during the Day phase
-      Send(self,@OpenPrismOfFireEntrance);
+      switch(Send(SYS,@GetDayPhase))
+      {
+         case DAY_PHASE_DAWN:
+            % Prism of Fire opens during the Day phase
+            Send(self,@ClosePrismOfFireEntrance);
+            break;
+         case DAY_PHASE_DAY:
+            % Prism of Fire opens during the Day phase
+            Send(self,@OpenPrismOfFireEntrance);
+            break;
+         case DAY_PHASE_DUSK:
+            % Prism of Fire opens during the Day phase
+            Send(self,@ClosePrismOfFireEntrance);
+            break;
+         case DAY_PHASE_NIGHT:
+            % Prism of Fire opens during the Day phase
+            Send(self,@ClosePrismOfFireEntrance);
+            break;
+      }
       propagate;
    }
    
@@ -715,6 +760,8 @@ messages:
                Post(who,@MsgSendUser,#message_rsc=phase_success);
                Post(Send(SYS,@FindRoomByNum,#num=RID_ELEMENTAL_DUNGEON1),
                      @Teleport,#what=who);
+               Post(who,@EffectSendUserDuration,#effect=EFFECT_WHITEOUT,
+                     #duration=1250);
                return FALSE;
             }
             else
@@ -793,7 +840,6 @@ messages:
       Post(self,@SetSector,#sector=47,
             #animation=ANIMATE_FLOOR_LIFT,#height=3000,#speed=100);
 
-      
       vrWading_Sound = water_wading_sound;
       Send(self,@RemoveLoopingSound,#sound_rsc=quake_sound);
       Send(self,@RemoveLoopingSound,#sound_rsc=room_lava_sound);
@@ -818,6 +864,8 @@ messages:
                               plLooping_sounds);
       
       vrName = room_name_defeated;
+      
+      pbPrismOfFireDefeated = TRUE;
 
       return;
    }

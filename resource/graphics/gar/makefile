@@ -9,7 +9,7 @@ OUTDIR = $(CLIENTRUNDIR)\resource
 OUTDIRSUB = ..\$(OUTDIR)
 
 BGFS = igreyinvis.bgf isitting.bgf itransferitem.bgf iexplosion.bgf irift.bgf \
-       lightningprism.bgf
+       lightningprism.bgf lightningprismbig.bgf lightningprismhuge.bgf
 
 DIRS = 
 

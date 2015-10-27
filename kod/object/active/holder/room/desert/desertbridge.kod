@@ -10,6 +10,22 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 DesertBridge is DesertRoom
 
+% In all that remains of the once mighty Temple of Hristofalnakan,
+% (it's a mouthful, the NPCs know) the Essence of Lightning has taken up
+% residence on the sacred altar. It protects this area and Waylay Oasis
+% from the effects of the other prisms, and offers its own protections
+% and boosts in the form of &ShockStorm. Using the Essence of Lightning will
+% transport an adventurer to the Prism of Lightning, an otherworldly plane
+% that exists purely in the sky. However, an unknown great hero has already
+% gone ahead and defeated the Avatar of Lightning - thus the presnce of the
+% Essence here in the first place. Travel through the Prism of Lightning
+% can land an adventurer on the next island over. Some dangers remain within,
+% but the Avatar of Lightning is apparently dead for all time. How this was
+% accomplished, none know.
+
+% Use of the Essence of Lightning flags an adventurer for the ability to learn
+% Lightning Strike (the behind-teleportation lightning + hammer attack).
+
 constants:
 
    include blakston.khd
@@ -28,6 +44,14 @@ classvars:
    viTeleport_row = 5
    viTeleport_col = 5
 
+   % Never has other Prism effects.
+   vbDoBlizzard = FALSE
+   vbDoHeat = FALSE
+   vbDoAcidRain = FALSE
+
+   % Always has its own Prism effect.
+   vbDoShockStorm = TRUE
+
 properties:
 
    piBaseLight = LIGHT_DARK
@@ -44,8 +68,16 @@ messages:
    {
       plEdge_Exits = $;
       plEdge_Exits = Cons([ LEAVE_WEST, RID_WAYLAYOASIS, 48, 125, ROTATE_NONE ],plEdge_Exits);
-      plEdge_Exits = Cons([ LEAVE_EAST, RID_DESERTDUNES, 5, 5, ROTATE_NONE ],plEdge_Exits);
 
+      propagate;
+   }
+
+   CreateStandardObjects()
+   {
+      Send(self,@NewHold,#what=Create(&LightningPrism),
+            #new_row=17,#new_col=172,#fine_row=32,#fine_col=0);
+      Send(self,@NewHold,#what=Create(&DynamicLight),
+            #new_row=17,#new_col=171,#fine_row=32,#fine_col=63);
       propagate;
    }
 
