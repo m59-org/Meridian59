@@ -26,6 +26,9 @@ DesertBridge is DesertRoom
 % Use of the Essence of Lightning flags an adventurer for the ability to learn
 % Lightning Strike (the behind-teleportation lightning + hammer attack).
 
+% This area always has &ShockStorm.
+% This area never has other weather effects.
+
 constants:
 
    include blakston.khd
@@ -79,6 +82,76 @@ messages:
       Send(self,@NewHold,#what=Create(&DynamicLight),
             #new_row=17,#new_col=171,#fine_row=32,#fine_col=63);
       propagate;
+   }
+
+   FirstUserEntered()
+   {
+      Send(self,@BeginShockStorm);
+      propagate;
+   }
+   
+   LastUserLeft()
+   {
+      Send(self,@EndShockStorm);
+      propagate;
+   }
+
+   BeginShockStorm()
+   {
+      if pbUser_in_room
+         AND vbDoShockStorm
+         AND NOT Send(self,@HasObjectAttribute,#cClass=&ShockStorm)
+      {
+         Create(&ShockStorm,#host_object=self,#report=FALSE,#iDuration=$);
+      }
+      return;
+   }
+   
+   EndShockStorm()
+   {
+      local i;
+      
+      foreach i in plObject_attributes
+      {
+         if IsClass(i,&ShockStorm)
+         {
+            Send(i,@Delete);
+         }
+      }
+      return;
+   }
+
+   StartBrightHeat()
+   {
+      % No heat danger here.
+      return;
+   }
+   
+   EndBrightHeat()
+   {
+      return;
+   }
+
+   StartRain()
+   {
+      % Never rains here.
+      return;
+   }
+   
+   EndRain()
+   {
+      return;
+   }
+
+   StartSnow(bOnGround=TRUE)
+   {
+      % Never snows here.
+      return;
+   }
+
+   EndSnow(override=FALSE)
+   {
+      return;
    }
 
 end

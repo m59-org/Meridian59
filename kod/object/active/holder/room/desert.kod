@@ -8,21 +8,24 @@
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 DesertRoom is Room
+
+% The desert is very active with elemental energies.
+% Each phase of the day has either a helpful or harmful storm or threat that is
+% based on which Elemental Prisms have been defeated.
+% The Lightning Prism begins defeated, so DAWN phase always has &ShockStorm.
+% Storms are helpful, Threats are harmful.
+% Both storms and threats alter the weather and music.
+% Therefore, the desert changes constantly throughout each day.
+%
+% Storms and Threats are RoomObjectAttributes that come complete with
+% a room icon. They're not spells, though, so they can't be discorded or
+% altered.
+%
 
 constants:
 
    include blakston.khd
-   
-   BLIZZARD_MIN_DAMAGE = 6
-   BLIZZARD_MAX_DAMAGE = 14
-   
-   HEAT_MIN_DAMAGE = 8
-   HEAT_MAX_DAMAGE = 17
-   
-   ACID_MIN_DAMAGE = 1
-   ACID_MAX_DAMAGE = 3
 
 resources:
 
@@ -30,356 +33,139 @@ resources:
    desert_music_snow = cz04.mp3
    desert_music_acid_rain = cz07.mp3
    desert_music_static_shock = cz01.mp3
-   
-   blizzard_damage_msg = "The biting cold gnaws at your bones."
-   heat_damage_msg = \
-      "The intense heat makes you sweat profusely under your heavy gear."
-   acid_rain_damage_msg = \
-      "Without a helmet to slough it away, the acidic rain burns "
-      "your exposed skin."
-
-   DesertUseFireRing_msg = \
-      "And, out here, the sun might just be the most dangerous enemy of all."
-   DesertUseColdRing_msg = \
-      "The icy breezes no longer bother you."
-   DesertUseAcidRing_msg = \
-      "You sigh with relief as the acid ceases to burn."
-   DesertCastResistFire_msg = \
-      "Faren's chill banishes the sun's heat."
-   DesertCastResistCold_msg = \
-      "Faren's magical fire battles away the gnawing desert chill."
-   DesertCastResistAcid_msg = \
-      "The chalkiness on your skin provides immediate relief from the "
-      "precipitating acid."
-
-   snow_began_msg = \
-      "Snow begins whipping across the sands as the last of the sun's heat "
-      "fades."
-   snow_ended_msg = \
-      "The desert's burgeoning heat melts away the chill night's snow."
-   acid_rain_began_msg = \
-      "Horrendously noxious rain begins to fall."
-   acid_rain_ended_msg = \
-      "The noxious rain suddenly crystalizes as a cold flash point is reached."
-   bright_heat_began_msg = \
-      "The sun seems to bear down on you with particular ferocity."
-   bright_heat_ended_msg = \
-      "The sun passes behind ominous clouds."
 
 classvars:
 
    viTerrain_type = TERRAIN_BADLANDS 
-   
-   viBlizzardVigorDrop = 50000
-   vbDoBlizzard = TRUE
-   
-   viHeatVigorDrop = 30000
-   vbDoHeat = TRUE
-   
-   viAcidRainVigorDrop = 10000
-   vbDoAcidRain = TRUE
 
+   vbDoBlizzard = TRUE
+   vbDoHeat = TRUE
+   vbDoAcidRain = TRUE
    vbDoShockStorm = TRUE
 
 properties:
 
    pbSnowGroundTexture = TRUE
-   
-   ptBlizzardDamageTimer = $
-   ptHeatDamageTimer = $
-   ptAcidRainDamageTimer = $
-   ptStaticShockDamageTimer = $
-   
-   % Blizzard ebbs and rises
-   piBlizzardDamageTime = 3000
-   piHeatDamageTime = 5000
-   piAcidRainDamageTime = 1000
-   piStaticShockDamageTime = 6000
-
    prMusic = desert_music
-   
-   piBrightHeat = FALSE
+
+   piPreviousPhase = 0
 
 messages:
 
    RecalcLightAndWeather()
    {
-      switch(Send(SYS,@GetDayPhase))
+      local SysDayPhase, cPhaseThreat, i;
+
+      SysDayPhase = Send(SYS,@GetDayPhase);
+
+      % We're crossing over into a new quarter.
+      if piPreviousPhase <> SysDayPhase
       {
-         case DAY_PHASE_DAWN:
-            if Send(self,@CheckRoomFlag,#flag=ROOM_SNOWING)
+         Send(self,@EndAllThreats);
+         Send(self,@StartThreat,#cClass=Send(self,@GetPhaseThreat));
+         
+         prMusic = Send(self,@GetPhaseMusic);
+         foreach i in plActive
+         {
+            if IsClass(First(i),&User)
             {
-               Send(self,@EndSnow);
+               Send(First(i),@SendRoomMusic,#music_rsc=prMusic);
             }
-            Send(self,@EndBlizzard);
-            break;
-         case DAY_PHASE_DAY:
-            if NOT piBrightHeat
-            {
-               Send(self,@StartBrightHeat);
-            }
-            Send(self,@BeginHeat);
-            break;
-         case DAY_PHASE_DUSK:
-            if piBrightHeat
-            {
-               Send(self,@EndBrightHeat);
-            }
-            Send(self,@EndHeat);
-            if NOT Send(self,@CheckRoomFlag,#flag=ROOM_RAINING)
-            {
-               Send(self,@StartRain);
-            }
-            Send(self,@BeginAcidRain);
-            break;
-         case DAY_PHASE_NIGHT:
-            if Send(self,@CheckRoomFlag,#flag=ROOM_RAINING)
-            {
-               Send(self,@EndRain);
-            }
-            Send(self,@EndAcidRain);
-            if NOT Send(self,@CheckRoomFlag,#flag=ROOM_SNOWING)
-            {
-               Send(self,@StartSnow);
-            }
-            Send(self,@BeginBlizzard);
-            break;
+         }
       }
 
+      piPreviousPhase = SysDayPhase;
       propagate;
    }
 
-   BeginAcidRain()
+   GetPhaseMusic()
    {
-      if pbUser_in_room
-         AND vbDoAcidRain
-         AND Send(SYS,@GetDayPhase) = DAY_PHASE_DUSK
-         AND ptAcidRainDamageTimer = $
+      switch(Send(SYS,@GetDayPhase))
       {
-         ptAcidRainDamageTimer = CreateTimer(self,@DealAcidRainDamage,
-                                    piAcidRainDamageTime);
+         case DAY_PHASE_DAWN:
+            return desert_music_static_shock;
+         case DAY_PHASE_DAY:
+            return desert_music;
+         case DAY_PHASE_DUSK:
+            return desert_music_acid_rain;
+         case DAY_PHASE_NIGHT:
+            return desert_music_snow;
       }
-      return;
+      return desert_music;
    }
    
-   EndAcidRain()
+   GetPhaseThreat()
    {
-      if ptAcidRainDamageTimer <> $
+      switch(Send(SYS,@GetDayPhase))
       {
-         DeleteTimer(ptAcidRainDamageTimer);
+         case DAY_PHASE_DAWN:
+            return &ShockStorm;
+         case DAY_PHASE_DAY:
+            if Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTRIVER2),
+                     @GetPrismOfFireDefeated)
+            {
+               return &HeatStorm;
+            }
+            return &HeatThreat;
+         case DAY_PHASE_DUSK:
+            return &AcidThreat;
+         case DAY_PHASE_NIGHT:
+            return &ColdThreat;
       }
-      ptAcidRainDamageTimer = $;
+      return &ShockStorm;
+   }
+
+   BeginThreat(cClass=&ShockStorm,report=TRUE)
+   {
+      % Don't start a threat if one already exists.
+      if NOT Send(self,@HasObjectAttribute,#cClass=&RoomThreat)
+      {
+         Create(cClass,#host_object=self,#iDuration=$,#report=report);
+      }
+
       return;
    }
 
-   BeginHeat()
+   EndThreat(cClass=&ShockStorm)
    {
-      if pbUser_in_room
-         AND vbDoHeat
-         AND Send(SYS,@GetDayPhase) = DAY_PHASE_DAY
-         AND ptHeatDamageTimer = $
+      if Send(self,@HasObjectAttribute,#cClass=cClass)
       {
-         ptHeatDamageTimer = CreateTimer(self,@DealHeatDamage,
-                                piHeatDamageTime);
+         Send(Send(self,@GetObjectAttribute,#cClass=cClass),@Delete);
       }
       return;
    }
    
-   EndHeat()
-   {
-      if ptHeatDamageTimer <> $
-      {
-         DeleteTimer(ptHeatDamageTimer);
-      }
-      ptHeatDamageTimer = $;
-      return;
-   }
-   
-   BeginBlizzard()
-   {
-      if pbUser_in_room
-         AND vbDoBlizzard
-         AND Send(self,@CheckRoomFlag,#flag=ROOM_SNOWING)
-         AND ptBlizzardDamageTimer = $
-      {
-         piBlizzardDamageTime = Bound(piBlizzardDamageTime +
-                                   Random(-100,100),500,6000);
-         ptBlizzardDamageTimer = CreateTimer(self,@DealBlizzardDamage,
-                                    piBlizzardDamageTime);
-      }
-      return;
-   }
-   
-   EndBlizzard()
-   {
-      if ptBlizzardDamageTimer <> $
-      {
-         DeleteTimer(ptBlizzardDamageTimer);
-      }
-      ptBlizzardDamageTimer = $;
-      return;
-   }
-
-   BeginShockStorm()
-   {
-      if pbUser_in_room
-         AND vbDoShockStorm
-         AND Send(SYS,@GetDayPhase) = DAY_PHASE_DAWN
-      {
-         Create(&ShockStorm,#host_object=self,#report=FALSE,#iDuration=$);
-      }
-      return;
-   }
-   
-   EndShockStorm()
+   EndAllThreats()
    {
       local i;
       
       foreach i in plObject_attributes
       {
-         if IsClass(i,&ShockStorm)
+         if IsClass(i,&RoomThreat)
          {
             Send(i,@Delete);
          }
       }
-      return;
-   }
-
-   DealAcidRainDamage()
-   {
-      local i, iDamageResult;
-      
-      ptAcidRainDamageTimer = $;
-
-      % Deals acid damage to players not wearing resist acid ring
-      % or using resist buff
-      foreach i in plActive
-      {
-         if IsClass(First(i),&Player)
-            AND NOT Send(First(i),@IsInCannotInteractMode)
-         {
-            if NOT Send(First(i),@IsUsingA,#class=&SimpleHelm)
-               AND NOT Send(First(i),@IsEnchanted,#byClass=&ResistAcid)
-               AND NOT Send(First(i),@IsUsingA,#class=&AcidRing)
-            {
-               Send(First(i),@AddExertion,#amount=viAcidRainVigorDrop);
-               iDamageResult = Send(First(i),@AssessDamage,#what=self,
-                     #damage=Random(ACID_MIN_DAMAGE,ACID_MAX_DAMAGE),
-                     #aspell=ATCK_SPELL_ACID,#report=FALSE);
-               Send(First(i),@MsgSendUser,#message_rsc=acid_rain_damage_msg);
-               
-               % Acid Rain killed a player!
-               if iDamageResult = $
-               {
-                  Send(First(i),@Killed,#what=First(i));
-               }
-            }
-         }
-      }
-
-      Send(self,@BeginAcidRain);
 
       return;
    }
 
-   DealHeatDamage()
-   {
-      local i, iDamageResult;
-      
-      ptHeatDamageTimer = $;
-
-      % Deals heat damage to players who wear armor and don't have a
-      % resist fire ring or spell.
-      foreach i in plActive
-      {
-         if IsClass(First(i),&Player)
-            AND NOT Send(First(i),@IsInCannotInteractMode)
-         {
-            if Send(First(i),@IsUsingA,#class=&Armor)
-               AND NOT Send(First(i),@IsEnchanted,#byClass=&ResistFire)
-               AND NOT Send(First(i),@IsUsingA,#class=&FireRing)
-            {
-               Send(First(i),@AddExertion,#amount=viHeatVigorDrop);
-               iDamageResult = Send(First(i),@AssessDamage,#what=self,
-                     #damage=Random(HEAT_MIN_DAMAGE,HEAT_MAX_DAMAGE),
-                     #aspell=ATCK_SPELL_FIRE,#report=FALSE);
-               Send(First(i),@MsgSendUser,#message_rsc=heat_damage_msg);
-               
-               % Heat killed a player!
-               if iDamageResult = $
-               {
-                  Send(First(i),@Killed,#what=First(i));
-               }
-            }
-         }
-      }
-
-      Send(self,@BeginHeat);
-
-      return;
-   }
-
-   DealBlizzardDamage()
-   {
-      local i, iDamageResult;
-      
-      ptBlizzardDamageTimer = $;
-
-      % Robes of any type, cold resist rings, and cold resist buff protects
-      % from blizzard damage.
-      foreach i in plActive
-      {
-         if IsClass(First(i),&Player)
-            AND NOT Send(First(i),@IsInCannotInteractMode)
-         {
-            if NOT Send(First(i),@IsUsingA,#class=&Robe)
-               AND NOT Send(First(i),@IsEnchanted,#byClass=&ResistCold)
-               AND NOT Send(First(i),@IsUsingA,#class=&ColdRing)
-            {
-               Send(First(i),@AddExertion,#amount=viBlizzardVigorDrop);
-               iDamageResult = Send(First(i),@AssessDamage,#what=self,
-                     #damage=Random(BLIZZARD_MIN_DAMAGE,BLIZZARD_MAX_DAMAGE),
-                     #aspell=ATCK_SPELL_COLD,#report=FALSE);
-               Send(First(i),@MsgSendUser,#message_rsc=blizzard_damage_msg);
-               
-               % Blizzard killed a player!
-               if iDamageResult = $
-               {
-                  Send(First(i),@Killed,#what=First(i));
-               }
-            }
-         }
-      }
-
-      Send(self,@BeginBlizzard);
-
-      return;
-   }
-   
    FirstUserEntered()
    {
-      Post(self,@BeginHeat);
-      Post(self,@BeginBlizzard);
-      Post(self,@BeginAcidRain);
-      Post(self,@BeginShockStorm);
+      Post(self,@BeginThreat,#cClass=Send(self,@GetPhaseThreat),#report=FALSE);
 
       propagate;
    }
    
    LastUserLeft()
    {
-      Post(self,@EndHeat);
-      Post(self,@EndBlizzard);
-      Post(self,@EndAcidRain);
-      Post(self,@EndShockStorm);
+      Post(self,@EndAllThreats);
 
       propagate;
    }
 
    StartSnow(bOnGround=TRUE)
    {
-      local i;
-
       if bOnGround
       {
          if pbSnowGroundTexture
@@ -400,25 +186,12 @@ messages:
          }
       }
 
-      prMusic = desert_music_snow;
-
-      foreach i in plActive
-      {
-         if IsClass(First(i),&User)
-         {
-            Send(First(i),@SendRoomMusic,#music_rsc=prMusic);
-            Send(First(i),@MsgSendUser,#message_rsc=snow_began_msg);
-         }
-      }
-
       propagate;
    }
 
    EndSnow(override=FALSE)
    "Use override if rooms have manually placed textures."
    {
-      local i;
-
       if pbSnowGroundTexture
          OR override
       {
@@ -431,29 +204,11 @@ messages:
          Send(self,@RemoveSectorFlagChange,#id=13);
       }
 
-      prMusic = desert_music;
-
-      foreach i in plActive
-      {
-         if IsClass(First(i),&User)
-         {
-            Send(First(i),@SendRoomMusic,#music_rsc=prMusic);
-            Send(First(i),@MsgSendUser,#message_rsc=snow_ended_msg);
-         }
-      }
-
       propagate;
    }
 
    StartRain()
    {
-      local i;
-
-      if Send(SYS,@GetDayPhase) <> DAY_PHASE_DUSK
-      {
-         return;
-      }
-
       % Acid rain darkens the sand and pock marks rock.
       Send(self,@ChangeTexture,#id=0,#new_texture=09080,#flags=CTF_FLOOR);
       % Acid rain makes the water gross.
@@ -464,23 +219,11 @@ messages:
       Send(self,@SetSectorFlags,#sector=13,#depth=SF_DEPTH1,
             #scrollSpeed=SCROLL_SLOW);
 
-      prMusic = desert_music_acid_rain;
-
-      foreach i in plActive
-      {
-         if IsClass(First(i),&User)
-         {
-            Send(First(i),@SendRoomMusic,#music_rsc=prMusic);
-            Send(First(i),@MsgSendUser,#message_rsc=acid_rain_began_msg);
-         }
-      }
       propagate;
    }
    
    EndRain()
    {
-      local i;
-
       % Remove gross sand.
       Send(self,@RemoveTextureChange,#id=0);
       % Remove sludge water textures.
@@ -490,90 +233,30 @@ messages:
       % Reset sector flag changes to sludge water.
       Send(self,@RemoveSectorFlagChange,#id=13);
 
-      prMusic = desert_music;
-
-      foreach i in plActive
-      {
-         if IsClass(First(i),&User)
-         {
-            Send(First(i),@SendRoomMusic,#music_rsc=prMusic);
-            Send(First(i),@MsgSendUser,#message_rsc=acid_rain_ended_msg);
-         }
-      }
       propagate;
-   }
-   
-   StartBrightHeat()
-   {
-      local i;
-      piBrightHeat = TRUE;
-
-      prMusic = desert_music;
-      
-      foreach i in plActive
-      {
-         if IsClass(First(i),&User)
-         {
-            Send(First(i),@SendRoomMusic,#music_rsc=prMusic);
-            Send(First(i),@MsgSendUser,#message_rsc=bright_heat_began_msg);
-         }
-      }
-      return;
-   }
-   
-   EndBrightHeat()
-   {
-      local i;
-      
-      piBrightHeat = FALSE;
-      
-      foreach i in plActive
-      {
-         if IsClass(First(i),&User)
-         {
-            Send(First(i),@SendRoomMusic,#music_rsc=prMusic);
-            Send(First(i),@MsgSendUser,#message_rsc=bright_heat_ended_msg);
-         }
-      }
-      
-      return;
-   }
-
-   GetRegion()
-   {
-      return RID_DESERT;
    }
    
    Delete()
    {
-      Send(self,@EndHeat);
-      Send(self,@EndRain);
-      Send(self,@EndBlizzard);
-      Send(self,@EndShockStorm);
+      Send(self,@EndAllThreats);
       propagate;
    }
 
    ReqSomethingUse(what = $, use_item = $)
    {
-      if IsClass(what,&Player)
-         AND NOT Send(what,@IsUsingA,#class=&RingofLethargy)
+      local i;
+      
+      foreach i in plObject_attributes
       {
-         if IsClass(use_item,&FireRing)
-            AND ptHeatDamageTimer <> $
+         % This area gives special messages to inform players
+         % of threat avoidance. Can also be used to prevent some item use
+         % by threats.
+         if IsClass(i,&RoomThreat)
          {
-            Post(what,@MsgSendUser,#message_rsc=DesertUseFireRing_msg);
-         }
-         if (IsClass(use_item,&ColdRing)
-            OR IsClass(use_item,&Robes))
-            AND ptBlizzardDamageTimer <> $
-         {
-            Post(what,@MsgSendUser,#message_rsc=DesertUseColdRing_msg);
-         }
-         if (IsClass(use_item,&AcidRing)
-            OR IsClass(use_item,&SimpleHelm))
-            AND ptAcidRainDamageTimer <> $
-         {
-            Post(what,@MsgSendUser,#message_rsc=DesertUseAcidRing_msg);
+            if NOT Send(i,@ReqSomethingUse,#what=what,#use_item=use_item);
+            {
+               return FALSE;
+            }
          }
       }
 
@@ -582,26 +265,24 @@ messages:
 
    SpellCast(who = $,oSpell = $)
    {
-      if IsClass(who,&Player)
+      local i;
+      
+      foreach i in plObject_attributes
       {
-         if IsClass(oSpell,&ResistFire)
-            AND ptHeatDamageTimer <> $
+         % This area gives special messages to inform players
+         % of threat avoidance.
+         if IsClass(i,&RoomThreat)
          {
-            Post(who,@MsgSendUser,#message_rsc=DesertCastResistFire_msg);
-         }
-         if IsClass(oSpell,&ResistCold)
-            AND ptBlizzardDamageTimer <> $
-         {
-            Post(who,@MsgSendUser,#message_rsc=DesertCastResistCold_msg);
-         }
-         if IsClass(oSpell,&ResistAcid)
-            AND ptAcidRainDamageTimer <> $
-         {
-            Post(who,@MsgSendUser,#message_rsc=DesertCastResistAcid_msg);
+            Send(i,@SpellCast,#who=who,#oSpell=oSpell);
          }
       }
 
       propagate;
+   }
+
+   GetRegion()
+   {
+      return RID_DESERT;
    }
 
 end
