@@ -113,7 +113,9 @@ messages:
    StartThreat(cClass=&ShockStorm,report=TRUE)
    {
       % Don't start a threat if one already exists.
-      if cClass <> $
+      % Don't start threats with no players present.
+      if pbUser_in_room
+         AND cClass <> $
          AND NOT Send(self,@HasObjectAttribute,#cClass=&RoomThreat)
          AND NOT Send(self,@HasObjectAttribute,#cClass=&RoomStorm)
       {
