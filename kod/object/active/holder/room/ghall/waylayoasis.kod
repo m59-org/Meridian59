@@ -126,6 +126,8 @@ classvars:
 
 properties:
 
+   vrWading_Sound = water_wading_sound
+
    piBaseLight = LIGHT_DARK
    piOutside_factor = OUTDOORS_5 
 
@@ -653,6 +655,11 @@ messages:
             Send(self,@SetSectorFlags,#sector=13,#depth=SF_DEPTH0,
                   #scrollSpeed=SCROLL_NONE);
 
+
+            % Give snow some depth and walking sounds.
+            Send(self,@SetSectorFlags,#sector=0,#depth=SF_DEPTH1,
+                  #scrollSpeed=SCROLL_NONE);
+            vrWading_Sound = snow_walk_sound;
             % Remove waterfall sound.
             Send(self,@RemoveLoopingSound,#sound_rsc=waterfall_sound_oasis);
          }
@@ -674,6 +681,10 @@ messages:
          Send(self,@RemoveAnimateWallChange,#wall=14);
          % Reset sector flag changes to sludge water.
          Send(self,@RemoveSectorFlagChange,#id=13);
+
+         % Remove snow depth and walking sounds.
+         Send(self,@RemoveSectorFlagChange,#id=0);
+         vrWading_Sound = water_wading_sound;
 
          % Begin waterfall sound.
          Send(self,@AddLoopingSound,

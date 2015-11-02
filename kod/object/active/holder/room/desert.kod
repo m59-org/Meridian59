@@ -40,6 +40,8 @@ classvars:
 
 properties:
 
+   vrWading_Sound = water_wading_sound
+
    pbSnowGroundTexture = TRUE
    prMusic = desert_music
 
@@ -183,6 +185,11 @@ messages:
             % Stop water scroll effect and remove depth.
             Send(self,@SetSectorFlags,#sector=13,#depth=SF_DEPTH0,
                   #scrollSpeed=SCROLL_NONE);
+
+            % Give snow some depth and walking sounds.
+            Send(self,@SetSectorFlags,#sector=0,#depth=SF_DEPTH1,
+                  #scrollSpeed=SCROLL_NONE);
+            vrWading_Sound = snow_walk_sound;
          }
       }
 
@@ -202,6 +209,10 @@ messages:
          Send(self,@RemoveAnimateWallChange,#wall=14);
          % Reset sector flag changes to sludge water.
          Send(self,@RemoveSectorFlagChange,#id=13);
+
+         % Remove snow depth and walking sounds.
+         Send(self,@RemoveSectorFlagChange,#id=0);
+         vrWading_Sound = water_wading_sound;
       }
 
       propagate;
