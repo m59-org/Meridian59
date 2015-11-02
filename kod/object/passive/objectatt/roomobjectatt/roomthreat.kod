@@ -32,6 +32,8 @@ resources:
    default_good_spell_use_msg = \
       "That spell was a smart idea. You're smart. I like you. I mean, the "
       "threat likes you. Or hates you less, as it were. You get the idea."
+   default_death_msg = \
+      "~B~U~k[###]~n ~B~v%s died to a generic threat! What a loser!"
 
 classvars:
 
@@ -41,6 +43,8 @@ classvars:
    
    viGoodItemUseMsg = default_good_item_use_msg
    viGoodSpellUseMsg = default_good_spell_use_msg
+
+   viDeathMsg = default_death_msg
 
 properties:
 
@@ -133,7 +137,8 @@ messages:
             % We killed someone!
             if iDamageResult = $
             {
-               Send(First(i),@Killed,#what=First(i));
+               Send(First(i),@Killed);
+               Send(self,@SendDeathMessage,#who=First(i));
             }
          }
       }
@@ -235,6 +240,20 @@ messages:
       }
 
       propagate;
+   }
+   
+   SendDeathMessage(who=$)
+   {
+      local i;
+
+      % Threats have custom death messages, for funsies.
+      foreach i in Send(SYS,@GetUsersLoggedOn)
+      {
+         Send(i,@MsgSendUser,#message_rsc=viDeathMsg,
+               #parm1=Send(who,@GetName));
+      }
+
+      return;
    }
 
 end

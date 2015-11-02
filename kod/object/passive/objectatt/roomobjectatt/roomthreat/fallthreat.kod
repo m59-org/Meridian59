@@ -40,6 +40,9 @@ resources:
       "As you fall to your doom, you have time only to regret your "
       "choice of step."
 
+   fell_death_msg = \
+      "~B~U~k[###]~n ~B~v%s fell to %s doom."
+
 classvars:
 
    vrName = fall_threat_name_rsc
@@ -48,6 +51,8 @@ classvars:
 
    viThreatBeginMsg = fall_threat_begin_msg
    viThreatEndMsg = fall_threat_end_msg
+
+   viDeathMsg = fell_death_msg
 
 properties:
 
@@ -118,7 +123,8 @@ messages:
    PlayerFell(who=$)
    {
       Send(who,@MsgSendUser,#message_rsc=fell_msg);
-      Send(who,@Killed,#what=who);
+      Send(who,@Killed);
+      Send(self,@SendDeathMessage,#who=who);
       return;
    }
    
@@ -164,6 +170,20 @@ messages:
       }
 
       propagate;
+   }
+   
+   SendDeathMessage(who=$)
+   {
+      local i;
+
+      % Need an extra parameter for HisHer
+      foreach i in Send(SYS,@GetUsersLoggedOn)
+      {
+         Send(i,@MsgSendUser,#message_rsc=viDeathMsg,#parm1=Send(who,@GetName),
+               #parm2=Send(who,@GetHisHer));
+      }
+
+      return;
    }
 
 end

@@ -50,6 +50,9 @@ resources:
    lava_catastrophic_damage_msg = \
       "~B~rYou are cooking from the inside out!~B"
 
+   lava_death_msg = \
+      "~B~U~k[###]~n ~B~v%s was cooked alive by the heat of molten lava."
+      
    flame_sound = fire02.wav
 
 classvars:
@@ -61,6 +64,8 @@ classvars:
    viThreatBeginMsg = lava_threat_begin_msg
    viThreatEndMsg = lava_threat_end_msg
    viThreatDamageMsg = lava_threat_damage_msg
+
+   viDeathMsg = lava_death_msg
 
 properties:
 
@@ -164,7 +169,7 @@ messages:
 
    DealLavaHeatDamage(who=$)
    {
-      local iHeight, iInitialDamage, iDamage, iDamageResult;
+      local iHeight, iInitialDamage, iDamage, iDamageResult, i;
       
       iHeight = Send(who,@GetHeightAtObject);
 
@@ -228,7 +233,8 @@ messages:
       
       if iDamageResult = $
       {
-         Send(who,@Killed,#what=who);
+         Send(who,@Killed);
+         Send(self,@SendDeathMessage,#who=who);
       }
    
       return;
