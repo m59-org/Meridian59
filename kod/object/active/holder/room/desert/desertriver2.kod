@@ -110,13 +110,6 @@ resources:
       "This is a place of fire and death, and you know instinctively "
       "that ~Ba single misstep here could get you killed."
 
-   cannot_phase_here = \
-      "The fabric of reality here rages chaotically around the epicenter of a "
-      "rupture. You cannot risk phasing out unless you can manage to reach "
-      "the convergence itself."
-   phase_success = \
-      "You phase out of this plane of existence - and directly into another!"
-
    prism_opened_msg = \
       "~r~BThe earth rumbles, and the lava below begins churning fiercely."
    prism_closed_msg = \
@@ -239,7 +232,8 @@ messages:
          ptFireElementsTimer = CreateTimer(self,@CreateRandomFire,1000);
       }
 
-      Post(self,@StartThreat,#cClass=&FallThreat,#report=FALSE);
+      Post(self,@StartThreat,#cClass=&FallThreat,#report=FALSE,#iDuration=$);
+      Post(self,@StartThreat,#cClass=&PhaseThreat,#report=FALSE,#iDuration=$);
 
       propagate;
    }
@@ -621,47 +615,6 @@ messages:
       return;
    }
 
-   ReqSpellCast(who = $, oSpell = $)
-   {
-      local iQflags, iRflags, iHeightF, iHeightFWD, iHeightC, iServerID;
-
-      if IsClass(oSpell,&Phase)
-      {
-         if NOT IsClass(who,&Player)
-         {
-            propagate;
-         }
-
-         iQflags = LIQ_GET_SECTORINFO;
-
-         if GetLocationInfoBSP(
-                      prmRoom, iQflags, Send(who,@GetRow),
-                      Send(who,@GetCol),
-                      Send(who,@GetFineRow),
-                      Send(who,@GetFineCol),
-                      *iRflags, *iHeightF, *iHeightFWD, *iHeightC, *iServerID)
-         {
-            if iServerID = 46
-               AND pbPrismOpen
-            {
-               Post(who,@MsgSendUser,#message_rsc=phase_success);
-               Post(Send(SYS,@FindRoomByNum,#num=RID_ELEMENTAL_DUNGEON1),
-                     @Teleport,#what=who);
-               Post(who,@EffectSendUserDuration,#effect=EFFECT_WHITEOUT,
-                     #duration=1250);
-               return FALSE;
-            }
-            else
-            {
-               Send(who,@MsgSendUser,#message_rsc=cannot_phase_here);
-               return FALSE;
-            }
-         }
-      }
-
-      propagate;
-   }
-   
    PrismOfFireDefeated()
    {
       local i;
@@ -757,6 +710,18 @@ messages:
    GetPrismOfFireDefeated()
    {
       return pbPrismOfFireDefeated;
+   }
+   
+   SpecialPhaseConditionsSatisfied(sector=0)
+   {
+      % Special Phase conditions
+      if sector=46
+         AND pbPrismOpen
+      {
+         return TRUE;
+      }
+
+      return FALSE;
    }
 
 end

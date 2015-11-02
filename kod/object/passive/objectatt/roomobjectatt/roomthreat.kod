@@ -57,6 +57,7 @@ properties:
    piDamageMax = 14
    
    % How often do we deal damage?
+   pbDealDamage = TRUE
    piDamageTime = 3000
    ptDamageTimer = $
    
@@ -79,13 +80,16 @@ properties:
 
 messages:
 
-   Constructor(iDuration=$,iPower=$,report=TRUE,host_object=$)
+   Constructor(iDuration=0,iPower=$,report=TRUE,host_object=$)
    {
       local i;
 
       % $ iDuration means indefinite
-      if iDuration <> $
-         AND iDuration > 0
+      if iDuration = $
+      {
+         ptThreatTimer = $;
+      }
+      else if iDuration > 0
       {
          ptThreatTimer = CreateTimer(self,@EndThreat,iDuration);
       }
@@ -109,7 +113,11 @@ messages:
 %      plSpecialExemptItemClasses = [&RingOfLethargy];
 %      plSpecialSpellClasses = [&ResistCold];
 
-      ptDamageTimer = CreateTimer(self,@DealDamage,piDamageTime);
+      if pbDealDamage
+      {
+         ptDamageTimer = CreateTimer(self,@DealDamage,piDamageTime);
+      }
+
       propagate;
    }
 
