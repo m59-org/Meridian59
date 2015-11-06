@@ -25,6 +25,10 @@ constants:
    MEDIUM_DAMAGE = 6000
    HIGH_DAMAGE = 9000
 
+   LOW_VIGOR_DRAIN = 50000
+   MEDIUM_VIGOR_DRAIN = 100000
+   HIGH_VIGOR_DRAIN = 200000
+
 resources:
 
    lava_threat_name_rsc = "molten lava"
@@ -88,6 +92,9 @@ properties:
    % If this isn't Abyssal Bore, use rumble duration sent at creation.
    piRumbleDuration = 3000
 
+   % This threat drains vigor, but it usually changes based on height.
+   piVigorDrop = 50000
+
 messages:
 
    Constructor(iHeight=4000,iDamage=50000,iRumbleDuration=3000)
@@ -127,11 +134,6 @@ messages:
       return;
    }
 
-   ApplyDirectEffect(who=$)
-   {
-      propagate;
-   }
-
    DoLavaRumble()
    {
       local iDuration;
@@ -169,42 +171,51 @@ messages:
 
    DealLavaHeatDamage(who=$)
    {
-      local iHeight, iInitialDamage, iDamage, iDamageResult, i;
+      local iHeight, iInitialDamage, iDamage, iDamageResult, i,
+            iInitialVigorDrain, iVigorDrain;
       
       iHeight = Send(who,@GetHeightAtObject);
 
-      % Abyssal Bore is primary home to this lava threat.
+      % Abyssal Bore is the primary home to this lava threat.
       if IsClass(poHostObject,&DesertRiver2)
       {
          switch(Send(SYS,@GetDayPhase))
          {
             case DAY_PHASE_DAWN:
                iInitialDamage = MEDIUM_DAMAGE;
+               iInitialVigorDrain = MEDIUM_VIGOR_DRAIN;
                break;
             case DAY_PHASE_DAY:
                % The heat threat is much worse while the rift is active.
                iInitialDamage = HIGH_DAMAGE;
+               iInitialVigorDrain = HIGH_VIGOR_DRAIN;
                break;
             case DAY_PHASE_DUSK:
                iInitialDamage = MEDIUM_DAMAGE;
+               iInitialVigorDrain = MEDIUM_VIGOR_DRAIN;
                break;
             case DAY_PHASE_NIGHT:
                % The rift is weaker at night, as the Prism of Ice is dominant.
                iInitialDamage = LOW_DAMAGE;
+               iInitialVigorDrain = LOW_VIGOR_DRAIN;
                break;
          }
       }
       else
       {
          iInitialDamage = piLavaDamageMax;
+         iInitialVigorDrain = piVigorDrop;
       }
 
       iDamage = iInitialDamage;
+      iVigorDrain = iInitialVigorDrain;
 
       if piRoomMaxHeight > 0
       {
          iDamage = Bound(iDamage - 
                    ((iDamage * ((iHeight*100)/piRoomMaxHeight))/100),1,$);
+         iVigorDrain = Bound(iVigorDrain - 
+                   ((iVigorDrain * ((iHeight*100)/piRoomMaxHeight))/100),1,$);
       }
       
       if iDamage >= (iInitialDamage * 3 / 4)
@@ -225,7 +236,8 @@ messages:
       }
 
       Send(who,@WaveSendUser,#wave_rsc=flame_sound);
-      
+
+      Send(who,@AddExertion,#amount=iVigorDrain);
       iDamageResult = Send(who,@AssessDamage,#what=self,
                             #damage=iDamage,
                             #aspell=ATCK_SPELL_FIRE,#report=FALSE,
