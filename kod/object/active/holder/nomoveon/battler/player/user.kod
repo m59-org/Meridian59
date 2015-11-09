@@ -2903,6 +2903,12 @@ messages:
          {
             return MM_NONE;
          }
+         
+         if poOwner <> $
+            AND Send(poOwner,@OverridesPlayerMinimapDot)
+         {
+            return Send(poOwner,@ChoosePlayerMinimapDot,#who=self,#what=what);
+         }
 
          oIllusion = Send(what,@GetIllusionForm);
 
