@@ -5,6 +5,6 @@
 !include $(TOPDIR)\common.mak
 
 DEPEND = ..\deserttwn.bof
-BOFS  = nomadwiseman.bof
+BOFS  = nomadwiseman.bof xaerdunafterlife.bof
 
 !include $(KODDIR)\kod.mak

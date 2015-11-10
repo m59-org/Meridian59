@@ -2695,6 +2695,11 @@ messages:
          {
             Send(self,@TeleportTo,#RID=RID_NEWB1,#bAdminPort=FALSE);
          }
+         else if iRoom >= RID_DESERT AND iRoom <= RID_DESERT_END
+         {
+            Send(self,@TeleportTo,#RID=RID_DESERTALDUNES,#bAdminPort=FALSE);
+            Post(self,@ApplyDeathPenalties);
+         }
          else
          {
             oNew_room = Send(SYS,@FindRoomByNum,#num=RID_UNDERWORLD);
@@ -2716,6 +2721,14 @@ messages:
          oRoom = Send(SYS,@FindRoomByNum,#num=RID_NEWB1);
          piSave_Row = Send(oRoom,@GetTeleportRow);
          piSave_Col = Send(oRoom,@GetTeleportCol);
+      }
+      else if iRoom >= RID_DESERT AND iRoom <= RID_DESERT_END
+      {
+         piSave_Room = RID_DESERTALDUNES;
+         oRoom = Send(SYS,@FindRoomByNum,#num=RID_DESERTALDUNES);
+         piSave_Row = Send(oRoom,@GetTeleportRow);
+         piSave_Col = Send(oRoom,@GetTeleportCol);
+         Post(self,@ApplyDeathPenalties);
       }
       else
       {

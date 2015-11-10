@@ -209,9 +209,14 @@ messages:
       propagate;
    }
 
-   GetPhaseThreat()
+   GetPhaseThreats()
    {
-      return &LavaThreat;
+      if pbPrismOfFireDefeated
+      {
+         return [&HeatStorm];
+      }
+
+      return [&LavaThreat, &FallThreat, &PhaseThreat];
    }
    
    NewHold(what = $)
@@ -233,9 +238,6 @@ messages:
          ptFireElementsTimer = CreateTimer(self,@CreateRandomFire,1000);
       }
 
-      Post(self,@StartThreat,#cClass=&FallThreat,#report=FALSE,#iDuration=$);
-      Post(self,@StartThreat,#cClass=&PhaseThreat,#report=FALSE,#iDuration=$);
-
       propagate;
    }
 
@@ -248,21 +250,6 @@ messages:
       }
 
       propagate;
-   }
-
-   StartThreat(cClass=&ShockStorm,report=TRUE)
-   {
-      % This area can have multiple threats of different types.
-      % But no threats at all if prism has been defeated.
-      if pbUser_in_room
-         AND cClass <> $
-         AND NOT Send(self,@HasObjectAttribute,#cClass=cClass)
-         AND NOT pbPrismOfFireDefeated
-      {
-         Create(cClass,#host_object=self,#iDuration=$,#report=report);
-      }
-
-      return;
    }
 
    SomethingMoved(what=$,new_row=0,new_col=0,fine_row=0,fine_col=0)

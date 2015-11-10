@@ -181,7 +181,7 @@ messages:
       if piPreviousPhase <> SysDayPhase
       {
          Send(self,@EndAllThreats);
-         Send(self,@StartThreat,#cClass=Send(self,@GetPhaseThreat));
+         Send(self,@StartThreat,#cClasses=Send(self,@GetPhaseThreats));
          
          prMusic = Send(self,@GetPhaseMusic);
          foreach i in plActive
@@ -213,37 +213,43 @@ messages:
       return desert_music;
    }
    
-   GetPhaseThreat()
+   GetPhaseThreats()
    {
       switch(Send(SYS,@GetDayPhase))
       {
          case DAY_PHASE_DAWN:
-            return &ShockStorm;
+            return [&ShockStorm];
          case DAY_PHASE_DAY:
             if Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTRIVER2),
                      @GetPrismOfFireDefeated)
             {
-               return &HeatStorm;
+               return [&HeatStorm];
             }
-            return &HeatThreat;
+            return [&HeatThreat];
          case DAY_PHASE_DUSK:
-            return &AcidThreat;
+            return [&AcidThreat];
          case DAY_PHASE_NIGHT:
-            return &ColdThreat;
+            return [&ColdThreat];
       }
-      return &ShockStorm;
+      return [&ShockStorm];
    }
 
-   StartThreat(cClass=&ShockStorm,report=TRUE)
+   StartThreat(cClasses=$,report=TRUE)
    {
-      % Don't start a threat if one already exists.
+      local i;
+
+      % Don't start same threat if one already exists.
       % Don't start threats with no players present.
       if pbUser_in_room
-         AND cClass <> $
-         AND NOT Send(self,@HasObjectAttribute,#cClass=&RoomThreat)
-         AND NOT Send(self,@HasObjectAttribute,#cClass=&RoomStorm)
+         AND cClasses <> $
       {
-         Create(cClass,#host_object=self,#iDuration=$,#report=report);
+         foreach i in cClasses
+         {
+            if NOT Send(self,@HasObjectAttribute,#cClass=i)
+            {
+               Create(i,#host_object=self,#iDuration=$,#report=report);
+            }
+         }
       }
 
       return;
@@ -276,7 +282,8 @@ messages:
 
    FirstUserEntered()
    {
-      Post(self,@StartThreat,#cClass=Send(self,@GetPhaseThreat),#report=FALSE);
+      Post(self,@StartThreat,#cClasses=Send(self,@GetPhaseThreats),
+            #report=FALSE);
 
       propagate;
    }
