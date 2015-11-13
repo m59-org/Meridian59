@@ -7781,13 +7781,23 @@ messages:
    SomethingShot(who=$, target=$, projectile=$, flags=PROJ_FLAG_NONE,
                  iLightIntensity=0, iLightColor=0)
    {
-      local iValue;
+      local iValue, iProjectileLightColor;
 
       % This happened in the past.  Ignore this, because Sending nil in a
       %  packet is bad.
       if target = $
       {
          propagate;
+      }
+      
+      if poOwner <> $
+         AND Send(poOwner,@LightingColorOverride)
+      {
+         iProjectileLightColor = Send(poOwner,@GetLightingColorOverride);
+      }
+      else
+      {
+         iProjectileLightColor = Send(projectile,@GetProjectileLightColor);
       }
 
       AddPacket(1,BP_SHOOT,4,Send(projectile,@GetProjectileIcon));
@@ -7809,7 +7819,7 @@ messages:
             % Flags, Intensity, color
             AddPacket(2,iValue,
                       1,Send(projectile,@GetProjectileLightIntensity),
-                      2,Send(projectile,@GetProjectileLightColor));
+                      2,iProjectileLightColor);
          }
          else
          {
@@ -7835,6 +7845,12 @@ messages:
 
       AddPacket(1,BP_RADIUS_SHOOT,4,Send(projectile,@GetProjectileIcon));
       Send(projectile,@SendProjectileAnimation);
+      
+      if poOwner <> $
+         AND Send(poOwner,@LightingColorOverride)
+      {
+         iLightColor = Send(poOwner,@GetLightingColorOverride);
+      }
 
       % Send shooter.
       AddPacket(4,who,1,speed,2,(flags & 0x000F),1,range,1,number);

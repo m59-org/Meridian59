@@ -78,14 +78,57 @@ properties:
 
    pbSnowGroundTexture = FALSE
    prMusic = desert_afterlife_music
-   prBackground = background_stormy_sky
 
 messages:
 
-   RecalcBackgroundSkyGraphic()
+   NewHoldObject(what = $)
    {
-      prBackground = background_stormy_sky;
-      return;
+      local oGreyGhost;
+      
+      if IsClass(what,&User)
+      {
+         oGreyGhost = Send(SYS,@FindSpellByNum,#num=SID_GREY_GHOST);
+         
+         if oGreyGhost <> $
+            AND NOT Send(what,@IsEnchanted,#what=oGreyGhost)
+         {
+            Post(oGreyGhost,@CastSpell,#who=self,#lTargets=[what],
+                  #report=TRUE);
+         }
+      }
+      else
+      {
+         Send(what,@AddDrawingEffects,#value=DRAWFX_SECONDTRANS);
+      }
+
+      propagate;
+   }
+   
+   LeaveHold(what = $)
+   {
+      local oGreyGhost;
+
+      if IsClass(what,&User)
+      {
+         oGreyGhost = Send(SYS,@FindSpellByNum,#num=SID_GREY_GHOST);
+         
+         if oGreyGhost <> $
+            AND Send(what,@IsEnchanted,#what=oGreyGhost)
+         {
+            Post(oGreyGhost,@CastSpell,#who=self,#lTargets=[what],
+                  #report=TRUE);
+         }
+      }
+      else
+      {
+         Post(what,@RemoveDrawingEffects,#value=DRAWFX_SECONDTRANS);
+         if Send(what,@GetOwner) <> $
+         {
+            Post(Send(what,@GetOwner),@SomethingChanged,#what=what);
+         }
+      }
+
+      propagate;
    }
 
    StartRain()
@@ -164,6 +207,17 @@ messages:
    CanHavePlayerPortal()
    {
       return FALSE;
+   }
+   
+   LightingColorOverride()
+   {
+      % No colors if we can help it.
+      return TRUE;
+   }
+   
+   GetLightingColorOverride(what=$)
+   {
+      return LIGHT_WHITE;
    }
 
 end
