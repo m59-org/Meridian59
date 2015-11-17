@@ -168,7 +168,7 @@ properties:
    vrDead_Icon = LostSoul_dead_male_icona_rsc
    vrDead_Legs = LostSoul_dead_male_iconb_rsc
 
-   viLevel = 75
+   viLevel = 200
    viDifficulty = 5
    viVisionDistance = 3
    % Attack range of 192, or 3 row/col.
@@ -296,8 +296,7 @@ messages:
    ShowDesc()
    {
       % Does not show status information, because it has none.
-      AddPacket(4,vrDesc, 4,prProfession, 4,monster_desc_level,
-                4,Bound(viLevel,20,150));
+      AddPacket(4,vrDesc, 4,prProfession, 4,monster_nothing);
 
       return;
    }
@@ -722,33 +721,6 @@ messages:
 
    SetEquipment()
    {
-      local oEquipmentItem, iRandomNumber, HelmetHair;
-
-      iRandomNumber = random(1,10);
-      if iRandomNumber <= 3
-      {
-         oEquipmentItem = create(&Longsword);
-      }
-      else if iRandomNumber <= 6
-      {
-         oEquipmentItem = create(&Hammer);
-      }
-      else
-      {
-         oEquipmentItem = create(&Axe);
-      }
-
-      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
-
-      % base 20% chance to be a soldier type statue.
-      if random(1,100) <= SOLDIER_PERCENT
-         OR pbIsSoldier
-      {
-         pbIsSoldier = TRUE;
-         oEquipmentItem = create(&Robe);
-
-         Send(self,@SetStatueArmor,#NewArmor=oEquipmentItem);
-      }
 
       return;
    }
