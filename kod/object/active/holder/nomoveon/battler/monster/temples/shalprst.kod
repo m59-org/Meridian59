@@ -55,6 +55,10 @@ resources:
       "The benevolence of Shal'ille offers %s%s%s%s%s%s%s%s%s%s%s%s at that "
       "level."
 
+   shalillepriestess_summon = "~bI shall aid you in your time of weakness."
+   shalillepriestess_summoned = \
+      "A benevolent light gently sets your corpse at your feet!"
+
 classvars:
 
    vrTeach_message = shalillepriestess_teach
@@ -272,6 +276,31 @@ messages:
       if Send(who,@CheckPlayerFlag,#flag=PFLAG_OUTLAW)
       {
          Send(self,@SetMood,#new_mood=piMood-1);
+      }
+
+      propagate;
+   }
+
+   SomeoneSaid(what=$,type=$,string=$)
+   {
+      local oCorpse;
+
+      if type = SAY_YELL OR NOT IsClass(what,&User)
+      {
+          propagate;
+      }
+
+      if StringContain(string,"summon")
+         AND what <> $
+         AND IsClass(what,&User)
+         AND Send(what,@GetCorpse) <> $
+      {
+         Send(poOwner,@SomeoneSaid,#what=self,#type=SAY_RESOURCE,
+		       #string=shalillepriestess_summon);
+         oCorpse = Send(what,@GetCorpse);
+         Send(poOwner,@NewHold,#what=oCorpse,#new_row=Send(what,@GetRow),
+               #new_col=Send(what,@GetCol));
+         Send(what,@MsgSendUser,#message_rsc=shalillepriestess_summoned);
       }
 
       propagate;

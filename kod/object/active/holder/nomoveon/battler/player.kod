@@ -1089,6 +1089,9 @@ properties:
    % Players will naturally fall out of groups if they aren't getting kills
    ptLeaveBuilderGroupTimer = $
 
+   % Player's last corpse
+   poCorpse = $
+
    % Time remaining phased out
    ptPhaseTimer = $
    ptPhaseVisualEffectTimer = $
@@ -9409,7 +9412,17 @@ messages:
       }
 
       % Create the corpse.
-      oBody = Send(self,@CreateCorpse);
+      if what <> $
+         AND IsClass(what,&User)
+      {
+         oBody = Send(self,@CreateCorpse,#oPlayerKiller=what);
+      }
+      else
+      {
+         oBody = Send(self,@CreateCorpse);
+      }
+      poCorpse = oBody;
+
       Send(oRoom,@NewHold,#what=oBody,#new_row=iRow,#new_col=iCol,
             #fine_row=iFine_Row,#fine_col=iFine_Col,#new_angle=iAngle);
 
@@ -9471,9 +9484,7 @@ messages:
                               #state1=self);
                      }
 
-                     Send(oRoom,@NewHold,#what=i,#merge=FALSE,
-                           #new_row=iRow,#new_col=iCol,
-                           #fine_row=iFine_row,#fine_col=iFine_col);
+                     Send(oBody,@NewHold,#what=i);
                   }
                }
             }
@@ -9766,7 +9777,7 @@ messages:
       return piDeathCost;
    }
 
-   CreateCorpse(Assassinated=FALSE)
+   CreateCorpse(Assassinated=FALSE, oPlayerKiller=$)
    {
       local inKocatan;
 
@@ -14938,6 +14949,17 @@ messages:
       }
 
       return;
+   }
+
+   SetCorpse(corpse=$)
+   {
+      poCorpse = corpse;
+      return;
+   }
+
+   GetCorpse()
+   {
+      return poCorpse;
    }
 
 end
