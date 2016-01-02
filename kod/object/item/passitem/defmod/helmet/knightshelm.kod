@@ -52,26 +52,105 @@ classvars:
 
 properties:
 
+   prSaveEyes = $
+   prSaveNose = $
+   prSaveMouth = $
 
 messages:
 
+   ReqUseSomething(what = $)
+   {
+      if IsClass(what,&DefenseModifier)
+         AND Send(what,@GetItemUseType) & ITEM_USE_HEAD
+      {
+         if Send(poOwner,@TryUnuseItem,#what=self)
+         {
+            propagate;
+         }
+         else
+         {
+            return FALSE;
+         }
+      }
+
+      propagate;
+   }
+
+   ReqUse()
+   {
+      local i;
+      
+      if IsClass(poOwner,&Player)
+      {
+         foreach i in Send(poOwner,@GetPlayerUsing)
+         {
+            if IsClass(i,&DefenseModifier)
+               AND Send(i,@GetItemUseType) & ITEM_USE_HEAD
+            {
+               Send(poOwner,@TryUnuseItem,#what=i);
+            }
+         }
+      }
+
+      propagate;
+   }
+
    NewUsed()
    {
+      prSaveEyes = Send(poOwner,@GetEyesRsc);
+      prSaveNose = Send(poOwner,@GetNoseRsc);
+      prSaveMouth = Send(poOwner,@GetMouthRsc);
+
+      Send(poOwner,@SetEyes,#eyes=admin_icon_blank);
+      Send(poOwner,@SetNose,#nose=admin_icon_blank);
+      Send(poOwner,@SetMouth,#mouth=admin_icon_blank);
       Send(poOwner,@RemoveHair,#what=self);
+
+      if Send(poOwner,@GetGender) = GENDER_FEMALE
+      {
+         Send(poOwner,@SetHead,#head=vrFemaleIcon);
+      }
+
+      if Send(poOwner,@GetGender) = GENDER_MALE
+      {
+         Send(poOwner,@SetHead,#head=vrMaleIcon);
+      }
 
       propagate;
    }
 
    NewUnused()
    {
+      Send(poOwner,@SetEyes,#eyes=prSaveEyes);
+      Send(poOwner,@SetNose,#nose=prSaveNose);
+      Send(poOwner,@SetMouth,#mouth=prSaveMouth);
       Send(poOwner,@ResetHair,#what=self);
+
+      prSaveEyes = $;
+      prSaveNose = $;
+      prSaveMouth = $;
+
+      if Send(poOwner,@GetGender) = GENDER_FEMALE
+      {
+         Send(poOwner,@SetHead,#head=charinfo_head_kx_icon);
+      }
+
+      if Send(poOwner,@GetGender) = GENDER_MALE
+      {
+         Send(poOwner,@SetHead,#head=charinfo_head_ax_icon);
+      }
 
       propagate;
    }
 
    GetOverlayHotspot(animation = $)
    {
-      return HS_HEAD;
+      return HS_HELM;
+   }
+
+   GetOverlay(animation = $)
+   {
+      return admin_icon_blank;
    }
 
    GetResistanceModifiers()
