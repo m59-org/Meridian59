@@ -52,10 +52,6 @@ classvars:
 
 properties:
 
-   prSaveEyes = $
-   prSaveNose = $
-   prSaveMouth = $
-
 messages:
 
    ReqUseSomething(what = $)
@@ -97,50 +93,21 @@ messages:
 
    NewUsed()
    {
-      prSaveEyes = Send(poOwner,@GetEyesRsc);
-      prSaveNose = Send(poOwner,@GetNoseRsc);
-      prSaveMouth = Send(poOwner,@GetMouthRsc);
-
-      Send(poOwner,@SetEyes,#eyes=admin_icon_blank);
-      Send(poOwner,@SetNose,#nose=admin_icon_blank);
-      Send(poOwner,@SetMouth,#mouth=admin_icon_blank);
       Send(poOwner,@RemoveHair,#what=self);
-
-      if Send(poOwner,@GetGender) = GENDER_FEMALE
-      {
-         Send(poOwner,@SetHead,#head=vrFemaleIcon);
-      }
-
-      if Send(poOwner,@GetGender) = GENDER_MALE
-      {
-         Send(poOwner,@SetHead,#head=vrMaleIcon);
-      }
 
       propagate;
    }
 
    NewUnused()
    {
-      Send(poOwner,@SetEyes,#eyes=prSaveEyes);
-      Send(poOwner,@SetNose,#nose=prSaveNose);
-      Send(poOwner,@SetMouth,#mouth=prSaveMouth);
       Send(poOwner,@ResetHair,#what=self);
 
-      prSaveEyes = $;
-      prSaveNose = $;
-      prSaveMouth = $;
-
-      if Send(poOwner,@GetGender) = GENDER_FEMALE
-      {
-         Send(poOwner,@SetHead,#head=charinfo_head_kx_icon);
-      }
-
-      if Send(poOwner,@GetGender) = GENDER_MALE
-      {
-         Send(poOwner,@SetHead,#head=charinfo_head_ax_icon);
-      }
-
       propagate;
+   }
+
+   GetNumberOverlays()
+   {
+      return 1;
    }
 
    GetOverlayHotspot(animation = $)
@@ -148,9 +115,19 @@ messages:
       return HS_HELM;
    }
 
-   GetOverlay(animation = $)
+   SendOverlayAnimation(animation = $)
    {
-      return admin_icon_blank;
+      if (piItem_flags & ITEM_PALETTE_MASK) <> 0
+      {
+         AddPacket(1,ANIMATE_TRANSLATION, 1,piItem_flags & ITEM_PALETTE_MASK,
+                   1,ANIMATE_NONE, 2,1);
+      }
+      else
+      {
+         AddPacket(1,ANIMATE_TRANSLATION, 1,0, 1,ANIMATE_NONE, 2,1);
+      }
+
+      return;
    }
 
    GetResistanceModifiers()
