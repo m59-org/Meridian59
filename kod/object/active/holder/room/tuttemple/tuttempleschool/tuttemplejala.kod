@@ -1,0 +1,110 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+TutorialTempleJala is TutorialTempleSchoolRoom
+
+constants:
+
+   include blakston.khd
+
+   DOOR = 1
+   DOOR_OPEN  = 388
+   DOOR_CLOSED = 308
+
+   LIFT_DELAY = 12000   % 12 seconds
+
+resources:
+
+   room_name_TutorialTempleJala = "Jala's Legacy"
+   room_TutorialTempleJala = tuttemplejala.roo
+   TutorialTempleJala_music = walk7.mp3
+
+   waterfall_sound_jala = wfall2.wav
+
+   TutorialTempleJala_enter = \
+      "There does not appear to be anyone here to instruct you, although "
+      "saying 'take Jala' will still imbue you with the songs of Jala up "
+      "to level two. You may also temporarily try out the school's higher "
+      "level songs by casting them here."
+   TutorialTempleJala_leave = \
+      "You return to the Lost Magics chamber in the Temple of Knowledge."
+
+   take_jala_statement = "take Jala"
+
+   get_jala_flagship_spells_msg = \
+      "You have been temporarily granted these high level Jala songs: "
+      "mana convergence, rejuvenate, jig, restorate."
+   lose_jala_flagship_spells_msg = \
+      "The high level Jala songs you were granted slip from your mind."
+   already_have_jala_msg = \
+      "You are already an initiate of Jala. You must train your voice "
+      "to advance further."
+   take_jala_msg = \
+      "You hear Jala's singing on the distant winds of time."
+
+classvars:
+
+   vrName = room_name_TutorialTempleJala
+
+   viTeleport_row = 18
+   viTeleport_col = 21
+
+   viTerrain_type = TERRAIN_FOREST | TERRAIN_LAKE | TERRAIN_WATERFALL
+
+   viRoomSchool = SS_JALA
+   
+   viExitRID = RID_TUTORIAL_TEMPLE4
+   
+   vrEnterSchoolRoomMessage = TutorialTempleJala_enter
+   vrLeaveSchoolRoomMessage = TutorialTempleJala_leave
+   vrTakeSchoolStatement = take_jala_statement
+   
+   vrAlreadyHaveSchoolMsg = already_have_jala_msg
+   vrTakeSchoolMsg = take_jala_msg
+   
+   vrGetFlagshipSpellsMsg = get_jala_flagship_spells_msg
+   vrLoseFlagshipSpellsMsg = lose_jala_flagship_spells_msg
+
+properties:
+
+   prRoom = room_TutorialTempleJala
+   prMusic = TutorialTempleJala_music
+   piRoom_num = RID_TUTORIAL_TEMPLEJALA
+
+   piBaseLight = LIGHT_NICE
+   piOutside_factor = 8
+
+   piDirectional_percent = DIRECTIONAL_PERCENT_OUTDOORS
+
+messages:
+
+   Constructed()
+   {
+      plLooping_sounds = cons([ waterfall_sound_jala, 8, 43 ], plLooping_sounds );
+      plRoomSchoolSpells = [SID_MANA_CONVERGENCE,
+                            SID_REJUVENATE,
+                            SID_RESTORATE,
+                            SID_JIG];
+
+      propagate;
+   }
+
+   CreateStandardObjects()
+   {
+      Send(self,@NewHold,#what=Create(&Brazier),
+           #new_row=23,#new_col=48,#fine_row=32,#fine_col=32);
+      Send(self,@NewHold,#what=Create(&Brazier),
+           #new_row=26,#new_col=48,#fine_row=32,#fine_col=32);
+
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

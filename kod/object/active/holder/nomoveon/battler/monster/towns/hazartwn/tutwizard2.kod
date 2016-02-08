@@ -1,0 +1,97 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+TutorialWizard2 is HazarTown
+
+constants:
+
+   include blakston.khd
+
+   ANIM_WAVE = 1
+
+resources:
+
+   TutorialWizard2_name_rsc = "Jorath"
+   TutorialWizard2_icon_rsc = wndarkwi.bgf
+   TutorialWizard2_desc_rsc = \
+      "As a teacher and a mentor, Jorath is unmatched in the outer wilds. "
+      "At the behest of Princess Kateriina, he now focuses his efforts on "
+      "the training and preparation of new adventurers to the realm. "
+      "His words of wisdom will greatly assist you in your adventures."
+
+   TutWiz2_entry_welcome = \
+      "%s%s, there are many schools of talent in the world of Meridian. "
+      "These are not just abilities, but also philosophies. Here, we have "
+      "been permitted to teach you the basics of one of the four major "
+      "schools of thought."
+   TutWiz2_entry_qor_shal = \
+      "The goddesses of good and evil both hold great interest in new "
+      "arrivals such as yourself. Respectively, Shal'ille offers protective "
+      "and healing magics, in addition to holy energies that may be used to "
+      "strike down the undead and the unrighteous. Qor counters this offer "
+      "with power over death and violence. Acid, debilitation, and "
+      "stealth are her domains. In either case, utmost devotion "
+      "is required. You may align yourself with only one goddess, or you "
+      "may eschew them both for now. The choice is yours, %s%s."
+   TutWiz2_entry_faren_wc = \
+      "Lord Faren offers mastery of the elements with no compunction "
+      "over their use. Nature encompasses life, death, good, and evil without "
+      "compassion or regret. Mages of fire, ice, and lightning may serve "
+      "any agenda with the same freedom that warriors who employ the purely "
+      "physical arts enjoy. "
+      "Such practitioners of Weaponcraft require no magic at all to deal with "
+      "their foes, instead preferring blades and arrows for combat. In "
+      "either case, you will steer your own fate through strength alone."
+   TutWiz2_entry_combination = \
+      "No matter which path you choose, you may learn from these schools in "
+      "almost any combination as you continue to grow. Depending upon your "
+      "natural intelligence, "
+      "you may learn between two and five schools up to various "
+      "levels of power. Only conflicting devotions to Shal'ille and "
+      "Qor present an incompatible choice."
+   TutWiz2_entry_other_schools = \
+      "Finally, know that the world is vast, and that there are gods and "
+      "cultures we have no "
+      "access to here. We know of some of them, including Kraanan, the god "
+      "of battle magics, whose gifts you must earn, Riija, the lost god "
+      "of illusion, and Jala, the goddess of music and bards, whose temple "
+      "was destroyed by followers of Qor many years ago. Distant lands "
+      "also likely contain their own "
+      "pantheons and skills. Search out priestesses and teachers wherever "
+      "you go, and perhaps you shall find new and unknown powers."
+
+classvars:
+
+   vrName = TutorialWizard2_name_rsc
+   vrIcon = TutorialWizard2_icon_rsc
+   vrDesc = TutorialWizard2_desc_rsc
+
+messages:
+
+   UserEntered(who=$)
+   {
+      Post(who,@SomeoneSaid,#what=self,#string=TutWiz2_entry_welcome,
+            #type=SAY_RESOURCE,
+            #parm1=Send(who,@GetDef),#parm2=Send(who,@GetName));
+      Post(who,@SomeoneSaid,#what=self,#string=TutWiz2_entry_qor_shal,
+            #type=SAY_RESOURCE,
+            #parm1=Send(who,@GetDef),#parm2=Send(who,@GetName));
+      Post(who,@SomeoneSaid,#what=self,#string=TutWiz2_entry_faren_wc,
+            #type=SAY_RESOURCE);
+      Post(who,@SomeoneSaid,#what=self,#string=TutWiz2_entry_combination,
+            #type=SAY_RESOURCE);
+      Post(who,@SomeoneSaid,#what=self,#string=TutWiz2_entry_other_schools,
+            #type=SAY_RESOURCE);
+
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

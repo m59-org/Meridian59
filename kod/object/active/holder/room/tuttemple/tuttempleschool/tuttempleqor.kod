@@ -1,0 +1,194 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+TutorialTempleQor is TutorialTempleSchoolRoom
+
+constants:
+
+   include blakston.khd
+   include protocol.khd
+
+resources:
+
+   room_name_TutorialTempleQor = "Qor's Promise"
+   room_TutorialTempleQor = tuttempleqor.roo
+   TutorialTempleQor_music = nec02.mp3
+
+   TutorialTempleQor_locked_gate = \
+      "The gate has no visible means of opening, and the spikes atop it serve "
+      "as a sufficient deterrent to climbing over it."
+
+   TutorialTempleQor_locked_door = \
+      "As you attempt to use this door, you realize that, like this place, it "
+      "is simply a facsimile of the real location. You can't leave this way."
+
+   TutorialTempleQor_loop = necloop4.wav
+
+   TutorialTempleQor_enter = \
+      "You slink into the darkness of Qor's embrace. Study her gifts here, "
+      "and say 'take Qor' if you wish to pledge yourself to the path of "
+      "negative karma. You may return to the Temple of Knowledge by using "
+      "the exit to the north."
+   TutorialTempleQor_leave = \
+      "You return to the neutrality of the Temple of Knowledge."
+
+   TutorialTempleQor_take_Qor_statement = "take Qor"
+
+   get_qor_flagship_spells_msg = \
+      "You have been temporarily granted these high level Qor spells: "
+      "blind, invisibility, splash of acid, vampiric drain, and hold."
+   lose_qor_flagship_spells_msg = \
+      "The high level Qor spells you were granted slip from your mind."
+   take_qor_msg = \
+      "You pledge your allegiance to Qor, and are rewarded with "
+      "knowledge befitting an initiate."
+   cannot_take_qor_msg = \
+      "You are already an initiate of Shal'ille. You cannot take Qor spells."
+   already_qor_msg= \
+      "You are already an initiate of Qor. You must earn further knowledge."
+
+classvars:
+
+   vrName = room_name_TutorialTempleQor
+
+   viTeleport_row = 15
+   viTeleport_col = 19
+
+   viTerrain_type = TERRAIN_NECROPOLIS
+
+   viRoomSchool = SS_QOR
+   viCannotCombineSchool = SS_SHALILLE
+   
+   vrEnterSchoolRoomMessage = TutorialTempleQor_enter
+   vrLeaveSchoolRoomMessage = TutorialTempleQor_leave
+   vrTakeSchoolStatement = TutorialTempleQor_take_Qor_statement
+   
+   vrAlreadyHaveSchoolMsg = already_qor_msg
+   vrCannotTakeSchoolMsg = cannot_take_qor_msg
+   vrTakeSchoolMsg = take_qor_msg
+   
+   vrGetFlagshipSpellsMsg = get_qor_flagship_spells_msg
+   vrLoseFlagshipSpellsMsg = lose_qor_flagship_spells_msg
+
+   viRoomSchoolKarma = -10000
+
+properties:
+
+   prRoom = room_TutorialTempleQor
+   piRoom_num = RID_TUTORIAL_TEMPLEQOR
+
+   piBaseLight = LIGHT_DARK
+   piOutside_factor = 0
+
+   prMusic = TutorialTempleQor_music
+
+messages:
+
+   Constructed()
+   {
+      plLooping_sounds = [[ TutorialTempleQor_loop, 0, 0, 200, 100 ]];
+      plRoomSchoolSpells = [SID_INVISIBILITY,
+                            SID_BLIND,
+                            SID_SPLASH_OF_ACID,
+                            SID_VAMPIRIC_DRAIN,
+                            SID_HOLD];
+
+      propagate;
+   }
+
+   CreateStandardExits()
+   {
+      plEdge_exits = $;
+
+      plExits = $;
+
+      % Locked gate to the north
+      plExits = Cons([ 5, 20, ROOM_LOCKED_DOOR, 
+            TutorialTempleQor_locked_gate ],plExits);
+      plExits = Cons([ 5, 21, ROOM_LOCKED_DOOR,  
+            TutorialTempleQor_locked_gate ],plExits);
+
+      % Southwest abandoned building
+      plExits = Cons([ 19, 12, ROOM_LOCKED_DOOR,  
+            TutorialTempleQor_locked_door ],plExits);
+      plExits = Cons([ 20, 12, ROOM_LOCKED_DOOR,  
+            TutorialTempleQor_locked_door ],plExits);
+      plExits = Cons([ 20, 13, ROOM_LOCKED_DOOR,  
+            TutorialTempleQor_locked_door ],plExits);
+
+      % Northeast abandoned building
+      plExits = Cons([ 7, 23, ROOM_LOCKED_DOOR,  
+            TutorialTempleQor_locked_door ],plExits);
+      plExits = Cons([ 7, 24, ROOM_LOCKED_DOOR,  
+            TutorialTempleQor_locked_door ],plExits);
+      plExits = Cons([ 7, 26, ROOM_LOCKED_DOOR,  
+            TutorialTempleQor_locked_door ],plExits);
+      plExits = Cons([ 8, 26, ROOM_LOCKED_DOOR,  
+            TutorialTempleQor_locked_door ],plExits);
+      plExits = Cons([ 8, 27, ROOM_LOCKED_DOOR,  
+            TutorialTempleQor_locked_door ],plExits);
+      plExits = Cons([ 10, 27, ROOM_LOCKED_DOOR,  
+            TutorialTempleQor_locked_door ],plExits);
+      plExits = Cons([ 11, 27, ROOM_LOCKED_DOOR,  
+            TutorialTempleQor_locked_door ],plExits);
+      
+      % Southeast abandoned building
+      plExits = Cons([ 19, 26, ROOM_LOCKED_DOOR,  
+            TutorialTempleQor_locked_door ],plExits);
+      plExits = Cons([ 19, 27, ROOM_LOCKED_DOOR,  
+            TutorialTempleQor_locked_door ],plExits);
+      plExits = Cons([ 20, 27, ROOM_LOCKED_DOOR,  
+            TutorialTempleQor_locked_door ],plExits);
+      plExits = Cons([ 20, 26, ROOM_LOCKED_DOOR,  
+            TutorialTempleQor_locked_door ],plExits);
+
+      % To within the walls of castle brax.
+      plExits = Cons([ 13, 44, ROOM_LOCKED_DOOR,  
+            TutorialTempleQor_locked_door ],plExits);
+      plExits = Cons([ 14, 44, ROOM_LOCKED_DOOR,  
+            TutorialTempleQor_locked_door ],plExits);
+
+      propagate;
+   }
+
+   CreateStandardObjects()
+   {
+      Send(self,@NewHold,#what=Create(&Skull),
+           #new_row=6,#new_col=21,#fine_row=0,#fine_col=0,#angle=ANGLE_EAST);      
+      Send(self,@NewHold,#what=Create(&OrnamentalObject,#type=OO_HALFSKULL),
+           #new_row=17,#new_col=15,#fine_row=0,#fine_col=16,#angle=ANGLE_EAST);
+
+      Send(self,@NewHold,#what=Create(&OrnamentalObject,#type=OO_NECTREE1),
+           #new_row=14,#new_col=10,#fine_row=0,#fine_col=0,#angle=ANGLE_EAST);
+      Send(self,@NewHold,#what=Create(&OrnamentalObject,#type=OO_NECTREE2),
+           #new_row=14,#new_col=20,#fine_row=0,#fine_col=0,#angle=ANGLE_EAST);   
+      Send(self,@NewHold,#what=Create(&OrnamentalObject,#type=OO_NECTREE4),
+           #new_row=5,#new_col=13,#fine_row=32,#fine_col=32,#angle=ANGLE_EAST);
+
+      Send(self,@NewHold,#what=Create(&GlowTree),#new_row=17,#new_col=26,
+           #fine_row=32,#fine_col=32,#angle=ANGLE_EAST);
+
+      Send(self,@NewHold,#what=Create(&OrnamentalObject,#type=OO_NECSLIME),
+           #new_row=18,#new_col=12,#fine_row=16,#fine_col=16,#angle=ANGLE_EAST);
+
+            
+      Send(self,@NewHold,#what=Create(&QorTutorialTeacher),
+            #new_row=13,#new_col=22,#fine_row=61,#fine_col=30);
+
+      % Lighting
+
+      send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLOOD,#iIntensity=50),
+           #new_row=14,#new_col=20,#fine_row=0,#fine_col=0);
+
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

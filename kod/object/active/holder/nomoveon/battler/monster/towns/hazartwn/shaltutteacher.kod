@@ -1,0 +1,76 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ShalTutorialTeacher is HazarTown
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   ShalTutorialTeacher_name_rsc = "Priestess Xiana's Imprint"
+   ShalTutorialTeacher_icon_rsc = shalprst.bgf
+   ShalTutorialTeacher_desc_rsc = \
+      "Approach this statue of Priestess Xiana to learn more about "
+      "devotion to Shal'ille."
+
+   ShalTutorialTeacher_welcome = \
+      "As a disciple of Shal'ille, you will take on the duty of spreading "
+      "light and healing wherever you may go. This place was once full "
+      "of love and peace, but it is now known as the Vale of Sorrows "
+      "because negative energies were allowed to infiltrate and fester. "
+      "%s%s, Shal'ille calls upon you to crusade against darkness in "
+      "realms such as these. For that bravery, she will gift you mastery "
+      "over light and healing."
+
+   ShalTutorialTeacher_taken = \
+      "To take up the cause in a greater fashion, %s%s, find me at the "
+      "Temple of Shal'ille north of Marion."
+
+classvars:
+
+   vrName = ShalTutorialTeacher_name_rsc
+   vrIcon = ShalTutorialTeacher_icon_rsc
+   vrDesc = ShalTutorialTeacher_desc_rsc
+
+properties:
+
+   piDrawFX = DRAWFX_SECONDTRANS
+
+messages:
+
+   UserEntered(who=$)
+   {
+      if poOwner = Send(SYS,@FindRoomByNum,#num=RID_TUTORIAL_TEMPLESHAL)
+      {
+         Post(who,@SomeoneSaid,#what=self,#string=ShalTutorialTeacher_welcome,
+               #type=SAY_RESOURCE,
+               #parm1=Send(who,@GetDef),#parm2=Send(who,@GetName));
+      }
+
+      return;
+   }
+
+   SomeoneSaid(what = $,type = $,string = $)
+   {
+      if IsClass(what,&User)
+         AND StringEqual(string,"take Weaponcraft")
+      {
+         Post(what,@SomeoneSaid,#what=self,#string=ShalTutorialTeacher_taken,
+               #type=SAY_RESOURCE,
+               #parm1=Send(what,@GetDef),#parm2=Send(what,@GetName));
+      }
+
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

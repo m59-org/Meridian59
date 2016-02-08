@@ -1,0 +1,69 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+TutorialWizard5 is HazarTown
+
+constants:
+
+   include blakston.khd
+
+   ANIM_WAVE = 1
+
+resources:
+
+   TutorialWizard5_name_rsc = "Jorath"
+   TutorialWizard5_icon_rsc = wndarkwi.bgf
+   TutorialWizard5_desc_rsc = \
+      "As a teacher and a mentor, Jorath is unmatched in the outer wilds. "
+      "At the behest of Princess Kateriina, he now focuses his efforts on "
+      "the training and preparation of new adventurers to the realm. "
+      "His words of wisdom will greatly assist you in your adventures. "
+      "\n\nHere, you may learn of the ubiquitous God of Battle, Kraanan the "
+      "Fist."
+
+   TutWiz5_entry_welcome = \
+      "%s%s, the seventh and final school that we may offer you here "
+      "is also our land's most ubiquitous."
+   TutWiz5_choose_your_path = \
+      "Kraanan the Fist offers combat enhancement and utility spells for any "
+      "and all warriors, mages, outlaws, and peacekeepers. He asks "
+      "only that his followers fight with strength, and, given our harsh "
+      "existence here, such a tenet has become second nature for almost "
+      "all of our adventurers. I recommend you take the spells of Kraanan "
+      "and use them to control the flow of battle and enhance your strengths."
+   TutWiz5_choose_one_both_or_neither = \
+      "You may skip taking the battle spells of Kraanan, "
+      "but your path will undoubtedly be very difficult. Do this "
+      "only if you have a clear advancement plan for yourself."
+
+classvars:
+
+   vrName = TutorialWizard5_name_rsc
+   vrIcon = TutorialWizard5_icon_rsc
+   vrDesc = TutorialWizard5_desc_rsc
+
+messages:
+
+   UserEntered(who=$)
+   {
+      Post(who,@SomeoneSaid,#what=self,#string=TutWiz5_entry_welcome,
+            #type=SAY_RESOURCE,
+            #parm1=Send(who,@GetDef),#parm2=Send(who,@GetName));
+      Post(who,@SomeoneSaid,#what=self,#string=TutWiz5_choose_your_path,
+            #type=SAY_RESOURCE);
+      Post(who,@SomeoneSaid,
+            #what=self,#string=TutWiz5_choose_one_both_or_neither,
+            #type=SAY_RESOURCE);
+
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

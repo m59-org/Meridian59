@@ -1,0 +1,74 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+WCTutorialTeacher is HazarTown
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   WCTutorialTeacher_name_rsc = "Rook's Imprint"
+   WCTutorialTeacher_icon_rsc = cnsarge.bgf
+   WCTutorialTeacher_desc_rsc = \
+      "Approach this statue of Rook to learn more about non-magical "
+      "soldiering."
+
+   WCTutorialTeacher_welcome = \
+      "Nowhere are the arts of combat regarded more highly than in the "
+      "Arena of Kraanan in the ancient city of Tos. Cold steel and "
+      "courage are the only barriers between civilization and chaos. "
+      "If you wish to learn the art of blades and arrows and compete "
+      "in grand arenas such as this or defend the land in war, "
+      "Weaponcraft will provide all the strength you need."
+
+   WCTutorialTeacher_taken = \
+      "%s%s, seek me out in Cor Noth for further training."
+
+classvars:
+
+   vrName = WCTutorialTeacher_name_rsc
+   vrIcon = WCTutorialTeacher_icon_rsc
+   vrDesc = WCTutorialTeacher_desc_rsc
+
+properties:
+
+   piDrawFX = DRAWFX_SECONDTRANS
+
+messages:
+
+   UserEntered(who=$)
+   {
+      if poOwner = Send(SYS,@FindRoomByNum,#num=RID_TUTORIAL_TEMPLEWC)
+      {
+         Post(who,@SomeoneSaid,#what=self,#string=WCTutorialTeacher_welcome,
+               #type=SAY_RESOURCE,
+               #parm1=Send(who,@GetDef),#parm2=Send(who,@GetName));
+      }
+
+      return;
+   }
+
+   SomeoneSaid(what = $,type = $,string = $)
+   {
+      if IsClass(what,&User)
+         AND StringEqual(string,"take Weaponcraft")
+      {
+         Post(what,@SomeoneSaid,#what=self,#string=WCTutorialTeacher_taken,
+               #type=SAY_RESOURCE,
+               #parm1=Send(what,@GetDef),#parm2=Send(what,@GetName));
+      }
+
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

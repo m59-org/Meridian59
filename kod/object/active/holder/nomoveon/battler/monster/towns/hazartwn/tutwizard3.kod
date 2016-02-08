@@ -1,0 +1,73 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+TutorialWizard3 is HazarTown
+
+constants:
+
+   include blakston.khd
+
+   ANIM_WAVE = 1
+
+resources:
+
+   TutorialWizard3_name_rsc = "Jorath"
+   TutorialWizard3_icon_rsc = wndarkwi.bgf
+   TutorialWizard3_desc_rsc = \
+      "As a teacher and a mentor, Jorath is unmatched in the outer wilds. "
+      "At the behest of Princess Kateriina, he now focuses his efforts on "
+      "the training and preparation of new adventurers to the realm. "
+      "His words of wisdom will greatly assist you in your adventures. "
+      "\n\nIn this area, you may choose a primary form of combat. "
+      "To the west, you may learn more about the elemental magics of Faren. "
+      "To the east, skills of the physical school of Weaponcraft can be "
+      "found. "
+      "You may continue on without either of these primary combat schools, "
+      "if you wish, but adventuring may be very difficult."
+
+   TutWiz3_entry_welcome = \
+      "%s%s, combat is integral to adventuring in the world of Meridian."
+   TutWiz3_choose_your_path = \
+      "Lord Faren offers mastery of the elements, and, unlike Shal'ille or "
+      "Qor, holds no compunction over their use. Nature encompasses the "
+      "chaos of the wilds, and the distinctions of civilization mean nothing "
+      "to him. "
+      "In contrast, the fine arts of Weaponcraft represent the height of "
+      "soldiery. These combat skills enable one to fight without magic by "
+      "employing blades, hammers, axes, bows, and physical techniques."
+   TutWiz3_choose_either_or_none = \
+      "The magics of Faren and the skills of Weaponcraft are available to "
+      "all. You may pursue whichever of these schools lies closer to your "
+      "innate strengths, or you may choose both. Choosing neither is also "
+      "possible, but your adventures may prove highly difficult. "
+
+classvars:
+
+   vrName = TutorialWizard3_name_rsc
+   vrIcon = TutorialWizard3_icon_rsc
+   vrDesc = TutorialWizard3_desc_rsc
+
+messages:
+
+   UserEntered(who=$)
+   {
+      Post(who,@SomeoneSaid,#what=self,#string=TutWiz3_entry_welcome,
+            #type=SAY_RESOURCE,
+            #parm1=Send(who,@GetDef),#parm2=Send(who,@GetName));
+      Post(who,@SomeoneSaid,#what=self,#string=TutWiz3_choose_your_path,
+            #type=SAY_RESOURCE);
+      Post(who,@SomeoneSaid,#what=self,#string=TutWiz3_choose_either_or_none,
+            #type=SAY_RESOURCE);
+
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

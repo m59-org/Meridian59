@@ -1,0 +1,54 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+TutorialWizard is HazarTown
+
+constants:
+
+   include blakston.khd
+
+   ANIM_WAVE = 1
+
+resources:
+
+   TutorialWizard_name_rsc = "Jorath"
+   TutorialWizard_icon_rsc = wndarkwi.bgf
+   TutorialWizard_desc_rsc = \
+      "As a teacher and a mentor, Jorath is unmatched in the outer wilds. "
+      "At the behest of Princess Kateriina, he now focuses his efforts on "
+      "the training and preparation of new adventurers to the realm. "
+      "His words of wisdom will greatly assist you in your adventures."
+      
+   TutWiz_entry_welcome = \
+      "Greetings, %s%s. You have traveled a very long distance, "
+      "and your body and mind will have suffered greatly. You should be "
+      "fully attuned to this world now, but without any strengths or skills "
+      "you may have had in your previous home. We must retrain your fledgling "
+      "form. Are you ready to begin?"
+
+classvars:
+
+   vrName = TutorialWizard_name_rsc
+   vrIcon = TutorialWizard_icon_rsc
+   vrDesc = TutorialWizard_desc_rsc
+
+messages:
+
+   UserEntered(who=$)
+   {
+      Post(who,@SomeoneSaid,#what=self,#string=TutWiz_entry_welcome,
+            #type=SAY_RESOURCE,
+            #parm1=Send(who,@GetDef),#parm2=Send(who,@GetName));
+
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

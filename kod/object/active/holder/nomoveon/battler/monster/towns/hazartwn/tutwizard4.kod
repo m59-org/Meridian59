@@ -1,0 +1,75 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+TutorialWizard4 is HazarTown
+
+constants:
+
+   include blakston.khd
+
+   ANIM_WAVE = 1
+
+resources:
+
+   TutorialWizard4_name_rsc = "Jorath"
+   TutorialWizard4_icon_rsc = wndarkwi.bgf
+   TutorialWizard4_desc_rsc = \
+      "As a teacher and a mentor, Jorath is unmatched in the outer wilds. "
+      "At the behest of Princess Kateriina, he now focuses his efforts on "
+      "the training and preparation of new adventurers to the realm. "
+      "His words of wisdom will greatly assist you in your adventures. "
+      "\n\nTo the west, one may choose to learn skill with illusions, as "
+      "taught "
+      "by Riija the trickster god. To the east, one may learn rudimentary "
+      "songs of Jala the Bard, who once graced the land with her voice."
+
+   TutWiz4_entry_welcome = \
+      "%s%s, Meridian has been, at times, a harsh place. Some of our "
+      "schools have been lost."
+   TutWiz4_choose_your_path = \
+      "When we were first cut off from the Empire during the Cataclysm, "
+      "the other gods sacrificed themselves to heal the land. Riija the "
+      "Chronicler alone remained, and stepped off into the mists of time. "
+      "He has since grown through myth and legend into the Trickster God, and "
+      "teaches still select disciples in some distant land. "
+      "Similarly, the songs of Jala the Bard were lost when the followers of "
+      "Qor, under the unholy influence of the Necromancers, betrayed the "
+      "people of Meridian and destroyed her temple. What memories we "
+      "collectively retain of her songs can be learned here. Rumors say "
+      "that some bards know more, and may possibly instruct you further."
+   TutWiz4_choose_one_both_or_neither = \
+      "You may learn either of these lost schools, both, or neither. You will "
+      "have only the guidance of whatever hidden masters you can find in the "
+      "world at large."
+
+classvars:
+
+   vrName = TutorialWizard4_name_rsc
+   vrIcon = TutorialWizard4_icon_rsc
+   vrDesc = TutorialWizard4_desc_rsc
+
+messages:
+
+   UserEntered(who=$)
+   {
+      Post(who,@SomeoneSaid,#what=self,#string=TutWiz4_entry_welcome,
+            #type=SAY_RESOURCE,
+            #parm1=Send(who,@GetDef),#parm2=Send(who,@GetName));
+      Post(who,@SomeoneSaid,#what=self,#string=TutWiz4_choose_your_path,
+            #type=SAY_RESOURCE);
+      Post(who,@SomeoneSaid,
+            #what=self,#string=TutWiz4_choose_one_both_or_neither,
+            #type=SAY_RESOURCE);
+
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

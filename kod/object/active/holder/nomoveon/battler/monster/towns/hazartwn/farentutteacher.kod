@@ -1,0 +1,72 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+FarenTutorialTeacher is HazarTown
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   FarenTutorialTeacher_name_rsc = "Priestess Tenuv'vyal's Imprint"
+   FarenTutorialTeacher_icon_rsc = farnprst.bgf
+   FarenTutorialTeacher_desc_rsc = \
+      "Approach this statue of Priestess Tenuv'vyal to learn more about the "
+      "powers of the elements."
+
+   FarenTutorialTeacher_welcome = \
+      "Faren cares not what you do with mastery of the elements, %s%s, "
+      "for he knows that mortals given power inevitably tear down "
+      "the trappings of civilization. Out here, in the wilds of the Badlands, "
+      "nature is truth."
+
+   FarenTutorialTeacher_taken = \
+      "Seek me out in the Badlands to pursue mastery of the elements."
+
+classvars:
+
+   vrName = FarenTutorialTeacher_name_rsc
+   vrIcon = FarenTutorialTeacher_icon_rsc
+   vrDesc = FarenTutorialTeacher_desc_rsc
+
+properties:
+
+   piDrawFX = DRAWFX_SECONDTRANS
+
+messages:
+
+   UserEntered(who=$)
+   {
+      if poOwner = Send(SYS,@FindRoomByNum,#num=RID_TUTORIAL_TEMPLEFAREN)
+      {
+         Post(who,@SomeoneSaid,#what=self,#string=FarenTutorialTeacher_welcome,
+               #type=SAY_RESOURCE,
+               #parm1=Send(who,@GetDef),#parm2=Send(who,@GetName));
+      }
+
+      return;
+   }
+
+   SomeoneSaid(what = $,type = $,string = $)
+   {
+      if IsClass(what,&User)
+         AND StringEqual(string,"take Weaponcraft")
+      {
+         Post(what,@SomeoneSaid,#what=self,#string=FarenTutorialTeacher_taken,
+               #type=SAY_RESOURCE,
+               #parm1=Send(what,@GetDef),#parm2=Send(what,@GetName));
+      }
+
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

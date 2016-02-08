@@ -1,0 +1,153 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+TutorialTemple1 is TutorialTemple
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   room_name_tuttemple1 = "Temple of Knowledge"
+   room_tuttemple1 = tuttemple1.roo
+   tuttemple1_music = login.mp3
+
+   tuttemple_door_sound = down2.wav
+   
+   TutorialTemple1_enter = \
+      "Interdimensional energies fade, and you become aware of a new plane."
+
+classvars:
+
+   vrName = room_name_tuttemple1
+   viTeleport_row = 8
+   viTeleport_col = 4
+   viTeleport_angle = ANGLE_NORTH
+
+properties:
+
+   prRoom = room_tuttemple1
+   piRoom_num = RID_TUTORIAL_TEMPLE1
+   viTerrain_type = TERRAIN_CITY
+
+   prMusic = tuttemple1_music
+
+messages:
+
+   SomethingMoved(what = $,new_row = $, new_col = $)
+   {
+      if new_row < 1
+      {
+         Send(SYS,@UtilGoNearSquare,#what=what,
+              #where=Send(SYS,@FindRoomByNum,#num=RID_TUTORIAL_TEMPLE2b),
+              #new_row=35,#new_col=18,#fine_row=0,#fine_col=14,
+              #new_angle=ANGLE_NORTH);
+         return;
+      }
+
+      propagate;
+   }
+
+   Teleport(what=$)
+   "Admin supported."
+   "Teleports object to coordinates specified in class vars."
+   {
+      if Send(self,@GetTeleportRow) <> $ AND Send(self,@GetTeleportCol) <> $
+      {
+         Send(SYS,@UtilGoNearSquare,#what=what,#where=self,
+              #new_row=Send(self,@GetTeleportRow),
+              #new_col=Send(self,@GetTeleportCol),
+              #fine_row=0,
+              #fine_col=0,
+              #new_angle=Send(self,@GetTeleportAngle));
+
+         return TRUE;
+      }
+
+      return FALSE;
+   }
+
+   CreateStandardObjects()
+   {
+      Send(self,@NewHold,#what=Create(&TutorialWizard),
+            #new_row=2,#new_col=1,#fine_row=50,#fine_col=61);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_PURPLE,
+            #iIntensity=25),#new_row=2,#new_col=1,#fine_row=50,#fine_col=61);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_PURPLE,
+            #iIntensity=25),#new_row=3,#new_col=3,#fine_row=32,#fine_col=32);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_PURPLE,
+            #iIntensity=25),#new_row=8,#new_col=4,#fine_row=0,#fine_col=0);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_PURPLE,
+            #iIntensity=25),#new_row=3,#new_col=5,#fine_row=33,#fine_col=5);
+
+      propagate;
+   }
+
+   SomeoneSaid(what = $,type = $,string = $,parm1 = $,parm2 = $,parm3 = $,
+               parm4 = $, parm5 = $,parm6 = $,parm7 = $,parm8 = $)
+   {
+      local i, each_obj;
+
+      if NOT isClass(what,&player) OR type = SAY_YELL
+      {
+         propagate;
+      }
+
+      if StringEqual(string,"yes")
+      {
+         Send(self,@SomethingWaveRoom,#wave_rsc=tuttemple_door_sound);
+         Send(self,@SetSector,#sector=1,#animation=ANIMATE_CEILING_LIFT,
+              #height=130,#speed=16);
+         Send(self,@SetSector,#sector=3,#animation=ANIMATE_CEILING_LIFT,
+              #height=70,#speed=5);
+         foreach i in plPassive
+         {
+            each_obj = Send(self,@HolderExtractObject,#data=i);
+            if IsClass(each_obj,&DynamicLight)
+            {
+               Send(each_obj,@Delete);
+            }
+         }
+      }
+
+      if StringEqual(string,"no")
+      {
+         Send(self,@SomethingWaveRoom,#wave_rsc=tuttemple_door_sound);
+         Send(self,@SetSector,#sector=1,#animation=ANIMATE_CEILING_LIFT,
+              #height=130,#speed=16);
+         Send(self,@SetSector,#sector=3,#animation=ANIMATE_CEILING_LIFT,
+              #height=70,#speed=5);
+         foreach i in plPassive
+         {
+            each_obj = Send(self,@HolderExtractObject,#data=i);
+            if IsClass(each_obj,&DynamicLight)
+            {
+               Send(each_obj,@Delete);
+            }
+         }
+      }
+
+      propagate;
+   }
+
+   NewHold(what=$)
+   {
+      if IsClass(what,&Player)
+         AND NOT IsClass(what,&DM)
+      {
+         Post(what,@MsgSendUser,#message_rsc=TutorialTemple1_enter);
+      }
+
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

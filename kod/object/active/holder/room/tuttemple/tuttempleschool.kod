@@ -1,0 +1,308 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+TutorialTempleSchoolRoom is TutorialTemple
+
+constants:
+
+   include blakston.khd
+   include protocol.khd
+
+   BASIC_LEVEL_MAX = 2
+
+resources:
+
+   default_school_room_enter_message = \
+      "You enter a school display room."
+   default_school_room_leave_message = \
+      "You leave a school display room."
+   default_school_room_take_school_statement = \
+      "take School"
+   default_already_have_school_message = \
+      "You already have this school."
+   default_cannot_take_school_message = \
+      "You cannot take this school."
+   default_take_school_message = \
+      "You take this school."
+   default_get_flagship_spells_message = \
+      "You get flagship spells of this school."
+   default_lose_flagship_spells_message = \
+      "You lose flagship spells of this school."
+
+classvars:
+
+   viTeleport_row = 15
+   viTeleport_col = 19
+
+   viRoomSchool = 0
+   viCannotCombineSchool = 0
+   vbSkillSchool = FALSE
+   
+   viExitRID = RID_TUTORIAL_TEMPLE2b
+   
+   vrEnterSchoolRoomMessage = default_school_room_enter_message
+   vrLeaveSchoolRoomMessage = default_school_room_leave_message
+   vrTakeSchoolStatement = default_school_room_take_school_statement
+   
+   vrAlreadyHaveSchoolMsg = default_already_have_school_message
+   vrCannotTakeSchoolMsg = default_cannot_take_school_message
+   vrTakeSchoolMsg = default_take_school_message
+   
+   vrGetFlagshipSpellsMsg = default_get_flagship_spells_message
+   vrLoseFlagshipSpellsMsg = default_lose_flagship_spells_message
+   
+   viRoomSchoolKarma = 0
+
+properties:
+
+   pbNoReagents = TRUE
+   plRoomSchoolSpells = $
+   plRoomSchoolSkills = $
+
+messages:
+
+   SomethingMoved(what = $,new_row = $, new_col = $)
+   {
+      if new_row < 1
+      {
+         Send(SYS,@UtilGoNearSquare,#what=what,
+              #where=Send(SYS,@FindRoomByNum,#num=viExitRID),
+              #new_row=35,#new_col=18,#fine_row=0,#fine_col=14,
+              #new_angle=ANGLE_NORTH);
+         return;
+      }
+
+      propagate;
+   }
+
+   NewHold(what=$)
+   {
+      if IsClass(what,&Player)
+         AND NOT IsClass(what,&DM)
+      {
+         Post(what,@MsgSendUser,#message_rsc=vrEnterSchoolRoomMessage);
+         Post(self,@GrantFlagshipSpells,#what=what);
+      }
+
+      propagate;
+   }
+   
+   LeaveHold(what=$)
+   {
+      if IsClass(what,&Player)
+         AND NOT IsClass(what,&DM)
+      {
+         Post(self,@RemoveFlagshipSpells,#what=what);
+         Post(what,@MsgSendUser,#message_rsc=vrLeaveSchoolRoomMessage);
+      }
+
+      propagate;
+   }
+
+   SomeoneSaid(what = $,type = $,string = $,parm1 = $,parm2 = $,parm3 = $,
+               parm4 = $, parm5 = $,parm6 = $,parm7 = $,parm8 = $)
+   {
+      local i;
+
+      if NOT isClass(what,&player) OR type = SAY_YELL
+      {
+         propagate;
+      }
+
+      if StringEqual(string,vrTakeSchoolStatement)
+      {
+         Send(self,@GrantBasicSpells,#what=what);
+      }
+
+      propagate;
+   }
+
+   GrantBasicSpells(what=$)
+   {
+      local i, oAbility, lAbilityList, lAllAbilities;
+
+      Send(self,@RemoveFlagshipSpells,#what=what);
+
+      lAbilityList = $;
+      if vbSkillSchool
+      {
+         lAbilityList = Send(what,@GetSkillList);
+      }
+      else
+      {
+         lAbilityList = Send(what,@GetSpellList);
+      }
+
+      foreach i in lAbilityList
+      {
+         if vbSkillSchool
+         {
+            oAbility = Send(SYS,@FindSkillByNum,
+                  #num=Send(what,@DecodeSkillNum,#compound=i));
+         }
+         else
+         {
+            oAbility = Send(SYS,@FindSpellByNum,
+                  #num=Send(what,@DecodeSpellNum,#compound=i));
+         }
+
+         if Send(oAbility,@GetSchool) = viRoomSchool
+         {
+            Post(what,@MsgSendUser,#message_rsc=vrAlreadyHaveSchoolMsg);
+            return;
+         }
+         if Send(oAbility,@GetSchool) = viCannotCombineSchool
+         {
+            Post(what,@MsgSendUser,#message_rsc=vrCannotTakeSchoolMsg);
+            return;
+         }
+      }
+
+      if vbSkillSchool
+      {
+         lAllAbilities = Send(SYS,@GetSkills);
+      }
+      else
+      {
+         lAllAbilities = Send(SYS,@GetSpells);
+      }
+
+      foreach i in lAllAbilities
+      {
+         if NOT IsClass(i,&Skill)
+            AND NOT IsClass(i,&Spell)
+         {
+            continue;
+         }
+
+         if Send(i,@GetSchool) = viRoomSchool
+         {
+            if Send(i,@GetLevel) <= BASIC_LEVEL_MAX
+               AND Send(i,@IsAccessible)
+            {
+               if vbSkillSchool
+               {
+                  Send(what,@AddSkill,#num=Send(i,@GetSkillNum),
+                     #initial=TRUE);
+               }
+               else
+               {
+                  Send(what,@AddSpell,#num=Send(i,@GetSpellNum),
+                     #initial=TRUE);
+               }
+            }
+         }
+      }
+
+      Post(what,@MsgSendUser,#message_rsc=vrTakeSchoolMsg);
+      Post(what,@NewbieIntelligenceReport);
+
+      return;
+   }
+
+   GrantFlagshipSpells(what=$)
+   {
+      local i, oAbility, lAbilityList;
+
+      if vbSkillSchool
+      {
+         lAbilityList = Send(what,@GetSkillList);
+      }
+      else
+      {
+         lAbilityList = Send(what,@GetSpellList);
+      }
+
+      foreach i in lAbilityList
+      {
+         if vbSkillSchool
+         {
+            oAbility = Send(SYS,@FindSkillByNum,
+                  #num=Send(what,@DecodeSkillNum,#compound=i));
+         }
+         else
+         {
+            oAbility = Send(SYS,@FindSpellByNum,
+                  #num=Send(what,@DecodeSpellNum,#compound=i));
+         }
+
+         if Send(oAbility,@GetSchool) = viRoomSchool
+         {
+            Post(what,@MsgSendUser,#message_rsc=vrAlreadyHaveSchoolMsg);
+            return;
+         }
+         if Send(oAbility,@GetSchool) = viCannotCombineSchool
+         {
+            Post(what,@MsgSendUser,#message_rsc=vrCannotTakeSchoolMsg);
+            return;
+         }
+      }
+
+      Post(what,@SetKarma,#value=viRoomSchoolKarma);
+
+      if vbSkillSchool
+      {
+         foreach i in plRoomSchoolSkills
+         {
+            Post(what,@AddSkill,#num=i,#initial=TRUE,
+                  #iability=99);
+         }
+      }
+      else
+      {
+         foreach i in plRoomSchoolSpells
+         {
+            Post(what,@AddSpell,#num=i,#initial=TRUE,
+                  #iability=99);
+         }
+      }
+      Post(what,@MsgSendUser,#message_rsc=vrGetFlagshipSpellsMsg);
+      return;
+   }
+   
+   RemoveFlagshipSpells(what=$)
+   {
+      local i;
+
+      if vbSkillSchool
+      {
+         if plRoomSchoolSkills <> $
+            AND Send(what,@HasSkill,#num=First(plRoomSchoolSkills))
+         {
+            Post(what,@SetKarma,#value=0);
+            Post(what,@ToCliStats,#group=2);
+            foreach i in plRoomSchoolSkills
+            {
+               Send(what,@RemoveSkill,#num=i);
+            }
+            Post(what,@ToCliStats,#group=3);
+            Post(what,@MsgSendUser,#message_rsc=vrLoseFlagshipSpellsMsg);
+         }
+      }
+      else
+      {
+         if plRoomSchoolSpells <> $
+            AND Send(what,@HasSpell,#num=First(plRoomSchoolSpells))
+         {
+            Post(what,@SetKarma,#value=0);
+            Post(what,@ToCliStats,#group=2);
+            foreach i in plRoomSchoolSpells
+            {
+               Send(what,@RemoveSpell,#num=i);
+            }
+            Post(what,@ToCliStats,#group=3);
+            Post(what,@MsgSendUser,#message_rsc=vrLoseFlagshipSpellsMsg);
+         }
+      }
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

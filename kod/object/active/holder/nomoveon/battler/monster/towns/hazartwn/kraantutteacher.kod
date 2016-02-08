@@ -1,0 +1,56 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+KraananTutorialTeacher is HazarTown
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   KraananTutorialTeacher_name_rsc = "Priestess Qerti'nya's Imprint"
+   KraananTutorialTeacher_icon_rsc = kranprst.bgf
+   KraananTutorialTeacher_desc_rsc = \
+      "Approach this statue of Priestess Qerti'nya to learn more about the "
+      "God of Battle."
+
+   KraanTutorialTeacher_taken = \
+      "You've chosen well, %s%s. Whatever your cause may be, fight with "
+      "courage."
+
+classvars:
+
+   vrName = KraananTutorialTeacher_name_rsc
+   vrIcon = KraananTutorialTeacher_icon_rsc
+   vrDesc = KraananTutorialTeacher_desc_rsc
+
+properties:
+
+   piDrawFX = DRAWFX_SECONDTRANS
+
+messages:
+
+   SomeoneSaid(what = $,type = $,string = $)
+   {
+      if IsClass(what,&User)
+         AND StringEqual(string,"take Kraanan")
+      {
+         Post(what,@SomeoneSaid,#what=self,#string=KraanTutorialTeacher_taken,
+               #type=SAY_RESOURCE,
+               #parm1=Send(what,@GetDef),#parm2=Send(what,@GetName));
+      }
+
+      propagate;
+   }
+
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

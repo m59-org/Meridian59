@@ -814,6 +814,14 @@ resources:
       "Because you at your physical peak, your new enlightenment takes the "
       "form of %i mastery points."
       
+   newbie_intelligence_report = \
+      "With your intellect, you may learn %i more levels of abilities "
+      "above level one. Level one abilities do not typically have a cost "
+      "in intellect, while level five spells and skills represent mastery "
+      "in a school. "
+      "Level six abilities are rare and powerful, and often define your "
+      "fighting style."
+
    pvp_notify_wav = gong.wav
 
 classvars:
@@ -2630,7 +2638,8 @@ messages:
 
       % Setup default stuff
 
-      Send(self,@AddDefaultSpells);
+      % Delay this in new Tutorial Temple
+      % Send(self,@AddDefaultSpells);
       Send(self,@AddDefaultSkills);
 
       lSpells = Nth(charinfo,5);
@@ -15304,7 +15313,47 @@ messages:
          prNose = charinfo_nose_ax_icon;
          prMouth = charinfo_mouth_ax_icon;
       }
+      return;
+   }
 
+   NewbieIntelligenceReport()
+   "For use in Newbie Temple only. Users will have spells out of order."
+   {
+      local iLevelsRemaining;
+
+      iLevelsRemaining = 8 + Send(self,@GetRawIntellect)/5;
+
+      if Send(self,@HasSpell,#num=SID_BLESS)
+      {
+         iLevelsRemaining = iLevelsRemaining - 1;
+      }
+      if Send(self,@HasSpell,#num=SID_HOLY_TOUCH)
+      {
+         iLevelsRemaining = iLevelsRemaining - 1;
+      }
+      if Send(self,@HasSpell,#num=SID_ACID_TOUCH)
+      {
+         iLevelsRemaining = iLevelsRemaining - 1;
+      }
+      if Send(self,@HasSkill,#num=SKID_DODGE)
+      {
+         iLevelsRemaining = iLevelsRemaining - 1;
+      }
+      if Send(self,@HasSpell,#num=SID_TOUCH_OF_FLAME)
+      {
+         iLevelsRemaining = iLevelsRemaining - 1;
+      }
+      if Send(self,@HasSpell,#num=SID_FORESIGHT)
+      {
+         iLevelsRemaining = iLevelsRemaining - 1;
+      }
+      if Send(self,@HasSpell,#num=SID_CIVILITY)
+      {
+         iLevelsRemaining = iLevelsRemaining - 1;
+      }
+
+      Send(self,@MsgSendUser,#message_rsc=newbie_intelligence_report,
+            #parm1=iLevelsRemaining);
       return;
    }
 
