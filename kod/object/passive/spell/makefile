@@ -39,6 +39,7 @@ BOFS = animate.bof \
        majheal.bof \
        manabomb.bof \
        morph.bof \
+       movementspell.bof \
        multicst.bof \
        mysttch.bof \
        nodebrst.bof \

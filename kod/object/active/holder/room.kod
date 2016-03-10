@@ -795,6 +795,505 @@ messages:
       return Send(self,@CheckRoomFlag,#flag=ROOM_GUEST_AREA);
    }
 
+   IntraTeleport(what=$,target=$,distance=64,type=INTRA_TELEPORT_FORWARD,
+                 new_row=$,new_col=$,fine_row=FINENESS/2,fine_col=FINENESS/2,
+                 new_angle=$,bMoveOffBSP=FALSE)
+   {
+      local iRow, iCol, iFineRow, iFineCol, iNewRow, iNewCol, iNewFineRow,
+            iNewFineCol, iRowPercentage, iColPercentage, iRowSign, iColSign,
+            iRowDist, iColDist, iTotalDist, lSteps, iRowSuccess, iColSuccess,
+            iFineRowSuccess, iFineColSuccess, iRot, iCurDist, iWhoAngle,
+            iPercentageOfTotalDist;
+
+      if what = $
+         OR Send(what,@GetOwner) <> self
+         OR type < INTRA_TELEPORT_TO_DESTINATION
+         OR type > INTRA_TELEPORT_FRONT_LEFT_RIGHTWARD_TARGET
+      {
+         % Invalid teleporter or teleportation type!
+         return 0;
+      }
+
+      if type >= INTRA_TELEPORT_FORWARD
+         AND type <= INTRA_TELEPORT_RIGHTWARD
+      {
+         % Starting coordinates dependent upon the player's position
+         iCol = Send(what,@GetCol);
+         iRow = Send(what,@GetRow);
+         iFineCol = Send(what,@GetFineCol);
+         iFineRow = Send(what,@GetFineRow);
+      }
+      else if type >= INTRA_TELEPORT_FRONT_TARGET
+         AND type <= INTRA_TELEPORT_FRONT_LEFT_RIGHTWARD_TARGET
+      {
+         % Starting coordinates dependent upon the target's position
+         if target = $
+            OR Send(target,@GetOwner) <> self
+         {
+            return 0;
+         }
+         iCol = Send(target,@GetCol);
+         iRow = Send(target,@GetRow);
+         iFineCol = Send(target,@GetFineCol);
+         iFineRow = Send(target,@GetFineRow);
+      }
+
+      if type = INTRA_TELEPORT_TO_DESTINATION
+      {
+         % Teleports player to specified coordinates.
+         % Skips quite a bit of calculation.
+         if new_row = $
+            OR new_col = $
+         {
+            return 0;
+         }
+         distance = 0;
+         iCol = new_col;
+         iRow = new_row;
+         iFineCol = fine_col;
+         iFineRow = fine_row;
+         iRot = 0;
+         
+         if new_angle = $
+         {
+            iWhoAngle = Send(what,@GetAngle);
+         }
+         else
+         {
+            iWhoAngle = new_angle;
+         }
+      }
+      if type = INTRA_TELEPORT_TOWARD_DESTINATION
+      {
+         % Teleports player toward specified coordinates.
+         % Here we actually do not know any relevant angles, which makes
+         % life hard for us. Instead of calculations the other teleport
+         % types use, we are just going to hackishly add a portion to
+         % row and col equal to distance divided by total distance.
+         %
+         % Due to rounding, loses accuracy at small distances.
+         if new_row = $
+            OR new_col = $
+         {
+            return 0;
+         }
+         iCol = Send(what,@GetCol);
+         iRow = Send(what,@GetRow);
+         iFineCol = Send(what,@GetFineCol);
+         iFineRow = Send(what,@GetFineRow);
+         
+         iNewCol = new_col;
+         iNewRow = new_row;
+         iNewFineCol = fine_col;
+         iNewFineRow = fine_row;
+
+         iColDist = iNewCol*FINENESS + fine_col - iCol*FINENESS + iFineCol;
+         iRowDist = iNewRow*FINENESS + fine_row - iRow*FINENESS + iFineRow;
+
+         iTotalDist = sqrt(iColDist*iColDist+iRowDist*iRowDist);
+
+         if iTotalDist > 0
+         {
+            iPercentageOfTotalDist = (distance*10000)/iTotalDist;
+         }
+         
+         if iTotalDist <= 0
+            OR (iNewCol = iCol
+               AND iNewRow = iRow
+               AND iNewFineCol = iFineCol
+               AND iNewFineRow = iFineRow)
+         {
+            % Player is already on the destination exactly!
+            return 0;
+         }
+            
+         % Avoid going past target.
+         % We do this by using an exact teleport.
+         if iTotalDist <= distance
+         {
+            Send(self,@IntraTeleport,#what=what,
+                  #type=INTRA_TELEPORT_TO_DESTINATION,#new_row=new_row,
+                  #new_col=new_col,#fine_row=fine_row,#fine_col=fine_col);
+            return 1;
+         }
+         
+         iNewCol = iCol*FINENESS+iFineCol+
+                   iColDist*iPercentageOfTotalDist/10000;
+         iNewRow = iRow*FINENESS+iFineRow+
+                   iRowDist*iPercentageOfTotalDist/10000;
+         iNewFineCol = iNewCol mod FINENESS;
+         iNewFineRow = iNewRow mod FINENESS;
+         iNewCol = iNewCol / FINENESS;
+         iNewRow = iNewRow / FINENESS;
+
+         if iNewFineCol > 0
+            AND iNewFineRow > 0
+            AND iNewFineCol < piCols*FINENESS
+            AND iNewFineRow < piRows*FINENESS
+            AND CanMoveInRoomBSP(prmRoom,iRow,iCol,iFineRow,iFineCol,iNewRow,
+                      iNewCol,iNewFineRow,iNewFineCol,what,bMoveOffBSP)
+         {
+            Send(SYS,@UtilGoNearSquare,#what=what,#where=self,
+                  #new_row=iNewRow,
+                  #new_col=iNewCol,
+                  #fine_row=iNewFineRow,
+                  #fine_col=iNewFineCol);
+            return 1;
+         }
+         return 0;
+      }
+      if type = INTRA_TELEPORT_AWAY_FROM_DESTINATION
+      {
+         % Teleports player away from specified coordinates.
+         % Here we actually do not know any relevant angles, which makes
+         % life hard for us. Instead of calculations the other teleport
+         % types use, we are just going to hackishly subtract a portion to
+         % row and col equal to distance divided by total distance.
+         %
+         % Due to rounding, loses accuracy at small distances.
+         if new_row = $
+            OR new_col = $
+         {
+            return 0;
+         }
+         iCol = Send(what,@GetCol);
+         iRow = Send(what,@GetRow);
+         iFineCol = Send(what,@GetFineCol);
+         iFineRow = Send(what,@GetFineRow);
+         
+         iNewCol = new_col;
+         iNewRow = new_row;
+         iNewFineCol = fine_col;
+         iNewFineRow = fine_row;
+
+         iColDist = iNewCol*FINENESS + fine_col - iCol*FINENESS + iFineCol;
+         iRowDist = iNewRow*FINENESS + fine_row - iRow*FINENESS + iFineRow;
+
+         iTotalDist = sqrt(iColDist*iColDist+iRowDist*iRowDist);
+
+         if iTotalDist > 0
+         {
+            iPercentageOfTotalDist = (distance*10000)/iTotalDist;
+         }
+         
+         if iTotalDist <= 0
+            OR (iNewCol = iCol
+               AND iNewRow = iRow
+               AND iNewFineCol = iFineCol
+               AND iNewFineRow = iFineRow)
+         {
+            % Player is already on the destination exactly!
+            return 0;
+         }
+            
+         % Avoid going past target.
+         % We do this by using an exact teleport.
+         if iTotalDist <= distance
+         {
+            Send(self,@IntraTeleport,#what=what,
+                  #type=INTRA_TELEPORT_TO_DESTINATION,#new_row=new_row,
+                  #new_col=new_col,#fine_row=fine_row,#fine_col=fine_col);
+            return 1;
+         }
+         
+         iNewCol = iCol*FINENESS+iFineCol-
+                   iColDist*iPercentageOfTotalDist/10000;
+         iNewRow = iRow*FINENESS+iFineRow-
+                   iRowDist*iPercentageOfTotalDist/10000;
+         iNewFineCol = iNewCol mod FINENESS;
+         iNewFineRow = iNewRow mod FINENESS;
+         iNewCol = iNewCol / FINENESS;
+         iNewRow = iNewRow / FINENESS;
+
+         if iNewFineCol > 0
+            AND iNewFineRow > 0
+            AND iNewFineCol < piCols*FINENESS
+            AND iNewFineRow < piRows*FINENESS
+            AND CanMoveInRoomBSP(prmRoom,iRow,iCol,iFineRow,iFineCol,iNewRow,
+                      iNewCol,iNewFineRow,iNewFineCol,what,bMoveOffBSP)
+         {
+            Send(SYS,@UtilGoNearSquare,#what=what,#where=self,
+                  #new_row=iNewRow,
+                  #new_col=iNewCol,
+                  #fine_row=iNewFineRow,
+                  #fine_col=iNewFineCol);
+            return 1;
+         }
+         return 0;
+      }
+      if type = INTRA_TELEPORT_LEFT_AROUND_DESTINATION
+      {
+         % Teleports player counterclockwise around specified coordinates.
+         % Here we actually do not know any relevant angles, which makes
+         % life hard for us. Instead of calculations the other teleport
+         % types use, we are just going to hackishly add a portion to
+         % row and col equal to distance divided by total distance.
+         if new_row = $
+            OR new_col = $
+         {
+            return 0;
+         }
+         
+         % distance is pure additional col when our cols are identical
+         % distance is pure additional row when our rows are identical
+         
+         return 0;
+      }
+      if type = INTRA_TELEPORT_RIGHT_AROUND_DESTINATION
+      {
+         % Teleports player clockwise around specified coordinates.
+         % Here we actually do not know any relevant angles, which makes
+         % life hard for us. Instead of calculations the other teleport
+         % types use, we are just going to hackishly add a portion to
+         % row and col equal to distance divided by total distance.
+         if new_row = $
+            OR new_col = $
+         {
+            return 0;
+         }
+         return 0;
+      }
+      else if type = INTRA_TELEPORT_FORWARD
+      {
+         % Teleports player directly forward.
+         iRot = Send(what,@GetAngle);
+         iWhoAngle = iRot;
+      }
+      else if type = INTRA_TELEPORT_BACKWARD
+      {
+         % Teleports player directly backward.
+         iRot = Send(what,@GetAngle) + 2050;
+         iWhoAngle = Send(what,@GetAngle);
+      }
+      else if type = INTRA_TELEPORT_LEFTWARD
+      {
+         % Teleports player directly left.
+         iRot = Send(what,@GetAngle) + 3075;
+         iWhoAngle = Send(what,@GetAngle);
+      }
+      else if type = INTRA_TELEPORT_RIGHTWARD
+      {
+         % Teleports player directly right.
+         iRot = Send(what,@GetAngle) + 1025;
+         iWhoAngle = Send(what,@GetAngle);
+      }
+      else if type = INTRA_TELEPORT_FRONT_TARGET
+      {
+         iRot = Send(target,@GetAngle);
+         iWhoAngle = iRot + 2050;
+      }
+      else if type = INTRA_TELEPORT_FRONT_LEFT_TARGET
+      {
+         iRot = Send(target,@GetAngle) + 3587;
+         iWhoAngle = iRot + 2050;
+      }
+      else if type = INTRA_TELEPORT_FRONT_LEFT_LEFTWARD_TARGET
+      {
+         iRot = Send(target,@GetAngle) + 3331;
+         iWhoAngle = iRot + 2050;
+      }
+      else if type = INTRA_TELEPORT_FRONT_LEFT_RIGHTWARD_TARGET
+      {
+         iRot = Send(target,@GetAngle) + 3843;
+         iWhoAngle = iRot + 2050;
+      }
+      else if type = INTRA_TELEPORT_FRONT_RIGHT_TARGET
+      {
+         iRot = Send(target,@GetAngle) + 512;
+         iWhoAngle = iRot + 2050;
+      }
+      else if type = INTRA_TELEPORT_FRONT_RIGHT_LEFTWARD_TARGET
+      {
+         iRot = Send(target,@GetAngle) + 256;
+         iWhoAngle = iRot + 2050;
+      }
+      else if type = INTRA_TELEPORT_FRONT_RIGHT_RIGHTWARD_TARGET
+      {
+         iRot = Send(target,@GetAngle) + 768;
+         iWhoAngle = iRot + 2050;
+      }
+      else if type = INTRA_TELEPORT_BEHIND_TARGET
+      {
+         iRot = Send(target,@GetAngle) + 2050;
+         iWhoAngle = iRot + 2050;
+      }
+      else if type = INTRA_TELEPORT_BEHIND_LEFT_TARGET
+      {
+         iRot = Send(target,@GetAngle) + 2562;
+         iWhoAngle = iRot + 2050;
+      }
+      else if type = INTRA_TELEPORT_BEHIND_LEFT_LEFTWARD_TARGET
+      {
+         iRot = Send(target,@GetAngle) + 2306;
+         iWhoAngle = iRot + 2050;
+      }
+      else if type = INTRA_TELEPORT_BEHIND_LEFT_RIGHTWARD_TARGET
+      {
+         iRot = Send(target,@GetAngle) + 2818;
+         iWhoAngle = iRot + 2050;
+      }
+      else if type = INTRA_TELEPORT_BEHIND_RIGHT_TARGET
+      {
+         iRot = Send(target,@GetAngle) + 1537;
+         iWhoAngle = iRot + 2050;
+      }
+      else if type = INTRA_TELEPORT_BEHIND_RIGHT_LEFTWARD_TARGET
+      {
+         iRot = Send(target,@GetAngle) + 1281;
+         iWhoAngle = iRot + 2050;
+      }
+      else if type = INTRA_TELEPORT_BEHIND_RIGHT_RIGHTWARD_TARGET
+      {
+         iRot = Send(target,@GetAngle) + 1793;
+         iWhoAngle = iRot + 2050;
+      }
+      else if type = INTRA_TELEPORT_LEFT_TARGET
+      {
+         iRot = Send(target,@GetAngle) + 3075;
+         iWhoAngle = iRot + 2050;
+      }
+      else if type = INTRA_TELEPORT_RIGHT_TARGET
+      {
+         iRot = Send(target,@GetAngle) + 1025;
+         iWhoAngle = iRot + 2050;
+      }
+
+      iRot = iRot mod 4100;
+      iWhoAngle = iWhoAngle mod 4100;
+
+      % This calculates your intended destination without trigonometry.
+      % The diff you travel is split into percentages of X and Y distance.
+
+      iColPercentage = 100;
+      iRowPercentage = 0;
+      iColSign = 1;
+      iRowSign = 1;
+      
+      % iRot 0 - 4100
+      
+      if iRot >= 0
+         AND iRot <= 1025
+      {
+         iColPercentage = 100 - (100*iRot)/1025;
+         iRowPercentage = (100*iRot)/1025;
+         iColSign = 1;
+         iRowSign = 1;
+      }
+      
+      if iRot > 1025
+         AND iRot <= 2050
+      {
+         iColPercentage = (100*(iRot-1025))/1025;
+         iRowPercentage = 100 - (100*(iRot-1025))/1025;
+         iColSign = -1;
+         iRowSign = 1;
+      }
+      
+      if iRot > 2050
+         AND iRot <= 3175
+      {
+         iColPercentage = 100 - (100*(iRot-2050))/1025;
+         iRowPercentage = (100*(iRot-2050))/1025;
+         iColSign = -1;
+         iRowSign = -1;
+      }
+      
+      if iRot > 3175
+         AND iRot < 4100
+      {
+         iColPercentage = (100*(iRot-3175))/1025;
+         iRowPercentage = 100 - (100*(iRot-3175))/1025;
+         iColSign = 1;
+         iRowSign = -1;
+      }
+
+      lSteps = $;
+      iCurDist = 0;
+      iColSuccess = iCol;
+      iRowSuccess = iRow;
+      iFineColSuccess = iFineCol;
+      iFineRowSuccess = iFineRow;
+      
+      while iCurDist <= distance
+         AND type <> INTRA_TELEPORT_TO_DESTINATION
+      {
+         iColDist = ((FINENESS*iColPercentage)/100)*iColSign;
+         iRowDist = ((FINENESS*iRowPercentage)/100)*iRowSign;
+
+         iNewFineCol = iFineColSuccess + iColDist;
+         iNewFineRow = iFineRowSuccess + iRowDist;
+         
+         iNewCol = iColSuccess;
+         if iNewFineCol > 63
+         {
+            iNewCol = iNewCol + 1;
+            iNewFineCol = iNewFineCol - FINENESS;
+         }
+         
+         iNewRow = iRowSuccess;
+         if iNewFineRow > 63
+         {
+            iNewRow = iNewRow + 1;
+            iNewFineRow = iNewFineRow - FINENESS;
+         }
+
+         if CanMoveInRoomBSP(prmRoom,iRowSuccess,iColSuccess,iFineRowSuccess,
+                             iFineColSuccess,iNewRow,iNewCol,iNewFineRow,
+                             iNewFineCol,what,bMoveOffBSP)
+         {
+            % Save each step to return to spells for special effects.
+            % No need to save the last one, because that's where
+            % the player will be after all is said and done.
+            lSteps = Cons([iRowSuccess,iColSuccess,iFineRowSuccess,
+                           iFineColSuccess], lSteps);
+            iColSuccess = iNewCol;
+            iRowSuccess = iNewRow;
+            iFineColSuccess = iNewFineCol;
+            iFineRowSuccess = iNewFineRow;
+         }
+         else
+         {
+            break;
+         }
+         
+         iCurDist = iCurDist + FINENESS;
+      }
+
+      if lSteps <> $
+         OR type = INTRA_TELEPORT_TO_DESTINATION
+      {
+         Send(SYS,@UtilGoNearSquare,#what=what,#where=self,
+                     #new_row=iRowSuccess,#new_col=iColSuccess,
+                     #fine_row=iFineRowSuccess,#fine_col=iFineColSuccess,
+                     #new_angle=iWhoAngle);
+         return lSteps;
+      }
+
+      return $;
+   }
+
+   GetHeightAtCoordinates(iRow=0,iCol=0,iFineRow=0,iFineCol=0)
+   {
+      local iQflags, iRflags, iHeightF, iHeightFWD, iHeightC, iServerID;
+
+      % set query-flags, here we're only interested in the sectorinfo
+      iQflags = LIQ_GET_SECTORINFO;
+
+      % query data from bsp in c-function
+      if NOT GetLocationInfoBSP(
+                prmRoom, iQflags, 
+                Send(self,@GetRow), Send(self,@GetCol),
+                Send(self,@GetFineRow), Send(self,@GetFineCol),
+                *iRflags, *iHeightF, *iHeightFWD, *iHeightC, *iServerID)
+      {
+         debug("Failed to get location info in ", Send(poOwner,@GetRoomData));
+         return 0;
+      }
+
+      % we're only using the floor-height with depth modifier here
+      return iHeightFWD;
+   }
+
    Teleport(what=$)
    "Admin supported."
    "Teleports object to coordinates specified in class vars."
