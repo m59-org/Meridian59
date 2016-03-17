@@ -67,15 +67,14 @@ messages:
       propagate;
    }
 
-   GetDuration(duration = 0)
+   GetDuration(duration = 0, bMS = FALSE)
    {
-      local iDuration;
+      if bMS
+      {
+         return duration;
+      }
 
-      iDuration = Random(duration-20,duration+20);
-      iDuration = iDuration * 1000;
-      iDuration = bound(iDuration,30000,200000);
-
-      return iDuration;
+      return duration * 1000;
    }
 
    DoEffect(what = $)
