@@ -152,6 +152,20 @@ messages:
       return;
    }
 
+   SomethingMoved(what = $,new_row = $, new_col = $)
+   {
+      if (new_row > 83) and (new_col > 48)
+      {
+         Send(SYS,@UtilGoNearSquare,#what=what,
+              #where=Send(SYS,@FindRoomByNum,#num=RID_C5),
+              #new_row=3,#new_col=23,#new_angle=ANGLE_SOUTH_WEST);
+              
+         return;
+      }
+
+      propagate;
+   }
+
    CreateStandardObjects()
    {
       Send(self,@NewHold,#what=Create(&MarionElder),
