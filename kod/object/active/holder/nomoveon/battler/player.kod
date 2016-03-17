@@ -834,6 +834,7 @@ properties:
    % This is used to determine raises in hit points only.
    poKill_target = $
    piGain_chance = 0
+   piExperience = 0
 
    % This keeps track of training points that players accumulate when 
    % killing mobs.
@@ -5997,7 +5998,7 @@ messages:
       }
 
       Send(what,@Killed,#what=self,#stroke_obj=stroke_obj);
-      Send(self,@DrawHPChance);
+      % Send(self,@DrawHPChance);
 
       % Report to shrunken head
       shrunken = Send(self,@FindHolding,#class=&ShrunkenHead);
@@ -8783,8 +8784,9 @@ messages:
    "stamina, all the way down to half for those with high staminas."
    {
       local i, dodgeskill, oSkill, monster_level, gain, gainmult, roll,
-            oWeapon, lBuilderGroup, bGainedHP;
+            oWeapon, lBuilderGroup, bGainedHP, iExperienceSystem;
 
+      iExperienceSystem = Send(SETTINGS_OBJECT,@GetExperienceSystem);
       gain = 0;
       roll = FALSE;
       bGainedHP = FALSE;
@@ -8827,106 +8829,221 @@ messages:
 
          if monster_level > piBase_Max_health
          {
+            if iExperienceSystem = EXPERIENCE_SYSTEM_MODERN
+               AND Send(SETTINGS_OBJECT,@GetCapModernExperience)
+            {
+               % Cap XP so player doesn't advance too quickly.
+               monster_level = Send(self,@GetBaseMaxHealth);
+            }
+
             if killing_blow
                AND ((piFlags & PFLAG_TOOK_DAMAGE)
                   OR (piFlags & PFLAG_DODGED))
             {
-               % Player took damage and landed killing blow
-               gain = 2;
-               roll = TRUE;
-            }
-            else
-            {
-               % Player either did not take damage, but did killing blow (mage),
-               %  or did take damage, did not land killing blow, or
-               %  it's a group member kill.
-               
-               gain = 1;
-
-               % We still roll for a tougher if we killed the monster but
-               % didn't take damage or dodge, if we helped kill the monster,
-               % or if it was a group member kill and the setting for group
-               % member toughers is set to TRUE.
-               if NOT group_member_kill
-                  OR Send(SETTINGS_OBJECT,@GetGroupTougherSetting)
+               if iExperienceSystem = EXPERIENCE_SYSTEM_CLASSIC
                {
+                  % Player took damage and landed killing blow
+                  gain = 2;
                   roll = TRUE;
                }
-               
-               % Inform the player that a group kill successfully garnered XP.
-               if group_member_kill
-                  AND group_member <> $
-                  AND gain = 1
+               else if iExperienceSystem = EXPERIENCE_SYSTEM_MODERN
                {
-                  Send(self,@MsgSendUser,#message_rsc=group_experience_rsc,
-                        #parm1=Send(group_member,@GetName),
-                        #parm2=Send(what,@GetName));
+                  % We killed and fought a stronger monster.
+                  % Full XP.
+                  gain = monster_level;
                }
-               
-               % Give an informative message about non-group
-               % kills that are still shared
-               if NOT killing_blow
-                  AND NOT group_member_kill
-                  AND group_member <> $
+            }
+            else
+            {
+               if iExperienceSystem = EXPERIENCE_SYSTEM_CLASSIC
                {
-                  Send(self,@MsgSendUser,#message_rsc=group_experience_rsc,
-                        #parm1=Send(group_member,@GetName),
-                        #parm2=Send(what,@GetName));
+                  % Player either did not take damage, but did killing blow,
+                  %  or did take damage, did not land killing blow, or
+                  %  it's a group member kill.
+               
+                  gain = 1;
+
+                  % We still roll for a tougher if we killed the monster but
+                  % didn't take damage or dodge, if we helped kill the monster,
+                  % or if it was a group member kill and the setting for group
+                  % member toughers is set to TRUE.
+                  if NOT group_member_kill
+                     OR Send(SETTINGS_OBJECT,@GetGroupTougherSetting)
+                  {
+                     roll = TRUE;
+                  }
+               
+                  % Inform the player that a group kill successfully garnered XP.
+                  if group_member_kill
+                     AND group_member <> $
+                     AND gain = 1
+                  {
+                     Send(self,@MsgSendUser,#message_rsc=group_experience_rsc,
+                           #parm1=Send(group_member,@GetName),
+                           #parm2=Send(what,@GetName));
+                  }
+               
+                  % Give an informative message about non-group
+                  % kills that are still shared
+                  if NOT killing_blow
+                     AND NOT group_member_kill
+                     AND group_member <> $
+                  {
+                     Send(self,@MsgSendUser,#message_rsc=group_experience_rsc,
+                           #parm1=Send(group_member,@GetName),
+                           #parm2=Send(what,@GetName));
+                  }
+               }
+               else if iExperienceSystem = EXPERIENCE_SYSTEM_MODERN
+               {
+                  % Player either did not take damage, but did killing blow,
+                  %  or did take damage, did not land killing blow, or
+                  %  it's a group member kill.
+                  %
+                  % Half XP.
+                  gain = monster_level/2;
+               
+                  % Inform the player that a group kill successfully garnered XP.
+                  if group_member_kill
+                     AND group_member <> $
+                  {
+                     Send(self,@MsgSendUser,#message_rsc=group_experience_rsc,
+                           #parm1=Send(group_member,@GetName),
+                           #parm2=Send(what,@GetName));
+                  }
+               
+                  % Give an informative message about non-group
+                  % kills that are still shared
+                  if NOT killing_blow
+                     AND NOT group_member_kill
+                     AND group_member <> $
+                  {
+                     Send(self,@MsgSendUser,#message_rsc=group_experience_rsc,
+                           #parm1=Send(group_member,@GetName),
+                           #parm2=Send(what,@GetName));
+                  }
                }
             }
          }
          else
          {
-            % Monster was equal or close to player level.  Small bonus,
-            %  no roll chance.
-            if (monster_level + 5) > piBase_Max_health
-               AND IsClass(what,&monster) AND killing_blow 
-               AND ((piFlags & PFLAG_TOOK_DAMAGE)
-                  OR (piFlags & PFLAG_DODGED))
+            if iExperienceSystem = EXPERIENCE_SYSTEM_CLASSIC
             {
-               gain = 1;
-            }
-            else
-            {
-               % Monster was too easy for player to kill!
-               if random(1,100) < 30 AND killing_blow
+               % Monster was equal or close to player level.  Small bonus,
+               %  no roll chance.
+               if (monster_level + 5) > piBase_Max_health
+                  AND IsClass(what,&monster) AND killing_blow 
+                  AND ((piFlags & PFLAG_TOOK_DAMAGE)
+                     OR (piFlags & PFLAG_DODGED))
                {
-                  Send(self,@MsgSendUser,#message_rsc=player_spits);
+                  gain = 1;
+               }
+               else
+               {
+                  % Monster was too easy for player to kill!
+                  if random(1,100) < 30 AND killing_blow
+                  {
+                     Send(self,@MsgSendUser,#message_rsc=player_spits);
+                  }
+               }
+            }
+            else if iExperienceSystem = EXPERIENCE_SYSTEM_MODERN
+            {
+               % Monster was equal or close to player level. Small bonus.
+               if (monster_level + 5) > piBase_Max_health
+                  AND IsClass(what,&monster) AND killing_blow 
+                  AND ((piFlags & PFLAG_TOOK_DAMAGE)
+                     OR (piFlags & PFLAG_DODGED))
+               {
+                  gain = monster_level/4;
+               }
+               else
+               {
+                  % Monster was too easy for player to kill!
+                  if random(1,100) < 30 AND killing_blow
+                  {
+                     Send(self,@MsgSendUser,#message_rsc=player_spits);
+                  }
                }
             }
          }
 
-         % Give newbies a little bonus.
-         if piBase_Max_health < Send(SETTINGS_OBJECT,@GetPKillEnableHP)
+         if iExperienceSystem = EXPERIENCE_SYSTEM_CLASSIC
          {
-            gain = gain + 1;
-         }
-         else
-         {
-            % Give solo pkill-enabled builders a little bonus, for
-            % appropriate monsters. This will roughly equal building 
-            % with one other player in the room. Bonus requires that the 
-            % player is fighting normally (no firewalls / distance killing)
-            lBuilderGroup = Send(poOwner,@GetBuilderGroup);
-            if (lBuilderGroup = $
-                  OR Length(lBuilderGroup) = 1
-                  OR (FindListElem(lBuilderGroup,self) = 0
-                     AND (piPreferences & ~CF_GROUPING)))
-               AND NOT group_member_kill
-               AND killing_blow
-               AND (monster_level + 5) > piBase_Max_health
-               AND ((piFlags & PFLAG_TOOK_DAMAGE)
-                  OR (piFlags & PFLAG_DODGED))
+            % Give newbies a little bonus.
+            if piBase_Max_health < Send(SETTINGS_OBJECT,@GetPKillEnableHP)
             {
                gain = gain + 1;
             }
+            else
+            {
+               % Give solo pkill-enabled builders a little bonus, for
+               % appropriate monsters. This will roughly equal building 
+               % with one other player in the room. Bonus requires that the 
+               % player is fighting normally (no firewalls / distance killing)
+               lBuilderGroup = Send(poOwner,@GetBuilderGroup);
+               if (lBuilderGroup = $
+                     OR Length(lBuilderGroup) = 1
+                     OR (FindListElem(lBuilderGroup,self) = 0
+                        AND (piPreferences & ~CF_GROUPING)))
+                  AND NOT group_member_kill
+                  AND killing_blow
+                  AND (monster_level + 5) > piBase_Max_health
+                  AND ((piFlags & PFLAG_TOOK_DAMAGE)
+                     OR (piFlags & PFLAG_DODGED))
+               {
+                  gain = gain + 1;
+               }
+            }
          }
-         
-         % Give a bonus for Survival Rooms
-         if Send(what,@GetBoostedLevel) > 0
+         else if iExperienceSystem = EXPERIENCE_SYSTEM_MODERN
          {
-            gain = gain + (Send(what,@GetBoostedLevel)
-                 / Send(Send(SYS,@GetSurvivalRoomMaintenance),@GetSurvivalXP));
+            % Give newbies a little bonus.
+            if piBase_Max_health < Send(SETTINGS_OBJECT,@GetPKillEnableHP)
+            {
+               gain = gain * 150 / 100;
+            }
+            else
+            {
+               % Give solo pkill-enabled builders a little bonus, for
+               % appropriate monsters. This will roughly equal building 
+               % with one other player in the room. Bonus requires that the 
+               % player is fighting normally (no firewalls / distance killing)
+               lBuilderGroup = Send(poOwner,@GetBuilderGroup);
+               if (lBuilderGroup = $
+                     OR Length(lBuilderGroup) = 1
+                     OR (FindListElem(lBuilderGroup,self) = 0
+                        AND (piPreferences & ~CF_GROUPING)))
+                  AND NOT group_member_kill
+                  AND killing_blow
+                  AND (monster_level + 5) > piBase_Max_health
+                  AND ((piFlags & PFLAG_TOOK_DAMAGE)
+                     OR (piFlags & PFLAG_DODGED))
+               {
+                  gain = gain * 150 / 100;
+               }
+            }
+         }
+
+         if iExperienceSystem = EXPERIENCE_SYSTEM_CLASSIC
+         {
+            % Give a bonus for Survival Rooms
+            if Send(what,@GetBoostedLevel) > 0
+            {
+               gain = gain + (Send(what,@GetBoostedLevel)
+                    / Send(Send(SYS,@GetSurvivalRoomMaintenance),
+                            @GetSurvivalXP));
+            }
+         }
+         else if iExperienceSystem = EXPERIENCE_SYSTEM_MODERN
+         {
+            % Give a bonus for Survival Rooms
+            if Send(what,@GetBoostedLevel) > 0
+            {
+               gain = gain + (Send(what,@GetBoostedLevel) * 10
+                    / Send(Send(SYS,@GetSurvivalRoomMaintenance),
+                            @GetSurvivalXP));
+            }
          }
 
          % If they're cheesing the situation by fighting wussy monsters
@@ -8942,7 +9059,14 @@ messages:
                      @GetHPGainMultiplier),1,500);
          gain = gain * gainmult;
 
-         piGain_chance = piGain_chance + gain;
+         if iExperienceSystem = EXPERIENCE_SYSTEM_CLASSIC
+         {
+            piGain_chance = piGain_chance + gain;
+         }
+         else if iExperienceSystem = EXPERIENCE_SYSTEM_MODERN
+         {
+            bGainedHP = Send(self,@AddExperience,#iAmount=gain);
+         }
 
          % Here, we work out if the player deserves a training point.
          % They qualify if they got at least one gain point from the monster,
@@ -9011,7 +9135,9 @@ messages:
 
       % Draw the tougher chance bar. Send this here because RollForTougher
       % will also draw it, no need to do so twice.
+      % The modern experience system also draws at AddExperience.
       if NOT roll
+         AND NOT iExperienceSystem = EXPERIENCE_SYSTEM_MODERN
       {
          Post(self,@DrawHPChance);
       }
@@ -9125,11 +9251,150 @@ messages:
       return piGain_chance;
    }
 
+   AddExperience(iAmount=$)
+   {
+      local oShrunken;
+
+      if iAmount <> $
+         AND iAmount <> 0
+      {
+         % Can't gain XP if at max health
+         if piBase_Max_health >= 100+Send(self,@GetStamina)
+         {
+            return FALSE;
+         }
+         
+         piExperience = piExperience + iAmount;
+
+         if pbLogged_on
+         {
+            if iAmount > 0
+            {
+               Send(self,@MsgSendUser,#message_rsc=player_experience_gained,
+                  #parm1=iAmount);
+            }
+            else
+            {
+               Send(self,@MsgSendUser,#message_rsc=player_experience_lost,
+                  #parm1=iAmount);
+            }
+
+            Post(self,@DrawHPChance);
+         }
+         
+         if piExperience >= Send(self,@GetExperienceNeeded)
+         {
+            % In case of overages, give them all deserved HP boosts.
+            % But don't do all the other stuff multiple times.
+            while piExperience >= Send(self,@GetExperienceNeeded)
+            {
+               piExperience = piExperience - Send(self,@GetExperienceNeeded);
+               Send(self,@GainBaseMaxHealth,#amount=1);
+               
+               % Just reached max health!
+               if Send(self,@GetExperienceNeeded) = 0
+               {
+                  piExperience = 0;
+                  break;
+               }                  
+            }
+            if Send(self,@CheckLog)
+            {
+               Debug("LOG:  ",vrName," gained a health point: ",
+                     piMax_health,pibase_max_health);
+            }
+
+            Send(self,@EvaluatePKStatus);
+
+            if pbLogged_on
+            {
+               Send(self,@MsgSendUser,#message_rsc=player_improve_maxhealth);
+               Send(self,@WaveSendUser,#what=self,
+                     #wave_rsc=player_tougher_wav_rsc);
+
+               % Boost the player to max health, and give them 200 vigor.
+               Send(self,@MsgSendUser,
+                     #message_rsc=player_improve_health_invigorate);
+               piHealth = piMax_Health * 100;
+               Send(self,@DrawHealth);
+               Send(self,@EatSomething,#nutrition=200);
+               Post(self,@DrawOffense);
+               Post(self,@DrawDefense);
+               Post(self,@DrawHPChance);
+
+               % Report to shrunken head, if they have one.
+               oShrunken = Send(self,@FindHolding,#class=&ShrunkenHead);
+               if oShrunken <> $
+               {
+                  Send(oShrunken,@Tougher,#hp=pibase_max_health);
+               }
+            }
+            return TRUE;
+         }
+      }
+
+      return FALSE;
+   }
+   
+   GetExperience()
+   {
+      return piExperience;
+   }
+
+   GetExperienceNeeded()
+   {
+      local iExperienceNeeded;
+      
+      if piBase_Max_health >= 100+Send(self,@GetStamina)
+      {
+         return 0;
+      }
+
+%     Classic system says:
+%     "A player will need, on average, to kill a number of monsters equal to"
+%     "their maxhealth to gain a HP.  This number is reduced by the player's"
+%     "stamina, all the way down to half for those with high staminas."
+      
+      % +1 because it's for the next hit point.
+      % Your base max health squared because you will have to kill,
+      % for example, 150 150-hp monsters to get your 150th hit point.
+      % Monsters give experience equal to their level.
+      iExperienceNeeded = (piBase_Max_health+1) * (piBase_Max_health+1);
+      
+      % Reduce experience needed by up to half at 50 stamina.
+      % No bound so that Staminas up to 70 still help.
+      iExperienceNeeded = iExperienceNeeded * (100-Send(self,@GetStamina))/100;
+      
+      iExperienceNeeded = bound(iExperienceNeeded,1,$);
+      
+      return iExperienceNeeded;
+   }
+
+   ConvertGainChanceToXP(iAmount=0)
+   {
+      local iExperience;
+      
+      % Two gain chance points is equivalent to one full kill of an equal
+      % level monster.
+      
+      iExperience = Send(self,@GetBaseMaxHealth);
+      iExperience = iExperience * iAmount / 2;
+      
+      return iExperience;
+   }
+
    AddGainChance(iAmount=$)
    {
       if iAmount <> $
          AND iAmount <> 0
       {
+         if Send(SETTINGS_OBJECT,@GetExperienceSystem) = EXPERIENCE_SYSTEM_MODERN
+         {
+            iAmount = Send(self,@ConvertGainChanceToXP,#iAmount=iAmount);
+            Send(self,@AddExperience,#iAmount=iAmount);
+            return;
+         }
+         
          piGain_chance = piGain_chance + iAmount;
 
          if pbLogged_on
