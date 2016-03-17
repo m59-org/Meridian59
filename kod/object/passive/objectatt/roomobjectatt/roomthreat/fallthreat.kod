@@ -122,9 +122,12 @@ messages:
    
    PlayerFell(who=$)
    {
-      Send(who,@MsgSendUser,#message_rsc=fell_msg);
-      Send(who,@Killed);
-      Send(self,@SendDeathMessage,#who=who);
+      if NOT Send(who,@PlayerIsImmortal)
+      {
+         Send(who,@MsgSendUser,#message_rsc=fell_msg);
+         Send(who,@Killed);
+         Send(self,@SendDeathMessage,#who=who);
+      }
       return;
    }
    
