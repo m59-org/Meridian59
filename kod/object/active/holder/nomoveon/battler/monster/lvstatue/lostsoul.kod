@@ -1,0 +1,247 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+LostSoul is LivingStatue
+
+constants:
+
+   include blakston.khd
+
+   % What percent of the time do we wake up when someone is near?
+   WAKEUP_CHANCE = 0
+
+resources:
+
+   LostSoul_name_rsc = "lost soul"
+   LostSoul_active_name_rsc = "demented lost soul"
+
+   LostSoul_desc_rsc = \
+      "This is the spirit of some ancient %s.\n\n%r"
+
+   LostSoul_dead_name_rsc = "dissipated lost soul"
+
+   LostSoul_mason = "nomad"
+   LostSoul_farmer = "witch"
+   LostSoul_merchant = "merchant"
+   LostSoul_blacksmith = "sorcerer"
+   LostSoul_elder = "wanderer"
+   LostSoul_soldier = "bandit"
+
+   LostSoul_damage = "~B~r%s%s is noticeably more damaged."
+   LostSoul_severe_damage = "~B~r%s%s is severely damaged."
+
+   LostSoul_rose_drop = "My... beloved...!"
+
+   LostSoul_icon_blank = blank.bgf
+
+   LostSoul_male_icon_rsc = bta.bgf
+   LostSoul_female_icon_rsc = btb.bgf  
+
+   % a is male, b is female
+   LostSoul_legs_a_rsc = bfa.bgf
+   LostSoul_legs_b_rsc = bfb.bgf
+
+   LostSoul_rightarm_a_rsc = bra.bgf
+   LostSoul_rightarm_b_rsc = brb.bgf
+
+   LostSoul_leftarm_a_rsc = bla.bgf
+   LostSoul_leftarm_b_rsc = blb.bgf
+
+   LostSoul_dead_male_icona_rsc = playerXa.bgf
+   LostSoul_dead_male_iconb_rsc = playerXb.bgf
+   LostSoul_dead_female_icona_rsc = heraXa.bgf
+   LostSoul_dead_female_iconb_rsc = heraXb.bgf
+
+   LostSoul_head_male_icon = phax.bgf
+   LostSoul_head_female_icon = phkx.bgf
+
+   % male
+   LostSoul_eyes_ax_icon = peax.bgf
+   LostSoul_eyes_bx_icon = pebx.bgf
+   LostSoul_eyes_cx_icon = pecx.bgf
+   LostSoul_eyes_dx_icon = pedx.bgf
+
+   % female
+   LostSoul_eyes_kx_icon = pekx.bgf
+   LostSoul_eyes_lx_icon = pelx.bgf
+   LostSoul_eyes_mx_icon = pemx.bgf
+
+   % male
+   LostSoul_mouth_ax_icon = pmax.bgf
+   LostSoul_mouth_bx_icon = pmbx.bgf
+   LostSoul_mouth_cx_icon = pmcx.bgf
+
+   % female
+   LostSoul_mouth_kx_icon = pmkx.bgf
+   LostSoul_mouth_lx_icon = pmlx.bgf
+   LostSoul_mouth_mx_icon = pmmx.bgf
+
+   % male
+   LostSoul_nose_ax_icon = pnax.bgf
+   LostSoul_nose_bx_icon = pnbx.bgf
+   LostSoul_nose_cx_icon = pncx.bgf
+
+   % female
+   LostSoul_nose_kx_icon = pnkx.bgf
+   LostSoul_nose_lx_icon = pnlx.bgf
+   LostSoul_nose_mx_icon = pnmx.bgf
+
+   % both
+   LostSoul_hair_cd_icon = ptcd.bgf
+   LostSoul_hair_bald_icon = blank.bgf
+
+   % male
+   LostSoul_hair_ac_icon = ptac.bgf
+   LostSoul_hair_ba_icon = ptba.bgf
+   LostSoul_hair_ad_icon = ptad.bgf
+   LostSoul_hair_bb_icon = ptbb.bgf
+   LostSoul_hair_xa_icon = ptxa.bgf
+
+   % female
+   LostSoul_hair_bc_icon = ptbc.bgf
+   LostSoul_hair_ca_icon = ptca.bgf
+   LostSoul_hair_db_icon = ptdb.bgf
+   LostSoul_hair_bd_icon = ptbd.bgf
+   LostSoul_hair_cb_icon = ptcb.bgf
+   LostSoul_hair_dc_icon = ptdc.bgf
+   LostSoul_hair_dr_icon = ptdr.bgf
+   LostSoul_hair_xb_icon = ptxb.bgf
+
+   LostSoul_rightarm_gauntlet_male = bre.bgf
+   LostSoul_rightarm_gauntlet_female = brf.bgf
+   LostSoul_leftarm_gauntlet_male = ble.bgf
+   LostSoul_leftarm_gauntlet_female = blf.bgf
+
+   LostSoul_sound_attack = xeoatk.wav
+   LostSoul_sound_aware = xeodie.wav
+   LostSoul_sound_death = xeo1awr.wav
+
+classvars:
+
+   vrDesc = LostSoul_desc_rsc
+   vrDead_name = LostSoul_dead_name_rsc
+
+   viTreasure_type = TID_STATUE
+
+   viAttack_type = ATCK_WEAP_SLASH
+
+   vrSound_hit = LostSoul_sound_attack
+   vrSound_miss = LostSoul_sound_attack
+   vrSound_aware = LostSoul_sound_aware
+   vrSound_death = LostSoul_sound_death
+
+   viKarma = 0
+   viDead_drawfx = DRAWFX_SECONDTRANS
+
+   % percentage chance to be female
+   viChanceFemale = 50
+
+   % Our normal speed when active
+   viNormalSpeed = SPEED_AVERAGE
+   viCashmin = 150
+   viCashmax = 500
+
+   Statue_mason = LostSoul_mason
+   Statue_farmer = LostSoul_farmer
+   Statue_merchant = LostSoul_merchant
+   Statue_blacksmith = LostSoul_blacksmith
+   Statue_elder = LostSoul_elder
+   Statue_soldier = LostSoul_soldier
+
+properties:
+
+   % Put these as properties so they can be set
+   vrName = LostSoul_name_rsc
+
+   vrIcon = LostSoul_male_icon_rsc
+   vrDead_Icon = LostSoul_dead_male_icona_rsc
+   vrDead_Legs = LostSoul_dead_male_iconb_rsc
+
+   viLevel = 200
+   viDifficulty = 5
+   viVisionDistance = 3
+   % Attack range of 192, or 3 row/col.
+   viAttackRange = 192
+   viGender = GENDER_MALE
+
+   viSpeed = SPEED_NONE
+
+   piAnimation = ANIM_NONE
+
+   prLegs = LostSoul_legs_a_rsc
+   prRight_arm = LostSoul_rightarm_a_rsc
+   prLeft_arm = LostSoul_leftarm_a_rsc
+
+   prHead = LostSoul_head_male_icon
+   prEyes = LostSoul_eyes_ax_icon
+   prMouth = LostSoul_mouth_ax_icon
+   prNose = LostSoul_nose_ax_icon
+   prToupee = LostSoul_hair_ac_icon
+
+   % Original data, for replacing when we heal.
+   prOriginalHead = LostSoul_head_male_icon
+   prOriginalEyes = LostSoul_eyes_ax_icon
+   prOriginalMouth = LostSoul_mouth_ax_icon
+   prOriginalNose = LostSoul_nose_ax_icon
+   prOriginalLeft_arm = LostSoul_leftarm_a_rsc
+
+   plUsing = $
+   plOverlays = $
+   poHair_Remove = $
+
+   piDrawFX = DRAWFX_SECONDTRANS
+
+   % Is this a soldier?
+   pbIsSoldier = FALSE
+
+   % Do we have a shield?
+   pbHasShield = FALSE
+
+   % What are we an image of?
+   prProfession = LostSoul_elder
+
+   % How long should we remain dormant, unable to be awoken by players?
+   ptRemainDormant = $
+
+   % Used to lock soul into a dormant state
+   pbLockedDormant = FALSE
+
+messages:
+
+   ShowDesc()
+   {
+      % Does not show status information, because it has none.
+      AddPacket(4,vrDesc, 4,prProfession, 4,monster_nothing);
+
+      return;
+   }
+
+   WakeUp()
+   {
+      return;
+   }
+
+   SetEquipment()
+   {
+      return;
+   }
+
+   CreateTreasure(who=$,corpse=$)
+   {
+      return;
+   }
+
+   CanMorphTo()
+   {
+      return FALSE;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
