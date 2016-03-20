@@ -242,6 +242,11 @@ resources:
       "Come back tomorrow for more!"
    player_experience_gained = "You have gained ~B%i~B experience points!"
    player_experience_lost = "You have lost ~B~r%i~B experience points!"
+   player_gained_mastery = "You have gained ~B%i~B mastery points!"
+   player_spent_mastery = "You have spent ~B%i~B mastery points!"
+   player_mastery_inform = "You now have ~B%i~B mastery points!"
+   player_reached_maxmastery = \
+      "You now have ~B%i~B mastery points and cannot gain any more!"
 
    player_health_gain_maxed = "Your health cannot increase any further."
 
@@ -802,6 +807,12 @@ resources:
    bad_line_of_sight = \
       "Your hindered line of sight makes a successful hit more difficult."
 
+   PostMaxHPTPReward = \
+      "Because you at your physical peak, your new enlightenment takes the "
+      "form of %i training points."
+   PostMaxHPMPReward = \
+      "Because you at your physical peak, your new enlightenment takes the "
+      "form of %i mastery points."
       
    pvp_notify_wav = gong.wav
 
@@ -848,6 +859,10 @@ properties:
    % and cash in on their daily training points, we grant the points every 24
    % hours of online time.
    ptReward_timer = $
+
+   % This keeps track of Post Max HP mastery points.
+   % Enable with POST_MAX_HP_SYSTEM_MASTERY_POINTS in settings
+   piMastery_points = 0
 
    % Flags for various character attributes.
    piFlags = 0
@@ -6972,6 +6987,31 @@ messages:
          iApparentStamina = Send(self,@GetRawStamina);
       }
 
+      if piBase_max_health >= (100 + iApparentStamina)
+      {
+         % Player got a Post Max tougher.
+         if Send(SETTINGS_OBJECT, @GetPostMaxHPBuildingSystem) =
+                  POST_MAX_HP_SYSTEM_TRAINING_POINTS
+         {
+            % Under this system, give player training points.
+            % This can go over the max limit of 1000, but is capped
+            % itself at 3000 to avoid limitless build up of TP which
+            % would render logging and death pens nil.
+            piTraining_points = piTraining_points + piBase_max_health * 3;
+            piTraining_points = bound(piTraining_points,0,3000);
+            Send(self,@MsgSendUser,#message_rsc=PostMaxHPTPReward,
+                  #parm1=piBase_max_health * 3);
+         }
+         else if Send(SETTINGS_OBJECT, @GetPostMaxHPBuildingSystem) =
+                       POST_MAX_HP_SYSTEM_MASTERY_POINTS
+         {
+            Send(self,@AddMasteryPoints,#points=piBase_max_health/3,
+                  #report=FALSE);
+            Send(self,@MsgSendUser,#message_rsc=PostMaxHPMPReward,
+                  #parm1=piBase_max_health/3);
+         }
+      }
+
       piBase_max_health = Bound(piBase_max_health + amount, 20,
                               (100 + iApparentStamina));
       % Bound ourselves at the top end to 150.
@@ -7477,6 +7517,11 @@ messages:
    GetVigor()
    {
       return piVigor;
+   }
+   
+   GetStaminaMod()
+   {
+      return piStaminaMod;
    }
 
    AddKarma(amount = 0)
@@ -9257,13 +9302,7 @@ messages:
 
       if iAmount <> $
          AND iAmount <> 0
-      {
-         % Can't gain XP if at max health
-         if piBase_Max_health >= 100+Send(self,@GetStamina)
-         {
-            return FALSE;
-         }
-         
+      {  
          piExperience = piExperience + iAmount;
 
          if pbLogged_on
@@ -9291,8 +9330,8 @@ messages:
                piExperience = piExperience - Send(self,@GetExperienceNeeded);
                Send(self,@GainBaseMaxHealth,#amount=1);
                
-               % Just reached max health!
-               if Send(self,@GetExperienceNeeded) = 0
+               % Make sure we never infinite loop.
+               if Send(self,@GetExperienceNeeded) <= 0
                {
                   piExperience = 0;
                   break;
@@ -9344,11 +9383,6 @@ messages:
    GetExperienceNeeded()
    {
       local iExperienceNeeded;
-      
-      if piBase_Max_health >= 100+Send(self,@GetStamina)
-      {
-         return 0;
-      }
 
 %     Classic system says:
 %     "A player will need, on average, to kill a number of monsters equal to"
@@ -9496,6 +9530,64 @@ messages:
 
       return;
       
+   }
+
+   GetMasteryPoints()
+   {
+      return piMastery_points;
+   }
+
+   AddMasteryPoints(points=0,report=TRUE,bCap=TRUE)
+   {
+      if points = 0
+      {
+         return;
+      }
+
+      if bCap
+      {
+         if piMastery_points <= 1000
+         {
+            points = bound(points,-piMastery_points,1000 - piMastery_points);
+         }
+         else if points > 0
+         {
+               % We're respecting the 1000 point cap, have more than 1000
+               % points and are trying to add more. Don't add the points,
+               % return out.
+               return;
+         }
+      }
+
+      if report AND points > 0
+      {
+         Send(self,@MsgSendUser,#message_rsc=player_gained_mastery,
+               #parm1=points);
+      }
+
+      if report AND points < 0
+      {
+         Send(self,@MsgSendUser,#message_rsc=player_spent_mastery,
+               #parm1=-points);
+      }
+
+      piMastery_points = piMastery_points + points;
+
+      if piMastery_points < 1000
+         OR NOT bCap
+      {
+         piInform = TRUE;
+      }
+      else
+      {
+         Send(self,@MsgSendUser,#message_rsc=player_reached_maxmastery,
+               #parm1=piMastery_points);
+         piInform = FALSE;
+      }
+
+      Post(self,@DrawHPChance);
+
+      return;
    }
 
    GetHighMark()
