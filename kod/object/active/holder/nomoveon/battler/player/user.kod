@@ -152,6 +152,7 @@ resources:
    user_stat_armor = "Armor"
    user_stat_training = "Training Pts"
    user_stat_hpgainchance = exp.bgf
+   user_stat_masterypoints = masterypoints.bgf
    user_resist_magic = "Magic Resist"
    user_resist_fire = "Fire Resist"
    user_resist_shock = "Shock Resist"
@@ -8800,7 +8801,30 @@ messages:
 
    SendStatHPChance()
    {
-      local iHPChance_Send, highmark, iExperienceSystem, iExperienceNeeded;
+      local iHPChance_Send, highmark, iExperienceSystem, iExperienceNeeded,
+            iApparentStamina;
+      
+      if Send(self,@GetStaminaMod) < 0
+      {
+         iApparentStamina = Send(self,@GetRawStamina);
+      }
+      else
+      {
+         iApparentStamina = Send(self,@GetStamina);
+      }
+
+      if Send(self,@GetBaseMaxHealth) >= 100 + iApparentStamina
+      {
+         % Player is at max hp. Let's use this bar for mastery points.
+         if Send(SETTINGS_OBJECT, @GetPostMaxHPBuildingSystem) =
+                       POST_MAX_HP_SYSTEM_MASTERY_POINTS
+         {
+            AddPacket(1,4, 4,user_stat_masterypoints, 1,STAT_VALUE, 1,
+                  STAT_INTEGER,4,Send(self,@GetMasteryPoints), 4,0, 
+                  4,1000, 4,1000);
+            return;
+         }
+      }
 
       iExperienceSystem = Send(SETTINGS_OBJECT,@GetExperienceSystem);
       
