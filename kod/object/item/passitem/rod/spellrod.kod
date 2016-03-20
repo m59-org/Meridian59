@@ -55,6 +55,18 @@ messages:
       % Can only be charged by kills.
       return FALSE;
    }
+   
+   DrainWhenSafe()
+   {
+      if Send(self,@GetHits) > 0
+      {
+         Send(self,@SetHits,#number=0);
+
+         return TRUE;
+      }
+      
+      return FALSE;
+   }
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

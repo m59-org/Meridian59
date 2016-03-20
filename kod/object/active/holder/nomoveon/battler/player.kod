@@ -785,6 +785,8 @@ resources:
       "charge from the released energy of your kill."
    rods_fully_recharged_by_safe_place_msg = \
       "This place of safety has recharged your magical rods."
+   rods_drained_by_safe_place_msg = \
+      "Some of your rods have drained due to the protective magics here."
 
    player_truced = "Shal'ille's magic compels you to respect the truce."
 
@@ -14959,6 +14961,29 @@ messages:
       if bGainedCharges
       {
          Send(self,@MsgSendUser,#message_rsc=rods_fully_recharged_by_safe_place_msg);
+      }
+
+      return;
+   }
+
+   DrainWhenSafeRods()
+   {
+      local i, bLostCharges;
+
+      bLostCharges = FALSE;
+
+      foreach i in plPassive
+      {
+         if IsClass(i,&Rod)
+            AND Send(i,@DrainWhenSafe)
+         {
+            bLostCharges = TRUE;
+         }
+      }
+
+      if bLostCharges
+      {
+         Send(self,@MsgSendUser,#message_rsc=rods_drained_by_safe_place_msg);
       }
 
       return;

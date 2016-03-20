@@ -17,7 +17,7 @@ constants:
 resources:
 
    ShieldRodBuff_name_rsc = "aura of shielding"
-   ShieldRodBuff_icon_rsc = igort.bgf
+   ShieldRodBuff_icon_rsc = shieldrodbuff.bgf
    ShieldRodBuff_desc_rsc = \
       "A short-lived but impenetrable barrier renders all attacks against you "
       "feeble and powerless."
@@ -74,14 +74,14 @@ messages:
       return iDuration;
    }
    
-   LastModifyDefenseDamage(precision=FALSE)
+   LastModifyDefenseDamage(damage=0,precision=FALSE)
    {
       if precision
       {
-         return 100;
+         return bound(damage,100,1000);
       }
 
-      return 1;
+      return bound(damage,1,10);
    }
 
 end
