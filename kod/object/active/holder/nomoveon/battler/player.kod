@@ -785,6 +785,8 @@ resources:
       "charge from the released energy of your kill."
    rods_fully_recharged_by_safe_place_msg = \
       "This place of safety has recharged your magical rods."
+   rods_drained_by_safe_place_msg = \
+      "Some of your rods have drained due to the protective magics here."
 
    player_truced = "Shal'ille's magic compels you to respect the truce."
 
@@ -5527,6 +5529,24 @@ messages:
                Send(First(i),@ImproveAbility,#who=self,#target=what);
             }
          }
+         
+         % Check for attacker's damage rod
+         oSpell = Send(SYS,@FindSpellByNum,#num=SID_DAMAGE_ROD_BUFF);
+         if Send(what,@IsEnchanted,#what=oSpell)
+         {
+            damage = Send(oSpell,@SpecialModifyDamage,#who=self,
+                           #what=what,#damage=damage,
+                           #atype=atype,#aspell=aspell);
+         }
+
+         oSpell = Send(SYS,@FindSpellByNum,#num=SID_SHIELD_ROD_BUFF);
+         if Send(self,@IsEnchanted,#what=oSpell)
+         {
+            damage = Send(oSpell,@LastModifyDefenseDamage,#who=self,
+                           #what=what,#damage=damage,
+                           #atype=atype,#aspell=aspell,
+                           #precision=precision);
+         }
 
          % Add attmods AFTER resistance/suscep mods.
          damage = damage + bonus;
@@ -5626,49 +5646,6 @@ messages:
             RecordStat(STAT_ASSESS_DAM,Send(self,@GetTrueName),
                Send(what,@GetTrueName),aspell,atype,damage/100,origdamage,
                player_no_weapon_string);
-         }
-      }
-
-      % Increase final damage by 35 percent if attacker damage rod is active
-      bAttackerEmpowered = FALSE;
-      if what <> $
-         AND IsClass(what,&Player)
-      {
-         foreach i in Send(what,@GetHolderPassive)
-         {
-            if IsClass(i,&DamageRod)
-               AND Send(i,@IsActive)
-            {
-               bAttackerEmpowered = TRUE;
-            }
-         }
-      }
-      
-      if bAttackerEmpowered
-      {
-         damage = damage * 135 / 100;
-      }
-
-      % Look for active shield rods in inventory, reduce final damage to 1 if any active
-      bShielded = FALSE;
-      foreach i in plPassive
-      {
-         if IsClass(i,&ShieldRod)
-            AND Send(i,@IsActive)
-         {
-            bShielded = TRUE;
-         }
-      }
-
-      if bShielded
-      {
-         if precision
-         {
-            damage = 100;
-         }
-         else
-         {
-            damage = 1;
          }
       }
 
@@ -14984,6 +14961,29 @@ messages:
       if bGainedCharges
       {
          Send(self,@MsgSendUser,#message_rsc=rods_fully_recharged_by_safe_place_msg);
+      }
+
+      return;
+   }
+
+   DrainWhenSafeRods()
+   {
+      local i, bLostCharges;
+
+      bLostCharges = FALSE;
+
+      foreach i in plPassive
+      {
+         if IsClass(i,&Rod)
+            AND Send(i,@DrainWhenSafe)
+         {
+            bLostCharges = TRUE;
+         }
+      }
+
+      if bLostCharges
+      {
+         Send(self,@MsgSendUser,#message_rsc=rods_drained_by_safe_place_msg);
       }
 
       return;

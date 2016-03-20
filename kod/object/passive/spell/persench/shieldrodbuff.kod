@@ -1,0 +1,88 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ShieldRodBuff is PersonalEnchantment
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   ShieldRodBuff_name_rsc = "aura of shielding"
+   ShieldRodBuff_icon_rsc = shieldrodbuff.bgf
+   ShieldRodBuff_desc_rsc = \
+      "A short-lived but impenetrable barrier renders all attacks against you "
+      "feeble and powerless."
+   ShieldRodBuff_already_enchanted_rsc = \
+      "You are already protected by a rod of shielding."
+
+   ShieldRodBuff_on_rsc = \
+      "Tightly woven energies surround you."
+   ShieldRodBuff_off_rsc = \
+      "The protection offered by your rod of shielding fades."
+
+classvars:
+
+   vrName = ShieldRodBuff_name_rsc
+   vrIcon = ShieldRodBuff_icon_rsc
+   vrDesc = ShieldRodBuff_desc_rsc
+
+   vrAlreadyEnchanted = ShieldRodBuff_already_enchanted_rsc
+   vrEnchantment_On = ShieldRodBuff_On_rsc
+   vrEnchantment_Off = ShieldRodBuff_Off_rsc
+
+   viSpell_num = SID_SHIELD_ROD_BUFF
+
+   viMana = 0
+
+   viSpell_level = 6
+   viSchool = SS_KRAANAN
+
+   viChance_To_Increase = 0
+   viMeditate_ratio = 0
+   viFlash = FLASH_GOOD_SELF
+
+   viDefensive = TRUE
+
+properties:
+
+messages:
+
+   ResetReagents()
+   {
+      plReagents = $;
+
+      return;
+   }
+
+   GetDuration(iSpellPower=0)
+   {
+      local iDuration;
+
+      % 60 ms per 1 spellpower. Default 3000 ms at 50 sp.
+      % Change spellpower in ShieldRod to modify.
+      iDuration = iSpellPower * 60;
+
+      return iDuration;
+   }
+   
+   LastModifyDefenseDamage(damage=0,precision=FALSE)
+   {
+      if precision
+      {
+         return bound(damage,100,1000);
+      }
+
+      return bound(damage,1,10);
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

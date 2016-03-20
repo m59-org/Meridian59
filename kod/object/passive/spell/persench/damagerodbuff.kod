@@ -1,0 +1,81 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+DamageRodBuff is PersonalEnchantment
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   DamageRodBuff_name_rsc = "aura of power"
+   DamageRodBuff_icon_rsc = damagerodbuff.bgf
+   DamageRodBuff_desc_rsc = \
+      "Arcane energies dance through your every movement, empowering your "
+      "attacks."
+   DamageRodBuff_on = \
+      "Arcane energies surge through you!"
+   DamageRodBuff_off = \
+      "The arcane energies leave you."
+   DamageRodBuff_already_enchanted_rsc = \
+      "Arcane energies are already rushing through you!"
+
+classvars:
+
+   vrName = DamageRodBuff_name_rsc
+   vrIcon = DamageRodBuff_icon_rsc
+   vrDesc = DamageRodBuff_desc_rsc
+
+   viSpell_num = SID_DAMAGE_ROD_BUFF
+
+   viMana = 0
+
+   viSpell_level = 6
+   viSchool = SS_QOR
+
+   viChance_To_Increase = 0
+   viMeditate_ratio = 0
+
+   vrAlreadyEnchanted = DamageRodBuff_already_enchanted_rsc
+   vrEnchantment_On = DamageRodBuff_on
+   vrEnchantment_Off = DamageRodBuff_off
+
+   viFlash = FLASH_GOOD_SELF
+
+properties:
+
+messages:
+
+   ResetReagents()
+   {
+      plReagents = $;
+
+      return;
+   }
+
+   GetDuration(iSpellPower=0)
+   {
+      local iDuration;
+
+      % 100 ms per 1 spellpower. Default 5000 ms at 50 sp.
+      % Change spellpower in DamageRod to modify.
+      iDuration = iSpellPower * 100;
+
+      return iDuration;
+   }
+
+   SpecialModifyDamage(who=$,what=$,damage=0)
+   {
+      return (damage * 120) / 100;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

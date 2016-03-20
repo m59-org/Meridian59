@@ -44,7 +44,8 @@ messages:
       local oSpell;
 
       oSpell = Send(SYS,@FindSpellByNum,#num=piSpellNum);
-      Send(oSpell,@CastSpell,#who=poOwner,#lTargets=[poOwner],#iSpellPower=piSpellpower,#bItemCast=TRUE);
+      Send(oSpell,@CastSpell,#who=poOwner,#lTargets=[poOwner],
+            #iSpellPower=piSpellpower,#bItemCast=TRUE);
 
       propagate;
    }
@@ -52,6 +53,18 @@ messages:
    FullyRecharge()
    {
       % Can only be charged by kills.
+      return FALSE;
+   }
+   
+   DrainWhenSafe()
+   {
+      if Send(self,@GetHits) > 0
+      {
+         Send(self,@SetHits,#number=0);
+
+         return TRUE;
+      }
+      
       return FALSE;
    }
 
