@@ -1,0 +1,142 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+TutorialTempleKraanan is TutorialTempleSchoolRoom
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   room_name_tuttemple5 = "Temple of Knowledge - Battle Magic"
+   room_tuttemple5 = tuttemple5.roo
+   tuttemple5_music = login.mp3
+
+   tuttemple5_door_sound = down2.wav
+
+   TutorialTemple5_enter = \
+      "You enter the final chamber of the Temple of Knowledge."
+
+   TutorialTempleKraanan_enter = \
+      "Here the God of Battle offers you strength. Say 'take Kraanan' to "
+      "empower yourself. Exit to the north will take you out of the Temple."
+   TutorialTempleKraanan_leave = \
+      "You exit the Temple of Knowledge."
+
+   take_kraanan_statement = "take Kraanan"
+
+   get_kraanan_flagship_spells_msg = \
+      "You have been temporarily granted these high level Kraanan spells: "
+      "armor of gort, resist magic, eagle eyes, free action, and magic shield."
+   lose_kraanan_flagship_spells_msg = \
+      "The high level Kraanan spells you were granted slip from your mind."
+   already_have_kraanan_msg = \
+      "You are already an initiate of Kraanan."
+   take_kraanan_msg = \
+      "Kraanan lends you his strength."
+
+classvars:
+
+   viTeleport_row = 8
+   viTeleport_col = 4
+   viTeleport_angle = ANGLE_NORTH
+
+   viRoomSchool = SS_KRAANAN
+   
+   viExitRID = RID_NEWB2
+   
+   vrEnterSchoolRoomMessage = TutorialTempleKraanan_enter
+   vrLeaveSchoolRoomMessage = TutorialTempleKraanan_leave
+   vrTakeSchoolStatement = take_kraanan_statement
+   
+   vrAlreadyHaveSchoolMsg = already_have_kraanan_msg
+   vrTakeSchoolMsg = take_kraanan_msg
+   
+   vrGetFlagshipSpellsMsg = get_kraanan_flagship_spells_msg
+   vrLoseFlagshipSpellsMsg = lose_kraanan_flagship_spells_msg
+
+properties:
+
+   vrName = room_name_tuttemple5
+   prRoom = room_tuttemple5
+   piRoom_num = RID_TUTORIAL_TEMPLEKRAANAN
+   viTerrain_type = TERRAIN_CITY
+
+   prMusic = tuttemple5_music
+
+messages:
+
+   Constructed()
+   {
+      plRoomSchoolSpells = [SID_ARMOR_OF_GORT,
+                            SID_RESIST_MAGIC,
+                            SID_EAGLE_EYES,
+                            SID_FREE_ACTION,
+                            SID_MAGIC_SHIELD];
+
+      propagate;
+   }
+
+   Teleport(what=$)
+   "Admin supported."
+   "Teleports object to coordinates specified in class vars."
+   {
+      if Send(self,@GetTeleportRow) <> $ AND Send(self,@GetTeleportCol) <> $
+      {
+         Send(SYS,@UtilGoNearSquare,#what=what,#where=self,
+              #new_row=Send(self,@GetTeleportRow),
+              #new_col=Send(self,@GetTeleportCol),
+              #fine_row=0,
+              #fine_col=0,
+              #new_angle=Send(self,@GetTeleportAngle));
+
+         return TRUE;
+      }
+
+      return FALSE;
+   }
+
+   CreateStandardObjects()
+   {
+      Send(self,@NewHold,#what=Create(&KraananTutorialTeacher),
+            #new_row=8,#new_col=18,#fine_row=39,#fine_col=19);
+      Send(self,@NewHold,#what=Create(&TutorialWizard5),
+            #new_row=6,#new_col=16,#fine_row=17,#fine_col=53);
+
+      propagate;
+   }
+
+   SomeoneSaid(what = $,type = $,string = $,parm1 = $,parm2 = $,parm3 = $,
+               parm4 = $, parm5 = $,parm6 = $,parm7 = $,parm8 = $)
+   {
+      local i, each_obj;
+
+      if NOT isClass(what,&player) OR type = SAY_YELL
+      {
+         propagate;
+      }
+
+      propagate;
+   }
+
+   NewHold(what=$)
+   {
+      if IsClass(what,&Player)
+         AND NOT IsClass(what,&DM)
+      {
+         Send(what,@MsgSendUser,#message_rsc=TutorialTemple5_enter);
+      }
+
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

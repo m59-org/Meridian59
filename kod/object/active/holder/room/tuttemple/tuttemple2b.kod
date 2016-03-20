@@ -1,0 +1,153 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+TutorialTemple2b is TutorialTemple
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   room_name_tuttemple2b = "Temple of Knowledge - Aligned Schools"
+   room_tuttemple2b = tuttemple2b.roo
+   tuttemple2b_music = login.mp3
+
+   tuttemple2b_door_sound = down2.wav
+
+   tuttemple_goto_qor = \
+      "You slink into the darkness of Qor's promise."
+   tuttemple_goto_shal = \
+      "You consider Shal'ille's guiding light."
+
+   TutorialTemple2b_enter = \
+      "You enter the Aligned Schools area of the Temple of Knowledge."
+
+classvars:
+
+   viTeleport_row = 8
+   viTeleport_col = 4
+   viTeleport_angle = ANGLE_NORTH
+
+properties:
+
+   vrName = room_name_tuttemple2b
+   prRoom = room_tuttemple2b
+   piRoom_num = RID_TUTORIAL_TEMPLE2B
+   viTerrain_type = TERRAIN_CITY
+
+   prMusic = tuttemple2b_music
+
+messages:
+
+   CreateStandardExits()
+   {
+      plExits = $;
+
+      %% TO TOWN
+  %    plExits = Cons([ 4, 10, RID_MARION, 32, 17, ROTATE_NONE ],plExits);
+   %   plExits = Cons([ 5, 10, RID_MARION, 32, 17, ROTATE_NONE ],plExits);
+
+      propagate;
+   }
+
+   SomethingMoved(what = $,new_row = $, new_col = $)
+   {
+      if new_row < 1
+      {
+         Send(SYS,@UtilGoNearSquare,#what=what,
+              #where=Send(SYS,@FindRoomByNum,#num=RID_TUTORIAL_TEMPLE3),
+              #new_row=35,#new_col=18,#fine_row=0,#fine_col=14,
+              #new_angle=ANGLE_NORTH);
+         return;
+      }
+
+      if new_col < 14
+      {
+         Send(SYS,@UtilGoNearSquare,#what=what,
+              #where=Send(SYS,@FindRoomByNum,#num=RID_TUTORIAL_TEMPLEQOR),
+              #new_row=13,#new_col=44,#fine_row=30,#fine_col=17,
+              #new_angle=ANGLE_WEST);
+         %Send(what,@MsgSendUser,#message_rsc=tuttemple_goto_qor);
+         return;
+      }
+
+      if new_col > 22
+      {
+         Send(SYS,@UtilGoNearSquare,#what=what,
+              #where=Send(SYS,@FindRoomByNum,#num=RID_TUTORIAL_TEMPLESHAL),
+              #new_row=5,#new_col=29,#fine_row=32,#fine_col=63,
+              #new_angle=ANGLE_SOUTH);
+         %Send(what,@MsgSendUser,#message_rsc=tuttemple_goto_shal);
+         return;
+      }
+
+      propagate;
+   }
+
+   Teleport(what=$)
+   "Admin supported."
+   "Teleports object to coordinates specified in class vars."
+   {
+      if Send(self,@GetTeleportRow) <> $ AND Send(self,@GetTeleportCol) <> $
+      {
+         Send(SYS,@UtilGoNearSquare,#what=what,#where=self,
+              #new_row=Send(self,@GetTeleportRow),
+              #new_col=Send(self,@GetTeleportCol),
+              #fine_row=0,
+              #fine_col=0,
+              #new_angle=Send(self,@GetTeleportAngle));
+
+         return TRUE;
+      }
+
+      return FALSE;
+   }
+
+   CreateStandardObjects()
+   {
+      Send(self,@NewHold,#what=Create(&TutorialWizard2b),
+            #new_row=8,#new_col=18,#fine_row=39,#fine_col=19);
+            
+      Send(self,@NewHold,#what=Create(&QorTutorialTeacher),
+            #new_row=9,#new_col=11,#fine_row=15,#fine_col=0);
+            
+      Send(self,@NewHold,#what=Create(&ShalTutorialTeacher),
+            #new_row=9,#new_col=25,#fine_row=15,#fine_col=30);
+
+      propagate;
+   }
+
+   SomeoneSaid(what = $,type = $,string = $,parm1 = $,parm2 = $,parm3 = $,
+               parm4 = $, parm5 = $,parm6 = $,parm7 = $,parm8 = $)
+   {
+      local i, each_obj;
+
+      if NOT isClass(what,&player) OR type = SAY_YELL
+      {
+         propagate;
+      }
+
+      propagate;
+   }
+
+   NewHold(what=$)
+   {
+      if IsClass(what,&Player)
+         AND NOT IsClass(what,&DM)
+      {
+         Send(what,@MsgSendUser,#message_rsc=TutorialTemple2b_enter);
+      }
+
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -1,0 +1,123 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+TutorialTempleRiija is TutorialTempleSchoolRoom
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   room_name_TutorialTempleRiija = "Riija's Enigma"
+   room_TutorialTempleRiija = tuttempleriija.roo
+   TutorialTempleRiija_music = boneprst.mp3
+
+   TutorialTempleRiija_outbuilding_locked = \
+      "As you attempt to use this door, you realize that, like this place, it is "
+      "simply a facsimile of the real location. You can't leave this way."
+
+   TutorialTempleRiija_enter = \
+      "There does not appear to be anyone here to instruct you, although "
+      "saying 'take Riija' will still imbue you with the magics of Riija up "
+      "to level two. You may also temporarily try out the school's high level "
+      "spells by casting them here."
+   TutorialTempleRiija_leave = \
+      "Harried by fear of the unknown, you return to the Lost Magics section "
+      "of the Temple of Knowledge."
+
+   take_riija_statement = "take Riija"
+
+   get_riija_flagship_spells_msg = \
+      "You have been temporarily granted these high level Riija spells: "
+      "morph, evil twin, reflection, illusionary firewall."
+   lose_riija_flagship_spells_msg = \
+      "The high level Riija skills you were granted slip from your mind."
+   already_have_riija_msg = \
+      "You are already an initiate of Riija. Higher level mysteries "
+      "await if you are so inclined, but they will not come easy."
+   take_riija_msg = \
+      "The mysteries of Riija dance at the edges of your mind."
+
+classvars:
+
+   vrName = room_name_TutorialTempleRiija
+
+   viTeleport_row = 55
+   viTeleport_col = 44
+   viTerrain_type = TERRAIN_JUNGLE
+
+   viRoomSchool = SS_RIIJA
+   
+   viExitRID = RID_TUTORIAL_TEMPLE4
+   
+   vrEnterSchoolRoomMessage = TutorialTempleRiija_enter
+   vrLeaveSchoolRoomMessage = TutorialTempleRiija_leave
+   vrTakeSchoolStatement = take_riija_statement
+   
+   vrAlreadyHaveSchoolMsg = already_have_riija_msg
+   vrTakeSchoolMsg = take_riija_msg
+   
+   vrGetFlagshipSpellsMsg = get_riija_flagship_spells_msg
+   vrLoseFlagshipSpellsMsg = lose_riija_flagship_spells_msg
+
+properties:
+
+   prRoom = room_TutorialTempleRiija
+   prMusic = TutorialTempleRiija_music
+   piRoom_num = RID_TUTORIAL_TEMPLERIIJA
+
+   piBaseLight = LIGHT_NICE
+   piOutside_factor = 8
+
+   piDirectional_percent = DIRECTIONAL_PERCENT_OUTDOORS
+
+messages:
+
+   Constructed()
+   {
+      plRoomSchoolSpells = [SID_MORPH,
+                            SID_EVIL_TWIN,
+                            SID_REFLECTION,
+                            SID_ILLUSIONARY_FIREWALL];
+      propagate;
+   }
+
+   CreateStandardExits()
+   {
+      plExits = $;
+
+      plExits = Cons([ 24, 38, ROOM_LOCKED_DOOR, TutorialTempleRiija_outbuilding_locked ],plExits);
+      plExits = Cons([ 25, 38, ROOM_LOCKED_DOOR, TutorialTempleRiija_outbuilding_locked ],plExits);
+      plExits = Cons([ 39, 41, ROOM_LOCKED_DOOR, TutorialTempleRiija_outbuilding_locked ],plExits);
+      plExits = Cons([ 39, 42, ROOM_LOCKED_DOOR, TutorialTempleRiija_outbuilding_locked ],plExits);
+      plExits = Cons([ 32, 33, ROOM_LOCKED_DOOR, TutorialTempleRiija_outbuilding_locked ],plExits);
+      plExits = Cons([ 33, 33, ROOM_LOCKED_DOOR, TutorialTempleRiija_outbuilding_locked ],plExits);
+
+      % Teleport to tpost2:
+      plExits = Cons([ 33, 42, ROOM_LOCKED_DOOR, TutorialTempleRiija_outbuilding_locked ],plExits);
+      plExits = Cons([ 34, 42, ROOM_LOCKED_DOOR, TutorialTempleRiija_outbuilding_locked ],plExits);
+      % Teleport to tpost1 (front door):
+      plExits = Cons([ 30, 39, ROOM_LOCKED_DOOR, TutorialTempleRiija_outbuilding_locked ],plExits);
+      plExits = Cons([ 31, 39, ROOM_LOCKED_DOOR, TutorialTempleRiija_outbuilding_locked ],plExits);
+      plExits = Cons([ 30, 40, ROOM_LOCKED_DOOR, TutorialTempleRiija_outbuilding_locked ],plExits);
+      plExits = Cons([ 31, 40, ROOM_LOCKED_DOOR, TutorialTempleRiija_outbuilding_locked ],plExits);
+      % Teleport to tpost1 (lower right door):
+      plExits = Cons([ 37, 49, ROOM_LOCKED_DOOR, TutorialTempleRiija_outbuilding_locked ],plExits);
+      plExits = Cons([ 38, 49, ROOM_LOCKED_DOOR, TutorialTempleRiija_outbuilding_locked ],plExits);
+      % Teleport to tpost1 (upper right door):
+      plExits = Cons([ 28, 49, ROOM_LOCKED_DOOR, TutorialTempleRiija_outbuilding_locked ],plExits);
+      plExits = Cons([ 27, 49, ROOM_LOCKED_DOOR, TutorialTempleRiija_outbuilding_locked ],plExits);
+
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

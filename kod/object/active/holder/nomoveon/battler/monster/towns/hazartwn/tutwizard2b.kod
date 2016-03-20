@@ -1,0 +1,75 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+TutorialWizard2b is HazarTown
+
+constants:
+
+   include blakston.khd
+
+   ANIM_WAVE = 1
+
+resources:
+
+   TutorialWizard2b_name_rsc = "Jorath"
+   TutorialWizard2b_icon_rsc = wndarkwi.bgf
+   TutorialWizard2b_desc_rsc = \
+      "As a teacher and a mentor, Jorath is unmatched in the outer wilds. "
+      "At the behest of Princess Kateriina, he now focuses his efforts on "
+      "the training and preparation of new adventurers to the realm. "
+      "His words of wisdom will greatly assist you in your adventures. "
+      "\n\nHere, he offers you a choice of primary path. Shal'ille, "
+      "the goddess of purity and light, is exemplified to the east. Qor, "
+      "the goddess of evil and power, is exemplified to the west. "
+      "You may choose a neutral path by continuing on past."
+
+   TutWiz2b_entry_welcome = \
+      "%s%s, there are many schools of talent in the world of Meridian. "
+      "These are not just abilities, but also philosophies. Here, we have "
+      "been permitted to teach you the basics of the seven native "
+      "schools of thought."
+   TutWiz2b_choose_your_path = \
+      "Undeniably, your most important choice will be that of your karmic "
+      "path. Shal'ille the protector rewards those who follow the positive "
+      "path with healing gifts and mastery over light. "
+      "Qor the seductress offers power and strength for those who follow "
+      "the negative path. Under her, acid and might will be your tools. "
+      "That is not to say that either goddess is good or evil. These are "
+      "merely alignments of spiritual energy. Under either goddess, you "
+      "may protect the weak, murder the innocent, or keep to yourself. "
+      "These are the only two schools which may not be combined."
+   TutWiz2b_or_choose_no_path = \
+      "Should you disdain devotion, you may also choose a neutral path "
+      "by continuing on without pledging your soul. Your fate will be "
+      "your own."
+
+classvars:
+
+   vrName = TutorialWizard2b_name_rsc
+   vrIcon = TutorialWizard2b_icon_rsc
+   vrDesc = TutorialWizard2b_desc_rsc
+
+messages:
+
+   UserEntered(who=$)
+   {
+      Post(who,@SomeoneSaid,#what=self,#string=TutWiz2b_entry_welcome,
+            #type=SAY_RESOURCE,
+            #parm1=Send(who,@GetDef),#parm2=Send(who,@GetName));
+      Post(who,@SomeoneSaid,#what=self,#string=TutWiz2b_choose_your_path,
+            #type=SAY_RESOURCE);
+      Post(who,@SomeoneSaid,#what=self,#string=TutWiz2b_or_choose_no_path,
+            #type=SAY_RESOURCE);
+
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -1,0 +1,75 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+QorTutorialTeacher is HazarTown
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   QorTutorialTeacher_name_rsc = "Priestess Zuxana's Imprint"
+   QorTutorialTeacher_icon_rsc = qorprst.bgf
+   QorTutorialTeacher_desc_rsc = \
+      "Approach this statue of the Priestess Zuxana to learn more about "
+      "devotion to Qor."
+
+   QorTutorialTeacher_welcome = \
+      "As a servant of Qor, you will have reign to pass through the dark "
+      "places of the world; realms such as this. Brax was a city brought "
+      "to utmost sorrow and sunken under the earth, %s%s, because its Queen, "
+      "now known as the Lich, failed to live up to a pact with ancient powers."
+      " As Qor serves the Ancient One, so, too, would you serve Qor in turn. "
+      "For that loyalty, power over darkness will be yours."
+
+   QorTutorialTeacher_taken = \
+      "You've chosen well, %s%s. Should you desire more of Qor's embrace, "
+      "find me in the dark corners of the world."
+
+classvars:
+
+   vrName = QorTutorialTeacher_name_rsc
+   vrIcon = QorTutorialTeacher_icon_rsc
+   vrDesc = QorTutorialTeacher_desc_rsc
+
+properties:
+
+   piDrawFX = DRAWFX_SECONDTRANS
+
+messages:
+
+   UserEntered(who=$)
+   {
+      if poOwner = Send(SYS,@FindRoomByNum,#num=RID_TUTORIAL_TEMPLEQOR)
+      {
+         Post(who,@SomeoneSaid,#what=self,#string=QorTutorialTeacher_welcome,
+               #type=SAY_RESOURCE,
+               #parm1=Send(who,@GetDef),#parm2=Send(who,@GetName));
+      }
+
+      return;
+   }
+
+   SomeoneSaid(what = $,type = $,string = $)
+   {
+      if IsClass(what,&User)
+         AND StringEqual(string,"take Weaponcraft")
+      {
+         Post(what,@SomeoneSaid,#what=self,#string=QorTutorialTeacher_taken,
+               #type=SAY_RESOURCE,
+               #parm1=Send(what,@GetDef),#parm2=Send(what,@GetName));
+      }
+
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

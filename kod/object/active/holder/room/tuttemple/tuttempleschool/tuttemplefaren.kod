@@ -1,0 +1,100 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+TutorialTempleFaren is TutorialTempleSchoolRoom
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   TutorialTempleFaren_name = "Faren's Wrath"
+   room_TutorialTempleFaren = tuttemplefaren.roo
+   TutorialTempleFaren_music = walk5.mp3
+
+   TutorialTempleFaren_enter = \
+      "Explore the powers of nature granted by Lord Faren. To begin the "
+      "path of the wilds, say 'take Faren.' You may return to the "
+      "Temple of Knowledge through the path to the north."
+   TutorialTempleFaren_leave = \
+      "You leave the wilds and return to civilization."
+
+   take_faren_statement = "take Faren"
+
+   get_faren_flagship_spells_msg = \
+      "You have been temporarily granted these high level Faren spells: "
+      "lightning bolt, fireball, firewall, earthquake, and spider web."
+   lose_faren_flagship_spells_msg = \
+      "The high level Faren powers you were granted slip from your mind."
+   already_have_faren_msg = \
+      "You are already an initiate of Faren. You must become closer "
+      "to the wilds to advance further."
+   take_faren_msg = \
+      "You let the powers of nature fill you, and you feel the "
+      "knowledge of an initiate seep into your mind."
+      
+classvars:
+
+   vrName = TutorialTempleFaren_name
+
+   viTeleport_row = 25
+   viTeleport_col = 17
+
+   viRoomSchool = SS_FAREN
+   
+   viExitRID = RID_TUTORIAL_TEMPLE3
+   
+   vrEnterSchoolRoomMessage = TutorialTempleFaren_enter
+   vrLeaveSchoolRoomMessage = TutorialTempleFaren_leave
+   vrTakeSchoolStatement = take_faren_statement
+   
+   vrAlreadyHaveSchoolMsg = already_have_faren_msg
+   vrTakeSchoolMsg = take_faren_msg
+   
+   vrGetFlagshipSpellsMsg = get_faren_flagship_spells_msg
+   vrLoseFlagshipSpellsMsg = lose_faren_flagship_spells_msg
+
+   viTerrain_type = TERRAIN_BADLANDS | TERRAIN_TEMPLE
+
+properties:
+
+   prRoom = room_TutorialTempleFaren
+   prMusic = TutorialTempleFaren_music
+   piRoom_num = RID_TUTORIAL_TEMPLEFAREN
+
+   piDirectional_percent = DIRECTIONAL_PERCENT_OUTDOORS
+
+   pbSnowGroundTexture = FALSE
+
+messages:
+
+   Constructed()
+   {
+      plRoomSchoolSpells = [SID_LIGHTNING_BOLT,
+                            SID_FIREBALL,
+                            SID_FIREWALL,
+                            SID_SPIDER_WEB,
+                            SID_EARTHQUAKE];
+      propagate;
+   }
+
+   CreateStandardObjects()
+   {
+      Send(self,@NewHold,#what=Create(&Firepit),#new_row=44,#new_col=58);
+      
+      Send(self,@NewHold,#what=Create(&FarenTutorialTeacher),
+            #new_row=38,#new_col=55,#fine_row=36,#fine_col=22);
+
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

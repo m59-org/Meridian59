@@ -9256,6 +9256,27 @@ messages:
       return;
    }
 
+   AdminGoToTutorialTemple()
+   {
+      local oNew_Room,iRow,iCol,oRoom;
+
+      oRoom = Send(SYS,@FindRoomByNum,#num=RID_TUTORIAL_TEMPLE1);
+
+      piSave_room = oRoom;
+      piSave_row = Send(oRoom,@GetTeleportRow);
+      piSave_col = Send(oRoom,@GetTeleportCol);
+      piSave_fine_row = 0;
+      piSave_fine_col = 0;
+
+      if pbLogged_on
+      {
+         Send(oRoom,@Teleport,#what=self);
+         Send(self,@MsgSendUser,#message_rsc=user_goto_safety);
+      }
+
+      return;
+   }
+
    AdminGoToSafety()
    "Admin supported\n"
    "Sends the user to their hometown, whether they're logged in or not!\n"

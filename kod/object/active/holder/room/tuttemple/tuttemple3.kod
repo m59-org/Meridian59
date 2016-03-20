@@ -1,0 +1,146 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+TutorialTemple3 is TutorialTemple
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   room_name_tuttemple3 = "Temple of Knowledge - Combat Abilities"
+   room_tuttemple3 = tuttemple3.roo
+   tuttemple3_music = login.mp3
+
+   tuttemple3_door_sound = down2.wav
+
+   TutorialTemple3_enter = \
+      "You enter the Combat Abilities area of the Temple of Knowledge."
+
+classvars:
+
+   viTeleport_row = 8
+   viTeleport_col = 4
+   viTeleport_angle = ANGLE_NORTH
+
+properties:
+
+   vrName = room_name_tuttemple3
+   prRoom = room_tuttemple3
+   piRoom_num = RID_TUTORIAL_TEMPLE3
+   viTerrain_type = TERRAIN_CITY
+
+   prMusic = tuttemple3_music
+
+messages:
+
+   CreateStandardExits()
+   {
+      plExits = $;
+
+      %% TO TOWN
+  %    plExits = Cons([ 4, 10, RID_MARION, 32, 17, ROTATE_NONE ],plExits);
+   %   plExits = Cons([ 5, 10, RID_MARION, 32, 17, ROTATE_NONE ],plExits);
+
+      propagate;
+   }
+
+   SomethingMoved(what = $,new_row = $, new_col = $)
+   {
+      if new_row < 1
+      {
+         Send(SYS,@UtilGoNearSquare,#what=what,
+              #where=Send(SYS,@FindRoomByNum,#num=RID_TUTORIAL_TEMPLE4),
+              #new_row=35,#new_col=18,#fine_row=0,#fine_col=14,
+              #new_angle=ANGLE_NORTH);
+         return;
+      }
+
+      if new_col < 14
+      {
+         Send(SYS,@UtilGoNearSquare,#what=what,
+              #where=Send(SYS,@FindRoomByNum,#num=RID_TUTORIAL_TEMPLEFAREN),
+              #new_row=17,#new_col=40,#fine_row=11,#fine_col=43,
+              #new_angle=ANGLE_SOUTH_EAST);
+         return;
+      }
+
+      if new_col > 22
+      {
+         Send(SYS,@UtilGoNearSquare,#what=what,
+              #where=Send(SYS,@FindRoomByNum,#num=RID_TUTORIAL_TEMPLEWC),
+              #new_row=7,#new_col=6,#fine_row=7,#fine_col=62,
+              #new_angle=ANGLE_SOUTH_EAST);
+         return;
+      }
+
+      propagate;
+   }
+
+   Teleport(what=$)
+   "Admin supported."
+   "Teleports object to coordinates specified in class vars."
+   {
+      if Send(self,@GetTeleportRow) <> $ AND Send(self,@GetTeleportCol) <> $
+      {
+         Send(SYS,@UtilGoNearSquare,#what=what,#where=self,
+              #new_row=Send(self,@GetTeleportRow),
+              #new_col=Send(self,@GetTeleportCol),
+              #fine_row=0,
+              #fine_col=0,
+              #new_angle=Send(self,@GetTeleportAngle));
+
+         return TRUE;
+      }
+
+      return FALSE;
+   }
+
+   CreateStandardObjects()
+   {
+      Send(self,@NewHold,#what=Create(&TutorialWizard3),
+            #new_row=8,#new_col=18,#fine_row=39,#fine_col=19);
+            
+      Send(self,@NewHold,#what=Create(&FarenTutorialTeacher),
+            #new_row=9,#new_col=11,#fine_row=15,#fine_col=0);
+            
+      Send(self,@NewHold,#what=Create(&WCTutorialTeacher),
+            #new_row=9,#new_col=25,#fine_row=15,#fine_col=35);
+
+      propagate;
+   }
+
+   SomeoneSaid(what = $,type = $,string = $,parm1 = $,parm2 = $,parm3 = $,
+               parm4 = $, parm5 = $,parm6 = $,parm7 = $,parm8 = $)
+   {
+      local i, each_obj;
+
+      if NOT isClass(what,&player) OR type = SAY_YELL
+      {
+         propagate;
+      }
+
+      propagate;
+   }
+
+   NewHold(what=$)
+   {
+      if IsClass(what,&Player)
+         AND NOT IsClass(what,&DM)
+      {
+         Send(what,@MsgSendUser,#message_rsc=TutorialTemple3_enter);
+      }
+
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

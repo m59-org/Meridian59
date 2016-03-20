@@ -1,0 +1,114 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+TutorialTempleWC is TutorialTempleSchoolRoom
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   room_TutorialTempleWC = tuttemplewc.roo
+   name_TutorialTempleWC = "Weaponcraft's Elegance"
+
+   TutorialTempleWC_music = pk_fm.mp3
+
+   TutorialTempleWC_commence_wav = forest.wav
+   wind_sound_TutorialTempleWC = ambcntry.wav
+   wind1_sound_TutorialTempleWC = rs_wind.wav
+
+   TutorialTempleWC_enter = \
+      "You enter the arena in search of Weaponcraft's elegance. You may "
+      "test out skills here; say 'take Weaponcraft' to become an initiate "
+      "in the arts of soldiering."
+   TutorialTempleWC_leave = \
+      "You return to the Temple of Knowledge."
+
+   take_wc_statement = "take Weaponcraft"
+
+   get_wc_flagship_skills_msg = \
+      "You have been temporarily granted these high level Weaponcraft skills: "
+      "disarm, fire, archery, scimitar wielding, and parry."
+   lose_wc_flagship_skills_msg = \
+      "The high level Weaponcraft skills you were granted slip from your mind."
+   already_have_wc_msg = \
+      "You are already an initiate of Weaponcraft. You must train in "
+      "combat situations to advance further."
+   take_wc_msg = \
+      "You begin practicing the arts of Weaponcraft."
+
+classvars:
+
+   vrName = name_TutorialTempleWC
+
+   viTeleport_row = 22
+   viTeleport_col = 13
+
+   viRoomSchool = SKS_FENCING
+   vbSkillSchool = TRUE
+   
+   viExitRID = RID_TUTORIAL_TEMPLE3
+   
+   vrEnterSchoolRoomMessage = TutorialTempleWC_enter
+   vrLeaveSchoolRoomMessage = TutorialTempleWC_leave
+   vrTakeSchoolStatement = take_wc_statement
+   
+   vrAlreadyHaveSchoolMsg = already_have_wc_msg
+   vrTakeSchoolMsg = take_wc_msg
+   
+   vrGetFlagshipSpellsMsg = get_wc_flagship_skills_msg
+   vrLoseFlagshipSpellsMsg = lose_wc_flagship_skills_msg
+
+properties:
+
+   prRoom = room_TutorialTempleWC
+   piRoom_num = RID_TUTORIAL_TEMPLEWC
+
+   prMusic = TutorialTempleWC_music
+
+   piBaseLight = LIGHT_NICE
+   piOutside_factor = 5
+
+   piDirectional_percent = DIRECTIONAL_PERCENT_OUTDOORS
+   viTerrain_type = TERRAIN_CITY
+
+   pbSnowGroundTexture = FALSE
+   
+messages:
+
+   Constructed()
+   {
+      plRoomSchoolSkills = [SKID_DISARM,
+                            SKID_PROFICIENCY_BOW,
+                            SKID_FIRE,
+                            SKID_PROFICIENCY_SCIMITAR,
+                            SKID_PARRY];
+      propagate;
+   }
+
+   CreatePeriodicSounds()
+   {
+      plPeriodic_sounds = [ wind1_sound_TutorialTempleWC ];
+      pbPeriodic_sound_random_location = TRUE;
+
+      propagate;
+   }
+
+   CreateStandardObjects()
+   {
+      Send(self,@NewHold,#what=Create(&WCTutorialTeacher),
+            #new_row=16,#new_col=16,#fine_row=38,#fine_col=22);
+
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
