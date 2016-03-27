@@ -2050,7 +2050,7 @@ messages:
    "This returns the battler's ability to avoid being hit.  Ranges from "
    "1 to 2000."
    {
-      local iDefense;
+      local iDefense, iShocked;
 
       if piDefense = $
       {
@@ -2059,6 +2059,15 @@ messages:
       else
       {
          iDefense = piDefense;
+      }
+
+      % Check for Shocked status effect, which lowers defense.
+      iShocked = Send(self,@GetStatusEffect,#type=STATUS_SHOCKED);
+      if iShocked > 0
+      {
+         iDefense = iDefense - (iShocked * Send(SETTINGS_OBJECT,
+                                                @GetElementalMultiple,
+                                                #type=STATUS_SHOCKED));
       }
 
       return Bound(iDefense,1,2000);
@@ -2139,7 +2148,7 @@ messages:
       absolute=FALSE,precision=FALSE)
    {
       local iDamage, iResist, iPercentClass, i, each_obj, bAttackerEmpowered,
-            oSpell;
+            oSpell, iCorrode, iCorrodeMultiple, iCorrodeReduction;
 
       if NOT precision
       {
@@ -2180,6 +2189,17 @@ messages:
       {
          iDamage = Send(self,@ArmorCheck,#what=what,#bonus=bonus,#atype=atype,
             #aspell=aspell,#damage=damage);
+
+         iCorrode = Send(self,@GetStatusEffect,#type=STATUS_CORRODE);
+         if iCorrode > 0
+         {
+            iCorrodeMultiple = Send(SETTINGS_OBJECT,
+                               @GetElementalMultiple,#type=STATUS_CORRODE);
+         
+            iCorrodeReduction = (iCorrode/iCorrodeMultiple);
+            iDamage = bound(iDamage + iCorrodeReduction*100,1,damage);
+         }
+
          iResist = Send(self,@ResistanceCheck,#atype=atype,#aspell=aspell);
          iDamage = Send(self,@GetDamageFromResistance,#what=iDamage,#value=iResist);
          iDamage = iDamage + bonus;
@@ -2243,6 +2263,25 @@ messages:
       }
       
       Send(self,@AddHurtMeRecently,#who=what,#amount=iDamage);
+
+      % Apply possible elemental status effects
+      if atype = 0
+      {
+         if aspell <> 0
+         {
+            Send(self,@ApplyElementalStatusEffects,#damage=damage/100,
+                      #aspell=aspell);
+         }
+      }
+      else
+      {
+         % Apply only half the effects from partially magical attacks
+         if aspell <> 0
+         {
+            Send(self,@ApplyElementalStatusEffects,#damage=(damage/100/2),
+                      #aspell=aspell);
+         }
+      }
 
       return iDamage;
    }
@@ -4743,8 +4782,10 @@ messages:
    }
 
    GainHealthNormal(amount = $, precision = FALSE)
-   "for when holy touch is cast on a good monster"
+   "For when monsters heal themselves or each other."
    {
+      local iMantled, iMantledDivisor;
+
       if amount = $
       {
          return;
@@ -4753,6 +4794,14 @@ messages:
       if NOT precision
       {
          amount = amount * 100;
+      }
+
+      iMantled = Send(self,@GetStatusEffect,#type=STATUS_MANTLED);
+      if iMantled > 0
+      {
+         iMantledDivisor = Send(SETTINGS_OBJECT,
+                            @GetElementalMultiple,#type=STATUS_MANTLED);
+         amount = amount - (iMantled/iMantledDivisor)*100;
       }
 
       piHit_points = Bound(piHit_points+amount,1,piMax_hit_points*100);
@@ -5324,8 +5373,19 @@ messages:
 
    GetAttackTime()
    {
+      local iChilled, iChilledTotal, iChilledMultiple;
+
+      iChilledTotal = 0;
+      iChilled = Send(self,@GetStatusEffect,#type=STATUS_CHILLED);
+      if iChilled > 0
+      {
+         iChilledMultiple = Send(SETTINGS_OBJECT,
+                             @GetElementalMultiple,#type=STATUS_CHILLED);
+         iChilledTotal = iChilled * iChilledMultiple;
+      }
+
       return Send(self,@Fuzzy,#num=MOB_ATTACK_TIMER_WAIT)
-             + 3500-70*(3*viDifficulty+viSpeed);
+             + 3500-70*(3*viDifficulty+viSpeed) + iChilledTotal;
    }
 
    GetMoveTime()

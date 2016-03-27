@@ -5156,7 +5156,7 @@ messages:
    "Ranges from 1 to 2000."
    {
       local i, oWeapon, oShield, iParry, iDodge, iBlock, iAgility,
-            iDefense, iHealth, oMonster;
+            iDefense, iHealth, oMonster, iShocked;
 
       % Morphed?
       oMonster = Send(self,@GetIllusionForm);
@@ -5206,7 +5206,16 @@ messages:
       iDefense = iDefense + Send(Send(SYS,@GetParliament),
                                  @GetFactionDefenseBonus,#who=self);
 
-      return Bound(iDefense,1,2000);
+      % Check for Shocked status effect, which lowers defense.
+      iShocked = Send(self,@GetStatusEffect,#type=STATUS_SHOCKED);
+      if iShocked > 0
+      {
+         iDefense = iDefense - (iShocked * Send(SETTINGS_OBJECT,
+                                                @GetElementalMultiple,
+                                                #type=STATUS_SHOCKED));
+      }
+
+      return bound(iDefense,1,2000);
    }
 
    % The next three messages deal with the three defense skills.  These
@@ -5468,7 +5477,8 @@ messages:
    {
       local i, j, iResistance, oSoldierShield, gainchance, color_rsc,
             iDuration, oSpell, oGort,iLimit, origdamage, oWeapon, shrunken,
-            bAttackerEmpowered, bShielded;
+            bAttackerEmpowered, bShielded, iCorrode, iCorrodeMultiple,
+            iCorrodeReduction, iDamagePreArmor;
 
       if NOT precision
       {
@@ -5500,13 +5510,24 @@ messages:
                            #what=what,#damage=damage,
                            #atype=atype,#aspell=aspell);
          }
-         
+
+         iDamagePreArmor = damage;
          foreach i in plDefense_modifiers
          {
             damage = Send(i,@ModifyDefenseDamage,#who=self,#what=what,
                            #damage=damage,#atype=atype,#aspell=aspell,
                            #report_resistance=report_resistance);
             Send(i,@DefendingHit,#who=self,#what=what);
+         }
+
+         iCorrode = Send(self,@GetStatusEffect,#type=STATUS_CORRODE);
+         if iCorrode > 0
+         {
+            iCorrodeMultiple = Send(SETTINGS_OBJECT,
+                               @GetElementalMultiple,#type=STATUS_CORRODE);
+         
+            iCorrodeReduction = (iCorrode/iCorrodeMultiple);
+            damage = bound(damage + iCorrodeReduction*100,1,iDamagePreArmor);
          }
       
          iResistance = Send(self,@ResistanceCheck,#atype=atype,#aspell=aspell);
@@ -5698,8 +5719,27 @@ messages:
       {
          Send(shrunken,@DamageTaken,#what=what,#amount=damage/100);
       }
-      
+
       Send(self,@AddHurtMeRecently,#who=what,#amount=damage);
+
+      % Apply possible elemental status effects
+      if atype = 0
+      {
+         if aspell <> 0
+         {
+            Send(self,@ApplyElementalStatusEffects,#damage=damage/100,
+                      #aspell=aspell);
+         }
+      }
+      else
+      {
+         % Apply only half the effects from partially magical attacks
+         if aspell <> 0
+         {
+            Send(self,@ApplyElementalStatusEffects,#damage=(damage/100/2),
+                      #aspell=aspell);
+         }
+      }
 
       return damage;
    }
@@ -6422,7 +6462,7 @@ messages:
    "Have we waited long enough since the last attack/spell? Sets new "
    "valid attack time (time in msec, default 1 second)."
    {
-      local i;
+      local i, iChilled, iChilledMultiple, iChilledTotal;
 
       if ptAttackTimer <> $
       {
@@ -6440,6 +6480,22 @@ messages:
 
       if i > 0
       {
+         iChilled = Send(self,@GetStatusEffect,#type=STATUS_CHILLED);
+         if iChilled > 0
+         {
+            iChilledMultiple = Send(SETTINGS_OBJECT,
+                                @GetElementalMultiple,#type=STATUS_CHILLED);
+            iChilledTotal = iChilled * iChilledMultiple;
+            
+            if iChilledTotal > 100
+            {
+               while iChilledTotal > 100
+               {
+                  i = i + 100;
+                  iChilledTotal = iChilledTotal - 100;
+               }
+            }
+         }
          ptAttackTimer = CreateTimer(self,@AttackTimer,i);
       }
 
@@ -6860,7 +6916,7 @@ messages:
    GainHealthNormal(amount = $, precision = FALSE)
    "Don't add beyond piMax_health"
    {
-      local iOldhealth;
+      local iOldhealth, iMantled, iMantledDivisor;
 
       if amount = $
       {
@@ -6876,10 +6932,18 @@ messages:
       }
 
       iOldhealth = piHealth;
-
-      if amount < 0
+      
+      iMantled = Send(self,@GetStatusEffect,#type=STATUS_MANTLED);
+      if iMantled > 0
       {
-         return;
+         iMantledDivisor = Send(SETTINGS_OBJECT,
+                            @GetElementalMultiple,#type=STATUS_MANTLED);
+         amount = amount - (iMantled/iMantledDivisor)*100;
+      }
+
+      if amount < 1
+      {
+         return 0;
       }
 
       if piHealth > piMax_health*100
@@ -15035,7 +15099,7 @@ messages:
 
    SumDamageReduction()
    {
-      local iArmor, d;
+      local iArmor, d, iCorrode, iCorrodeMultiple;
 
       iArmor = 0;
 
@@ -15049,6 +15113,18 @@ messages:
          if IsClass(d,&ArmorOfGort)
          {
             iArmor = iArmor + (Send(self,@GetEnchantedState,#what=d) / 25);
+         }
+      }
+      
+      iCorrode = Send(self,@GetStatusEffect,#type=STATUS_CORRODE);
+      if iCorrode > 0
+      {
+         iCorrodeMultiple = Send(SETTINGS_OBJECT,
+                            @GetElementalMultiple,#type=STATUS_CORRODE);
+         
+         if iArmor > 0
+         {
+            iArmor = Bound(iArmor - (iCorrode/iCorrodeMultiple),0,$);
          }
       }
 
