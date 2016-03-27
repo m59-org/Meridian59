@@ -68,6 +68,10 @@ properties:
 
    plPrerequisites = $
 
+   % Percentage that Might plays a role in damage for this skill
+   % Remainder comes from skill's primary stat
+   piMightToPrimaryRatio = 66
+
 messages:  
 
    % General combat messages:
@@ -330,7 +334,7 @@ messages:
    DamageFactors(damage=0, who=$, weapon_used = $)
    "Different skills/strokes are affected by stats differently."
    {
-      local iDamage, stat, weapProf, profAbility, bonusPercentage;
+      local iDamage, stat, weapProf, profAbility, bonusPercentage, iMight;
 
       iDamage = damage;
       if weapon_used <> $
@@ -351,6 +355,11 @@ messages:
       % Get the relevant amount of primary stat for our proficiency. This will 
       % be our base bonus percentage.
       stat = send(weapProf,@GetRequisiteStat,#who=who) - 25;
+      iMight = Send(who,@GetMight) - 25;
+
+      stat = ((stat * (100-piMightToPrimaryRatio)) + 
+              iMight*piMightToPrimaryRatio) /
+              100;
       
       % Scale down the bonus damage percentage if the user is not fully 
       % proficient in the weapon.
