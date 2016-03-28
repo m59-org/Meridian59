@@ -1425,6 +1425,7 @@ messages:
       }
 
       if nodraw=FALSE
+         AND pbLogged_on
       {
          Post(self,@DrawOffense);
          Post(self,@DrawDefense);
@@ -3832,7 +3833,11 @@ messages:
          if i = what
          {
             plAttack_modifiers = DelListElem(plAttack_modifiers,i);
-            Post(self,@DrawOffense);
+            
+            if pbLogged_on
+            {
+               Post(self,@DrawOffense);
+            }
 
             return;
          }
@@ -3850,8 +3855,12 @@ messages:
    "and damage."
    {
       plDefense_modifiers = Cons(what,plDefense_modifiers);
-      Post(self,@DrawDefense);
-      Post(self,@DrawArmor);
+      
+      if pbLogged_on
+      {
+         Post(self,@DrawDefense);
+         Post(self,@DrawArmor);
+      }
 
       return;
    }
@@ -12029,8 +12038,11 @@ messages:
          piMightMod = bound(piMightMod,-piMight,(MAXIMUM_STAT-piMight));
       }
 
-      Send(self,@DrawMight);
-      Post(self,@DrawCapacity);
+      if pbLogged_on
+      {
+         Send(self,@DrawMight);
+         Post(self,@DrawCapacity);
+      }
 
       return piMightMod - iOrigMight;
    }
@@ -15810,7 +15822,12 @@ messages:
                                           #type=ENCHANTMENT_PLAYER);
          plReservedSpells = DelListElem(plReservedSpells,i);
       }
-      Post(self,@ComputeMaxMana);
+      
+      if pbLogged_on
+      {
+         % Called upon login, don't worry about this if offline.
+         Post(self,@ComputeMaxMana);
+      }
 
       return;
    }
