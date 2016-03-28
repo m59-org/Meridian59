@@ -1,4 +1,4 @@
-# Makefile for Delerium's graphics. This makefile doesn't build .bbg files
+# Makefile for Gar's graphics. This makefile doesn't build .bbg files
 # but will copy .bgfs from any directory listed here.
 
 TOPDIR=..\..\..
@@ -11,7 +11,7 @@ OUTDIRSUB = ..\$(OUTDIR)
 BGFS = igreyinvis.bgf isitting.bgf itransferitem.bgf iexplosion.bgf irift.bgf \
        lightningprism.bgf lightningprismbig.bgf lightningprismhuge.bgf \
        grd19081.bgf xaerdun.bgf masterypoints.bgf shieldrodbuff.bgf \
-       damagerodbuff.bgf
+       damagerodbuff.bgf iminorlink.bgf
 
 DIRS = 
 

@@ -78,6 +78,8 @@ classvars:
    viFlash = FLASH_GOOD_SELF
 
    vrSucceed_wav = Deflect_sound
+   
+   viPercentManaReserved = 30
 
 properties:
 
@@ -132,6 +134,16 @@ messages:
          chance = Send(victim,@GetEnchantedState,#what=self);
          if Random(0,100) < chance
          {
+            % Deflect succeeded, but caster may have Empowerment.
+            if Send(caster,@GetSkillAbility,#skill_num=SKID_EMPOWERMENT) > 0
+               AND Send(Send(SYS,@FindSkillByNum,#num=SKID_EMPOWERMENT),
+                         @EmpowermentTryPenetrateDeflect,#caster=caster,
+                         #victim=victim,#oSpell=oSpell)
+            {
+               % Empowerment succeeded.
+               return FALSE;
+            }
+
             Send(self,@SendMessageTryDeflectSuccess,#victim=victim,#caster=caster);
             return TRUE;
          }

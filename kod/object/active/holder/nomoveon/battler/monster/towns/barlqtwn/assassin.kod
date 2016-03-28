@@ -363,12 +363,24 @@ messages:
 
    SetForSale()
    {
-      plFor_sale = [
-         $,$,
-         [ 
-            SID_EAVESDROP
-         ],
-      $];
+      if Send(SETTINGS_OBJECT,@GetSorcerySchoolExpansion)
+      {
+         plFor_sale = [
+            $,[SKID_ENTROPY],
+            [ 
+               SID_EAVESDROP
+            ],
+         $];
+      }
+      else
+      {
+         plFor_sale = [
+            $,$,
+            [ 
+               SID_EAVESDROP
+            ],
+         $];
+      }
        
       return;
    }
