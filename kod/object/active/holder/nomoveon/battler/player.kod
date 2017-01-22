@@ -316,12 +316,16 @@ resources:
       "Not a court vassal, yet affected by the Meridian Council."
    player_not_intriguing = "Not yet concerned with affairs at the Royal Court."
 
+   player_race_orc = "%s appears to be of half-orc ancestry.\n"
+   player_race_demon = "%s appears to be of half-demon ancestry.\n"
+   player_race_elf = "%s appears to be of half-elf ancestry.\n"
+
    player_nl = "\n"
    player_sp = " "
    player_dot = "."
 
    % Master fixed info resource.
-   player_fixed_info = "%r%r%s%r%s%q%r"
+   player_fixed_info = "%r%r%r%r%s%r%s%q%r"
 
    % Hometown strings.
    player_hometown_rsc = "%s%s%s%q%s\n"
@@ -802,7 +806,11 @@ resources:
    bad_line_of_sight = \
       "Your hindered line of sight makes a successful hit more difficult."
 
-      
+   reincarnated_once = \
+      "%s has reincarnated once.\n"
+   reincarnated_times = \
+      "%s has reincarnated %d times.\n"
+
    pvp_notify_wav = gong.wav
 
 classvars:
@@ -1095,6 +1103,19 @@ properties:
    piRemainingPhaseTime = 60000 * 8
    ptCanPhaseTimer = $
 
+   piPlayerRace = RACE_HUMAN
+   piRacialMightMod = 0
+   piRacialIntellectMod = 0
+   piRacialStaminaMod= 0
+   piRacialAgilityMod = 0
+   piRacialMysticismMod = 0
+   piRacialAimMod = 0
+   
+   % Tracks the number of this character's reincarnations
+   piReincarnations = 0
+   % Do we have a free stat reset for reincarnation?
+   pbReincarnationStatsReset = FALSE
+
 messages:
 
    Constructor()
@@ -1198,6 +1219,161 @@ messages:
       plSchools = $;
 
       propagate;
+   }
+
+   Reincarnate(race=0)
+   {
+      Send(self,@ReincarnateCharacter);
+      Send(self,@SetPlayerRace,#race=race);
+      
+      if piMight > Send(self,@GetMaxMight)
+      {
+         piMight = Send(self,@GetMaxMight);
+      }
+      
+      if piIntellect > Send(self,@GetMaxIntellect)
+      {
+         piIntellect = Send(self,@GetMaxIntellect);
+      }
+      
+      if piStamina > Send(self,@GetMaxStamina)
+      {
+         piStamina = Send(self,@GetMaxStamina);
+      }
+      
+      if piAgility > Send(self,@GetMaxAgility)
+      {
+         piAgility = Send(self,@GetMaxAgility);
+      }
+      
+      if piMysticism > Send(self,@GetMaxMysticism)
+      {
+         piMysticism = Send(self,@GetMaxMysticism);
+      }
+      
+      if piAim > Send(self,@GetMaxAim)
+      {
+         piAim = Send(self,@GetMaxAim);
+      }
+      
+      ++piReincarnations;
+      Send(self,@SetReincarnationStatsReset,#value=TRUE);
+      
+      Send(self,@SendStatChange);
+
+      return;
+   }
+
+   HasReincarnationStatsReset()
+   {
+      return pbReincarnationStatsReset;
+   }
+   
+   SetReincarnationStatsReset(value=FALSE)
+   {
+      pbReincarnationStatsReset = value;
+      return;
+   }
+
+   GetNumReincarnations()
+   {
+      return piReincarnations;
+   }
+
+   SetPlayerRace(race=0)
+   {
+      if race = RACE_HUMAN
+      {
+         Send(self,@SetSkinTranslation,#translation=1);
+         Send(self,@SetDefaultClothes,#shirt_color=1,#pants_color=1);
+         plResistances = $;
+
+         piRacialMightMod = 50;
+         piRacialIntellectMod = 50;
+         piRacialStaminaMod = 50;
+         piRacialAgilityMod = 50;
+         piRacialMysticismMod = 50;
+         piRacialAimMod = 50;
+
+         piPlayerRace = race;
+      }
+
+      if race = RACE_HALF_ORC
+      {
+         Send(self,@SetSkinTranslation,#translation=140);
+         Send(self,@SetDefaultClothes,#shirt_color=5,#pants_color=5);
+         plResistances = [ [-ATCK_SPELL_UNHOLY, 20 ],
+                           [-ATCK_SPELL_HOLY, -30 ],
+                           [ATCK_WEAP_PIERCE, 10 ],
+                           [ATCK_WEAP_SLASH, 10 ] ];
+
+         piRacialMightMod = 10;
+         piRacialIntellectMod = 0;
+         piRacialStaminaMod = 10;
+         piRacialAgilityMod = -20;
+         piRacialMysticismMod = 0;
+         piRacialAimMod = -20;
+
+         piPlayerRace = race;
+      }
+
+      if race = RACE_HALF_DEMON
+      {
+         Send(self,@SetSkinTranslation,#translation=135);
+         Send(self,@SetDefaultClothes,#shirt_color=0,#pants_color=0);
+         plResistances = [ [-ATCK_SPELL_FIRE, 20 ],
+                           [-ATCK_SPELL_COLD, -30 ],
+                           [-ATCK_SPELL_ACID, 10],
+                           [ATCK_WEAP_NERUDITE, 10 ]];
+
+         piRacialMightMod = -20;
+         piRacialIntellectMod = 10;
+         piRacialStaminaMod = -20;
+         piRacialAgilityMod = 0;
+         piRacialMysticismMod = 10;
+         piRacialAimMod = 0;
+
+         piPlayerRace = race;
+      }
+     
+      if race = RACE_HALF_ELF
+      {
+         Send(self,@SetSkinTranslation,#translation=145);
+         Send(self,@SetDefaultClothes,#shirt_color=10,#pants_color=10);
+         plResistances = [ [-ATCK_SPELL_UNHOLY, -30 ],
+                           [-ATCK_SPELL_HOLY, 20 ],
+                           [-ATCK_SPELL_ALL, 10 ],
+                           [ATCK_WEAP_MAGIC, 10 ] ];
+
+         piRacialMightMod = 0;
+         piRacialIntellectMod = -20;
+         piRacialStaminaMod = 0;
+         piRacialAgilityMod = 10;
+         piRacialMysticismMod = -20;
+         piRacialAimMod = 10;
+
+         piPlayerRace = race;
+      }
+
+      Post(self,@DrawResistances);
+     
+      return;
+   }
+
+   GetPlayerRace()
+   {
+      return piPlayerRace;
+   }
+
+   GetTotalRawStatPoints()
+   {
+      % Players get one more stat point per reincarnation.
+      return 200 + piReincarnations;
+   }
+
+   GetBaseResistances()
+   {
+      return plResistances;
    }
 
    %%% Player flags
@@ -2041,6 +2217,46 @@ messages:
             AddPacket(4,system_blank_resource);
          }
       }
+      
+      %
+      % Add reincarnations.
+      %
+      i = Send(self,@GetNumReincarnations);
+      if i = 0
+      {
+         AddPacket(4,system_blank_resource);
+      }
+      else if i = 1
+      {
+         AddPacket(4,reincarnated_once,4,Send(self,@GetHeShe,#cap=TRUE));
+      }
+      else
+      {
+         AddPacket(4,reincarnated_times,4,Send(self,@GetHeShe,#cap=TRUE),
+                   4,piReincarnations);
+      }
+
+      %
+      % Add ancestry.
+      %
+
+      i = piPlayerRace;
+      if i = RACE_HALF_ORC
+      {
+         AddPacket(4,player_race_orc,4,Send(self,@GetHeShe,#cap=TRUE));
+      }
+      else if i = RACE_HALF_DEMON
+      {
+         AddPacket(4,player_race_demon,4,Send(self,@GetHeShe,#cap=TRUE));
+      }
+      else if i = RACE_HALF_ELF
+      {
+         AddPacket(4,player_race_elf,4,Send(self,@GetHeShe,#cap=TRUE));
+      }
+      else
+      {
+         AddPacket(4,system_blank_resource);
+      }
 
       %
       % Add guild affiliation.
@@ -2745,6 +2961,90 @@ messages:
    {
       piBorn_Year = year;
 
+      return;
+   }
+
+   ReincarnateCharacter()
+   "Conditionally altered reset"
+   {
+      local i;
+
+      Send(self,@RemoveAllEnchantments,#report=FALSE);
+
+      foreach i in plActive
+      {
+         Send(i,@Delete);
+      }
+
+      foreach i in plPassive
+      {
+         Send(i,@Delete);
+      }
+
+      Send(&SwordShard,@ForgetQuester,#quester=self);
+      Send(&RiijaSword,@ForgetQuester,#quester=self);
+      Send(self,@ClearBondedItem);
+      if ptBondedItemReport <> $
+      {
+         DeleteTimer(ptBondedItemReport);
+         ptBondedItemReport = $;
+      }
+
+      plSpells = $;
+      plSkills = $;
+
+      if Send(self,@CheckLog)
+      {
+         Debug("LOG: ",vrName," reincarnated!");
+      }
+
+      % Setup some stats
+      piBase_max_health = 20;
+      piMax_health = piBase_max_health;
+      piNodelist = 0;
+      piMax_mana = Send(self, @GetInitialMaxMana);
+      piMana = piMax_mana;
+
+      poKill_target = $;
+      piKarma = 0;
+
+      piVigor = 100;
+      piVigor_rest_threshold = 80;
+      piExertion = 0;
+      % percent stomach is full
+      piStomach = 0;
+      piTimeLastStomachUpdate = 0;
+
+      piKill_count = 0;
+      piKill_count_decay = 0;
+      piJustified_kill_count = 0;
+
+      Send(self,@ZeroMods);
+
+      Send(self,@PlayerIsIntriguing);
+
+      Send(self,@SetPlayerFlag,#flag=PFLAG_MURDERER,#value=FALSE);
+      Send(self,@SetPlayerFlag,#flag=PFLAG_OUTLAW,#value=FALSE);
+      Send(self,@SetPlayerFlag,#flag=PFLAG_HAUNTED,#value=FALSE);
+      Send(self,@SetPlayerFlag,#flag=PFLAG_INTRIGUING,#value=FALSE);
+      Send(self,@SetPlayerFlag,#flag=PFLAG_TEMPSAFE,#value=FALSE);
+
+      Send(SYS,@SystemRemoveFromChampionLists,#oldchamp=self);
+
+      Send(Send(sys,@GetAssassinGame),@RemoveFromGame,#who=self);
+      % Remove the guy from the Assassin's game.
+
+      piLight = 5;
+
+      Send(Send(SYS,@GetLibrary),@DeleteCompletedQuest,#who=self,#id=-1);
+      Send(&QuestX,@CancelQuester,#quester=self);
+      Send(self,@ClearQuestHistory);
+      Send(Send(SYS,@GetLore),@PlayerSuicides,#who=self);
+
+      if Send(SYS,@GetLastMurderer) = self
+      {
+         Send(SYS,@ClearLastMurderer);
+      }
       return;
    }
 
@@ -6973,8 +7273,9 @@ messages:
 
       piBase_max_health = Bound(piBase_max_health + amount, 20,
                               (100 + iApparentStamina));
-      % Bound ourselves at the top end to 150.
-      piBase_max_health = Bound(piBase_max_health,$,150);
+      % Bound ourselves at the top end.
+      piBase_max_health =
+                     Bound(piBase_max_health,$,100+Send(self,@GetMaxStamina));
       amount = piBase_max_health - iPrev_max;
 
       % Give them the "further info" gmail if they've advanced to 25.
@@ -7439,32 +7740,62 @@ messages:
 
    GetRawMight()
    {
-      return bound(piMight,1,50);
+      return bound(piMight,1,Send(self,@GetMaxMight));
    }
 
    GetRawIntellect()
    {
-      return bound(piIntellect,1,50);
+      return bound(piIntellect,1,Send(self,@GetMaxIntellect));
    }
 
    GetRawAgility()
    {
-      return bound(piAgility,1,50);
+      return bound(piAgility,1,Send(self,@GetMaxAgility));
    }
 
    GetRawAim()
    {
-      return bound(piAim,1,50);
+      return bound(piAim,1,Send(self,@GetMaxAim));
    }
 
    GetRawStamina()
    {
-      return bound(piStamina,1,50);
+      return bound(piStamina,1,Send(self,@GetMaxStamina));
    }
 
    GetRawMysticism()
    {
-      return bound(piMysticism,1,50);
+      return bound(piMysticism,1,Send(self,@GetMaxMysticism));
+   }
+
+   GetMaxMight()
+   {
+      return 50 + piRacialMightMod;
+   }
+   
+   GetMaxIntellect()
+   {
+      return 50 + piRacialIntellectMod;
+   }
+   
+   GetMaxStamina()
+   {
+      return 50 + piRacialStaminaMod;
+   }
+   
+   GetMaxAgility()
+   {
+      return 50 + piRacialAgilityMod;
+   }
+   
+   GetMaxMysticism()
+   {
+      return 50 + piRacialMysticismMod;
+   }
+   
+   GetMaxAim()
+   {
+      return 50 + piRacialAimMod;
    }
 
    GetKarma()

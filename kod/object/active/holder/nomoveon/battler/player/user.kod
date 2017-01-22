@@ -8258,7 +8258,8 @@ messages:
    SendStatMight()
    {
       AddPacket(1,1, 4,user_stat_might, 1,STAT_VALUE, 1,STAT_INTEGER,
-                4,Send(self,@GetMight), 4,0, 4,50, 4,Send(self,@GetMight));
+                4,Send(self,@GetMight), 4,0, 4,Send(self,@GetMaxMight),
+                4,Send(self,@GetMight));
 
       return;
    }
@@ -8278,7 +8279,7 @@ messages:
    SendStatIntellect()
    {
       AddPacket(1,2, 4,user_stat_intellect, 1,STAT_VALUE, 1,STAT_INTEGER,
-                4,Send(self,@GetIntellect), 4,0, 4,50,
+                4,Send(self,@GetIntellect), 4,0, 4,Send(self,@GetMaxIntellect),
                 4,Send(self,@GetIntellect));
 
       return;
@@ -8299,7 +8300,8 @@ messages:
    SendStatAgility()
    {
       AddPacket(1,4, 4,user_stat_Agility, 1,STAT_VALUE, 1,STAT_INTEGER,
-                4,Send(self,@GetAgility), 4,0, 4,50, 4,Send(self,@GetAgility));
+                4,Send(self,@GetAgility), 4,0, 4,Send(self,@GetMaxAgility),
+                4,Send(self,@GetAgility));
 
       return;
    }
@@ -8319,7 +8321,8 @@ messages:
    SendStatStamina()
    {
       AddPacket(1,3,4,user_stat_Stamina,1,STAT_VALUE, 1,STAT_INTEGER,
-                4,Send(self,@GetStamina), 4,0, 4,50, 4,Send(self,@GetStamina));
+                4,Send(self,@GetStamina), 4,0, 4,Send(self,@GetMaxStamina),
+                4,Send(self,@GetStamina));
 
       return;
    }
@@ -8339,7 +8342,7 @@ messages:
    SendStatMysticism()
    {
       AddPacket(1,5,4,user_stat_Mysticism,1,STAT_VALUE, 1,STAT_INTEGER,
-                4,Send(self,@GetMysticism), 4,0, 4,50,
+                4,Send(self,@GetMysticism), 4,0, 4,Send(self,@GetMaxMysticism),
                 4,Send(self,@GetMysticism));
 
       return;
@@ -8360,7 +8363,8 @@ messages:
    SendStatAim()
    {
       AddPacket(1,6, 4,user_stat_Aim, 1,STAT_VALUE, 1,STAT_INTEGER,
-                4,Send(self,@GetAim), 4,0, 4,50, 4,Send(self,@GetAim));
+                4,Send(self,@GetAim), 4,0, 4,Send(self,@GetMaxAim),
+                4,Send(self,@GetAim));
 
       return;
    }
@@ -10322,6 +10326,7 @@ messages:
       % must have a token if over the free stat reset cap
       if Send(self,@FindHolding,#class=&StatsResetToken) = $
          AND (piBase_Max_Health > Send(SETTINGS_OBJECT,@GetFreeStatsResetCap))
+         AND NOT Send(self,@HasReincarnationStatsReset)
       {
          return;
       }
@@ -10347,6 +10352,13 @@ messages:
       AddPacket(1,Nth(lSpellLevels,5));
       AddPacket(1,Nth(lSpellLevels,6));
       AddPacket(1,Nth(lSkillLevels,1));
+      AddPacket(1,Send(self,@GetMaxMight));
+      AddPacket(1,Send(self,@GetMaxIntellect));
+      AddPacket(1,Send(self,@GetMaxStamina));
+      AddPacket(1,Send(self,@GetMaxAgility));
+      AddPacket(1,Send(self,@GetMaxMysticism));
+      AddPacket(1,Send(self,@GetMaxAim));
+      AddPacket(1,Send(self,@GetTotalRawStatPoints));
       SendPacket(poSession);
       return;
    }
@@ -10369,6 +10381,7 @@ messages:
       
       if Send(self,@FindHolding,#class=&StatsResetToken) = $
          AND (piBase_Max_Health > Send(SETTINGS_OBJECT,@GetFreeStatsResetCap))
+         AND NOT Send(self,@HasReincarnationStatsReset)
       {
          return;
       }
@@ -10384,12 +10397,12 @@ messages:
       lSkillLevels_new = [weaponcraft_lvl];
    
       % Range Checks, no client hacking negative stats funny business!
-      if (might < 1 OR might > 50)
-         OR (intellect < 1 OR intellect > 50)
-         OR (stamina < 1 OR stamina > 50)
-         OR (agility < 1 OR agility > 50)
-         OR (mysticism < 1 OR mysticism > 50)
-         OR (aim < 1 OR aim > 50)
+      if (might < 1 OR might > Send(self,@GetMaxMight))
+         OR (intellect < 1 OR intellect > Send(self,@GetMaxIntellect))
+         OR (stamina < 1 OR stamina > Send(self,@GetMaxStamina))
+         OR (agility < 1 OR agility > Send(self,@GetMaxAgility))
+         OR (mysticism < 1 OR mysticism > Send(self,@GetMaxMysticism))
+         OR (aim < 1 OR aim > Send(self,@GetMaxAim))
       {
          Debug("Stat Range Check: Failed!");
          return FALSE;
@@ -10409,7 +10422,8 @@ messages:
       }
          
       % Quick check for too many points in stats
-      if ((might + intellect + stamina + agility + mysticism + aim) > 200 )
+      if ((might + intellect + stamina + agility + mysticism + aim)
+             > Send(self,@GetTotalRawStatPoints) )
       {
          Debug("Points Check: FAIL!");
          return FALSE;
@@ -10478,8 +10492,9 @@ messages:
       
       % everything looks good, start adjusting stats
       
-      % Consume token
+      % Consume token if it's not a free reincarnation reset
       if piBase_Max_Health > Send(SETTINGS_OBJECT,@GetFreeStatsResetCap)
+         AND NOT Send(self,@HasReincarnationStatsReset)
       {
          Send(Send(self,@FindHolding,#class=&StatsResetToken),@Delete);
       }
@@ -10529,7 +10544,7 @@ messages:
          if (iPrimaryStat = STAT_ID_STAMINA)
          {
             if (iSpellAbility > (stamina * 2)) AND (stamina < piStamina)
-               OR (iSpellAbility = 99 AND piStamina = 50 AND stamina < 50)
+               OR (iSpellAbility = 99 AND piStamina >= 50 AND stamina < 50)
             {
                Send(self,@ChangeSpellAbility,#spell_num=iSpellNum,
                      #amount=((piStamina - stamina)
@@ -10539,7 +10554,7 @@ messages:
          else if (iPrimaryStat = STAT_ID_INTELLECT)
          {
             if (iSpellAbility > (intellect * 2)) AND (intellect < piIntellect)
-               OR (iSpellAbility = 99 AND piIntellect = 50 AND intellect < 50)
+               OR (iSpellAbility = 99 AND piIntellect >= 50 AND intellect < 50)
             {
                Send(self,@ChangeSpellAbility,#spell_num=iSpellNum,
                      #amount=((piIntellect - intellect)
@@ -10549,7 +10564,7 @@ messages:
          else if (iPrimaryStat = STAT_ID_MYSTICISM)
          {
             if (iSpellAbility > (piMysticism * 2)) AND (mysticism < piMysticism)
-               OR (iSpellAbility = 99 AND piMysticism = 50 AND mysticism < 50)
+               OR (iSpellAbility = 99 AND piMysticism >= 50 AND mysticism < 50)
             {
                Send(self,@ChangeSpellAbility,#spell_num=iSpellNum,
                      #amount=((piMysticism - mysticism)
@@ -10569,7 +10584,7 @@ messages:
          if (iPrimaryStat = STAT_ID_AGILITY)
          {
             if (iSkillAbility > (agility * 2)) AND (agility < piAgility)
-               OR (iSkillAbility = 99 AND piAgility = 50 AND agility < 50)
+               OR (iSkillAbility = 99 AND piAgility >= 50 AND agility < 50)
             {
                Send(self,@ChangeSkillAbility,#skill_num=iSkillNum,
                      #amount=((piAgility - agility) * -2));
@@ -10578,7 +10593,7 @@ messages:
          else if (iPrimaryStat = STAT_ID_AIM)
          {
             if (iSkillAbility > (aim * 2)) AND (aim < piAim)
-               OR (iSkillAbility = 99 AND piAim = 50 AND aim < 50)
+               OR (iSkillAbility = 99 AND piAim >= 50 AND aim < 50)
             {
                Send(self,@ChangeSkillAbility,#skill_num=iSkillNum,
                      #amount=((piAim - aim) * -2));
@@ -10587,7 +10602,7 @@ messages:
          else if (iPrimaryStat = STAT_ID_MIGHT)
          {
             if (iSkillAbility > (might * 2)) AND (might < piMight)
-               OR (iSkillAbility = 99 AND piMight = 50 AND might < 50)
+               OR (iSkillAbility = 99 AND piMight >= 50 AND might < 50)
             {
                Send(self,@ChangeSkillAbility,#skill_num=iSkillNum,
                      #amount=((piMight - might) * -2));
@@ -10596,7 +10611,7 @@ messages:
          else if (iPrimaryStat = STAT_ID_STAMINA)
          {
             if (iSkillAbility > (stamina * 2)) AND (stamina < piStamina)
-               OR (iSkillAbility = 99 AND piStamina = 50 AND stamina < 50)
+               OR (iSkillAbility = 99 AND piStamina >= 50 AND stamina < 50)
             {
                Send(self,@ChangeSkillAbility,#skill_num=iSkillNum,
                      #amount=((piStamina - stamina) * -2));
@@ -10634,6 +10649,12 @@ messages:
       % Refresh the client screen so they see the new stats
       Send(self, @InvalidateData);
       Debug("Player Updated!");
+
+      if Send(self,@HasReincarnationStatsReset)
+      {
+         % Used up our reincarnation stat reset.
+         Send(self,@SetReincarnationStatsReset,#value=FALSE);
+      }
 
       return;
    }
