@@ -61,6 +61,8 @@ resources:
    system_user_killed_shield = "~B~U~k[###]~n ~B~v%q was bested by faction rival %s%q."
    system_user_killed_guild = \
       "~B~U~k[###]~n ~B~v%q of %s%q has been slaughtered by %s%q of %s%q in guild combat."
+   system_user_reincarnated = \
+      "~B~U~k[###]~n ~B~v%q has reincarnated!"
       
    guildwar_kill_title1 = " has slaughtered "
    guildwar_kill_body1 = "Let it be known that "
@@ -7986,6 +7988,19 @@ messages:
       }
       
       return $;
+   }
+
+   UserReincarnated(what = $)
+   {
+      local i;
+
+      foreach i in plUsers_logged_on
+      {
+         Send(i,@MsgSendUser,#message_rsc=system_user_reincarnated,
+              #parm1=Send(what,@GetTrueName),#type1=STRING_RESOURCE);
+         Send(i,@WaveSendUser,#wave_rsc=system_message_sound,#what=self);
+      }
+      return;
    }
 
 end

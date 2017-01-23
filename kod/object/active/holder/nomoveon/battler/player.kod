@@ -811,6 +811,16 @@ resources:
    reincarnated_times = \
       "%s has reincarnated %d times.\n"
 
+   reincarnation_need_hp = \
+      "At that affirmation of how much you've learned, you feel like the "
+      "last goal left for you is to test your own physical limits."
+   reincarnation_need_learn = \
+      "You've gone as far as you can physically. You realize that the "
+      "last goal left to you in this life is to learn as much as you can."
+   reincarnation_ready = \
+      "You feel as if you've learned all you can and tested yourself "
+      "to your physical limits. This life feels complete."
+
    pvp_notify_wav = gong.wav
 
 classvars:
@@ -935,6 +945,9 @@ properties:
 
    % Percent stomach is full.
    piStomach = 0
+
+   % Different races have different hunger capacities.
+   piStomachMax = 100
 
    % Governs health and mana replacement rates
    piVigor = 100
@@ -1115,6 +1128,8 @@ properties:
    piReincarnations = 0
    % Do we have a free stat reset for reincarnation?
    pbReincarnationStatsReset = FALSE
+   % Have we hit learn cap?
+   pbLearnCapped = FALSE
 
 messages:
 
@@ -1220,6 +1235,30 @@ messages:
 
       propagate;
    }
+   
+   SetLearncapped(value=FALSE)
+   {
+      pbLearnCapped = value;
+      
+      if value = TRUE
+      {
+         if piBase_Max_Health >= 100 + Send(self,@GetRawStamina)
+         {
+            Send(self,@MsgSendUser,#message_rsc=reincarnation_ready);
+         }
+         else
+         {
+            Send(self,@MsgSendUser,#message_rsc=reincarnation_need_hp);
+         }
+      }
+
+      return;
+   }
+   
+   GetLearnCapped()
+   {
+      return pbLearnCapped;
+   }
 
    Reincarnate(race=0)
    {
@@ -1260,6 +1299,27 @@ messages:
       Send(self,@SetReincarnationStatsReset,#value=TRUE);
       
       Send(self,@SendStatChange);
+      
+      Send(SYS,@UserReincarnated,#what=self);
+
+      return;
+   }
+
+   CanReincarnate()
+   {
+      if ((Send(self,@GetBaseMaxHealth) = 100 + Send(self,@GetRawStamina)
+             AND Send(self,@GetLearnCapped))
+         OR piReincarnations = 0)
+         AND Send(self,@CheckPlayerFlag,#flag=PFLAG_PKILL_ENABLE)
+         AND piReincarnations < 10
+      {
+         % For now, first is free and after that must be max health
+         % and have hit learn cap.
+         % Angeled characters can never reincarnate.
+         %
+         % Reincarnations capped at ten for now.
+         return TRUE;
+      }
 
       return;
    }
@@ -1288,12 +1348,14 @@ messages:
          Send(self,@SetDefaultClothes,#shirt_color=1,#pants_color=1);
          plResistances = $;
 
-         piRacialMightMod = 50;
-         piRacialIntellectMod = 50;
-         piRacialStaminaMod = 50;
-         piRacialAgilityMod = 50;
-         piRacialMysticismMod = 50;
-         piRacialAimMod = 50;
+         piRacialMightMod = 0;
+         piRacialIntellectMod = 0;
+         piRacialStaminaMod = 0;
+         piRacialAgilityMod = 0;
+         piRacialMysticismMod = 0;
+         piRacialAimMod = 0;
+
+         piStomachMax = 100;
 
          piPlayerRace = race;
       }
@@ -1314,6 +1376,8 @@ messages:
          piRacialMysticismMod = 0;
          piRacialAimMod = -20;
 
+         piStomachMax = 120;
+
          piPlayerRace = race;
       }
 
@@ -1332,6 +1396,8 @@ messages:
          piRacialAgilityMod = 0;
          piRacialMysticismMod = 10;
          piRacialAimMod = 0;
+
+         piStomachMax = 60;
 
          piPlayerRace = race;
       }
@@ -1352,6 +1418,8 @@ messages:
          piRacialMysticismMod = -20;
          piRacialAimMod = 10;
 
+         piStomachMax = 80;
+
          piPlayerRace = race;
       }
 
@@ -1368,6 +1436,13 @@ messages:
    GetTotalRawStatPoints()
    {
       % Players get one more stat point per reincarnation.
+      
+      % Humans get two per reincarnation.
+      if piPlayerRace = RACE_HUMAN
+      {
+         return 200 + piReincarnations*2;
+      }
+      
       return 200 + piReincarnations;
    }
 
@@ -1780,7 +1855,7 @@ messages:
 
       now = GetTime();
       piStomach = piStomach-(now-piTimeLastStomachUpdate)*FOOD_USE_RATE/100;
-      piStomach = bound(piStomach,1,100);
+      piStomach = bound(piStomach,1,piStomachMax);
       piTimeLastStomachUpdate = now;
 
       return;
@@ -2969,6 +3044,7 @@ messages:
    {
       local i;
 
+      Send(self,@SetLearnCapped,#value=FALSE);
       Send(self,@RemoveAllEnchantments,#report=FALSE);
 
       foreach i in plActive
@@ -3000,6 +3076,7 @@ messages:
 
       % Setup some stats
       piBase_max_health = 20;
+      piHealth = 2000;
       piMax_health = piBase_max_health;
       piNodelist = 0;
       piMax_mana = Send(self, @GetInitialMaxMana);
@@ -3045,6 +3122,12 @@ messages:
       {
          Send(SYS,@ClearLastMurderer);
       }
+
+      Send(Send(SYS,@FindRoomByNum,#num=RID_NEWB1),@Teleport,#what=self);
+
+      Send(self,@AddDefaultSpells);
+      Send(self,@AddDefaultSkills);
+
       return;
    }
 
@@ -7061,7 +7144,7 @@ messages:
       % This is the only place we need piStomach to be correct
       Send(self,@UpdateStomach);
 
-      if (piStomach + filling) > 100
+      if (piStomach + filling) > piStomachMax
       {
          if what = $ OR NOT Send(what,@IsBeverage)
          {
@@ -7289,6 +7372,17 @@ messages:
 
       Send(self,@PlayerIsIntriguing);
       Send(self,@GainMaxhealth,#amount=amount);
+
+      if piBase_max_health = 100 + Send(self,@GetMaxStamina)
+      {
+         if Send(self,@GetLearnCapped)
+         {
+            Send(self,@MsgSendUser,#message_rsc=reincarnation_ready);
+         }
+         else{
+            Send(self,@MsgSendUser,#message_rsc=reincarnation_need_learn);
+         }
+      }
 
       return;
    }
@@ -12855,6 +12949,7 @@ messages:
             AND piBase_Max_health < Send(SETTINGS_OBJECT,@GetPKillEnableHP)
             AND NOT (piFlags & PFLAG_MURDERER)
             AND NOT (piFlags & PFLAG_OUTLAW)
+            AND piReincarnations = 0
          {
             ass_game = Send(SYS,@GetAssassinGame);
             if Send(ass_game,@IsCombatant,#who=self)
