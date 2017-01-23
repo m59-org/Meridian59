@@ -1355,9 +1355,12 @@ messages:
          piRacialAgilityMod = 0;
          piRacialMysticismMod = 0;
          piRacialAimMod = 0;
-         piRacialVigorMod = 0;
 
+         piRacialVigorMod = 0;
          piStomachMax = 100;
+         piVigor_rest_threshold = Send(self,@CalculateVigorThreshold);
+         piVigor = piVigor_rest_threshold;
+         Post(self,@NewVigor);
 
          piPlayerRace = race;
       }
@@ -1377,9 +1380,12 @@ messages:
          piRacialAgilityMod = -20;
          piRacialMysticismMod = 0;
          piRacialAimMod = -20;
-         piRacialVigorMod = 40;
 
+         piRacialVigorMod = 40;
          piStomachMax = 120;
+         piVigor_rest_threshold = Send(self,@CalculateVigorThreshold);
+         piVigor = piVigor_rest_threshold;
+         Post(self,@NewVigor);
 
          piPlayerRace = race;
       }
@@ -1399,9 +1405,12 @@ messages:
          piRacialAgilityMod = 0;
          piRacialMysticismMod = 10;
          piRacialAimMod = 0;
-         piRacialVigorMod = -20;
 
+         piRacialVigorMod = -20;
          piStomachMax = 60;
+         piVigor_rest_threshold = Send(self,@CalculateVigorThreshold);
+         piVigor = piVigor_rest_threshold;
+         Post(self,@NewVigor);
 
          piPlayerRace = race;
       }
@@ -1421,9 +1430,12 @@ messages:
          piRacialAgilityMod = 10;
          piRacialMysticismMod = -20;
          piRacialAimMod = 10;
-         piRacialVigorMod = 20;
 
+         piRacialVigorMod = 20;
          piStomachMax = 80;
+         piVigor_rest_threshold = Send(self,@CalculateVigorThreshold);
+         piVigor = piVigor_rest_threshold;
+         Post(self,@NewVigor);
 
          piPlayerRace = race;
       }
@@ -3089,8 +3101,7 @@ messages:
       poKill_target = $;
       piKarma = 0;
 
-      piVigor = 100;
-      piVigor_rest_threshold = 80;
+      piVigor = 80;
       piExertion = 0;
       % percent stomach is full
       piStomach = 0;
