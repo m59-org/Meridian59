@@ -1703,7 +1703,7 @@ messages:
       oWind = Send(SYS,@FindSkillByNum,#num=SKID_SECOND_WIND);
       iTime = Send(oWind,@GetWaitTime,#who=self);
       ptSecondWind = CreateTimer(self,@EndSecondWindTimer,iTime);
-      Send(self,@SetVigorRestThreshold,#amount=10);
+      Send(self,@SetVigorRestThreshold);
 
       return TRUE;
    }
@@ -1718,8 +1718,6 @@ messages:
 
    EndSecondWind()
    {
-      local iAmount;
-
       if ptSecondWind <> $
       {
          DeleteTimer(ptSecondWind);
@@ -1732,9 +1730,7 @@ messages:
          piVigor = SECONDWIND_THRESHOLD;
       }
 
-      iAmount = 80 + ((Send(self,@GetSkillAbility,
-                        #Skill_num=SKID_SECOND_WIND) + 1) / 5);
-      Send(self,@SetVigorRestThreshold,#amount=iAmount);
+      Send(self,@SetVigorRestThreshold);
       Send(self,@NewVigor);
       Send(self,@MsgSendUser,#message_rsc=second_wind_finished);
       Send(self,@ShowRemoveEnchantment,#what=Send(SYS,@FindSkillByNum,
@@ -1753,18 +1749,15 @@ messages:
       return piVigor_rest_threshold;
    }
 
-   SetVigorRestThreshold(amount = 0)
+   SetVigorRestThreshold()
    {
-      piVigor_rest_threshold = amount;
-
       % Don't go above rest threshold if we're still waiting for Second Wind.
       if ptSecondWind <> $
       {
          piVigor_rest_threshold = 10;
       }
 
-      piVigor_rest_threshold = Bound(piVigor_rest_threshold,10,80 +
-               ((Send(self,@GetSkillAbility,#skill_num=SKID_SECOND_WIND)+1)/5));
+      piVigor_rest_threshold = Send(self,@CalculateVigorThreshold);
 
       Send(self,@DrawVigor);
 
@@ -8971,7 +8964,7 @@ messages:
    "Admin supported\n"
    "Removes a Skill by Skill ID from the user's castable list of Skills"
    {
-      local oSkill, i, iVigorChange;
+      local oSkill, i;
 
       oSkill = Send(SYS,@FindSkillbyNum,#num=num);
       if oSkill = $
@@ -8985,10 +8978,7 @@ messages:
       % resting vigor threshold.
       if num = SKID_SECOND_WIND
       {
-         iVigorChange = (Send(self,@GetSkillAbility,
-                              #Skill_num=SKID_SECOND_WIND) + 1) / 5;
-         Post(self,@SetVigorRestThreshold,
-               #amount=piVigor_rest_threshold - iVigorChange);
+         Post(self,@SetVigorRestThreshold);
       }
 
       foreach i in plSkills
@@ -12239,8 +12229,7 @@ messages:
                #num=SKID_SECOND_WIND),#type=ENCHANTMENT_PLAYER);
       }
 
-      Send(self,@SetVigorRestThreshold,
-                #amount=Send(self,@CalculateVigorThreshold));
+      Send(self,@SetVigorRestThreshold);
 
       Send(self,@EndCrystalizeManaSurge);
 
