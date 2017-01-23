@@ -1265,6 +1265,7 @@ messages:
 
    Reincarnate(race=0)
    {
+      Send(SYS,@UserReincarnated,#what=self);
       Send(self,@ReincarnateCharacter);
       Send(self,@SetPlayerRace,#race=race);
       
@@ -1299,11 +1300,9 @@ messages:
       }
       
       ++piReincarnations;
+
       Send(self,@SetReincarnationStatsReset,#value=TRUE);
-      
-      Send(self,@SendStatChange);
-      
-      Send(SYS,@UserReincarnated,#what=self);
+      Post(self,@SendStatChange);
 
       return;
    }
