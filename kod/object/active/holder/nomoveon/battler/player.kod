@@ -1123,6 +1123,7 @@ properties:
    piRacialAgilityMod = 0
    piRacialMysticismMod = 0
    piRacialAimMod = 0
+   piRacialVigorMod = 0
    
    % Tracks the number of this character's reincarnations
    piReincarnations = 0
@@ -1354,6 +1355,7 @@ messages:
          piRacialAgilityMod = 0;
          piRacialMysticismMod = 0;
          piRacialAimMod = 0;
+         piRacialVigorMod = 0;
 
          piStomachMax = 100;
 
@@ -1375,6 +1377,7 @@ messages:
          piRacialAgilityMod = -20;
          piRacialMysticismMod = 0;
          piRacialAimMod = -20;
+         piRacialVigorMod = 40;
 
          piStomachMax = 120;
 
@@ -1396,6 +1399,7 @@ messages:
          piRacialAgilityMod = 0;
          piRacialMysticismMod = 10;
          piRacialAimMod = 0;
+         piRacialVigorMod = -20;
 
          piStomachMax = 60;
 
@@ -1417,6 +1421,7 @@ messages:
          piRacialAgilityMod = 10;
          piRacialMysticismMod = -20;
          piRacialAimMod = 10;
+         piRacialVigorMod = 20;
 
          piStomachMax = 80;
 
@@ -1449,6 +1454,12 @@ messages:
    GetBaseResistances()
    {
       return plResistances;
+   }
+   
+   CalculateVigorThreshold()
+   {
+      return 80 + piRacialVigorMod + ((Send(self,@GetSkillAbility,
+                           #Skill_num=SKID_SECOND_WIND) + 1) / 5);
    }
 
    %%% Player flags
@@ -12206,7 +12217,7 @@ messages:
 
    RecalibratePlayer()
    {
-      local i, bSoldier, iAmount;
+      local i, bSoldier;
 
       bSoldier = FALSE;
       if Send(self,@FindUsing,#class=&SoldierShield) <> $
@@ -12228,9 +12239,8 @@ messages:
                #num=SKID_SECOND_WIND),#type=ENCHANTMENT_PLAYER);
       }
 
-      iAmount = 80 + ((Send(self,@GetSkillAbility,
-                           #Skill_num=SKID_SECOND_WIND) + 1) / 5);
-      Send(self,@SetVigorRestThreshold,#amount=iAmount);
+      Send(self,@SetVigorRestThreshold,
+                #amount=Send(self,@CalculateVigorThreshold));
 
       Send(self,@EndCrystalizeManaSurge);
 
