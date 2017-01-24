@@ -502,6 +502,9 @@ properties:
    % Keeps track of the last save before a frenzy.
    psSaveGame = $
 
+   % The list of magical modifier objects.
+   plMagicMods = $
+
 messages:
 
    GetName()
@@ -549,6 +552,7 @@ messages:
       Send(self,@recreateMonsterTemplates);
       Send(self,@recreateItemTemplates);
       Send(self,@RecreateMoneyTemplates);
+      Send(self,@RecreateMagicMods);
 
       Send(self,@RecreateLore);
       Send(self,@RecreateArtArchive);
@@ -767,6 +771,7 @@ messages:
       Send(self,@RecreateMonsterTemplates);
       Send(self,@RecreateItemTemplates);
       Send(self,@RecreateMoneyTemplates);
+      Send(self,@RecreateMagicMods);
       Send(self,@RecreateChests);
       Send(self,@RecreateLore);
       Send(self,@UpdateHallOfHeroes);
@@ -5744,6 +5749,9 @@ messages:
       plItemTemplates = cons(create(&BreakRodBlind),plItemTemplates);
       plItemTemplates = cons(create(&BreakRodPurge),plItemTemplates);
 
+      % Shards
+      plItemTemplates = cons(create(&ShardImbueMinor),plItemTemplates);
+
       return;
    }
 
@@ -5784,6 +5792,48 @@ messages:
       plMoneyTemplates = cons(create(&Money),plMoneyTemplates);
 
       return;
+   }
+
+   RecreateMagicMods()
+   {
+      local i;
+
+      foreach i in plMagicMods
+      {
+         Send(i,@Delete);
+      }
+      plMagicMods = $;
+
+      plMagicMods = Cons(Create(&FireResistanceMod),plMagicMods);
+      plMagicMods = Cons(Create(&AcidResistanceMod),plMagicMods);
+      plMagicMods = Cons(Create(&ShockResistanceMod),plMagicMods);
+      plMagicMods = Cons(Create(&ColdResistanceMod),plMagicMods);
+      plMagicMods = Cons(Create(&HolyResistanceMod),plMagicMods);
+      plMagicMods = Cons(Create(&UnholyResistanceMod),plMagicMods);
+      plMagicMods = Cons(Create(&QuakeResistanceMod),plMagicMods);
+      plMagicMods = Cons(Create(&PierceResistanceMod),plMagicMods);
+      plMagicMods = Cons(Create(&SlashResistanceMod),plMagicMods);
+      plMagicMods = Cons(Create(&BludgeonResistanceMod),plMagicMods);
+
+      return;
+   }
+
+   GetMagicMod(class=$)
+   {
+      local i;
+
+      if class <> $
+      {
+         foreach i in plMagicMods
+         {
+            if IsClass(i,class)
+            {
+               return i;
+            }
+         }
+      }
+   
+      return $;
    }
 
    UnMeldAllPlayers(node_num=0)

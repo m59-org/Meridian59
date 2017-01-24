@@ -146,6 +146,9 @@ properties:
    % Support for players, monsters, and items
    plRadiusEnchantments = $
 
+   % Traditional magic mods
+   plEnchantmentMods = $
+
 messages:
 
    Constructor(corpse=$)
@@ -2703,6 +2706,102 @@ messages:
    CanSweep()
    {
       return TRUE;
+   }
+
+   GetMagicModsNumber()
+   {
+      if plEnchantmentMods <> $
+      {
+         return Length(plEnchantmentMods);
+      }
+
+      return 0;
+   }
+
+   GetMagicModsNumberOfType(type=MOD_SUFFIX)
+   {
+      local i, sum;
+      sum = 0;
+
+      foreach i in plEnchantmentMods
+      {
+         if Send(i,@GetModType) = type
+         {
+            ++sum;
+         }
+      }
+
+      return sum;
+   }
+
+   AddMagicMods(min_num_mods=0, max_num_mods=0)
+   "General random decisions for adding one to multiple mods."
+   {
+      local iNumMods, iModType, bAdded, iChosenType;
+      bAdded = FALSE;
+
+      if NOT IsClass(self,&Gauntlet)
+         AND NOT IsClass(self,&DefenseModifier)
+         AND NOT IsClass(self,&Weapon)
+         AND NOT IsClass(self,&Ring)
+      {
+         return bAdded;
+      }
+
+      if max_num_mods < 0
+      {
+         max_num_mods = 0;
+      }
+
+      if max_num_mods > 6
+      {
+         max_num_mods = 6;
+      }
+
+      if min_num_mods > max_num_mods
+      {
+         min_num_mods = 0;
+         max_num_mods = 0;
+      }
+
+      iNumMods = Random(min_num_mods,max_num_mods);
+      
+      while iNumMods > 0
+      {
+         if plEnchantmentMods <> $
+            AND Length(plEnchantmentMods) = 6
+         {
+            break;
+         }
+
+         iChosenType = Random(MOD_PREFIX,MOD_SUFFIX);
+         
+         % check for prefix/suffix limit.
+         % since we checked for 6 mods total, we know the other is open
+         %   if the chosen type is full.
+         if Send(self,@GetMagicModsNumberOfType,#type=iChosenType) >= 3
+         {
+            if iChosenType = MOD_PREFIX
+            {
+               iChosenType = MOD_SUFFIX;
+            }
+            else
+            {
+               iChosenType = MOD_PREFIX;
+            }
+         }
+
+         Send(self,@AddMagicMod,#type=iChosenType);
+
+         bAdded = TRUE;
+      }
+      
+      return bAdded;
+   }
+
+   AddMagicMod()
+   {
+      return FALSE;
    }
 
 end

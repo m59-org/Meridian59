@@ -4,7 +4,7 @@
 
 !include $(TOPDIR)\common.mak
 
-DEPEND = ..\numbitem.bof
-BOFS = money.bof food.bof ammo.bof reagent.bof shard.bof
+DEPEND = ..\magicmod.bof
+BOFS = resistancemod.bof
 
 !include $(KODDIR)\kod.mak

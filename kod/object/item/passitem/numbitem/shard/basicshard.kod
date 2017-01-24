@@ -1,0 +1,64 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ShardImbueMinor is Shard
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   basic_shard_name_rsc = "imbuing shard"
+   basic_shard_icon_rsc = emerald.bgf
+   basic_shard_desc = \
+      "This shard will imbue a piece of equipment with a basic magical "
+      "enchantment."
+
+   basic_shard_applied = \
+      "The %s takes on a light aura of magic."
+
+classvars:
+
+   vrName = basic_shard_name_rsc
+   vrIcon = basic_shard_icon_rsc
+   vrDesc = basic_shard_desc
+
+   vrApplied = basic_shard_applied
+
+properties:
+
+messages:
+
+   ReqNewApply(what = $,apply_on = $)
+   {
+      if apply_on <> $
+         AND (IsClass(apply_on,&Weapon)
+            OR IsClass(apply_on,&DefenseModifier)
+            OR IsClass(apply_on,&Ring)
+            OR IsClass(apply_on,&Gauntlet))
+         AND Send(apply_on,@GetMagicModsNumber) = 0
+      {
+         % This shard only applies to non-enchanted gear
+         return TRUE;
+      }
+
+      return FALSE;
+   }
+
+   NewApplied(what = $,apply_on = $)
+   {
+      Send(apply_on,@AddMagicMods,#min_num_mods=1,#max_num_mods=2);
+
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
