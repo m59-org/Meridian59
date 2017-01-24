@@ -26,7 +26,7 @@ resources:
 
    % item_desc_template is vrDesc, item attributes, object attributes,
    % variable item appends, item stats, item condition.
-   item_desc_template = "%r%r%r%r%r%r"
+   item_desc_template = "%r%r%r%r%r%r%r"
    resource_blank = ""
 
    item_try_use_cursed_rsc = \
@@ -84,6 +84,13 @@ resources:
    item_stats_proc_purge = "15%% chance to cast Purge on hit\n"
    item_stats_proc_twister = "8%% chance to disorient victim on hit\n"
    item_stats_proc_vamp = "10%% chance to gain up to 8 health on hit\n"
+
+   item_level_master = \
+      ". It has an item level of %i and has been imbued "
+      "with %i magical modifications."
+   item_level_gauntlets = \
+      ". They have an item level of %i and have been imbued "
+      "with %i magical modifications."
 
 classvars:
 
@@ -888,6 +895,7 @@ messages:
       Send(self,@AppendDesc);
       Send(self,@AppendStatsDesc);
       Send(self,@AppendItemCondition);
+      Send(self,@AppendItemLevel);
 
       return;
    }
@@ -940,6 +948,28 @@ messages:
 
          AddPacket(4,item_cond_master, 4,vrPoss_Article, 4,Send(self,@GetName),
                    4,rItem_condition,4,piHits,4,piHits_init);
+      }
+      else
+      {
+         AddPacket(4,system_blank_resource);
+      }
+
+      return;
+   }
+
+   AppendItemLevel()
+   {
+      if IsClass(self,&Weapon)
+         OR IsClass(self,&DefenseModifier)
+         OR IsClass(self,&Ring)
+      {
+         AddPacket(4,item_level_master, 4,piItemLevel,
+                   4,Send(self,@GetMagicModsNumber));
+      }
+      else if IsClass(self,&Gauntlet)
+      {
+         AddPacket(4,item_level_gauntlets, 4,piItemLevel,
+                   4,Send(self,@GetMagicModsNumber));
       }
       else
       {
@@ -2919,6 +2949,7 @@ messages:
       if iPowerValue <> 0
       {
          plEnchantmentMods = Cons([cChosenMod,iPowerValue],plEnchantmentMods);
+         Send(self,@AddMagicFlag);
          return TRUE;
       }
 
@@ -2928,7 +2959,8 @@ messages:
    ClearMagicMods()
    {
       plEnchantmentMods = $;
-      
+      Send(self,@RemoveMagicFlag);
+
       return;
    }
 
