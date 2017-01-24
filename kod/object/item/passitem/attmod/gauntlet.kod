@@ -303,12 +303,54 @@ messages:
 
    ModifyDefensePower(defense_power=$)
    {
+      local i, oDefenseMod;
+
+      foreach i in plEnchantmentMods
+      {
+         if Nth(i,1) = &DefenseMod
+         {
+            oDefenseMod = Send(SYS,@GetMagicMod,#class=&DefenseMod);
+            defense_power = Send(oDefenseMod,@ModifyDefensePower,
+                        #defense_power=defense_power,#iState=Nth(i,2));
+         }
+      }
+
       return defense_power + piDefense_bonus;
    }
 
-   ModifyDefenseDamage(who = $,what = $,damage = $)
+   ModifyDefenseDamage(who=$,what=$,damage=$,atype=0,aspell=0)
    {
+      local i, sum, oArmorMod;
+      sum = 0;
+
+      foreach i in plEnchantmentMods
+      {
+         if Nth(i,1) = &ArmorMod
+         {
+            oArmorMod = Send(SYS,@GetMagicMod,#class=&ArmorMod);
+            damage = Send(oArmorMod,@ModifyDefenseDamage,#who=who,#what=what,
+                        #damage=damage,#atype=atype,#aspell=aspell,
+                        #iState=Nth(i,2));
+         }
+      }
+
       return damage;
+   }
+
+   GetDamageReduction()
+   {
+      local i, sum;
+      sum = 0;
+
+      foreach i in plEnchantmentMods
+      {
+         if Nth(i,1) = &ArmorMod
+         {
+            sum = sum + Nth(i,2);
+         }
+      }
+
+      return sum;
    }
 
    CanMend()
@@ -342,7 +384,18 @@ messages:
 
    GetDefenseBonus()
    {
-      return piDefense_bonus;
+      local i, sum;
+      sum = 0;
+
+      foreach i in plEnchantmentMods
+      {
+         if Nth(i,1) = &DefenseMod
+         {
+            sum = sum + Nth(i,2);
+         }
+      }
+      
+      return piDefense_bonus + sum;
    }
 
    GetMeleeDamageBonus()

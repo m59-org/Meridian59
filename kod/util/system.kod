@@ -5841,6 +5841,35 @@ messages:
       return $;
    }
 
+   GetGroupOfClassMod(class=$)
+   {
+      % Here we store mod classifications for quick lookup.
+      % This lets us avoid needlessly searching objects in rapid succession.
+      % Cases like resistance lists would search far too many times.
+
+      if class = &BludgeonResistanceMod
+         OR class = &PierceResistanceMod
+         OR class = &SlashResistanceMod
+         OR class = &QuakeResistanceMod
+         OR class = &AcidResistanceMod
+         OR class = &ShockResistanceMod
+         OR class = &FireResistanceMod
+         OR class = &ColdResistanceMod
+         OR class = &UnholyResistanceMod
+         OR class = &HolyResistanceMod
+      {
+         return GROUP_RESISTANCE;
+      }
+
+      if class = &ArmorMod
+         OR class = &DefenseMod
+      {
+         return GROUP_ARMOR;
+      }
+
+      return $;
+   }
+
    UnMeldAllPlayers(node_num=0)
    {
       local i, oNode;

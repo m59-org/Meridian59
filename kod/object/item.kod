@@ -2437,15 +2437,28 @@ messages:
   
    GetCurrentResistances()
    {
-      local lCurrentResistances, oObjectAttribute;
+      local lCurrentResistances, oObjectAttribute, lMagicMod, oMagicMod;
       
       lCurrentResistances = Send(self,@GetResistanceModifiers);
       
       foreach oObjectAttribute in plObject_attributes
       {
-         lCurrentResistances = Send(oObjectAttribute,@ModifyResistance,#resistance_list=lCurrentResistances);
+         lCurrentResistances = Send(oObjectAttribute,@ModifyResistance,
+                                  #resistance_list=lCurrentResistances);
       }
-      
+
+      foreach lMagicMod in plEnchantmentMods
+      {
+         if Send(SYS,@GetGroupOfClassMod,#class=Nth(lMagicMod,1))
+                        = GROUP_RESISTANCE
+         {
+            oMagicMod = Send(SYS,@GetMagicMod,#class=Nth(lMagicMod,1));
+            lCurrentResistances = Send(oMagicMod,@ModifyResistance,
+                                     #resistance_list=lCurrentResistances,
+                                     #iState=Nth(lMagicMod,2));
+         }
+      }
+
       return lCurrentResistances;
    }
 
