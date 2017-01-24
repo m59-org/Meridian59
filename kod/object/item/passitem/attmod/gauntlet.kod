@@ -352,19 +352,63 @@ messages:
 
    AddMagicMod(type=MOD_SUFFIX)
    {
-      local lPrefixClasses, lSuffixClasses;
+      local i, lPrefixClasses, lSuffixClasses, iRoll, iChanceSum,
+            lClasses, cChosenMod, oChosenMod, iPowerValue;
 
-      lPrefixClasses = $;
-      lSuffixClasses = [&FireResistanceMod,
-                        &ColdResistanceMod,
-                        &ShockResistanceMod,
-                        &AcidResistanceMod,
-                        &PierceResistanceMod,
-                        &SlashResistanceMod,
-                        &BludgeonResistanceMod];
+      % Lists are [mod type, chance to roll]
+      % random roll takes from a sum of all chances
+      
+      lPrefixClasses = [[&ArmorMod,100],
+                        [&DefenseMod,100]];
 
-      
-      
+      lSuffixClasses = [[&FireResistanceMod,100],
+                        [&ColdResistanceMod,100],
+                        [&ShockResistanceMod,100],
+                        [&AcidResistanceMod,100],
+                        [&PierceResistanceMod,100],
+                        [&SlashResistanceMod,100],
+                        [&BludgeonResistanceMod,100]];
+
+      if type = MOD_SUFFIX
+      {
+         lClasses = lSuffixClasses;
+      }
+      if type = MOD_PREFIX
+      {
+         lClasses = lPrefixClasses;
+      }
+
+      iChanceSum = 0;
+      foreach i in lClasses
+      {
+         iChanceSum = iChanceSum + Nth(i,2);
+      }
+
+      iRoll = Random(1, iChanceSum);
+      foreach i in lClasses
+      {
+         iChanceSum = iChanceSum - Nth(i,2);
+         if iChanceSum <= 0
+         {
+            % we've found our chosen mod class
+            cChosenMod = Nth(i,1);
+            break;
+         }
+      }
+
+      iPowerValue = 0;
+      oChosenMod = Send(SYS,@GetMagicMod,#class=cChosenMod);
+      if oChosenMod <> $
+      {
+         iPowerValue = Send(oChosenMod,@RollPower,#what=self);
+      }
+
+      if iPowerValue <> 0
+      {
+         plEnchantmentMods = Cons([cChosenMod,iPowerValue],plEnchantmentMods);
+         return TRUE;
+      }
+
       return FALSE;
    }
 

@@ -84,6 +84,8 @@ resources:
    item_stats_proc_purge = "15%% chance to cast Purge on hit\n"
    item_stats_proc_twister = "8%% chance to disorient victim on hit\n"
    item_stats_proc_vamp = "10%% chance to gain up to 8 health on hit\n"
+   
+   item_mods_gained = "An aura of magic surrounds the %s."
 
 classvars:
 
@@ -148,6 +150,10 @@ properties:
 
    % Traditional magic mods
    plEnchantmentMods = $
+   
+   % item level for magic mods and other effects
+   % depends on the mob that dropped it
+   piItemLevel = 20
 
 messages:
 
@@ -2720,12 +2726,14 @@ messages:
 
    GetMagicModsNumberOfType(type=MOD_SUFFIX)
    {
-      local i, sum;
+      local i, sum, oMod;
       sum = 0;
 
       foreach i in plEnchantmentMods
       {
-         if Send(i,@GetModType) = type
+         oMod = Send(SYS,@GetMagicMod,#class=Nth(i,1));
+         if oMod <> $
+            AND Send(oMod,@GetModType) = type
          {
             ++sum;
          }
@@ -2791,9 +2799,18 @@ messages:
             }
          }
 
-         Send(self,@AddMagicMod,#type=iChosenType);
+         bAdded = Send(self,@AddMagicMod,#type=iChosenType);
+         iNumMods = iNumMods - 1;
+      }
 
-         bAdded = TRUE;
+      if bAdded
+      {
+         if poOwner <> $
+            AND IsClass(poOwner,&Player)
+         {
+            Send(poOwner,@MsgSendUser,#message_rsc=item_mods_gained,
+                         #parm1=Send(self,@GetName));
+         }
       }
       
       return bAdded;
@@ -2802,6 +2819,11 @@ messages:
    AddMagicMod(type=MOD_SUFFIX)
    {
       return FALSE;
+   }
+
+   GetItemLevel()
+   {
+      return piItemLevel;
    }
 
 end

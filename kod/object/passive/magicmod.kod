@@ -22,7 +22,11 @@ resources:
 classvars:
 
    viModType = MOD_SUFFIX
-   viGroupType = GROUP_RESISTANCE
+   viModGroup = GROUP_RESISTANCE
+   
+   viModRangeMin = 1
+   viModRangeMax = 100
+   viPowerDivisor = 1
 
 properties:
 
@@ -34,9 +38,35 @@ messages:
       return viModType;
    }
 
-   GetGroupType()
+   GetModGroup()
    {
-      return viGroupType;
+      return viModGroup;
+   }
+
+   GetModRangeMin()
+   {
+      return viModRangeMin;
+   }
+   
+   GetModRangeMax()
+   {
+      return viModRangeMax;
+   }
+
+   RollPower(what=$)
+   {
+      local i, iLvl, iMin, iMax;
+
+      if what <> $
+      {
+         iLvl = Send(what,@GetItemLevel);
+         
+         iMin = viModRangeMin;
+         iMax = Bound(viModRangeMax, viModRangeMin, iLvl/viPowerDivisor);
+         return Random(iMin,iMax);
+      }
+
+      return 0;
    }
 
    GetObjectFlags()
