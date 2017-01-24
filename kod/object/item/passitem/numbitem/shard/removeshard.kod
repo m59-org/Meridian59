@@ -8,7 +8,7 @@
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-ShardImbueMinor is Shard
+ShardRemove is Shard
 
 constants:
 
@@ -16,25 +16,24 @@ constants:
 
 resources:
 
-   basic_shard_name_rsc = "minor shard"
-   basic_shard_name_plural = "minor shards"
-   basic_shard_icon_rsc = emerald.bgf
-   basic_shard_desc = \
-      "This shard will imbue a piece of equipment with a basic magical "
-      "enchantment."
+   remove_shard_name_rsc = "draining shard"
+   remove_shard_name_plural = "draining shards"
+   remove_shard_icon_rsc = diamond.bgf
+   remove_shard_desc = \
+      "This shard will remove all imbued magical modifications from an item."
 
-   basic_shard_applied = \
-      "The %s takes on a light aura of magic."
+   remove_shard_applied = \
+      "The %s appears more mundane than before."
 
 classvars:
 
-   vrName = basic_shard_name_rsc
-   vrIcon = basic_shard_icon_rsc
-   vrDesc = basic_shard_desc
+   vrName = remove_shard_name_rsc
+   vrIcon = remove_shard_icon_rsc
+   vrDesc = remove_shard_desc
 
-   vrName_plural = basic_shard_name_plural
+   vrName_plural = remove_shard_name_plural
 
-   vrApplied = basic_shard_applied
+   vrApplied = remove_shard_applied
 
 properties:
 
@@ -47,9 +46,9 @@ messages:
             OR IsClass(apply_on,&DefenseModifier)
             OR IsClass(apply_on,&Ring)
             OR IsClass(apply_on,&Gauntlet))
-         AND Send(apply_on,@GetMagicModsNumber) = 0
+         AND Send(apply_on,@GetMagicModsNumber) <> 0
       {
-         % This shard only applies to non-enchanted gear
+         % This shard only applies to enchanted gear
          return TRUE;
       }
 
@@ -58,7 +57,7 @@ messages:
 
    NewApplied(what = $,apply_on = $)
    {
-      Send(apply_on,@AddMagicMods,#min_num_mods=1,#max_num_mods=2);
+      Send(apply_on,@ClearMagicMods);
 
       propagate;
    }

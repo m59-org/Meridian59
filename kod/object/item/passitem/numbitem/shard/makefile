@@ -5,6 +5,6 @@
 !include $(TOPDIR)\common.mak
 
 DEPEND = ..\shard.bof
-BOFS = basicshard.bof
+BOFS = basicshard.bof removeshard.bof majorshard.bof
 
 !include $(KODDIR)\kod.mak

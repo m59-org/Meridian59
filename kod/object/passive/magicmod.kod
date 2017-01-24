@@ -62,7 +62,14 @@ messages:
          iLvl = Send(what,@GetItemLevel);
          
          iMin = viModRangeMin;
-         iMax = Bound(viModRangeMax, viModRangeMin, iLvl/viPowerDivisor);
+         iMax = Bound(viModRangeMax, 0, iLvl/viPowerDivisor);
+
+         % Item is very low ilvl.
+         if iMax < iMin
+         {
+            return 1;
+         }
+
          return Random(iMin,iMax);
       }
 
