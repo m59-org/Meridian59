@@ -84,8 +84,6 @@ resources:
    item_stats_proc_purge = "15%% chance to cast Purge on hit\n"
    item_stats_proc_twister = "8%% chance to disorient victim on hit\n"
    item_stats_proc_vamp = "10%% chance to gain up to 8 health on hit\n"
-   
-   item_mods_gained = "An aura of magic surrounds the %s."
 
 classvars:
 
@@ -2831,16 +2829,6 @@ messages:
 
          bAdded = Send(self,@AddMagicMod,#type=iChosenType);
          iNumMods = iNumMods - 1;
-      }
-
-      if bAdded
-      {
-         if poOwner <> $
-            AND IsClass(poOwner,&Player)
-         {
-            Send(poOwner,@MsgSendUser,#message_rsc=item_mods_gained,
-                         #parm1=Send(self,@GetName));
-         }
       }
       
       return bAdded;
