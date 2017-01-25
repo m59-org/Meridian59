@@ -31,18 +31,24 @@ properties:
 
 messages:
 
-   ModifyHitRoll(who = $,what = $,hit_roll = $,iState=0)
+   ModifyDamage(who = $,what = $, damage = $,iState=0)
    {
       local oWeapon;
+      
+      if who = $
+      {
+         % No conditions, so just return the bonus
+         return damage + iState;
+      }
 
       oWeapon = Send(who,@GetWeapon);
       if (oWeapon = $)
          or (not IsClass(oWeapon,&RangedWeapon))
       {
-         return hit_roll + iState;
+         return damage + iState;
       }
 
-      return hit_roll;
+      return damage;
    }
 
 end

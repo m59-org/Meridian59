@@ -245,6 +245,34 @@ messages:
             lTreasureItems;
 
       lTreasureItems = $;
+      
+      if who <> $
+         AND IsClass(who,&Player)
+         AND Send(who,@GetBaseMaxHealth) < level
+         AND Send(SETTINGS_OBJECT,@GetShardsEnabled)
+      {
+         % Give them a chance to roll shards as long as they are advancing
+         if Random(1,Send(SETTINGS_OBJECT,@GetMinorShardProbability)) = 1
+         {
+            lTreasureItems = Cons(Create(&ShardImbueMinor),lTreasureItems);
+         }
+         if Random(1,Send(SETTINGS_OBJECT,@GetAugmentShardProbability)) = 1
+         {
+            lTreasureItems = Cons(Create(&ShardAugment),lTreasureItems);
+         }
+         if Random(1,Send(SETTINGS_OBJECT,@GetMajorShardProbability)) = 1
+         {
+            lTreasureItems = Cons(Create(&ShardImbueMajor),lTreasureItems);
+         }
+         if Random(1,Send(SETTINGS_OBJECT,@GetDrainShardProbability)) = 1
+         {
+            lTreasureItems = Cons(Create(&ShardRemove),lTreasureItems);
+         }
+         if Random(1,Send(SETTINGS_OBJECT,@GetEmpowerShardProbability)) = 1
+         {
+            lTreasureItems = Cons(Create(&ShardEmpowerment),lTreasureItems);
+         }
+      }
 
       % MOB_ONE_TREASURE guarantees one and only one item from loot table.
       % Also has a chance to drop special items, provided the trestype

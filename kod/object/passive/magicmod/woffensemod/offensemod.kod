@@ -34,6 +34,12 @@ messages:
    ModifyHitRoll(who = $,what = $,hit_roll = $,iState=0)
    {
       local oWeapon;
+      
+      if who = $
+      {
+         % no who, just add bonus
+         return hit_roll + iState;
+      }
 
       oWeapon = Send(who,@GetWeapon);
       if (oWeapon = $)
