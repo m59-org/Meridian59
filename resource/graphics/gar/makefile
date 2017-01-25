@@ -8,7 +8,10 @@ SOURCEDIR = .
 OUTDIR = $(CLIENTRUNDIR)\resource
 OUTDIRSUB = ..\$(OUTDIR)
 
-BGFS = igreyinvis.bgf isitting.bgf itransferitem.bgf iexplosion.bgf irift.bgf
+BGFS = igreyinvis.bgf isitting.bgf itransferitem.bgf iexplosion.bgf irift.bgf \
+       minorshard.bgf majorshard.bgf whiteshard.bgf greenshard.bgf \
+       purplegemshard.bgf chaosgemshard.bgf greygemshard.bgf \
+       rubygemshard.bgf glowgemshard.bgf diamondshard.bgf
 
 DIRS = 
 
