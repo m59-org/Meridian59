@@ -22,6 +22,9 @@ resources:
    remove_shard_desc = \
       "This shard will remove all imbued magical modifications from an item."
 
+   remove_shard_req = \
+      "This shard has no effect on mundane items."
+
    remove_shard_applied = \
       "The %s appears more mundane than before."
 
@@ -46,10 +49,16 @@ messages:
             OR IsClass(apply_on,&DefenseModifier)
             OR IsClass(apply_on,&Ring)
             OR IsClass(apply_on,&Gauntlet))
-         AND Send(apply_on,@GetMagicModsNumber) <> 0
       {
          % This shard only applies to enchanted gear
-         return TRUE;
+         if Send(apply_on,@GetMagicModsNumber) <> 0
+         {
+            return TRUE;
+         }
+         else
+         {
+            Send(what,@MsgSendUser,#message_rsc=remove_shard_req);
+         }
       }
 
       return FALSE;

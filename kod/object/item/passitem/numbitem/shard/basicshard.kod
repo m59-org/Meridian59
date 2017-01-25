@@ -23,6 +23,8 @@ resources:
       "This shard will imbue a piece of equipment with a basic magical "
       "enchantment."
 
+   basic_shard_req = \
+      "This shard can only add modifications to a non-magic item."
    basic_shard_applied = \
       "The %s takes on a light aura of magic."
 
@@ -47,10 +49,16 @@ messages:
             OR IsClass(apply_on,&DefenseModifier)
             OR IsClass(apply_on,&Ring)
             OR IsClass(apply_on,&Gauntlet))
-         AND Send(apply_on,@GetMagicModsNumber) = 0
       {
          % This shard only applies to non-enchanted gear
-         return TRUE;
+         if Send(apply_on,@GetMagicModsNumber) = 0
+         {
+            return TRUE;
+         }
+         else
+         {
+            Send(what,@MsgSendUser,#message_rsc=basic_shard_req);
+         }
       }
 
       return FALSE;

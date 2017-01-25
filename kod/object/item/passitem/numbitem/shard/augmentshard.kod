@@ -22,6 +22,9 @@ resources:
    augment_shard_desc = \
       "This shard will augment very weak magics."
 
+   augment_shard_req = \
+      "This shard can only add modifications to the weakest of magic items."
+
    augment_shard_applied = \
       "The %s takes on a slightly stronger aura of magic."
 
@@ -46,10 +49,16 @@ messages:
             OR IsClass(apply_on,&DefenseModifier)
             OR IsClass(apply_on,&Ring)
             OR IsClass(apply_on,&Gauntlet))
-         AND Send(apply_on,@GetMagicModsNumber) = 1
       {
          % This shard only applies to gear with one mod
-         return TRUE;
+         if Send(apply_on,@GetMagicModsNumber) = 1
+         {
+            return TRUE;
+         }
+         else
+         {
+            Send(what,@MsgSendUser,#message_rsc=augment_shard_req);
+         }
       }
 
       return FALSE;

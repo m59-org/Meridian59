@@ -22,6 +22,10 @@ resources:
    empowerment_shard_desc = \
       "This shard will add a modification to existing powerful magics."
 
+   empowerment_shard_req = \
+      "This shard can only add modifications to a powerful magic item "
+      "that has room for further improvement."
+
    empowerment_shard_applied = \
       "The %s takes on a stronger aura of magic."
 
@@ -46,11 +50,17 @@ messages:
             OR IsClass(apply_on,&DefenseModifier)
             OR IsClass(apply_on,&Ring)
             OR IsClass(apply_on,&Gauntlet))
-         AND Send(apply_on,@GetMagicModsNumber) > 2
-         AND Send(apply_on,@GetMagicModsNumber) < 6
       {
          % This shard only applies to powerful gear
-         return TRUE;
+         if Send(apply_on,@GetMagicModsNumber) > 2
+            AND Send(apply_on,@GetMagicModsNumber) < 6
+         {
+            return TRUE;
+         }
+         else
+         {
+            Send(what,@MsgSendUser,#message_rsc=empowerment_shard_req);
+         }
       }
 
       return FALSE;
