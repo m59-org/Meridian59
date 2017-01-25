@@ -1,0 +1,66 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ShardAugment is Shard
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   augment_shard_name_rsc = "augmenting shard"
+   augment_shard_name_plural = "augmenting shards"
+   augment_shard_icon_rsc = emerald.bgf
+   augment_shard_desc = \
+      "This shard will augment very weak magics."
+
+   augment_shard_applied = \
+      "The %s takes on a slightly stronger aura of magic."
+
+classvars:
+
+   vrName = augment_shard_name_rsc
+   vrIcon = augment_shard_icon_rsc
+   vrDesc = augment_shard_desc
+   
+   vrName_plural = augment_shard_name_plural
+
+   vrApplied = augment_shard_applied
+
+properties:
+
+messages:
+
+   ReqNewApply(what = $,apply_on = $)
+   {
+      if apply_on <> $
+         AND (IsClass(apply_on,&Weapon)
+            OR IsClass(apply_on,&DefenseModifier)
+            OR IsClass(apply_on,&Ring)
+            OR IsClass(apply_on,&Gauntlet))
+         AND Send(apply_on,@GetMagicModsNumber) = 1
+      {
+         % This shard only applies to gear with one mod
+         return TRUE;
+      }
+
+      return FALSE;
+   }
+
+   NewApplied(what = $,apply_on = $)
+   {
+      Send(apply_on,@AddMagicMods,#min_num_mods=1,#max_num_mods=1);
+
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
