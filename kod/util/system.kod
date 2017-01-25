@@ -504,6 +504,11 @@ properties:
 
    % The list of magical modifier objects.
    plMagicMods = $
+   piMinorShards = 0
+   piMajorShards = 0
+   piAugmentShards = 0
+   piDrainShards = 0
+   piEmpowermentShards = 0
 
 messages:
 
@@ -5759,6 +5764,68 @@ messages:
       return;
    }
 
+   ShardCreated(type=&ShardImbueMinor)
+   {
+      % Keeps track of dropped shards.
+      if type = &ShardImbueMinor
+      {
+         piMinorShards++;
+      }
+
+      if type = &ShardImbueMajor
+      {
+         piMajorShards++;
+      }
+      
+      if type = &ShardAugment
+      {
+         piAugmentShards++;
+      }
+      
+      if type = &ShardRemove
+      {
+         piDrainShards++;
+      }
+      
+      if type = &ShardEmpowerment
+      {
+         piEmpowermentShards++;
+      }
+
+      return;
+   }
+
+   GetShardsDropped(type=&ShardImbueMinor)
+   {
+      % Reports dropped shards.
+      if type = &ShardImbueMinor
+      {
+         return piMinorShards;
+      }
+
+      if type = &ShardImbueMajor
+      {
+         return piMajorShards;
+      }
+      
+      if type = &ShardAugment
+      {
+         return piAugmentShards;
+      }
+      
+      if type = &ShardRemove
+      {
+         return piDrainShards;
+      }
+      
+      if type = &ShardEmpowerment
+      {
+         return piEmpowermentShards;
+      }
+
+      return 0;
+   }
+
    GetItemTemplates()
    {
       return plItemTemplates;
@@ -5807,6 +5874,11 @@ messages:
          Send(i,@Delete);
       }
       plMagicMods = $;
+      piMinorShards = 0;
+      piMajorShards = 0;
+      piAugmentShards = 0;
+      piDrainShards = 0;
+      piEmpowermentShards = 0;
       
       plMagicMods = Cons(Create(&FireResistanceMod),plMagicMods);
       plMagicMods = Cons(Create(&AcidResistanceMod),plMagicMods);

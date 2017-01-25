@@ -245,7 +245,7 @@ messages:
             lTreasureItems;
 
       lTreasureItems = $;
-      
+
       if who <> $
          AND IsClass(who,&Player)
          AND Send(who,@GetBaseMaxHealth) < level
@@ -254,22 +254,27 @@ messages:
          % Give them a chance to roll shards as long as they are advancing
          if Random(1,Send(SETTINGS_OBJECT,@GetMinorShardProbability)) = 1
          {
+            Send(SYS,@ShardCreated,#type=&ShardImbueMinor);
             lTreasureItems = Cons(Create(&ShardImbueMinor),lTreasureItems);
          }
          if Random(1,Send(SETTINGS_OBJECT,@GetAugmentShardProbability)) = 1
          {
+            Send(SYS,@ShardCreated,#type=&ShardAugment);
             lTreasureItems = Cons(Create(&ShardAugment),lTreasureItems);
          }
          if Random(1,Send(SETTINGS_OBJECT,@GetMajorShardProbability)) = 1
          {
+            Send(SYS,@ShardCreated,#type=&ShardImbueMajor);
             lTreasureItems = Cons(Create(&ShardImbueMajor),lTreasureItems);
          }
          if Random(1,Send(SETTINGS_OBJECT,@GetDrainShardProbability)) = 1
          {
+            Send(SYS,@ShardCreated,#type=&ShardRemove);
             lTreasureItems = Cons(Create(&ShardRemove),lTreasureItems);
          }
          if Random(1,Send(SETTINGS_OBJECT,@GetEmpowerShardProbability)) = 1
          {
+            Send(SYS,@ShardCreated,#type=&ShardEmpowerment);
             lTreasureItems = Cons(Create(&ShardEmpowerment),lTreasureItems);
          }
       }
