@@ -11,7 +11,8 @@ OUTDIRSUB = ..\$(OUTDIR)
 BGFS = igreyinvis.bgf isitting.bgf itransferitem.bgf iexplosion.bgf irift.bgf \
        minorshard.bgf majorshard.bgf whiteshard.bgf greenshard.bgf \
        purplegemshard.bgf chaosgemshard.bgf greygemshard.bgf \
-       rubygemshard.bgf glowgemshard.bgf diamondshard.bgf
+       rubygemshard.bgf glowgemshard.bgf diamondshard.bgf \
+       lightningprismhuge.bgf xaerdun.bgf grd19081.bgf
 
 DIRS = 
 
