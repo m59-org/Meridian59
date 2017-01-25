@@ -41,6 +41,29 @@ properties:
 
 messages:
 
+   NewUsed(what=$)
+   {
+      if IsClass(what,&User)
+      {
+         Send(what,@AddDefenseModifier,#what=self);
+         Send(what,@AddAttackModifier,#what=self);
+      }
+
+      propagate;
+   }
+
+   NewUnused(what = $)
+   {
+      if IsClass(what,&User)
+      {
+         Send(what,@RemoveDefenseModifier,#what=self);
+         Send(what,@RemoveAttackModifier,#what=self);
+      }
+
+      propagate;
+   }
+
+
    ReqUseSomething(what = $)
    {
       if IsClass(what, &Ring)

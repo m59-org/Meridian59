@@ -45,6 +45,23 @@ messages:
 
    ReqNewApply(what = $,apply_on = $)
    {
+      local i;
+      
+      if what = $
+         OR NOT IsClass(what,&Player)
+      {
+         return;
+      }
+
+      foreach i in Send(what,@GetPlayerUsing)
+      {
+         if i = apply_on
+         {
+            Send(what,@MsgSendUser,#message_rsc=vrMust_unequip);
+            return FALSE;
+         }
+      }
+
       if apply_on <> $
          AND (IsClass(apply_on,&Weapon)
             OR IsClass(apply_on,&DefenseModifier)
