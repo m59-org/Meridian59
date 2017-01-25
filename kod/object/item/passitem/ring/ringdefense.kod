@@ -78,17 +78,34 @@ messages:
 
    ModifyDefensePower(who = $,what = $,defense_power = 0)
    {
-      return defense_power + viDefense_bonus;
-   }
+      local i, oDefenseMod;
 
-   ModifyDefenseDamage(who = $,what = $,damage = $,atype = 0,aspell = 0)
-   {
-      return damage;
+      foreach i in plEnchantmentMods
+      {
+         if Nth(i,1) = &DefenseMod
+         {
+            oDefenseMod = Send(SYS,@GetMagicMod,#class=&DefenseMod);
+            defense_power = Send(oDefenseMod,@ModifyDefensePower,
+                        #defense_power=defense_power,#iState=Nth(i,2));
+         }
+      }
+      return defense_power + viDefense_bonus;
    }
   
    GetDefenseBonus()
    {
-      return viDefense_bonus;
+      local i, sum;
+      sum = 0;
+
+      foreach i in plEnchantmentMods
+      {
+         if Nth(i,1) = &DefenseMod
+         {
+            sum = sum + Nth(i,2);
+         }
+      }
+
+      return viDefense_bonus + sum;
    }
 
 
