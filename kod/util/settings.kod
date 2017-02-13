@@ -84,6 +84,22 @@ properties:
    % Multiplier for the amount of %s each mob you kill adds to your levelup chance.
    piHPGainMultiplier = 1
    
+   % The maximum amount of unbound energy we can absorb
+   piUnboundMax = 500
+
+   % The maximum percentage of XP we can absorb as unbound energy.
+   piUnboundAbsorption = 100
+
+   % The permillage of unbound energy that is lost every second. 50 means 5 percent.
+   piUnboundDecay = 50
+
+   % Delay between receiving unbound energy and decay setting in in ms.
+   piUnboundDelay = 30000
+
+   % Players can't absorb unbound energy from monsters while engaged in PvP or
+   % a short while thereafter. Default of 4 minutes.
+   piUnboundEnergyAttackDelaySec = 240
+
    % How far up the food chain can basic players learn?  See player for more
    %  specific information on what this number means.
    piMaxLearnPoints = 16
@@ -479,6 +495,11 @@ messages:
       return pbCanRecastJalaWithNecklace;
    }
 
+   UnboundEnergyAttackDelaySec()
+   {
+      return piUnboundEnergyAttackDelaySec;
+   }
+
    TeleportAttackDelaySec()
    {
       return piTeleportAttackDelaySec;
@@ -736,6 +757,26 @@ messages:
    GetReincarnationEnabled()
    {
       return piReincarnationEnabled;
+   }
+
+   GetUnboundMax()
+   {
+      return piUnboundMax;
+   }
+
+   GetUnboundAbsorption()
+   {
+      return piUnboundAbsorption;
+   }
+
+   GetUnboundDecay()
+   {
+      return piUnboundDecay;
+   }
+
+   GetUnboundDelay()
+   {
+      return piUnboundDelay;
    }
 
 end
