@@ -2784,6 +2784,24 @@ messages:
       return Send(SYS,@GetSuccessRsc);
    }
 
+   StopBeingModerator()
+   {
+      if Send(self,@IsModerator)
+      {
+         prRank = $;
+         Send(self,@RemoveAllSpells);
+         Send(self,@RemoveAllSkills);
+         pbActor = FALSE;
+         pbImmortal = FALSE;
+         pbSay_commands = FALSE;
+         pbAdvancement = FALSE;
+         Send(self,@PKillEnable);
+         Send(self,@PkillUnlock);
+      }
+      
+      return;
+   }
+
    %
    % Guides have 'say commands', so they can create monsters and use the 'go'
    % command to teleport themselves to rooms (but not to players).
