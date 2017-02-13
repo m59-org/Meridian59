@@ -351,7 +351,12 @@ void GraphCtlPaint(HWND hwnd)
    // Draw value of stat, if appropriate
    if (info->style & GCS_NUMBER)
    {
-      sprintf(temp, "%d", info->current_value);
+      if (info->style & GCS_XP)
+      {
+         sprintf(temp, "%d / %d Exp", info->current_value, info->max_value);
+      }
+      else
+         sprintf(temp, "%d", info->current_value);
 
       SetBkMode(hdc, TRANSPARENT);
       SelectObject(hdc, GetFont(FONT_STATNUM));
