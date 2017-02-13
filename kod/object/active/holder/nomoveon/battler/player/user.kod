@@ -8803,7 +8803,17 @@ messages:
 
    SendStatHPChance()
    {
-      local iHPChance_Send, highmark;
+      local iHPChance_Send, highmark, iExperienceSystem, iExperienceNeeded;
+  
+      iExperienceSystem = Send(SETTINGS_OBJECT,@GetExperienceSystem);
+      
+      if iExperienceSystem = EXPERIENCE_SYSTEM_MODERN
+      {
+         iExperienceNeeded = Send(self,@GetExperienceNeeded);
+         AddPacket(1,4, 4,user_stat_hpgainchance, 1,STAT_VALUE, 1,STAT_INTEGER,
+               4,piExperience, 4,0, 4,iExperienceNeeded, 4,iExperienceNeeded);
+         return;
+      }
 
       highmark = Send(self,@GetHighMark);
 
