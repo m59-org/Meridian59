@@ -456,9 +456,6 @@ properties:
 
    piSweepCounter = 0
 
-   % Passive reagent return spell list.
-   plSpellList = $
-
    % List of spells this monster can cast. Has the format:
    % [ Spell num, mana cost, number req. from Random(1,100) to cast ]
    plSpellBook = $
@@ -708,9 +705,6 @@ messages:
       {
          Send(poMaster,@RemoveControlledMinion,#what=self);
       }
-
-      % Clear reagent return list.
-      plSpellList = $;
 
       % If this monster is an Apparition, tell the original it was deleted.
       if poApparitionOriginal <> $
@@ -6079,17 +6073,6 @@ messages:
          lTreasureItems = Cons(oMoney,lTreasureItems);
       }
 
-      % Add one set of spell reagents to the treasure for each type of spell 
-      % that was cast on the monster.
-      foreach i in plSpellList
-      {
-         foreach j in Send(Send(SYS,@FindSpellByNum,#num=i),@GetReagents)
-         {
-            oReagent = Create(First(j),#corpse=corpse,#number=Nth(j,2));
-            lTreasureItems = Cons(oReagent,lTreasureItems);
-         }
-      }
-
       iNumberOfItemsDropped = 0;
       iNumberOfItemsLooted = 0;
       bCapacityFailure = FALSE;
@@ -7078,23 +7061,6 @@ messages:
          }
       }
       
-      return;
-   }
-
-   AddToSpellList(spellNum=$)
-   {
-      local i;
-
-      foreach i in plSpellList
-      {
-         if i = spellNum
-         {
-            return;
-         }
-      }
-
-      plSpellList = Cons(spellNum,plSpellList);
-
       return;
    }
 
