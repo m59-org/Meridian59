@@ -200,6 +200,11 @@ properties:
    % 20 seconds default for players, 60 for monsters
    piHurtMeTime = 20000
 
+   % Elemental status effects. Each element is [value, type]
+   % Timer removes a portion of status effect every period
+   plStatusEffects = $
+   ptStatusEffectTimer = $
+
 messages:
 
    % The first lump of code here deals with resistances and immunities/etc.
@@ -273,6 +278,8 @@ messages:
          }
       }
 
+      Send(self,@ClearAllStatusEffects);
+
       propagate;
    }
 
@@ -313,7 +320,8 @@ messages:
    GetCurrentResistances()
    "Spells and items can change resistances temporarily."
    {
-      local oObjectAttribute, lCurResist, oEquipment, oEnchantment;
+      local oObjectAttribute, lCurResist, oEquipment, oEnchantment,
+            iHumbled, iHumbledDivisor, i;
 
       lCurResist = ListCopy(Send(self,@GetBaseResistances));
 
@@ -343,6 +351,21 @@ messages:
                               #resistance_list=lCurResist);
          }
       }
+
+      iHumbled = Send(self,@GetStatusEffect,#type=STATUS_HUMBLED);
+      if iHumbled > 0
+      {
+         iHumbledDivisor = Send(SETTINGS_OBJECT,@GetElementalMultiple,
+                           #type=STATUS_HUMBLED);
+         
+         foreach i in lCurResist
+         {
+            if Nth(i,2) > 0
+            {
+               SetNth(i,2,bound(Nth(i,2) - (iHumbled/iHumbledDivisor),0,$));
+            }
+         }
+      } 
 
       return lCurResist;
    }
@@ -1760,6 +1783,203 @@ messages:
       return;
    }
 
+   ApplyElementalStatusEffects(damage=1,aspell=0)
+   {
+      if aspell & ATCK_SPELL_SHOCK
+      {
+         Send(self,@AddStatusEffect,#value=damage,#type=STATUS_SHOCKED);
+      }
+      if aspell & ATCK_SPELL_COLD
+      {
+         Send(self,@AddStatusEffect,#value=damage,#type=STATUS_CHILLED);
+      }
+      if aspell & ATCK_SPELL_FIRE
+      {
+         Send(self,@AddStatusEffect,#value=damage,#type=STATUS_BURNING);
+      }
+      if aspell & ATCK_SPELL_ACID
+      {
+         Send(self,@AddStatusEffect,#value=damage,#type=STATUS_CORRODE);
+      }
+      if aspell & ATCK_SPELL_HOLY
+      {
+         Send(self,@AddStatusEffect,#value=damage,#type=STATUS_HUMBLED);
+      }
+      if aspell & ATCK_SPELL_UNHOLY
+      {
+         Send(self,@AddStatusEffect,#value=damage,#type=STATUS_MANTLED);
+      }
+      return;
+   }
+
+   AddStatusEffect(value=10,type=STATUS_SHOCKED)
+   {
+      local i;
+      
+      if NOT Send(SETTINGS_OBJECT,@GetEnableElementalStatusEffects)
+      {
+         % This server doesn't use elemental status effects.
+         return;
+      }
+      
+      if ptStatusEffectTimer = $
+      {
+         ptStatusEffectTimer = CreateTimer(self,@StatusEffectTimer,
+                                           Send(SETTINGS_OBJECT,
+                                           @GetStatusEffectReductionTime));
+      }
+      
+      if type=STATUS_SHOCKED
+         AND IsClass(self,&Player)
+      {
+         Post(self,@DrawDefense);
+      }
+      
+      if type=STATUS_CORRODE
+         AND IsClass(self,&Player)
+      {
+         Post(self,@DrawArmor);
+      }
+      
+      if type=STATUS_HUMBLED
+         AND IsClass(self,&Player)
+      {
+         Post(self,@DrawResistances);
+      }
+      
+      foreach i in plStatusEffects
+      {
+         if Nth(i,2) = type
+         {
+            SetNth(i,1,Nth(i,1)+value);
+            return;
+         }
+      }
+
+      plStatusEffects = Cons([value,type],plStatusEffects);
+      return;
+   }
+   
+   GetStatusEffect(type=STATUS_SHOCKED)
+   {
+      local i;
+
+      foreach i in plStatusEffects
+      {
+         if Nth(i,2) = type
+         {
+            return Nth(i,1);
+         }
+      }
+      return 0;
+   }
+   
+   ClearStatusEffect(type=STATUS_SHOCKED)
+   {
+      local i;
+      
+      foreach i in plStatusEffects
+      {
+         if Nth(i,2) = type
+         {
+            SetNth(i,1,0);
+            plStatusEffects = DelListElem(plStatusEffects,i);
+         }
+      }
+      
+      if plStatusEffects = $
+      {
+         if ptStatusEffectTimer <> $
+         {
+            DeleteTimer(ptStatusEffectTimer);
+            ptStatusEffectTimer = $;
+         }
+      }
+      
+      return;
+   }
+   
+   ClearAllStatusEffects()
+   {
+      plStatusEffects = $;
+      if ptStatusEffectTimer <> $
+      {
+         DeleteTimer(ptStatusEffectTimer);
+         ptStatusEffectTimer = $;
+      }
+      return;
+   }
+   
+   StatusEffectTimer(timer=$)
+   {
+      local i, iBurningDamage, oOpponent;
+      
+      ptStatusEffectTimer = $;
+      
+      foreach i in plStatusEffects
+      {
+         if Nth(i,2) = STATUS_SHOCKED
+            AND IsClass(self,&Player)
+         {
+            Post(self,@DrawDefense);
+         }
+         if Nth(i,2) = STATUS_CORRODE
+            AND IsClass(self,&Player)
+         {
+            Post(self,@DrawArmor);
+         }
+         if Nth(i,2) = STATUS_HUMBLED
+            AND IsClass(self,&Player)
+         {
+            Post(self,@DrawResistances);
+         }
+
+         if Nth(i,2) = STATUS_BURNING
+         {
+            iBurningDamage = (Nth(i,1) / Send(SETTINGS_OBJECT,
+                              @GetElementalMultiple,#type=STATUS_BURNING));
+            SetNth(i,1,0);
+            if iBurningDamage >= 1
+            {
+               if Send(self,@AssessDamage,#what=self,
+                              #damage=iBurningDamage,
+                              #aspell=ATCK_SPELL_FIRE,
+                              #report=FALSE) = $
+               {
+                  oOpponent = Send(self,@GetHighestHurtMeRecentlyBattler);
+                  if oOpponent <> $
+                  {
+                     Post(oOpponent,@KilledSomething,#what=self);
+                  }
+                  else
+                  {
+                     Post(self,@KilledSomething,#what=self);
+                  }
+               }
+            }
+         }
+         else
+         {
+            SetNth(i,1,Nth(i,1) - Send(SETTINGS_OBJECT,
+                                  @GetStatusEffectReductionAmount));
+         }
+
+         if Nth(i,1) <= 0
+         {
+            plStatusEffects = DelListElem(plStatusEffects,i);
+         }
+      }
+      
+      if plStatusEffects <> $
+      {
+         ptStatusEffectTimer = CreateTimer(self,@StatusEffectTimer,
+                                           Send(SETTINGS_OBJECT,
+                                           @GetStatusEffectReductionTime));
+      }
+      
+      return;
+   }
+
    GetBoostedLevel()
    {
       return 0;
@@ -1795,6 +2015,24 @@ messages:
       }
 
       return;
+   }
+
+   GetHighestHurtMeRecentlyBattler()
+   {
+      local i, iHighestAmount, iHighestBattler;
+
+      iHighestAmount = 0;
+      iHighestBattler = $;
+      foreach i in plHurtMeRecently
+      {
+         if Nth(i,2) > iHighestAmount
+         {
+            iHighestAmount = Nth(i,2);
+            iHighestBattler = Nth(i,1);
+         }
+      }
+
+      return iHighestBattler;
    }
 
    GetHurtMeRecentlyAmount(who=$)
