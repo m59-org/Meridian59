@@ -2866,8 +2866,6 @@ messages:
          return MM_NONE;
       }
 
-      iFlags = MM_NONE;
-
       if IsClass(what,&Reflection)
          OR IsClass(what,&EvilTwin)
       {
@@ -2879,7 +2877,9 @@ messages:
          }
       }
 
-      if IsClass(what,&Player)
+      iFlags = MM_NONE;
+
+      if IsClass(what,&User)
       {
          if Send(what,@IsInCannotInteractMode)
          {
@@ -2953,8 +2953,6 @@ messages:
       }
 
       if IsClass(what,&Monster)
-         AND NOT (IsClass(what,&Reflection)
-            OR IsClass(what,&EvilTwin))
       {
          if Send(what,@GetMaster) <> $
          {
@@ -2988,12 +2986,8 @@ messages:
          return MM_MONSTER;
       }
 
-      % Give masks a black dot.
-      if IsClass(what,&FaceMask)
-         AND IsClass(poOwner,&SurvivalRoom)
-      {
-         return MM_NPC;
-      }
+      % Not a monster or a player. Ask the object what flags it has.
+      iFlags = iFlags | Send(what,@GetMinimapDotFlags);
 
       return iFlags;
    }
@@ -9530,7 +9524,7 @@ messages:
    {
       local iFlags, oIllusion;
 
-      iFlags = OF_ATTACKABLE | OF_PLAYER | OF_OFFERABLE;
+      iFlags = OF_ATTACKABLE | OF_PLAYER | OF_OFFERABLE | OF_DISPLAY_NAME;
 
       oIllusion = Send(self,@GetIllusionForm);
 
@@ -9539,13 +9533,13 @@ messages:
          AND oIllusion <> $
          AND IsClass(oIllusion,&Monster)
       {
-         iFlags = (iFlags & ~OF_PLAYER & ~OF_OFFERABLE);
+         iFlags = (iFlags & ~OF_PLAYER & ~OF_OFFERABLE | ~OF_DISPLAY_NAME);
       }
       
       if Send(self,@IsInCannotInteractMode)
       {
          iFlags = iFlags | OF_NOEXAMINE;
-         iFlags = (iFlags & ~OF_ATTACKABLE & ~OF_OFFERABLE & ~OF_PLAYER);
+         iFlags = (iFlags & ~OF_ATTACKABLE & ~OF_OFFERABLE & ~OF_PLAYER & ~OF_DISPLAY_NAME);
       }
 
       % Get the flashing/flickering/phasing/bouncing flags.
