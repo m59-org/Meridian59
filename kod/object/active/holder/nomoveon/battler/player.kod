@@ -6303,6 +6303,13 @@ messages:
          Send(oSoldierShield,@KilledSomething,#what=what);
       }
 
+      % Let JOF know we killed something.
+      oObject = Send(self,@FindUsing,#class=&JewelOfFroz);
+      if oObject <> $
+      {
+         Send(oObject,@KilledSomething,#what=what);
+      }
+
       if IsClass(what,&User)
          AND what <> self
       {
