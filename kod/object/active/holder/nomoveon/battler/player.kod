@@ -6245,7 +6245,7 @@ messages:
    "Called when the player killed something."
    {
       local bReflection, i, oSoldierShield, monstkarma, iChance, oEnemyGuild,
-      shrunken, oVictimRoom;
+      shrunken, oVictimRoom, oObject;
 
       % If we killed someone or something, we did damage.
       Send(self,@SetPlayerFlag,#flag=PFLAG_DID_DAMAGE,#value=TRUE);
@@ -9313,12 +9313,20 @@ messages:
    {
       local i, dodgeskill, oSkill, monster_level, gain, gainmult, roll,
             oWeapon, lBuilderGroup, bGainedHP, iExperienceSystem, iUnbound,
-            iDist, iDifference;
+            iDist, iDifference, bAtMaxHp;
 
       iExperienceSystem = Send(SETTINGS_OBJECT,@GetExperienceSystem);
       gain = 0;
       roll = FALSE;
       bGainedHP = FALSE;
+      if Send(self,@GetExperienceNeeded) = 0
+      {
+         bAtMaxHp = 1;
+      }
+      else
+      {
+         bAtMaxHp = 0;
+      }
 
       % Some things just never allow advancement.
       % Can advance in arena if realdeath is on in an arena.
@@ -9331,7 +9339,8 @@ messages:
 
       if IsClass(what,&User)
       {
-         monster_level = Send(what,@GetBaseMaxHealth);
+         % Set a reasonable upper bound to handle event characters.
+         monster_level = Bound(Send(what,@GetBaseMaxHealth),$,1000);
       }
       else
       {
@@ -9646,11 +9655,12 @@ messages:
          % Here, we work out if the player deserves a training point.
          % They qualify if they got at least one gain point from the monster,
          % and also got the killing blow (no double points from single mobs).
+         % Triple training points if at Max HP.
          if gain > 0
             AND killing_blow
             AND piTraining_points < 1000
          {
-            piTraining_points = piTraining_points + 1
+            piTraining_points = piTraining_points + 1 + bAtMaxHp*2
                + (Send(what,@GetBoostedLevel)
                / Send(Send(SYS,@GetSurvivalRoomMaintenance),@GetSurvivalTP));
 
@@ -9658,17 +9668,17 @@ messages:
             {
                if monster_level <= 121
                {
-                  piTraining_points = piTraining_points + 1;
+                  piTraining_points = piTraining_points + 1 + bAtMaxHp*2;
                }
                else
                {
                   if monster_level <= 150
                   {
-                     piTraining_points = piTraining_points + 2;
+                     piTraining_points = piTraining_points + 2 + bAtMaxHp*4;
                   }
                   else
                   {
-                     piTraining_points = piTraining_points + 3;
+                     piTraining_points = piTraining_points + 3 + bAtMaxHp*6;
 
                   }
                }
