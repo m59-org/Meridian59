@@ -1940,6 +1940,8 @@ messages:
                               @GetElementalMultiple,#type=STATUS_BURNING));
             SetNth(i,1,0);
             if iBurningDamage >= 1
+               AND Send(self,@GetOwner) <> $
+               AND NOT Send(poOwner,@CheckRoomFlag,#flag=ROOM_NO_COMBAT)
             {
                if Send(self,@AssessDamage,#what=self,
                               #damage=iBurningDamage,
