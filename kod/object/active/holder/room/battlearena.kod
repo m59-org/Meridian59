@@ -249,7 +249,13 @@ messages:
          {
             ptBeginTimer =
                CreateTimer(self,@InitiateBattle,piWaitStartTime);
-         
+            
+            if piJackpot = 0
+            {
+               % Don't spam the server for non-monied fights
+               propagate;
+            }
+
             foreach i in Send(SYS,@GetUsersLoggedOn)
             {
                Post(i,@MsgSendUser,
@@ -1081,7 +1087,7 @@ messages:
       }
       
       if IsClass(what,&Money)
-         AND Send(what,@GetNumber) > 10000
+         AND Send(what,@GetNumber) > 9999
       {
          Send(self,@IncreaseJackpot,#amount=Send(what,@GetNumber),
                #who=Send(what,@GetOwner));
