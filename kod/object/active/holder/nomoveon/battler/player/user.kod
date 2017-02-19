@@ -4671,11 +4671,16 @@ messages:
       if Send(self,@IsInCannotInteractMode)
       {
          Send(self,@MsgSendUser,#message_rsc=phased_out_cant_drop);
-         return FALSE;
+         return;
       }
 
       if IsClass(what,&NumberItem)
       {
+         if number = $
+         {
+            return;
+         }
+
          if number <= 0
          {
             Send(self,@MsgSendUser,#message_rsc=user_cant_deal_number, 
