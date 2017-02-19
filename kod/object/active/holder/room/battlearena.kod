@@ -899,10 +899,10 @@ messages:
       Send(self,@RemoveTextureChange,#id=3);
       Send(self,@RemoveTextureChange,#id=13);
       
-      Post(self,@SomethingWaveRoom,#wave_rsc=battle_end_wav);
-
       if pbUser_in_room
       {
+         Post(self,@SomethingWaveRoom,#wave_rsc=battle_end_wav);
+
          foreach i in plActive
          {
             if IsClass(First(i),&User)
@@ -1252,6 +1252,8 @@ messages:
          OR IsClass(oSpell,&Jig)
          OR IsClass(oSpell,&Swap)
          OR IsClass(oSpell,&Shatter)
+         OR IsClass(oSpell,&Reflection)
+         OR IsClass(oSpell,&EvilTwin)
       {
          % We have to provide the fail message here.
          Send(who,@MsgSendUser,#message_rsc=ba_no_cast_rsc,
@@ -1451,6 +1453,11 @@ messages:
       }
 
       return 0;
+   }
+
+   IsArena()
+   {
+      return TRUE;
    }
 
 end
