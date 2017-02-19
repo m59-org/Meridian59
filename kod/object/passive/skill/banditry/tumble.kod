@@ -21,8 +21,8 @@ resources:
    Tumble_icon_rsc = dodgeico.bgf
    Tumble_desc_rsc = "Skilled fighters can entirely tumble out of the way of an attack."
    
-   tumble_success = "You tumble out of the way of %s's attack!"
-   enemy_tumbled = "%s tumbles out of the way of your attack!"
+   tumble_success = "You tumble out of the way of %s%s's attack!"
+   enemy_tumbled = "%s%s tumbles out of the way of your attack!"
 
 classvars:
 
@@ -79,12 +79,12 @@ messages:
       
          if IsClass(who,&Player)
          {
-            Send(who,@MsgSendUser,#message_rsc=tumble_success,#parm1=Send(what,@GetName));
+            Send(who,@MsgSendUser,#message_rsc=tumble_success,#parm1=Send(what,@GetDef),#parm2=Send(what,@GetName));
          }
          
          if IsClass(what,&Player)
          {
-            Send(what,@MsgSendUser,#message_rsc=enemy_tumbled,#parm1=Send(who,@GetName));
+            Send(what,@MsgSendUser,#message_rsc=enemy_tumbled,#parm1=Send(who,@GetDef),#parm2=Send(who,@GetName));
          }
 
          return TRUE;
