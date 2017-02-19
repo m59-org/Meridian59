@@ -914,12 +914,6 @@ messages:
             return FALSE;
          }
 
-         if NOT Send(self,@CanPayReagents,#who=who,#lTargets=lTargets,
-                     #iSpellPower=iSpellPower,#bFreeCast=bFreeCast)
-         {
-            return FALSE;
-         }
-
          % Check karma. Spell items handle Karma checks before calling CanPayCosts.
          if NOT (Send(self,@KarmaCheck,#who=who))
          {
@@ -1013,6 +1007,15 @@ messages:
       {
          % Can the caster help the target(s) with the non-harmful spell?
          if NOT Send(self,@CheckPlayerHelp,#who=who,#lTargets=lTargets)
+         {
+            return FALSE;
+         }
+      }
+
+      if NOT bItemCast
+      {
+         if NOT Send(self,@CanPayReagents,#who=who,#lTargets=lTargets,
+                     #iSpellPower=iSpellPower,#bFreeCast=bFreeCast)
          {
             return FALSE;
          }
