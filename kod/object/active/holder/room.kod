@@ -4128,9 +4128,13 @@ messages:
 
       oSpell = Send(SYS,@FindSpellByNum,#num=SID_SILENCE);
 
-      if Send(self,@IsEnchanted,#what=oSpell) AND (NOT IsClass(who,&DM))
+      if Send(self,@IsEnchanted,#what=oSpell)
       {
-         Send(who,@MsgSendUser,#message_rsc=room_silenced_rsc);
+         if (NOT IsClass(who,&DM))
+            OR type = SAY_MANTRA
+         {
+            Send(who,@MsgSendUser,#message_rsc=room_silenced_rsc);
+         }
 
          return FALSE;
       }

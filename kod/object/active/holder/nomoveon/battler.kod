@@ -841,7 +841,7 @@ messages:
             #atype=Send(self,@GetDamageType,#stroke_obj=stroke_obj),
             #aspell=Send(self,@GetSpellType,#stroke_obj=stroke_obj),
             #scalefactor=iScalefactor,#precision=TRUE,
-            #absolute=bDoingBackstab);
+            #absolute=bDoingBackstab,#damaging_now=TRUE);
 
          Send(self,@AssessHit,#what=what,#stroke_obj=stroke_obj,#damage=iDamage);
 
@@ -1884,8 +1884,19 @@ messages:
       return rTumbleSoundFour;
    }
 
-   ApplyElementalStatusEffects(damage=1,aspell=0)
+   ApplyElementalStatusEffects(damage=1,aspell=0,what=$)
    {
+      if what <> $
+         AND IsClass(what,&Player)
+         AND Send(SETTINGS_OBJECT,@GetSorcerySchoolExpansion)
+         AND Send(what,@GetSkillAbility,#skill_num=SKID_EMPOWERMENT) > 0
+      {
+         % Is a master Sorcerer applying these effects? Boost them.
+         damage = (damage * Send(Send(SYS,@FindSkillByNum,
+                                  #num=SKID_EMPOWERMENT),
+                                  @GetEmpowermentMultiplier,#who=what))/100;
+      }
+
       if aspell & ATCK_SPELL_SHOCK
       {
          Send(self,@AddStatusEffect,#value=damage,#type=STATUS_SHOCKED);

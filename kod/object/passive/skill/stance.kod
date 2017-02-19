@@ -15,20 +15,24 @@ Stance is Skill
 % Light Feet [Banditry] [Agility] (up to 50% less vigor from running)
 %
 % 2 -
-% Swift Hands [Banditry] [Agility] (up to 25% more offense and 50% less defense)
+% Swift Hands [Banditry] [Agility] (up to 25% more offense 50% less defense)
 %
 % 3 -
 %
 % 4 -
 % Heavy Arms [Banditry] [Agility] (up to 25% more defense and 50% less offense)
-% Charged Clutch [Faren] [Mysticism] (adds elemental damage type of an active touch spell to equipped melee weapons, overrides weapon's enchantment)
+% Elemental Channel [Faren] [Mysticism] (adds elemental damage type of an 
+%    active touch spell to equipped melee weapons, overrides weapon's ench)
 %
 % 5 -
 %
 % 6 -
-% Reckless Heart [Banditry] [Might] (up to 20% more final damage to both the player and his opponent)
-% Poised Soul [Weaponcraft] [Intellect] (up to 36% faster mana regen, 100% slower health regeneration)
-% Focused Mind [Faren] [Agility] (up to 100% faster health regen, 100% slower mana regeneration)
+% Reckless Heart [Banditry] [Might]
+%   (up to 20% more final damage to both the player and his opponent)
+% Poised Soul [Weaponcraft] [Intellect]
+%    (up to 36% faster mana regen, 100% slower health regeneration)
+% Focused Mind [Faren] [Agility]
+%   (up to 100% faster health regen, 100% slower mana regeneration)
 %
 
 constants:
@@ -46,6 +50,11 @@ resources:
    
    begin_stance_default_rsc = "You assume a default stance... cheater."
    end_stance_default_rsc = "You fall out of a default stance."
+   default_mantra_rsc = "I am a cheater."
+
+   stance_info = \
+      "\n\nIntone the proper mantra to assume this stance:\nsay '%s'."
+      "\n\nTo relax to a normal stance, say 'Om.'"
 
 classvars:
 
@@ -55,6 +64,8 @@ classvars:
    
    stance_begin_msg = begin_stance_default_rsc
    stance_end_msg = end_stance_default_rsc   
+   
+   vsStanceMantra = default_mantra_rsc
 
    vrSkill_intro = Stance_skill_intro
 
@@ -138,11 +149,15 @@ messages:
       return iTime;
    }
 
-   AppendDesc()
+   SendExtraDesc()
    {
-      AppendTempString("\n\nTo enter a stance, say 'stance' and the name of that stance."); 
-      
-      propagate;
+      AddPacket(4,stance_info, 4,Send(self,@GetStanceMantraStr));
+      return;
+   }
+
+   GetStanceMantraStr()
+   {
+      return vsStanceMantra;
    }
 
    ShowEnchantmentIcon(type = $)

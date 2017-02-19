@@ -1631,6 +1631,7 @@ messages:
             {
                % Don't give any spells that aren't player spells (diseases, etc).
                if IsClass(i,&Spell)
+                  AND Send(i,@DirectDMAccess)
                {
                   iNum=Send(i,@GetSpellNum);
                   Send(self,@AddSpell,#num=iNum,#iability=99,#bDM=TRUE,#dontSend=TRUE);

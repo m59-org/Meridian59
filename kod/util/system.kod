@@ -510,6 +510,10 @@ properties:
    piDrainShards = 0
    piEmpowermentShards = 0
 
+   % Keeps track of the mantras needed for stance skills.
+   % [mantra, skid]
+   plStanceMantras = $
+
 messages:
 
    GetName()
@@ -3674,7 +3678,24 @@ messages:
        Send(self,@CreateOneSKillIfNew,#num=SKID_TIGHT_GRIP,#class=&TightGrip);
        Send(self,@CreateOneSKillIfNew,#num=SKID_POISED_SOUL,#class=&PoisedSoul);
        Send(self,@CreateOneSKillIfNew,#num=SKID_TRACK,#class=&Track);
+       Send(self,@CreateOneSKillIfNew,#num=SKID_CHARGED_CLUTCH_STANCE,#class=&ChargedClutchStance);
+
+       Send(self,@CreateOneSKillIfNew,#num=SKID_LINK_ONE,#class=&LinkOne);
+       Send(self,@CreateOneSKillIfNew,#num=SKID_LINK_TWO,#class=&LinkTwo);
+       Send(self,@CreateOneSKillIfNew,#num=SKID_LINK_THREE,#class=&LinkThree);
+       Send(self,@CreateOneSKillIfNew,#num=SKID_LINK_FOUR,#class=&LinkFour);
+       Send(self,@CreateOneSKillIfNew,#num=SKID_LINK_FIVE,#class=&LinkFive);
+       Send(self,@CreateOneSKillIfNew,#num=SKID_BLOOD_MAGIC,#class=&BloodMagic);
+       Send(self,@CreateOneSKillIfNew,#num=SKID_FORCE_SPIKE,#class=&ForceSpike);
+       Send(self,@CreateOneSKillIfNew,#num=SKID_WILL_SURGE,#class=&WillSurge);
+       Send(self,@CreateOneSKillIfNew,#num=SKID_VOLATILE_FOCUS,#class=&VolatileFocus);
        Send(self,@CreateOneSKillIfNew,#num=SKID_CHARGED_CLUTCH,#class=&ChargedClutch);
+       Send(self,@CreateOneSKillIfNew,#num=SKID_SOMANCY,#class=&Somancy);
+       Send(self,@CreateOneSKillIfNew,#num=SKID_DEVOTION,#class=&Devotion);
+       Send(self,@CreateOneSKillIfNew,#num=SKID_ENTROPY,#class=&Entropy);
+       Send(self,@CreateOneSKillIfNew,#num=SKID_ENERGY,#class=&Energy);
+       Send(self,@CreateOneSKillIfNew,#num=SKID_EFFICIENCY,#class=&Efficiency);
+       Send(self,@CreateOneSKillIfNew,#num=SKID_EMPOWERMENT,#class=&Empowerment);
 
        return;
    }
@@ -3684,6 +3705,8 @@ messages:
    "Deletes all skills and then calls CreateAllSkillsIfNew."
    {
       local i;
+
+      plStanceMantras = $;
 
       foreach i in plSkills
       {
@@ -3708,6 +3731,15 @@ messages:
       if figure_totals
       {
          Send(self,@RefigureAllAbilityTotals);
+      }
+
+      foreach i in plSkills
+      {
+         if IsClass(i,&Stance)
+         {
+            plStanceMantras = Cons([Send(i,@GetStanceMantraStr),
+                                    Send(i,@GetSkillNum)],plStanceMantras);
+         }
       }
 
       return True;
@@ -8206,6 +8238,11 @@ messages:
          Send(i,@WaveSendUser,#wave_rsc=system_message_sound,#what=self);
       }
       return;
+   }
+
+   GetStanceMantras()
+   {
+      return plStanceMantras;
    }
 
 end

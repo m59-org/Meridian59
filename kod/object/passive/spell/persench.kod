@@ -39,6 +39,12 @@ resources:
 
    spell_blank_template = "%q"
 
+   unreserved_pers_ench = \
+      "You cancel your %s personal enchantment reservation."
+   current_reservation_rsc = \
+      "\n\nYour current %s enchantment is reserving %i percent of your "
+      "maximum mana."
+
 classvars:
 
    vrName = PersonalEnchantment_name_rsc
@@ -76,12 +82,21 @@ classvars:
    viOffensive = FALSE
    viResistanceType = 0
 
+   vbCanBeReserved = TRUE
+   viPercentManaReserved = 10
+
 properties:
 
 messages:
 
-   GetNumSpellTargets()
+   GetNumSpellTargets(who=$)
    {
+      if who <> $
+         AND Send(who,@ReservesForThisLevel,#iLevel=viSpell_level)
+      {
+         return 0;
+      }
+
       if vbCanCastonOthers
       {
          return 1;
@@ -138,6 +153,16 @@ messages:
       % Check for enchantment already applied
       if Send(oTarget,@IsEnchanted,#what=self)
       {
+         if Send(who,@HasReservedSpell,#oSpell=self)
+         {
+            if Send(who,@UnReserveSpell,#oSpell=self)
+            {
+               Send(who,@MsgSendUser,#message_rsc=unreserved_pers_ench,
+                                     #parm1=Send(self,@GetName));
+            }
+            return FALSE;
+         }
+
          % Can you override an existing enchantment on yourself?
          if who = oTarget
             AND Send(SETTINGS_OBJECT,@CanRecastSelfEnchantment)
@@ -170,10 +195,28 @@ messages:
       propagate;
    }
 
+   GetTargets(who=$,lTargets=$)
+   {
+      if Send(who,@ReservesForThisLevel,#iLevel=viSpell_level)
+      {
+         return [who];
+      }
+
+      return lTargets;
+   }
+
    CastSpell(who=$,iSpellPower=0,lTargets=$,bItemCast=FALSE)
    {
-
       local oTarget, lType;
+
+      if NOT bItemCast
+         AND vbCanBeReserved
+         AND Send(who,@ReservesForThisLevel,#iLevel=viSpell_level)
+      {
+         Send(who,@UseReserveSkill,#oSpell=self,
+                                   #iSpellPower=iSpellPower);
+         propagate;
+      }
 
       lType = [self,viDefensive,viOffensive,viResistanceType];
 
@@ -332,6 +375,17 @@ messages:
       return;
    }
 
+   SendReservationDesc(who=$)
+   {
+      if Send(who,@HasReservedSpell,#oSpell=self)
+      {
+         AddPacket(4,current_reservation_rsc, 4,Send(self,@GetName),
+                   4,Send(who,@GetPercentManaReserved,#oSpell=self));
+      }
+
+      return;
+   }
+
    SendStatsDesc(who=$)
    {
       if who <> $
@@ -344,6 +398,16 @@ messages:
       }
 
       propagate;
+   }
+
+   GetPercentManaReserved()
+   {
+      return viPercentManaReserved;
+   }
+
+   CanBeReserved()
+   {
+      return vbCanBeReserved;
    }
 
 end
