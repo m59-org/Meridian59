@@ -69,6 +69,9 @@ classvars:
    % prevent purge from removing this spell.
    viPurgeFactor = 100
 
+   % Is this something players should be able to recast on themselves?
+   vbSelfRecastable = TRUE
+
    viDefensive = FALSE
    viOffensive = FALSE
    viResistanceType = 0
@@ -136,8 +139,9 @@ messages:
       if Send(oTarget,@IsEnchanted,#what=self)
       {
          % Can you override an existing enchantment on yourself?
-         if who = oTarget AND
-            Send(SETTINGS_OBJECT,@CanRecastSelfEnchantment)
+         if who = oTarget
+            AND Send(SETTINGS_OBJECT,@CanRecastSelfEnchantment)
+            AND vbSelfRecastable
          {
             propagate;
          }
