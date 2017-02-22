@@ -133,8 +133,9 @@ messages:
       if StringContain(string,resign_command)
          AND what <> $
          AND IsClass(what,&User)
+         AND Send(what,@GetFaction) <> FACTION_NEUTRAL
       {
-         Send(who,@ResignFaction);
+         Send(what,@ResignFaction);
          Send(what,@MsgSendUser,#message_rsc=resign_response);
       }
 
