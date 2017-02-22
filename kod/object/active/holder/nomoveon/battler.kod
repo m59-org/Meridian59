@@ -2054,6 +2054,8 @@ messages:
             if iBurningDamage >= 1
                AND Send(self,@GetOwner) <> $
                AND NOT Send(poOwner,@CheckRoomFlag,#flag=ROOM_NO_COMBAT)
+               AND NOT (IsClass(self,&Player) AND NOT Send(self,@IsLoggedOn))
+               AND NOT (IsClass(self,&Player) AND Send(self,@IsInCannotInteractMode))
             {
                if Send(self,@AssessDamage,#what=self,
                               #damage=iBurningDamage,
