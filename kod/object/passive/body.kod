@@ -68,6 +68,9 @@ properties:
 
    plCorpseContents = $
    poPlayerKiller = $
+   
+   ptSummonDelayTimer = $
+   piSummonable = FALSE
 
 messages:
 
@@ -121,7 +124,35 @@ messages:
 
       % only the killer can pick up things for the first 25 seconds.
       ptNoSteal = CreateTimer(self,@NoStealTimer,25000);
+      
+      % corpse cannot be summoned for 3 minutes
+      ptSummonDelayTimer = CreateTimer(self,@SummonDelayTimer,60000 * 3);
+
       propagate;
+   }
+
+   SummonDelayTimer()
+   {
+      ptSummonDelayTimer = $;
+
+      piSummonable = TRUE;
+
+      return;
+   }
+
+   GetSummonTime()
+   {
+      if ptSummonDelayTimer <> $
+      {
+         return GetTimeRemaining(ptSummonDelayTimer);
+      }
+
+      return 0;
+   }
+
+   GetSummonable()
+   {
+      return piSummonable;
    }
 
    NoStealTimer()
@@ -173,7 +204,13 @@ messages:
          DeleteTimer(ptNoSteal);
          ptNoSteal=$;
       }
-      
+
+      if ptSummonDelayTimer <> $
+      {
+         DeleteTimer(ptSummonDelayTimer);
+         ptSummonDelayTimer=$;
+      }
+
       if poOwner <> $
       {
          send(poOwner,@CorpseFading,#corpse=self);

@@ -56,6 +56,9 @@ resources:
       "The benevolence of Shal'ille offers %s%s%s%s%s%s%s%s%s%s%s%s at that "
       "level."
 
+   shalillepriestess_cannot_summon = \
+      "~bI cannot yet summon your corpse. You must wait %i more seconds "
+      "for the violent energies of your death to dissipate."
    shalillepriestess_summon = "~bI shall aid you in your time of weakness."
    shalillepriestess_summoned = \
       "A benevolent light gently sets your corpse at your feet!"
@@ -296,9 +299,17 @@ messages:
          AND IsClass(what,&User)
          AND Send(what,@GetCorpse) <> $
       {
+         oCorpse = Send(what,@GetCorpse);
+         
+         if NOT Send(oCorpse,@GetSummonable)
+         {
+            Send(poOwner,@SomeoneSaid,#what=self,#type=SAY_RESOURCE,
+		          #string=shalillepriestess_cannot_summon,#parm1=Send(oCorpse,@GetSummonTime)/1000);
+            propagate;
+         }
+      
          Send(poOwner,@SomeoneSaid,#what=self,#type=SAY_RESOURCE,
 		       #string=shalillepriestess_summon);
-         oCorpse = Send(what,@GetCorpse);
          Send(poOwner,@NewHold,#what=oCorpse,#new_row=Send(what,@GetRow),
                #new_col=Send(what,@GetCol));
          Send(what,@MsgSendUser,#message_rsc=shalillepriestess_summoned);
