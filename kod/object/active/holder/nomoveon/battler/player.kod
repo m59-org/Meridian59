@@ -1376,13 +1376,48 @@ messages:
       return piReincarnations;
    }
 
+   GetRacialBaseResistances(race=$)
+   {
+      if race = $
+      {
+         % Use our own race.
+         race = piPlayerRace;
+      }
+      
+      if race = RACE_HALF_ORC
+      {
+         return [ [-ATCK_SPELL_UNHOLY, 20 ],
+                  [-ATCK_SPELL_HOLY, -30 ],
+                  [ATCK_WEAP_PIERCE, 10 ],
+                  [ATCK_WEAP_SLASH, 10 ] ];
+      }
+      
+      if race = RACE_HALF_DEMON
+      {
+         return [ [-ATCK_SPELL_FIRE, 20 ],
+                  [-ATCK_SPELL_COLD, -30 ],
+                  [-ATCK_SPELL_ACID, 10],
+                  [ATCK_WEAP_NERUDITE, 10 ]];
+      }
+      
+      if race = RACE_HALF_ELF
+      {
+         return [ [-ATCK_SPELL_UNHOLY, -30 ],
+                  [-ATCK_SPELL_HOLY, 20 ],
+                  [-ATCK_SPELL_ALL, 10 ],
+                  [ATCK_WEAP_MAGIC, 10 ] ];
+      }
+      
+      return $;
+   }
+
    SetPlayerRace(race=0)
    {
       if race = RACE_HUMAN
       {
          Send(self,@SetSkinTranslation,#translation=1);
          Send(self,@SetDefaultClothes,#shirt_color=1,#pants_color=1);
-         plResistances = $;
+         plResistances = Send(self,@GetRacialBaseResistances,#race=RACE_HUMAN);
 
          piRacialMightMod = 0;
          piRacialIntellectMod = 0;
@@ -1404,10 +1439,7 @@ messages:
       {
          Send(self,@SetSkinTranslation,#translation=140);
          Send(self,@SetDefaultClothes,#shirt_color=5,#pants_color=5);
-         plResistances = [ [-ATCK_SPELL_UNHOLY, 20 ],
-                           [-ATCK_SPELL_HOLY, -30 ],
-                           [ATCK_WEAP_PIERCE, 10 ],
-                           [ATCK_WEAP_SLASH, 10 ] ];
+         plResistances = Send(self,@GetRacialBaseResistances,#race=RACE_HALF_ORC);
 
          piRacialMightMod = 10;
          piRacialIntellectMod = 0;
@@ -1429,10 +1461,7 @@ messages:
       {
          Send(self,@SetSkinTranslation,#translation=135);
          Send(self,@SetDefaultClothes,#shirt_color=0,#pants_color=0);
-         plResistances = [ [-ATCK_SPELL_FIRE, 20 ],
-                           [-ATCK_SPELL_COLD, -30 ],
-                           [-ATCK_SPELL_ACID, 10],
-                           [ATCK_WEAP_NERUDITE, 10 ]];
+         plResistances = Send(self,@GetRacialBaseResistances,#race=RACE_HALF_DEMON);
 
          piRacialMightMod = -20;
          piRacialIntellectMod = 10;
@@ -1454,10 +1483,7 @@ messages:
       {
          Send(self,@SetSkinTranslation,#translation=145);
          Send(self,@SetDefaultClothes,#shirt_color=10,#pants_color=10);
-         plResistances = [ [-ATCK_SPELL_UNHOLY, -30 ],
-                           [-ATCK_SPELL_HOLY, 20 ],
-                           [-ATCK_SPELL_ALL, 10 ],
-                           [ATCK_WEAP_MAGIC, 10 ] ];
+         plResistances = Send(self,@GetRacialBaseResistances,#race=RACE_HALF_ELF);
 
          piRacialMightMod = 0;
          piRacialIntellectMod = -20;
@@ -13084,6 +13110,8 @@ messages:
          plResistances = $;
       }
 
+      plResistances = Send(self,@GetRacialBaseResistances);
+
       piStomach = 50;
       piTimeLastStomachUpdate = GetTime();
       piKill_count_decay = Bound(piKill_count_decay,0,$);
@@ -13158,6 +13186,13 @@ messages:
       poEvilTwin = $;
 
       return Send(SYS,@GetSuccessRsc);
+   }
+
+   RecalibrateBaseResistances()
+   {
+      % Clearing old resistance system values.
+      plResistances = Send(self,@GetRacialBaseResistances);
+      return;
    }
 
    GetBulkMax()
