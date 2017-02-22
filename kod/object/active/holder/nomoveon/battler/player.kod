@@ -17,6 +17,8 @@ constants:
    include blakston.khd
    include protocol.khd
 
+   TRAINING_POINT_CAP = 3000
+
    % Three minutes
    BOND_REPORT_INTERVAL = 1000 * 60 * 3
    
@@ -9980,7 +9982,7 @@ messages:
          % Triple training points if at Max HP.
          if gain > 0
             AND killing_blow
-            AND piTraining_points < 1000
+            AND piTraining_points < TRAINING_POINT_CAP
          {
             piTraining_points = piTraining_points + 1 + bAtMaxHp*2
                + (Send(what,@GetBoostedLevel)
@@ -10397,13 +10399,13 @@ messages:
 
       if bCap
       {
-         if piTraining_points <= 1000
+         if piTraining_points <= TRAINING_POINT_CAP
          {
-            points = bound(points,-piTraining_points,1000 - piTraining_points);
+            points = bound(points,-piTraining_points,TRAINING_POINT_CAP - piTraining_points);
          }
          else if points > 0
          {
-               % We're respecting the 1000 point cap, have more than 1000
+               % We're respecting the point cap, have more than
                % points and are trying to add more. Don't add the points,
                % return out.
                return;
@@ -10424,7 +10426,7 @@ messages:
 
       piTraining_points = piTraining_points + points;
 
-      if piTraining_points < 1000
+      if piTraining_points < TRAINING_POINT_CAP
          OR NOT bCap
       {
          piInform = TRUE;
@@ -10447,7 +10449,7 @@ messages:
 
       ptReward_timer = CreateTimer(self,@GetDailyTrainingReward,24*60*60*1000);
 
-      if piTraining_points >= 1000
+      if piTraining_points >= TRAINING_POINT_CAP
       {
          return;
       }
