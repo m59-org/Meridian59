@@ -100,25 +100,17 @@ messages:
    {
       if ptCharge = $
       {
-	 %debug("Ringinvisibility",self,"got unused when has no timer");
+         %debug("Ringinvisibility",self,"got unused when has no timer");
       }
       else
       {
-	 DeleteTimer(ptCharge);
-	 ptCharge = $;
+         DeleteTimer(ptCharge);
+         ptCharge = $;
       }
 
       pbIn_use = False;
 
       Send(poOwner,@SetPlayerFlag,#flag=PFLAG_INVISIBLE,#value=False);
-
-      piHits = piHits - 1;
-      if piHits = 0
-      {
-         Send(poOwner,@MsgSendUser,#message_rsc=ringinvisibility_dead_rsc);
-         Send(self,@Delete);
-	 return;
-      }
 
       propagate;
    }
