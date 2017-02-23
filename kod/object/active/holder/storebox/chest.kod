@@ -12,7 +12,7 @@ Chest is StorageBox
 
 constants:
 
-   CHEST_ITEMS_MAX = 400
+   CHEST_ITEMS_MAX = 150
 
    include blakston.khd
 
@@ -37,7 +37,17 @@ properties:
 
 messages:
 
-   CanConveyItems(lItems = $)
+   ReqNewHold(what = $, who = $)
+   {
+      if NOT Send(self,@CanDepositItems,#lItems=[what])
+      {
+         return FALSE;
+      }
+
+      propagate;
+   }
+
+   CanDepositItems(lItems = $)
    {
       local plItemsStored;
 
