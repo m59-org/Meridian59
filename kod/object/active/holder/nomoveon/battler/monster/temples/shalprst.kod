@@ -25,6 +25,11 @@ resources:
       "kind words.  She even wishes peace on those of Qor and prays for "
       "their redemption.  If you say 'summon' to her, she will summon "
       "your corpse if you have recently died, even if you serve evil."
+      "\n\nAdditionally, if you wish to follow Shal'ille's pacifist "
+      "philosophy and completely opt out of player combat forever, "
+      "you may say 'I wish to follow Shal'ille's way of peace.' This "
+      "choice cannot be undone once taken, and you will be unable "
+      "to enter many combat-focused areas."
    shal_forget_potion_sale = \
       "~bShould you buy and quaff %s%s, Shal'ille will bless you by "
       "exorcising all traces of Qor from your thoughts.~n~k"
@@ -62,6 +67,11 @@ resources:
    shalillepriestess_summon = "~bI shall aid you in your time of weakness."
    shalillepriestess_summoned = \
       "A benevolent light gently sets your corpse at your feet!"
+
+   shalillepriestess_opt_out_command = \
+      "I wish to follow Shal'ille's way of peace."
+   shalillepriestess_opt_out_reply = \
+      "~bShal'ille's light shall fall upon you always."
 
 classvars:
 
@@ -318,6 +328,16 @@ messages:
          Send(poOwner,@NewHold,#what=oCorpse,#new_row=Send(what,@GetRow),
                #new_col=Send(what,@GetCol));
          Send(what,@MsgSendUser,#message_rsc=shalillepriestess_summoned);
+      }
+
+      if StringContain(string,shalillepriestess_opt_out_command)
+         AND what <> $
+         AND IsClass(what,&User)
+      {
+         Send(poOwner,@SomeoneSaid,#what=self,#type=SAY_RESOURCE,
+		       #string=shalillepriestess_opt_out_reply);
+      
+         Send(what,@OptOutPvP);
       }
 
       propagate;

@@ -332,12 +332,15 @@ resources:
    player_race_demon = "%s appears to be of half-demon ancestry.\n"
    player_race_elf = "%s appears to be of half-elf ancestry.\n"
 
+   player_opt_out_pvp = \
+      "%s is a dedicated practitioner of Shal'ille's peaceful path.\n"
+
    player_nl = "\n"
    player_sp = " "
    player_dot = "."
 
    % Master fixed info resource.
-   player_fixed_info = "%r%r%r%r%s%r%s%q%r"
+   player_fixed_info = "%r%r%r%r%s%r%r%s%q%r"
 
    % Hometown strings.
    player_hometown_rsc = "%s%s%s%q%s\n"
@@ -1161,6 +1164,9 @@ properties:
    % Spells reserved on mana. Format [spell, mana reserved, state, spellpower]
    plReservedSpells = $
    piBaseMax_mana = 0
+
+   % Has the player opted out of PvP?
+   pbOptOutPvP = FALSE
 
 messages:
 
@@ -2447,6 +2453,18 @@ messages:
       {
          AddPacket(4,system_blank_resource);
       }
+      
+      %
+      % Add opt-out info.
+      %
+      if pbOptOutPvP
+      {
+         AddPacket(4,player_opt_out_pvp, 4,Send(self,@GetHeShe,#cap=TRUE));
+      }
+      else
+      {
+         AddPacket(4,system_blank_resource);
+      }
 
       %
       % Add visible cargo types. The number of these doesn't really change,
@@ -3184,7 +3202,11 @@ messages:
       Send(self,@SetPlayerFlag,#flag=PFLAG_OUTLAW,#value=FALSE);
       Send(self,@SetPlayerFlag,#flag=PFLAG_HAUNTED,#value=FALSE);
       Send(self,@SetPlayerFlag,#flag=PFLAG_INTRIGUING,#value=FALSE);
-      Send(self,@SetPlayerFlag,#flag=PFLAG_TEMPSAFE,#value=FALSE);
+      
+      if NOT pbOptOutPvP
+      {
+         Send(self,@SetPlayerFlag,#flag=PFLAG_TEMPSAFE,#value=FALSE);
+      }
 
       Send(SYS,@SystemRemoveFromChampionLists,#oldchamp=self);
 
@@ -3275,7 +3297,11 @@ messages:
       Send(self,@SetPlayerFlag,#flag=PFLAG_PKILL_ENABLE,#value=FALSE);
       Send(self,@SetPlayerFlag,#flag=PFLAG_PKILL_LOCK,#value=FALSE);
       Send(self,@SetPlayerFlag,#flag=PFLAG_INTRIGUING,#value=FALSE);
-      Send(self,@SetPlayerFlag,#flag=PFLAG_TEMPSAFE,#value=FALSE);
+
+      if NOT pbOptOutPvP
+      {
+         Send(self,@SetPlayerFlag,#flag=PFLAG_TEMPSAFE,#value=FALSE);
+      }
 
       Send(SYS,@SystemRemoveFromChampionLists,#oldchamp=self);
 
@@ -10908,6 +10934,7 @@ messages:
                AND (piPreferences & CF_TEMPSAFE)
                AND Send(self,@FindUsing,#class=&SoldierShield) = $
                AND ptTempSafe = $
+               AND NOT pbOptOutPvP
             {
                Post(self,@StartTempSafe);
             }
@@ -13784,6 +13811,16 @@ messages:
       return iTotalLearnPoints;
    }
 
+   OptOutPvP()
+   {
+      Send(self,@SetPlayerFlag,#flag=PFLAG_TEMPSAFE,#value=TRUE);
+      Send(self,@SetPlayerFlag,#flag=PFLAG_MURDERER,#value=FALSE);
+      Send(self,@SetPlayerFlag,#flag=PFLAG_OUTLAW,#value=FALSE);
+      Send(self,@SetPlayerFlag,#flag=PFLAG_HAUNTED,#value=FALSE);
+      pbOptOutPvP = TRUE;
+      return;
+   }
+
    EvaluatePKStatus(dbug=FALSE)
    "This should always be run AFTER the player undergoes whatever changes "
    "(i.e. quits a guild or drops below 30 health).  Also, take steps to ensure "
@@ -13921,14 +13958,19 @@ messages:
 
    EndTempSafe()
    {
+      ptTempSafe = $;
+
+      if pbOptOutPvP
+      {
+         return;
+      }
+
       piFlags = piFlags & ~PFLAG_TEMPSAFE;
       if poOwner <> $
       {
          Send(self,@MsgSendUser,#message_rsc=player_temp_safe_end);
          Send(poOwner,@SomethingChanged,#what=self);
       }
-
-      ptTempSafe = $;
 
       return;
    }
