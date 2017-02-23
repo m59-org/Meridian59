@@ -12,6 +12,8 @@ Chest is StorageBox
 
 constants:
 
+   CHEST_ITEMS_MAX = 400
+
    include blakston.khd
 
 resources:
@@ -28,13 +30,33 @@ classvars:
    vrIcon = chest_icon_rsc
    vrDesc = chest_desc_rsc
 
-   viBulk_hold_max = 18000
+   viBulk_hold_max = $
    viWeight_hold_max = $
 
 properties:
 
 messages:
 
+   CanConveyItems(lItems = $)
+   {
+      local plItemsStored;
+
+      if lItems = $
+      {
+         return FALSE;
+      }
+
+      plItemsStored = Send(self,@GetHolderPassive);
+      if plItemsStored <> $
+         AND (Length(plItemsStored) + Length(lItems)) > CHEST_ITEMS_MAX
+         AND NOT (Length(lItems) = 1
+            AND IsClass(First(lItems),&NumberItem))
+      {
+         return FALSE;
+      }
+
+      return TRUE;
+   }
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
