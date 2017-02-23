@@ -14822,26 +14822,53 @@ messages:
 
    % Designed this just like GetSpellSchoolLevels in case a skill school
    % is added later and this needs to be extended.
-   GetSkillSchoolLevels()
+   GetSkillSchoolLevels(include_cant_forget=FALSE)
    {
-      local i, lSchoolLevels, oSkill, iLevel, weaponcraft_level;
+      local i, lSchoolLevels, oSkill, iLevel, iWeaponCraftLevel, iCanForget, iSchool,
+            iBanditryLevel, iSorceryLevel;
 
-      weaponcraft_level = 0;
+      iWeaponCraftLevel = 0;
+      iBanditryLevel = 0;
+      iSorceryLevel = 0;
       iLevel = 0;
+      iCanForget = TRUE;
 
       foreach i in plSkills
       {
          oSkill = Send(SYS,@FindSkillByNum,#num=Send(self,@DecodeSkillNum,
                                                       #compound=i));
          iLevel = Send(oSkill,@GetLevel);
-
-         if iLevel > weaponcraft_level
+         iCanForget = Send(oSkill,@CanForget);
+         iSchool = Send(oSkill,@GetSchool);
+         
+         if iCanForget OR (NOT iCanForget AND include_cant_forget)
          {
-            weaponcraft_level = iLevel;
+            if iSchool = SKS_FENCING
+            {
+               if iLevel > iWeaponCraftLevel
+               {
+                  iWeaponCraftLevel = iLevel;
+               }
+            }
+            if iSchool = SKS_BANDITRY
+            {
+               if iLevel > iBanditryLevel
+               {
+                  iBanditryLevel = iLevel;
+               }
+            }
+            if iSchool = SKS_SORCERY
+            {
+               if iLevel > iSorceryLevel
+               {
+                  iSorceryLevel = iLevel;
+               }
+            }
          }
+
       }
 
-      lSchoolLevels = [weaponcraft_level];
+      lSchoolLevels = [iWeaponCraftLevel,iBanditryLevel,iSorceryLevel];
 
       return lSchoolLevels;
    }
