@@ -2092,6 +2092,8 @@ messages:
          %  immediately afterwards.
          iTimeLeft = GetTimeRemaining(ptDispose);
          if iTimeLeft < 60000
+            AND Send(self,@GetHolderPassive) <> $
+            AND Length(self,@GetHolderPassive) < 100
          {
             DeleteTimer(ptDispose);
             ptDispose = CreateTimer(self,@DisposeTimer,60000);
