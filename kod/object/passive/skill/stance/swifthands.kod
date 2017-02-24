@@ -46,7 +46,7 @@ classvars:
    viSkill_num = SKID_SWIFT_HANDS
    viSchool = SKS_BANDITRY
    viSkill_Level = 2
-   viChance_to_Increase = 15
+   viChance_to_Increase = 5
    viMeditate_ratio = 100
 
    viSkillExertion = 0
@@ -74,7 +74,11 @@ messages:
       iHitRollBonus = 100 + ((iSwiftHandsAbility+1) / 4) + (iStat/5);
       iHitRollBonus = Bound(iHitRollBonus,100,135);
 
-      Send(self,@ImproveAbility,#who=who,#target=what);  
+      if what <> $
+         AND IsClass(what,&Battler)
+      {
+         Send(self,@ImproveAbility,#who=who,#target=what);
+      }
       
       return hit_roll * iHitRollBonus / 100;
    }
@@ -89,8 +93,6 @@ messages:
       iDefensePenalty = 100 - ((iSwiftHandsAbility+1) / 2);
       iDefensePenalty = Bound(iDefensePenalty,50,100);
 
-      Send(self,@ImproveAbility,#who=who,#target=what);  
-      
       return defense_power * (100-iDefensePenalty) / 100;
    }
 

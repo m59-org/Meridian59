@@ -48,7 +48,7 @@ classvars:
    viSkill_num = SKID_RECKLESS_HEART
    viSchool = SKS_BANDITRY
    viSkill_Level = 6
-   viChance_to_Increase = 10
+   viChance_to_Increase = 5
    viMeditate_ratio = 500
 
    viSkillExertion = 0
@@ -76,7 +76,11 @@ messages:
       iDamageBonus = 100 + ((iRecklessHeartAbility+1) / 5) + (Bound(iStat-20,0,50) / 10);
       iDamageBonus = Bound(iDamageBonus,100,205);
 
-      Send(self,@ImproveAbility,#who=who,#target=what);
+      if what <> $
+         AND IsClass(what,&Battler)
+      {
+         Send(self,@ImproveAbility,#who=who,#target=what);
+      }
       
       return damage * iDamageBonus / 100;
    }
@@ -90,8 +94,6 @@ messages:
       % Up to 20% final damage increase
       iDamageBonus = 100 + ((iRecklessHeartAbility+1) / 5);
       iDamageBonus = Bound(iDamageBonus,100,120);
-
-      Send(self,@ImproveAbility,#who=who,#target=what);
 
       return damage * iDamageBonus / 100;
    }
