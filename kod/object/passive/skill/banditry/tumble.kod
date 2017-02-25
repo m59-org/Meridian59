@@ -68,6 +68,12 @@ messages:
          % This skill can be used by both players and monsters.
          iAgility = Send(who,@GetAgility);
          iAbility = Send(who,@GetSkillAbility,#skill_num=viSkill_num);
+         
+         if iAbility = 0
+         {
+            % Player does not have the skill!
+            return FALSE;
+         }
 
          % Up to 5% from skill, and 5-7% from stat
          chance = ((iAbility+1)/20) + (iAgility / 10);
