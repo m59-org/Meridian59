@@ -95,7 +95,10 @@ messages:
          piSpellPower = iPower;
       }
 
-      poSpell = Send(SYS,@FindSpellByNum,#num=piSpellID);
+      if piSpellID <> $
+      {
+         poSpell = Send(SYS,@FindSpellByNum,#num=piSpellID);
+      }
 
       foreach i in Send(host_object,@GetHolderActive)
       {

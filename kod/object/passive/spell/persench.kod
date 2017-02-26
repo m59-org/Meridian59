@@ -197,7 +197,9 @@ messages:
 
    GetTargets(who=$,lTargets=$)
    {
-      if Send(who,@ReservesForThisLevel,#iLevel=viSpell_level)
+      if who <> $
+         AND IsClass(who, &Player)
+         AND Send(who,@ReservesForThisLevel,#iLevel=viSpell_level)
       {
          return [who];
       }
@@ -211,6 +213,8 @@ messages:
 
       if NOT bItemCast
          AND vbCanBeReserved
+         AND who <> $
+         AND IsClass(who,&Player)
          AND Send(who,@ReservesForThisLevel,#iLevel=viSpell_level)
       {
          Send(who,@UseReserveSkill,#oSpell=self,
