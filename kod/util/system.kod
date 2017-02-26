@@ -5977,6 +5977,10 @@ messages:
       plMagicMods = Cons(Create(&OffenseMod),plMagicMods);
       plMagicMods = Cons(Create(&WeaponDamageMod),plMagicMods);
 
+      plMagicMods = Cons(Create(&WeaponMightMod),plMagicMods);
+      plMagicMods = Cons(Create(&WeaponAgilityMod),plMagicMods);
+      plMagicMods = Cons(Create(&WeaponAimMod),plMagicMods);
+
       return;
    }
 
@@ -6022,6 +6026,21 @@ messages:
          OR class = &DefenseMod
       {
          return GROUP_ARMOR;
+      }
+      
+      if class = &WeaponMightMod
+      {
+         return GROUP_MIGHT;
+      }
+      
+      if class = &WeaponAgilityMod
+      {
+         return GROUP_AGILITY;
+      }
+      
+      if class = &WeaponAimMod
+      {
+         return GROUP_AIM;
       }
 
       return $;
