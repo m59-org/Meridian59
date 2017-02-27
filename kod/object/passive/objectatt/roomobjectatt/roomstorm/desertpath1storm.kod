@@ -173,7 +173,7 @@ messages:
 
    ApplyDirectEffect(who=$)
    {
-      local iDamageType, iDamage;
+      local iDamageType, iDamage, iDamageDealt;
 
       if who <> $
          AND IsClass(who,&Player)
@@ -199,30 +199,34 @@ messages:
       }
 
       iDamage = Random(1,10);
-
-      if Send(who,@AssessDamage,#what=self,
+      iDamageDealt = Send(who,@AssessDamage,#what=self,
                                  #damage=iDamage,
                                  #aspell=iDamageType,
-                                 #report=FALSE) = $
+                                 #report=FALSE);
+      if iDamageDealt = $
       {
          Post(who,@Killed,#what=self);
+         propagate;
       }
+      
+      % Reduce back to unprecise for reporting
+      iDamageDealt = iDamageDealt / 100;
       
       if iDamageType = ATCK_SPELL_COLD
       {
-         Send(who,@MsgSendUser,#message_rsc=energies_cold_damage,#parm1=iDamage);
+         Send(who,@MsgSendUser,#message_rsc=energies_cold_damage,#parm1=iDamageDealt);
       }
       if iDamageType = ATCK_SPELL_FIRE
       {
-         Send(who,@MsgSendUser,#message_rsc=energies_fire_damage,#parm1=iDamage);
+         Send(who,@MsgSendUser,#message_rsc=energies_fire_damage,#parm1=iDamageDealt);
       }
       if iDamageType = ATCK_SPELL_SHOCK
       {
-         Send(who,@MsgSendUser,#message_rsc=energies_shock_damage,#parm1=iDamage);
+         Send(who,@MsgSendUser,#message_rsc=energies_shock_damage,#parm1=iDamageDealt);
       }
       if iDamageType = ATCK_SPELL_ACID
       {
-         Send(who,@MsgSendUser,#message_rsc=energies_acid_damage,#parm1=iDamage);
+         Send(who,@MsgSendUser,#message_rsc=energies_acid_damage,#parm1=iDamageDealt);
       }
 
       propagate;
