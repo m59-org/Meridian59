@@ -160,6 +160,14 @@ messages:
    ReqDealDamage(who=$)
    {
       % Alter this to create exemptions to the threat.
+      
+      if who <> $
+         AND IsClass(who,&Player)
+         AND Send(who,@IsInCannotInteractMode)
+      {
+         return FALSE;
+      }
+
       return TRUE;
    }
 
