@@ -122,6 +122,11 @@ messages:
    
    PlayerFell(who=$)
    {
+      if IsClass(who,&DM)
+      {
+         return;
+      }
+
       Send(who,@MsgSendUser,#message_rsc=fell_msg);
       Send(who,@Killed);
       Send(self,@SendDeathMessage,#who=who);
