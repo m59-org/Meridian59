@@ -6,6 +6,6 @@
 
 DEPEND = ..\roomstorm.bof
 BOFS = gortstorm.bof acidstorm.bof shockstorm.bof heatstorm.bof coldstorm.bof \
-       desertpath1storm.bof
+       desertpath1storm.bof desertriver1storm.bof
 
 !include $(KODDIR)\kod.mak

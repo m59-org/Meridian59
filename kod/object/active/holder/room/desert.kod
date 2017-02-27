@@ -173,7 +173,7 @@ messages:
 
    RecalcLightAndWeather()
    {
-      local SysDayPhase, i;
+      local SysDayPhase, i, iElementType;
 
       SysDayPhase = Send(SYS,@GetDayPhase);
 
@@ -189,6 +189,30 @@ messages:
             if IsClass(First(i),&User)
             {
                Send(First(i),@SendRoomMusic,#music_rsc=prMusic);
+            }
+         }
+
+         switch(Send(SYS,@GetDayPhase))
+         {
+            case DAY_PHASE_DAWN:
+               iElementType = ATCK_SPELL_SHOCK;
+               break;
+            case DAY_PHASE_DAY:
+               iElementType = ATCK_SPELL_FIRE;
+               break;
+            case DAY_PHASE_DUSK:
+               iElementType = ATCK_SPELL_ACID;
+               break;
+            case DAY_PHASE_NIGHT:
+               iElementType = ATCK_SPELL_COLD;
+               break;
+         }
+
+         foreach i in plActive
+         {
+            if IsClass(First(i),&User)
+            {
+               Send(First(i),@DamageTypeFlashEffect,#aspell=iElementType,#duration=1500);
             }
          }
       }
