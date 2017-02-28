@@ -639,7 +639,14 @@ messages:
          iMin = iStatpoints - 50;
       }
 
-      piAgility = Random(iMin,iMax);
+      if iMin > iMax
+      {
+         piAgility = iMax;
+      }
+      else
+      {
+         piAgility = Random(iMin,iMax);
+      }
       piAim = iStatPoints - piAgility;
 
       if piSurvivalLevel > 0
@@ -7615,7 +7622,14 @@ messages:
 
       return;
    }
-   
+
+   AddChampionAbility(ability=0,value=0)
+   {
+      plChampionAbilities = Cons([ability,value],
+                                  plChampionAbilities);
+      return;
+   }
+
    AddRandomChampionAbility()
    {
       local lAbilities, iRandomAbility, iValue, lElements, i;
@@ -7805,6 +7819,11 @@ messages:
    GetTumbling()
    {
       return piTumbling;
+   }
+
+   GetBossStatus()
+   {
+      return FALSE;
    }
 
 end
