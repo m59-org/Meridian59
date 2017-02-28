@@ -28,6 +28,9 @@ classvars:
    viTeleport_row = 50
    viTeleport_col = 40
 
+   vbSpawnMonsters = TRUE
+   viMaxSpawnCol = 65
+
 properties:
 
    piBaseLight = LIGHT_DARK
@@ -39,74 +42,6 @@ properties:
    piRoom_num = RID_DESERTCLIFFNOACCESS1
 
 messages:
-
-   FirstUserEntered()
-   {
-      Post(self,@PopulateArea);
-
-      propagate;
-   }
-   
-   LastUserLeft()
-   {
-      Send(self,@DepopulateArea);
-      propagate;
-   }
-
-   PopulateArea()
-   {
-      local i, iNumMonsters, oMonster, lMonsters, lClasses;
-
-      switch(Send(SYS,@GetDayPhase))
-      {
-         case DAY_PHASE_DAWN:
-            lClasses = [&XeoAir, &EvilEnt];
-            break;
-         case DAY_PHASE_DAY:
-            lClasses = [&FireElemental,&XeoFire,&Ghost];
-            break;
-         case DAY_PHASE_DUSK:
-            lClasses = [&EarthElemental,&XeoAcid,&DaemonSkeleton];
-            break;
-         case DAY_PHASE_NIGHT:
-            lClasses = [&IceElemental,&XeoWater,&Iceperson];
-            break;
-      }
-
-      iNumMonsters = Random(5,60);
-      lMonsters = $;
-
-      while iNumMonsters > 0
-      {
-         lMonsters = Cons(Nth(lClasses,Random(1,Length(lClasses))),lMonsters);
-         --iNumMonsters;
-      }
-
-      foreach i in lMonsters
-      {
-         Send(self,@NewHold,#what=Create(i),
-               #new_row=Random(1,Send(self,@GetRoomRows)-1),
-               #new_col=Random(1,66));
-      }
-
-      return;
-   }
-   
-   DepopulateArea()
-   {
-      local i, each_obj;
-      
-      foreach i in Send(self,@GetHolderActive)
-      {
-         each_obj = Send(self,@HolderExtractObject,#data=i);
-         if IsClass(each_obj,&Monster)
-         {
-            Send(each_obj,@Delete);
-         }
-      }
-      
-      return;
-   }
 
    SomethingMoved(what = $,new_row = $, new_col = $)
    {
