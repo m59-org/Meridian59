@@ -181,6 +181,8 @@ properties:
 
    piLastDoorOpen = 0
 
+   pbRentable = TRUE
+
 messages:
 
    Constructor()
@@ -467,6 +469,11 @@ messages:
    "When the guild has been conquered, he will only sell the guild hall to "
    "someone in the Conquering guild."
    {
+      if NOT pbRentable
+      {
+         return -1;
+      }
+
       if piStatus = STATUS_UNOWNED
       {
          return viQuality * PURCHASE_MODIFIER;
