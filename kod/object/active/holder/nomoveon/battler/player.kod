@@ -6295,47 +6295,11 @@ messages:
          }
       }
 
-      % Increase final damage by 35 percent if attacker damage rod is active
-      bAttackerEmpowered = FALSE;
+      % Set final damage by PvP modifier
       if what <> $
          AND IsClass(what,&Player)
       {
-         foreach i in Send(what,@GetHolderPassive)
-         {
-            if IsClass(i,&DamageRod)
-               AND Send(i,@IsActive)
-            {
-               bAttackerEmpowered = TRUE;
-            }
-         }
-      }
-      
-      if bAttackerEmpowered
-      {
-         damage = damage * 135 / 100;
-      }
-
-      % Look for active shield rods in inventory, reduce final damage to 1 if any active
-      bShielded = FALSE;
-      foreach i in plPassive
-      {
-         if IsClass(i,&ShieldRod)
-            AND Send(i,@IsActive)
-         {
-            bShielded = TRUE;
-         }
-      }
-
-      if bShielded
-      {
-         if precision
-         {
-            damage = 100;
-         }
-         else
-         {
-            damage = 1;
-         }
+         damage = (damage * Send(SETTINGS_OBJECT,@GetPvPDamagePercentage)) / 100;
       }
 
       Send(self,@LoseHealth,#amount=damage,#precision=TRUE);

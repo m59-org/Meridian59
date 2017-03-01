@@ -99,6 +99,11 @@ messages:
    {
       local i, oLight, iIncrement, lDangerCoords, iAlwaysColor;
       
+      if NOT Send(SETTINGS_OBJECT,@GetLightEffectsEnabled)
+      {
+         return;
+      }
+      
       switch(Send(SYS,@GetDayPhase))
       {
          case DAY_PHASE_DAWN:
