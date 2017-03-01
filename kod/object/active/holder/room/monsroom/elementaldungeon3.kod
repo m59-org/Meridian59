@@ -45,6 +45,8 @@ properties:
    piInit_count_max = 6
 
    piMonster_count_max = 25
+   
+   plBossCoordinates = $
 
 messages:
 
@@ -54,6 +56,9 @@ messages:
 
       plGenerators = [ [22, 24], [61, 20], [47, 68], [15, 37], [12,61],
                        [31, 52], [64, 46], [33, 34], [35, 18] ];
+
+      plBossCoordinates = [26, 72];
+
       propagate;
    }
    
@@ -67,13 +72,24 @@ messages:
       propagate;
    }
 
-   CreateStandardExits()
+   ReqSpellCast(who = $, oSpell = $)
    {
-      plEdge_Exits = $;
-      plEdge_Exits = Cons([LEAVE_EAST, RID_ELEMENTAL_DUNGEON1, 5, 5, 
-            ROTATE_NONE], plEdge_exits);
+      local iQflags, iRflags, iHeightF, iHeightFWD, iHeightC, iServerID;
 
-      return;
+      if IsClass(oSpell,&Phase)
+      {
+         if NOT IsClass(who,&Player)
+         {
+            propagate;
+         }
+
+         Post(who,@MsgSendUser,#message_rsc=fire_prism_phase_out);
+         Post(Send(SYS,@FindRoomByNum,#num=RID_WAYLAYOASIS),
+               @Teleport,#what=who);
+         return FALSE;
+      }
+
+      propagate;
    }
 
 end
