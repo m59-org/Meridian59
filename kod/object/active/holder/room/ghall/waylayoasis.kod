@@ -723,6 +723,15 @@ messages:
    {
       return RID_DESERT;
    }
+   
+   OverrideDeathFunction(who=$,what=$)
+   {
+      local oAfterlife;
+      
+      oAfterlife = Send(SYS,@FindRoomByNum,#num=RID_DESERTALDUNES);
+      Send(oAfterlife,@Teleport,#what=who);
+      return;
+   }
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
