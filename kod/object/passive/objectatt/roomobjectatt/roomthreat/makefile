@@ -6,6 +6,6 @@
 
 DEPEND = ..\roomthreat.bof
 BOFS = coldthreat.bof heatthreat.bof acidthreat.bof lavathreat.bof \
-       fallthreat.bof phasethreat.bof
+       fallthreat.bof phasethreat.bof magmathreat.bof
 
 !include $(KODDIR)\kod.mak
