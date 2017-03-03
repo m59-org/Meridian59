@@ -16103,6 +16103,34 @@ messages:
       return;
    }
 
+   PhaseSurrenderEarly()
+   {
+      local oPhase;
+
+      if ptPhaseTimer <> $
+      {
+         DeleteTimer(ptPhaseTimer);  
+         ptPhaseTimer = $;
+      }
+
+      if ptPhaseVisualEffectTimer <> $
+      {
+         DeleteTimer(ptPhaseVisualEffectTimer);
+         ptPhaseVisualEffectTimer = $;
+      }
+      
+      oPhase = Send(SYS,@FindSpellByNum,#num=SID_PHASE);
+      Send(self,@RemoveEnchantment,#what=oPhase);
+      Send(oPhase,@NotifyRoomPenalty,#who=self);
+      Send(oPhase,@InflictFlatPenalties,#who=self);
+
+      Post(self,@AdminGoToLastSafeRoom);
+
+      Send(self,@RefreshPhaseTimeToBase);
+
+      return;
+   }
+
    PhaseTimerEnd()
    {
       local oPhase;
@@ -16231,6 +16259,11 @@ messages:
       }
 
       return FALSE;
+   }
+
+   IsPhasedOut()
+   {
+      return (piFlags & PFLAG_PHASED);
    }
 
    IsLikelyVictim()

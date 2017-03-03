@@ -5118,6 +5118,14 @@ messages:
 
       if type = SAY_NORMAL
       {
+         if StringEqual(String,"surrender")
+            AND Send(self,@IsPhasedOut)
+         {
+            Send(self,@PhaseSurrenderEarly);
+
+            return;
+         }
+
          if StringContain(String,"track ")
             AND Send(self,@GetSkillAbility,#skill_num=SKID_TRACK) > 0
          {
