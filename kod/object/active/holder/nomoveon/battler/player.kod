@@ -7760,11 +7760,7 @@ messages:
          iApparentStamina = Send(self,@GetRawStamina);
       }
 
-      piBase_max_health = Bound(piBase_max_health + amount, 20,
-                              (100 + iApparentStamina));
-      % Bound ourselves at the top end.
-      piBase_max_health =
-                     Bound(piBase_max_health,$,100+Send(self,@GetMaxStamina));
+      piBase_max_health = Bound(piBase_max_health + amount, 20,(100 + iApparentStamina));
       amount = piBase_max_health - iPrev_max;
 
       % Give them the "further info" gmail if they've advanced to 25.
@@ -7779,7 +7775,7 @@ messages:
       Send(self,@PlayerIsIntriguing);
       Send(self,@GainMaxhealth,#amount=amount);
 
-      if piBase_max_health = 100 + Send(self,@GetMaxStamina)
+      if piBase_max_health >= 100 + Send(self,@GetStamina)
          AND amount > 0
       {
          if Send(self,@GetLearnCapped)
@@ -12663,6 +12659,7 @@ messages:
       }
 
       Send(self,@DrawStamina);
+      Send(self,@DrawHPChance);
 
       return piStaminaMod - iOrigStamina;
    }
