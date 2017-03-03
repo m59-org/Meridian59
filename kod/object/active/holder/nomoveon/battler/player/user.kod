@@ -3832,6 +3832,17 @@ messages:
          return;
       }
 
+      % Check for height to get players off roofs.
+
+      if poOwner <> $
+         AND Send(poOwner,@CheckLegalPlayerHeights)
+         AND Send(self,@GetHeightAtObject) > Send(poOwner,@GetMaxLegalPlayerHeight)
+      {
+         Debug("ALERT!",Send(self,@GetTrueName),self,"was too high!");
+         Send(poOwner,@Teleport,#what=self);
+         return;
+      }
+
       %
       % 5.2 Double check the user's speed. USER_WALKING_SPEED should
       % be 25, USER_RUNNING_SPEED should be 50. If the speed we've
