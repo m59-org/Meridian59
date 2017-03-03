@@ -49,6 +49,7 @@ resources:
       "of %d uses with %d power."
    spellitem_cannot_use_yet = "You cannot use that item yet."
    spellitem_disabled = "This item is currently disabled."
+   spellitem_need_mana = "You don't have enough mana!"
 
 classvars:
 
@@ -184,7 +185,7 @@ messages:
 
    ReqNewApply(what=$,apply_on=$)
    {
-      local iPostCastDelay, oSpell;
+      local iPostCastDelay, oSpell, iManaCost;
 
       if vbDisabled
       {
@@ -211,6 +212,13 @@ messages:
          {
             Send(what,@MsgSendUser,#message_rsc=spellitem_disabled);
 
+            return FALSE;
+         }
+
+         iManaCost = Send(oSpell,@GetManaCost,#who=what,#iSpellPower=piSpellPower,#lTargets=[apply_on]);
+         if Send(what,@GetMana) < iManaCost
+         {
+            Send(what,@MsgSendUser,#message_rsc=spellitem_need_mana);
             return FALSE;
          }
 
@@ -308,6 +316,7 @@ messages:
                    OR Send(Send(what,@GetOwner),@ReqSomethingAttack,#what=what,
                             #victim=apply_on)) )
       {
+         Send(what,@LoseMana,#amount=Send(oSpell,@GetManaCost,#who=what,#iSpellPower=iSpellPower,#lTargets=[apply_on]));
          Send(oSpell,@CastSpell,#who=poOwner,#lTargets=lTargets,
                #iSpellPower=iSpellPower,#bItemCast=TRUE);
       }
