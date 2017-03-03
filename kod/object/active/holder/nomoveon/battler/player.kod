@@ -16219,6 +16219,12 @@ messages:
 
    RefreshPhaseTimeToBase()
    {
+      if ptLoggedOnRefreshPhaseTimer <> $
+      {
+         DeleteTimer(ptLoggedOnRefreshPhaseTimer);
+         ptLoggedOnRefreshPhaseTimer = $;
+      }
+
       if piRemainingPhaseTime <> Send(self,@GetBasePhaseTime)
       {
          piRemainingPhaseTime = Send(self,@GetBasePhaseTime);
