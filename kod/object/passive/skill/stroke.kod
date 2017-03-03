@@ -202,7 +202,14 @@ messages:
       local skill_ability, damage;
       
       % base weapon damage
-      damage = send(weapon_used,@GetDamage,#who=who,#target=victim);
+      if weapon_used = $
+      {
+         return 0;
+      }
+      else
+      {
+         damage = send(weapon_used,@GetDamage,#who=who,#target=victim);
+      }
       
       % convert to high precision
       damage = damage*100;

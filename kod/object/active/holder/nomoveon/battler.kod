@@ -449,7 +449,7 @@ messages:
       return iMaxRes + iMinRes;
    }
 
-   GetDamageFromResistance(what = $, value = $)
+   GetDamageFromResistance(what = 0, value = $)
    "Adjust <what> damage according to the value multiplier"
    {
       local iDamage;
@@ -2082,7 +2082,10 @@ messages:
 
          if Nth(i,1) <= 0
          {
-            plStatusEffects = DelListElem(plStatusEffects,i);
+            if plStatusEffects <> $
+            {
+               plStatusEffects = DelListElem(plStatusEffects,i);
+            }
          }
       }
       

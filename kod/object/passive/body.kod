@@ -125,8 +125,11 @@ messages:
       % only the killer can pick up things for the first 25 seconds.
       ptNoSteal = CreateTimer(self,@NoStealTimer,25000);
       
-      % corpse cannot be summoned for 3 minutes
-      ptSummonDelayTimer = CreateTimer(self,@SummonDelayTimer,60000 * 3);
+      if NOT pbMob
+      {
+         % corpse cannot be summoned for 3 minutes
+         ptSummonDelayTimer = CreateTimer(self,@SummonDelayTimer,60000 * 3);
+      }
 
       propagate;
    }
@@ -148,6 +151,11 @@ messages:
       }
 
       return 0;
+   }
+
+   GetPbMob()
+   {
+      return pbMob;
    }
 
    GetSummonable()
@@ -483,6 +491,11 @@ messages:
    }
    
    ChangeBulkAndWeight()
+   {
+      return;
+   }
+
+   SetPlayerLegs()
    {
       return;
    }
