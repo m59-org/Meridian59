@@ -13213,6 +13213,11 @@ messages:
             continue;
          }
 
+         if Send(nObj,@IsUtilitySkill))
+         {
+            continue;
+         }
+
          % Is this in the same school?
          if Send(nObj,@GetSchool) = school
             AND Send(nobj,@GetLevel) = level
@@ -13232,8 +13237,6 @@ messages:
 
          if IsClass(nObj,&UtilitySpell)
             OR IsClass(nObj,&Blink)
-            OR (IsClass(nObj,&Skill)
-               AND Send(nObj,@IsUtilitySkill))
          {
             continue;
          }
@@ -13259,7 +13262,8 @@ messages:
       local bSkill, obj, level, school, division, iHave, prev_level,
             iSamediv, iOtherdiv, aHigh, bHigh, cHigh, iBase, i, temp,
             nObj, nSID, index, iNeed, nSchool, nLevel, msg, bKnowOne,
-            iWeapon, iKraanan, iShalille, iQor, iFaren, iRiija, iJala, iPoints;
+            iWeapon, iKraanan, iShalille, iQor, iFaren, iRiija, iJala,
+            iBanditry, iSorcery, iPoints;
 
       % Phase one. Assert our data. Be sure we have been fed a valid spell
       % and skill num for a spell item that actually exists.
@@ -13359,6 +13363,8 @@ messages:
       aHigh = 0; bHigh = 0; cHigh = 0;
 
       iWeapon = 0;
+      iBanditry = 0;
+      iSorcery = 0;
       iKraanan = 0;
       iShalille = 0;
       iQor = 0;
@@ -13383,10 +13389,11 @@ messages:
             return PLAYER_LEARN_ALREADY;
          }
 
+         nSchool = Send(nobj,@GetSchool);
          nLevel = Send(nobj,@GetLevel);
 
          % Is this in the same school at level N-1?
-         if school=Send(nobj,@GetSchool) AND (level-1) = (nLevel)
+         if school = nSchool AND (level-1) = (nLevel)
          {
             index = Send(self,@DecodeSkillAbility,#compound=i);
             if index > aHigh
@@ -13409,9 +13416,23 @@ messages:
             }
          }
 
-         if nLevel > iWeapon
+         if NOT Send(nobj,@IsUtilitySkill)
          {
-            iWeapon = nLevel;
+            if nSchool = SKS_FENCING
+               AND nLevel > iWeapon
+            {
+               iWeapon = nLevel;
+            }
+            if nSchool = SKS_BANDITRY
+               AND nLevel > iBanditry
+            {
+               iBanditry = nLevel;
+            }
+            if nSchool = SKS_SORCERY
+               AND nLevel > iSorcery
+            {
+               iSorcery = nLevel;
+            }
          }
       }
 
@@ -13468,7 +13489,6 @@ messages:
 
          if NOT IsClass(nobj,&Blink)  % DON'T COUNT BLINK!
             AND NOT IsClass(nobj,&UtilitySpell) % Don't count utility spells
-            AND NOT (IsClass(nobj,&Skill) AND Send(nobj,@IsUtilitySkill))
          {
             if nSchool = SS_KRAANAN
                AND nLevel > iKraanan
@@ -13544,6 +13564,8 @@ messages:
       % We have done all the information gathering, so now, lets compute:
 
       iPoints =  Send(SYS,@GetLevelLearnPoints,#level=iWeapon)
+               + Send(SYS,@GetLevelLearnPoints,#level=iBanditry)
+               + Send(SYS,@GetLevelLearnPoints,#level=iSorcery)
                + Send(SYS,@GetLevelLearnPoints,#level=iKraanan)
                + Send(SYS,@GetLevelLearnPoints,#level=iShalille)
                + Send(SYS,@GetLevelLearnPoints,#level=iQor)
@@ -13583,7 +13605,18 @@ messages:
          % nSchool will equal how much the intended school's points added.
          if bSkill
          {
-            nSchool = iWeapon;
+            if school = SKS_FENCING
+            {
+               nSchool = iWeapon;
+            }
+            if school = SKS_BANDITRY
+            {
+               nSchool = iBanditry;
+            }
+            if school = SKS_SORCERY
+            {
+               nSchool = iSorcery;
+            }
          }
          else
          {
@@ -13689,7 +13722,7 @@ messages:
    GetTotalLearnPoints(except = $)
    {
       local iSpell, iSID, oSpellObj, iSchool, iLevel, iKraanan, iShalille,
-            iQor, iFaren, iRiija, iJala, iWeapon, iTotalLearnPoints;
+            iQor, iFaren, iRiija, iJala, iWeapon, iBanditry, iSorcery, iTotalLearnPoints;
 
       iKraanan = 0;
       iShalille = 0;
@@ -13698,6 +13731,8 @@ messages:
       iRiija = 0;
       iJala = 0;
       iWeapon = 0;
+      iBanditry = 0;
+      iSorcery = 0;
 
       foreach iSpell in plSpells
       {
@@ -13750,25 +13785,41 @@ messages:
          }
       }
 
-      if except <> SKS_FENCING
+      foreach iSpell in plSkills
       {
-         foreach iSpell in plSkills
+         iSID = Send(self,@DecodeSpellNum,#compound=iSpell);
+         oSpellObj = Send(SYS,@FindSpellByNum,#num=iSID);
+
+         iSchool = Send(oSpellObj,@GetSchool);
+         iLevel = Send(oSpellObj,@GetLevel);
+
+         if NOT Send(oSpellObj,@IsUtilitySkill)
+            AND iSchool <> SS_DM_COMMAND
+            AND except <> iSchool
          {
-            iSID = Send(self,@DecodeSkillNum,#compound=iSpell);
-            oSpellObj = Send(SYS,@FindSkillByNum,#num=iSID);
-
-            iLevel = Send(oSpellObj,@GetLevel);
-
-            if iLevel > iWeapon
-               AND iLevel < 50       % Catch DM only skills
-               AND NOT Send(oSpellObj,@IsUtilitySkill)
+            if iSchool = SKS_FENCING
+               AND iLevel > iWeapon
             {
                iWeapon = iLevel;
+            }
+
+            if iSchool = SKS_BANDITRY
+               AND iLevel > iBanditry
+            {
+               iBanditry = iLevel;
+            }
+
+            if iSchool = SKS_SORCERY
+               AND iLevel > iSorcery
+            {
+               iSorcery = iLevel;
             }
          }
       }
 
       iTotalLearnPoints =  Send(SYS,@GetLevelLearnPoints,#level=iWeapon)
+                         + Send(SYS,@GetLevelLearnPoints,#level=iBanditry)
+                         + Send(SYS,@GetLevelLearnPoints,#level=iSorcery)
                          + Send(SYS,@GetLevelLearnPoints,#level=iKraanan)
                          + Send(SYS,@GetLevelLearnPoints,#level=iShalille)
                          + Send(SYS,@GetLevelLearnPoints,#level=iQor)
