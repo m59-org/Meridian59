@@ -1168,6 +1168,9 @@ properties:
    % Has the player opted out of PvP?
    pbOptOutPvP = FALSE
 
+   % Timer for refreshing phase time if players have been logged on for 5 minutes
+   ptLoggedOnRefreshPhaseTimer = $
+
 messages:
 
    Constructor()
@@ -2747,6 +2750,7 @@ messages:
       % off and back on.
       ptReward_timer = CreateTimer(self,@GetDailyTrainingReward,24*60*60*1000);
 
+      Post(self,@StartLoggedOnRefreshPhaseTime);
       return;
    }
 
@@ -2811,6 +2815,7 @@ messages:
                #wave_rsc=player_logged_off_wav_rsc);
       }
 
+      Post(self,@CancelLoggedOnRefreshPhaseTime);
       return;
    }
 
@@ -16000,6 +16005,41 @@ messages:
       }
 
       return $;
+   }
+
+   StartLoggedOnRefreshPhaseTime()
+   {
+      if ptLoggedOnRefreshPhaseTimer <> $
+      {
+         DeleteTimer(ptLoggedOnRefreshPhaseTimer);
+         ptLoggedOnRefreshPhaseTimer = $;
+      }
+      
+      if Send(self,@IsLoggedOn)
+      {
+         ptLoggedOnRefreshPhaseTimer = CreateTimer(self,@LoggedOnRefreshPhaseTime,60000 * 5);
+      }
+      
+      return;
+   }
+
+   CancelLoggedOnRefreshPhaseTime()
+   {
+      if ptLoggedOnRefreshPhaseTimer <> $
+      {
+         DeleteTimer(ptLoggedOnRefreshPhaseTimer);
+         ptLoggedOnRefreshPhaseTimer = $;
+      }
+      return;
+   }
+
+   LoggedOnRefreshPhaseTime(timer=$)
+   {
+      ptLoggedOnRefreshPhaseTimer = $;
+      
+      Send(self,@RefreshPhaseTimeToBase);
+      
+      return;
    }
 
    StartPhaseTimer()

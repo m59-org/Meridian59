@@ -225,6 +225,7 @@ messages:
          Send(who,@RemoveEnchantment,#what=self);
          Send(who,@LogonDelay);
          Send(who,@UnphaseMinions);
+         Post(who,@StartLoggedOnRefreshPhaseTime);
       }
       else
       {
@@ -238,6 +239,7 @@ messages:
          Post(who,@StartPhaseTimer);
          Post(who,@EffectSendUser,#what=self,#effect=EFFECT_PARALYZE_ON);
          Post(self,@NotifyRoomPhaseOut,#who=who);
+         Post(who,@CancelLoggedOnRefreshPhaseTime);
       }
 
       propagate;
