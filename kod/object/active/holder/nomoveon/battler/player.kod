@@ -8978,6 +8978,50 @@ messages:
       return TRUE;
    }
 
+   RemoveSpellAndCompensate(num = 0, iAmount = 0)
+   "Compensates Training Points for spell removed."
+   {
+      local oSpell, i, j, bFound;
+
+      if IsClass(self,&DM)
+      {
+         return;
+      }
+
+      oSpell = Send(SYS,@FindSpellbyNum,#num=num);
+      if oSpell = $
+      {
+         return;
+      }
+
+      bFound = FALSE;
+      foreach i in plSpells
+      {
+         if num = Send(self,@DecodeSpellNum,#compound=i)
+         {
+            Send(self,@AddTrainingPoints,#points=Send(self,@GetSpellAbility,#spell_num=num)*iAmount,#report=FALSE,#bCap=FALSE);
+
+            plSpells = DelListElem(plSpells,i);
+
+            Send(self,@ToCliRemoveSpell,#oSpell=oSpell);
+            Send(self,@PlayerIsIntriguing);
+
+            bFound = TRUE;
+            foreach j in plUsing
+            {
+               if IsClass(j,&DiscipleRobe)
+               {
+                  Send(j,@ResetColors);
+               }
+            }
+
+            return;
+         }
+      }
+
+      return;
+   }
+
    RemoveSpell(num = 0, isDM = FALSE)
    "Admin supported\n"
    "Removes a spell by spell ID from the user's castable list of spells"
@@ -12948,7 +12992,8 @@ messages:
          }
       }
 
-      if Send(poOwner,@BreakTrance,#who=self,#event=event)
+      if poOwner <> $
+         AND Send(poOwner,@BreakTrance,#who=self,#event=event)
       {
          bFound = TRUE;
       }
