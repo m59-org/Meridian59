@@ -173,6 +173,7 @@ messages:
    {
       plEdge_Exits = $;
       plEdge_Exits = Cons([ LEAVE_WEST, RID_DESERTPATH1, 11, 58, ROTATE_NONE ],plEdge_Exits);
+      plEdge_Exits = Cons([ LEAVE_NORTH, RID_DESERTCAVERAFT, 18, 4, ROTATE_NONE ],plEdge_Exits);
 
       propagate;
    }
@@ -649,6 +650,9 @@ messages:
             % Stop vertically scrolling water from animating.
             Send(self,@AnimateWall,#wall=14,#animation=ANIMATE_NONE,
                   #first_group=1,#second_group=1,#end_group=1);
+            % Make unpassable
+            Send(self,@AnimateWall,#wall=14,#animation=ANIMATE_NONE,#first_group=2,
+                  #passable=FALSE);
             % Change texture.
             Send(self,@ChangeTexture,#id=14,#new_texture=61017,
                   #flags=CTF_NORMALWALL);
