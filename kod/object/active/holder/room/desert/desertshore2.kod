@@ -29,8 +29,11 @@ classvars:
 
    vrName = room_name_desertshore2
 
-   viTeleport_row = 60
-   viTeleport_col = 102
+   viTeleport_row = 57
+   viTeleport_col = 30
+   
+   viTeleport_finerow = 48
+   viTeleport_finecol = 60
 
    vbSpawnMonsters = TRUE
    viMinSpawnCol = 49
@@ -95,6 +98,18 @@ messages:
       }
 
       propagate;
+   }
+
+   Teleport(what=$)
+   {
+      Send(SYS,@UtilGoNearSquare,#what=what,#where=self,
+           #new_row=viTeleport_row,
+           #new_col=viTeleport_col,
+           #fine_row=viTeleport_finerow,
+           #fine_col=viTeleport_finecol,
+           #new_angle=ANGLE_EAST);
+
+      return;
    }
 
 end
