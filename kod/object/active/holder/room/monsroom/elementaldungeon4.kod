@@ -1,0 +1,95 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ElementalDungeon4 is MonsterRoom
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   room_name_elementaldungeon4 = "Prism of Acid"
+   room_elementaldungeon4 = prismofacid.roo
+   elementaldungeon4_music = cave.mp3
+
+classvars:
+
+   vrName = room_name_elementaldungeon4
+
+   viTeleport_row = 42
+   viTeleport_col = 41
+
+properties:
+
+   prRoom = room_elementaldungeon4
+   piRoom_num = RID_ELEMENTAL_DUNGEON4
+
+   piBaseLight = LIGHT_MIN
+   piOutside_factor = 0
+
+   prMusic = elementaldungeon4_music
+
+   piGen_time = 30000
+   piGen_percent = 80
+
+   piInit_count_min = 4
+   piInit_count_max = 6
+
+   piMonster_count_max = 25
+   
+   plBossCoordinates = $
+
+messages:
+
+   Constructed()
+   {
+      plMonsters = [ [&XeoAcid, 100] ];
+
+      plGenerators = [ [22, 24], [61, 20], [47, 68], [15, 37], [12,61],
+                       [31, 52], [64, 46], [33, 34], [35, 18] ];
+
+      plBossCoordinates = [22, 64];
+
+      propagate;
+   }
+   
+   FirstUserEntered()
+   {
+      propagate;
+   }
+   
+   LastUserLeft()
+   {
+      propagate;
+   }
+
+   ReqSpellCast(who = $, oSpell = $)
+   {
+      local iQflags, iRflags, iHeightF, iHeightFWD, iHeightC, iServerID;
+
+      if IsClass(oSpell,&Phase)
+      {
+         if NOT IsClass(who,&Player)
+         {
+            propagate;
+         }
+
+         Post(who,@MsgSendUser,#message_rsc=fire_prism_phase_out);
+         Post(Send(SYS,@FindRoomByNum,#num=RID_WAYLAYOASIS),
+               @Teleport,#what=who);
+         return FALSE;
+      }
+
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
