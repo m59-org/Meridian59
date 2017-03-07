@@ -28,8 +28,8 @@ classvars:
 
    vrName = room_name_desertsandbar
 
-   viTeleport_row = 5
-   viTeleport_col = 5
+   viTeleport_row = 53
+   viTeleport_col = 24
 
 properties:
 
@@ -40,6 +40,8 @@ properties:
 
    prRoom = room_desertsandbar
    piRoom_num = RID_DESERTSANDBAR
+   
+   pbPrismOpen = FALSE
 
 messages:
 
@@ -96,6 +98,81 @@ messages:
       }
 
       propagate;
+   }
+
+   StartSnow(bOnGround=TRUE)
+   {
+      % Open Prism of Ice.
+      Send(self,@ChangeTexture,#id=200,#new_texture=07702,
+             #flags=CTF_FLOOR);
+      Send(self,@SetSectorFlags,#sector=200,#depth=SF_DEPTH0,
+            #scrollSpeed=SCROLL_NONE);
+      Send(self,@SetSector,#sector=200,#animation=ANIMATE_FLOOR_LIFT,
+            #height=5,#speed=0);
+
+      pbPrismOpen = TRUE;
+
+      propagate;
+   }
+
+   EndSnow(override=FALSE)
+   "Use override if rooms have manually placed textures."
+   {
+      Send(self,@RemoveTextureChange,#id=200);
+      Send(self,@RemoveSectorFlagChange,#id=200);
+      Send(self,@SetSector,#sector=200,#animation=ANIMATE_FLOOR_LIFT,
+            #height=1000,#speed=0);
+      
+      pbPrismOpen = FALSE;
+
+      propagate;
+   }
+
+   StartRain()
+   {
+      Send(self,@ChangeTexture,#id=200,#new_texture=09363,
+            #flags=CTF_FLOOR);
+      Send(self,@SetSectorFlags,#sector=13,#depth=SF_DEPTH1,
+            #scrollSpeed=SCROLL_SLOW);
+
+      propagate;
+   }
+   
+   EndRain()
+   {
+      Send(self,@RemoveTextureChange,#id=200);
+      Send(self,@RemoveSectorFlagChange,#id=200);
+
+      propagate;
+   }
+   
+   SpecialPhaseConditionsSatisfied(sector=0)
+   {
+      % Special Phase conditions
+      if sector=200
+         AND pbPrismOpen
+      {
+         return TRUE;
+      }
+
+      return FALSE;
+   }
+   
+   GetPhaseThreats()
+   {
+      switch(Send(SYS,@GetDayPhase))
+      {
+         case DAY_PHASE_DAWN:
+            return [&ShockStorm,&PhaseThreat];
+         case DAY_PHASE_DAY:
+            return [&HeatThreat,&PhaseThreat];
+         case DAY_PHASE_DUSK:
+            return [&AcidThreat,&PhaseThreat];
+         case DAY_PHASE_NIGHT:
+            return [&ColdThreat,&PhaseThreat];
+      }
+
+      return [&PhaseThreat];
    }
 
 end

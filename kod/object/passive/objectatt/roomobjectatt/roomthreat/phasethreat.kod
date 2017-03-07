@@ -74,9 +74,17 @@ messages:
             if Send(poHostObject,@SpecialPhaseConditionsSatisfied,
                   #sector=iServerID)
             {
+               if IsClass(poHostObject,&DesertRiver2)
+               {
+                  Post(Send(SYS,@FindRoomByNum,#num=RID_ELEMENTAL_DUNGEON1),
+                        @Teleport,#what=who);
+               }
+               if IsClass(poHostObject,&DesertSandbar)
+               {
+                  Post(Send(SYS,@FindRoomByNum,#num=RID_ELEMENTAL_DUNGEON3),
+                        @Teleport,#what=who);
+               }
                Post(who,@MsgSendUser,#message_rsc=phase_success);
-               Post(Send(SYS,@FindRoomByNum,#num=RID_ELEMENTAL_DUNGEON1),
-                     @Teleport,#what=who);
                Post(who,@EffectSendUserDuration,#effect=EFFECT_WHITEOUT,
                      #duration=1250);
                return FALSE;
