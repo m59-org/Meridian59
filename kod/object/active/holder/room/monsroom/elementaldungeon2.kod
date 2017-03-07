@@ -30,6 +30,11 @@ resources:
    
    item_dropped_msg = \
       "The %s falls into endless eternities of air!"
+   
+   lightning_prism_phase_out = \
+      "You phase out of the elemental plane of lightning, and are drawn along "
+      "the natural curvature of the region's mana flows. Tingling, but alive, "
+      "you find yourself at a familiar oasis."
 
 classvars:
 
@@ -268,6 +273,26 @@ messages:
    ReachedExit(who=$)
    {
       return;
+   }
+
+   ReqSpellCast(who = $, oSpell = $)
+   {
+      local iQflags, iRflags, iHeightF, iHeightFWD, iHeightC, iServerID;
+
+      if IsClass(oSpell,&Phase)
+      {
+         if NOT IsClass(who,&Player)
+         {
+            propagate;
+         }
+
+         Post(who,@MsgSendUser,#message_rsc=lightning_prism_phase_out);
+         Post(Send(SYS,@FindRoomByNum,#num=RID_WAYLAYOASIS),
+               @Teleport,#what=who);
+         return FALSE;
+      }
+
+      propagate;
    }
 
 end
