@@ -13360,7 +13360,7 @@ messages:
             iSamediv, iOtherdiv, aHigh, bHigh, cHigh, iBase, i, temp,
             nObj, nSID, index, iNeed, nSchool, nLevel, msg, bKnowOne,
             iWeapon, iKraanan, iShalille, iQor, iFaren, iRiija, iJala,
-            iBanditry, iSorcery, iPoints;
+            iBanditry, iSorcery, iWitchery, iPoints;
 
       % Phase one. Assert our data. Be sure we have been fed a valid spell
       % and skill num for a spell item that actually exists.
@@ -13462,6 +13462,7 @@ messages:
       iWeapon = 0;
       iBanditry = 0;
       iSorcery = 0;
+      iWitchery = 0;
       iKraanan = 0;
       iShalille = 0;
       iQor = 0;
@@ -13529,6 +13530,11 @@ messages:
                AND nLevel > iSorcery
             {
                iSorcery = nLevel;
+            }
+            if nSchool = SS_WITCHERY
+               AND nLevel > iWitchery
+            {
+               iWitchery = nLevel;
             }
          }
       }
@@ -13622,6 +13628,12 @@ messages:
             {
                iJala = nLevel;
             }
+
+            if nSchool = SS_WITCHERY
+               AND nLevel > iWitchery
+            {
+               iWitchery = nLevel;
+            }
          }
       }
 
@@ -13663,6 +13675,7 @@ messages:
       iPoints =  Send(SYS,@GetLevelLearnPoints,#level=iWeapon)
                + Send(SYS,@GetLevelLearnPoints,#level=iBanditry)
                + Send(SYS,@GetLevelLearnPoints,#level=iSorcery)
+               + Send(SYS,@GetLevelLearnPoints,#level=iWitchery)
                + Send(SYS,@GetLevelLearnPoints,#level=iKraanan)
                + Send(SYS,@GetLevelLearnPoints,#level=iShalille)
                + Send(SYS,@GetLevelLearnPoints,#level=iQor)
@@ -13714,6 +13727,10 @@ messages:
             {
                nSchool = iSorcery;
             }
+            if school = SS_WITCHERY
+            {
+               nSchool = iWitchery;
+            }
          }
          else
          {
@@ -13745,6 +13762,11 @@ messages:
             if school = SS_JALA
             {
                nSchool = iJala;
+            }
+
+            if school = SS_WITCHERY
+            {
+               nSchool = iWitchery;
             }
          }
 
@@ -13819,7 +13841,7 @@ messages:
    GetTotalLearnPoints(except = $)
    {
       local iSpell, iSID, oSpellObj, iSchool, iLevel, iKraanan, iShalille,
-            iQor, iFaren, iRiija, iJala, iWeapon, iBanditry, iSorcery, iTotalLearnPoints;
+            iQor, iFaren, iRiija, iJala, iWeapon, iBanditry, iSorcery, iWitchery, iTotalLearnPoints;
 
       iKraanan = 0;
       iShalille = 0;
@@ -13830,6 +13852,7 @@ messages:
       iWeapon = 0;
       iBanditry = 0;
       iSorcery = 0;
+      iWitchery = 0;
 
       foreach iSpell in plSpells
       {
@@ -13884,6 +13907,12 @@ messages:
             {
                iJala = iLevel;
             }
+
+            if iSchool = SS_WITCHERY
+               AND iLevel > iWitchery
+            {
+               iWitchery = iLevel;
+            }
          }
       }
 
@@ -13921,12 +13950,19 @@ messages:
             {
                iSorcery = iLevel;
             }
+
+            if iSchool = SS_WITCHERY
+               AND iLevel > iWitchery
+            {
+               iWitchery = iLevel;
+            }
          }
       }
 
       iTotalLearnPoints =  Send(SYS,@GetLevelLearnPoints,#level=iWeapon)
                          + Send(SYS,@GetLevelLearnPoints,#level=iBanditry)
                          + Send(SYS,@GetLevelLearnPoints,#level=iSorcery)
+                         + Send(SYS,@GetLevelLearnPoints,#level=iWitchery)
                          + Send(SYS,@GetLevelLearnPoints,#level=iKraanan)
                          + Send(SYS,@GetLevelLearnPoints,#level=iShalille)
                          + Send(SYS,@GetLevelLearnPoints,#level=iQor)
@@ -14951,11 +14987,12 @@ messages:
    GetSkillSchoolLevels(include_cant_forget=FALSE)
    {
       local i, lSchoolLevels, oSkill, iLevel, iWeaponCraftLevel, iCanForget, iSchool,
-            iBanditryLevel, iSorceryLevel;
+            iBanditryLevel, iSorceryLevel, iWitcheryLevel;
 
       iWeaponCraftLevel = 0;
       iBanditryLevel = 0;
       iSorceryLevel = 0;
+      iWitcheryLevel = 0;
       iLevel = 0;
       iCanForget = TRUE;
 
@@ -14990,11 +15027,18 @@ messages:
                   iSorceryLevel = iLevel;
                }
             }
+            if iSchool = SS_WITCHERY
+            {
+               if iLevel > iWitcheryLevel
+               {
+                  iWitcheryLevel = iLevel;
+               }
+            }
          }
 
       }
 
-      lSchoolLevels = [iWeaponCraftLevel,iBanditryLevel,iSorceryLevel];
+      lSchoolLevels = [iWeaponCraftLevel,iBanditryLevel,iSorceryLevel,iWitcheryLevel];
 
       return lSchoolLevels;
    }
@@ -15003,7 +15047,7 @@ messages:
    {
       local i, lSchoolLevels, oSpell, iSchool, iLevel, iCanForget,
             shalille_level, qor_level, kraanan_level, faren_level,
-            riija_level, jala_level;
+            riija_level, jala_level, witchery_level;
 
       shalille_level = 0;
       qor_level = 0;
@@ -15011,6 +15055,7 @@ messages:
       faren_level = 0;
       riija_level = 0;
       jala_level = 0;
+      witchery_level = 0;
       iCanForget = TRUE;
 
       % Get max level in each school. Yes, this is ugly but I'm trying for
@@ -15069,12 +15114,19 @@ messages:
                   jala_level = iLevel;
                }
             }
+            else if (iSchool = SS_WITCHERY)
+            {
+               if (iLevel > witchery_level)
+               {
+                  witchery_level = iLevel;
+               }
+            }
          }
       }
 
       % Order matters here, they appear in the order listed in blakston.khd.
       lSchoolLevels = [shalille_level,qor_level,kraanan_level,
-                       faren_level,riija_level,jala_level];
+                       faren_level,riija_level,jala_level,witchery_level];
 
       return lSchoolLevels;
    }
