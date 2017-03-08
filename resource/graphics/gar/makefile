@@ -13,7 +13,10 @@ BGFS = igreyinvis.bgf isitting.bgf itransferitem.bgf iexplosion.bgf irift.bgf \
        purplegemshard.bgf chaosgemshard.bgf greygemshard.bgf \
        rubygemshard.bgf glowgemshard.bgf diamondshard.bgf \
        lightningprismhuge.bgf xaerdun.bgf grd19081.bgf \
-       iminorlink.bgf grd91000.bgf grd91001.bgf grd91002.bgf
+       iminorlink.bgf grd91000.bgf grd91001.bgf grd91002.bgf ihex1.bgf \
+       ihexblue.bgf ihexshock.bgf ihexfire.bgf ihexacid.bgf ihexmagic.bgf \
+       ihexweapons.bgf ihexholy.bgf ihexunholy.bgf ihexleeches.bgf ihexbarbs.bgf \
+       ihexsap.bgf
 
 DIRS = 
 
