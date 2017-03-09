@@ -14,6 +14,7 @@ BOFS = slow.bof \
        becloud.bof \
        blackmantle.bof \
        drainhex.bof \
-       antireshex.bof
+       antireshex.bof \
+       nightgrip.bof
 
 !include $(KODDIR)\kod.mak

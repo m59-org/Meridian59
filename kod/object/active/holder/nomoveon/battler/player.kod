@@ -13360,7 +13360,7 @@ messages:
             iSamediv, iOtherdiv, aHigh, bHigh, cHigh, iBase, i, temp,
             nObj, nSID, index, iNeed, nSchool, nLevel, msg, bKnowOne,
             iWeapon, iKraanan, iShalille, iQor, iFaren, iRiija, iJala,
-            iBanditry, iSorcery, iWitchery, iPoints;
+            iBanditry, iSorcery, iWitchery, iPoints, iSubSchool;
 
       % Phase one. Assert our data. Be sure we have been fed a valid spell
       % and skill num for a spell item that actually exists.
@@ -13414,6 +13414,40 @@ messages:
       level = Send(obj,@GetLevel);
       school = Send(obj,@GetSchool);
       division = Send(obj,@GetDivision);
+      
+      % Check for Witchery hatreds.
+      if school = SS_WITCHERY
+      {
+         iSubSchool = Send(obj,@GetSubSchool);
+         if iSubSchool = SSS_WITCHERY_XAERDUN
+         {
+            if Send(self,@HasWitcherySubSchool,#school=SSS_WITCHERY_VENTDAL)
+            {
+               return PLAYER_LEARN_HAS_VENTDAL;
+            }
+         }
+         if iSubSchool = SSS_WITCHERY_VENTDAL
+         {
+            if Send(self,@HasWitcherySubSchool,#school=SSS_WITCHERY_XAERDUN)
+            {
+               return PLAYER_LEARN_HAS_XAERDUN;
+            }
+         }
+         if iSubSchool = SSS_WITCHERY_NEQUZON
+         {
+            if Send(self,@HasWitcherySubSchool,#school=SSS_WITCHERY_IWODACH)
+            {
+               return PLAYER_LEARN_HAS_IWODACH;
+            }
+         }
+         if iSubSchool = SSS_WITCHERY_IWODACH
+         {
+            if Send(self,@HasWitcherySubSchool,#school=SSS_WITCHERY_NEQUZON)
+            {
+               return PLAYER_LEARN_HAS_NEQUZON;
+            }
+         }
+      }
 
       % Phase three. We begin to find our need.  Start by finding out how many
       % spells exist at ALL at that level. While we are going through the spell
@@ -13836,6 +13870,39 @@ messages:
       % of spell or skill points they need, and y is the reason why they
       % failed.  Only condition is "not enough points".
       return ((10*(iNeed-iHave))+PLAYER_LEARN_BASE);
+   }
+
+   HasWitcherySubSchool(school=SSS_WITCHERY_NEQUZON)
+   {
+      local i, nSID, nobj;
+      
+      foreach i in plSpells
+      {
+         nSID=Send(self,@DecodeSpellNum,#compound=i);
+         nobj=Send(SYS,@FindSpellByNum,#num=nSID);
+         
+         if Send(nobj,@GetSchool) = SS_WITCHERY
+         {
+            if Send(nobj,@GetSubSchool) = school
+            {
+               return TRUE;
+            }
+         }
+      }
+      foreach i in plSkills
+      {
+         nSID=Send(self,@DecodeSkillNum,#compound=i);
+         nobj=Send(SYS,@FindSkillByNum,#num=nSID);
+         
+         if Send(nobj,@GetSchool) = SS_WITCHERY
+         {
+            if Send(nobj,@GetSubSchool) = school
+            {
+               return TRUE;
+            }
+         }
+      }
+      return FALSE;
    }
 
    GetTotalLearnPoints(except = $)
