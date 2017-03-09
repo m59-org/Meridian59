@@ -3032,6 +3032,26 @@ messages:
       return FALSE;
    }
 
+   RemoveMagicModOfClass(class=&ArmorMod)
+   {
+      local i;
+      
+      foreach i in plEnchantmentMods
+      {
+         if Nth(i,1) = class
+         {
+            plEnchantmentMods = DelListElem(plEnchantmentMods,i);
+         }
+      }
+      
+      if plEnchantmentMods = $
+      {
+         Send(self,@RemoveMagicFlag);
+      }
+
+      return;
+   }
+
    AddMagicMods(min_num_mods=0, max_num_mods=0)
    "General random decisions for adding one to multiple mods."
    {
