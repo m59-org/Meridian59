@@ -16,7 +16,8 @@ BGFS = igreyinvis.bgf isitting.bgf itransferitem.bgf iexplosion.bgf irift.bgf \
        iminorlink.bgf grd91000.bgf grd91001.bgf grd91002.bgf ihex1.bgf \
        ihexblue.bgf ihexshock.bgf ihexfire.bgf ihexacid.bgf ihexmagic.bgf \
        ihexweapons.bgf ihexholy.bgf ihexunholy.bgf ihexleeches.bgf ihexbarbs.bgf \
-       ihexsap.bgf
+       ihexsap.bgf ihexslow.bgf ihexblackmantle.bgf ihexweaken.bgf \
+       ihexfester.bgf ihexexhaustion.bgf ihexbecloud.bgf ihexbestill.bgf
 
 DIRS = 
 
