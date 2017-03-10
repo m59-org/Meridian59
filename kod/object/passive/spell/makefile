@@ -58,6 +58,7 @@ BOFS = animate.bof \
        sweep.bof \
        teleportspell.bof \
        utility.bof \
-       walspell.bof
+       walspell.bof \
+       movementspell.bof
 
 !include $(KODDIR)\kod.mak
