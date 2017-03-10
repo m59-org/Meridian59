@@ -149,6 +149,12 @@ messages:
    WeaponHitTarget()
    "Sword wears down rapidly in the hands of someone else, but does not break."
    {
+      if plEnchantmentMods <> $
+         AND NOT Send(SETTINGS_OBJECT,@GetLoseDurabilityMagicMods)
+      {
+         propagate;
+      }
+
       if poOwner <> poQuester
          AND piHits > 1
       {
