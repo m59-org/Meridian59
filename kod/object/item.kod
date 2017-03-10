@@ -90,6 +90,9 @@ resources:
    item_stats_agility_add = "%i Agility bonus\n"
    item_stats_mysticism_add = "%i Mysticism bonus\n"
    item_stats_aim_add = "%i Aim bonus\n"
+   item_stats_health_add = "%i max health\n"
+   item_stats_mana_add = "%i max mana\n"
+   item_stats_vigor_add = "%i max vigor\n"
    enchanted_gear_indestructible = "\nThis enchanted %s is indestructible."
 
    item_level_master = \
@@ -208,7 +211,7 @@ messages:
             iKraananPower, iJalaPower, iShalPower, iQorPower, iInstrumentPower,
             iNum, bID, iMinDamage, iMinDamageOwner, iAttackType,
             iMightChange, iIntellectChange, iStaminaChange, iAgilityChange,
-            iMysticismChange, iAimChange;
+            iMysticismChange, iAimChange, iHealthChange, iManaChange, iVigorChange;
 
       % This message 'telescopes' resources into the 5th %r of
       % item_desc_template. There are 17 different stats we can add;
@@ -226,7 +229,7 @@ messages:
 
       if Send(self,@GetRange) <> 0
       {
-         AddPacket(4,system_rsc_template_17, 4,special_properties_header,
+         AddPacket(4,system_rsc_template_18, 4,special_properties_header,
                    4,item_stats_range, 4,Send(self,@GetRange)/FINENESS);
          bFoundProperties = TRUE;
       }
@@ -241,7 +244,7 @@ messages:
          else
          {
             % bFoundProperties FALSE, add headers.
-            AddPacket(4,system_rsc_template_16, 4,special_properties_header,
+            AddPacket(4,system_rsc_template_17, 4,special_properties_header,
                       4,item_stats_offense, 4,Send(self,@GetHitBonus));
             bFoundProperties = TRUE;
          }
@@ -261,7 +264,7 @@ messages:
          }
          else
          {
-            AddPacket(4,system_rsc_template_15, 4,special_properties_header,
+            AddPacket(4,system_rsc_template_16, 4,special_properties_header,
                       4,item_stats_armor, 4,Send(self,@GetDamageReduction));
             bFoundProperties = TRUE;
          }
@@ -279,7 +282,7 @@ messages:
          }
          else
          {
-            AddPacket(4,system_rsc_template_14,4,special_properties_header,
+            AddPacket(4,system_rsc_template_15,4,special_properties_header,
                       4,item_stats_defense, 4,Send(self,@GetDefenseBonus));
             bFoundProperties = TRUE;
          }
@@ -297,7 +300,7 @@ messages:
          }
          else
          {
-            AddPacket(4,system_rsc_template_13, 4,special_properties_header,
+            AddPacket(4,system_rsc_template_14, 4,special_properties_header,
                       4,item_stats_melee, 4,Send(self,@GetMeleeDamageBonus));
             bFoundProperties = TRUE;
          }
@@ -312,7 +315,7 @@ messages:
       {
          if NOT bFoundProperties
          {
-            AddPacket(4,system_rsc_template_12, 4,special_properties_header);
+            AddPacket(4,system_rsc_template_13, 4,special_properties_header);
             bFoundProperties = TRUE;
          }
          if Send(self,@GetMaxDamage) <> iMinDamage
@@ -337,7 +340,7 @@ messages:
       {
          if NOT bFoundProperties
          {
-            AddPacket(4,system_rsc_template_11, 4,special_properties_header);
+            AddPacket(4,system_rsc_template_12, 4,special_properties_header);
             bFoundProperties = TRUE;
          }
          if Send(self,@GetMaxDamageWithOwnerStats)
@@ -362,7 +365,7 @@ messages:
       {
          if NOT bFoundProperties
          {
-            AddPacket(4,system_rsc_template_10, 4,special_properties_header);
+            AddPacket(4,system_rsc_template_11, 4,special_properties_header);
             bFoundProperties = TRUE;
          }
          if Send(self,@GetMaxSpecialDamage) <> Send(self,@GetMinSpecialDamage)
@@ -388,7 +391,7 @@ messages:
       {
          if NOT bFoundProperties
          {
-            AddPacket(4,system_rsc_template_9, 4,special_properties_header);
+            AddPacket(4,system_rsc_template_10, 4,special_properties_header);
             bFoundProperties = TRUE;
          }
          if Send(self,@GetMaxSpecialDamageWithOwnerStats)
@@ -417,7 +420,7 @@ messages:
          }
          else
          {
-            AddPacket(4,system_rsc_template_8, 4,special_properties_header,
+            AddPacket(4,system_rsc_template_9, 4,special_properties_header,
                       4,item_stats_dmg_bonus, 4,Send(self,@GetDamageBonus));
             bFoundProperties = TRUE;
          }
@@ -463,7 +466,7 @@ messages:
          {
             if NOT bFoundProperties
             {
-               AddPacket(4,system_rsc_template_7, 4,special_properties_header);
+               AddPacket(4,system_rsc_template_8, 4,special_properties_header);
                bFoundProperties = TRUE;
             }
             AddPacket(4,item_stats_gen_sp, 4,iFarenPower);
@@ -472,7 +475,7 @@ messages:
          {
             if NOT bFoundProperties
             {
-               AddPacket(4,system_rsc_template_7, 4,special_properties_header);
+               AddPacket(4,system_rsc_template_8, 4,special_properties_header);
                bFoundProperties = TRUE;
             }
 
@@ -545,7 +548,7 @@ messages:
       {
          if NOT bFoundProperties
          {
-            AddPacket(4,system_rsc_template_6, 4,special_properties_header);
+            AddPacket(4,system_rsc_template_7, 4,special_properties_header);
             bFoundProperties = TRUE;
          }
 
@@ -571,7 +574,7 @@ messages:
       {
          if NOT bFoundProperties
          {
-            AddPacket(4,system_rsc_template_5, 4,special_properties_header);
+            AddPacket(4,system_rsc_template_6, 4,special_properties_header);
             bFoundProperties = TRUE;
          }
 
@@ -604,7 +607,7 @@ messages:
       {
          if NOT bFoundProperties
          {
-            AddPacket(4,system_rsc_template_4, 4,special_properties_header);
+            AddPacket(4,system_rsc_template_5, 4,special_properties_header);
             bFoundProperties = TRUE;
          }
 
@@ -651,7 +654,7 @@ messages:
                {
                   if NOT bFoundProperties
                   {
-                     AddPacket(4,system_rsc_template_3,
+                     AddPacket(4,system_rsc_template_4,
                                4,special_properties_header);
                      bFoundProperties = TRUE;
                   }
@@ -661,7 +664,7 @@ messages:
                {
                   if NOT bFoundProperties
                   {
-                     AddPacket(4,system_rsc_template_3,
+                     AddPacket(4,system_rsc_template_4,
                                4,special_properties_header);
                      bFoundProperties = TRUE;
                   }
@@ -671,7 +674,7 @@ messages:
                {
                   if NOT bFoundProperties
                   {
-                     AddPacket(4,system_rsc_template_3,
+                     AddPacket(4,system_rsc_template_4,
                                4,special_properties_header);
                      bFoundProperties = TRUE;
                   }
@@ -681,7 +684,7 @@ messages:
                {
                   if NOT bFoundProperties
                   {
-                     AddPacket(4,system_rsc_template_3,
+                     AddPacket(4,system_rsc_template_4,
                                4,special_properties_header);
                      bFoundProperties = TRUE;
                   }
@@ -691,7 +694,7 @@ messages:
                {
                   if NOT bFoundProperties
                   {
-                     AddPacket(4,system_rsc_template_3,
+                     AddPacket(4,system_rsc_template_4,
                                4,special_properties_header);
                      bFoundProperties = TRUE;
                   }
@@ -701,7 +704,7 @@ messages:
                {
                   if NOT bFoundProperties
                   {
-                     AddPacket(4,system_rsc_template_3,
+                     AddPacket(4,system_rsc_template_4,
                                4,special_properties_header);
                      bFoundProperties = TRUE;
                   }
@@ -739,7 +742,7 @@ messages:
       {
          if NOT bFoundProperties
          {
-            AddPacket(4,system_rsc_template_2, 4,special_properties_header);
+            AddPacket(4,system_rsc_template_3, 4,special_properties_header);
             bFoundProperties = TRUE;
          }
          AddPacket(4,system_rsc_template_6);
@@ -802,6 +805,54 @@ messages:
       {
          AddPacket(4,system_blank_resource);
       }
+      
+      iHealthChange = Send(self,@GetHealthChange);
+      iManaChange = Send(self,@GetManaChange);
+      iVigorChange = Send(self,@GetVigorChange);
+      
+      if iHealthChange <> 0
+         OR iManaChange <> 0
+         OR iVigorChange <> 0
+      {
+         if NOT bFoundProperties
+         {
+            AddPacket(4,system_rsc_template_2, 4,special_properties_header);
+            bFoundProperties = TRUE;
+         }
+         AddPacket(4,system_rsc_template_3);
+         
+         if iHealthChange <> 0
+         {
+            AddPacket(4,item_stats_health_add, 4,iHealthChange);
+         }
+         else
+         {
+            AddPacket(4,system_blank_resource);
+         }
+         
+         if iManaChange <> 0
+         {
+            AddPacket(4,item_stats_mana_add, 4,iManaChange);
+         }
+         else
+         {
+            AddPacket(4,system_blank_resource);
+         }
+         
+         if iVigorChange <> 0
+         {
+            AddPacket(4,item_stats_vigor_add, 4,iVigorChange);
+         }
+         else
+         {
+            AddPacket(4,system_blank_resource);
+         }
+      }
+      else
+      {
+         AddPacket(4,system_blank_resource);
+      }
+      
 
       return;
    }
@@ -1631,12 +1682,80 @@ messages:
 
    AdjustsMaxHealth()
    {
+      if plEnchantmentMods <> $
+      {
+         if Send(self,@HasMagicModOfClass,#class=&HealthMod)
+         {
+            return TRUE;
+         }
+      }
+
       return FALSE;
    }
 
    AdjustsMaxMana()
    {
+      if plEnchantmentMods <> $
+      {
+         if Send(self,@HasMagicModOfClass,#class=&ManaMod)
+         {
+            return TRUE;
+         }
+      }
+
       return FALSE;
+   }
+
+   AdjustsMaxVigor()
+   {
+      if plEnchantmentMods <> $
+      {
+         if Send(self,@HasMagicModOfClass,#class=&VigorMod)
+         {
+            return TRUE;
+         }
+      }
+
+      return FALSE;
+   }
+
+   GetHealthChange()
+   {
+      if plEnchantmentMods <> $
+      {
+         if Send(self,@HasMagicModOfClass,#class=&HealthMod)
+         {
+            return Send(self,@GetStateMagicModOfClass,#class=&HealthMod);
+         }
+      }
+
+      return 0;
+   }
+
+   GetManaChange()
+   {
+      if plEnchantmentMods <> $
+      {
+         if Send(self,@HasMagicModOfClass,#class=&ManaMod)
+         {
+            return Send(self,@GetStateMagicModOfClass,#class=&ManaMod);
+         }
+      }
+
+      return 0;
+   }
+   
+   GetVigorChange()
+   {
+      if plEnchantmentMods <> $
+      {
+         if Send(self,@HasMagicModOfClass,#class=&VigorMod)
+         {
+            return Send(self,@GetStateMagicModOfClass,#class=&VigorMod);
+         }
+      }
+
+      return 0;
    }
 
    IsItemType(type = ITEMTYPE_MISC)
@@ -3031,6 +3150,21 @@ messages:
       return sum;
    }
 
+   GetStateMagicModOfClass(class=&ArmorMod)
+   {
+      local i;
+      
+      foreach i in plEnchantmentMods
+      {
+         if Nth(i,1) = class
+         {
+            return Nth(i,2);
+         }
+      }
+   
+      return 0;
+   }
+
    HasMagicModOfClass(class=&ArmorMod)
    {
       local i;
@@ -3080,9 +3214,9 @@ messages:
          return bAdded;
       }
 
-      if max_num_mods < 0
+      if min_num_mods < 0
       {
-         max_num_mods = 0;
+         min_num_mods = 0;
       }
 
       if max_num_mods > 6

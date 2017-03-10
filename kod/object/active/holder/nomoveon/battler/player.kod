@@ -1542,8 +1542,21 @@ messages:
    
    CalculateVigorThreshold()
    {
-      return 80 + piRacialVigorMod + ((Send(self,@GetSkillAbility,
-                           #Skill_num=SKID_SECOND_WIND) + 1) / 5);
+      local i, iItemVigorBonus;
+
+      iItemVigorBonus = 0;
+      % Account for any items that may affect max vigor
+      foreach i in plUsing
+      {
+         if Send(i,@AdjustsMaxVigor)
+         {
+            iItemVigorBonus = iItemVigorBonus + Send(i,@GetVigorChange);
+         }
+      }
+
+      return 80 + iItemVigorBonus
+                + piRacialVigorMod
+                + ((Send(self,@GetSkillAbility,#Skill_num=SKID_SECOND_WIND) + 1) / 5);
    }
 
    %%% Player flags
