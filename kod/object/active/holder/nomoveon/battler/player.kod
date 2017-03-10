@@ -13360,7 +13360,8 @@ messages:
             iSamediv, iOtherdiv, aHigh, bHigh, cHigh, iBase, i, temp,
             nObj, nSID, index, iNeed, nSchool, nLevel, msg, bKnowOne,
             iWeapon, iKraanan, iShalille, iQor, iFaren, iRiija, iJala,
-            iBanditry, iSorcery, iWitchery, iPoints, iSubSchool;
+            iBanditry, iSorcery, iWitchery, iPoints;
+      % This function is at parameter limit.
 
       % Phase one. Assert our data. Be sure we have been fed a valid spell
       % and skill num for a spell item that actually exists.
@@ -13418,29 +13419,28 @@ messages:
       % Check for Witchery hatreds.
       if school = SS_WITCHERY
       {
-         iSubSchool = Send(obj,@GetSubSchool);
-         if iSubSchool = SSS_WITCHERY_XAERDUN
+         if Send(obj,@GetSubSchool) = SSS_WITCHERY_XAERDUN
          {
             if Send(self,@HasWitcherySubSchool,#school=SSS_WITCHERY_VENTDAL)
             {
                return PLAYER_LEARN_HAS_VENTDAL;
             }
          }
-         if iSubSchool = SSS_WITCHERY_VENTDAL
+         if Send(obj,@GetSubSchool) = SSS_WITCHERY_VENTDAL
          {
             if Send(self,@HasWitcherySubSchool,#school=SSS_WITCHERY_XAERDUN)
             {
                return PLAYER_LEARN_HAS_XAERDUN;
             }
          }
-         if iSubSchool = SSS_WITCHERY_NEQUZON
+         if Send(obj,@GetSubSchool) = SSS_WITCHERY_NEQUZON
          {
             if Send(self,@HasWitcherySubSchool,#school=SSS_WITCHERY_IWODACH)
             {
                return PLAYER_LEARN_HAS_IWODACH;
             }
          }
-         if iSubSchool = SSS_WITCHERY_IWODACH
+         if Send(obj,@GetSubSchool) = SSS_WITCHERY_IWODACH
          {
             if Send(self,@HasWitcherySubSchool,#school=SSS_WITCHERY_NEQUZON)
             {
