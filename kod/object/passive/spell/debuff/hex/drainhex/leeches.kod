@@ -27,12 +27,15 @@ resources:
    leeched_msg = "Your strike leeches %i health!"
    leeched_from_msg = "You shiver as %i health drains away."
 
+   leeches_intro = \
+      "Witchery through Xaerdun lv. 2: Leech health from cursed victim."
+
    leeches_name_rsc = "leeches"
    leeches_icon_rsc = ihexleeches.bgf
    leeches_desc_rsc = \
       "Afflicts your victim with phantom leeches that grant all who strike them "
       "a bit of sapped health. "
-      "This hex requires two orc teeth to cast."
+      "This hex requires an herb to cast."
 
    leeches_sound = qenfeebl.wav
 
@@ -47,6 +50,8 @@ classvars:
    vrEnchantment_Off = leeches_stop
    vrSuccess = leeches_cast_rsc
    vrInformRoom = has_been_hexed_leeches
+
+   vrSpell_intro = leeches_intro
 
    viSpell_num = SID_HEX_LEECHES
    viSchool = SS_WITCHERY
@@ -71,7 +76,7 @@ messages:
    ResetReagents()
    {
       plReagents = $;
-      plReagents = Cons([&OrcTooth,3],plReagents);
+      plReagents = Cons([&Herbs,1],plReagents);
 
       return;
    }
@@ -94,6 +99,11 @@ messages:
       }
 
       return;
+   }
+
+   OfferToNewCharacters()
+   {
+      return TRUE;
    }
 
 end

@@ -29,7 +29,10 @@ resources:
    corrosion_icon_rsc = ihexacid.bgf
    corrosion_desc_rsc = \
       "Corrodes your victim, empowering acid attacks against them."
-      " This hex requires two orc teeth to cast."
+      " This hex requires two entroot berries to cast."
+
+   corrosion_intro = \
+      "Witchery through Nequzon lv. 2: Reduces cursed victim's acid resistance."
 
    corrosion_sound = qenfeebl.wav
 
@@ -44,6 +47,8 @@ classvars:
    vrEnchantment_Off = corrosion_stop
    vrSuccess = corrosion_cast_rsc
    vrInformRoom = has_been_hexed_corrosion
+
+   vrSpell_intro = corrosion_intro
 
    viSpell_num = SID_HEX_CORROSION
    viSchool = SS_WITCHERY
@@ -72,10 +77,16 @@ messages:
    ResetReagents()
    {
       plReagents = $;
-      plReagents = Cons([&OrcTooth,2],plReagents);
+      plReagents = Cons([&EntrootBerry,2],plReagents);
 
       return;
    }
+
+   OfferToNewCharacters()
+   {
+      return TRUE;
+   }
+
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
