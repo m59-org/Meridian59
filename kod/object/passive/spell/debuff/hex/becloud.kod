@@ -60,7 +60,7 @@ classvars:
 properties:
 
    % Lower this percentage of offense
-   piBaseEffect = 7
+   piBaseEffect = 15
 
    piFlatDuration = 25000
 
@@ -76,16 +76,7 @@ messages:
 
    ModifyHitRoll(who=$,what=$,hit_roll=$,state=0)
    {
-      local oWeapon;
-      
-      oWeapon = Send(who,@GetWeapon);
-      if oWeapon <> $
-         AND IsClass(oWeapon,&RangedWeapon)
-      {
-         return (hit_roll * (100 - ((piBaseEffect * state)/100)))/100;
-      }
-      
-      return hit_roll;
+      return (hit_roll * (100 - ((piBaseEffect * state)/100)))/100;
    }
 
 end
