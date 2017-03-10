@@ -118,7 +118,12 @@ messages:
       
       iHexEffect = iCasterIncHexEffect - iTargetHexResistance;
       
-      if iHexEffect = 0
+      if IsClass(oTarget,&Monster)
+      {
+         iHexEffect = iHexEffect * 2;
+      }
+
+      if iHexEffect <= 0
       {
          if IsClass(what,&User)
          {
@@ -174,11 +179,11 @@ messages:
          {
             Send(who,@MsgSendUser,#message_rsc=vrEnchantment_Off);
          }
-      }
-      
-      if viResistanceType <> 0
-      {
-         Post(who,@DrawResistances);
+
+         if viResistanceType <> 0
+         {
+            Post(who,@DrawResistances);
+         }
       }
 
       return;
