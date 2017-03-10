@@ -166,6 +166,12 @@ messages:
    % This will reduce the damage that armor is taking in battle currently.
    DefendingHit(who = $,what = $)
    {
+      if plEnchantmentMods <> $
+         AND NOT Send(SETTINGS_OBJECT,@GetLoseDurabilityMagicMods)
+      {
+         propagate;
+      }
+
       % 50% chance to get damaged.
       if (random(1,100) < DAMAGE_CHANCE)
       {

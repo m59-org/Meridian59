@@ -77,6 +77,12 @@ messages:
 
    DefendingHit(who = $,what = $)
    {
+      if plEnchantmentMods <> $
+         AND NOT Send(SETTINGS_OBJECT,@GetLoseDurabilityMagicMods)
+      {
+         return;
+      }
+
       if random(1,100) < 75
       {
          piHits = piHits - 1;

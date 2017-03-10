@@ -90,6 +90,7 @@ resources:
    item_stats_agility_add = "%i Agility bonus\n"
    item_stats_mysticism_add = "%i Mysticism bonus\n"
    item_stats_aim_add = "%i Aim bonus\n"
+   enchanted_gear_indestructible = "\nThis enchanted %s is indestructible."
 
    item_level_master = \
       "\n\nIt has an item level of %i and has been imbued "
@@ -1125,6 +1126,13 @@ messages:
    {
       local iHit_Percent, rItem_condition;
 
+      if plEnchantmentMods <> $
+         AND NOT Send(SETTINGS_OBJECT,@GetLoseDurabilityMagicMods)
+      {
+         AddPacket(4,enchanted_gear_indestructible,4,Send(self,@GetName));
+         return;
+      }
+
       if vbShow_Condition
          AND piHits_init > 0
       {
@@ -1580,6 +1588,12 @@ messages:
 
    DefendingHit(who = $,what = $)
    {
+      if plEnchantmentMods <> $
+         AND NOT Send(SETTINGS_OBJECT,@GetLoseDurabilityMagicMods)
+      {
+         return;
+      }
+
       % Set to 75% currently
       if random(1,100) < ARMOR_TAKE_DAMAGE_PCT   
       {
