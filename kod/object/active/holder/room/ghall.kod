@@ -92,6 +92,9 @@ resources:
    cannot_conveyance_msg = \
       "The guild hall's innate defenses prevent you from casting conveyance!"
 
+   cannot_movement_spell_msg = \
+      "The guild hall's innate defenses keep you too grounded to cast a movement spell!"
+
    guildhall_sound_down = shielddn.wav
    guildhall_sound_up = shieldup.wav
 
@@ -1328,6 +1331,16 @@ messages:
             AND IsClass(who,&Player)
          {
             Send(who,@MsgSendUser,#message_rsc=cannot_conveyance_msg);
+         }
+         return FALSE;
+      }
+
+      if IsClass(oSpell,&MovementSpell)
+      {
+         if who <> $
+            AND IsClass(who,&Player)
+         {
+            Send(who,@MsgSendUser,#message_rsc=cannot_movement_spell_msg);
          }
          return FALSE;
       }
