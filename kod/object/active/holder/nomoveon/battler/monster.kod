@@ -5094,7 +5094,7 @@ messages:
    CalculateManaTime()
    "Calculate # of milliseconds until monster will gain a mana point."
    {
-      local iTime, oSpell;
+      local iTime, oSpell, i;
 
       % Old system had monsters regenerating 1 mana point per second.
       % Do the same here for now.
@@ -5104,7 +5104,16 @@ messages:
       }
       else
       {
-         iTime =  1000;
+         iTime = 1000;
+      }
+
+      if iTime = 1000
+      {
+         foreach i in Send(self,@GetEnchantmentsByClass,#enchClass=&Hex)
+         {
+            iTime = Send(Nth(i,2),@ModifyManaRegenTime,
+                                 #state=Nth(i,3),#regen=iTime);
+         }
       }
 
       return iTime;

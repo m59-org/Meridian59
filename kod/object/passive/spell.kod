@@ -1864,7 +1864,7 @@ messages:
    GetManaCost(who=$,iSpellPower=0,lTargets=$)
    "Returns number of magic points needed to cast spell"
    {
-      local iCost, oPrincessShield;
+      local iCost, oPrincessShield, i;
 
       if iSpellPower = $
       {
@@ -1902,6 +1902,12 @@ messages:
       {
          iCost = iCost - Send(oPrincessShield,@GetSpellManaReduction,
                                #lTargets=lTargets);
+      }
+
+      foreach i in Send(who,@GetEnchantmentsByClass,#enchClass=&Hex)
+      {
+         iCost = Send(Nth(i,2),@ModifyManaCost,
+                              #state=Nth(i,3),#cost=iCost);
       }
       
       return bound(iCost,1,$);

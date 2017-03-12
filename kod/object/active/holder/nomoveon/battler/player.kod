@@ -3680,7 +3680,7 @@ messages:
 
       foreach i in Send(self,@GetEnchantmentsByClass,#enchClass=&Hex)
       {
-         iDifference = Send(Nth(i,2),@ModifyRegenAmount,
+         iDifference = Send(Nth(i,2),@ModifyHealthRegenAmount,
                                  #state=Nth(i,3),#regen=iDifference);
       }
 
@@ -6437,6 +6437,17 @@ messages:
          }
       }
 
+      if what <> $
+         AND (IsClass(what,&Player)
+             OR IsClass(what,&Monster))
+      {
+         foreach i in Send(what,@GetEnchantmentsByClass,#enchClass=&Hex)
+         {
+            Send(Nth(i,2),@ReflectPhysicalDamage,#who=self,#what=what,#state=Nth(i,3),#damage=damage,#atype=atype,#aspell=aspell,#stroke_obj=stroke_obj);
+            Send(Nth(i,2),@ReflectElementalDamage,#who=self,#what=what,#state=Nth(i,3),#damage=damage,#atype=atype,#aspell=aspell,#stroke_obj=stroke_obj);
+         }
+      }
+
       return damage;
    }
 
@@ -7509,7 +7520,7 @@ messages:
    CalculateManaTime()
    "Calculate # of milliseconds until user will gain a mana point"
    {
-      local iTime, oSpell, iSpellPower;
+      local iTime, oSpell, iSpellPower, i;
 
       if piMana > piBaseMax_mana
       {
@@ -7538,7 +7549,13 @@ messages:
                            #time=iTime);
          }
       }
-                     
+
+      foreach i in Send(self,@GetEnchantmentsByClass,#enchClass=&Hex)
+      {
+         iTime = Send(Nth(i,2),@ModifyManaRegenTime,
+                              #state=Nth(i,3),#regen=iTime);
+      }
+
       if Send(self,@GetStance) <> $
       {
          iTime = Send(Send(self,@GetStance),@ModifyRejuvenationTime,#who=self,#iTime=iTime);
