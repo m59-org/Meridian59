@@ -3206,6 +3206,8 @@ messages:
       piMax_mana = Send(self, @GetInitialMaxMana);
       piMana = piMax_mana;
 
+      Send(self,@SetExperience,#iAmount=0);
+
       poKill_target = $;
       piKarma = 0;
 
@@ -10273,6 +10275,13 @@ messages:
    GetGainChance()
    {
       return piGain_chance;
+   }
+
+   SetExperience(iAmount=0)
+   {
+      piExperience = iAmount;
+      Post(self,@DrawHPChance);
+      return;
    }
 
    AddExperience(iAmount=$)
