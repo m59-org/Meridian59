@@ -7,7 +7,7 @@
 DEPEND = ..\xeochctl.bof
 BOFS  = xeofire.bof xeowater.bof xeoearth.bof xeoair.bof \
         xeoacid.bof xeounholy.bof xeoholy.bof xeoneru.bof \
-        xeoill.bof xeobossfire.bof
+        xeoill.bof xeobossfire.bof xeobossfire2.bof xeobossfire3.bof
 
 
 !include $(KODDIR)\kod.mak

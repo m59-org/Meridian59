@@ -114,7 +114,14 @@ resources:
       "~r~BThe earth rumbles, and the lava below begins churning fiercely."
    prism_closed_msg = \
       "~rThe ground trembles, and the heat from below ebbs slightly."
-   
+
+   cant_movement_spell_msg = \
+      "Using a movement spell here would be far too dangerous!"
+
+   booted_for_reset_msg = \
+      "A mighty tide of welling energies bounces you through the region's "
+      "natural curvature, depositing you far away."
+
    burning_step_sound = frying.wav
 
 classvars:
@@ -140,6 +147,9 @@ properties:
    
    pbPrismOpen = FALSE
    pbPrismOfFireDefeated = FALSE
+
+   ptPrismOfFireReset = $
+   piHoursLeftReset = 47
 
 messages:
    
@@ -293,6 +303,11 @@ messages:
       {
          DeleteTimer(ptFireElementsTimer);
          ptFireElementsTimer = $;
+      }
+      if ptPrismOfFireReset <> $
+      {
+         DeleteTimer(ptPrismOfFireReset);
+         ptPrismOfFireReset = $;
       }
       
       propagate;
@@ -691,7 +706,39 @@ messages:
       vrName = room_name_defeated;
       Send(self,@EndAllThreats);
       pbPrismOfFireDefeated = TRUE;
+      
+      piHoursLeftReset = 47;
+      ptPrismOfFireReset = CreateTimer(self,@PrismOfFireReset,60000 * 60); % 1 hour, counts down 48 times
 
+      Send(self,@StartThreat,#cClasses=Send(self,@GetPhaseThreats),#report=TRUE);
+      return;
+   }
+
+   PrismOfFireReset()
+   {
+      local i;
+
+      ptPrismOfFireReset = $;
+      
+      if piHoursLeftReset > 0
+      {
+         --piHoursLeftReset;
+         ptPrismOfFireReset = CreateTimer(self,@PrismOfFireReset,60000 * 60); % 1 hour, counts down 48 times
+         return;
+      }
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&Player)
+         {
+            Send(First(i),@MsgSendUser,#message_rsc=booted_for_reset_msg);
+            Send(Send(SYS,@FindRoomByNum,#num=RID_WAYLAYOASIS),@Teleport,#what=First(i));
+         }
+      }
+      
+      Post(self,@Delete);
+      Post(SYS,@CreateOneRoomIfNew,#num=RID_DESERTRIVER2,#class=&DesertRiver2);
+      
       return;
    }
 
@@ -710,6 +757,21 @@ messages:
       }
 
       return FALSE;
+   }
+   
+   ReqSpellCast(oSpell=$,who=$)
+   {
+      if IsClass(oSpell,&MovementSpell)
+      {
+         if who <> $
+            AND IsClass(who,&Player)
+         {
+            Send(who,@MsgSendUser,#message_rsc=cant_movement_spell_msg);
+         }
+         return FALSE;
+      }
+
+      propagate;
    }
 
 end

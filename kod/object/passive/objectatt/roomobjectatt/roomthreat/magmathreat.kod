@@ -84,7 +84,7 @@ properties:
 
    % What height room are we dealing with here?
    % Send a height at creation if this isn't Abyssal Bore.
-   piRoomMaxHeight = 508
+   piRoomMaxHeight = 1050
 
    % If this isn't Abyssal Bore, use iDamage sent at creation.
    piLavaDamageMax = 900
@@ -136,7 +136,8 @@ messages:
 
    DoLavaRumble()
    {
-      Send(poHostObject,@Rumble,#duration=piRumbleDuration);
+     % Interferes with room's events
+     % Send(poHostObject,@Rumble,#duration=piRumbleDuration);
 
       return;
    }
@@ -148,7 +149,7 @@ messages:
       
       iHeight = Send(who,@GetHeightAtObject);
 
-      if iHeight > 500
+      if iHeight > 993
       {
          iInitialDamage = 200;
          iInitialVigorDrain = 0;
@@ -171,8 +172,6 @@ messages:
       {
          Send(who,@MsgSendUser,#message_rsc=magma_weak_damage_msg);
       }
-
-      Send(who,@WaveSendUser,#wave_rsc=magma_sound);
 
       Send(who,@AddExertion,#amount=iVigorDrain);
       iDamageResult = Send(who,@AssessDamage,#what=self,
