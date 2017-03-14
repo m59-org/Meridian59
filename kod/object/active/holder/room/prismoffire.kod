@@ -53,6 +53,13 @@ resources:
    lava_step_sound = frying.wav
    fire_quake_sound = earthquake03.wav
    
+   players_gathering_msg = \
+      "A small pocket of mortal reality has formed here in the primordial rock. "
+      "As planes clash, you sense that this pocket will expand shortly."
+   
+   players_have_gathered_msg = \
+      "Your incursion of livable reality expands further into the elemental plane of fire."
+
    killed_first_boss_msg = \
       "~BAs %s lands a lethal blow on %s%s, the elemental fires react violently! "
       "You delve slightly deeper into this exotic plane, and your pocket of "
@@ -89,6 +96,8 @@ properties:
 
    piSpawnTime = 60000  % Shrinks by five seconds each iteration
    ptSpawnTimer = $
+   
+   ptPlayersGathering = $
    
    ptRaiseFirstAreaPlatforms = $
    ptSecondAreaScrollTimer = $
@@ -153,9 +162,41 @@ messages:
 
    FirstUserEntered()
    {
+      local i;
+
       Post(self,@StartThreat,#cClasses=[&MagmaThreat,&PhaseThreat]);
-      Post(self,@LowerInitialPlatform);
+      
+      if ptPlayersGathering = $
+      {
+         ptPlayersGathering = CreateTimer(self,@PlayersHaveGathered,60000);
+      }
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&Player)
+         {
+            Post(First(i),@MsgSendUser,#message_rsc=players_gathering_msg);
+         }
+      }
+      
       propagate;
+   }
+
+   PlayersHaveGathered()
+   {
+      local i;
+      ptPlayersGathering = $;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&Player)
+         {
+            Send(First(i),@MsgSendUser,#message_rsc=players_have_gathered_msg);
+         }
+      }
+
+      Post(self,@LowerInitialPlatform);
+      return;
    }
 
    LastUserLeft()
@@ -443,6 +484,12 @@ messages:
 
    Delete()
    {
+      if ptPlayersGathering <> $
+      {
+         DeleteTimer(ptPlayersGathering);
+         ptPlayersGathering = $;
+      }
+
       if ptRaiseFirstAreaPlatforms <> $
       {
          DeleteTimer(ptRaiseFirstAreaPlatforms);
@@ -650,6 +697,12 @@ messages:
       Send(self,@SetSector,#sector=RING_ONE,#animation=ANIMATE_FLOOR_LIFT,#height=1400,#speed=0);
       Send(self,@SetSector,#sector=INITIAL_PLATFORM,#animation=ANIMATE_FLOOR_LIFT,#height=2000,#speed=0);
 
+      if ptPlayersGathering <> $
+      {
+         DeleteTimer(ptPlayersGathering);
+         ptPlayersGathering = $;
+      }
+
       if ptRaiseFirstAreaPlatforms <> $
       {
          DeleteTimer(ptRaiseFirstAreaPlatforms);
@@ -686,9 +739,18 @@ messages:
    {
       % If players log on, send them elsewhere.
       if IsClass(what,&User)
-         AND (Send(what,@GetOwner) = $)
       {
-         Post(Send(SYS,@FindRoomByNum,#num=RID_DESERTRIVER2),@Teleport,#what=what);
+         if Send(what,@GetOwner) = $
+         {
+            Post(Send(SYS,@FindRoomByNum,#num=RID_DESERTRIVER2),@Teleport,#what=what);
+         }
+         else
+         {
+            if ptPlayersGathering <> $
+            {
+               Post(what,@MsgSendUser,#message_rsc=players_gathering_msg);
+            }
+         }
       }
 
       propagate;
