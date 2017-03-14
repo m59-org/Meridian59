@@ -153,7 +153,8 @@ messages:
       % Check for enchantment already applied
       if Send(oTarget,@IsEnchanted,#what=self)
       {
-         if Send(who,@HasReservedSpell,#oSpell=self)
+         if IsClass(who,&Player)
+            AND Send(who,@HasReservedSpell,#oSpell=self)
          {
             if Send(who,@UnReserveSpell,#oSpell=self)
             {
