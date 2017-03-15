@@ -16,7 +16,7 @@ constants:
 
 resources:
 
-   room_deserttomb1 = deserttomb1.roo
+   room_deserttomb1 = deserttomb3.roo
    room_name_deserttomb1 = "Desolate Dunes"
    
    enter_tomb_msg = \
@@ -45,11 +45,37 @@ messages:
 
    SomethingTryGo(what = $,row = $,col = $)
    {
+      % CONFIGURATION 1
       if row = 37 
          OR row = 36
       {
          if col = 121
             OR col = 122
+         {
+            Send(what,@MsgSendUser,#message_rsc=enter_tomb_msg);
+            Send(Send(SYS,@FindRoomByNum,#num=RID_ANCIENT_TOMB_START),@Teleport,#what=what);
+         }
+
+         return TRUE;
+      }
+      % CONFIGURATION 2
+      if row = 98
+      {
+         if col = 62
+            OR col = 63
+         {
+            Send(what,@MsgSendUser,#message_rsc=enter_tomb_msg);
+            Send(Send(SYS,@FindRoomByNum,#num=RID_ANCIENT_TOMB_START),@Teleport,#what=what);
+         }
+
+         return TRUE;
+      }
+      % CONFIGURATION 3
+      if row = 13
+         OR row = 12
+      {
+         if col = 49
+            OR col = 48
          {
             Send(what,@MsgSendUser,#message_rsc=enter_tomb_msg);
             Send(Send(SYS,@FindRoomByNum,#num=RID_ANCIENT_TOMB_START),@Teleport,#what=what);
