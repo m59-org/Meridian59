@@ -77,13 +77,13 @@ messages:
    CanPayCosts(who = $, lTargets = $)
    {
       % Check for enchantment already applied
-      if Send(who,@CheckPlayerFlag,#flag=PFLAG_MORPHED)
-      {
-         Send(who,@MsgSendUser,#message_rsc=morph_already_enchanted,
-              #parm1=Send(self,@GetIndef),#parm2=Send(self,@GetName));
-         
-         return FALSE;
-      }
+%      if Send(who,@CheckPlayerFlag,#flag=PFLAG_MORPHED)
+%      {
+%         Send(who,@MsgSendUser,#message_rsc=morph_already_enchanted,
+%              #parm1=Send(self,@GetIndef),#parm2=Send(self,@GetName));
+%         
+%         return FALSE;
+%      }
 
       propagate;
    }
@@ -125,6 +125,11 @@ messages:
       {
          % Remove Illusionary form
          Send(victim,@RemoveEnchantmentClass,#class=&IllusionaryForm);
+      }
+      if Send(victim,@IsEnchanted,#byClass=&Morph)
+      {
+         % Remove Morph
+         Send(victim,@RemoveEnchantmentClass,#class=&Morph);
       }
    
       oRoom = Send(victim,@GetOwner);
