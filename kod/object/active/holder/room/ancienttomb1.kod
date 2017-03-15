@@ -331,6 +331,88 @@ messages:
       propagate;
    }
 
+   StartSnow(bOnGround=TRUE)
+   {
+      % Add snow to floor.
+      Send(self,@ChangeTexture,#id=200,#new_texture=61015,#flags=CTF_FLOOR);
+
+      Send(self,@SetRoomFlag,#flag=ROOM_SNOWING,#value=TRUE);
+      Send(self,@WeatherChanged);
+
+      return;
+   }
+
+   EndSnow(override=FALSE)
+   "Use override if rooms have manually placed textures."
+   {
+      if Send(self,@CheckRoomFlag,#flag=ROOM_SNOWING)
+      {
+         Send(self,@SetRoomFlag,#flag=ROOM_SNOWING,#value=FALSE);
+         Send(self,@WeatherChanged);
+         % Remove snow from floor.
+         Send(self,@RemoveTextureChange,#id=200);
+      }
+
+      return;
+   }
+
+   StartRain()
+   {
+      Send(self,@SetRoomFlag,#flag=ROOM_RAINING,#value=TRUE);
+      Send(self,@WeatherChanged);
+      Send(self,@ChangeTexture,#id=200,#new_texture=09080,#flags=CTF_FLOOR);
+
+      return;
+   }
+
+   EndRain()
+   {
+      if Send(self,@CheckRoomFlag,#flag=ROOM_RAINING)
+      {
+         Send(self,@SetRoomFlag,#flag=ROOM_RAINING,#value=FALSE);
+         Send(self,@RemoveTextureChange,#id=200);
+         Send(self,@WeatherChanged);
+      }
+
+      return;
+   }
+
+   DoPhaseWeather()
+   "Called to simulate weather by some rooms."
+   {
+      switch(Send(SYS,@GetDayPhase))
+      {
+         case DAY_PHASE_DAWN:
+            % Some rooms rain instead of snow.
+            if Send(self,@CheckRoomFlag,#flag=ROOM_SNOWING)
+               OR Send(self,@CheckRoomFlag,#flag=ROOM_RAINING)
+            {
+               Send(self,@EndSnow);
+               Send(self,@EndRain);
+            }
+            break;
+         case DAY_PHASE_DAY:
+            break;
+         case DAY_PHASE_DUSK:
+            if NOT Send(self,@CheckRoomFlag,#flag=ROOM_RAINING)
+            {
+               Send(self,@StartRain);
+            }
+            break;
+         case DAY_PHASE_NIGHT:
+            if Send(self,@CheckRoomFlag,#flag=ROOM_RAINING)
+            {
+               Send(self,@EndRain);
+            }
+            if NOT Send(self,@CheckRoomFlag,#flag=ROOM_SNOWING)
+            {
+               Send(self,@StartSnow);
+            }
+            break;
+      }
+      return;
+   }
+
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

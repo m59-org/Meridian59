@@ -379,6 +379,7 @@ messages:
          plAncientTombs = Cons(oRoom,plAncientTombs);
          Send(Send(SYS,@GetStatistics),@AddToRoomCount,#iNum=iRID);
          Send(oRoom,@Teleport,#what=who);
+         Post(oRoom,@DoPhaseWeather);
       }
 
       return oRoom;
@@ -390,6 +391,18 @@ messages:
          AND FindListElem(plAncientTombs,what) <> 0
       {
          plAncientTombs = DelListElem(plAncientTombs,what);
+      }
+
+      return;
+   }
+
+   NewGameHour()
+   {
+      local i;
+      
+      foreach i in plAncientTombs
+      {
+         Send(i,@DoPhaseWeather);
       }
 
       return;
