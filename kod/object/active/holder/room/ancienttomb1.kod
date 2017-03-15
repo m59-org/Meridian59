@@ -28,6 +28,8 @@ resources:
 
    cannot_debuff_here = \
       "The altered flow of magic in this place makes your spell contort and fail."
+   walk_back_out = \
+      "You trek back out into the desert."
 
 classvars:
 
@@ -52,7 +54,16 @@ properties:
    plStatueLocations2 = $
    plSecretPathway = $
 
+   piAttachedToDesertDunesRoom = 1
+
 messages:
+
+   Constructor(iRID=RID_ANCIENT_TOMB_START)
+   {
+      piRoom_num = iRID;
+
+      propagate;
+   }
 
    Constructed()
    {
@@ -254,21 +265,70 @@ messages:
 
       propagate;
    }
-   
-   CreateStandardExits()
+
+   SomethingMoved(what = $,new_row = $, new_col = $)
    {
-      plExits = $;                                                                            
+      if IsClass(what,&Player)
+      {
+         if new_col < 2
+         {
+            Send(what,@MsgSendUser,#message_rsc=walk_back_out);
+            if piAttachedToDesertDunesRoom = 1
+            {
+               Send(SYS,@UtilGoNearSquare,#what=what,
+                    #where=Send(Send(SYS,@GetDesertRoomMaintenance),@GetDesertDunes1),
+                    #new_row=60,
+                    #new_col=102,
+                    #new_angle=Send(what,@GetAngle));
+               return;
+            }
+            if piAttachedToDesertDunesRoom = 2
+            {
+               Send(SYS,@UtilGoNearSquare,#what=what,
+                    #where=Send(Send(SYS,@GetDesertRoomMaintenance),@GetDesertDunes2),
+                    #new_row=60,
+                    #new_col=102,
+                    #new_angle=Send(what,@GetAngle));
+               return;
+            }
+            if piAttachedToDesertDunesRoom = 3
+            {
+               Send(SYS,@UtilGoNearSquare,#what=what,
+                    #where=Send(Send(SYS,@GetDesertRoomMaintenance),@GetDesertDunes3),
+                    #new_row=60,
+                    #new_col=102,
+                    #new_angle=Send(what,@GetAngle));
+               return;
+            }
+            return;
+         }
 
-      plEdge_exits = $;
-      plEdge_Exits = Cons([ LEAVE_WEST, RID_DESERTTOMB1, 60, 102, ANGLE_SOUTH_WEST ], plEdge_exits); 
+         if new_col > (Send(self,@GetRoomCols)-2)
+         {
+            return;
+         }
+      }
 
-    propagate;
-
+      propagate;
    }
 
    CanHavePlayerPortal()
    {
       return FALSE;
+   }
+
+   Delete()
+   {
+      Send(Send(SYS,@GetDesertRoomMaintenance),@TombDeleted,#what=self);
+
+      propagate;
+   }
+
+   LastUserLeft()
+   {
+      Post(self,@Delete);
+
+      propagate;
    }
 
 end

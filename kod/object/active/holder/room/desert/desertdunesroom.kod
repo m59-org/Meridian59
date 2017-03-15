@@ -1,0 +1,177 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+DesertDunesRoom is DesertRoom
+
+% Players enter a dunes area to find random encounters.
+% The area is instanced, but 'real', i.e. as long as you're there,
+% other players can enter the same area.
+% Once you leave, it will change.
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   DesertDunesRoom_name = "Desolate Dunes"
+   
+   prDunesNoTomb = desertdunes.roo
+   prDunesTomb1 = deserttomb1.roo
+   prDunesTomb2 = deserttomb2.roo
+   prDunesTomb3 = deserttomb3.roo
+
+classvars:
+
+   vrName = DesertDunesRoom_name
+   viTeleport_row = 60
+   viTeleport_col = 102
+
+properties:
+
+   piBaseLight = LIGHT_DARK
+   piOutside_factor = OUTDOORS_5 
+
+   piDirectional_percent = DIRECTIONAL_PERCENT_OUTDOORS
+
+   prRoom = $
+   piRoom_num = $
+   
+   piTombConfiguration = 0
+
+messages:
+
+   Constructor(iRID=RID_DYNAMIC_DESERT_DUNES1)
+   {
+      local iRandomizedEncounter;
+      piRoom_num = iRID;
+      
+      iRandomizedEncounter = Random(1,3);
+      if iRandomizedEncounter = 1
+      {
+         prRoom = prDunesTomb1;
+         piTombConfiguration = 1;
+      }
+      else if iRandomizedEncounter = 2
+      {
+         prRoom = prDunesTomb2;
+         piTombConfiguration = 2;
+      }
+      else if iRandomizedEncounter = 3
+      {
+         prRoom = prDunesTomb3;
+         piTombConfiguration = 3;
+      }
+      else
+      {
+         prRoom = prDunesNoTomb;
+      }
+
+      propagate;
+   }
+
+   Delete()
+   {
+      Send(Send(SYS,@GetDesertRoomMaintenance),@RoomDeleted,#what=self);
+
+      propagate;
+   }
+
+   LastUserLeft()
+   {
+      Post(self,@Delete);
+
+      propagate;
+   }
+
+   SomethingMoved(what = $,new_row = $, new_col = $)
+   {
+      if IsClass(what,&Player)
+      {
+         if new_col > (Send(self,@GetRoomCols)-2)
+         {
+            Send(Send(SYS,@GetDesertRoomMaintenance),@Walk,#direction=ANGLE_EAST,#where=self,#what=what);
+            return;
+         }
+
+         if new_col < 2
+         {
+            Send(Send(SYS,@GetDesertRoomMaintenance),@Walk,#direction=ANGLE_WEST,#where=self,#what=what);
+            return;
+         }
+
+         if new_row < 2
+         {
+            Send(Send(SYS,@GetDesertRoomMaintenance),@Walk,#direction=ANGLE_NORTH,#where=self,#what=what);
+            return;
+         }
+
+         if new_row > (Send(self,@GetRoomRows)-2)
+         {
+            Send(Send(SYS,@GetDesertRoomMaintenance),@Walk,#direction=ANGLE_SOUTH,#where=self,#what=what);
+            return;
+         }
+      }
+
+      propagate;
+   }
+
+   SomethingTryGo(what = $,row = $,col = $)
+   {
+      if piTombConfiguration = 1
+      {
+         if row = 37 
+            OR row = 36
+         {
+            if col = 121
+               OR col = 122
+            {
+               Send(what,@MsgSendUser,#message_rsc=enter_tomb_msg);
+               Send(Send(SYS,@GetDesertRoomMaintenance),@CreateAncientTomb,#who=what);
+            }
+
+            return TRUE;
+         }
+      }
+      if piTombConfiguration = 2
+      {
+         if row = 98
+         {
+            if col = 62
+               OR col = 63
+            {
+               Send(what,@MsgSendUser,#message_rsc=enter_tomb_msg);
+               Send(Send(SYS,@GetDesertRoomMaintenance),@CreateAncientTomb,#who=what);
+            }
+
+            return TRUE;
+         }
+      }
+      if piTombConfiguration = 3
+      {
+         if row = 13
+            OR row = 12
+         {
+            if col = 49
+               OR col = 48
+            {
+               Send(what,@MsgSendUser,#message_rsc=enter_tomb_msg);
+               Send(Send(SYS,@GetDesertRoomMaintenance),@CreateAncientTomb,#who=what);
+            }
+
+            return TRUE;
+         }
+      }
+
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -384,6 +384,7 @@ properties:
    poNodeAttack = $
    poRentableRoomMaintenance = $
    poSurvivalRoomMaintenance = $
+   poDesertRoomMaintenance = $
 
    % Singleton object that keeps track of various game statistics
    poStatistics = $
@@ -548,6 +549,7 @@ messages:
       Send(self,@RecreateNodeAttack);
       Send(self,@RecreateRentableRoomMaintenance);
       Send(self,@RecreateSurvivalRoomMaintenance);
+      Send(self,@RecreateDesertRoomMaintenance);
 
       Send(self,@RecreateAllSpells,#figure_totals=FALSE);
       Send(self,@RecreateAllSkills,#figure_totals=FALSE);
@@ -659,6 +661,7 @@ messages:
       Send(self,@RecreateNodeAttack);
       Send(self,@RecreateRentableRoomMaintenance);
       Send(self,@RecreateSurvivalRoomMaintenance);
+      Send(self,@RecreateDesertRoomMaintenance);
       Send(self,@RecreateWarEvent);
 
       % These don't need to be done here.
@@ -1433,6 +1436,7 @@ messages:
       Send(poParliament,@NewDay);
       Send(poNodeAttack,@NewDay);
       Send(poRentableRoomMaintenance,@NewDay);
+      Send(poDesertRoomMaintenance,@NewDay);
       Send(&SoldierShield,@NewDay);
 
       Send(Send(self,@FindSpellByNum,#num=SID_NODEBURST),@NewDay);
@@ -2662,9 +2666,6 @@ messages:
       Send(self,@CreateOneRoomIfNew,#num=RID_DESERTALDUNES2E,#class=&DesertAfterlifeDunes2East);
       Send(self,@CreateOneRoomIfNew,#num=RID_DESERTALDUNES3E,#class=&DesertAfterlifeDunes3East);
       Send(self,@CreateOneRoomIfNew,#num=RID_DESERTALDUNES4E,#class=&DesertAfterlifeDunes4East);
-
-      Send(self,@CreateOneRoomIfNew,#num=RID_DESERTTOMB1,#class=&DesertTomb1);
-      Send(self,@CreateOneRoomIfNew,#num=RID_ANCIENT_TOMB_START,#class=&AncientTomb1);
       
       Send(self,@CreateOneRoomIfNew,#num=RID_PRISMLIFEFRAG,#class=&PrismOfLifeFragment);
 
@@ -5130,7 +5131,12 @@ messages:
    {
       return poSurvivalRoomMaintenance;
    }
-   
+
+   GetDesertRoomMaintenance()
+   {
+      return poDesertRoomMaintenance;
+   }
+
    GetSurvivalReport()
    {
       if poSurvivalRoomMaintenance <> $
@@ -5212,6 +5218,20 @@ messages:
          poSurvivalRoomMaintenance = Create(&SurvivalRoomMaintenance);
       }
       
+      return TRUE;
+   }
+
+   RecreateDesertRoomMaintenance()
+   {
+      if poDesertRoomMaintenance <> $
+      {
+         Send(poDesertRoomMaintenance,@Recreate);
+      }
+      else
+      {
+         poDesertRoomMaintenance = Create(&DesertRoomMaintenance);
+      }
+
       return TRUE;
    }
 
