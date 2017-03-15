@@ -1888,8 +1888,14 @@ messages:
       return rTumbleSoundFour;
    }
 
-   ApplyElementalStatusEffects(damage=1,aspell=0,what=$)
+   ApplyElementalStatusEffects(damage=1,aspell=0,what=$,absolute=FALSE)
    {
+      if absolute
+      {
+         % Illusionary or special damage doesn't apply status effects.
+         return;
+      }
+
       if what <> $
          AND IsClass(what,&Player)
          AND Send(SETTINGS_OBJECT,@GetSorcerySchoolExpansion)
