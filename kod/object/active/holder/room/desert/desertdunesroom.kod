@@ -27,6 +27,15 @@ resources:
    prDunesTomb1 = deserttomb1.roo
    prDunesTomb2 = deserttomb2.roo
    prDunesTomb3 = deserttomb3.roo
+   prDunesOasis = desertdunesoasis.roo
+
+   cannot_fight_oasis_msg = \
+      "The fragment of a once mighty Equalization Obelisk still has enough residual power "
+      "to reach out and nullify your attack. For what centuries it has left, "
+      "this is a place of peace."
+
+   oasis_drink = "You drink from the life-giving waters and feel refreshed!"
+   oasis_drink_sound = drink.wav
 
 classvars:
 
@@ -35,6 +44,10 @@ classvars:
    viTeleport_col = 102
 
    vbSpawnMonsters = TRUE
+
+   % Vigor oasis
+   viFilling = 20  
+   viNutrition = 40
 
 properties:
 
@@ -46,7 +59,7 @@ properties:
    prRoom = $
    piRoom_num = $
    
-   piTombConfiguration = 0
+   piConfiguration = 0
 
 messages:
 
@@ -55,28 +68,66 @@ messages:
       local iRandomizedEncounter;
       piRoom_num = iRID;
       
-      iRandomizedEncounter = Random(1,3);
+      iRandomizedEncounter = 4; %Random(1,3);
       if iRandomizedEncounter = 1
       {
          prRoom = prDunesTomb1;
-         piTombConfiguration = 1;
+         piConfiguration = 1;
       }
       else if iRandomizedEncounter = 2
       {
          prRoom = prDunesTomb2;
-         piTombConfiguration = 2;
+         piConfiguration = 2;
       }
       else if iRandomizedEncounter = 3
       {
          prRoom = prDunesTomb3;
-         piTombConfiguration = 3;
+         piConfiguration = 3;
+      }
+      else if iRandomizedEncounter = 4
+      {
+         prRoom = prDunesOasis;
+         piConfiguration = 4;
       }
       else
       {
          prRoom = prDunesNoTomb;
       }
       
+      if piConfiguration = 4
+      {
+         Send(self,@CreateOasisLights);
+      }
+      
       Send(self,@RecalcLightAndWeather);
+
+      propagate;
+   }
+
+   ReqSomethingAttack(what=$)
+   {
+      % No combat at oasis.
+      if piConfiguration = 4
+      {
+         if what <> $
+            AND IsClass(what,&Player)
+         {
+            Send(what,@MsgSendUser,#message_rsc=cannot_fight_oasis_msg);
+         }
+
+         return FALSE;
+      }
+
+      propagate;
+   }
+
+   PopulateArea()
+   {
+      % No monsters at oasis.
+      if piConfiguration = 4
+      {
+         return;
+      }
 
       propagate;
    }
@@ -129,7 +180,7 @@ messages:
 
    SomethingTryGo(what = $,row = $,col = $)
    {
-      if piTombConfiguration = 1
+      if piConfiguration = 1
       {
          if row = 37 
             OR row = 36
@@ -144,7 +195,7 @@ messages:
             return TRUE;
          }
       }
-      if piTombConfiguration = 2
+      if piConfiguration = 2
       {
          if row = 98
          {
@@ -158,7 +209,7 @@ messages:
             return TRUE;
          }
       }
-      if piTombConfiguration = 3
+      if piConfiguration = 3
       {
          if row = 13
             OR row = 12
@@ -173,8 +224,280 @@ messages:
             return TRUE;
          }
       }
+      if piConfiguration = 4
+      {
+         if IsClass(what,&User)
+            AND Send(what,@GetHeightAtObject) < 0
+            AND send(self,@UserDrink,#who=what)
+         {
+            return TRUE;
+         }
+      }
 
       propagate;
+   }
+
+   StartThreat(cClasses=$,report=TRUE)
+   {
+      % No threats at oasis
+      if piConfiguration = 4
+      {
+         return;
+      }
+
+      propagate;
+   }
+
+   RecalcLightAndWeather()
+   {
+      if piConfiguration = 4
+      {
+         Post(self,@DoPhaseWeather);
+         Post(self,@AdjustOasisLights);
+      }
+
+      propagate;
+   }
+
+   DoPhaseWeather()
+   {
+      switch(Send(SYS,@GetDayPhase))
+      {
+         case DAY_PHASE_DAWN:
+            if Send(self,@CheckRoomFlag,#flag=ROOM_SNOWING)
+            {
+               Post(self,@EndSnow);
+            }
+            break;
+         case DAY_PHASE_DAY:
+            break;
+         case DAY_PHASE_DUSK:
+            if NOT Send(self,@CheckRoomFlag,#flag=ROOM_RAINING)
+            {
+               Post(self,@StartRain);
+            }
+            break;
+         case DAY_PHASE_NIGHT:
+            if Send(self,@CheckRoomFlag,#flag=ROOM_RAINING)
+            {
+               Post(self,@EndRain);
+            }
+            if NOT Send(self,@CheckRoomFlag,#flag=ROOM_SNOWING)
+            {
+               Post(self,@StartSnow);
+            }
+            break;
+      }
+      return;
+   }
+
+   StartSnow(bOnGround=TRUE)
+   {
+      if bOnGround
+      {
+         if pbSnowGroundTexture
+         {
+            % Turn any water to ice. Water tagged as ID 13.
+            % Water sidedefs tagged as ID 14.
+            Send(self,@ChangeTexture,#id=13,#new_texture=61017,
+                  #flags=CTF_FLOOR);
+            % Stop vertically scrolling water from animating.
+            Send(self,@AnimateWall,#wall=14,#animation=ANIMATE_NONE,
+                  #first_group=1,#second_group=1,#end_group=1);
+            % Make unpassable
+            Send(self,@AnimateWall,#wall=14,#animation=ANIMATE_NONE,#first_group=2,
+                  #passable=FALSE);
+            % Change texture.
+            Send(self,@ChangeTexture,#id=14,#new_texture=61017,
+                  #flags=CTF_NORMALWALL);
+            % Stop water scroll effect and remove depth.
+            Send(self,@SetSectorFlags,#sector=13,#depth=SF_DEPTH0,
+                  #scrollSpeed=SCROLL_NONE);
+
+
+            % Give snow some depth and walking sounds.
+            Send(self,@SetSectorFlags,#sector=0,#depth=SF_DEPTH1,
+                  #scrollSpeed=SCROLL_NONE);
+            vrWading_Sound = snow_walk_sound;
+            % Remove waterfall sound.
+            Send(self,@RemoveLoopingSound,#sound_rsc=waterfall_sound_oasis);
+         }
+      }
+
+      propagate;
+   }
+
+   EndSnow(override=FALSE)
+   "Use override if rooms have manually placed textures."
+   {
+      if pbSnowGroundTexture
+         OR override
+      {
+         % Remove sludge water textures.
+         Send(self,@RemoveTextureChange,#id=13);
+         % Remove sludge water sides.
+         Send(self,@RemoveTextureChange,#id=14);
+         Send(self,@RemoveAnimateWallChange,#wall=14);
+         % Reset sector flag changes to sludge water.
+         Send(self,@RemoveSectorFlagChange,#id=13);
+
+         % Remove snow depth and walking sounds.
+         Send(self,@RemoveSectorFlagChange,#id=0);
+         vrWading_Sound = water_wading_sound;
+
+         % Begin waterfall sound.
+         Send(self,@AddLoopingSound,
+            #lSoundData=[waterfall_sound_oasis, 21, 40, 65, 100]);
+      }
+
+      propagate;
+   }
+
+   StartRain()
+   {
+      % Acid rain darkens the sand and pock marks rock.
+      Send(self,@ChangeTexture,#id=0,#new_texture=09080,#flags=CTF_FLOOR);
+      % Acid rain makes the water gross.
+      Send(self,@ChangeTexture,#id=13,#new_texture=09363,
+            #flags=CTF_FLOOR);
+      Send(self,@ChangeTexture,#id=14,#new_texture=09363,
+            #flags=CTF_NORMALWALL);
+      Send(self,@SetSectorFlags,#sector=13,#depth=SF_DEPTH1,
+            #scrollSpeed=SCROLL_SLOW);
+      propagate;
+   }
+   
+   EndRain()
+   {
+      % Remove gross sand.
+      Send(self,@RemoveTextureChange,#id=0);
+      % Remove sludge water textures.
+      Send(self,@RemoveTextureChange,#id=13);
+      % Remove sludge water sides.
+      Send(self,@RemoveTextureChange,#id=14);
+      % Reset sector flag changes to sludge water.
+      Send(self,@RemoveSectorFlagChange,#id=13);
+      propagate;
+   }
+
+   GetPhaseLightIntensity()
+   {
+      switch(Send(SYS,@GetDayPhase))
+      {
+         case DAY_PHASE_DAWN:
+            return 125;
+         case DAY_PHASE_DAY:
+            return 255;
+         case DAY_PHASE_DUSK:
+            return 125;
+         case DAY_PHASE_NIGHT:
+            return 140;
+      }
+
+      return 0;
+   }
+
+   GetPhaseLightColor()
+   {
+      switch(Send(SYS,@GetDayPhase))
+      {
+         case DAY_PHASE_DAWN:
+            return LIGHT_DGREEN;
+         case DAY_PHASE_DAY:
+            return LIGHT_DBLUE;
+         case DAY_PHASE_DUSK:
+            return LIGHT_DWHITE;
+         case DAY_PHASE_NIGHT:
+            return LIGHT_DRED;
+      }
+
+      return $;
+   }
+
+   AdjustOasisLights()
+   {
+      local i, iIntensity, iColor;
+      
+      iColor = Send(self,@GetPhaseLightColor);
+      iIntensity = Send(self,@GetPhaseLightIntensity);
+
+      foreach i in Send(self,@GetHolderPassive)
+      {
+         if IsClass(First(i),&DynamicLight)
+         {
+            Send(First(i),@SetLight,#iIntensity=iIntensity,#iColor=iColor);
+         }
+      }
+
+      return;
+   }
+
+   CreateOasisLights()
+   {
+      local iColor, iIntensity;
+
+      iColor = Send(self,@GetPhaseLightColor);
+      iIntensity = Send(self,@GetPhaseLightIntensity);
+
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=iColor,
+           #iIntensity=iIntensity),#new_row=58,#new_col=86,#fine_row=8,#fine_col=60);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=iColor,
+           #iIntensity=iIntensity),#new_row=60,#new_col=88,#fine_row=57,#fine_col=5);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=iColor,
+           #iIntensity=iIntensity),#new_row=61,#new_col=90,#fine_row=62,#fine_col=51);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=iColor,
+           #iIntensity=iIntensity),#new_row=60,#new_col=93,#fine_row=45,#fine_col=27);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=iColor,
+           #iIntensity=iIntensity),#new_row=58,#new_col=94,#fine_row=7,#fine_col=39);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=iColor,
+           #iIntensity=iIntensity),#new_row=55,#new_col=93,#fine_row=29,#fine_col=28);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=iColor,
+           #iIntensity=iIntensity),#new_row=54,#new_col=91,#fine_row=14,#fine_col=1);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=iColor,
+           #iIntensity=iIntensity),#new_row=55,#new_col=87,#fine_row=20,#fine_col=55);
+
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=iColor,
+           #iIntensity=iIntensity),#new_row=58,#new_col=93,#fine_row=4,#fine_col=52);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=iColor,
+           #iIntensity=iIntensity),#new_row=60,#new_col=92,#fine_row=16,#fine_col=58);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=iColor,
+           #iIntensity=iIntensity),#new_row=61,#new_col=90,#fine_row=4,#fine_col=62);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=iColor,
+           #iIntensity=iIntensity),#new_row=60,#new_col=88,#fine_row=13,#fine_col=93);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=iColor,
+           #iIntensity=iIntensity),#new_row=58,#new_col=87,#fine_row=7,#fine_col=47);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=iColor,
+           #iIntensity=iIntensity),#new_row=55,#new_col=88,#fine_row=61,#fine_col=39);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=iColor,
+           #iIntensity=iIntensity),#new_row=55,#new_col=90,#fine_row=3,#fine_col=48);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=iColor,
+           #iIntensity=iIntensity),#new_row=57,#new_col=93,#fine_row=21,#fine_col=29);
+      return;
+   }
+
+   IsBeverage()
+   {
+      if piConfiguration = 4
+      {
+         return TRUE;
+      }
+      
+      return FALSE;
+   }
+
+   UserDrink(who=$)
+   {
+      %% someone presses space bar in the pool, gets a cute little boost.
+      if NOT Send(who,@ReqEatSomething,#filling=viFilling,#what=self)
+      {
+         return TRUE;
+      }      
+
+      Send(who,@EatSomething,#nutrition=viNutrition,#filling=viFilling);
+      Send(who,@WaveSendUser,#wave_rsc=oasis_drink_sound);
+      Send(who,@MsgSendUser,#message_rsc=oasis_drink);
+
+      return TRUE;
    }
 
 end
