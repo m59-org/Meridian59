@@ -34,6 +34,19 @@ resources:
       "to reach out and nullify your attack. For what centuries it has left, "
       "this is a place of peace."
 
+   stable_calm_entrance_msg = \
+      "A fragment of an ancient and powerful Obelisk lies here, preventing combat and "
+      "resisting the elements with its residual power. Thanks to its magic, the water in "
+      "this rare oasis looks clean and invigorating."
+
+   ancient_sorrow_msg = \
+      "An air of ancient sorrow hangs over this place. For a moment, you see spectral silhouettes "
+      "of children splashing about, mothers gathering water for a summer day, and travelers stopping "
+      "to refresh themselves. The images fade into memory and dream a heartbeat later, leaving only "
+      "silence."
+
+   get_closer_water_oasis = \
+      "The water here is still tainted, but the water closer to the Obelisk looks healthier."
    oasis_drink = "You drink from the life-giving waters and feel refreshed!"
    oasis_drink_sound = drink.wav
 
@@ -42,6 +55,11 @@ classvars:
    vrName = DesertDunesRoom_name
    viTeleport_row = 60
    viTeleport_col = 102
+
+   viOasisTeleportGoingEast_row = 60
+   viOasisTeleportGoingEast_col = 35
+   viOasisTeleportGoingWest_row = 58
+   viOasisTeleportGoingWest_col = 171
 
    vbSpawnMonsters = TRUE
 
@@ -68,7 +86,7 @@ messages:
       local iRandomizedEncounter;
       piRoom_num = iRID;
       
-      iRandomizedEncounter = 4; %Random(1,3);
+      iRandomizedEncounter = Random(1,4); %Random(1,3);
       if iRandomizedEncounter = 1
       {
          prRoom = prDunesTomb1;
@@ -97,11 +115,22 @@ messages:
       if piConfiguration = 4
       {
          Send(self,@CreateOasisLights);
+         Send(self,@PostSetRoomFlags);
       }
       
       Send(self,@RecalcLightAndWeather);
 
       propagate;
+   }
+
+   PostSetRoomFlags()
+   {
+      if piConfiguration = 4
+      {
+         Post(self,@SetRoomFlag,#flag=ROOM_NO_COMBAT,#value=TRUE);
+      }
+
+      return;
    }
 
    ReqSomethingAttack(what=$)
@@ -227,9 +256,15 @@ messages:
       if piConfiguration = 4
       {
          if IsClass(what,&User)
-            AND Send(what,@GetHeightAtObject) < 0
-            AND send(self,@UserDrink,#who=what)
+            AND Send(what,@GetHeightAtObject) = -38
+            AND Send(self,@UserDrink,#who=what)
          {
+            return TRUE;
+         }
+         if IsClass(what,&User)
+            AND Send(what,@GetHeightAtObject) < 0
+         {
+            Send(what,@MsgSendUser,#message_rsc=get_closer_water_oasis);
             return TRUE;
          }
       }
@@ -250,10 +285,23 @@ messages:
 
    RecalcLightAndWeather()
    {
+      local i;
+
       if piConfiguration = 4
       {
          Post(self,@DoPhaseWeather);
          Post(self,@AdjustOasisLights);
+         
+         if Random(1,100) = 1
+         {
+            foreach i in Send(self,@GetHolderActive)
+            {
+               if IsClass(First(i),&Player)
+               {
+                  Send(First(i),@MsgSendUser,#message_rsc=ancient_sorrow_msg);
+               }
+            }
+         }
       }
 
       propagate;
@@ -498,6 +546,60 @@ messages:
       Send(who,@MsgSendUser,#message_rsc=oasis_drink);
 
       return TRUE;
+   }
+
+   NewHold(what=$)
+   {
+      if what <> $
+         AND IsClass(what,&Player)
+      {
+         if piConfiguration = 4
+         {
+            Send(what,@MsgSendUser,#message_rsc=stable_calm_entrance_msg);
+         }
+      }
+      
+      propagate;
+   }
+
+   GetTeleportRow(direction=ANGLE_EAST)
+   {
+      if piConfiguration = 4
+      {
+         switch(direction)
+         {
+            case ANGLE_EAST:
+               return viOasisTeleportGoingEast_row;
+            case ANGLE_WEST:
+                return viOasisTeleportGoingWest_row;
+         }
+      }
+      return viTeleport_row;
+   }
+
+   GetTeleportCol(direction=ANGLE_EAST)
+   {
+      if piConfiguration = 4
+      {
+         switch(direction)
+         {
+            case ANGLE_EAST:
+               return viOasisTeleportGoingEast_col;
+            case ANGLE_WEST:
+               return viOasisTeleportGoingWest_col;
+         }
+      }
+      return viTeleport_col;
+   }
+
+   GetPermanentFlags()
+   {
+      if piConfiguration = 4
+      {
+         return (viPermanent_flags | ROOM_NO_COMBAT);
+      }
+
+      return viPermanent_flags;
    }
 
 end

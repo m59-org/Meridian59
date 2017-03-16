@@ -52,12 +52,14 @@ messages:
 
    SomethingMoved(what = $,new_row = $, new_col = $)
    {
+      local oTargetRoom;
       if new_col > (Send(self,@GetRoomCols)-2)
       {
+         oTargetRoom = Send(Send(SYS,@GetDesertRoomMaintenance),@GetDesertDunes2);
          Send(SYS,@UtilGoNearSquare,#what=what,
-              #where=Send(Send(SYS,@GetDesertRoomMaintenance),@GetDesertDunes2),
-              #new_row=60,
-              #new_col=102,
+              #where=oTargetRoom,
+              #new_row=Send(oTargetRoom,@GetTeleportRow,#direction=ANGLE_EAST),
+              #new_col=Send(oTargetRoom,@GetTeleportCol,#direction=ANGLE_EAST),
               #new_angle=Send(what,@GetAngle));
          return;
       }

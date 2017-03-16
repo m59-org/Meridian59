@@ -45,24 +45,24 @@ messages:
 
    SomethingMoved(what = $,new_row = $, new_col = $)
    {
+      local oTargetRoom;
+      if new_col < 2
+      {
+         oTargetRoom = Send(Send(SYS,@GetDesertRoomMaintenance),@GetDesertDunes3);
+         Send(SYS,@UtilGoNearSquare,#what=what,
+              #where=oTargetRoom,
+              #new_row=Send(oTargetRoom,@GetTeleportRow,#direction=ANGLE_WEST),
+              #new_col=Send(oTargetRoom,@GetTeleportCol,#direction=ANGLE_WEST),
+              #new_angle=Send(what,@GetAngle));
+         return;
+      }
+
       if new_col > (Send(self,@GetRoomCols)-2)
       {
          Send(SYS,@UtilGoNearSquare,#what=what,
               #where=Send(SYS,@FindRoomByNum,#num=RID_DESERTPATH1),
               #new_row=10,
               #new_col=10,
-              #new_angle=Send(what,@GetAngle));
-         return;
-      }
-
-      if new_col < 2
-      {
-         Send(SYS,@UtilGoNearSquare,#what=what,
-              #where=Send(Send(SYS,@GetDesertRoomMaintenance),@GetDesertDunes3),
-              #new_row=60,
-              #new_col=102,
-              #fine_row=0,
-              #fine_col=Send(what,@GetFineCol),
               #new_angle=Send(what,@GetAngle));
          return;
       }

@@ -51,15 +51,13 @@ messages:
    SomethingMoved(what = $,new_row = $, new_col = $)
    {
       local oTargetRoom;
-
       if new_col > (Send(self,@GetRoomCols)-2)
       {
+         oTargetRoom = Send(Send(SYS,@GetDesertRoomMaintenance),@GetDesertDunes3);
          Send(SYS,@UtilGoNearSquare,#what=what,
-              #where=Send(Send(SYS,@GetDesertRoomMaintenance),@GetDesertDunes3),
-              #new_row=Send(what,@GetRow),
-              #new_col=3,
-              #fine_row=Send(what,@GetFineRow),
-              #fine_col=0,
+              #where=oTargetRoom,
+              #new_row=Send(oTargetRoom,@GetTeleportRow,#direction=ANGLE_EAST),
+              #new_col=Send(oTargetRoom,@GetTeleportCol,#direction=ANGLE_EAST),
               #new_angle=Send(what,@GetAngle));
          return;
       }
