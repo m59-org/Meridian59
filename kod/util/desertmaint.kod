@@ -13,6 +13,12 @@ DesertRoomMaintenance is UtilityFunctions
 constants:
 
    include blakston.khd
+
+   TOMB1_CONFIGURATION = 1
+   TOMB2_CONFIGURATION = 2
+   TOMB3_CONFIGURATION = 3
+   OASIS_CONFIGURATION = 4   
+
 resources:
 
 properties:
@@ -406,6 +412,26 @@ messages:
       }
 
       return;
+   }
+
+   GetOasis()
+   {
+      if poDesertDunes1 <> $
+         AND Send(poDesertDunes1,@GetConfiguration) = OASIS_CONFIGURATION
+      {
+         return poDesertDunes1;
+      }
+      if poDesertDunes2 <> $
+         AND Send(poDesertDunes2,@GetConfiguration) = OASIS_CONFIGURATION
+      {
+         return poDesertDunes2;
+      }
+      if poDesertDunes3 <> $
+         AND Send(poDesertDunes3,@GetConfiguration) = OASIS_CONFIGURATION
+      {
+         return poDesertDunes3;
+      }
+      return $;
    }
 
 end
