@@ -60,6 +60,17 @@ resources:
       "still remain, but it is impossible to determine which god or demon might respond to "
       "your prayer. Approaching and touching it may bring either a dire curse or great aid."
 
+   altar_blessing_shillings = \
+      "Xaerdun, Demon of Greed responds to your prayer with a bit of capital to get you going. "
+      "Don't worry, you'll pay it back later in other ways. You feel richer!"
+   altar_blessing_experience = \
+      "An elder entity responds to your prayer. You feel wiser!"
+   altar_blessing_training_points = \
+      "A skilled entity responds to your prayer. You feel more capable!"
+
+   altar_curse_death = \
+      "Raumlar, Demon of Sadism hears your prayer and grins."
+
 classvars:
 
    vrName = DesertDunesRoom_name
@@ -691,12 +702,57 @@ messages:
       if who <> $
          AND IsClass(who,&Player)
       {
-         Send(who,@AddExperience,#iAmount=10000);
+         if Random(1,2) = 1
+         {
+            Send(self,@DoBlessing,#who=who);
+         }
+         else
+         {
+            Send(self,@DoCurse,#who=who);
+         }
          return;
       }
 
       return;
    }
 
+   DoBlessing(who=$)
+   {
+      local iRandomBlessing;
+      
+      iRandomBlessing = Random(1,3);
+      switch(iRandomBlessing)
+      {
+         case 1:
+            Send(who,@MsgSendUser,#message_rsc=altar_blessing_experience);
+            Send(who,@AddExperience,#iAmount=5000);
+            break;
+         case 2:
+            Send(who,@MsgSendUser,#message_rsc=altar_blessing_shillings);
+            Send(who,@NewHold,#what=Create(&Money,#number=100000));
+            break;
+         case 3:
+            Send(who,@MsgSendUser,#message_rsc=altar_blessing_training_points);
+            Send(who,@AddTrainingPoints,#points=1000,#report=TRUE,#bCap=FALSE);
+            break;
+      }
+      return;
+   }
+   
+   DoCurse(who=$)
+   {
+      local iRandomCurse;
+      
+      iRandomCurse = 1;
+      switch(iRandomCurse)
+      {
+         case 1:
+            Send(who,@MsgSendUser,#message_rsc=altar_curse_death);
+            Send(who,@Killed);
+            break;
+      }
+      return;
+   }
+ 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
