@@ -176,7 +176,7 @@ messages:
 
    Walk(direction=ANGLE_EAST,where=$,what=$)
    {
-      local iWhereID;
+      local iWhereID, oTargetRoom;
       if what = $
       {
          return;
@@ -219,19 +219,21 @@ messages:
                     #new_angle=Send(what,@GetAngle));
                return;
             case ANGLE_NORTH:
+               oTargetRoom = Send(self,@GetDesertDunes3);
                Post(SYS,@UtilGoNearSquare,#what=what,
-                    #where=Send(self,@GetDesertDunes3),
-                    #new_row=Send(Send(self,@GetDesertDunes3),@GetRoomRows)-3,
-                    #new_col=Send(what,@GetCol),
+                    #where=oTargetRoom,
+                    #new_row=Send(oTargetRoom,@GetTeleportRow),
+                    #new_col=Send(oTargetRoom,@GetTeleportCol),
                     #fine_row=0,
                     #fine_col=Send(what,@GetFineCol),
                     #new_angle=Send(what,@GetAngle));
                return;
             case ANGLE_SOUTH:
+               oTargetRoom = Send(self,@GetDesertDunes2);
                Post(SYS,@UtilGoNearSquare,#what=what,
-                    #where=Send(self,@GetDesertDunes2),
-                    #new_row=3,
-                    #new_col=Send(what,@GetCol),
+                    #where=oTargetRoom,
+                    #new_row=Send(oTargetRoom,@GetTeleportRow),
+                    #new_col=Send(oTargetRoom,@GetTeleportCol),
                     #fine_row=0,
                     #fine_col=Send(what,@GetFineCol),
                     #new_angle=Send(what,@GetAngle));
@@ -262,19 +264,21 @@ messages:
                     #new_angle=Send(what,@GetAngle));
                return;
             case ANGLE_NORTH:
+               oTargetRoom = Send(self,@GetDesertDunes1);
                Post(SYS,@UtilGoNearSquare,#what=what,
-                    #where=Send(self,@GetDesertDunes1),
-                    #new_row=Send(Send(self,@GetDesertDunes1),@GetRoomRows)-3,
-                    #new_col=Send(what,@GetCol),
+                    #where=oTargetRoom,
+                    #new_row=Send(oTargetRoom,@GetTeleportRow),
+                    #new_col=Send(oTargetRoom,@GetTeleportCol),
                     #fine_row=0,
                     #fine_col=Send(what,@GetFineCol),
                     #new_angle=Send(what,@GetAngle));
                return;
             case ANGLE_SOUTH:
+               oTargetRoom = Send(self,@GetDesertDunes3);
                Post(SYS,@UtilGoNearSquare,#what=what,
-                    #where=Send(self,@GetDesertDunes3),
-                    #new_row=3,
-                    #new_col=Send(what,@GetCol),
+                    #where=oTargetRoom,
+                    #new_row=Send(oTargetRoom,@GetTeleportRow),
+                    #new_col=Send(oTargetRoom,@GetTeleportCol),
                     #fine_row=0,
                     #fine_col=Send(what,@GetFineCol),
                     #new_angle=Send(what,@GetAngle));
@@ -305,19 +309,21 @@ messages:
                     #new_angle=Send(what,@GetAngle));
                return;
             case ANGLE_NORTH:
+               oTargetRoom = Send(self,@GetDesertDunes2);
                Post(SYS,@UtilGoNearSquare,#what=what,
-                    #where=Send(self,@GetDesertDunes2),
-                    #new_row=Send(Send(self,@GetDesertDunes2),@GetRoomRows)-3,
-                    #new_col=Send(what,@GetCol),
+                    #where=oTargetRoom,
+                    #new_row=Send(oTargetRoom,@GetTeleportRow),
+                    #new_col=Send(oTargetRoom,@GetTeleportCol),
                     #fine_row=0,
                     #fine_col=Send(what,@GetFineCol),
                     #new_angle=Send(what,@GetAngle));
                return;
             case ANGLE_SOUTH:
+               oTargetRoom = Send(self,@GetDesertDunes1);
                Post(SYS,@UtilGoNearSquare,#what=what,
-                    #where=Send(self,@GetDesertDunes1),
-                    #new_row=3,
-                    #new_col=Send(what,@GetCol),
+                    #where=oTargetRoom,
+                    #new_row=Send(oTargetRoom,@GetTeleportRow),
+                    #new_col=Send(oTargetRoom,@GetTeleportCol),
                     #fine_row=0,
                     #fine_col=Send(what,@GetFineCol),
                     #new_angle=Send(what,@GetAngle));

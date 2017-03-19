@@ -70,6 +70,12 @@ resources:
 
    altar_curse_death = \
       "Raumlar, Demon of Sadism hears your prayer and grins."
+   altar_curse_lose_experience = \
+      "The patron demon of leeches drains you. You feel less wise."
+   altar_curse_lose_training_points = \
+      "Elemental energies burn your recent memories! You feel less capable."
+   altar_curse_lose_food = \
+      "Phantoms assault you, stealing your food!"
 
 classvars:
 
@@ -120,7 +126,7 @@ messages:
 
       % Default.
       prRoom = prDunesNoTomb;
-      iRandomizedEncounter = Random(1,6);
+      iRandomizedEncounter = 6;
       switch(iRandomizedEncounter)
       {
          case 1:
@@ -148,12 +154,6 @@ messages:
          case 5:
             prRoom = prDunesAltar1;
             piConfiguration = 5;
-   %         Post(self,@NewHold,#what=Create(&OrnamentalObject,#type=OO_ANVIL),
-    %                           #new_row=viAltar1StatueRow,
-     %                          #new_col=viAltar1StatueCol,
-      %                         #fine_row=viAltar1StatueFineRow,
-       %                        #fine_col=viAltar1StatueFineCol,
-        %                       #new_angle=viAltar1StatueAngle);
             break;
          case 6:
             prRoom = prDunesAltar2;
@@ -648,6 +648,11 @@ messages:
                 return viOasisTeleportGoingWest_row;
          }
       }
+      else
+      {
+         return viTeleport_row + Random(-10,10);
+      }
+      
       return viTeleport_row;
    }
 
@@ -663,6 +668,11 @@ messages:
                return viOasisTeleportGoingWest_col;
          }
       }
+      else
+      {
+         return viTeleport_col + Random(-10,10);
+      }
+
       return viTeleport_col;
    }
 
@@ -740,14 +750,32 @@ messages:
    
    DoCurse(who=$)
    {
-      local iRandomCurse;
+      local iRandomCurse, i;
       
-      iRandomCurse = 1;
+      iRandomCurse = Random(1,4);
       switch(iRandomCurse)
       {
          case 1:
             Send(who,@MsgSendUser,#message_rsc=altar_curse_death);
             Send(who,@Killed);
+            break;
+         case 2:
+            Send(who,@MsgSendUser,#message_rsc=altar_curse_lose_experience);
+            Send(who,@SetExperience,#iAmount=0);
+            break;
+         case 3:
+            Send(who,@MsgSendUser,#message_rsc=altar_curse_lose_training_points);
+            Send(who,@AddTrainingPoints,#points=-1000,#report=FALSE);
+            break;
+         case 4:
+            Send(who,@MsgSendUser,#message_rsc=altar_curse_lose_food);
+            foreach i in Send(who,@GetHolderPassive)
+            {
+               if IsClass(i,&Food)
+               {
+                  Send(i,@Delete);
+               }
+            }
             break;
       }
       return;
