@@ -49,10 +49,13 @@ constants:
    LEDGE_SECTORS = 23
    HALL_SECTORS_NORTH = 24
    CHEST_PASSAGE_SECTOR = 25
-   
+
+   CAVE_SECTORS = 9
+
    AREA_OUTSIDE = 0
    AREA_INSIDE = 1
    AREA_LEDGES = 2
+   AREA_CAVES = 3
    
    InsideAreaSouthMinRow = 55
    InsideAreaSouthMinFineRow = 6
@@ -88,6 +91,9 @@ resources:
    waylayoasis_music_static_shock = desertdawn.mp3
    
    waterfall_sound_oasis = wfall2.wav
+
+   no_tribe_fight_in_caves = \
+      "The tribesmen watch you with guarded eyes. Fighting is not allowed in their caves."
 
 classvars:
 
@@ -201,6 +207,17 @@ messages:
       }
 
       piPreviousPhase = SysDayPhase;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&DesertWitch)
+            OR IsClass(First(i),&DesertBard)
+            OR IsClass(First(i),&NomadWiseMan)
+            OR IsClass(First(i),&DesertBandit)
+         {
+            Send(First(i),@SayRandom);
+         }
+      }
       propagate;
    }
 
@@ -398,6 +415,11 @@ messages:
          {
             return AREA_LEDGES;
          }
+         
+         if iServerID = CAVE_SECTORS
+         {
+            return AREA_CAVES;
+         }
       }
 
       return AREA_OUTSIDE;
@@ -423,6 +445,17 @@ messages:
                              #iCol=Send(what,@GetCol),
                              #iFineRow=Send(what,@GetFineRow),
                              #iFineCol=Send(what,@GetFineCol));
+
+      % The caves are protected.
+      if iAttackerSection = AREA_CAVES
+         OR iVictimSection = AREA_CAVES
+      {
+         if IsClass(what,&Player)
+         {
+            Send(what,@MsgSendUser,#message_rsc=no_tribe_fight_in_caves);
+         }
+         return FALSE;
+      }
 
       % The ledges are not protected from direct attacks from outside.
       % Ledges will not get hit by earthquakes and other area attacks, though,
@@ -495,7 +528,7 @@ messages:
       % southeast hermit
       Send(self,@NewHold,#what=Create(&Firepit,#iSoundRadius=0),
             #new_row=52,#new_col=114,#fine_row=59,#fine_col=35);
-      Send(self,@NewHold,#what=Create(&NomadWiseMan),
+      Send(self,@NewHold,#what=Create(&DesertBard),
             #new_row=52,#new_col=115,#fine_row=33, #fine_col=52,
             #new_angle=ANGLE_WEST);
 
@@ -504,11 +537,11 @@ messages:
             #new_row=31,#new_col=116,#fine_row=59,#fine_col=25);
       Send(self,@NewHold,#what=Create(&Firepit,#iSoundRadius=0),
             #new_row=36,#new_col=122,#fine_row=50,#fine_col=5);
-      Send(self,@NewHold,#what=Create(&NomadWiseMan),
-            #new_row=37,#new_col=123,#fine_row=42, #fine_col=49,
-            #new_angle=ANGLE_WEST);
-      Send(self,@NewHold,#what=Create(&NomadWiseMan),
+      Send(self,@NewHold,#what=Create(&DesertBandit),
             #new_row=37,#new_col=119,#fine_row=46, #fine_col=44,
+            #new_angle=ANGLE_WEST);
+      Send(self,@NewHold,#what=Create(&DesertTribesman),
+            #new_row=35,#new_col=122,#fine_row=15, #fine_col=34,
             #new_angle=ANGLE_WEST);
       
       % north cave
@@ -518,6 +551,45 @@ messages:
             #new_row=14,#new_col=107,#fine_row=7, #fine_col=22,
             #new_angle=ANGLE_WEST);
 
+      % southmost cave
+      Send(self,@NewHold,#what=Create(&Firepit,#iSoundRadius=0),
+            #new_row=69,#new_col=123,#fine_row=39,#fine_col=18);
+      Send(self,@NewHold,#what=Create(&DesertWitch),
+            #new_row=67,#new_col=122,#fine_row=22, #fine_col=31,
+            #new_angle=ANGLE_WEST);
+
+      % Tribesmen
+      Send(self,@NewHold,#what=Create(&DesertTribesman),
+            #new_row=52,#new_col=118,#fine_row=54, #fine_col=17,
+            #new_angle=ANGLE_WEST);
+      Send(self,@NewHold,#what=Create(&DesertTribesman),
+            #new_row=56,#new_col=116,#fine_row=3, #fine_col=38,
+            #new_angle=ANGLE_WEST);
+      Send(self,@NewHold,#what=Create(&DesertTribesman),
+            #new_row=51,#new_col=123,#fine_row=53, #fine_col=40,
+            #new_angle=ANGLE_WEST);
+      Send(self,@NewHold,#what=Create(&DesertTribesman),
+            #new_row=57,#new_col=122,#fine_row=20, #fine_col=2,
+            #new_angle=ANGLE_WEST);
+      Send(self,@NewHold,#what=Create(&DesertTribesman),
+            #new_row=57,#new_col=126,#fine_row=56, #fine_col=47,
+            #new_angle=ANGLE_WEST);
+      Send(self,@NewHold,#what=Create(&DesertTribesman),
+            #new_row=62,#new_col=123,#fine_row=54, #fine_col=24,
+            #new_angle=ANGLE_WEST);
+      Send(self,@NewHold,#what=Create(&DesertTribesman),
+            #new_row=39,#new_col=115,#fine_row=1, #fine_col=61,
+            #new_angle=ANGLE_WEST);
+      Send(self,@NewHold,#what=Create(&Firepit,#iSoundRadius=0),
+            #new_row=41,#new_col=115,#fine_row=31,#fine_col=61);
+      Send(self,@NewHold,#what=Create(&Firepit,#iSoundRadius=0),
+            #new_row=63,#new_col=114,#fine_row=31,#fine_col=26);
+      Send(self,@NewHold,#what=Create(&DesertTribesman),
+            #new_row=65,#new_col=116,#fine_row=58, #fine_col=9,
+            #new_angle=ANGLE_WEST);
+      
+      
+      
       Send(self,@NewHold,#what=Create(&Pillar),#new_row=28,#new_col=98,
             #fine_row=15,#fine_col=7);
       Send(self,@NewHold,#what=Create(&Pillar),#new_row=28,#new_col=99,
