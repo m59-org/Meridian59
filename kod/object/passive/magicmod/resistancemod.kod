@@ -34,6 +34,14 @@ messages:
 
    ModifyResistance(resistance_list=$,iState=0)
    {
+      if viResistanceType > 0
+      {
+         % Weapon resistances are harder to come by.
+         resistance_list = Send(SYS,@AddResistance,#what=viResistanceType,
+                                 #value=iState/3,#resistance_list=resistance_list);
+         return resistance_list;
+      }
+
       resistance_list = Send(SYS,@AddResistance,#what=viResistanceType,
                               #value=iState,#resistance_list=resistance_list);
       return resistance_list;
