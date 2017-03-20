@@ -543,6 +543,9 @@ properties:
    % keep track of how much this player triggers flood protection
    piFloodCount = 0
 
+   % For complex guild halls, a simple move check isn't enough
+   pbValidatedForThisHall = FALSE
+
 messages:
 
    Constructor(name = $,icon = $)
@@ -11038,6 +11041,17 @@ messages:
       }
 
       propagate;
+   }
+
+   GetValidatedForThisHall()
+   {
+      return pbValidatedForThisHall;
+   }
+
+   SetValidatedForThisHall(value=FALSE)
+   {
+      pbValidatedForThisHall = value;
+      return;
    }
 
 end

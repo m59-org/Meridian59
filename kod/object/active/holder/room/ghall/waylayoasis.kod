@@ -56,7 +56,11 @@ constants:
    AREA_INSIDE = 1
    AREA_LEDGES = 2
    AREA_CAVES = 3
-   
+   AREA_DOOR = 4
+
+   OFFLIMITS_SECTORS = 500
+   AREA_ILLEGAL = 5
+
    InsideAreaSouthMinRow = 55
    InsideAreaSouthMinFineRow = 6
    InsideAreaSouthMaxRow = 79
@@ -369,6 +373,8 @@ messages:
 
    InFoyer(who=$,iRow=$,iCol=$,iFineRow=$,iFineCol=$)
    {
+      local iSection;
+
       if who <> $
       {
          iRow = Send(who,@GetRow);
@@ -377,8 +383,9 @@ messages:
          iFineCol = Send(who,@GetFineCol);
       }
 
-      if Send(self,@GetSection,#who=who,#iRow=iRow,#iCol=iCol,
-            #iFineRow=iFineRow,#iFineCol=iFineCol) = AREA_INSIDE
+      iSection = Send(self,@GetSection,#who=who,#iRow=iRow,#iCol=iCol,#iFineRow=iFineRow,#iFineCol=iFineCol);
+      if iSection = AREA_INSIDE
+         OR iSection = AREA_LEDGES
       {
          return FALSE;
       }
@@ -395,7 +402,17 @@ messages:
          OR iFineRow = $
          OR iFineCol = $
       {
-         return AREA_OUTSIDE;
+         if who <> $
+         {
+            iRow = Send(who,@GetRow);
+            iCol = Send(who,@GetCol);
+            iFineRow = Send(who,@GetFineRow);
+            iFineCol = Send(who,@GetFineCol);
+         }
+         else
+         {
+            return AREA_OUTSIDE;
+         }
       }
 
       iQflags = LIQ_GET_SECTORINFO;
@@ -404,13 +421,23 @@ messages:
                       prmRoom, iQflags, iRow, iCol, iFineRow, iFineCol,
                       *iRflags, *iHeightF, *iHeightFWD, *iHeightC, *iServerID)
       {
+         if iServerID = OFFLIMITS_SECTORS
+         {
+            return AREA_ILLEGAL;
+         }
+
          if iServerID = CHEST_PASSAGE_SECTOR
             OR iServerID = HALL_SECTORS_SOUTH
             OR iServerID = HALL_SECTORS_NORTH
          {
             return AREA_INSIDE;
          }
-         
+
+         if iServerID = ENTRANCE_SECTOR2
+         {
+            return AREA_DOOR;
+         }
+
          if iServerID = LEDGE_SECTORS
          {
             return AREA_LEDGES;
@@ -588,7 +615,7 @@ messages:
             #new_row=65,#new_col=116,#fine_row=58, #fine_col=9,
             #new_angle=ANGLE_WEST);
       Send(self,@NewHold,#what=Create(&Firepit,#iSoundRadius=0),
-            #new_row=52,#new_col=124,#fine_row=60,#fine_col=15);
+            #new_row=51,#new_col=124,#fine_row=5,#fine_col=15);
       
       
       
@@ -812,6 +839,127 @@ messages:
       oAfterlife = Send(SYS,@FindRoomByNum,#num=RID_DESERTALDUNES);
       Send(oAfterlife,@Teleport,#what=who);
       return;
+   }
+
+   ResetGuildHall()
+   {
+      local i;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&Player)
+         {
+            Send(First(i),@SetValidatedForThisHall,#value=FALSE);
+         }
+      }
+
+      propagate;
+   }
+
+   NewHold(what = $, new_angle = ANGLE_EAST, new_row = 1, new_col = 1,
+           fine_row = FINENESS/2, fine_col = FINENESS/2, session = $,
+           merge = TRUE)
+   {
+      local iSection;
+
+      if IsClass(what,&Player)
+      {
+         iSection = Send(self,@GetSection,#who=what);
+         if iSection = AREA_INSIDE
+            OR iSection = AREA_LEDGES
+         {
+            % If they can log on in the hall, they must be valid. If they're teleported, unset.
+            Send(what,@SetValidatedForThisHall,#value=TRUE);
+         }
+      }
+
+      propagate;
+   }
+
+   Teleport(what=$,foyer=FALSE)
+   {
+      if foyer
+      {
+         if IsClass(what,&Player)
+         {
+            % Any foyer teleports (including logging on inside hall) ensures we're not legit.
+            Send(what,@SetValidatedForThisHall,#value=FALSE);
+         }
+      }
+
+      propagate;
+   }
+
+   LeaveHold(what = $)
+   {
+      if IsClass(what,&Player)
+      {
+         Send(what,@SetValidatedForThisHall,#value=FALSE);
+      }
+
+      propagate;
+   }
+
+   IsMoveOK(old_row = 1, old_col = 1, old_fine_row = 1, old_fine_col = 1,
+            new_row = 1, new_col = 1, new_fine_row = 1, new_fine_col = 1,
+            who=$)
+   {
+      local iSection;
+
+      iSection = Send(self,@GetSection,#who=who,
+                                       #iRow=new_row,
+                                       #iCol=new_col,
+                                       #iFineRow=new_fine_row,
+                                       #iFineCol=new_fine_col);
+
+      if iSection = AREA_ILLEGAL
+      {
+         % No wallhacking. No compromises.
+         return FALSE;
+      }
+
+      % Complex hall. Don't check movement if it's not owned.
+      if poGuild_owner = $
+      {
+         return TRUE;
+      }
+
+      % They've been validated. No more checks.
+      if Send(who,@GetValidatedForThisHall)
+      {
+         return TRUE;
+      }
+      
+      if ptEntrance <> $
+      {
+         % Door's open. Validate anyone moving through the door.
+         if iSection = AREA_DOOR
+         {
+            Send(who,@SetValidatedForThisHall,#value=TRUE);
+            return TRUE;
+         }
+      }
+
+      if Send(self,@InFoyer,#iRow=old_row,#iCol=old_col,
+               #iFineRow=old_fine_row,#iFineCol=old_fine_col)
+      {
+         % We're in the foyer. Check if we're trying to move into the hall.
+         if NOT Send(self,@InFoyer,#iRow=new_row,#iCol=new_col,
+                    #iFineRow=new_fine_Row,#iFineCol=new_fine_col)
+         {
+            % Bad player! Fail the attempt.
+            Debug("ALERT!",Send(who,@GetTrueName),who,
+                  "tried to move through closed Guild Hall door ",
+                  Send(self,@GetName)," from ",old_row,old_col,old_fine_row,
+                  old_fine_col," to ",new_row,new_col,new_fine_row,
+                  new_fine_col,". Last door opening was ",
+                  GetTime() - Send(self,@GetDoorTimeStamp),
+                  " seconds ago.");
+            return FALSE;
+         }
+      }
+
+      return TRUE;
    }
 
 end
