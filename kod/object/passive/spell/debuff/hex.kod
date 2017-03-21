@@ -141,7 +141,8 @@ messages:
       }
 
       % Iwodach level 4, increase hex duration
-      if Send(what,@GetSkillAbility,#Skill_num=SKID_ANCIENT_PACT) > 0
+      if IsClass(what,&Player)
+         AND Send(what,@GetSkillAbility,#Skill_num=SKID_ANCIENT_PACT) > 0
          AND Send(Send(SYS,@FindSkillByNum,#num=SKID_ANCIENT_PACT),
                @DoSkill,#who=what)
       {
@@ -151,7 +152,8 @@ messages:
       }
 
       % Nequzon level 6, hexes don't expire
-      if Send(what,@GetSkillAbility,#Skill_num=SKID_OSTRACIZATION) > 0
+      if IsClass(what,&Player)
+         AND Send(what,@GetSkillAbility,#Skill_num=SKID_OSTRACIZATION) > 0
          AND Send(Send(SYS,@FindSkillByNum,#num=SKID_OSTRACIZATION),
                @DoSkill,#who=what)
       {

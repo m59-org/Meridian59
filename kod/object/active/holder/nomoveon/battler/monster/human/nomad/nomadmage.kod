@@ -1,0 +1,91 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+NomadMage is NomadBandit
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   NomadMage_name_rsc = "nomad mage"
+   NomadMage_desc_rsc = \
+      "This desert nomad looks skilled in the magical arts."
+   NomadMage_dead_name_rsc = "dead nomad mage"
+
+classvars:
+
+   vrName = NomadMage_name_rsc
+   vrDesc = NomadMage_desc_rsc
+   vrDead_name = NomadMage_dead_name_rsc
+
+properties:
+
+   piMana = 100
+   piMax_Mana = 100
+
+messages:
+
+   Constructed()
+   {
+      if piDemonSponsor = SSS_WITCHERY_NEQUZON
+      {
+         plSpellBook = [ [SID_HEX_BARBS,12,33], [SID_HEX_CONDUCTIVITY,25,55],
+                         [SID_LIGHTNING_BOLT,10,100]];
+      }
+      if piDemonSponsor = SSS_WITCHERY_IWODACH
+      {
+         plSpellBook = [ [SID_HEX_FRAILTY,40,33], [SID_HEX_WEAKEN,20,90],
+                         [SID_HEX_BLACK_MANTLE,50,100]];
+      }
+      if piDemonSponsor = SSS_WITCHERY_XAERDUN
+      {
+         plSpellBook = [ [SID_HEX_LEECHES,20,33], [SID_HEX_BESTILL,20,50],
+                         [SID_HEX_SLOW,50,100]];
+      }
+      if piDemonSponsor = SSS_WITCHERY_VENTDAL
+      {
+         plSpellBook = [ [SID_HEX_BECLOUD,20,33], [SID_HEX_SEVER,20,90],
+                         [SID_HEX_THORNS,40,100]];
+      }
+      if piDemonSponsor = SSS_WITCHERY_RAUMLAR
+      {
+         plSpellBook = [ [SID_LIGHTNING_BOLT,5,100]];
+      }
+
+      propagate;
+   }
+
+   SetEquipment()
+   {
+      local oEquipmentItem, iBonusModifier, oSpell;
+
+      oEquipmentItem = Create(&Mace);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      if plSpellBook = $
+      {
+         oEquipmentItem = Create(&Robe,#color=XLAT_TO_SKIN2);
+      }
+      else
+      {
+         oSpell = Send(SYS,@FindSpellByNum,
+                        #num=First(Nth(plSpellBook,Random(1,Length(plSpellBook)))));
+         oEquipmentItem = Create(&DiscipleRobe,#school=Send(oSpell,@GetSchool));
+      }
+
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

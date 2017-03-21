@@ -126,7 +126,7 @@ messages:
 
       % Default.
       prRoom = prDunesNoTomb;
-      iRandomizedEncounter = 6;
+      iRandomizedEncounter = Random(1,10);
       switch(iRandomizedEncounter)
       {
          case 1:
@@ -195,13 +195,83 @@ messages:
 
    PopulateArea()
    {
+      local bSpawnNomads, iBandRow, iBandCol, iDemonSponsor, oNomad, iRandomBandits;
       % No monsters at oasis.
       if piConfiguration = 4
       {
          return;
       }
+      
+      % Nomad bands can spawn here.
+      bSpawnNomads = FALSE;
+      if Random(1,10) = 1
+      {
+         bSpawnNomads = TRUE;
+      }
+      
+      if bSpawnNomads
+      {
+         iBandRow = Random(10,Send(self,@GetRoomRows)-10);
+         iBandCol = Random(10,Send(self,@GetRoomCols)-10);
+         
+         iDemonSponsor = Random(1,100);
+         if iDemonSponsor <= 20
+         {
+            iDemonSponsor = SSS_WITCHERY_VENTDAL;
+         }
+         else if iDemonSponsor <= 40
+         {
+            iDemonSponsor = SSS_WITCHERY_XAERDUN;
+         }
+         else if iDemonSponsor <= 60
+         {
+            iDemonSponsor = SSS_WITCHERY_NEQUZON;
+         }
+         else if iDemonSponsor <= 80
+         {
+            iDemonSponsor = SSS_WITCHERY_IWODACH;
+         }
+         else if iDemonSponsor <= 100
+         {
+            iDemonSponsor = SSS_WITCHERY_RAUMLAR;
+         }
+
+         % One leader.
+         oNomad = Create(&NomadLeader,#iDemonSponsor=iDemonSponsor);
+         Send(self,@NewHold,#what=oNomad,#new_row=iBandRow,#new_col=iBandCol);
+         
+         % Leader's box.
+         oNomad = Create(&NomadChest,#bLocked=TRUE);
+         Send(self,@NewHold,#what=oNomad,#new_row=iBandRow-1,#new_col=iBandCol);
+         Send(self,@FillOrnateChest,#bandchest=oNomad);
+         
+         % Two mages.
+         oNomad = Create(&NomadMage,#iDemonSponsor=iDemonSponsor);
+         Send(self,@NewHold,#what=oNomad,#new_row=iBandRow + Random(-2,2),#new_col=iBandCol + Random(-2,2));
+         oNomad = Create(&NomadMage,#iDemonSponsor=iDemonSponsor);
+         Send(self,@NewHold,#what=oNomad,#new_row=iBandRow + Random(-2,2),#new_col=iBandCol + Random(-2,2));
+         
+         iRandomBandits = Random(3,7);
+         while iRandomBandits > 0
+         {
+            oNomad = Create(&NomadBandit,#iDemonSponsor=iDemonSponsor);
+            Send(self,@NewHold,#what=oNomad,#new_row=iBandRow + Random(-5,5),#new_col=iBandCol + Random(-5,5));
+            --iRandomBandits;
+         }
+      }
 
       propagate;
+   }
+
+   FillOrnateChest(bandchest=$)
+   {
+      if bandchest <> $
+      {
+         Send(bandchest,@NewHold,#what=Create(&LongSword));
+         
+         %%%%%%%%%%% +============================== STILL NEED ORNATE CHEST TREASURE
+      }
+      return;
    }
 
    Delete()

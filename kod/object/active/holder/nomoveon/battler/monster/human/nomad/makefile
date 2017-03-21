@@ -4,7 +4,8 @@
 
 !include $(TOPDIR)\common.mak
 
-DEPEND = ..\storebox.bof
-BOFS = woodbox.bof chest.bof smallbox.bof oldbox.bof nomadchest.bof
+DEPEND = ..\nomad.bof
+BOFS  = nomadmage.bof nomadleader.bof
+
 
 !include $(KODDIR)\kod.mak
