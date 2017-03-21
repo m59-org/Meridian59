@@ -43,6 +43,9 @@ resources:
       "lightning strike!"
    lightning_strike_sound = fbolt.wav
 
+   lightning_strike_requirement_weaponcraft_six = \
+      "You don't feel skilled enough to pull off this attack."
+
 classvars:
 
    vrName = lightning_strike_name_rsc
@@ -55,10 +58,10 @@ classvars:
    viSpell_num = SID_LIGHTNING_STRIKE
    viSpell_level = 6
    viSchool = SS_FAREN
-   viMana = 8
-   viSpellExertion = 10
+   viMana = 28
+   viSpellExertion = 25
    viChance_To_Increase = 15
-   viMeditate_ratio = 40
+   viMeditate_ratio = 80
 
    viHarmful = TRUE
    viOutlaw = TRUE
@@ -73,7 +76,7 @@ properties:
    plCooldowns = $
 
    % A player can use the spell this many times in a row.
-   piMaxUses = 2
+   piMaxUses = 1
 
    % It takes this long for one cooldown to lift.
    piCooldownTime = 15000
@@ -103,6 +106,12 @@ messages:
          AND Send(oRoom,@CheckRoomFlag,#flag=ROOM_NO_COMBAT)
       {
          Send(who,@MsgSendUser,#message_rsc=lightning_strike_not_here);
+         return FALSE;
+      }
+
+      if NOT Send(self,@HasSecondaryRequirement,#who=who)
+      {
+         Send(who,@MsgSendUser,#message_rsc=lightning_strike_requirement_weaponcraft_six);
          return FALSE;
       }
 
@@ -295,6 +304,16 @@ messages:
       plCooldowns = $;
       
       propagate;
+   }
+
+   HasSecondaryRequirement(who=$)
+   {
+      if Send(who,@HasSkill,#num=SKID_DISARM)
+      {
+         return TRUE;
+      }
+
+      return FALSE;
    }
 
 end
