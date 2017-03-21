@@ -61,6 +61,9 @@ constants:
    OFFLIMITS_SECTORS = 500
    AREA_ILLEGAL = 5
 
+   OUTER_POOL = 400
+   INNER_POOL = 401
+
    InsideAreaSouthMinRow = 55
    InsideAreaSouthMinFineRow = 6
    InsideAreaSouthMaxRow = 79
@@ -99,6 +102,14 @@ resources:
    no_tribe_fight_in_caves = \
       "The tribesmen watch you with guarded eyes. Fighting is not allowed in their caves."
 
+   waylayoasis_outside_drink = \
+      "The small pool of sand-filtered water slakes your thirst."
+   waylayoasis_inside_drink = \
+      "The sand-filtered water pumped into this pool greatly refreshes you!"
+   water_disgusting_msg = \
+      "You can't drink this acidic sludge!"
+   waylayoasis_drink_sound = drink.wav
+
 classvars:
 
    vrName = room_name_waylayoasis
@@ -131,6 +142,12 @@ classvars:
    viSeconds_til_close = 8
 
    viWeatherZone = WEATHER_ZONE_DESERT
+
+   viOutsideFilling = 20  
+   viOutsideNutrition = 40
+
+   viInsideFilling = 20
+   viInsideNutrition = 80
 
 properties:
 
@@ -275,7 +292,7 @@ messages:
 
    SomethingTryGo(what=$, row=$,  col = $)
    {
-      local i;
+      local i, iSection;
       
       foreach i in plInside_doors
       {
@@ -288,7 +305,61 @@ messages:
          }
       }
 
+      iSection = Send(self,@GetSection,#who=what,#bCheckForPool=TRUE);
+      if iSection = OUTER_POOL
+      {
+         if Send(self,@CheckRoomFlag,#flag=ROOM_SNOWING)
+         {
+            propagate;
+         }
+         if Send(self,@CheckRoomFlag,#flag=ROOM_RAINING)
+         {
+            Send(what,@MsgSendUser,#message_rsc=water_disgusting_msg);
+            return TRUE;
+         }
+         Send(self,@UserDrink,#who=what,#where=OUTER_POOL);
+         return TRUE;
+      }
+      if iSection = INNER_POOL
+      {
+         Send(self,@UserDrink,#who=what,#where=INNER_POOL);
+         return TRUE;
+      }
       propagate;
+   }
+
+   IsBeverage()
+   {
+      return TRUE;
+   }
+
+   UserDrink(who=$,where=OUTER_POOL)
+   {
+      if where=OUTER_POOL
+      {
+         if NOT Send(who,@ReqEatSomething,#filling=viOutsideFilling,#what=self)
+         {
+            return;
+         }
+
+         Send(who,@EatSomething,#nutrition=viOutsideNutrition,#filling=viOutsideFilling);
+         Send(who,@WaveSendUser,#wave_rsc=oasis_drink_sound);
+         Send(who,@MsgSendUser,#message_rsc=waylayoasis_outside_drink);
+      }
+      else if where=INNER_POOL
+      {
+         if NOT Send(who,@ReqEatSomething,#filling=viInsideFilling,#what=self)
+         {
+            return;
+         }
+
+         Send(who,@EatSomething,#nutrition=viInsideNutrition,#filling=viInsideFilling);
+         Send(who,@WaveSendUser,#wave_rsc=oasis_drink_sound);
+         Send(who,@MsgSendUser,#message_rsc=waylayoasis_inside_drink);
+      
+      }
+
+      return;
    }
 
    SomeoneSaid(what = $,type = $,string = $,parm1 = $,parm2 = $,parm3 = $,
@@ -393,7 +464,7 @@ messages:
       return TRUE;
    }
 
-   GetSection(who=$,iRow=$,iCol=$,iFineRow=$,iFineCol=$)
+   GetSection(who=$,iRow=$,iCol=$,iFineRow=$,iFineCol=$,bCheckForPool=FALSE)
    {
       local iQflags, iRflags, iHeightF, iHeightFWD, iHeightC, iServerID;
       
@@ -426,9 +497,22 @@ messages:
             return AREA_ILLEGAL;
          }
 
+         if bCheckForPool
+         {
+            if iServerID = INNER_POOL
+            {
+               return INNER_POOL;
+            }
+            if iServerID = OUTER_POOL
+            {
+               return OUTER_POOL;
+            }
+         }
+
          if iServerID = CHEST_PASSAGE_SECTOR
             OR iServerID = HALL_SECTORS_SOUTH
             OR iServerID = HALL_SECTORS_NORTH
+            OR iServerID = INNER_POOL
          {
             return AREA_INSIDE;
          }
@@ -748,6 +832,11 @@ messages:
             % Water sidedefs tagged as ID 14.
             Send(self,@ChangeTexture,#id=13,#new_texture=61017,
                   #flags=CTF_FLOOR);
+                  
+            % outer pool
+            Send(self,@ChangeTexture,#id=400,#new_texture=61017,
+                  #flags=CTF_FLOOR);
+
             % Stop vertically scrolling water from animating.
             Send(self,@AnimateWall,#wall=14,#animation=ANIMATE_NONE,
                   #first_group=1,#second_group=1,#end_group=1);
@@ -759,6 +848,8 @@ messages:
                   #flags=CTF_NORMALWALL);
             % Stop water scroll effect and remove depth.
             Send(self,@SetSectorFlags,#sector=13,#depth=SF_DEPTH0,
+                  #scrollSpeed=SCROLL_NONE);
+            Send(self,@SetSectorFlags,#sector=400,#depth=SF_DEPTH0,
                   #scrollSpeed=SCROLL_NONE);
 
 
@@ -782,11 +873,13 @@ messages:
       {
          % Remove sludge water textures.
          Send(self,@RemoveTextureChange,#id=13);
+         Send(self,@RemoveTextureChange,#id=400);
          % Remove sludge water sides.
          Send(self,@RemoveTextureChange,#id=14);
          Send(self,@RemoveAnimateWallChange,#wall=14);
          % Reset sector flag changes to sludge water.
          Send(self,@RemoveSectorFlagChange,#id=13);
+         Send(self,@RemoveSectorFlagChange,#id=400);
 
          % Remove snow depth and walking sounds.
          Send(self,@RemoveSectorFlagChange,#id=0);
@@ -807,9 +900,13 @@ messages:
       % Acid rain makes the water gross.
       Send(self,@ChangeTexture,#id=13,#new_texture=09363,
             #flags=CTF_FLOOR);
+      Send(self,@ChangeTexture,#id=400,#new_texture=09363,
+            #flags=CTF_FLOOR);
       Send(self,@ChangeTexture,#id=14,#new_texture=09363,
             #flags=CTF_NORMALWALL);
       Send(self,@SetSectorFlags,#sector=13,#depth=SF_DEPTH1,
+            #scrollSpeed=SCROLL_SLOW);
+      Send(self,@SetSectorFlags,#sector=400,#depth=SF_DEPTH1,
             #scrollSpeed=SCROLL_SLOW);
       propagate;
    }
@@ -820,10 +917,12 @@ messages:
       Send(self,@RemoveTextureChange,#id=0);
       % Remove sludge water textures.
       Send(self,@RemoveTextureChange,#id=13);
+      Send(self,@RemoveTextureChange,#id=400);
       % Remove sludge water sides.
       Send(self,@RemoveTextureChange,#id=14);
       % Reset sector flag changes to sludge water.
       Send(self,@RemoveSectorFlagChange,#id=13);
+      Send(self,@RemoveSectorFlagChange,#id=400);
       propagate;
    }
 
