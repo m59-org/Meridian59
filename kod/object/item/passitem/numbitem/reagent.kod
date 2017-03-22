@@ -16,13 +16,80 @@ constants:
 
 resources:
 
+   no_poison_skill = \
+      "You suspect you might be able to apply this reagent to your weapon "
+      "to produce an effect, but you have no idea how."
+
 classvars:
 
    viItem_type = ITEMTYPE_REAGENT
+   
+   vbAppliesPoison = FALSE
+   viPoisonDuration = 0
+   viPoisonLoss = 0
+   viPoisonProcChance = 0
+   viPoisonCharges = 0
 
 properties:
 
 messages:
+
+   ReqNewApply(what = $,apply_on = $)
+   {
+      if what = Send(self,@GetOwner)
+         AND apply_on <> $
+         AND IsClass(apply_on,&Weapon)
+      {
+         return TRUE;
+      }
+
+      propagate;
+   }
+
+   NewApplied(what = $,apply_on = $)
+   {
+      if what = Send(self,@GetOwner)
+         AND apply_on <> $
+         AND IsClass(apply_on,&Weapon)
+      {
+         if Send(what,@HasSkill,#num=SKID_POISON_BLADE)
+         {
+            Send(Send(SYS,@FindSkillByNum,#num=SKID_POISON_BLADE),@DoSkill,#who=what,#lItems=[apply_on, self]);
+         }
+         else
+         {
+            Send(what,@MsgSendUser,#message_rsc=no_poison_skill);
+         }
+         return;
+      }
+
+      propagate;
+   }
+
+   GetPoisonDuration()
+   {
+      return viPoisonDuration;
+   }
+   
+   GetPoisonLoss()
+   {
+      return viPoisonLoss;
+   }
+   
+   GetPoisonProcChance()
+   {
+      return viPoisonProcChance;
+   }
+
+   GetAppliesPoison()
+   {
+      return vbAppliesPoison;
+   }
+   
+   GetPoisonCharges()
+   {
+      return viPoisonCharges;
+   }
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

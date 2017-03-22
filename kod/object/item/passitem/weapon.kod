@@ -144,6 +144,8 @@ classvars:
    vrCondition_med = weapon_condition_med 
    vrCondition_poor = weapon_condition_poor 
    vrCondition_broken = weapon_condition_broken
+   
+   vbCanApplyPoison = FALSE
 
    viRange = 2 * FINENESS
 
@@ -514,6 +516,11 @@ messages:
             iDamage = Send(oWeapAtt,@ModifyDamage,#damage=iDamage,#wielder=poOwner,
                            #target=target,#lData=i);
          }
+      }
+
+      foreach i in plObject_attributes
+      {
+         iDamage = Send(i,@ModifyDamage,#damage=iDamage,#who=poOwner,#what=target);
       }
 
       iDamage = iDamage + piDamageBonus;
@@ -1193,6 +1200,11 @@ messages:
       return [[&WeaponMightMod,100],
               [&WeaponAgilityMod,100],
               [&WeaponAimMod,100]];
+   }
+
+   CanApplyPoison()
+   {
+      return vbCanApplyPoison;
    }
 
 end

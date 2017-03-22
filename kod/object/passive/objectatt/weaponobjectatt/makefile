@@ -5,6 +5,6 @@
 !include $(TOPDIR)\common.mak
 
 DEPEND = ..\weaponobjectatt.bof
-BOFS = weaponspellproc.bof
+BOFS = weaponspellproc.bof weaponpoisonproc.bof
 
 !include $(KODDIR)\kod.mak
