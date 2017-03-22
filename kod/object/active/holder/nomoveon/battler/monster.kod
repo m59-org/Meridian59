@@ -118,6 +118,15 @@ resources:
    monster_anonymous_response = \
       "%s looks at you with a peculiar expression and does not respond." 
 
+   player_has_ventdal = \
+      "I do not teach pathetic Ventdal traditionalists."
+   player_has_xaerdun = \
+      "A greedy follower of Xaerdun will learn nothing from me."
+   player_has_iwodach = \
+      "Don't you students of Iwodach already think you know everything?"
+   player_has_nequzon = \
+      "A wild-witch of Nequzon has no use for scholarly knowledge. Begone."
+
    LS_Cant_part = \
       "I cannot see how you could bear to part with %s%s!  I certainly "
       "couldn't be the one to take it off your hands."
@@ -5982,6 +5991,38 @@ messages:
 
       if iVal = PLAYER_LEARN_ERROR
       {
+         return FALSE;
+      }
+
+      if iVal = PLAYER_LEARN_HAS_VENTDAL
+      {
+         Send(poOwner,@SomeoneSaid,#type=SAY_RESOURCE,#what=self,
+              #string=player_has_ventdal);
+
+         return FALSE;
+      }
+
+      if iVal = PLAYER_LEARN_HAS_XAERDUN
+      {
+         Send(poOwner,@SomeoneSaid,#type=SAY_RESOURCE,#what=self,
+              #string=player_has_xaerdun);
+
+         return FALSE;
+      }
+
+      if iVal = PLAYER_LEARN_HAS_IWODACH
+      {
+         Send(poOwner,@SomeoneSaid,#type=SAY_RESOURCE,#what=self,
+              #string=player_has_iwodach);
+
+         return FALSE;
+      }
+
+      if iVal = PLAYER_LEARN_HAS_NEQUZON
+      {
+         Send(poOwner,@SomeoneSaid,#type=SAY_RESOURCE,#what=self,
+              #string=player_has_nequzon);
+
          return FALSE;
       }
 
