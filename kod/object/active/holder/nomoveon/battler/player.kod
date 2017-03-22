@@ -6420,6 +6420,12 @@ messages:
       
       Send(self,@AddHurtMeRecently,#who=what,#amount=damage);
 
+      if what = self
+      {
+         % Don't apply status effects or reflect damage on ourselves.
+         return damage;
+      }
+
       % Apply possible elemental status effects
       if atype = 0
       {
