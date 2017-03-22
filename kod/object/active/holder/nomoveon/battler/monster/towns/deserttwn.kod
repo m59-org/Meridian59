@@ -158,7 +158,7 @@ messages:
               OR Send(what,@CheckPlayerFlag,#flag=PFLAG_MORPHED))
          AND type <> SAY_DM
       {
-         Send(what,@MsgSendUser,#message_rsc=monster_anonymous_response,
+         Post(what,@MsgSendUser,#message_rsc=monster_anonymous_response,
               #parm1=Send(self,@GetName));
 
          return;
@@ -170,7 +170,7 @@ messages:
          {
             if StringContain(string,First(i))
             {
-               Send(poOwner,@SomeoneSaid,#what=self,#type=SAY_RESOURCE,#string=Nth(i,2));
+               Post(poOwner,@SomeoneSaid,#what=self,#type=SAY_RESOURCE,#string=Nth(i,2));
                propagate;
             }
          }

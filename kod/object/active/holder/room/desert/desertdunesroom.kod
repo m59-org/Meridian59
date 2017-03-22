@@ -195,7 +195,20 @@ messages:
 
    PopulateArea()
    {
-      local bSpawnNomads, iBandRow, iBandCol, iDemonSponsor, oNomad, iRandomBandits;
+      local bSpawnNomads, iBandRow, iBandCol, iDemonSponsor, oNomad, iRandomBandits,
+            bSpawnCelegorm;
+
+      bSpawnCelegorm = FALSE;            
+      if Random(1,1) = 1
+      {
+         bSpawnCelegorm = TRUE;
+      }
+
+      if bSpawnCelegorm
+      {
+         Send(self,@NewHold,#what=Create(&DesertThief),#new_row=Random(10,Send(self,@GetRoomRows)-10),#new_col=Random(10,Send(self,@GetRoomCols)-10));
+      }
+
       % No monsters at oasis.
       if piConfiguration = 4
       {

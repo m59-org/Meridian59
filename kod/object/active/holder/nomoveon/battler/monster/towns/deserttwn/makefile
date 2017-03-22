@@ -6,6 +6,6 @@
 
 DEPEND = ..\deserttwn.bof
 BOFS  = nomadwiseman.bof xaerdunafterlife.bof desertbard.bof desertwitch.bof \
-        desertbandit.bof deserttribesman.bof
+        desertbandit.bof deserttribesman.bof desertthief.bof
 
 !include $(KODDIR)\kod.mak
