@@ -24,6 +24,45 @@ constants:
    WEIGHT_TEST_FAILED = 8
    MOD_NOT_FOUND = 9
 
+   % set item flags to this for colors on instillinggem type
+   GREY_FIRST = 49
+   GREY_SECOND = 50
+   GREY_THIRD = 51
+   GREY_FOURTH = 54
+   GREY_FIFTH = 55
+   GREY_SIXTH = 56
+
+   GREEN_FIRST = 57
+
+   GREYISH_FIRST = 65
+
+   ANOTHER_GREY = 66
+
+   PEACH = 67
+   REDDER_PEACH = 68
+   REDDISH = 69
+   REDDER = 70
+   VERY_RED = 71
+   EVEN_MORE_RED = 72
+   ALL_RED = 73
+   ALL_DARK_RED = 74
+
+   % This one is great
+   EFFULGENT_RED = 77
+   EFFULGENT_BLUE = 78
+   EFFULGENT_GREEN = 79
+   
+   WEIRD_SILVER = 81
+   WEIRD_BLUE = 82
+   WEIRD_GREEN = 83
+   
+   WEIRDER_BLUE = 85
+   WEIRDER_GREEN = 86
+   WEIRDER_RED = 87
+   
+   BLOOD_GEM = 96
+   CLOUDED_GEM = 97
+
 resources:
 
    shard_name_rsc = "mystic shard"
@@ -56,12 +95,23 @@ classvars:
 
    viBulk = 1
    viWeight = 1
+   
+   viShardColor = 0
 
 properties:
 
    viObject_flags = OF_APPLYABLE | OF_GETTABLE
 
 messages:
+
+   Constructed()
+   {
+      if viShardColor <> 0
+      {
+         piItem_flags = viShardColor;
+      }
+      propagate;
+   }
 
    NewApplied(what = $,apply_on = $)
    {
