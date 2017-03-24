@@ -18,16 +18,19 @@ resources:
 
    include hstondkgre.lkod
 
-   DarkGreenHeartStone_name_rsc = "dark green heartstone"
+   DarkGreenHeartStone_name_rsc = "dark green heartstone shard"
+   DarkGreenHeartStone_name_plural = "dark green heartstone shards"
    DarkGreenHeartStone_desc_rsc = \
-      "This is called a 'heartstone'.  It is a huge dark green gem taken from "
-      "the body of a fallen ne'Xeochicatl.  It wiggles slightly and is cool "
+      "This is a shard of a 'heartstone'.  It is a dark green gem taken from "
+      "the body of a fallen Ne'Xeochicatl.  It wiggles slightly and is cool "
       "to the touch.  The uses for this gem are not widely known."
 
 classvars:
 
    vrName = DarkGreenHeartStone_name_rsc
    vrDesc = DarkGreenHeartStone_desc_rsc
+   
+   vrName_plural = DarkGreenHeartStone_name_plural
 
    viValue_average = 100
    viWeight = 20
@@ -41,6 +44,29 @@ messages:
    CreateXeo()
    {
       return Create(&XeoNeru,#InAttack=Send(self,@IsInAttack));
+   }
+
+   WeightPrefixes()
+   {
+      return $;
+   }
+   
+   WeightSuffixes()
+   {
+      return [[&FireResistanceMod,200],
+              [&ColdResistanceMod,200],
+              [&AcidResistanceMod,200],
+              [&ShockResistanceMod,200]
+             ];
+   }
+
+   EmpowerAffixes()
+   {
+      return [[&FireResistanceMod,1],
+              [&ColdResistanceMod,1],
+              [&AcidResistanceMod,1],
+              [&ShockResistanceMod,1]
+             ];
    }
 
 end

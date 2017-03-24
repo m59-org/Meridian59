@@ -18,16 +18,19 @@ resources:
 
    include hstonwht.lkod
 
-   WhiteHeartStone_name_rsc = "white heartstone"
+   WhiteHeartStone_name_rsc = "white heartstone shard"
+   WhiteHeartStone_name_plural = "white heartstones shards"
    WhiteHeartStone_desc_rsc = \
-      "This is called a 'heartstone'.  It is a huge white gem taken from "
-      "the body of a fallen si'Xeochicatl.  It wiggles slightly and is cool "
+      "This is a shard of a 'heartstone'.  It is a white gem taken from "
+      "the body of a fallen Si'Xeochicatl.  It wiggles slightly and is cool "
       "to the touch.  The uses for this gem are not widely known."
 
 classvars:
 
    vrName = WhiteHeartStone_name_rsc
    vrDesc = WhiteHeartStone_desc_rsc
+   
+   vrName_plural = WhiteHeartStone_name_plural
 
    viValue_average = 100
    viWeight = 20
@@ -42,6 +45,23 @@ messages:
    CreateXeo()
    {
       return Create(&XeoHoly,#InAttack=Send(self,@IsInAttack));
+   }
+
+   WeightPrefixes()
+   {
+      return $;
+   }
+   
+   WeightSuffixes()
+   {
+      return [[&HolyResistanceMod,100]
+             ];
+   }
+
+   EmpowerAffixes()
+   {
+      return [[&HolyResistanceMod,2]
+             ];
    }
 
 end

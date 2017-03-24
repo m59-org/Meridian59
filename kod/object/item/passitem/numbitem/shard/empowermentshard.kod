@@ -87,7 +87,10 @@ messages:
 
    NewApplied(what = $,apply_on = $)
    {
-      Send(apply_on,@AddMagicMods,#min_num_mods=1,#max_num_mods=1);
+      if Send(self,@GenerateMod,#oItem=apply_on,#who=what) = 1
+      {
+         Send(self,@SubtractNumber,#number=1);
+      }
 
       propagate;
    }

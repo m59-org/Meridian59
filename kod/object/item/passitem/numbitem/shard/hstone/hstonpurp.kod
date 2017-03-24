@@ -18,16 +18,19 @@ resources:
 
    include hstonpurp.lkod
 
-   PurpleHeartStone_name_rsc = "purple heartstone"
+   PurpleHeartStone_name_rsc = "purple heartstone shard"
+   PurpleHeartStone_name_plural = "purple heartstone shards"
    PurpleHeartStone_desc_rsc = \
-      "This is called a 'heartstone'.  It is a huge purple gem taken from "
-      "the body of a fallen re'Xeochicatl.  It wiggles slightly and is cool "
+      "This is a shard of a 'heartstone'.  It is a purple gem taken from "
+      "the body of a fallen Re'Xeochicatl.  It wiggles slightly and is cool "
       "to the touch.  The uses for this gem are not widely known."
 
 classvars:
 
    vrName = PurpleHeartStone_name_rsc
    vrDesc = PurpleHeartStone_desc_rsc
+   
+   vrName_plural = PurpleHeartStone_name_plural
 
    viValue_average = 100
    viWeight = 20
@@ -41,6 +44,25 @@ messages:
    CreateXeo()
    {
       return Create(&XeoIll,#InAttack=Send(self,@IsInAttack));
+   }
+
+   WeightPrefixes()
+   {
+      return [[&ManaMod,300],
+              [&VigorMod,100]
+             ];
+   }
+   
+   WeightSuffixes()
+   {
+      return $;
+   }
+
+   EmpowerAffixes()
+   {
+      return [[&ManaMod,12],
+              [&VigorMod,5]
+             ];
    }
 
 end

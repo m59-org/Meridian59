@@ -6,6 +6,6 @@
 
 DEPEND = ..\shard.bof
 BOFS = basicshard.bof removeshard.bof majorshard.bof augmentshard.bof \
-       empowermentshard.bof
+       empowermentshard.bof hstone.bof
 
 !include $(KODDIR)\kod.mak

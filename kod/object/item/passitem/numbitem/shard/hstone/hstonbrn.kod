@@ -18,9 +18,10 @@ resources:
 
    include hstonbrn.lkod
 
-   BrownHeartStone_name_rsc = "brown heartstone"
+   BrownHeartStone_name_rsc = "brown heartstone shard"
+   BrownHeartStone_name_plural = "brown heartstone shards"
    BrownHeartStone_desc_rsc = \
-      "This is called a 'heartstone'.  It is a huge brown gem taken from "
+      "This is a shard of a 'heartstone'.  It is a brown gem taken from "
       "the body of a fallen Te'Xeochicatl.  It feels much like a normal "
       "stone.  The uses for this gem are not widely known."
 
@@ -28,6 +29,8 @@ classvars:
 
    vrName = BrownHeartStone_name_rsc
    vrDesc = BrownHeartStone_desc_rsc
+   
+   vrName_plural = BrownHeartStone_name_plural
 
    viValue_average = 100
    viWeight = 25
@@ -42,6 +45,25 @@ messages:
    CreateXeo()
    {
       return Create(&XeoEarth,#InAttack=Send(self,@IsInAttack));
+   }
+
+   WeightPrefixes()
+   {
+      return [[&DefenseMod,200]
+             ];
+   }
+   
+   WeightSuffixes()
+   {
+      return [[&WeaponAgilityMod,200]
+             ];
+   }
+
+   EmpowerAffixes()
+   {
+      return [[&DefenseMod,6],
+              [&WeaponAgilityMod,1]
+             ];
    }
 
 end

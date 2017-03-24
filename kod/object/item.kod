@@ -3208,70 +3208,6 @@ messages:
       return;
    }
 
-   AddMagicMods(min_num_mods=0, max_num_mods=0)
-   "General random decisions for adding one to multiple mods."
-   {
-      local iNumMods, iModType, bAdded, iChosenType;
-      bAdded = FALSE;
-
-      if NOT IsClass(self,&Gauntlet)
-         AND NOT IsClass(self,&DefenseModifier)
-         AND NOT IsClass(self,&Weapon)
-         AND NOT IsClass(self,&Ring)
-      {
-         return bAdded;
-      }
-
-      if min_num_mods < 0
-      {
-         min_num_mods = 0;
-      }
-
-      if max_num_mods > 6
-      {
-         max_num_mods = 6;
-      }
-
-      if min_num_mods > max_num_mods
-      {
-         min_num_mods = 0;
-         max_num_mods = 0;
-      }
-
-      iNumMods = Random(min_num_mods,max_num_mods);
-      
-      while iNumMods > 0
-      {
-         if plEnchantmentMods <> $
-            AND Length(plEnchantmentMods) = 6
-         {
-            break;
-         }
-
-         iChosenType = Random(MOD_PREFIX,MOD_SUFFIX);
-         
-         % check for prefix/suffix limit.
-         % since we checked for 6 mods total, we know the other is open
-         %   if the chosen type is full.
-         if Send(self,@GetMagicModsNumberOfType,#type=iChosenType) >= 3
-         {
-            if iChosenType = MOD_PREFIX
-            {
-               iChosenType = MOD_SUFFIX;
-            }
-            else
-            {
-               iChosenType = MOD_PREFIX;
-            }
-         }
-
-         bAdded = Send(self,@AddMagicMod,#type=iChosenType);
-         iNumMods = iNumMods - 1;
-      }
-      
-      return bAdded;
-   }
-
    GetItemLevel()
    {
       return piItemLevel;
@@ -3287,78 +3223,15 @@ messages:
       return $;
    }
 
-   AddMagicMod(type=MOD_SUFFIX)
+   ApplyMagicMod(cClass=&ArmorMod,iPower=0)
    {
-      local i, lPrefixClasses, lSuffixClasses, iRoll, iChanceSum,
-            lClasses, cChosenMod, oChosenMod, iPowerValue;
-
-      % Lists are [mod type, chance to roll]
-      % random roll takes from a sum of all chances
-
-      if type = MOD_SUFFIX
+      if iPower <> 0
       {
-         lClasses = Send(self,@GetSuffixes);
-      }
-      if type = MOD_PREFIX
-      {
-         lClasses = Send(self,@GetPrefixes);
-      }
-
-      if lClasses = $
-      {
-         return FALSE;
-      }
-      
-      % Remove mods we already have from the possibilities.
-      if Send(self,@GetMagicModsNumber) <> 0
-      {
-         foreach i in lClasses
-         {
-            if Send(self,@HasMagicModOfClass,#class=Nth(i,1))
-            {
-               lClasses = DelListElem(lClasses,i);
-            }
-         }
-      }
-
-      iChanceSum = 0;
-      foreach i in lClasses
-      {
-         iChanceSum = iChanceSum + Nth(i,2);
-      }
-
-      if iChanceSum = 0
-      {
-         % Item has no more possible mods!
-         return FALSE;
-      }
-
-      iRoll = Random(1, iChanceSum);
-      foreach i in lClasses
-      {
-         iRoll = iRoll - Nth(i,2);
-         if iRoll <= 0
-         {
-            % we've found our chosen mod class
-            cChosenMod = Nth(i,1);
-            break;
-         }
-      }
-
-      iPowerValue = 0;
-      oChosenMod = Send(SYS,@GetMagicMod,#class=cChosenMod);
-      if oChosenMod <> $
-      {
-         iPowerValue = Send(oChosenMod,@RollPower,#what=self);
-      }
-
-      if iPowerValue <> 0
-      {
-         plEnchantmentMods = Cons([cChosenMod,iPowerValue],plEnchantmentMods);
+         plEnchantmentMods = Cons([cClass,iPower],plEnchantmentMods);
          Send(self,@AddMagicFlag);
          return TRUE;
       }
-
+   
       return FALSE;
    }
 
