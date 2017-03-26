@@ -228,15 +228,15 @@ messages:
          iBandCol = Random(10,Send(self,@GetRoomCols)-10);
          
          iDemonSponsor = Random(1,100);
-         if iDemonSponsor <= 20
+         if iDemonSponsor <= 25
          {
             iDemonSponsor = SSS_WITCHERY_VENTDAL;
          }
-         else if iDemonSponsor <= 40
+         else if iDemonSponsor <= 50
          {
             iDemonSponsor = SSS_WITCHERY_XAERDUN;
          }
-         else if iDemonSponsor <= 60
+         else if iDemonSponsor <= 75
          {
             iDemonSponsor = SSS_WITCHERY_NEQUZON;
          }
@@ -244,7 +244,7 @@ messages:
          {
             iDemonSponsor = SSS_WITCHERY_IWODACH;
          }
-         else if iDemonSponsor <= 100
+         else if iDemonSponsor <= 99
          {
             iDemonSponsor = SSS_WITCHERY_RAUMLAR;
          }
@@ -256,7 +256,7 @@ messages:
          % Leader's box.
          oNomad = Create(&NomadChest,#bLocked=TRUE);
          Send(self,@NewHold,#what=oNomad,#new_row=iBandRow-1,#new_col=iBandCol);
-         Send(self,@FillOrnateChest,#bandchest=oNomad);
+         Send(self,@FillOrnateChest,#bandchest=oNomad,#iDemonSponsor=iDemonSponsor);
          
          % Leader's fire.
          if Send(SYS,@GetDayPhase) = DAY_PHASE_NIGHT
@@ -283,14 +283,51 @@ messages:
       propagate;
    }
 
-   FillOrnateChest(bandchest=$)
+   FillOrnateChest(bandchest=$,iDemonSponsor=SSS_WITCHERY_XAERDUN)
    {
+      local lLootClasses, lMinorLootClasses;
       if bandchest <> $
       {
-         Send(bandchest,@NewHold,#what=Create(&LongSword));
-         
-         %%%%%%%%%%% +============================== STILL NEED ORNATE CHEST TREASURE
+         switch(iDemonSponsor)
+         {
+            case SSS_WITCHERY_XAERDUN:
+               lLootClasses = [&GoldShield,
+                               &ChainArmor,
+                               &LeatherArmor,
+                               &ScaleArmor];
+               break;
+            case SSS_WITCHERY_VENTDAL:
+               lLootClasses = [&DiscipleRobe,
+                               &Gauntlet,
+                               &UnholyRing,
+                               &HolyRing];
+               break;
+            case SSS_WITCHERY_NEQUZON:
+               lLootClasses = [&AcidRing,
+                               &ColdRing,
+                               &ShockRing,
+                               &FireRing];
+               break;
+            case SSS_WITCHERY_IWODACH:
+               lLootClasses = [&RingDefense,
+                               &Dagger,
+                               &Scimitar,
+                               &MysticSword];
+               break;
+            case SSS_WITCHERY_RAUMLAR:
+               lLootClasses = [&NeruditeArmor,
+                               &Tanktop,
+                               &PantsD,
+                               &JalaNecklace];
+         }
+         Send(bandchest,@NewHold,#what=Create(Nth(lLootClasses,Random(1,Length(lLootClasses))),#level=200));
       }
+      
+      Send(bandchest,@NewHold,#what=Create(&Money,#number=Random(10000,50000)));
+
+      lMinorLootClasses = [&SimpleHelm,
+                           &Robe,
+                           &Longbow];
       return;
    }
 
