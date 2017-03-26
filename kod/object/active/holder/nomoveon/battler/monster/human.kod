@@ -2075,5 +2075,22 @@ messages:
       return;
    }
 
+   SendLightingInformation()
+   {
+      if piChampionStatus <> 0
+      {
+         propagate;
+      }
+
+      if Send(self,@FindUsing,#class=&Torch)
+      {
+         AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC));
+         AddPacket(1,60);
+         AddPacket(2,LIGHT_FIRE);
+      }
+
+      return;
+   }
+
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
