@@ -19,7 +19,7 @@ BGFS = igreyinvis.bgf isitting.bgf itransferitem.bgf iexplosion.bgf irift.bgf \
        ihexsap.bgf ihexslow.bgf ihexblackmantle.bgf ihexweaken.bgf \
        ihexfester.bgf ihexexhaustion.bgf ihexbecloud.bgf ihexbestill.bgf \
        ilightningstrike.bgf iflamedash.bgf instillingshard.bgf \
-       disturbanceshard.bgf
+       disturbanceshard.bgf angledfragment.bgf
 
 DIRS = 
 
