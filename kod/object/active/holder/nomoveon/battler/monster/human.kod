@@ -2043,5 +2043,37 @@ messages:
       return compound;
    }
 
+   SetFlickerFlag()
+   {
+      piDrawEffectFlag = piDrawEffectFlag | OF_FLICKERING;
+
+      return;
+   }
+
+   RecalcFlickerFlag()
+   "Called by anything that sets the flag when it wants to unset it. "
+   "Checks if we still have anything that still requires the flag."
+   {
+      local i;
+
+      % Unset flag.
+      piDrawEffectFlag = piDrawEffectFlag & (~OF_FLICKERING);
+
+      % Check torches and glow enchantment.
+      foreach i in plUsing
+      {
+         if IsClass(i,&Torch)
+            OR (IsClass(i,&Weapon)
+               AND Send(i,@HasAttribute,#ItemAtt=WA_GLOWING))
+         {
+            piDrawEffectFlag = piDrawEffectFlag | OF_FLICKERING;
+
+            return;
+         }
+      }
+
+      return;
+   }
+
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

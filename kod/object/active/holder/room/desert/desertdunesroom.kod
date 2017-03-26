@@ -217,7 +217,7 @@ messages:
       
       % Nomad bands can spawn here.
       bSpawnNomads = FALSE;
-      if Random(1,10) = 1
+      if Random(1,1) = 1
       {
          bSpawnNomads = TRUE;
       }
@@ -258,6 +258,13 @@ messages:
          Send(self,@NewHold,#what=oNomad,#new_row=iBandRow-1,#new_col=iBandCol);
          Send(self,@FillOrnateChest,#bandchest=oNomad);
          
+         % Leader's fire.
+         if Send(SYS,@GetDayPhase) = DAY_PHASE_NIGHT
+         {
+            Send(self,@NewHold,#what=Create(&Firepit,#iSoundRadius=0),
+                  #new_row=iBandRow-1,#new_col=iBandCol-1);
+         }
+
          % Two mages.
          oNomad = Create(&NomadMage,#iDemonSponsor=iDemonSponsor);
          Send(self,@NewHold,#what=oNomad,#new_row=iBandRow + Random(-2,2),#new_col=iBandCol + Random(-2,2));
@@ -268,7 +275,7 @@ messages:
          while iRandomBandits > 0
          {
             oNomad = Create(&NomadBandit,#iDemonSponsor=iDemonSponsor);
-            Send(self,@NewHold,#what=oNomad,#new_row=iBandRow + Random(-5,5),#new_col=iBandCol + Random(-5,5));
+            Send(self,@NewHold,#what=oNomad,#new_row=iBandRow + Random(-8,8),#new_col=iBandCol + Random(-8,8));
             --iRandomBandits;
          }
       }
@@ -880,6 +887,31 @@ messages:
                                  #new_angle=Send(who,@GetAngle));
       return;
    }
- 
+
+   DepopulateArea()
+   {
+      local i;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&NomadChest)
+            AND Send(First(i),@GetLocked)
+         {
+            % Delete unopened nomad chests
+            Send(First(i),@Delete);
+         }
+      }
+      
+      foreach i in Send(self,@GetHolderPassive)
+      {
+         if IsClass(First(i),&Firepit)
+         {
+            % Delete fires
+            Send(First(i),@Delete);
+         }
+      }
+      propagate;
+   }
+
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
