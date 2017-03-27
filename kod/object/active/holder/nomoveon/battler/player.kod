@@ -1270,7 +1270,7 @@ messages:
          ptBondedItemReport = $;
       }
 
-      poStance = $;
+      Send(self,@ClearStance);
 
       Send(SYS,@SystemRemoveFromChampionLists,#oldchamp = self);
       Send(Send(SYS,@GetLibrary),@DeleteCompletedQuest,#who=self,#id=-1);
@@ -2790,6 +2790,7 @@ messages:
          plEvilTwins = $;
       }
 
+      Send(self,@ClearStance);
       Send(self,@ClearAllStatusEffects);
 
       % client assumes not resting upon login
@@ -3178,7 +3179,7 @@ messages:
       Send(self,@RemoveAllEnchantments,#report=FALSE);
       Send(self,@ClearAllStatusEffects);
 
-      poStance = $;
+      Send(self,@ClearStance);
 
       foreach i in plActive
       {
@@ -9281,7 +9282,30 @@ messages:
 
    GetSkillAbility(Skill_num = 0, absolute=FALSE)
    {
-      local i;
+      local i, iHighestSpiritLink, temp_num;
+
+      % Special stance object that handles multiple spirit link skills
+      if Skill_num = SKID_CASTING_STANCE
+      {
+         iHighestSpiritLink = 0;
+         foreach i in plSkills
+         {
+            temp_num = Abs(i) / 100;
+            
+            if temp_num = SKID_LINK_ONE
+               OR temp_num = SKID_LINK_TWO
+               OR temp_num = SKID_LINK_THREE
+               OR temp_num = SKID_LINK_FOUR
+               OR temp_num = SKID_LINK_FIVE
+            {
+               if Abs(i) MOD 100 > iHighestSpiritLink
+               {
+                  iHighestSpiritLink = Abs(i) MOD 100;
+               }
+            }
+         }
+         return iHighestSpiritLink;
+      }
 
       foreach i in plSkills
       {
@@ -13318,7 +13342,7 @@ messages:
          }
       }
 
-      poStance = $;
+      Send(self,@ClearStance);
 
       % Reset death costs to 0.
       piDeathCost = 0;
@@ -16850,25 +16874,28 @@ messages:
 
    ReservesForThisLevel(iLevel=0)
    {
-      if iLevel = 1
+      if poStance = Send(SYS,@FindSkillByNum,#num=SKID_CASTING_STANCE)
       {
-         return Send(self,@GetSkillAbility,#Skill_num=SKID_LINK_ONE);
-      }
-      if iLevel = 2
-      {
-         return Send(self,@GetSkillAbility,#Skill_num=SKID_LINK_TWO);
-      }
-      if iLevel = 3
-      {
-         return Send(self,@GetSkillAbility,#Skill_num=SKID_LINK_THREE);
-      }
-      if iLevel = 4
-      {
-         return Send(self,@GetSkillAbility,#Skill_num=SKID_LINK_FOUR);
-      }
-      if iLevel = 5
-      {
-         return Send(self,@GetSkillAbility,#Skill_num=SKID_LINK_FIVE);
+         if iLevel = 1
+         {
+            return Send(self,@GetSkillAbility,#Skill_num=SKID_LINK_ONE);
+         }
+         if iLevel = 2
+         {
+            return Send(self,@GetSkillAbility,#Skill_num=SKID_LINK_TWO);
+         }
+         if iLevel = 3
+         {
+            return Send(self,@GetSkillAbility,#Skill_num=SKID_LINK_THREE);
+         }
+         if iLevel = 4
+         {
+            return Send(self,@GetSkillAbility,#Skill_num=SKID_LINK_FOUR);
+         }
+         if iLevel = 5
+         {
+            return Send(self,@GetSkillAbility,#Skill_num=SKID_LINK_FIVE);
+         }
       }
       return FALSE;
    }

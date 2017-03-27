@@ -164,6 +164,14 @@ messages:
             return FALSE;
          }
 
+         % Check for the case where they already have a normal non-reserved enchantment
+         % but are now trying to reserve the spell.
+         if IsClass(who,&Player)
+            AND Send(who,@IsEnchanted,#what=self)
+         {
+            Send(who,@RemoveEnchantment,#what=self);
+         }
+
          % Can you override an existing enchantment on yourself?
          if who = oTarget
             AND Send(SETTINGS_OBJECT,@CanRecastSelfEnchantment)

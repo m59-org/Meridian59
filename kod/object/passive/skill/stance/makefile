@@ -6,6 +6,6 @@
 
 DEPEND = ..\stance.bof
 BOFS = lightfeet.bof swifthands.bof heavyarms.bof recklessheart.bof focusedmind.bof poisedsoul.bof chargedclutch.bof \
-       chargedclutchst.bof
+       chargedclutchst.bof castingstance.bof
 
 !include $(KODDIR)\kod.mak
