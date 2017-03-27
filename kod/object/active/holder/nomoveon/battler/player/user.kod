@@ -473,6 +473,9 @@ resources:
    corpse_too_far_away = \
       "The corpse is too far away to search."
 
+   hex_mute_prevents_speech = \
+      "~BYour words catch in your throat and you cannot speak!"
+
 classvars:
 
    viIndefinite = ARTICLE_NONE
@@ -5125,6 +5128,21 @@ messages:
          Send(self,@NotifyMonstersOfPresence);
       }
 
+      if NOT Send(poOwner,@RoomReqCommunication,#type=type,#string=string,
+                  #who=self)
+      {
+         return;
+      }
+
+      foreach i in Send(self,@GetEnchantmentsByClass,#enchClass=&Hex)
+      {
+         if NOT Send(Nth(i,2),@ReqNormalSay,#state=Nth(i,3))
+         {
+            Send(self,@MsgSendUser,#message_rsc=hex_mute_prevents_speech);
+            return;
+         }
+      }
+
       if type = SAY_NORMAL
       {
          if StringEqual(String,"surrender")
@@ -5190,12 +5208,6 @@ messages:
                return;
             }
          }
-      }
-
-      if NOT Send(poOwner,@RoomReqCommunication,#type=type,#string=string,
-                  #who=self)
-      {
-         return;
       }
 
       if type = SAY_GUILD

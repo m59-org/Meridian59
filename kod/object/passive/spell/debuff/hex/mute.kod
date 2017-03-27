@@ -31,8 +31,9 @@ resources:
    mute_name_rsc = "mute"
    mute_icon_rsc = ihexmute.bgf
    mute_desc_rsc = \
-      "Temporarily prevents the victim from communicating. "
-      "This hex requires two orc teeth to cast."
+      "Temporarily prevents the victim from speaking, preventing "
+      "the intonation of stance mantras and other important spoken tactics. "
+      "This hex requires one unholy fragment to cast."
 
    mute_sound = qenfeebl.wav
 
@@ -64,7 +65,7 @@ classvars:
 properties:
 
    % This much chance to prevent communication
-   piBaseEffect = 33
+   piBaseEffect = 1
 
    piFlatDuration = 25000
 
@@ -73,9 +74,19 @@ messages:
    ResetReagents()
    {
       plReagents = $;
-      plReagents = Cons([&OrcTooth,2],plReagents);
+      plReagents = Cons([&UnholyFragment,1],plReagents);
 
       return;
+   }
+
+   ReqNormalSay(state=0)
+   {
+      if Random(1,100) < piBaseEffect + state
+      {
+         return FALSE;
+      }
+
+      return TRUE;
    }
 
 end
