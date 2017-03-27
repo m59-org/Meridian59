@@ -61,6 +61,12 @@ properties:
 
    viPurgeFactor = 5
 
+   % If enabled, Sorcery 5 becomes extremely powerful for mages.
+   % It basically upgrades their spells by the power of Mana Focus.
+   % They can also reserve it for huge mana cost.
+   % Volatile Focus costs ZERO during the casting of this spell.
+   pbVolatileFocusEnabled = FALSE
+
 messages:
 
    ResetReagents()
@@ -90,17 +96,20 @@ messages:
          return;
       }
 
-      iVolatileFocusAbility = Send(who,@GetSkillAbility,#Skill_num=SKID_VOLATILE_FOCUS);
-      if iVolatileFocusAbility > 0
-         AND event <> EVENT_REST
-         AND event <> EVENT_DAMAGE
+      if pbVolatileFocusEnabled
       {
-         % Intellects of 60 and over can maintain 100% chance to avoid focus loss.
-         % Focus will still end if they rest or take damage.
-         if Random(1,100) < (iVolatileFocusAbility-5)+(Send(who,@GetIntellect)/10)
+         iVolatileFocusAbility = Send(who,@GetSkillAbility,#Skill_num=SKID_VOLATILE_FOCUS);
+         if iVolatileFocusAbility > 0
+            AND event <> EVENT_REST
+            AND event <> EVENT_DAMAGE
          {
-            % Maintain Mana Focus!
-            return;
+            % Intellects of 60 and over can maintain 100% chance to avoid focus loss.
+            % Focus will still end if they rest or take damage.
+            if Random(1,100) < (iVolatileFocusAbility-5)+(Send(who,@GetIntellect)/10)
+            {
+               % Maintain Mana Focus!
+               return;
+            }
          }
       }
 

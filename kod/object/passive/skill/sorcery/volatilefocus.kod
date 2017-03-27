@@ -23,7 +23,6 @@ resources:
       "sorcerer can expend mana to continue casting a spell despite interruptions. "
       "The amount required to repair the spell mid-cast is dependent upon time "
       "remaining in the trance, the initial cost of the spell, and the type of disruption."
-      "It also helps maintain other types of magical focus."
 
    volatile_focus_activated = \
       "You apply %i mana to patch the error in your spell."
@@ -64,8 +63,7 @@ messages:
       switch(event)
       {
          case EVENT_CAST:
-            % Player is casting while focusing on a second spell. Charge them triple.
-            iEventCoefficient = 3;
+            return FALSE;
             break;
          case EVENT_NEWOWNER:
             % Landing a focus spell in another room, are we? Huge mana cost.
@@ -80,8 +78,7 @@ messages:
             iEventCoefficient = 1;
             break;
          case EVENT_ATTACK:
-            % Player is attacking while focusing on a spell. Charge them triple.
-            iEventCoefficient = 3;
+            return FALSE;
             break;
          case EVENT_USE:
             iEventCoefficient = 1;
