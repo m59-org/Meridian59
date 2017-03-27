@@ -81,11 +81,27 @@ messages:
 
    BreakTrance(who=$,state=$,event=0,what=$)
    {
+      local iVolatileFocusAbility;
+
       %% Attack Spells (fireballs and lightning bolts) must not break this trance
       if event = EVENT_CAST
          AND IsClass(what,&AttackSpell)
       {
          return;
+      }
+
+      iVolatileFocusAbility = Send(who,@GetSkillAbility,#Skill_num=SKID_VOLATILE_FOCUS);
+      if iVolatileFocusAbility > 0
+         AND event <> EVENT_REST
+         AND event <> EVENT_DAMAGE
+      {
+         % Intellects of 60 and over can maintain 100% chance to avoid focus loss.
+         % Focus will still end if they rest or take damage.
+         if Random(1,100) < (iVolatileFocusAbility-5)+(Send(who,@GetIntellect)/10)
+         {
+            % Maintain Mana Focus!
+            return;
+         }
       }
 
       Send(who,@RemoveEnchantment,#what=self);

@@ -87,7 +87,8 @@ messages:
 
    DoSkill(who=$,iSacrifice=0)
    {
-      Send(who,@LoseHealth,#amount=iSacrifice);
+      % Decay is true to avoid breaking focus immediately upon casting
+      Send(who,@LoseHealth,#amount=iSacrifice,#decay=TRUE);
       Send(who,@MsgSendUser,#message_rsc=sacrifice_health,
                             #parm1=iSacrifice);
       

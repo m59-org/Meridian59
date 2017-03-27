@@ -1416,21 +1416,21 @@ messages:
                return TRUE;
             }
          }
+
+         % We've failed. Let's try force spike.
+         if Send(who,@GetSkillAbility,#Skill_num=SKID_FORCE_SPIKE) > 0
+         {
+            if Send(Send(SYS,@FindSkillByNum,#num=SKID_FORCE_SPIKE),
+                            @AttemptManaSacrifice,
+                            #who=who,
+                            #oSpell=self,
+                            #iSpellPower=iSpellPower)
+            {
+               return TRUE;
+            }
+         }
          
          return FALSE;
-      }
-
-      % We've failed. Let's try force spike.
-      if Send(who,@GetSkillAbility,#Skill_num=SKID_FORCE_SPIKE) > 0
-      {
-         if Send(Send(SYS,@FindSkillByNum,#num=SKID_FORCE_SPIKE),
-                         @AttemptManaSacrifice,
-                         #who=who,
-                         #oSpell=self,
-                         #iSpellPower=iSpellPower)
-         {
-            return TRUE;
-         }
       }
 
       return TRUE;
@@ -2807,6 +2807,11 @@ messages:
       %
       % If there are no requirements, this always returns TRUE.
       return TRUE;
+   }
+
+   GetCastTime()
+   {
+      return viCast_time;
    }
 
 end
