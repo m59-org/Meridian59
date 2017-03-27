@@ -1907,6 +1907,19 @@ messages:
                                   @GetEmpowermentMultiplier,#who=what))/100;
       }
 
+      if IsClass(self,&Player)
+         AND Send(SETTINGS_OBJECT,@GetSorcerySchoolExpansion)
+         AND Send(self,@GetSkillAbility,#skill_num=SKID_INERT_FORM) > 0
+      {
+         % Is a master Sorcerer taking this damage? Reduce effects.
+         damage = (damage * (100-Send(Send(SYS,@FindSkillByNum,#num=SKID_INERT_FORM),@GetInertFormPercentage,#who=self)))/100;
+      }
+
+      if damage = 0
+      {
+         return;
+      }
+
       if aspell & ATCK_SPELL_SHOCK
       {
          Send(self,@AddStatusEffect,#value=damage,#type=STATUS_SHOCKED);
