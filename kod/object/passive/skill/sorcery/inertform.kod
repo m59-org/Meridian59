@@ -43,7 +43,7 @@ classvars:
 properties:
 
    % Base reduction of status effects
-   piInertFormPercentage = 20
+   piInertFormPercentage = 10
 
 messages:
 
@@ -61,8 +61,8 @@ messages:
 
       Send(self,@DoSkill,#who=who);
 
-      % 20 + up to 11 + up to 7ish
-      return ((piInertFormPercentage+(iAbility/9)+(iStat/10))*100)/100;
+      % 10 + up to 20 from skill + up to 7ish from stamina
+      return ((piInertFormPercentage+((iAbility+1)/5)+(iStat/10))*100)/100;
    }
 
    DoSkill(who=$)
