@@ -1,0 +1,56 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ElementalChunk is PassiveItem
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   ElementalChunk_icon_rsc = Ore.bgf
+   ElementalChunk_name_rsc = "chunk of elemental magma"
+   ElementalChunk_desc_rsc = "This is a huge chunk of cooling elemental magma."
+
+classvars:
+   
+   vrName = ElementalChunk_name_rsc
+   vrDesc = ElementalChunk_desc_rsc
+   vrIcon = ElementalChunk_icon_rsc
+
+   viValue_average = 12000
+   viWeight = 600
+   viBulk = 600
+
+   viElement = ATCK_SPELL_FIRE
+   viChunkColor = 77
+
+properties:  
+
+messages:
+
+   Constructed()
+   {
+      if viChunkColor <> 0
+      {
+         piItem_flags = viChunkColor;
+      }
+      propagate;
+   }
+
+   GetElement()
+   {
+      return viElement;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
