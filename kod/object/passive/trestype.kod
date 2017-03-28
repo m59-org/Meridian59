@@ -112,7 +112,7 @@ messages:
       return;
    }
 
-   GenerateItemAtt(diff_seed=0, raw=FALSE, who = $)
+   GenerateItemAtt(diff_seed=0, raw=FALSE, who = $, level = 20)
    {
       local diff_bonus, random_x, i, j, index, iChoice, oItem,
             oItemAtt, lOptions;
@@ -185,7 +185,7 @@ messages:
       oItemAtt = Send(SYS,@FindItemAttByNum,#num=iChoice);
 
       % Ask that ItemAtt to generate an item with this attribute.
-      oItem = Send(oItemAtt,@GenerateItemWithAttribute, #who=who);
+      oItem = Send(oItemAtt,@GenerateItemWithAttribute, #who=who,#level=level);
 
       return oItem;
    }
@@ -409,7 +409,7 @@ messages:
          if Random(1,400) <= (Send(SETTINGS_OBJECT,@GetMagicItemModifier) *
                                     piItem_Att_chance) / 100 
          {
-            oObj = Send(self,@GenerateItemAtt,#who=who,#diff_seed=piDiff_seed);
+            oObj = Send(self,@GenerateItemAtt,#who=who,#diff_seed=piDiff_seed,#level=level);
             if oObj <> $
             {
                return oObj;

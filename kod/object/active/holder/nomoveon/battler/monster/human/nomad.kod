@@ -93,11 +93,11 @@ messages:
       iRandomNumber = Random(1,100);
       if iRandomNumber <= 55
       {
-         oEquipmentItem = Create(&Scimitar);
+         oEquipmentItem = Create(&Scimitar,#level=viLevel);
       }
       else if iRandomNumber <= 100
       {
-        oEquipmentItem = Create(&BattleBow);
+        oEquipmentItem = Create(&BattleBow,#level=viLevel);
         poArrow = Create(&NeruditeArrow);
       }
 
@@ -110,7 +110,7 @@ messages:
       iRandomNumber = Random(1,100);
       if iRandomNumber < 20
       {
-         oEquipmentItem = Create(&Gauntlet);
+         oEquipmentItem = Create(&Gauntlet,#level=viLevel);
          Send(self,@AddEquipmentObject,#what=oEquipmentItem);
       }
 
@@ -124,31 +124,31 @@ messages:
       switch(piDemonSponsor)
       {
          case SSS_WITCHERY_RAUMLAR:
-            oEquipmentItem = Create(&SkullMask);
+            oEquipmentItem = Create(&SkullMask,#level=viLevel);
             Send(self,@AddEquipmentObject,#what=oEquipmentItem);
             break;
          case SSS_WITCHERY_XAERDUN:
             if Send(self,@FindUsing,#class=&RangedWeapon) = $
             {
-               oEquipmentItem = Create(&GoldShield);
+               oEquipmentItem = Create(&GoldShield,#level=viLevel);
                Send(self,@AddEquipmentObject,#what=oEquipmentItem);
             }
             break;
          case SSS_WITCHERY_NEQUZON:
             if Send(self,@FindUsing,#class=&RangedWeapon) = $
             {
-               oEquipmentItem = Create(&Torch);
+               oEquipmentItem = Create(&Torch,#level=viLevel);
                Send(self,@AddEquipmentObject,#what=oEquipmentItem);
             }
             break;
          case SSS_WITCHERY_IWODACH:
-            oEquipmentItem = Create(&Circlet);
+            oEquipmentItem = Create(&Circlet,#level=viLevel);
             Send(self,@AddEquipmentObject,#what=oEquipmentItem);
             break;
          case SSS_WITCHERY_VENTDAL:
             if Send(self,@FindUsing,#class=&RangedWeapon) = $
             {
-               oEquipmentItem = Create(&MetalShield);
+               oEquipmentItem = Create(&MetalShield,#level=viLevel);
                Send(self,@AddEquipmentObject,#what=oEquipmentItem);
             }
             break;
@@ -163,28 +163,28 @@ messages:
       switch(Send(SYS,@GetDayPhase))
       {
          case DAY_PHASE_DAWN:
-            oEquipmentItem = Create(&Robe,#color=XLAT_TO_SKIN2);
+            oEquipmentItem = Create(&Robe,#color=XLAT_TO_SKIN2,#level=viLevel);
             Send(self,@AddEquipmentObject,#what=oEquipmentItem);
             break;
          case DAY_PHASE_DAY:
             if Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTRIVER2),@GetPrismOfFireDefeated)
             {
-               oEquipmentItem = Create(&Robe,#color=XLAT_TO_SKIN2);
+               oEquipmentItem = Create(&Robe,#color=XLAT_TO_SKIN2,#level=viLevel);
                Send(self,@AddEquipmentObject,#what=oEquipmentItem);
             }
             break;
          case DAY_PHASE_DUSK:
-            oEquipmentItem = Create(&Robe,#color=XLAT_TO_SKIN4);
+            oEquipmentItem = Create(&Robe,#color=XLAT_TO_SKIN4,#level=viLevel);
             Send(self,@AddEquipmentObject,#what=oEquipmentItem);
             if Send(self,@FindUsing,#class=&Circlet) <> $
                OR Send(self,@FindUsing,#class=&Helmet) = $
             {
-               oEquipmentItem = Create(&SimpleHelm);
+               oEquipmentItem = Create(&SimpleHelm,#level=viLevel);
                Send(self,@AddEquipmentObject,#what=oEquipmentItem);
             }
             break;
          case DAY_PHASE_NIGHT:
-            oEquipmentItem = Create(&Robe,#color=XLAT_TO_GRAY);
+            oEquipmentItem = Create(&Robe,#color=XLAT_TO_GRAY,#level=viLevel);
             Send(self,@AddEquipmentObject,#what=oEquipmentItem);
             break;
       }
