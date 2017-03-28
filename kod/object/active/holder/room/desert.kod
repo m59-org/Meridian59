@@ -348,7 +348,7 @@ messages:
 
    PopulateArea()
    {
-      local i, iNumMonsters, oMonster, lMonsters, lClasses, iMinRow, iMinCol, iMaxRow, iMaxCol;
+      local i, iNumMonsters, oMonster, lMonsters, lClasses, iMinRow, iMinCol, iMaxRow, iMaxCol, iChosenAngle;
 
       switch(Send(SYS,@GetDayPhase))
       {
@@ -393,11 +393,29 @@ messages:
          iMaxCol = viMaxSpawnCol;
       }
 
+      iChosenAngle = ANGLE_EAST;
+      switch(Random(1,4))
+      {
+         case 1:
+            iChosenAngle = ANGLE_WEST;
+            break;
+         case 2:
+            iChosenAngle = ANGLE_NORTH;
+            break;
+         case 3:
+            iChosenAngle = ANGLE_SOUTH;
+            break;
+         case 4:
+            iChosenAngle = ANGLE_EAST;
+            break;
+      }
+
       foreach i in lMonsters
       {
          Send(self,@NewHold,#what=Create(i),
                #new_row=Random(viMinSpawnRow,iMaxRow),
-               #new_col=Random(viMinSpawnCol,iMaxCol));
+               #new_col=Random(viMinSpawnCol,iMaxCol),
+               #new_angle=iChosenAngle);
       }
 
       return;
