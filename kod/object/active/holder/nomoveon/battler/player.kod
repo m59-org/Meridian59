@@ -6165,6 +6165,30 @@ messages:
          color_rsc = player_hit_color_blue;
       }
 
+      % Check for Damage to Mana from Spirit Shackles Hex.
+      if what <> $
+         AND (IsClass(what,&Player)
+             OR IsClass(what,&Monster))
+      {
+         foreach i in Send(what,@GetEnchantmentsByClass,#enchClass=&Hex)
+         {
+            damage = Send(Nth(i,2),@AttackerDealsDamageToMana,#who=self,#what=what,#state=Nth(i,3),#damage=damage);
+         }
+      }
+      if damage = 0
+      {
+         % Spirit Shackles took all the damage.
+         return;
+      }
+
+      % Check for Aversion.
+      if Send(SYS,@FindSkillByNum,#num=SKID_AVERSION) <> $
+         AND Send(self,@GetSkillAbility,#Skill_num=SKID_AVERSION) > 0
+         AND Send(Send(SYS,@FindSkillByNum,#num=SKID_AVERSION),@DoSkill,#who=self,#oAttacker=what)
+      {
+         damage = Send(Send(SYS,@FindSkillByNum,#num=SKID_AVERSION),@AvertDamage,#who=self,#oAttacker=what,#damage=damage);
+      }
+
       if NOT absolute
       {
          % Armor of Gort has a special effect that must go first
@@ -17022,9 +17046,9 @@ messages:
       return $;
    }
 
-   GetHexIncEffect(iSpellPower=0)
+   GetHexIncEffect(iSpellPower=0,oTarget=$)
    {
-      local iRunesEff, oRunes;
+      local iRunesEff, oRunes, iNightgripEff, oNightgrip;
 
       iRunesEff = 0;
       oRunes = Send(SYS,@FindSkillByNum,#num=SKID_UNHALLOWED_RUNES);
@@ -17035,13 +17059,23 @@ messages:
       {
          iRunesEff = Send(oRunes,@GetIncHexEffectiveness,#who=self);
       }
+
+      iNightgripEff = 0;
+      oNightgrip = Send(SYS,@FindSkillByNum,#num=SKID_NIGHTGRIP);
+
+      if oNightgrip <> $
+         AND Send(self,@GetSkillAbility,#Skill_num=SKID_NIGHTGRIP) > 0
+         AND Send(oNightgrip,@DoSkill,#who=self,#oTarget=oTarget)
+      {
+         iNightgripEff = Send(oNightgrip,@GetIncHexEffectiveness,#who=self,#oTarget=oTarget);
+      }
       
-      return iSpellPower + 1 + iRunesEff;
+      return iSpellPower + 1 + iRunesEff + iNightgripEff;
    }
 
    GetHexResistance()
    {
-      local iArcaneKnowledgeRes, oKnowledge;
+      local iArcaneKnowledgeRes, iHermitageRes, oKnowledge, oHermitage;
       
       iArcaneKnowledgeRes = 0;
       oKnowledge = Send(SYS,@FindSkillByNum,#num=SKID_ARCANE_KNOWLEDGE);
@@ -17053,7 +17087,17 @@ messages:
          iArcaneKnowledgeRes = Send(oKnowledge,@GetHexResistance,#who=self);
       }
       
-      return bound(piHexResistance+iArcaneKnowledgeRes,-100,100);
+      iHermitageRes = 0;
+      oHermitage = Send(SYS,@FindSkillByNum,#num=SKID_HERMITAGE);
+
+      if oHermitage <> $
+         AND Send(self,@GetSkillAbility,#Skill_num=SKID_HERMITAGE) > 0
+         AND Send(oHermitage,@DoSkill,#who=self)
+      {
+         iHermitageRes = Send(oHermitage,@GetHexResistance,#who=self);
+      }
+      
+      return bound(piHexResistance+iArcaneKnowledgeRes+iHermitageRes,-200,200);
    }
 
    GetCasterMaxHexes()

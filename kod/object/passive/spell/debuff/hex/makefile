@@ -15,11 +15,10 @@ BOFS = slow.bof \
        blackmantle.bof \
        drainhex.bof \
        antireshex.bof \
-       nightgrip.bof \
        sever.bof \
        weariness.bof \
        thorns.bof \
        vengeance.bof \
-       spiritualwounds.bof
+       spiritshackles.bof
 
 !include $(KODDIR)\kod.mak

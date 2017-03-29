@@ -113,7 +113,9 @@ messages:
       local iCasterIncHexEffect, iTargetHexResistance, iHexEffect;
 
       iCasterIncHexEffect = Send(what,@GetHexIncEffect,
-                                      #iSpellPower=iSpellPower,#what=self);
+                                      #iSpellPower=iSpellPower,
+                                      #what=self,
+                                      #oTarget=oTarget);
       iTargetHexResistance = Send(oTarget,@GetHexResistance);
       
       iHexEffect = iCasterIncHexEffect - iTargetHexResistance;
@@ -276,6 +278,16 @@ messages:
    ReflectElementalDamage(who=$,what=$,damage=0,state=0,atype=0,aspell=0,stroke_obj=$)
    {
       return;
+   }
+
+   ReqNormalSay()
+   {
+      return TRUE;
+   }
+
+   AttackerDealsDamageToMana(damage=0)
+   {
+      return damage;
    }
 
 end

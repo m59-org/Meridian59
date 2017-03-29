@@ -2352,6 +2352,22 @@ messages:
          return 0;
       }
 
+      % Check for Damage to Mana from Spirit Shackles Hex.
+      if what <> $
+         AND (IsClass(what,&Player)
+             OR IsClass(what,&Monster))
+      {
+         foreach i in Send(what,@GetEnchantmentsByClass,#enchClass=&Hex)
+         {
+            damage = Send(Nth(i,2),@AttackerDealsDamageToMana,#who=self,#what=what,#state=Nth(i,3),#damage=damage);
+         }
+      }
+      if damage = 0
+      {
+         % Spirit Shackles took all the damage.
+         return;
+      }
+
       % Attacks against a minion master will cause minions to defend the master
       Send(self,@CommandMinionAttack,#oMaster=self,#oTarget=what);
 

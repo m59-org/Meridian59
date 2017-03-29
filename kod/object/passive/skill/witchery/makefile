@@ -11,6 +11,9 @@ BOFS = arcaneknowledge.bof \
        ancientpact.bof \
        unhallowedrunes.bof \
        bloodrunes.bof \
-       ostracization.bof
+       ostracization.bof \
+       hermitage.bof \
+       nightgrip.bof \
+       aversion.bof
 
 !include $(KODDIR)\kod.mak
