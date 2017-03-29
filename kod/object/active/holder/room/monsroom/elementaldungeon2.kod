@@ -12,7 +12,7 @@ ElementalDungeon2 is MonsterRoom
 
 % Platforms appear as players approach, disappear as they move.
 % Falling boots you (the essence of lightning catches you).
-% Air xeo'chicatls do spawn and attack, but the boss isdead.
+% Air xeo'chicatls do spawn and attack, but the boss is dead.
 % Items that drop fall and are gone forever.
 
 constants:
@@ -35,6 +35,9 @@ resources:
       "You phase out of the elemental plane of lightning, and are drawn along "
       "the natural curvature of the region's mana flows. Tingling, but alive, "
       "you find yourself at a familiar oasis."
+
+   reached_end_lightning_prism =\
+      "A surge of energy carries you to the other side of the Prism of Lightning!"
 
 classvars:
 
@@ -273,6 +276,8 @@ messages:
 
    ReachedExit(who=$)
    {
+      Send(who,@MsgSendUser,#message_rsc=reached_end_lightning_prism);
+      Post(Send(SYS,@FindRoomByNum,#num=RID_DESERTBRIDGE2),@Teleport,#what=who);
       return;
    }
 
