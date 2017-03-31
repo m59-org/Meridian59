@@ -29,21 +29,20 @@ classvars:
 
 properties:
 
+   piNumerator = 2
+   piDivisor = 3
 
 messages:
 
    ModifyResistance(resistance_list=$,iState=0)
    {
-      if viResistanceType > 0
+      if piDivisor = 0
       {
-         % Weapon resistances are harder to come by.
-         resistance_list = Send(SYS,@AddResistance,#what=viResistanceType,
-                                 #value=bound(iState/3,1,$),#resistance_list=resistance_list);
-         return resistance_list;
+         % Avoid div errors
+         piDivisor = 1;
       }
 
-      resistance_list = Send(SYS,@AddResistance,#what=viResistanceType,
-                              #value=iState,#resistance_list=resistance_list);
+      resistance_list = Send(SYS,@AddResistance,#what=viResistanceType,#value=bound((iState*piNumerator)/piDivisor,1,$),#resistance_list=resistance_list);
       return resistance_list;
    }
 
