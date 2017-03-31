@@ -94,6 +94,7 @@ resources:
    item_stats_mana_add = "%i max mana\n"
    item_stats_vigor_add = "%i max vigor\n"
    enchanted_gear_indestructible = "\nThis enchanted %s is indestructible."
+   enchanted_gear_plural_indestructible = "\nThese enchanted %s are indestructible."
 
    item_level_master = \
       "\n\nIt has an item level of %i and has been imbued "
@@ -1181,7 +1182,14 @@ messages:
          AND NOT Send(SETTINGS_OBJECT,@GetLoseDurabilityMagicMods)
          AND NOT IsClass(self,&Ring)
       {
-         AddPacket(4,enchanted_gear_indestructible,4,Send(self,@GetName));
+         if Send(self,@IsPlural)
+         {
+            AddPacket(4,enchanted_gear_plural_indestructible,4,Send(self,@GetName));
+         }
+         else
+         {
+            AddPacket(4,enchanted_gear_indestructible,4,Send(self,@GetName));
+         }
          return;
       }
 
