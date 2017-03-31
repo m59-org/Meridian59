@@ -1,0 +1,192 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+AncientTomb2 is Room
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   room_ancienttomb2 = sorcererstomb.roo
+   room_name_ancienttomb2 = "Sorcerous Mortuary"
+
+   ancienttomb2_music = castle.mp3
+
+   cannot_debuff_here2 = \
+      "The altered flow of magic in this place makes your spell contort and fail."
+   walk_back_out2 = \
+      "The scroll retrieved, you trek back out into the desert."
+
+   tomb_corpse_name = "mummified sorcerer"
+   tomb_corpse_icon = mummyX.bgf
+   tomb_corpse_desc = \
+      "This ancient sorcerer was buried in a time before those of the art "
+      "grew rich and arrogant from their skills. The tomb is humble, "
+      "and there is no engraving to record his or her name."
+
+classvars:
+
+   vrName = room_name_ancienttomb2
+
+   viTeleport_row = 16
+   viTeleport_col = 5
+
+properties:
+
+   prMusic = ancienttomb2_music
+
+   prRoom = room_ancienttomb2
+   piRoom_num = RID_SORCEROUS_MORTUARY_START
+
+   piBaseLight = LIGHT_MIN
+   piOutside_factor = 0
+
+   piAttachedToDesertDunesRoom = 1
+
+messages:
+
+   Constructor(iRID=RID_SORCEROUS_MORTUARY_START)
+   {
+      piRoom_num = iRID;
+      piAttachedToDesertDunesRoom = Random(1,Send(Send(SYS,@GetDesertRoomMaintenance),@GetNumberOfDunesRooms));
+
+      propagate;
+   }
+
+   Constructed()
+   {
+      propagate;
+   }
+
+   FirstUserEntered()
+   {
+      propagate;
+   }
+
+   ReqSpellCast(oSpell=$,who=$)
+   {
+      if IsClass(oSpell,&Debuff)
+      {
+         if who <> $
+            AND IsClass(who,&Player)
+         {
+            Send(who,@MsgSendUser,#message_rsc=cannot_debuff_here2);
+         }
+         return FALSE;
+      }
+
+      propagate;
+   }
+
+   CreateStandardObjects()
+   {
+      Send(self,@NewHold,#what=Create(&Brazier),#new_row=12,#new_col=10,#fine_row=47,#fine_col=47);
+      Send(self,@NewHold,#what=Create(&Brazier),#new_row=12,#new_col=1,#fine_row=48,#fine_col=16);
+      Send(self,@NewHold,#what=Create(&Brazier),#new_row=5,#new_col=1,#fine_row=16,#fine_col=16);
+      Send(self,@NewHold,#what=Create(&Brazier),#new_row=5,#new_col=10,#fine_row=15,#fine_col=48);
+      Send(self,@NewHold,#what=Create(&Brazier),#new_row=9,#new_col=4,#fine_row=1,#fine_col=48);
+      Send(self,@NewHold,#what=Create(&Brazier),#new_row=9,#new_col=7,#fine_row=1,#fine_col=14);
+
+      Send(self,@CreatePrize);
+
+      propagate;
+   }
+
+   CreatePrize()
+   {
+      local oSign;
+
+      oSign = Create(&Sign,#desc=tomb_corpse_desc,#name=tomb_corpse_name,#icon=tomb_corpse_icon);
+      Send(self,@NewHold,#what=oSign,#new_row=9,#new_col=6,#fine_row=16,#fine_col=6);
+      Send(self,@NewHold,#what=Create(&SorcererScrap),#new_row=9,#new_col=5,#fine_row=16,#fine_col=36);
+      return;
+   }
+
+   LeaveHold(what = $)
+   {
+      local i;
+      if IsClass(what,&SorcererScrap)
+      {
+         foreach i in Send(self,@GetHolderActive)
+         {
+            if IsClass(First(i),&Player)
+            {
+               Send(self,@BootPlayer,#what=First(i));
+            }
+         }
+      }
+
+      propagate;
+   }
+
+   BootPlayer(what = $)
+   {
+      Send(what,@MsgSendUser,#message_rsc=walk_back_out2);
+      if piAttachedToDesertDunesRoom = 1
+      {
+         Send(SYS,@UtilGoNearSquare,#what=what,
+              #where=Send(Send(SYS,@GetDesertRoomMaintenance),@GetDesertDunes1),
+              #new_row=60,
+              #new_col=102,
+              #new_angle=Send(what,@GetAngle));
+         return;
+      }
+      if piAttachedToDesertDunesRoom = 2
+      {
+         Send(SYS,@UtilGoNearSquare,#what=what,
+              #where=Send(Send(SYS,@GetDesertRoomMaintenance),@GetDesertDunes2),
+              #new_row=60,
+              #new_col=102,
+              #new_angle=Send(what,@GetAngle));
+         return;
+      }
+      if piAttachedToDesertDunesRoom = 3
+      {
+         Send(SYS,@UtilGoNearSquare,#what=what,
+              #where=Send(Send(SYS,@GetDesertRoomMaintenance),@GetDesertDunes3),
+              #new_row=60,
+              #new_col=102,
+              #new_angle=Send(what,@GetAngle));
+         return;
+      }
+
+      return;
+   }
+
+   CanHavePlayerPortal()
+   {
+      return FALSE;
+   }
+
+   Delete()
+   {
+      Send(Send(SYS,@GetDesertRoomMaintenance),@TombDeleted,#what=self);
+
+      propagate;
+   }
+
+   LastUserLeft()
+   {
+      Post(self,@Delete);
+
+      propagate;
+   }
+
+   DoPhaseWeather()
+   "Called to simulate weather by some rooms."
+   {
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+

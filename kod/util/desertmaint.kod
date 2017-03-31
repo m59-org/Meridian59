@@ -21,6 +21,10 @@ constants:
 
 resources:
 
+classvars:
+
+   viNumberOfDunesRooms = 3
+
 properties:
 
    poDesertDunes1 = $   % top     - desertshore1, desertcliffnoaccess1
@@ -408,6 +412,32 @@ messages:
       return;
    }
 
+   CreateSorcerersTomb(who=$)
+   {
+      local oRoom, iRID;
+
+      iRID = Send(self,@GetNextAvailableRID);
+      
+      if iRID = 0
+      {
+         return $;
+      }
+
+      Send(SYS,@CreateOneRoomIfNew,#num=iRID,#class=&AncientTomb2);
+
+      oRoom = Send(SYS,@FindRoomByNum,#num=iRID);
+
+      if oRoom <> $
+      {
+         plAncientTombs = Cons(oRoom,plAncientTombs);
+         Send(Send(SYS,@GetStatistics),@AddToRoomCount,#iNum=iRID);
+         Send(oRoom,@Teleport,#what=who);
+         Post(oRoom,@DoPhaseWeather);
+      }
+
+      return oRoom;
+   }
+
    NewGameHour()
    {
       local i;
@@ -438,6 +468,11 @@ messages:
          return poDesertDunes3;
       }
       return $;
+   }
+
+   GetNumberOfDunesRooms()
+   {
+      return viNumberOfDunesRooms;
    }
 
 end

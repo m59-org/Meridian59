@@ -61,6 +61,8 @@ messages:
    Constructor(iRID=RID_ANCIENT_TOMB_START)
    {
       piRoom_num = iRID;
+      
+      piAttachedToDesertDunesRoom = Random(1,Send(Send(SYS,@GetDesertRoomMaintenance),@GetNumberOfDunesRooms));
 
       propagate;
    }
@@ -305,6 +307,7 @@ messages:
 
          if new_col > (Send(self,@GetRoomCols)-2)
          {
+            Send(Send(SYS,@GetDesertRoomMaintenance),@CreateSorcerersTomb,#who=what);
             return;
          }
       }
