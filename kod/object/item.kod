@@ -102,6 +102,8 @@ resources:
    item_level_gauntlets = \
       "\n\nThey have an item level of %i and have been imbued "
       "with %i magical modifications."
+   shard_applying = \
+      "The %s acquires a magical bonus of %i %s!"
 
 classvars:
 
@@ -3233,6 +3235,22 @@ messages:
 
    ApplyMagicMod(cClass=&ArmorMod,iPower=0)
    {
+      local oMagicMod;
+
+      if poOwner <> $
+         AND IsClass(poOwner,&Player)
+         AND Send(poOwner,@IsLoggedOn)
+      {
+         oMagicMod = Send(SYS,@GetMagicMod,#class=cClass);
+         if oMagicMod <> $
+         {
+            Post(poOwner,@MsgSendUser,#message_rsc=shard_applying,
+                                      #parm1=Send(self,@GetName),
+                                      #parm2=Send(oMagicMod,@GetNumber,#iPower=iPower),
+                                      #parm3=Send(oMagicMod,@GetName));
+         }
+      }
+
       if iPower <> 0
       {
          plEnchantmentMods = Cons([cClass,iPower],plEnchantmentMods);
