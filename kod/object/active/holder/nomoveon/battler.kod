@@ -185,7 +185,7 @@ properties:
    plControlledMinions = $
    ptMinionControlCheck = $
 
-   % list of resistances, Each element is [value, type].
+   % list of resistances, Each element is [type, value].
    plResistances = $
 
    % List of enchantments.
@@ -365,6 +365,8 @@ messages:
          }
       }
 
+      lCurResist = Send(self,@ApplyMaximumResistances,#resistance_list=lCurResist);
+
       iHumbled = Send(self,@GetStatusEffect,#type=STATUS_HUMBLED);
       if iHumbled > 0
       {
@@ -381,6 +383,23 @@ messages:
       } 
 
       return lCurResist;
+   }
+
+   ApplyMaximumResistances(resistance_list=$)
+   {
+      local oResist;
+
+      foreach oResist in resistance_list
+      {
+         SetNth(oResist,2,Bound(Nth(oResist,2),MIN_RESISTANCE,Send(SETTINGS_OBJECT,@GetGeneralMaxResistance)+Send(self,@GetMaxResistanceMod,#type=Nth(oResist,1))));
+      }
+
+      return resistance_list;
+   }
+
+   GetMaxResistanceMod(type=-ATCK_SPELL_FIRE)
+   {
+      return 0;
    }
 
    GetEquippedItems()

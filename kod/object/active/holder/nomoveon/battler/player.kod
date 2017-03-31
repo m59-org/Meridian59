@@ -1422,6 +1422,53 @@ messages:
       return $;
    }
 
+   GetMaxResistanceMod(type=-ATCK_SPELL_FIRE)
+   {
+      if piPlayerRace = RACE_HALF_ORC
+      {
+         switch(type)
+         {
+            case -ATCK_SPELL_UNHOLY:
+               return 20;
+            case -ATCK_SPELL_HOLY:
+               return -15;
+            case ATCK_WEAP_PIERCE:
+               return 10;
+            case ATCK_WEAP_SLASH:
+               return 10;
+         }
+      }
+      if piPlayerRace = RACE_HALF_DEMON
+      {
+         switch(type)
+         {
+            case -ATCK_SPELL_FIRE:
+               return 20;
+            case -ATCK_SPELL_ACID:
+               return 10;
+            case ATCK_WEAP_NERUDITE:
+               return 10;
+            case -ATCK_SPELL_COLD:
+               return -25;
+         }
+      }
+      if piPlayerRace = RACE_HALF_ELF
+      {
+         switch(type)
+         {
+            case -ATCK_SPELL_UNHOLY:
+               return -15;
+            case -ATCK_SPELL_HOLY:
+               return 20;
+            case -ATCK_SPELL_ALL:
+               return 10;
+            case ATCK_WEAP_MAGIC:
+               return 10;
+         }
+      }
+      return 0;
+   }
+
    SetPlayerRace(race=0)
    {
       if race = RACE_HUMAN
