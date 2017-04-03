@@ -62,6 +62,10 @@ resources:
 
    NodeAttack_keeper = "Alzahakar"
 
+   NodeAttack_high_sorcerers_taunt = \
+      "The High Sorcerers need the power of our nodes. You've stopped nothing. "
+      "You've merely delayed the inevitable."
+
 classvars:
 
 properties:
@@ -110,9 +114,9 @@ properties:
    % This indicates if Xeochicatl can respawn from dropped heartstones.
    pbXeoRespawn = FALSE
    % This indicates if Miriana even goes to view node attacks.
-   pbMirianaAppears = FALSE
+   pbMirianaAppears = TRUE
    % This indicates if Miriana gets that possessed look during attacks.
-   pbMirianaPossessed = FALSE
+   pbMirianaPossessed = TRUE
 
    % Timer for the attack.
    ptAttack = $
@@ -560,6 +564,9 @@ messages:
       Send(oMonsters,@SetWandering,#value=TRUE);
       Send(oMonsters,@SetPossessed,#bValue=FALSE);
       oRoom = Send(poAttackedNode,@GetOwner);
+      Send(oRoom,@SomethingChanged,#what=oMonsters);
+      Send(oRoom,@SomeoneSaid,#what=oMonsters,#type=SAY_RESOURCE,#string=NodeAttack_high_sorcerers_taunt);
+
       Send(oRoom,@SetMonsterGeneration,#bValue=TRUE);
 
       % Kill the Xeo's flags about being part of a node attack
