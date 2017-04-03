@@ -20,6 +20,11 @@ resources:
    ElementalChunk_name_rsc = "chunk of elemental magma"
    ElementalChunk_desc_rsc = "This is a huge chunk of cooling elemental magma."
 
+   hurl_chunk_down = \
+      "~BThe %s hits the ground and explodes!"
+   chunk_explode = \
+      "~B%s hurls a %s to the ground, causing it to explode!"
+
 classvars:
    
    vrName = ElementalChunk_name_rsc
@@ -30,10 +35,13 @@ classvars:
    viWeight = 600
    viBulk = 600
 
+   viBuffSpellNum = SID_HEAT_STORM_BUFF
    viElement = ATCK_SPELL_FIRE
    viChunkColor = 77
 
-properties:  
+properties:
+
+   piSpellPower = 15
 
 messages:
 
@@ -49,6 +57,56 @@ messages:
    GetElement()
    {
       return viElement;
+   }
+
+   Dropped(by=$,where=$)
+   {
+      if where <> $
+         AND IsClass(where,&Room)
+      {
+         if by <> $
+            AND IsClass(by,&Player)
+         {
+            Send(by,@MsgSendUser,#message_rsc=hurl_chunk_down,#parm1=Send(self,@GetName));
+            Post(self,@Explode,#who=by);
+         }
+      }
+      return;
+   }
+
+   Explode(who=$)
+   {
+      local i, oSpell;
+
+      if poOwner <> $
+         AND IsClass(poOwner,&Room)
+      {
+         oSpell = Send(SYS,@FindSpellByNum,#num=viBuffSpellNum);
+         
+         if oSpell = $
+         {
+            return;
+         }
+
+         foreach i in Send(poOwner,@GetHolderActive)
+         {
+            if IsClass(First(i),&Player)
+            {
+               if First(i) <> who
+               {
+                  Send(First(i),@MsgSendUser,#message_rsc=chunk_explode,#parm1=Send(who,@GetName),#parm2=Send(self,@GetName));
+               }
+               
+               if NOT Send(who,@IsEnchanted,#what=oSpell)
+               {
+                  Send(oSpell,@CastSpell,#who=self,#lTargets=[First(i)],#iSpellPower=piSpellPower);
+               }
+            }
+         }
+         Post(self,@Delete);
+      }
+
+      return;
    }
 
 end
