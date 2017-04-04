@@ -387,15 +387,84 @@ resources:
    genealogy_demon_name = "Power for a Price"
    genealogy_orc_name = "Clan Konima"
    genealogy_elf_name = "Arts Above All"
+   genealogy_undine_name = "Spirits of the Waves"
 
    genealogy_choose_human_trigger = "I wish to reincarnate as human."
    genealogy_choose_demon_trigger = "I wish to reincarnate as half-demon."
    genealogy_choose_orc_trigger = "I wish to reincarnate as half-orc."
    genealogy_choose_elf_trigger = "I wish to reincarnate as half-elf."
+   genealogy_choose_undine_trigger = "I wish to reincarnate as half-undine."
    
    not_ready_reincarnate = \
-      "You cannot reincarnate until you have achieved your maximum potential "
+      "You cannot reincarnate until you have achieved enough potential "
       "in this life."
+
+   genealogy_undine = \
+      "Written by Civa, Undine Ambassador from the Seas of Biskalane\n"
+      "\n"
+      "ON THE UNDINE\n\n"
+      "We have interacted little with the men of Biskalane, and even less "
+      "with your distant people. It is only at the behest of Princess Kateriina "
+      "and her ambassadors that we come forward. Since the "
+      "Great Diffraction that destroyed the dry lands and poisoned the waters "
+      "of our home, "
+      "we have striven to cleanse and protect what little we can. "
+      "If an alliance with your people can help heal what has been harmed, "
+      "then we will risk it."
+      "\n\n"
+      "Undine is merely a categorization for a broad range of aquatic "
+      "sentient races and water elementals. The half-undines that have "
+      "begun to emerge are almost exclusively humanoid with sea-based "
+      "colorization and the innate strengths of water. They are intelligent "
+      "and agile, adapting to their surroundings quickly. However, "
+      "their spiritual interests lie with the mysteries of the deep rather "
+      "than the mysteries of nature, so they tend to have less mysticism "
+      "than other races. They also rarely practice aiming, for, as they put it, "
+      "waves need no aim to do damage."
+      "\n\n"
+      "Half-undine retain some of the eternal motion of the sea. Thus, uniquely among "
+      "the demi-human races, half-undine resist a significant portion of "
+      "containment magics."
+      "¶"
+      "HALF-UNDINE TRAITS"
+      "\n\n"
+      "Racial Resistances:"
+      "\n"
+      "20% hold resistance\n"
+      "10% cold resistance\n"
+      "10% bludgeon resistance\n"
+      "25% shock vulnerability\n"
+      "\n"
+      "\nRacial Stat Maximums:"
+      "\n50 Might"
+      "\n60 Intellect"
+      "\n50 Stamina"
+      "\n60 Agility"
+      "\n30 Mysticism"
+      "\n30 Aim"
+      "\n\n"
+      "Undine can eat as much food as humans and have the same resting vigor."
+      "¶"
+      "REINCARNATION"
+      "\n\n"
+      "For each reincarnation you have achieved, you will have one additional "
+      "stat point to distribute. When you reincarnate, you have a chance to "
+      "choose your stats anew. Should you fail to choose at the time of "
+      "reincarnation, you will retain one free stat reset that you can use by "
+      "going to an Elder and saying 'change stats'."
+      "\n\n"
+      "Your guardian angel will never return once you reincarnate."
+      "¶"
+      "REINCARNATING AS HALF-UNDINE"
+      "\n\n"
+      "To reincarnate as half-undine, state thus:"
+      "\n\n"
+      "I wish to reincarnate as half-undine."
+      "\n\nIf you have reached the proper state of enlightenment, "
+      "you will undergo the process of reincarnation into a half-undine. "
+      "This process will destroy all of your worn and held items, "
+      "and you will forget everything you have learned in this life. "
+      "You will be as a newborn, save a little wiser for your experiences. "
 
    genealogy_human = \
       "Written by Alzahakar, Councilor of Meridian\n"
@@ -451,7 +520,7 @@ resources:
       "\n\n"
       "To reincarnate as fully human, state thus:"
       "\n\n"
-      "'I wish to reincarnate as human.'"
+      "I wish to reincarnate as human."
       "\n\nIf you have reached the proper state of enlightenment, "
       "you will undergo the process of reincarnation into a human. "
       "This process will destroy all of your worn and held items, "
@@ -491,7 +560,7 @@ resources:
       "20% fire resistance\n"
       "10% acid resistance\n"
       "10% nerudite resistance\n"
-      "30% cold vulnerability\n"
+      "25% cold vulnerability\n"
       "\n"
       "\nRacial Stat Maximums:"
       "\n30 Might"
@@ -531,7 +600,7 @@ resources:
       "\n\n"
       "To reincarnate as half-demon, state thus:"
       "\n\n"
-      "'I wish to reincarnate as half-demon.'"
+      "I wish to reincarnate as half-demon."
       "\n\nIf you have reached the proper state of enlightenment, "
       "you will undergo the process of reincarnation into a half-demon. "
       "This process will destroy all of your worn and held items, "
@@ -604,7 +673,7 @@ resources:
       "\n\n"
       "To reincarnate as half-orc, state thus:"
       "\n\n"
-      "'I wish to reincarnate as half-orc.'"
+      "I wish to reincarnate as half-orc."
       "\n\nIf you have reached the proper state of enlightenment, "
       "you will undergo the process of reincarnation into a half-orc. "
       "This process will destroy all of your worn and held items, "
@@ -686,7 +755,7 @@ resources:
       "\n\n"
       "To reincarnate as half-elf, state thus:"
       "\n\n"
-      "'I wish to reincarnate as half-elf.'"
+      "I wish to reincarnate as half-elf."
       "\n\nIf you have reached the proper state of enlightenment, "
       "you will undergo the process of reincarnation into a half-elf. "
       "This process will destroy all of your worn and held items, "
@@ -747,13 +816,19 @@ messages:
       oBook = Create(&BookPedestal,#Name=genealogy_demon_name,
                      #Text=genealogy_demon);
       Send(self,@NewHold,#what=oBook,
-           #new_row=25,#new_col=49,#fine_col=17,#fine_row=29,
-           #new_angle=ANGLE_WEST);
+           #new_row=26,#new_col=48,#fine_col=53,#fine_row=7,
+           #new_angle=ANGLE_NORTH_WEST);
 
       oBook = Create(&BookPedestal,#Name=genealogy_orc_name,
                      #Text=genealogy_orc);
       Send(self,@NewHold,#what=oBook,
-           #new_row=22,#new_col=49,#fine_col=17,#fine_row=44,
+           #new_row=22,#new_col=48,#fine_col=51,#fine_row=8,
+           #new_angle=ANGLE_SOUTH_WEST);
+
+      oBook = Create(&BookPedestal,#Name=genealogy_undine_name,
+                     #Text=genealogy_undine);
+      Send(self,@NewHold,#what=oBook,
+           #new_row=24,#new_col=49,#fine_col=35,#fine_row=7,
            #new_angle=ANGLE_WEST);
 
       oBook = Create(&BookPedestal,#Name=genealogy_elf_name,
@@ -852,18 +927,24 @@ messages:
          bTryReincarnate = TRUE;
          iReincarnateAsRace = RACE_HALF_ELF;
       }
-      
+      if StringEqual(string,genealogy_choose_undine_trigger)
+      {
+         bTryReincarnate = TRUE;
+         iReincarnateAsRace = RACE_HALF_UNDINE;
+      }
+
       if bTryReincarnate
          AND Send(what,@GetCol) > 35
          AND Send(SETTINGS_OBJECT,@GetReincarnationEnabled)
       {
          if Send(what,@CanReincarnate)
          {
-            Send(what,@Reincarnate,#race=iReincarnateAsRace);
+            Post(what,@Reincarnate,#race=iReincarnateAsRace);
          }
          else
          {
-            Send(what,@MsgSendUser,#message_rsc=not_ready_reincarnate);
+            Post(what,@MsgSendUser,#message_rsc=not_ready_reincarnate);
+            Post(what,@ReportReincarnationProgress);
          }
       }
 

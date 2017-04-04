@@ -331,6 +331,7 @@ resources:
    player_race_orc = "%s appears to be of half-orc ancestry.\n"
    player_race_demon = "%s appears to be of half-demon ancestry.\n"
    player_race_elf = "%s appears to be of half-elf ancestry.\n"
+   player_race_undine = "%s appears to be of half-undine ancestry.\n"
 
    player_opt_out_pvp = \
       "%s is a dedicated practitioner of Shal'ille's peaceful path.\n"
@@ -826,17 +827,12 @@ resources:
    reincarnated_times = \
       "%s has reincarnated %d times.\n"
 
-   reincarnation_need_hp = \
-      "At that affirmation of how much you've learned, you feel like the "
-      "last goal left for you is to test your own physical limits."
-   reincarnation_need_learn = \
-      "You've gone as far as you can physically. You realize that the "
-      "last goal left to you in this life is to learn as much as you can."
-   reincarnation_ready = \
-      "You feel as if you've learned all you can and tested yourself "
-      "to your physical limits. This life feels complete. Perhaps "
-      "you should explore the Hall of Genealogy in Cor Noth to gain "
-      "some perspective."
+   ready_to_reincarnate_msg = \
+      "You are ready to reincarnate. Perhaps you should explore the Hall of Genealogy "
+      "in Cor Noth."
+   reincarnation_progress_msg = \
+      "You have acquired toughess and knowledge equivalent to %i percent of the "
+      "qualification for your next reincarnation."
 
    pvp_notify_wav = gong.wav
 
@@ -1155,8 +1151,6 @@ properties:
    piReincarnations = 0
    % Do we have a free stat reset for reincarnation?
    pbReincarnationStatsReset = FALSE
-   % Have we hit learn cap?
-   pbLearnCapped = FALSE
 
    % Banditry stance object
    poStance = $
@@ -1283,30 +1277,6 @@ messages:
 
       propagate;
    }
-   
-   SetLearncapped(value=FALSE)
-   {
-      pbLearnCapped = value;
-      
-      if value = TRUE
-      {
-         if piBase_Max_Health >= 100 + Send(self,@GetRawStamina)
-         {
-            Send(self,@MsgSendUser,#message_rsc=reincarnation_ready);
-         }
-         else
-         {
-            Send(self,@MsgSendUser,#message_rsc=reincarnation_need_hp);
-         }
-      }
-
-      return;
-   }
-   
-   GetLearnCapped()
-   {
-      return pbLearnCapped;
-   }
 
    Reincarnate(race=0)
    {
@@ -1354,21 +1324,86 @@ messages:
 
    CanReincarnate()
    {
-      if ((Send(self,@GetBaseMaxHealth) >= 100 + Send(self,@GetRawStamina)
-             AND Send(self,@GetLearnCapped))
-         OR piReincarnations = 0)
-         AND Send(self,@CheckPlayerFlag,#flag=PFLAG_PKILL_ENABLE)
+      if Send(self,@GetReincarnationSum) >= Send(self,@GetNextReincarnationSum)
          AND piReincarnations < 10
       {
-         % For now, first is free and after that must be max health
-         % and have hit learn cap.
-         % Angeled characters can never reincarnate.
-         %
-         % Reincarnations capped at ten for now.
          return TRUE;
       }
 
+      return FALSE;
+   }
+
+   ReportReincarnationProgress()
+   {
+      local iReincarnationSum;
+
+      if Send(self,@IsLoggedOn)
+         AND Send(SETTINGS_OBJECT,@GetReincarnationEnabled)
+      {
+         iReincarnationSum = Send(self,@GetReincarnationSum);
+         if iReincarnationSum >= Send(self,@GetNextReincarnationSum)
+         {
+            Send(self,@MsgSendUser,#message_rsc=ready_to_reincarnate_msg);
+         }
+         else
+         {
+            Send(self,@MsgSendUser,#message_rsc=reincarnation_progress_msg,#parm1=(iReincarnationSum*100)/Send(self,@GetNextReincarnationSum));
+         }
+      }
       return;
+   }
+
+   GetReincarnationSum()
+   {
+      local iLearnPoints, iBaseMaxHealthPoints;
+
+      % New equation combines level points and hit points.
+      % vlLevelPoints = [1,2,4,6,8,10];
+      %
+      %
+
+      % Learn points ranges from 16 at 5/5 at 1 int to 40 at 6/6/6/6 at 60 int
+      iLearnPoints = Send(self,@GetTotalLearnPoints)*4;
+
+      % Hit points can max out at 130 for Demon, up to 160 for Orc, so 130-160
+      iBaseMaxHealthPoints = Send(self,@GetBaseMaxHealth);
+
+      % Let's apply quadruple multiplier to schools.
+      % 5/5 = 64, 6/6/6/6 = 160
+      % 130 + 160 = 290 most demon can attain
+      % 160 + 144 = 304 most orc can attain
+      % 150 + 112 = 262 most elf can attain
+
+      return iBaseMaxHealthPoints + iLearnPoints;
+   }
+
+   GetNextReincarnationSum()
+   {
+      % 71  1   - 21 scale   - 50 hp level 3
+      % 92  2
+      % 113 3
+      % 134 4
+      % 155 5
+      % 176 6
+      % 197 7
+      % 218 8
+      % 239 9
+      % 260 10  - 260 represents 130 HP + 33 learn points or 6/6/6/3 (30 stam + 45 int)
+      %                          150 HP + 28 learn points or 6/6/5   (50 stam + 30 int)
+      %                          160 HP + 25 learn points or 6/6/4   (60 stam + 25 int)
+
+      % 74 1    - 24 scale
+      % 98 2
+      % 122 3
+      % 146 4
+      % 170 5
+      % 194 6
+      % 218 7
+      % 242 8
+      % 266 9
+      % 290 for reincarnation ten
+
+      return 50+((piReincarnations+1)*Send(SETTINGS_OBJECT,@GetReincarnationSumMultiple));
    }
 
    HasReincarnationStatsReset()
@@ -1419,6 +1454,13 @@ messages:
                   [ATCK_WEAP_MAGIC, 10 ] ];
       }
       
+      if race = RACE_HALF_UNDINE
+      {
+         return [ [-ATCK_SPELL_COLD, 10 ],
+                  [-ATCK_SPELL_SHOCK, -25 ],
+                  [ATCK_WEAP_BLUDGEON, 10 ] ];
+      }
+      
       return $;
    }
 
@@ -1429,13 +1471,13 @@ messages:
          switch(type)
          {
             case -ATCK_SPELL_UNHOLY:
-               return 20;
+               return 5;
             case -ATCK_SPELL_HOLY:
-               return -15;
+               return -5;
             case ATCK_WEAP_PIERCE:
-               return 10;
+               return 2;
             case ATCK_WEAP_SLASH:
-               return 10;
+               return 2;
          }
       }
       if piPlayerRace = RACE_HALF_DEMON
@@ -1443,13 +1485,13 @@ messages:
          switch(type)
          {
             case -ATCK_SPELL_FIRE:
-               return 20;
+               return 5;
             case -ATCK_SPELL_ACID:
-               return 10;
+               return 2;
             case ATCK_WEAP_NERUDITE:
-               return 10;
+               return 2;
             case -ATCK_SPELL_COLD:
-               return -25;
+               return -7;
          }
       }
       if piPlayerRace = RACE_HALF_ELF
@@ -1457,13 +1499,25 @@ messages:
          switch(type)
          {
             case -ATCK_SPELL_UNHOLY:
-               return -15;
+               return -5;
             case -ATCK_SPELL_HOLY:
-               return 20;
+               return 5;
             case -ATCK_SPELL_ALL:
-               return 10;
+               return 2;
             case ATCK_WEAP_MAGIC:
-               return 10;
+               return 2;
+         }
+      }
+      if piPlayerRace = RACE_HALF_UNDINE
+      {
+         switch(type)
+         {
+            case -ATCK_SPELL_SHOCK:
+               return -7;
+            case -ATCK_SPELL_COLD:
+               return 2;
+            case ATCK_WEAP_BLUDGEON:
+               return 2;
          }
       }
       return 0;
@@ -1471,10 +1525,12 @@ messages:
 
    SetPlayerRace(race=0)
    {
+      local iRandomSkinColor;
       if race = RACE_HUMAN
       {
-         Send(self,@SetSkinTranslation,#translation=1);
-         Send(self,@SetDefaultClothes,#shirt_color=1,#pants_color=1);
+         iRandomSkinColor = Random(1,4);
+         Send(self,@SetSkinTranslation,#translation=iRandomSkinColor);
+         Send(self,@SetDefaultClothes,#shirt_color=iRandomSkinColor,#pants_color=iRandomSkinColor);
          plResistances = Send(self,@GetRacialBaseResistances,#race=RACE_HUMAN);
 
          piRacialMightMod = 0;
@@ -1558,10 +1614,41 @@ messages:
 
          piPlayerRace = race;
       }
+     
+      if race = RACE_HALF_UNDINE
+      {
+         Send(self,@SetSkinTranslation,#translation=11);
+         Send(self,@SetDefaultClothes,#shirt_color=6,#pants_color=6);
+         plResistances = Send(self,@GetRacialBaseResistances,#race=RACE_HALF_UNDINE);
+
+         piRacialMightMod = 0;
+         piRacialIntellectMod = 10;
+         piRacialStaminaMod = 0;
+         piRacialAgilityMod = 10;
+         piRacialMysticismMod = -20;
+         piRacialAimMod = -20;
+
+         piRacialVigorMod = 0;
+         piStomachMax = 100;
+         piVigor_rest_threshold = Send(self,@CalculateVigorThreshold);
+         piVigor = piVigor_rest_threshold;
+         Post(self,@NewVigor);
+
+         piPlayerRace = race;
+      }
 
       Post(self,@DrawResistances);
      
       return;
+   }
+
+   GetHoldResistance()
+   {
+      if piPlayerRace = RACE_HALF_UNDINE
+      {
+         return 20;
+      }
+      return 0;
    }
 
    GetPlayerRace()
@@ -2482,6 +2569,10 @@ messages:
       {
          AddPacket(4,player_race_elf,4,Send(self,@GetHeShe,#cap=TRUE));
       }
+      else if i = RACE_HALF_UNDINE
+      {
+         AddPacket(4,player_race_undine,4,Send(self,@GetHeShe,#cap=TRUE));
+      }
       else
       {
          AddPacket(4,system_blank_resource);
@@ -3222,7 +3313,6 @@ messages:
    {
       local i;
 
-      Send(self,@SetLearnCapped,#value=FALSE);
       Send(self,@RemoveAllEnchantments,#report=FALSE);
       Send(self,@ClearAllStatusEffects);
 
@@ -3247,12 +3337,9 @@ messages:
       }
 
       % Setup some stats
-      piBase_max_health = 20;
-      piHealth = 2000;
+      piBase_max_health = Bound(20 + ((piReincarnations+1)*10),20,100);
+      piHealth = Bound(2000 + ((piReincarnations+1)*1000),2000,10000);
       piMax_health = piBase_max_health;
-      piNodelist = 0;
-      piMax_mana = Send(self, @GetInitialMaxMana);
-      piMana = piMax_mana;
       Post(self,@ComputeMaxMana);
 
       Send(self,@SetExperience,#iAmount=0);
@@ -3264,10 +3351,6 @@ messages:
       % percent stomach is full
       piStomach = 0;
       piTimeLastStomachUpdate = 0;
-
-      piKill_count = 0;
-      piKill_count_decay = 0;
-      piJustified_kill_count = 0;
 
       Send(self,@ZeroMods);
 
@@ -7937,16 +8020,9 @@ messages:
       Send(self,@PlayerIsIntriguing);
       Send(self,@GainMaxhealth,#amount=amount);
 
-      if piBase_max_health >= 100 + Send(self,@GetStamina)
-         AND amount > 0
+      if piReincarnations < 10
       {
-         if Send(self,@GetLearnCapped)
-         {
-            Send(self,@MsgSendUser,#message_rsc=reincarnation_ready);
-         }
-         else{
-            Send(self,@MsgSendUser,#message_rsc=reincarnation_need_learn);
-         }
+         Send(self,@ReportReincarnationProgress);
       }
 
       return;
@@ -9021,7 +9097,7 @@ messages:
    "Adds a spell by spell ID to the user's castable list of spells"
    {
       local i, j, oSpell, lSpell_info, lPrereqs, bFound,
-            iBoundAbility, lEncode;
+            iBoundAbility, lEncode, iPrevLearnPoints;
 
       if Send(self,@HasSpell,#num=num)
       {
@@ -9064,6 +9140,8 @@ messages:
             return FALSE;
          }
       }
+
+      iPrevLearnPoints = Send(self,@GetTotalLearnPoints);
 
       % Spell format: [ num * 100 + ability ]
 
@@ -9111,6 +9189,12 @@ messages:
       }
 
       Send(self,@PlayerIsIntriguing);
+      
+      if iPrevLearnPoints <> Send(self,@GetTotalLearnPoints)
+      {
+         % We've just learned a new level.
+         Post(self,@ReportReincarnationProgress);
+      }
 
       return TRUE;
    }
