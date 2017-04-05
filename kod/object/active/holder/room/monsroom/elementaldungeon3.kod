@@ -211,7 +211,6 @@ messages:
             Send(First(i),@Killed);
          }
       }
-      Send(self,@SetMonsterGeneration,#bValue=FALSE);
       return;
    }
 
@@ -251,6 +250,16 @@ messages:
          }
       }
 
+      propagate;
+   }
+
+   Delete()
+   {
+      if ptVictoryTimer <> $
+      {
+         DeleteTimer(ptVictoryTimer);
+         ptVictoryTimer = $;
+      }
       propagate;
    }
 

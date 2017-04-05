@@ -5747,5 +5747,39 @@ messages:
       return viMaxLegalPlayerHeight;
    }
 
+   GetPlayersInRoom()
+   {
+      local i, lPlayers;
+      
+      lPlayers = $;
+      foreach i in plActive
+      {
+         if IsClass(First(i),&Player)
+         {
+            lPlayers = Cons(First(i),lPlayers);
+         }
+      }
+      return lPlayers;
+   }
+
+   GetRandomPlayerInRoom()
+   {
+      local i, lPlayers;
+      
+      lPlayers = $;
+      foreach i in plActive
+      {
+         if IsClass(First(i),&Player)
+         {
+            lPlayers = Cons(First(i),lPlayers);
+         }
+      }
+      if lPlayers = $
+      {
+         return $;
+      }
+      return Nth(lPlayers,Random(1,Length(lPlayers)));
+   }
+
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

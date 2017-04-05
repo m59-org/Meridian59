@@ -53,6 +53,8 @@ constants:
 
    CAVE_SECTORS = 9
 
+   PRISM_OF_ACID_TUNNEL_SECTORS = 800
+
    AREA_OUTSIDE = 0
    AREA_INSIDE = 1
    AREA_LEDGES = 2
@@ -61,6 +63,8 @@ constants:
 
    OFFLIMITS_SECTORS = 500
    AREA_ILLEGAL = 5
+
+   AREA_PRISM_OF_ACID_TUNNEL = 6
 
    OUTER_POOL = 400
    INNER_POOL = 401
@@ -110,6 +114,10 @@ resources:
    water_disgusting_msg = \
       "You can't drink this acidic sludge!"
    waylayoasis_drink_sound = drink.wav
+
+   prism_of_acid_defeated_msg = \
+      "~BThe Prism of Acid in Biskalane has been defeated! Until the corrosive tide regenerates, "
+      "the element of acid will be an ally instead of an enemy."
 
 classvars:
 
@@ -173,6 +181,12 @@ properties:
 
    % Desert is not ready to let players buy this hall and elusion to it
    pbRentable = FALSE
+   
+   pbPrismOpen = TRUE
+   pbPrismOfAcidDefeated = FALSE
+
+   ptPrismOfAcidReset = $
+   piHoursLeftReset = 47
 
 messages:
 
@@ -201,7 +215,7 @@ messages:
    {
       plEdge_Exits = $;
       plEdge_Exits = Cons([ LEAVE_WEST, RID_DESERTPATH1, 11, 58, ROTATE_NONE ],plEdge_Exits);
-      plEdge_Exits = Cons([ LEAVE_NORTH, RID_DESERTCAVERAFT, 18, 4, ROTATE_NONE ],plEdge_Exits);
+      %plEdge_Exits = Cons([ LEAVE_NORTH, RID_DESERTCAVERAFT, 18, 4, ROTATE_NONE ],plEdge_Exits);
 
       propagate;
    }
@@ -532,6 +546,11 @@ messages:
          {
             return AREA_CAVES;
          }
+         
+         if iServerID = PRISM_OF_ACID_TUNNEL_SECTORS
+         {
+            return AREA_PRISM_OF_ACID_TUNNEL;
+         }
       }
 
       return AREA_OUTSIDE;
@@ -598,6 +617,21 @@ messages:
               #where=Send(SYS,@FindRoomByNum,#num=RID_DESERTBRIDGE),
               #new_row=3,#new_col=3,#fine_row=50,#fine_col=9,
               #new_angle=ANGLE_EAST);
+         return;
+      }
+
+      if new_row < 2
+      {
+         if pbPrismOpen
+         {
+            Send(SYS,@UtilGoNearSquare,#what=what,
+                 #where=Send(SYS,@FindRoomByNum,#num=RID_DESERTCAVERAFT),
+                 #new_row=18,#new_col=5);
+         }
+         else
+         {
+            Send(self,@Teleport,#what=what);
+         }
          return;
       }
 
@@ -844,6 +878,8 @@ messages:
             % Make unpassable
             Send(self,@AnimateWall,#wall=14,#animation=ANIMATE_NONE,#first_group=2,
                   #passable=FALSE);
+            Send(self,@ClosePrismOfAcidDoor);
+            
             % Change texture.
             Send(self,@ChangeTexture,#id=14,#new_texture=61017,
                   #flags=CTF_NORMALWALL);
@@ -877,7 +913,14 @@ messages:
          Send(self,@RemoveTextureChange,#id=400);
          % Remove sludge water sides.
          Send(self,@RemoveTextureChange,#id=14);
+
          Send(self,@RemoveAnimateWallChange,#wall=14);
+         
+         if NOT pbPrismOfAcidDefeated
+         {
+            Send(self,@OpenPrismOfAcidDoor);
+         }
+
          % Reset sector flag changes to sludge water.
          Send(self,@RemoveSectorFlagChange,#id=13);
          Send(self,@RemoveSectorFlagChange,#id=400);
@@ -971,6 +1014,12 @@ messages:
             % If they can log on in the hall, they must be valid. If they're teleported, unset.
             Send(what,@SetValidatedForThisHall,#value=TRUE);
          }
+         
+         if iSection = AREA_PRISM_OF_ACID_TUNNEL
+            AND NOT pbPrismOpen
+         {
+            Post(self,@Teleport,#what=what);
+         }
       }
 
       propagate;
@@ -1060,6 +1109,79 @@ messages:
       }
 
       return TRUE;
+   }
+
+   ClosePrismOfAcidDoor()
+   {
+      local i;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&Player)
+         {
+            if Send(self,@GetSection,#who=First(i)) = AREA_PRISM_OF_ACID_TUNNEL
+            {
+               Send(self,@Teleport,#what=First(i));
+            }
+         }
+      }
+      Send(self,@SetSector,#sector=PRISM_OF_ACID_TUNNEL_SECTORS,#animation=ANIMATE_FLOOR_LIFT,#height=64,#speed=16);
+      pbPrismOpen = FALSE;
+      return;
+   }
+
+   OpenPrismOfAcidDoor()
+   {
+      Send(self,@SetSector,#sector=PRISM_OF_ACID_TUNNEL_SECTORS,#animation=ANIMATE_FLOOR_LIFT,#height=0,#speed=16);
+      pbPrismOpen = TRUE;
+      return;
+   }
+
+   GetPrismOfAcidDefeated()
+   {
+      return pbPrismOfAcidDefeated;
+   }
+
+   PrismOfAcidDefeated()
+   {
+      local i;
+
+      Send(self,@ClosePrismOfAcidDoor);
+      pbPrismOfAcidDefeated = TRUE;
+      
+      piHoursLeftReset = 47;
+      ptPrismOfAcidReset = CreateTimer(self,@PrismOfAcidReset,60000 * 60); % 1 hour, counts down 48 times
+
+      foreach i in Send(SYS,@GetUsersLoggedOn)
+      {
+         Send(i,@MsgSendUser,#message_rsc=prism_of_acid_defeated_msg);
+      }
+
+      return;
+   }
+
+   PrismOfAcidReset()
+   {
+      local i;
+
+      ptPrismOfAcidReset = $;
+      
+      if piHoursLeftReset > 0
+      {
+         --piHoursLeftReset;
+         ptPrismOfAcidReset = CreateTimer(self,@PrismOfAcidReset,60000 * 60); % 1 hour, counts down 48 times
+         return;
+      }
+      
+      piHoursLeftReset = 47;
+      pbPrismOfAcidDefeated = FALSE;
+      
+      if NOT Send(self,@CheckRoomFlag,#flag=ROOM_SNOWING)
+      {
+         Send(self,@OpenPrismOfAcidDoor);
+      }
+
+      return;
    }
 
 end

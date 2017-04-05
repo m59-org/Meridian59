@@ -25,6 +25,15 @@ resources:
       "the natural curvature of the region's mana flows. Corroded, but alive, "
       "you find yourself at a familiar oasis."
 
+   killed_acid_boss_msg = \
+      "~B%s has slain %s%s! Waves of acid surge as the elemental plane of acid "
+      "reacts violently!"
+
+   prism_of_acid_entry_msg = \
+      "Acid bubbles up in massive columns where the pressure has been released "
+      "by the intersection of mortal reality and elemental energies. Watch your step, "
+      "for nothing exists below but an eternal sea of acid and death."
+      
 classvars:
 
    vrName = room_name_elementaldungeon4
@@ -51,6 +60,10 @@ properties:
    piMonster_count_max = 25
    
    plBossCoordinates = $
+   
+   pbLightsPlaced = FALSE
+
+   ptVictoryTimer = $
 
 messages:
 
@@ -63,16 +76,32 @@ messages:
 
       plBossCoordinates = [22, 64];
 
+      Post(self,@PlaceFirstLights);
+
       propagate;
    }
    
    FirstUserEntered()
    {
+      local i;
+      Send(self,@PlaceFirstLights);
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&XeoBossAcid)
+         {
+            propagate;
+         }
+      }
+      Send(self,@NewHold,#what=Create(&XeoBossAcid),#new_row=25,#new_col=64,#fine_row=3,#fine_col=18);
+      Send(self,@NewHold,#what=Create(&EarthElementalChampion),#new_row=29,#new_col=66,#fine_row=17,#fine_col=22);
+      Send(self,@NewHold,#what=Create(&EarthElementalChampion),#new_row=24,#new_col=68,#fine_row=30,#fine_col=63);
       propagate;
    }
    
    LastUserLeft()
    {
+      Send(self,@DeleteLights);
       propagate;
    }
 
@@ -93,6 +122,205 @@ messages:
          return FALSE;
       }
 
+      propagate;
+   }
+
+   PlaceFirstLights()
+   {
+      if pbLightsPlaced
+      {
+         return;
+      }
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=42,#new_col=41,#fine_row=19,#fine_col=50);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=40,#new_col=45,#fine_row=40,#fine_col=45);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=41,#new_col=48,#fine_row=35,#fine_col=34);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=40,#new_col=51,#fine_row=6,#fine_col=17);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=36,#new_col=51,#fine_row=36,#fine_col=6);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=34,#new_col=54,#fine_row=49,#fine_col=24);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=34,#new_col=60,#fine_row=54,#fine_col=3);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=30,#new_col=51,#fine_row=0,#fine_col=2);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=31,#new_col=47,#fine_row=40,#fine_col=53);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=35,#new_col=47,#fine_row=26,#fine_col=62);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=36,#new_col=44,#fine_row=47,#fine_col=48);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=34,#new_col=41,#fine_row=50,#fine_col=48);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=37,#new_col=38,#fine_row=9,#fine_col=32);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=38,#new_col=35,#fine_row=46,#fine_col=50);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=42,#new_col=35,#fine_row=27,#fine_col=51);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=43,#new_col=32,#fine_row=59,#fine_col=41);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=41,#new_col=29,#fine_row=47,#fine_col=32);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=47,#new_col=32,#fine_row=10,#fine_col=42);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=48,#new_col=36,#fine_row=48,#fine_col=36);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=47,#new_col=39,#fine_row=11,#fine_col=24);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=48,#new_col=42,#fine_row=44,#fine_col=29);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=47,#new_col=45,#fine_row=12,#fine_col=9);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=48,#new_col=48,#fine_row=57,#fine_col=20);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=47,#new_col=51,#fine_row=3,#fine_col=9);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=43,#new_col=51,#fine_row=26,#fine_col=7);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=41,#new_col=54,#fine_row=51,#fine_col=8);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=43,#new_col=57,#fine_row=45,#fine_col=18);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=41,#new_col=60,#fine_row=47,#fine_col=18);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=39,#new_col=63,#fine_row=55,#fine_col=31);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=37,#new_col=66,#fine_row=62,#fine_col=18);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=28,#new_col=66,#fine_row=8,#fine_col=43);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=27,#new_col=61,#fine_row=52,#fine_col=38);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=24,#new_col=60,#fine_row=26,#fine_col=11);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=21,#new_col=62,#fine_row=1,#fine_col=18);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=21,#new_col=66,#fine_row=0,#fine_col=19);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=32,#new_col=62,#fine_row=60,#fine_col=49);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=29,#new_col=58,#fine_row=33,#fine_col=5);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=49,#new_col=29,#fine_row=29,#fine_col=8);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=33,#new_col=69,#fine_row=15,#fine_col=14);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=23,#new_col=68,#fine_row=61,#fine_col=32);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=255),#new_row=25,#new_col=64,#fine_row=3,#fine_col=18);
+      pbLightsPlaced = TRUE;
+      return;
+   }
+   
+   DeleteLights()
+   {
+      local i;
+      
+      foreach i in plPassive
+      {
+         if IsClass(First(i),&DynamicLight)
+         {
+            Send(First(i),@Delete);
+         }
+      }
+      pbLightsPlaced = FALSE;
+      return;
+   }
+
+   SomethingKilled(what=$,victim=$)
+   {
+      local i;
+
+      if victim <> $
+         AND IsClass(victim,&Monster)
+      {
+         if IsClass(victim,&XeoBossAcid)
+         {
+            foreach i in Send(self,@GetHolderActive)
+            {
+               if IsClass(First(i),&Player)
+               {
+                  Send(First(i),@MsgSendUser,#message_rsc=killed_acid_boss_msg,
+                     #parm1=Send(what,@GetName),#parm2=Send(victim,@GetDef),#parm3=Send(victim,@GetName));
+               }
+            }
+            Send(self,@BossKilled);
+            propagate;
+         }
+      }
+
+      propagate;
+   }
+
+   BossKilled()
+   {
+      local i;
+
+      Send(self,@Rumble,#duration=20000);
+      
+      ptVictoryTimer = CreateTimer(self,@ClosePrismOfAcid,20000);
+
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&Monster)
+         {
+            Send(First(i),@Killed);
+         }
+      }
+      return;
+   }
+
+   ClosePrismOfAcid()
+   {
+      local i, oOasis;
+      
+      ptVictoryTimer = $;
+
+      oOasis = Send(SYS,@FindRoomByNum,#num=RID_WAYLAYOASIS);
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&Player)
+         {
+            Send(oOasis,@Teleport,#what=First(i));
+         }
+      }
+      
+      Post(oOasis,@PrismOfAcidDefeated);
+      
+      return;
+   }
+
+   NewHold(what = $,new_row=$,new_col=$)
+   "Prevents anyone from logging on into a special zone"
+   {
+      % If players log on, send them elsewhere.
+      if IsClass(what,&User)
+      {
+         if Send(what,@GetOwner) = $
+         {
+            Post(Send(SYS,@FindRoomByNum,#num=RID_WAYLAYOASIS),@Teleport,#what=what);
+         }
+         else
+         {
+            Post(what,@MsgSendUser,#message_rsc=prism_of_acid_entry_msg);
+         }
+      }
+
+      propagate;
+   }
+
+   Delete()
+   {
+      if ptVictoryTimer <> $
+      {
+         DeleteTimer(ptVictoryTimer);
+         ptVictoryTimer = $;
+      }
       propagate;
    }
 
