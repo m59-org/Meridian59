@@ -66,6 +66,8 @@ properties:
 
    vrIcon = Xeochicatl_icon_rsc
    vrDead_icon = Xeochicatl_dead_icon_rsc
+   
+   piPhase = 1
 
 messages:
 
@@ -108,6 +110,7 @@ messages:
 
       vrIcon = bigger_Xeochicatl_icon_rsc;
       vrDead_icon = bigger_Xeochicatl_dead_icon_rsc;
+      piPhase = 2;
       Post(poOwner,@SomethingChanged,#what=self);
 
       foreach i in Send(poOwner,@GetHolderActive)
@@ -144,6 +147,7 @@ messages:
 
       vrIcon = biggest_Xeochicatl_icon_rsc;
       vrDead_icon = biggest_Xeochicatl_dead_icon_rsc;
+      piPhase = 3;
       Post(poOwner,@SomethingChanged,#what=self);
 
       foreach i in Send(poOwner,@GetHolderActive)
@@ -211,6 +215,33 @@ messages:
       }
 
       propagate;
+   }
+
+   SendLightingInformation()
+   {
+      if piPhase = 1
+      {
+         AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC));
+         % 255 out of 255 intensity of light
+         AddPacket(1,60);
+         AddPacket(2,LIGHT_BBLUE);
+      }
+      if piPhase = 2
+      {
+         AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC));
+         % 255 out of 255 intensity of light
+         AddPacket(1,145);
+         AddPacket(2,LIGHT_BBLUE);
+      }
+      if piPhase = 3
+      {
+         AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC));
+         % 255 out of 255 intensity of light
+         AddPacket(1,255);
+         AddPacket(2,LIGHT_BBLUE);
+      }
+
+      return;
    }
 
 end
