@@ -31,6 +31,9 @@ resources:
 
 classvars:
 
+   vrIcon = biggest_Xeochicatl_icon_rsc
+   vrDead_icon = biggest_Xeochicatl_dead_icon_rsc
+
    vrName = XeoBossFire3_name_rsc
    vrDesc = XeoBossFire3_desc_rsc
    vrKocName = XeoBossFire3_koc_name_rsc
@@ -98,6 +101,21 @@ messages:
       AddPacket(2,LIGHT_BRED);
 
       return;
+   }
+
+   IsAlly(target = $, regroup = FALSE)
+   {
+      if IsClass(target,&XeoBossFire)
+         OR IsClass(target,&XeoBossFire2)
+         OR IsClass(target,&XeoBossFire3)
+         OR IsClass(target,&XeoFire)
+         OR IsClass(target,&FireElemental)
+         OR IsClass(target,&FireElementalChampion)
+      {
+         return TRUE;
+      }
+
+      propagate;
    }
 
 end
