@@ -24,6 +24,11 @@ resources:
    travel_into_sea_sandbar = \
       "You trek back across the ice toward the shore."
 
+   prism_of_ice_defeated = \
+      "~BThe Prism of Ice near Biskalane has been defeated by a band of "
+      "intrepid adventurers! Until it surges back, the element of ice "
+      "will be helpful rather than harmful."
+
 classvars:
 
    vrName = room_name_desertsandbar
@@ -42,6 +47,10 @@ properties:
    piRoom_num = RID_DESERTSANDBAR
    
    pbPrismOpen = FALSE
+   pbPrismOfIceDefeated = FALSE
+
+   ptPrismOfIceReset = $
+   piHoursLeftReset = 47
 
 messages:
 
@@ -102,15 +111,25 @@ messages:
 
    StartSnow(bOnGround=TRUE)
    {
-      % Open Prism of Ice.
-      Send(self,@ChangeTexture,#id=200,#new_texture=07702,
-             #flags=CTF_FLOOR);
-      Send(self,@SetSectorFlags,#sector=200,#depth=SF_DEPTH0,
-            #scrollSpeed=SCROLL_NONE);
-      Send(self,@SetSector,#sector=200,#animation=ANIMATE_FLOOR_LIFT,
-            #height=5,#speed=0);
+      if pbPrismOfIceDefeated
+      {
+         Send(self,@ChangeTexture,#id=200,#new_texture=61017,#flags=CTF_FLOOR);
+         Send(self,@SetSectorFlags,#sector=200,#depth=SF_DEPTH0,#scrollSpeed=SCROLL_NONE);
+         Send(self,@SetSector,#sector=200,#animation=ANIMATE_FLOOR_LIFT,#height=1000,#speed=0);
+         pbPrismOpen = FALSE;
+      }
+      else
+      {
+         % Open Prism of Ice.
+         Send(self,@ChangeTexture,#id=200,#new_texture=07702,
+                #flags=CTF_FLOOR);
+         Send(self,@SetSectorFlags,#sector=200,#depth=SF_DEPTH0,
+               #scrollSpeed=SCROLL_NONE);
+         Send(self,@SetSector,#sector=200,#animation=ANIMATE_FLOOR_LIFT,
+               #height=5,#speed=0);
+         pbPrismOpen = TRUE;
+      }
 
-      pbPrismOpen = TRUE;
 
       propagate;
    }
@@ -160,6 +179,11 @@ messages:
    
    GetPhaseThreats()
    {
+      if pbPrismOfIceDefeated
+      {
+         return [&ColdStorm];
+      }
+
       switch(Send(SYS,@GetDayPhase))
       {
          case DAY_PHASE_DAWN:
@@ -173,6 +197,68 @@ messages:
       }
 
       return [&PhaseThreat];
+   }
+
+   GetPrismOfIceDefeated()
+   {
+      return pbPrismOfIceDefeated;
+   }
+
+   PrismOfIceDefeated()
+   {
+      local i;
+
+      Send(self,@RemoveTextureChange,#id=200);
+      Send(self,@RemoveSectorFlagChange,#id=200);
+      Send(self,@SetSector,#sector=200,#animation=ANIMATE_FLOOR_LIFT,#height=1000,#speed=0);
+      pbPrismOpen = FALSE;
+
+      if Send(self,@CheckRoomFlag,#flag=ROOM_SNOWING)
+      {
+         Send(self,@ChangeTexture,#id=200,#new_texture=61017,#flags=CTF_FLOOR);
+         Send(self,@SetSectorFlags,#sector=200,#depth=SF_DEPTH0,#scrollSpeed=SCROLL_NONE);
+         Send(self,@SetSector,#sector=200,#animation=ANIMATE_FLOOR_LIFT,#height=1000,#speed=0);
+      }
+      else if Send(self,@CheckRoomFlag,#flag=ROOM_RAINING)
+      {
+         Send(self,@ChangeTexture,#id=200,#new_texture=09363,
+               #flags=CTF_FLOOR);
+         Send(self,@SetSectorFlags,#sector=13,#depth=SF_DEPTH1,
+               #scrollSpeed=SCROLL_SLOW);
+      }
+      
+      pbPrismOfIceDefeated = TRUE;
+      
+      piHoursLeftReset = 47;
+      ptPrismOfIceReset = CreateTimer(self,@PrismOfIceReset,60000 * 60); % 1 hour, counts down 48 times
+      
+      Send(self,@EndAllThreats);
+      Send(self,@StartThreat,#cClasses=Send(self,@GetPhaseThreats));
+
+      foreach i in Send(SYS,@GetUsersLoggedOn)
+      {
+         Send(i,@MsgSendUser,#message_rsc=prism_of_ice_defeated);
+      }
+      return;
+   }
+
+   PrismOfIceReset()
+   {
+      local i;
+
+      ptPrismOfIceReset = $;
+      
+      if piHoursLeftReset > 0
+      {
+         --piHoursLeftReset;
+         ptPrismOfIceReset = CreateTimer(self,@PrismOfIceReset,60000 * 60); % 1 hour, counts down 48 times
+         return;
+      }
+      
+      piHoursLeftReset = 47;
+      pbPrismOfIceDefeated = FALSE;
+
+      return;
    }
 
 end

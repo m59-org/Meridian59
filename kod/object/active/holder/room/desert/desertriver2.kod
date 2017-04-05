@@ -124,6 +124,10 @@ resources:
 
    burning_step_sound = frying.wav
 
+   prism_of_fire_defeated = \
+      "~BA band of brave warriors have sealed the Prism of Fire in Biskalane! "
+      "For a time, the element of fire will be ally instead of foe."
+
 classvars:
 
    viTeleport_row = 8
@@ -711,6 +715,11 @@ messages:
       ptPrismOfFireReset = CreateTimer(self,@PrismOfFireReset,60000 * 60); % 1 hour, counts down 48 times
 
       Send(self,@StartThreat,#cClasses=Send(self,@GetPhaseThreats),#report=TRUE);
+      
+      foreach i in Send(SYS,@GetUsersLoggedOn)
+      {
+         Send(i,@MsgSendUser,#message_rsc=prism_of_fire_defeated);
+      }
       return;
    }
 

@@ -29,7 +29,14 @@ resources:
 
    XeoBossWater_sound_aware = xeo1awr.wav
 
- classvars:
+   enter_phase_two_msg = \
+      "~BEnraged by your assault, the vix'ma'xeochicatl phases further into "
+      "your mortal plane, bringing greater forces to bear!"
+
+   enter_phase_three_msg = \
+      "~BThe vix'ma'xeochicatl roars with the fury of a thousand blizzards!"
+
+classvars:
 
    vrName = XeoBossWater_name_rsc
    vrDesc = XeoBossWater_desc_rsc
@@ -82,6 +89,8 @@ messages:
 
    GoPhaseTwo()
    {
+      local i;
+
       piMinDamage = 20;
       piMaxDamage = 40;
       piDrawfx = DRAWFX_TRANSLUCENT_50;
@@ -89,35 +98,119 @@ messages:
       viDifficulty = 9;
       Post(self,@AddChampionAbility,#ability=4,#value=80);
 
+      plResistances = [ [-ATCK_SPELL_COLD, 110 ],
+                        [-ATCK_SPELL_FIRE, 20 ],
+                        [-ATCK_SPELL_HOLY, 30 ],
+                        [-ATCK_SPELL_UNHOLY, 30 ],
+                        [ATCK_WEAP_MAGIC, 30 ],
+                        [-ATCK_SPELL_QUAKE, 100 ]
+                      ];
+
       vrIcon = bigger_Xeochicatl_icon_rsc;
       vrDead_icon = bigger_Xeochicatl_dead_icon_rsc;
       Post(poOwner,@SomethingChanged,#what=self);
+
+      foreach i in Send(poOwner,@GetHolderActive)
+      {
+         if IsClass(First(i),&Player)
+         {
+            Send(First(i),@MsgSendUser,#message_rsc=enter_phase_two_msg);
+         }
+      }
+      Send(poOwner,@Rumble,#duration=4000);
+
       return;
    }
 
    GoPhaseThree()
    {
+      local i;
+
       piMinDamage = 30;
       piMaxDamage = 50;
       piDrawfx = DRAWFX_TRANSLUCENT_75;
       viLevel = 200;
       viDifficulty = 10;
+      viSpeed = SPEED_VERY_FAST;
       Post(self,@AddChampionAbility,#ability=6,#value=15);
+
+      plResistances = [ [-ATCK_SPELL_COLD, 150 ],
+                        [-ATCK_SPELL_FIRE, 60 ],
+                        [ATCK_WEAP_MAGIC, 70 ],
+                        [-ATCK_SPELL_HOLY, 70 ],
+                        [-ATCK_SPELL_UNHOLY, 70 ],
+                        [-ATCK_SPELL_QUAKE, 100 ]
+                      ];
 
       vrIcon = biggest_Xeochicatl_icon_rsc;
       vrDead_icon = biggest_Xeochicatl_dead_icon_rsc;
       Post(poOwner,@SomethingChanged,#what=self);
+
+      foreach i in Send(poOwner,@GetHolderActive)
+      {
+         if IsClass(First(i),&Player)
+         {
+            Send(First(i),@MsgSendUser,#message_rsc=enter_phase_three_msg);
+         }
+      }
+      Send(poOwner,@Rumble,#duration=4000);
+
       return;
    }
 
    GetMaxHitPoints()
    {
-      return 100000;
+      return 20000;
    }
 
    GetBossStatus()
    {
       return TRUE;
+   }
+
+   HitPointThresholdDamage()
+   {
+      local iThreshold;
+
+      iThreshold = piHit_points / (piMax_hit_points * 20);
+
+      if iThreshold >= 4
+      {
+         propagate;
+      }
+      else if iThreshold = 3
+      {
+         propagate;
+      }
+      else if iThreshold = 2
+      {
+         Send(self,@GoPhaseTwo);
+         propagate;
+      }
+      else if iThreshold = 1
+      {
+         propagate;
+      }
+      else
+      {
+         Send(self,@GoPhaseThree);
+         propagate;
+      }
+
+      propagate;
+   }
+
+   IsAlly(target = $, regroup = FALSE)
+   {
+      if IsClass(target,&XeoBossWater)
+         OR IsClass(target,&XeoWater)
+         OR IsClass(target,&IceElemental)
+         OR IsClass(target,&IceElementalChampion)
+      {
+         return TRUE;
+      }
+
+      propagate;
    }
 
 end
