@@ -1,0 +1,124 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+XeoBossWater is Xeochicatl
+
+constants:
+
+   include blakston.khd
+
+   ANIM_CAST = 2     %% Cast spell animation.
+
+resources:
+
+   XeoBossWater_name_rsc = "vix'ma'xeochicatl"
+   XeoBossWater_koc_name_rsc = "vix'ma'xeo'chicatl"
+   XeoBossWater_icon_rsc = Xeo.bgf
+   XeoBossWater_desc_rsc = \
+      "Before you is a vix'ma'xeochicatl, a being from near the heart of the "
+      "elemental plane of ice. This is no minor xeochicatl; the vix are "
+      "far too strong to grace the mortal plane without visiting tremendous "
+      "destruction. This beast is an elemental incarnation of ice itself."
+
+   XeoBossWater_sound_aware = xeo1awr.wav
+
+ classvars:
+
+   vrName = XeoBossWater_name_rsc
+   vrDesc = XeoBossWater_desc_rsc
+   vrKocName = XeoBossWater_koc_name_rsc
+
+   viAttack_type = ATCK_WEAP_MAGIC
+   vrSound_aware = XeoBossWater_sound_aware
+
+   viTreasure_type = TID_XEO_BOSS_WATER
+
+properties:
+
+   piAnimation = ANIM_NONE
+
+   % percent of victim's max mana it will try to drain, double normal rate.
+   piDrainAmount = 10
+
+   piDrawfx = DRAWFX_TRANSLUCENT_25
+   piMinDamage = 10
+   piMaxDamage = 30
+
+   piMax_Mana = 300
+
+   viLevel = 180
+   viDifficulty = 8
+   viSpeed = SPEED_FASTER
+
+   vrIcon = Xeochicatl_icon_rsc
+   vrDead_icon = Xeochicatl_dead_icon_rsc
+
+messages:
+
+   Constructed()
+   {
+      plResistances = [ [-ATCK_SPELL_COLD, 70 ],
+                        [-ATCK_SPELL_FIRE, -20 ],
+                        [ATCK_WEAP_MAGIC, -10 ],
+                        [-ATCK_SPELL_QUAKE, 100 ]
+                      ];
+
+      piColor_Translation = Send(SYS,@EncodeTwoColorXLAT,#color1=XLAT_TO_BLUE);
+
+      plSpellBook = [ [SID_ICE_NOVA,5,30], [SID_HOLD,5,60],
+                      [SID_EXPLOSIVE_FROST,10,100] ];
+
+      Post(self,@AddChampionAbility,#ability=3,#value=90);
+
+      propagate;
+   }
+
+   GoPhaseTwo()
+   {
+      piMinDamage = 20;
+      piMaxDamage = 40;
+      piDrawfx = DRAWFX_TRANSLUCENT_50;
+      viLevel = 190;
+      viDifficulty = 9;
+      Post(self,@AddChampionAbility,#ability=4,#value=80);
+
+      vrIcon = bigger_Xeochicatl_icon_rsc;
+      vrDead_icon = bigger_Xeochicatl_dead_icon_rsc;
+      Post(poOwner,@SomethingChanged,#what=self);
+      return;
+   }
+
+   GoPhaseThree()
+   {
+      piMinDamage = 30;
+      piMaxDamage = 50;
+      piDrawfx = DRAWFX_TRANSLUCENT_75;
+      viLevel = 200;
+      viDifficulty = 10;
+      Post(self,@AddChampionAbility,#ability=6,#value=15);
+
+      vrIcon = biggest_Xeochicatl_icon_rsc;
+      vrDead_icon = biggest_Xeochicatl_dead_icon_rsc;
+      Post(poOwner,@SomethingChanged,#what=self);
+      return;
+   }
+
+   GetMaxHitPoints()
+   {
+      return 100000;
+   }
+
+   GetBossStatus()
+   {
+      return TRUE;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

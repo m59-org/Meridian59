@@ -154,6 +154,7 @@ messages:
       if Send(oTarget,@IsEnchanted,#what=self)
       {
          if IsClass(who,&Player)
+            AND oTarget = who
             AND Send(who,@HasReservedSpell,#oSpell=self)
          {
             if Send(who,@UnReserveSpell,#oSpell=self)
@@ -162,14 +163,6 @@ messages:
                                      #parm1=Send(self,@GetName));
             }
             return FALSE;
-         }
-
-         % Check for the case where they already have a normal non-reserved enchantment
-         % but are now trying to reserve the spell.
-         if IsClass(who,&Player)
-            AND Send(who,@IsEnchanted,#what=self)
-         {
-            Send(who,@RemoveEnchantment,#what=self);
          }
 
          % Can you override an existing enchantment on yourself?
@@ -226,6 +219,11 @@ messages:
          AND IsClass(who,&Player)
          AND Send(who,@ReservesForThisLevel,#iLevel=viSpell_level)
       {
+         % If target already has this enchantment, remove it
+         if Send(who,@IsEnchanted,#what=self)
+         {
+            Send(who,@RemoveEnchantment,#what=self,#report=FALSE,#remain=TRUE);
+         }
          Send(who,@UseReserveSkill,#oSpell=self,
                                    #iSpellPower=iSpellPower);
          propagate;
