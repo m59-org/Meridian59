@@ -8,15 +8,13 @@
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%S%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-ArmorOfGort is PersonalEnchantment
+ArmorOfGort is ResistanceEnchantment
 
 constants:
 
    include blakston.khd
 
 resources:
-
-   include gort.lkod
 
    ArmorOfGort_name_rsc = "armor of Gort"
    ArmorOfGort_icon_rsc = igort.bgf
@@ -82,6 +80,8 @@ properties:
 
    viPurgeFactor = 40
 
+   viResistanceType = ATCK_WEAP_ALL
+
 messages:
 
    ResetReagents()
@@ -107,12 +107,28 @@ messages:
    {
       Send(Target,@AddDefenseModifier,#what=self);
 
-      return iSpellPower;
+      if Send(SETTINGS_OBJECT,@GetDirectArmorEnabled)
+      {
+         return iSpellPower;
+      }
+
+      return Send(self,@GetResistanceStrength,#iSpellPower=iSpellPower);
+   }
+
+   GetResistanceStrength(iSpellpower=0)
+   {
+      %% Strength varies from 2 to 10
+      return bound((iSpellPower+1)/10,2,10);
    }
 
    PriorityModifyDefenseDamage(who=$,what=$,damage=$,atype=0,aspell =0)
    {
       local iSpellPower, iAbsorbed, iMax, iFinalDamage, iFinalAbsorbed;
+
+      if NOT Send(SETTINGS_OBJECT,@GetDirectArmorEnabled)
+      {
+         return damage;
+      }
 
       iSpellPower = Send(who,@GetEnchantedState,#what=self);
       iMax = 1500;
@@ -181,10 +197,14 @@ messages:
 
    EffectDesc(who=$)
    {
-      AddPacket(4,gort_enchantment_rsc, 4,Send(self,@GetName),
-                4,Send(who,@GetEnchantedState,#what=self) / 25);
+      if Send(SETTINGS_OBJECT,@GetDirectArmorEnabled)
+      {
+         AddPacket(4,gort_enchantment_rsc, 4,Send(self,@GetName),
+                   4,Send(who,@GetEnchantedState,#what=self) / 25);
+         return;
+      }
 
-      return;
+      propagate;
    }
 
 end

@@ -67,7 +67,7 @@ classvars:
    viBroken_group = 3
 
    viSpell_modifier = 10
-   viDefense_base = 20
+   viDefense_base = 40
 
    viUse_type = ITEM_USE_BODY | ITEM_USE_LEGS
 
@@ -145,9 +145,16 @@ messages:
 
    GetResistanceModifiers()
    {
-      return [ [ ATCK_WEAP_ALL, -10],
-               [-ATCK_SPELL_FIRE,-20],
-               [-ATCK_SPELL_SHOCK,15]
+      if Send(SETTINGS_OBJECT,@GetDirectArmorEnabled)
+      {
+         return [ [ ATCK_WEAP_ALL, -10],
+                  [-ATCK_SPELL_FIRE,-20],
+                  [-ATCK_SPELL_SHOCK,15]
+                ];
+      }
+      
+      return [ [ATCK_WEAP_ALL,-10],
+               [-ATCK_SPELL_ALL,-10]
              ];
    }
 

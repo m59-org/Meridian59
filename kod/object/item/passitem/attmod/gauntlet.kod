@@ -94,6 +94,7 @@ messages:
    ReqUseSomething(what = $)
    {
       if IsClass(what,&Gauntlet)
+         OR IsClass(what,&Glove)
       {
          if Send(poOwner,@TryUnuseItem,#what=self)
          {
@@ -343,14 +344,17 @@ messages:
       local i, sum, oArmorMod;
       sum = 0;
 
-      foreach i in plEnchantmentMods
+      if Send(SETTINGS_OBJECT,@GetDirectArmorEnabled)
       {
-         if Nth(i,1) = &ArmorMod
+         foreach i in plEnchantmentMods
          {
-            oArmorMod = Send(SYS,@GetMagicMod,#class=&ArmorMod);
-            damage = Send(oArmorMod,@ModifyDefenseDamage,#who=who,#what=what,
-                        #damage=damage,#atype=atype,#aspell=aspell,
-                        #iState=Nth(i,2));
+            if Nth(i,1) = &ArmorMod
+            {
+               oArmorMod = Send(SYS,@GetMagicMod,#class=&ArmorMod);
+               damage = Send(oArmorMod,@ModifyDefenseDamage,#who=who,#what=what,
+                           #damage=damage,#atype=atype,#aspell=aspell,
+                           #iState=Nth(i,2));
+            }
          }
       }
 
@@ -362,11 +366,14 @@ messages:
       local i, sum;
       sum = 0;
 
-      foreach i in plEnchantmentMods
+      if Send(SETTINGS_OBJECT,@GetDirectArmorEnabled)
       {
-         if Nth(i,1) = &ArmorMod
+         foreach i in plEnchantmentMods
          {
-            sum = sum + Nth(i,2);
+            if Nth(i,1) = &ArmorMod
+            {
+               sum = sum + Nth(i,2);
+            }
          }
       }
 
@@ -468,6 +475,17 @@ messages:
               [&PierceResistanceMod,100],
               [&SlashResistanceMod,100],
               [&BludgeonResistanceMod,100]];
+   }
+
+   GetResistanceModifiers()
+   {
+      if Send(SETTINGS_OBJECT,@GetDirectArmorEnabled)
+      {
+         propagate;
+      }
+
+      return [ [ATCK_WEAP_ALL,2]
+               ];
    }
 
 end

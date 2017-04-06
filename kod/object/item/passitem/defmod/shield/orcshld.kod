@@ -88,9 +88,16 @@ messages:
 
    GetResistanceModifiers()
    {
-      return [ [ATCK_WEAP_PIERCE,15],
-               [-ATCK_SPELL_HOLY,-20]
-             ];
+      if Send(SETTINGS_OBJECT,@GetDirectArmorEnabled)
+      {
+         return [ [ATCK_WEAP_PIERCE,15],
+                  [-ATCK_SPELL_HOLY,-20]
+                ];
+      }
+
+      return [ [ATCK_WEAP_ALL,5],
+               [-ATCK_SPELL_HOLY,-10]
+               ];
    }
 
    SendOverlayAnimation(animation = $)

@@ -642,7 +642,13 @@ messages:
 
    GetResistanceModifiers()
    {
-      return [ [ATCK_WEAP_PIERCE,10] ];
+      if Send(SETTINGS_OBJECT,@GetDirectArmorEnabled)
+      {
+         return [ [ATCK_WEAP_PIERCE,10] ];
+      }
+      
+      return [ [ATCK_WEAP_ALL,5]
+             ];
    }
 
    GetBaseSpellModifier(oSpell=$)

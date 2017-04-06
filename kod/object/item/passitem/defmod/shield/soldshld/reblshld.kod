@@ -157,27 +157,41 @@ messages:
    {
       local oSoldierShield;
 
-      oSoldierShield = $;
-      if IsClass(what,&Player)
+      if Send(SETTINGS_OBJECT,@GetDirectArmorEnabled)
       {
-         oSoldierShield = Send(what,@FindUsing,#class=&SoldierShield);
-      }
+         oSoldierShield = $;
+         if IsClass(what,&Player)
+         {
+            oSoldierShield = Send(what,@FindUsing,#class=&SoldierShield);
+         }
 
-      piDamage_reduce = 0;
-      if (oSoldierShield <> $
-            AND Send(oSoldierShield,@IsEnemyAttack,#who=who,#what=what,
-                      #damage=FALSE))
-         OR IsClass(what,&Monster)
-         OR Send(SETTINGS_OBJECT,@GetAlwaysApplySoldierBonus)
-      {
-         % This ranges from 2-4.  At low end, we absorb 0-2 damage.
-         % At high end, 1-4. This bonus only works against mobs and soldiers.
-         piDamage_reduce = viDamage_base + ((piFactionRank/3) - 1);
+         piDamage_reduce = 0;
+         if (oSoldierShield <> $
+               AND Send(oSoldierShield,@IsEnemyAttack,#who=who,#what=what,
+                         #damage=FALSE))
+            OR IsClass(what,&Monster)
+            OR Send(SETTINGS_OBJECT,@GetAlwaysApplySoldierBonus)
+         {
+            % This ranges from 2-4.  At low end, we absorb 0-2 damage.
+            % At high end, 1-4. This bonus only works against mobs and soldiers.
+            piDamage_reduce = viDamage_base + ((piFactionRank/3) - 1);
+         }
       }
 
       propagate;
    }
 
+   GetResistanceModifiers()
+   {
+      if Send(SETTINGS_OBJECT,@GetDirectArmorEnabled)
+      {
+         propagate;
+      }
+
+      % Up to 5 percent weapon resistance at max rank.
+      return [ [ATCK_WEAP_ALL, bound(piFactionRank/2,0,5)]
+             ];
+   }
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

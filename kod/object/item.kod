@@ -104,6 +104,8 @@ resources:
       "with %i magical modifications."
    shard_applying = \
       "The %s acquires a magical bonus of %i %s!"
+   shard_armor_mod_percentage = \
+      "The %s acquires a magical bonus of %i weapon resistance!"
 
 classvars:
 
@@ -1050,6 +1052,11 @@ messages:
    GetDefenseBonus()
    {
       return 0;
+   }
+
+   GetEmpowermentModifiers()
+   {
+      return $;
    }
 
    GetMeleeDamageBonus()
@@ -2862,17 +2869,44 @@ messages:
 
       foreach lMagicMod in plEnchantmentMods
       {
-         if Send(SYS,@GetGroupOfClassMod,#class=Nth(lMagicMod,1))
-                        = GROUP_RESISTANCE
+         if Send(SYS,@GetGroupOfClassMod,#class=Nth(lMagicMod,1)) = GROUP_RESISTANCE
          {
             oMagicMod = Send(SYS,@GetMagicMod,#class=Nth(lMagicMod,1));
             lCurrentResistances = Send(oMagicMod,@ModifyResistance,
                                      #resistance_list=lCurrentResistances,
                                      #iState=Nth(lMagicMod,2));
          }
+         else
+         {
+            if NOT Send(SETTINGS_OBJECT,@GetDirectArmorEnabled)
+            {
+               if Send(SYS,@GetGroupOfClassMod,#class=Nth(lMagicMod,1)) = GROUP_ARMOR
+               {
+                  oMagicMod = Send(SYS,@GetMagicMod,#class=Nth(lMagicMod,1));
+                  lCurrentResistances = Send(oMagicMod,@ModifyResistance,
+                                           #resistance_list=lCurrentResistances,
+                                           #iState=Nth(lMagicMod,2));
+               }
+            }
+         }
       }
 
       return lCurrentResistances;
+   }
+
+   GetCurrentEmpowerments()
+   {
+      local lCurrentEmpowerments, oObjectAttribute;
+      
+      lCurrentEmpowerments = Send(self,@GetEmpowermentModifiers);
+      
+      foreach oObjectAttribute in plObject_attributes
+      {
+         lCurrentEmpowerments = Send(oObjectAttribute,@ModifyEmpowerment,
+                                                      #empowerment_list=lCurrentEmpowerments);
+      }
+      
+      return lCurrentEmpowerments;
    }
 
    ModifyResistance(resistance_list=$)
@@ -2887,6 +2921,23 @@ messages:
       }
       
       return resistance_list;
+   }
+
+   ModifyEmpowerment(empowerment_list=$)
+   {
+      local oEmpowerment, lCurrentEmpowerments;
+      
+      lCurrentEmpowerments = Send(self,@GetCurrentEmpowerments);
+      
+      foreach oEmpowerment in lCurrentEmpowerments
+      {
+         empowerment_list = Send(SYS,@AddEmpowerment,
+                                     #what=Nth(oEmpowerment,1),
+                                     #value=Nth(oEmpowerment,2),
+                                     #empowerment_list=empowerment_list);
+      }
+      
+      return empowerment_list;
    }
 
    AddRadiusEnchantment(what=$,iPower=0,source=$)
@@ -3244,10 +3295,20 @@ messages:
          oMagicMod = Send(SYS,@GetMagicMod,#class=cClass);
          if oMagicMod <> $
          {
-            Post(poOwner,@MsgSendUser,#message_rsc=shard_applying,
-                                      #parm1=Send(self,@GetName),
-                                      #parm2=Send(oMagicMod,@GetNumber,#iPower=iPower),
-                                      #parm3=Send(oMagicMod,@GetName));
+            if NOT Send(SETTINGS_OBJECT,@GetDirectArmorEnabled)
+               AND IsClass(oMagicMod,&ArmorMod)
+            {
+               Post(poOwner,@MsgSendUser,#message_rsc=shard_armor_mod_percentage,
+                                         #parm1=Send(self,@GetName),
+                                         #parm2=Send(oMagicMod,@GetNumber,#iPower=iPower));
+            }
+            else
+            {
+               Post(poOwner,@MsgSendUser,#message_rsc=shard_applying,
+                                         #parm1=Send(self,@GetName),
+                                         #parm2=Send(oMagicMod,@GetNumber,#iPower=iPower),
+                                         #parm3=Send(oMagicMod,@GetName));
+            }
          }
       }
 

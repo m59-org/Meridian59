@@ -2332,7 +2332,7 @@ messages:
       absolute=FALSE,precision=FALSE)
    {
       local iDamage, iResist, iPercentClass, i, each_obj, bAttackerEmpowered,
-            iCorrode, iCorrodeMultiple, iCorrodeReduction;
+            iCorrode, iCorrodeMultiple, iCorrodeReduction, lCurrentEmpowerments, iEmpowermentPercentage;
 
       % Check for stat steals
       foreach i in Send(self,@GetEnchantmentsByClass,#enchClass=&DrainHex)
@@ -2370,6 +2370,22 @@ messages:
 
       % Attacks against a minion master will cause minions to defend the master
       Send(self,@CommandMinionAttack,#oMaster=self,#oTarget=what);
+
+      if IsClass(what,&Battler)
+      {
+         % Empowerments e.g. 6% increased acid damage
+         lCurrentEmpowerments = Send(what,@GetCurrentEmpowerments);
+         iEmpowermentPercentage = 0;
+         foreach i in lCurrentEmpowerments
+         {
+            if atype & Nth(i,1)
+               OR aspell & Nth(i,1)
+            {
+               iEmpowermentPercentage = iEmpowermentPercentage + Nth(i,2);
+            }
+         }
+         damage = (damage * (100+iEmpowermentPercentage))/100;
+      }
 
       if IsClass(what,&Player)
       {

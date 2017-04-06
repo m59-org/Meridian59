@@ -6268,7 +6268,7 @@ messages:
    {
       local i, j, iResistance, oSoldierShield, gainchance, color_rsc,
             iDuration, oSpell, oGort,iLimit, origdamage, oWeapon, shrunken,
-            bAttackerEmpowered, bShielded, iCorrode, iCorrodeMultiple,
+            iEmpowermentPercentage, bShielded, iCorrode, iCorrodeMultiple,
             iCorrodeReduction, iDamagePreArmor;
 
       % Check for stat steals
@@ -6295,6 +6295,21 @@ messages:
       if what <> $ AND IsClass(what,&monster)
       {
          color_rsc = player_hit_color_blue;
+      }
+
+      if IsClass(what,&Battler)
+      {
+         % Empowerments e.g. 6% increased acid damage
+         iEmpowermentPercentage = 0;
+         foreach i in Send(what,@GetCurrentEmpowerments)
+         {
+            if atype & Nth(i,1)
+               OR aspell & Nth(i,1)
+            {
+               iEmpowermentPercentage = iEmpowermentPercentage + Nth(i,2);
+            }
+         }
+         damage = (damage * (100+iEmpowermentPercentage))/100;
       }
 
       % Check for Damage to Mana from Spirit Shackles Hex.
