@@ -6097,6 +6097,19 @@ messages:
       plMagicMods = Cons(Create(&BludgeonResistanceMod),plMagicMods);
       plMagicMods = Cons(Create(&ThrustResistanceMod),plMagicMods);
       
+      plMagicMods = Cons(Create(&FireEmpowermentMod),plMagicMods);
+      plMagicMods = Cons(Create(&AcidEmpowermentMod),plMagicMods);
+      plMagicMods = Cons(Create(&ShockEmpowermentMod),plMagicMods);
+      plMagicMods = Cons(Create(&ColdEmpowermentMod),plMagicMods);
+      plMagicMods = Cons(Create(&HolyEmpowermentMod),plMagicMods);
+      plMagicMods = Cons(Create(&UnholyEmpowermentMod),plMagicMods);
+      plMagicMods = Cons(Create(&PierceEmpowermentMod),plMagicMods);
+      plMagicMods = Cons(Create(&SlashEmpowermentMod),plMagicMods);
+      plMagicMods = Cons(Create(&BludgeonEmpowermentMod),plMagicMods);
+      plMagicMods = Cons(Create(&ThrustEmpowermentMod),plMagicMods);
+      plMagicMods = Cons(Create(&MagicEmpowermentMod),plMagicMods);
+      plMagicMods = Cons(Create(&WeaponEmpowermentMod),plMagicMods);
+      
       plMagicMods = Cons(Create(&ArmorMod),plMagicMods);
       plMagicMods = Cons(Create(&DefenseMod),plMagicMods);
       
@@ -6175,6 +6188,20 @@ messages:
       if class = &WeaponAimMod
       {
          return GROUP_AIM;
+      }
+      
+      if class = &ShockEmpowermentMod
+         OR class = &AcidEmpowermentMod
+         OR class = &ColdEmpowermentMod
+         OR class = &FireEmpowermentMod
+         OR class = &MagicEmpowermentMod
+         OR class = &WeaponEmpowermentMod
+         OR class = &BludgeonEmpowermentMod
+         OR class = &ThrustEmpowermentMod
+         OR class = &SlashEmpowermentMod
+         OR class = &PierceEmpowermentMod
+      {
+         return GROUP_EMPOWERMENT;
       }
 
       return $;
@@ -8483,6 +8510,30 @@ messages:
    GetStanceMantras()
    {
       return plStanceMantras;
+   }
+
+   GetHighestHeldMoney()
+   {
+      local i, n, iHighestShillings, iHighestHolder;
+
+      iHighestShillings = 0;
+      iHighestHolder = $;
+      foreach i in plUsers
+      {
+         foreach n in Send(i,@GetHolderPassive)
+         {
+            if IsClass(n,&Money)
+            {
+               if Send(n,@GetNumber) > iHighestShillings
+               {
+                  iHighestShillings = Send(n,@GetNumber);
+                  iHighestHolder = i;
+               }
+            }
+         }
+      }
+      
+      return iHighestHolder;
    }
 
 end

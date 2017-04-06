@@ -6,6 +6,6 @@
 
 DEPEND = ..\magicmod.bof
 BOFS = resistancemod.bof protectionmod.bof woffensemod.bof wstatmod.bof \
-       vitalmod.bof
+       vitalmod.bof empmod.bof
 
 !include $(KODDIR)\kod.mak
