@@ -9587,6 +9587,22 @@ messages:
       return;
    }
 
+   AdminGoToDesertShore2WhileOffline()
+   {
+      local oNew_Room,iRow,iCol,oRoom;
+
+      if NOT Send(self,@IsLoggedOn)
+      {
+         oRoom = Send(SYS,@FindRoomByNum,#num=RID_DESERTSHORE2);
+         piSave_room = RID_DESERTSHORE2;
+         piSave_row = Send(oRoom,@GetTeleportRow);
+         piSave_col = Send(oRoom,@GetTeleportCol);
+         piSave_fine_row = 48;
+         piSave_fine_col = 60;
+      }
+      return;
+   }
+
    AdminGoToSafety()
    "Admin supported\n"
    "Sends the user to their hometown, whether they're logged in or not!\n"

@@ -32,6 +32,11 @@ resources:
 
    NodeAttack_success_rsc = \
       "~BThe Xeochicatl retreat from %s.  The node has been saved!"
+   NodeAttack_Biskalane_call_to_action_rsc = \
+      "~BPrincess Kateriina calls upon the adventurers of Meridian with a decree: "
+      "Long have our nodes been under assault, but the royal mages have finally "
+      "been able to track the Xeochicatl back to their source. Bring a heartstone to me at "
+      "Bourgeois Castle to help track down and stop this threat to the land."
    NodeAttack_failure_rsc = \
       "~BThe node at %s has been drained by the attacking Xeochicatl!"
    NodeAttack_failure_sound_rsc = ndrained.wav
@@ -336,7 +341,7 @@ messages:
 
          if IsClass(oItem,&Monster)
          {
-            Send(oItem,@Killed,#what=self);
+            Send(oItem,@Delete);
          }
 
          if IsClass(oItem,&Player)
@@ -664,6 +669,7 @@ messages:
          {
             Send(oItem,@MsgSendUser,#message_rsc=NodeAttack_success_rsc,
                  #parm1=Send(oRoom,@GetName));
+            Send(oItem,@MsgSendUser,#message_rsc=NodeAttack_Biskalane_call_to_action_rsc);
          }
       }
 

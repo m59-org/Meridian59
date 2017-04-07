@@ -357,6 +357,17 @@ messages:
 
    Delete()
    {
+      local i, oPlayer;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&LogoffGhost)
+         {
+            Send(Send(First(i),@GetGhostedPlayer),@AdminGoToDesertShore2WhileOffline);
+            Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTSHORE2),@Teleport,#what=First(i));
+         }
+      }
+      
       Send(Send(SYS,@GetDesertRoomMaintenance),@RoomDeleted,#what=self);
 
       propagate;
