@@ -20,7 +20,9 @@ BGFS = igreyinvis.bgf isitting.bgf itransferitem.bgf iexplosion.bgf irift.bgf \
        ihexfester.bgf ihexexhaustion.bgf ihexbecloud.bgf ihexbestill.bgf \
        ilightningstrike.bgf iflamedash.bgf instillingshard.bgf \
        disturbanceshard.bgf angledfragment.bgf \
-       biggerxeo.bgf biggestxeo.bgf biggerxeox.bgf biggestxeox.bgf
+       biggerxeo.bgf biggestxeo.bgf biggerxeox.bgf biggestxeox.bgf \
+       isquishedlightning.bgf imoderatelink.bgf ilink.bgf \
+       imajorlink.bgf imasterlink.bgf ibloodrunes.bgf iunhallowedrunes.bgf
 
 DIRS = 
 
