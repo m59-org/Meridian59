@@ -1855,6 +1855,11 @@ messages:
          Send(Nth(i,2),@SetSpellPlayerFlag,#who=self);
       }
 
+      foreach i in plReservedSpells
+      {
+         Send(Nth(i,1),@SetSpellPlayerFlag,#who=self);
+      }
+
       foreach i in plUsing
       {
          Send(i,@SetItemPlayerFlag,#who=self);
@@ -8038,6 +8043,7 @@ messages:
       Send(self,@GainMaxhealth,#amount=amount);
 
       if piReincarnations < 10
+         AND amount > 0
       {
          Send(self,@ReportReincarnationProgress);
       }
@@ -10847,7 +10853,7 @@ messages:
          AND IsClass(poOwner,&Room)
          AND Send(poOwner,@OverridesDeathFunction)
       {
-         Send(poOwner,@OverrideDeathFunction,#who=self,#what=what);
+         Send(poOwner,@OverrideDeathFunction,#who=self,#what=what,#stroke_obj=stroke_obj);
 
          return;
       }
@@ -16921,8 +16927,10 @@ messages:
       {
          plReservedSpells = 
             Cons([oSpell,iPercentManaReserved,iState,iSpellPower],plReservedSpells);
+         Post(self,@ResetPlayerFlagList);
          Post(self,@ComputeMaxMana);
          Send(self,@ShowAddEnchantment,#what=oSpell,#type=ENCHANTMENT_PLAYER);
+         
          return TRUE;
       }
 
@@ -16945,6 +16953,7 @@ messages:
                plReservedSpells = DelListElem(plReservedSpells,i);
                Send(self,@ShowRemoveEnchantment,#what=oSpell,
                                                 #type=ENCHANTMENT_PLAYER);
+               Post(self,@ResetPlayerFlagList);
                return TRUE;
             }
          }
@@ -17263,6 +17272,12 @@ messages:
       }
                   
       return iHexesMax;
+   }
+
+   SetDeathTime(iTime=0)
+   {
+      piLastDeathTime = iTime;
+      return;
    }
 
 end

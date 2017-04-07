@@ -66,13 +66,17 @@ resources:
    cannot_conveyance_in_afterlife = \
       "If you knew how to send items to your vault from this place, you would "
       "be truly wise indeed."
+   cannot_fireball_here = \
+      "The afterlife's chill douses your fireball."
 
 classvars:
 
    viTerrain_type = TERRAIN_BADLANDS
 
    % No pens or PKing in afterlife. Everyone's already dead!
-   viPermanent_flags = ROOM_SAFELOGOFF | ROOM_NO_PK
+   viPermanent_flags = ROOM_SAFELOGOFF | ROOM_NO_COMBAT
+
+   viCanSpawnChampions = FALSE
 
 properties:
 
@@ -81,7 +85,12 @@ properties:
 
 messages:
 
-   NewHoldObject(what = $)
+   CheckNewHoldObjectFullyEntered()
+   {
+      return TRUE;
+   }
+
+   NewHoldObjectFullyEntered(what = $)
    {
       local oGreyGhost;
 
@@ -89,16 +98,13 @@ messages:
       {
          oGreyGhost = Send(SYS,@FindSpellByNum,#num=SID_GREY_GHOST);
          
-         if oGreyGhost <> $
-            AND NOT Send(what,@IsEnchanted,#what=oGreyGhost)
-         {
-            Post(oGreyGhost,@CastSpell,#who=self,#lTargets=[what],
-                  #report=TRUE);
-         }
+         Send(what,@ReserveSpell,#oSpell=oGreyGhost,#iPercentManaReserved=0,#iSpellPower=99);
+         Post(what,@SendEnchantmentIcons);
       }
       else
       {
          Send(what,@AddDrawingEffects,#value=DRAWFX_SECONDTRANS);
+         Send(self,@SomethingChanged,#what=what);
       }
 
       propagate;
@@ -106,29 +112,36 @@ messages:
    
    LeaveHold(what = $)
    {
-      local oGreyGhost;
-
-      if IsClass(what,&User)
-      {
-         oGreyGhost = Send(SYS,@FindSpellByNum,#num=SID_GREY_GHOST);
-         
-         if oGreyGhost <> $
-            AND Send(what,@IsEnchanted,#what=oGreyGhost)
-         {
-            Post(oGreyGhost,@CastSpell,#who=self,#lTargets=[what],
-                  #report=TRUE);
-         }
-      }
-      else
-      {
-         Post(what,@RemoveDrawingEffects,#value=DRAWFX_SECONDTRANS);
-         if Send(what,@GetOwner) <> $
-         {
-            Post(Send(what,@GetOwner),@SomethingChanged,#what=what);
-         }
-      }
+      Post(self,@CheckToRemoveGreyGhost,#what=what);
 
       propagate;
+   }
+
+   CheckToRemoveGreyGhost(what=$)
+   {
+      local oGreyGhost;
+
+      if Send(what,@GetOwner) = $
+         OR NOT IsClass(Send(what,@GetOwner),&DesertAfterlife)
+      {
+         if IsClass(what,&User)
+         {
+            oGreyGhost = Send(SYS,@FindSpellByNum,#num=SID_GREY_GHOST);
+         
+            Send(what,@UnReserveSpell,#oSpell=oGreyGhost);
+            Post(what,@SendEnchantmentIcons);
+         }
+         else
+         {
+            Post(what,@RemoveDrawingEffects,#value=DRAWFX_SECONDTRANS);
+            if Send(what,@GetOwner) <> $
+            {
+               Post(Send(what,@GetOwner),@SomethingChanged,#what=what);
+            }
+         }
+      }
+      
+      return;
    }
 
    StartRain()
@@ -193,6 +206,12 @@ messages:
          OR IsClass(oSpell,&Dazzle)
       {
          Send(who,@MsgSendUser,#message_rsc=cannot_blind_dazzle_in_afterlife);
+         return FALSE;
+      }
+      
+      if IsClass(oSpell,&Fireball)
+      {
+         Send(who,@MsgSendUser,#message_rsc=cannot_fireball_here);
          return FALSE;
       }
       

@@ -8,7 +8,7 @@
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-GreyGhost is RegionEffect
+GreyGhost is PersonalEnchantment
 
 constants:
 
@@ -31,11 +31,9 @@ classvars:
    vrName = greyghost_name_rsc
    vrIcon = greyghost_icon_rsc
    vrDesc = greyghost_desc_rsc
-   
-   applied_on_first = greyghost_on_first
-   applied_off_first = greyghost_off_first
-   
-   applied_in_rooms_of_class = &DesertAfterlife
+
+   vrEnchantment_On = greyghost_on_first
+   vrEnchantment_Off = greyghost_off_first
 
    viSpell_num = SID_GREY_GHOST
 
@@ -53,6 +51,36 @@ messages:
       }
 
       return;
+   }
+
+   OfferToNewPlayers()
+   {
+      return FALSE;
+   }
+
+   GetDuration(iSpellPower=0)
+   {
+      return SPELL_INDEFINITE_DURATION;
+   }
+
+   PlaySpellSound(room_obj = $,what = $)
+   {
+      return;
+   }
+
+   GetStateValue()
+   {
+      return 99;
+   }
+
+   CanBeRemovedByPlayer()
+   {
+      return FALSE;
+   }
+
+   ShowEnchantmentIcon()
+   {
+      return FALSE;
    }
 
 end

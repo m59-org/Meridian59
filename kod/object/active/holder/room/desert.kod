@@ -156,6 +156,8 @@ resources:
    desert_music_acid_rain = desertrain.mp3
    desert_music_static_shock = desertdawn.mp3
 
+   cannot_death_rift_or_pol = "Death does not seem to work the same way in this land. Your spell is useless."
+
 classvars:
 
    viTerrain_type = TERRAIN_BADLANDS 
@@ -567,6 +569,19 @@ messages:
 
    Delete()
    {
+      local i, oThing;
+
+      foreach i in Send(self,@GetHolderPassive)
+      {
+         oThing = Send(self,@HolderExtractObject,#data=i);
+         if IsClass(oThing,&DeadBody)
+            AND NOT Send(oThing,@GetPbMob)
+         {
+            % is a player corpse! Let's move it.
+            Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTDUNES),@Teleport,#what=oThing);
+         }
+      }
+
       Send(self,@EndAllThreats);
       propagate;
    }
@@ -614,12 +629,155 @@ messages:
       return RID_DESERT;
    }
    
-   OverrideDeathFunction(who=$,what=$)
+   OverrideDeathFunction(who=$,what=$,stroke_obj=$)
    {
-      local oAfterlife;
+      local oAfterlife, bDrop, oRoom, iRow, iCol, iFine_Row, iFine_Col, iAngle, iRoom,
+            oBody, lReagentBagContents, lInventoryContents, lItems, i, oSoldierShield;
+
+      % Stop any rescue attempts that were going on.
+      Send(who,@CancelRescue);
+      Send(who,@RemoveAllEnchantments,#report=FALSE);
+      
+      Send(who,@SetDeathTime,#iTime=GetTime());
+
+      % Grab the location of the deceased.
+      % Might need to grab the old location if logged off.
+
+      if Send(who,@IsLoggedOn)
+      {
+         oRoom = Send(who,@GetOwner);
+         iRow = Send(who,@GetRow);
+         iCol = Send(who,@GetCol);
+         iFine_Row = Send(who,@GetFineRow);
+         iFine_Col = Send(who,@GetFineCol);
+         iAngle = Send(who,@GetAngle);
+         iRoom = Send(Send(who,@GetOwner),@GetRoomNum);
+      }
+      else
+      {
+         iRoom = Send(who,@GetSaveRoom);
+         oRoom = Send(SYS,@FindRoomByNum,#num=iRoom);
+         iRow = Send(who,@GetSaveRow);
+         iCol = Send(who,@GetSaveCol);
+         iFine_Row = Send(who,@GetSaveFineRow);
+         iFine_Col = Send(who,@GetSaveFineCol);
+         iAngle = Send(who,@GetSaveAngle);
+      }
+
+      % Record-keeping. Keep this before the token check,
+      % so we can give proper message.
+      Send(SYS,@UserKilled,#what=who,#killer=what,#oRoom=oRoom,#stroke_obj=stroke_obj);
+      Send(Send(SYS,@GetStatistics),@PlayerDiedCounter);
+
+      % Create the corpse.
+      if what <> $
+         AND IsClass(what,&User)
+      {
+         oBody = Send(who,@CreateCorpse,#oPlayerKiller=what);
+      }
+      else
+      {
+         oBody = Send(who,@CreateCorpse);
+      }
+      Send(who,@SetCorpse,#corpse=oBody);
+
+      Send(oRoom,@NewHold,#what=oBody,#new_row=iRow,#new_col=iCol,
+            #fine_row=iFine_Row,#fine_col=iFine_Col,#new_angle=iAngle);
+
+      bDrop = TRUE;
+      % Start losing stuff if applicable.
+      if bDrop
+      {
+         lReagentBagContents = Send(who,@GetReagentBagContents);
+         if lReagentBagContents <> $
+         {
+            lInventoryContents = [Send(who,@GetHolderActive),Send(who,@GetHolderPassive),lReagentBagContents];
+         }
+         else
+         {
+            lInventoryContents = [Send(who,@GetHolderActive),Send(who,@GetHolderPassive)];
+         }
+
+         foreach lItems in lInventoryContents
+         {
+            foreach i in lItems
+            {
+               % Let the item know we died, in case it does something special.
+               Send(i,@OwnerKilled);
+
+               if Send(i,@DropOnDeath)
+               {
+                  if Send(oRoom,@ReqNewHold,#what=i,#new_row=iRow,#new_col=iCol)
+                  {
+                     Send(oBody,@NewHold,#what=i);
+                  }
+               }
+            }
+         }
+
+         Post(who,@EvaluatePKStatus);
+
+         % Let SoldierShields know we died. It handles itself as appropriate.
+         oSoldierShield = Send(who,@FindUsing,#what=&SoldierShield);
+         if oSoldierShield <> $
+         {
+            Send(oSoldierShield,@OwnerDied,#what=what);
+         }
+      }
+
+      % Give out your dying scream.
+      if Send(who,@GetGender) = GENDER_FEMALE
+      {
+         i = playerf_death_wav;
+      }
+      else
+      {
+         i = playerm_death_wav;
+      }
+
+      Send(oRoom,@SomethingWaveRoom,#what=oBody,#wave_rsc=i);
+      if Send(who,@IsLoggedOn)
+      {
+         Send(who,@WaveSendUser,#what=who,#wave_rsc=i);
+      }
+
+      Send(who,@SetHealth,#amount=1);
+
+      Send(who,@NewHealth);
+      Send(who,@NewMana);
+      Send(who,@NewVigor);
+      
+      Send(who,@SetDeathCost,#DeathCost=200,#bOverride=TRUE);
+      Send(who,@ApplyDeathPenalties);
+
+      % Refresh the client with what's really going on.
+      if Send(who,@IsLoggedOn)
+      {
+         Send(who,@ToCliStats,#group=1);
+         Send(who,@ToCliStats,#group=2);
+         Send(who,@ToCliStats,#group=3);
+         Send(who,@ToCliStats,#group=4);
+
+         % Wake up with red foggy hangover.
+         Send(who,@EffectSendUserDuration,#effect=EFFECT_PAIN,#duration=5000);
+      }
       
       oAfterlife = Send(SYS,@FindRoomByNum,#num=RID_DESERTALDUNES);
-      Send(oAfterlife,@Teleport,#what=who);
+      
+      if IsClass(self,&DesertDunesRoom)
+      {
+         Send(SYS,@UtilGoNearSquare,#what=who,
+                                    #where=oAfterlife,
+                                    #new_row=iRow,
+                                    #new_col=iCol,
+                                    #fine_row=iFine_Row,
+                                    #fine_col=iFine_Col,
+                                    #new_angle=iAngle);
+      }
+      else
+      {
+         Send(oAfterlife,@Teleport,#what=who);
+      }
       return;
    }
 
@@ -631,6 +789,18 @@ messages:
    CanTokenEnterRoom()
    {
       return FALSE;
+   }
+
+   ReqSpellCast(who = $, oSpell = $, lItems = $)
+   {
+      if IsClass(oSpell,&DeathRift)
+         OR IsClass(oSpell,&PortalOfLife)
+      {
+         Send(who,@MsgSendUser,#message_rsc=cannot_death_rift_or_pol);
+         return FALSE;
+      }
+
+      propagate;
    }
 
 end

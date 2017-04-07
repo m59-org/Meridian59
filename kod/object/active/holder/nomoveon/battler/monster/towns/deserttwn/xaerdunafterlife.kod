@@ -15,7 +15,9 @@ resources:
       "keeps some part of himself in this form of existence, lying in wait "
       "for those unfortunate souls that have recently died, "
       "for he offers a product that few hapless mortals can refuse. "
-      "He will no doubt assist you - for a cost."
+      "He will no doubt assist you - for a cost. If you say 'summon', "
+      "he will bring your corpse to you, if only so that you can afford "
+      "to pay him."
    
    demise_greeting = \
       "~s~IIt seems you have met a terrible fate. I'm sure you'd like to "
@@ -106,7 +108,8 @@ resources:
    Xaerdun_nothing_for_sale = \
       "~s~II've nothing minor to sell to once-mortals right now."
    Xaerdun_too_costly = \
-      "~s~IYou can't afford %s%s! No sale!"
+      "~s~IYou can't afford %s%s! No sale! If you really can't afford it, "
+      "ask me about my sacrifice deal."
    Xaerdun_cannot_give = \
       "~s~II'm unable to give you %s%s. Perhaps you carry too much?"
 
@@ -153,6 +156,24 @@ resources:
       "~s~INequzon can be best be described as anything but boring."
    Xaerdun_raumlar_response = \
       "~s~IWhy are you saying his name? Don't tell him you saw me."
+
+   Xaerdun_cannot_summon = \
+      "~s~INot yet, fool. You must wait %i more seconds "
+      "for the violent energies of your death to dissipate."
+   Xaerdun_summon = "~s~IYou owe me."
+   Xaerdun_summoned = \
+      "A strange sort of anti-light roughly sets your corpse at your feet!"
+
+   Xaerdun_sacrifice_info = \
+      "~s~II offer an alternate financing option that involves derivative trading on "
+      "your life energy. Say 'Take my life energy.' and I will take two of your "
+      "maximum health points in exchange for sending you back to your normal plane. "
+      "This is in addition to the health you already lost dying in the first place."
+
+   Xaerdun_resurrect_deal = \
+      "~s~ISo be it."
+   Xaerdun_you_feel_weaker = \
+      "You feel substantially weaker!"
 
 classvars:
 
@@ -203,6 +224,8 @@ classvars:
    vrMrcnt_too_costly = Xaerdun_too_costly
    vrMrcntCannotGive = Xaerdun_cannot_give
 
+   vbIgnoresAnonAndMorph = FALSE
+
    viAttributes = \
       MOB_NOFIGHT | MOB_LISTEN | MOB_RANDOM | MOB_RECEIVE \
       | MOB_TEACHER | MOB_COND_SELLER | MOB_NOMOVE | MOB_PERM_QUESTER
@@ -233,8 +256,10 @@ messages:
 
    SetForSale()
    {
-      plFor_Sale = [
-         $,[
+      plFor_Sale = [[Create(&UnholyFragment,#number=4),
+            Create(&HolyFragment,#number=4),
+            Create(&ResurrectionGem)]
+         ,[
             SKID_UNHALLOWED_RUNES,
             SKID_BLOOD_RUNES
            ],
@@ -250,6 +275,63 @@ messages:
       $];
 
       return;
+   }
+
+   SomeoneSaid(what=$,type=$,string=$)
+   {
+      local oCorpse;
+
+      if type = SAY_YELL OR NOT IsClass(what,&User)
+      {
+          propagate;
+      }
+
+      if StringContain(string,"summon")
+         AND what <> $
+         AND IsClass(what,&User)
+         AND Send(what,@GetCorpse) <> $
+      {
+         oCorpse = Send(what,@GetCorpse);
+         
+         if NOT Send(oCorpse,@GetSummonable)
+         {
+            Send(poOwner,@SomeoneSaid,#what=self,#type=SAY_RESOURCE,
+		          #string=Xaerdun_cannot_summon,#parm1=Send(oCorpse,@GetSummonTime)/1000);
+            propagate;
+         }
+      
+         Send(poOwner,@SomeoneSaid,#what=self,#type=SAY_RESOURCE,
+		       #string=Xaerdun_summon);
+         Send(poOwner,@NewHold,#what=oCorpse,#new_row=Send(what,@GetRow),
+               #new_col=Send(what,@GetCol));
+         Send(what,@MsgSendUser,#message_rsc=Xaerdun_summoned);
+         propagate;
+      }
+      
+      if StringContain(string,"sacrifice")
+         AND what <> $
+         AND IsClass(what,&User)
+      {
+         Send(poOwner,@SomeoneSaid,#what=self,#type=SAY_RESOURCE,
+		       #string=Xaerdun_sacrifice_info);
+         propagate;
+      }
+      
+      if StringContain(string,"Take my life energy.")
+         AND what <> $
+         AND IsClass(what,&User)
+      {
+         Send(poOwner,@SomeoneSaid,#what=self,#type=SAY_RESOURCE,
+		       #string=Xaerdun_resurrect_deal);
+         Send(what,@MsgSendUser,#message_rsc=Xaerdun_you_feel_weaker);
+         
+         Send(what,@GainBaseMaxHealth,#amount=-2);
+         Send(Send(SYS,@FindRoomByNum,#num=RID_WAYLAYOASIS),@Teleport,#what=what);
+      
+         propagate;
+      }
+
+      propagate;
    }
 
 end
