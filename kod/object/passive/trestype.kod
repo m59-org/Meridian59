@@ -277,6 +277,32 @@ messages:
             Send(SYS,@ShardCreated,#type=&ShardEmpowerment);
             lTreasureItems = Cons(Create(&ShardEmpowerment),lTreasureItems);
          }
+         
+         if Send(who,@GetOwner) <> $
+            AND (IsClass(Send(who,@GetOwner),&DesertRoom)
+                 OR IsClass(Send(who,@GetOwner),&AncientTomb1))
+         {
+            if Random(1,Send(SETTINGS_OBJECT,@GetInstillingShardProbability)) = 1
+            {
+               Send(SYS,@ShardCreated,#type=&ShardReroll);
+               lTreasureItems = Cons(Create(&ShardReroll),lTreasureItems);
+            }
+            if Random(1,Send(SETTINGS_OBJECT,@GetImprovementShardProbability)) = 1
+            {
+               Send(SYS,@ShardCreated,#type=&ShardImprovement);
+               lTreasureItems = Cons(Create(&ShardImprovement),lTreasureItems);
+            }
+            if Random(1,Send(SETTINGS_OBJECT,@GetDisruptionShardProbability)) = 1
+            {
+               Send(SYS,@ShardCreated,#type=&ShardReImbueMajor);
+               lTreasureItems = Cons(Create(&ShardReImbueMajor),lTreasureItems);
+            }
+            if Random(1,Send(SETTINGS_OBJECT,@GetDisturbanceShardProbability)) = 1
+            {
+               Send(SYS,@ShardCreated,#type=&ShardReImbueMinor);
+               lTreasureItems = Cons(Create(&ShardReImbueMinor),lTreasureItems);
+            }
+         }
       }
 
       % MOB_ONE_TREASURE guarantees one and only one item from loot table.
