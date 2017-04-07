@@ -23,7 +23,8 @@ BGFS = igreyinvis.bgf isitting.bgf itransferitem.bgf iexplosion.bgf irift.bgf \
        biggerxeo.bgf biggestxeo.bgf biggerxeox.bgf biggestxeox.bgf \
        isquishedlightning.bgf imoderatelink.bgf ilink.bgf \
        imajorlink.bgf imasterlink.bgf ibloodrunes.bgf iunhallowedrunes.bgf \
-       nequzonprst.bgf iwodachprst.bgf
+       nequzonprst.bgf iwodachprst.bgf lucius.bgf vrinna.bgf \
+       kerrenor.bgf celegorm.bgf
 
 DIRS = 
 
