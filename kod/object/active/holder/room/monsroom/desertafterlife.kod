@@ -84,22 +84,22 @@ messages:
    NewHoldObject(what = $)
    {
       local oGreyGhost;
-      
-%      if IsClass(what,&User)
-%      {
-%         oGreyGhost = Send(SYS,@FindSpellByNum,#num=SID_GREY_GHOST);
-%         
-%         if oGreyGhost <> $
-%            AND NOT Send(what,@IsEnchanted,#what=oGreyGhost)
-%         {
-%            Post(oGreyGhost,@CastSpell,#who=self,#lTargets=[what],
-%                  #report=TRUE);
-%         }
-%      }
-%      else
-%      {
-%         Send(what,@AddDrawingEffects,#value=DRAWFX_SECONDTRANS);
-%      }
+
+      if IsClass(what,&User)
+      {
+         oGreyGhost = Send(SYS,@FindSpellByNum,#num=SID_GREY_GHOST);
+         
+         if oGreyGhost <> $
+            AND NOT Send(what,@IsEnchanted,#what=oGreyGhost)
+         {
+            Post(oGreyGhost,@CastSpell,#who=self,#lTargets=[what],
+                  #report=TRUE);
+         }
+      }
+      else
+      {
+         Send(what,@AddDrawingEffects,#value=DRAWFX_SECONDTRANS);
+      }
 
       propagate;
    }
@@ -108,25 +108,25 @@ messages:
    {
       local oGreyGhost;
 
-%      if IsClass(what,&User)
-%      {
-%         oGreyGhost = Send(SYS,@FindSpellByNum,#num=SID_GREY_GHOST);
-%         
-%         if oGreyGhost <> $
-%            AND Send(what,@IsEnchanted,#what=oGreyGhost)
-%         {
-%            Post(oGreyGhost,@CastSpell,#who=self,#lTargets=[what],
-%                  #report=TRUE);
-%         }
-%      }
-%      else
-%      {
-%         Post(what,@RemoveDrawingEffects,#value=DRAWFX_SECONDTRANS);
-%         if Send(what,@GetOwner) <> $
-%         {
-%            Post(Send(what,@GetOwner),@SomethingChanged,#what=what);
-%         }
-%      }
+      if IsClass(what,&User)
+      {
+         oGreyGhost = Send(SYS,@FindSpellByNum,#num=SID_GREY_GHOST);
+         
+         if oGreyGhost <> $
+            AND Send(what,@IsEnchanted,#what=oGreyGhost)
+         {
+            Post(oGreyGhost,@CastSpell,#who=self,#lTargets=[what],
+                  #report=TRUE);
+         }
+      }
+      else
+      {
+         Post(what,@RemoveDrawingEffects,#value=DRAWFX_SECONDTRANS);
+         if Send(what,@GetOwner) <> $
+         {
+            Post(Send(what,@GetOwner),@SomethingChanged,#what=what);
+         }
+      }
 
       propagate;
    }
@@ -176,6 +176,7 @@ messages:
          OR IsClass(oSpell,&PortalOfLife)
          OR IsClass(oSpell,&Animate)
          OR IsClass(oSpell,&Defile)
+         OR IsClass(oSpell,&Phase)
       {
          Send(who,@MsgSendUser,#message_rsc=cannot_alter_death_in_afterlife);
          return FALSE;

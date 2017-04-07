@@ -529,7 +529,19 @@ messages:
       iIntensity = bound((Send(self,@GetChargeLevel)*20),1,255);
       AddPacket(1,iIntensity);
       % Color
-      AddPacket(2,LIGHT_WHITE);
+      
+      if piNumSides = 3
+      {
+         AddPacket(2,LIGHT_RED);
+      }
+      else if piNumSides = 5
+      {
+         AddPacket(2,LIGHT_YELLOW);
+      }
+      else
+      {
+         AddPacket(2,LIGHT_BLUE);
+      }
 
       return;
    }
