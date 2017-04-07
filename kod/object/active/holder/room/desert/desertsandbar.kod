@@ -261,5 +261,28 @@ messages:
       return;
    }
 
+   RecalcLightAndWeather()
+   {
+      local i;
+
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&NequzonPriestess)
+         {
+            Send(First(i),@SayRandom);
+         }
+      }
+   
+      propagate;
+   }
+
+   CreateStandardObjects()
+   {
+      Send(self,@NewHold,#what=Create(&NequzonPriestess),
+            #new_row=Random(1,Send(self,@GetRoomRows)-5),#new_col=Random(1,Send(self,@GetRoomCols)-5));
+
+      propagate;
+   }
+
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

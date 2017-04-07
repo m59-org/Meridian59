@@ -126,7 +126,7 @@ messages:
 
       % Default.
       prRoom = prDunesNoTomb;
-      iRandomizedEncounter = Random(1,10);
+      iRandomizedEncounter = Random(1,Send(Send(SYS,@GetDesertRoomMaintenance),@GetEncountersSpawnOutOf));
       switch(iRandomizedEncounter)
       {
          case 1:
@@ -196,28 +196,52 @@ messages:
    PopulateArea()
    {
       local bSpawnNomads, iBandRow, iBandCol, iDemonSponsor, oNomad, iRandomBandits,
-            bSpawnCelegorm;
+            bSpawnCelegorm, i, bHasCelegorm, bHasIwodach;
 
       bSpawnCelegorm = FALSE;            
-      if Random(1,50) = 1
+      if Random(1,Send(Send(SYS,@GetDesertRoomMaintenance),@GetCelegormSpawnOutOf)) = 1
       {
          bSpawnCelegorm = TRUE;
       }
 
       if bSpawnCelegorm
       {
-         Send(self,@NewHold,#what=Create(&DesertThief),#new_row=Random(10,Send(self,@GetRoomRows)-10),#new_col=Random(10,Send(self,@GetRoomCols)-10));
+         bHasCelegorm = FALSE;
+         foreach i in Send(self,@GetHolderActive)
+         {
+            if IsClass(First(i),&DesertThief)
+            {
+               bHasCelegorm = TRUE;
+            }
+         }
+         if NOT bHasCelegorm
+         {
+            Send(self,@NewHold,#what=Create(&DesertThief),#new_row=Random(10,Send(self,@GetRoomRows)-10),#new_col=Random(10,Send(self,@GetRoomCols)-10));
+         }
       }
 
       % No monsters at oasis.
       if piConfiguration = 4
       {
+         bHasIwodach = FALSE;
+         foreach i in Send(self,@GetHolderActive)
+         {
+            if IsClass(First(i),&IwodachPriest)
+            {
+               bHasIwodach = TRUE;
+            }
+         }
+         
+         if NOT bHasIwodach
+         {
+            Post(self,@NewHold,#what=Create(&IwodachPriest),#new_row=54,#new_col=94,#fine_row=32,#fine_col=54);
+         }
          return;
       }
       
       % Nomad bands can spawn here.
       bSpawnNomads = FALSE;
-      if Random(1,1) = 1
+      if Random(1,Send(Send(SYS,@GetDesertRoomMaintenance),@GetNomadsSpawnOutOf)) = 1
       {
          bSpawnNomads = TRUE;
       }
@@ -508,6 +532,7 @@ messages:
       foreach i in Send(self,@GetHolderActive)
       {
          if IsClass(First(i),&DesertThief)
+            OR IsClass(First(i),&IwodachPriest)
          {
             Send(First(i),@SayRandom);
          }
