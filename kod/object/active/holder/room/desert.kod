@@ -269,6 +269,11 @@ messages:
             }
             return [&HeatThreat];
          case DAY_PHASE_DUSK:
+            if Send(Send(SYS,@FindRoomByNum,#num=RID_WAYLAYOASIS),
+                     @GetPrismOfAcidDefeated)
+            {
+               return [&AcidStorm];
+            }
             return [&AcidThreat];
          case DAY_PHASE_NIGHT:
             if Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTSANDBAR),@GetPrismOfIceDefeated)
@@ -361,10 +366,10 @@ messages:
             lClasses = [&XeoAir, &EvilEnt];
             break;
          case DAY_PHASE_DAY:
-            lClasses = [&FireElemental,&XeoFire,&Ghost];
+            lClasses = [&FireElemental,&XeoFire];
             break;
          case DAY_PHASE_DUSK:
-            lClasses = [&EarthElemental,&XeoAcid,&DaemonSkeleton];
+            lClasses = [&EarthElemental,&XeoAcid];
             break;
          case DAY_PHASE_NIGHT:
             lClasses = [&IceElemental,&XeoWater,&Iceperson];
@@ -417,7 +422,7 @@ messages:
 
       foreach i in lMonsters
       {
-         Send(self,@NewHold,#what=Create(i),
+         Send(self,@NewHold,#what=Create(i,#piSurvivalLevel=Send(Send(SYS,@GetDesertRoomMaintenance),@GetBoostDesertLevel)),
                #new_row=Random(viMinSpawnRow,iMaxRow),
                #new_col=Random(viMinSpawnCol,iMaxCol),
                #new_angle=iChosenAngle);

@@ -37,6 +37,13 @@ properties:
    piEncountersSpawnOutOf = 20
    piNomadsSpawnOutOf = 10
 
+   % Are players acing this content? Turn up the heat. And acid. And shock. And cold.
+   piBoostDesertLevel = 10
+   piBoostFireLevel = 20
+   piBoostAcidLevel = 20
+   piBoostColdLevel = 20
+   piBoostShockLevel = 0
+
 messages:
 
    Constructor()
@@ -494,5 +501,56 @@ messages:
       return piNomadsSpawnOutOf;
    }
 
+   GetBoostDesertLevel()
+   {
+      local iBoost;
+      
+      iBoost = piBoostDesertLevel;
+      switch(Send(SYS,@GetDayPhase))
+      {
+         case DAY_PHASE_DAWN:
+            iBoost = iBoost + piBoostShockLevel;
+            break;
+         case DAY_PHASE_DAY:
+            if NOT Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTRIVER2),@GetPrismOfFireDefeated)
+            {
+               iBoost = iBoost + piBoostFireLevel;
+            }
+            break;
+         case DAY_PHASE_DUSK:
+            if NOT Send(Send(SYS,@FindRoomByNum,#num=RID_WAYLAYOASIS),@GetPrismOfAcidDefeated)
+            {
+               iBoost = iBoost + piBoostAcidLevel;
+            }
+            break;
+         case DAY_PHASE_NIGHT:
+            if NOT Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTSANDBAR),@GetPrismOfIceDefeated)
+            {
+               iBoost = iBoost + piBoostColdLevel;
+            }
+            break;
+      }
+      return iBoost;
+   }
+
+   GetFireBoost()
+   {
+      return piBoostFireLevel;
+   }
+   
+   GetColdBoost()
+   {
+      return piBoostColdLevel;
+   }
+   
+   GetShockBoost()
+   {
+      return piBoostShockLevel;
+   }
+   
+   GetAcidBoost()
+   {
+      return piBoostAcidLevel;
+   }
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

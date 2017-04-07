@@ -277,8 +277,8 @@ messages:
    {
       ptSpawnTimer = CreateTimer(self,@SpawnThreats,piSpawnTime);
 
-      Send(self,@NewHold,#what=Create(&FireElemental),#new_row=95,#new_col=144,#fine_row=55,#fine_col=28);
-      Send(self,@NewHold,#what=Create(&FireElemental),#new_row=100,#new_col=137,#fine_row=14,#fine_col=48);
+      Send(self,@NewHold,#what=Create(&FireElemental,#piSurvivalLevel=Send(Send(SYS,@GetDesertRoomMaintenance),@GetFireBoost)),#new_row=95,#new_col=144,#fine_row=55,#fine_col=28);
+      Send(self,@NewHold,#what=Create(&FireElemental,#piSurvivalLevel=Send(Send(SYS,@GetDesertRoomMaintenance),@GetFireBoost)),#new_row=100,#new_col=137,#fine_row=14,#fine_col=48);
       
       Send(self,@NewHold,#what=Create(&XeoBossFire),#new_row=90,#new_col=139,#fine_row=3,#fine_col=5);
       return;
@@ -286,8 +286,8 @@ messages:
    
    PlaceSecondBoss()
    {
-      Send(self,@NewHold,#what=Create(&FireElementalChampion),#new_row=113,#new_col=153,#fine_row=28,#fine_col=22);
-      Send(self,@NewHold,#what=Create(&FireElementalChampion),#new_row=120,#new_col=170,#fine_row=56,#fine_col=44);
+      Send(self,@NewHold,#what=Create(&FireElementalChampion,#piSurvivalLevel=Send(Send(SYS,@GetDesertRoomMaintenance),@GetFireBoost)),#new_row=113,#new_col=153,#fine_row=28,#fine_col=22);
+      Send(self,@NewHold,#what=Create(&FireElementalChampion,#piSurvivalLevel=Send(Send(SYS,@GetDesertRoomMaintenance),@GetFireBoost)),#new_row=120,#new_col=170,#fine_row=56,#fine_col=44);
       
       Send(self,@NewHold,#what=Create(&XeoBossFire2),#new_row=127,#new_col=157,#fine_row=63,#fine_col=0);
       return;
@@ -295,10 +295,10 @@ messages:
    
    PlaceThirdBoss()
    {
-      Send(self,@NewHold,#what=Create(&FireElementalChampion),#new_row=101,#new_col=160,#fine_row=51,#fine_col=46);
-      Send(self,@NewHold,#what=Create(&FireElementalChampion),#new_row=95,#new_col=163,#fine_row=10,#fine_col=55);
-      Send(self,@NewHold,#what=Create(&FireElementalChampion),#new_row=93,#new_col=178,#fine_row=55,#fine_col=46);
-      Send(self,@NewHold,#what=Create(&FireElementalChampion),#new_row=88,#new_col=175,#fine_row=46,#fine_col=40);
+      Send(self,@NewHold,#what=Create(&FireElementalChampion,#piSurvivalLevel=Send(Send(SYS,@GetDesertRoomMaintenance),@GetFireBoost)),#new_row=101,#new_col=160,#fine_row=51,#fine_col=46);
+      Send(self,@NewHold,#what=Create(&FireElementalChampion,#piSurvivalLevel=Send(Send(SYS,@GetDesertRoomMaintenance),@GetFireBoost)),#new_row=95,#new_col=163,#fine_row=10,#fine_col=55);
+      Send(self,@NewHold,#what=Create(&FireElementalChampion,#piSurvivalLevel=Send(Send(SYS,@GetDesertRoomMaintenance),@GetFireBoost)),#new_row=93,#new_col=178,#fine_row=55,#fine_col=46);
+      Send(self,@NewHold,#what=Create(&FireElementalChampion,#piSurvivalLevel=Send(Send(SYS,@GetDesertRoomMaintenance),@GetFireBoost)),#new_row=88,#new_col=175,#fine_row=46,#fine_col=40);
       
       Send(self,@NewHold,#what=Create(&XeoBossFire3),#new_row=85,#new_col=174,#fine_row=19,#fine_col=1);
       return;
@@ -326,7 +326,7 @@ messages:
          
          while iPlayerCount > 0
          {
-            oXeo = Create(&XeoFire);
+            oXeo = Create(&XeoFire,#piSurvivalLevel=Send(Send(SYS,@GetDesertRoomMaintenance),@GetFireBoost));
             Send(self,@NewHold,#what=oXeo,#new_row=Random(1,Send(self,@GetRoomRows)-1),
                                           #new_col=Random(1,Send(self,@GetRoomCols)-1));
             Send(oXeo,@TargetSwitch,#what=Nth(lPlayers,iPlayerCount),#iHatred=100);

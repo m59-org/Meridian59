@@ -274,7 +274,7 @@ messages:
          }
 
          % One leader.
-         oNomad = Create(&NomadLeader,#iDemonSponsor=iDemonSponsor);
+         oNomad = Create(&NomadLeader,#iDemonSponsor=iDemonSponsor,#piSurvivalLevel=Send(Send(SYS,@GetDesertRoomMaintenance),@GetBoostDesertLevel));
          Send(self,@NewHold,#what=oNomad,#new_row=iBandRow,#new_col=iBandCol);
          
          % Leader's box.
@@ -290,15 +290,15 @@ messages:
          }
 
          % Two mages.
-         oNomad = Create(&NomadMage,#iDemonSponsor=iDemonSponsor);
+         oNomad = Create(&NomadMage,#iDemonSponsor=iDemonSponsor,#piSurvivalLevel=Send(Send(SYS,@GetDesertRoomMaintenance),@GetBoostDesertLevel));
          Send(self,@NewHold,#what=oNomad,#new_row=iBandRow + Random(-2,2),#new_col=iBandCol + Random(-2,2));
-         oNomad = Create(&NomadMage,#iDemonSponsor=iDemonSponsor);
+         oNomad = Create(&NomadMage,#iDemonSponsor=iDemonSponsor,#piSurvivalLevel=Send(Send(SYS,@GetDesertRoomMaintenance),@GetBoostDesertLevel));
          Send(self,@NewHold,#what=oNomad,#new_row=iBandRow + Random(-2,2),#new_col=iBandCol + Random(-2,2));
          
          iRandomBandits = Random(3,7);
          while iRandomBandits > 0
          {
-            oNomad = Create(&NomadBandit,#iDemonSponsor=iDemonSponsor);
+            oNomad = Create(&NomadBandit,#iDemonSponsor=iDemonSponsor,#piSurvivalLevel=Send(Send(SYS,@GetDesertRoomMaintenance),@GetBoostDesertLevel));
             Send(self,@NewHold,#what=oNomad,#new_row=iBandRow + Random(-8,8),#new_col=iBandCol + Random(-8,8));
             --iRandomBandits;
          }
