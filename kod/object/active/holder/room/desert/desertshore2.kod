@@ -25,6 +25,10 @@ resources:
       "If something interesting once existed out there, it's certainly "
       "been gone for a long time."
 
+   angeleds_are_not_allowed_here = \
+      "Your guardian angel roughly yanks you back from a place where it "
+      "cannot protect you from untold horrors!"
+
 classvars:
 
    vrName = room_name_desertshore2
@@ -111,6 +115,19 @@ messages:
 
       return;
    }
+   
+   NewHold(what = $)
+   {
+      % Boot angeleds.
+      if IsClass(what,&Player)
+         AND NOT Send(what,@CheckPlayerFlag,#flag=PFLAG_PKILL_ENABLE)
+      {
+         Send(what,@MsgSendUser,#message_rsc=angeleds_are_not_allowed_here);
+         Post(what,@AdminGoToSafety);
+      }
+      propagate;
+   }
+
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
