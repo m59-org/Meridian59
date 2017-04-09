@@ -193,6 +193,7 @@ resources:
 
    user_stat_health = heal.bgf
    user_stat_mana = ankh.bgf
+   user_stat_unbound = unboundankh.bgf
    user_stat_vigor = bolticon.bgf  %stickman.bgf
 
    user_group_condition = "Condition"
@@ -548,6 +549,10 @@ properties:
 
    % For complex guild halls, a simple move check isn't enough
    pbValidatedForThisHall = FALSE
+
+   % Show unbound energy in mana bar if over a certain threshold
+   % We need to refresh the mana ankh type when they switch
+   pbDisplayingUnboundInMana = FALSE
 
 messages:
 
@@ -8612,8 +8617,26 @@ messages:
 
    SendStatMana()
    {
-      AddPacket(1,2, 4,user_stat_mana, 1,STAT_VALUE, 1,STAT_INTEGER,
-                4,piMana, 4,0, 4,100, 4,piMax_mana);
+      if piUnbound_energy >= 20
+      {
+         AddPacket(1,2, 4,user_stat_unbound, 1,STAT_VALUE, 1,STAT_INTEGER,
+                   4,piUnbound_energy, 4,0, 4,Send(SETTINGS_OBJECT,@GetUnboundMax), 4,Send(SETTINGS_OBJECT,@GetUnboundMax));
+         if NOT pbDisplayingUnboundInMana
+         {
+            pbDisplayingUnboundInMana = TRUE;
+            Post(self,@ToCliStatGroups);
+         }
+      }
+      else
+      {
+         AddPacket(1,2, 4,user_stat_mana, 1,STAT_VALUE, 1,STAT_INTEGER,
+                   4,piMana, 4,0, 4,100, 4,piMax_mana);
+         if pbDisplayingUnboundInMana
+         {
+            pbDisplayingUnboundInMana = FALSE;
+            Post(self,@ToCliStatGroups);
+         }
+      }
 
       return;
    }
@@ -9244,7 +9267,7 @@ messages:
 
       AddPacket(1,27, 4,user_stat_unbound_energy, 1,STAT_VALUE, 1,STAT_INTEGER,
                 4,iPoints, 4,0, 4,Send(SETTINGS_OBJECT,@GetUnboundMax), 4,iPoints);
-
+      Post(self,@DrawMana);
       return;
    }
 
