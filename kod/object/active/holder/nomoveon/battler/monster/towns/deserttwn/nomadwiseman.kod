@@ -143,6 +143,48 @@ properties:
 
 messages:
 
+   Constructor()
+   {
+      plWantedItems = [&StatsResetToken];
+
+      propagate;
+   }
+
+   SomeoneSaid(what = $,type = $,string = $,parm1 = $,parm2 = $,parm3 = $,
+               parm4 = $, parm5 = $,parm6 = $,parm7 = $,parm8 = $)
+   {
+      if StringEqual(string,"change stats")
+      {
+         if Send(what,@FindHolding,#class=&StatsResetToken) <> $
+            OR (Send(what,@GetBaseMaxHealth)
+               <= Send(SETTINGS_OBJECT,@GetFreeStatsResetCap))
+            OR Send(what,@HasReincarnationStatsReset)
+         {
+            Send(what,@SendStatChange);
+         }
+      }
+
+      propagate;
+   }
+
+   CanAcceptOffer()
+   {
+      return TRUE;
+   }
+
+   CheckWhyWanted(obj=$,who=$)
+   {
+      if IsClass(obj,&StatsResetToken)
+      {
+         Send(who,@SendStatChange);
+
+         % We don't destroy the item, so return FALSE.
+         return FALSE;
+      }
+
+      propagate;
+   }
+
    SetForSale()
    {
       plFor_Sale = [

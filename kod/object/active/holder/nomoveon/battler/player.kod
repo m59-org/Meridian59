@@ -6301,10 +6301,10 @@ messages:
    % be handled in high precision mode.
    AssessDamage(what=$,damage=$,atype=0,aspell=0,stroke_obj=$,bonus=0,
       scalefactor=1000,report=TRUE,report_resistance=TRUE,absolute=FALSE,
-      precision=FALSE)
+      precision=FALSE,bDoingBackstab=FALSE)
    {
       local i, j, iResistance, oSoldierShield, gainchance, color_rsc,
-            iDuration, oSpell, oGort,iLimit, origdamage, oWeapon, shrunken,
+            iDuration, oSpell, oGort,iLimit, origdamage, oWeapon,
             iEmpowermentPercentage, bShielded, iCorrode, iCorrodeMultiple,
             iCorrodeReduction, iDamagePreArmor;
 
@@ -6375,6 +6375,7 @@ messages:
       }
 
       if NOT absolute
+         AND NOT bDoingBackstab
       {
          % Armor of Gort has a special effect that must go first
          oGort = Send(SYS,@FindSpellByNum,#Num=SID_ARMOR_OF_GORT);
@@ -6425,45 +6426,45 @@ messages:
             }
          }
 
-         if IsClass(what,&Player)
-         {
-            if (aspell & ATCK_SPELL_HOLY
-               OR aspell & ATCK_SPELL_UNHOLY)
-               AND Send(what,@GetSkillAbility,#Skill_num=SKID_DEVOTION) > 0
-            {
-               bonus = Send(Send(SYS,@FindSkillByNum,#num=SKID_DEVOTION),
-                                     @AddDamage,
-                                     #who=what,
-                                     #damage=bonus,
-                                     #aspell=aspell);
-            }
-            if (aspell & ATCK_SPELL_COLD
-               OR aspell & ATCK_SPELL_ACID)
-               AND Send(what,@GetSkillAbility,#Skill_num=SKID_ENTROPY) > 0
-            {
-               bonus = Send(Send(SYS,@FindSkillByNum,#num=SKID_ENTROPY),
-                                     @AddDamage,
-                                     #who=what,
-                                     #damage=bonus,
-                                     #aspell=aspell);
-            }
-            if (aspell & ATCK_SPELL_FIRE
-               OR aspell & ATCK_SPELL_SHOCK)
-               AND Send(what,@GetSkillAbility,#Skill_num=SKID_ENERGY) > 0
-            {
-               bonus = Send(Send(SYS,@FindSkillByNum,#num=SKID_ENERGY),
-                                     @AddDamage,
-                                     #who=what,
-                                     #damage=bonus,
-                                     #aspell=aspell);
-            }
-         }
-
-         % Add attmods AFTER resistance/suscep mods.
-         damage = damage + bonus;
-
          damage = damage * scalefactor / 1000;
       }
+
+      if IsClass(what,&Player)
+      {
+         if (aspell & ATCK_SPELL_HOLY
+            OR aspell & ATCK_SPELL_UNHOLY)
+            AND Send(what,@GetSkillAbility,#Skill_num=SKID_DEVOTION) > 0
+         {
+            bonus = Send(Send(SYS,@FindSkillByNum,#num=SKID_DEVOTION),
+                                  @AddDamage,
+                                  #who=what,
+                                  #damage=bonus,
+                                  #aspell=aspell);
+         }
+         if (aspell & ATCK_SPELL_COLD
+            OR aspell & ATCK_SPELL_ACID)
+            AND Send(what,@GetSkillAbility,#Skill_num=SKID_ENTROPY) > 0
+         {
+            bonus = Send(Send(SYS,@FindSkillByNum,#num=SKID_ENTROPY),
+                                  @AddDamage,
+                                  #who=what,
+                                  #damage=bonus,
+                                  #aspell=aspell);
+         }
+         if (aspell & ATCK_SPELL_FIRE
+            OR aspell & ATCK_SPELL_SHOCK)
+            AND Send(what,@GetSkillAbility,#Skill_num=SKID_ENERGY) > 0
+         {
+            bonus = Send(Send(SYS,@FindSkillByNum,#num=SKID_ENERGY),
+                                  @AddDamage,
+                                  #who=what,
+                                  #damage=bonus,
+                                  #aspell=aspell);
+         }
+      }
+
+      % Add attmods AFTER resistance/suscep mods.
+      damage = damage + bonus;
 
       if IsClass(what,&Player)
          AND Send(what,@GetStance) <> $
@@ -6515,6 +6516,7 @@ messages:
       }
 
       if NOT absolute
+         AND NOT bDoingBackstab
          AND what <> $
          AND IsClass(what,&Player)
       {
@@ -6622,11 +6624,9 @@ messages:
                #target=self,#color_rsc=color_rsc);
       }
 
-      % Report to shrunken head
-      shrunken = Send(self,@FindHolding,#class=&ShrunkenHead);
-      if damage > 0 AND shrunken <> $
+      if damage > 0 AND Send(self,@FindHolding,#class=&ShrunkenHead) <> $
       {
-         Send(shrunken,@DamageTaken,#what=what,#amount=damage/100);
+         Send(Send(self,@FindHolding,#class=&ShrunkenHead),@DamageTaken,#what=what,#amount=damage/100);
       }
       
       Send(self,@AddHurtMeRecently,#who=what,#amount=damage);

@@ -2331,7 +2331,7 @@ messages:
    % handled with high precision. Eventually, all damage calculations should 
    % be handled in high precision mode.
    AssessDamage(what=$,damage=$,atype=0,aspell=0,bonus=0,scalefactor=1000,
-      absolute=FALSE,precision=FALSE)
+      absolute=FALSE,precision=FALSE,bDoingBackstab=FALSE)
    {
       local iDamage, iResist, iPercentClass, i, each_obj, bAttackerEmpowered,
             iCorrode, iCorrodeMultiple, iCorrodeReduction, lCurrentEmpowerments, iEmpowermentPercentage;
@@ -2447,6 +2447,7 @@ messages:
       % check for any applicable resistances.
 
       if NOT absolute
+         AND NOT bDoingBackstab
       {
          iDamage = Send(self,@ArmorCheck,#what=what,#bonus=bonus,#atype=atype,
             #aspell=aspell,#damage=damage);
