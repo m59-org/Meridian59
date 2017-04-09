@@ -6618,7 +6618,39 @@ messages:
                      }
                      else
                      {
-                        oShard = Create(&ShardImbueMinor);
+                        if IsClass(poOwner,&DesertRoom)
+                           OR IsClass(poOwner,&AncientTomb1)
+                        {
+                           iRand = Random(1,Send(SETTINGS_OBJECT,@GetInstillingShardProbability)/10);
+                           if iRand = 1
+                           {
+                              oShard = Create(&ShardReroll);
+                           }
+                           else
+                           {
+                              iRand = Random(1,Send(SETTINGS_OBJECT,@GetImprovementShardProbability)/10);
+                              if iRand = 1
+                              {
+                                 oShard = Create(&ShardImprovement);
+                              }
+                              else
+                              {
+                                 iRand = Random(1,Send(SETTINGS_OBJECT,@GetDisruptionShardProbability)/10);
+                                 if iRand = 1
+                                 {
+                                    oShard = Create(&ShardReImbueMajor);
+                                 }
+                                 else
+                                 {
+                                    oShard = Create(&ShardReImbueMinor);
+                                 }
+                              }
+                           }
+                        }
+                        else
+                        {
+                           oShard = Create(&ShardImbueMinor);
+                        }
                      }
                   }
                }
