@@ -1597,6 +1597,12 @@ messages:
       % Rooms have to delete inventory before freeing room.
       Send(self,@DeleteHolding);
 
+      if prmRoom = $
+      {
+         Debug("Room had no data to free!");
+         propagate;
+      }
+
       % Free the room memory.
       FreeRoom(prmRoom);
 
@@ -2605,6 +2611,12 @@ messages:
       }
 
       Send(self,@HolderAddNode,#node=Cons(what,new_pos));
+
+      if prmRoom = $
+      {
+         Debug("Room data has not been loaded yet!");
+         return;
+      }
 
       % possibly mark object's location blocked in BSP room
       if new_pos <> $ AND what <> $ AND (Send(what,@GetMoveOnType) = MOVEON_NO)

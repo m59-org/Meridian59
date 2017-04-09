@@ -2760,6 +2760,11 @@ messages:
    {
       local iFlags, iEnemyKarma, iSelfKarma, iMinimapFlags, iDrawingFlags;
 
+      if what = $
+      {
+         return;
+      }
+
       % Send given object's id number, name, icon, and animation info
 
       if IsClass(what,&NumberItem)
@@ -8458,6 +8463,11 @@ messages:
    SomethingChanged(what = $)
    {
       local rName, rIcon;
+
+      if what = $
+      {
+         return;
+      }
 
       if IsClass(what,&DM)
          AND Send(what,@IsDMStealthed)
