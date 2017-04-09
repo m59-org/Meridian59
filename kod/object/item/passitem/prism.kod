@@ -530,7 +530,9 @@ messages:
       AddPacket(1,iIntensity);
       % Color
       
-      if Send(poOwner,@LightingColorOverride)
+      if poOwner <> $
+         AND IsClass(poOwner,&Room)
+         AND Send(poOwner,@LightingColorOverride)
       {
          AddPacket(2,Send(poOwner,@GetLightingColorOverride));
          return;
