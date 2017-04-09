@@ -46,6 +46,14 @@ resources:
    include system.lkod
 
    system_user_killed = "~B~U~k[###]~n ~B~v%q was just killed by %s%q."
+   
+   system_user_killed_swift = "~B~U~k[###]~n ~B~v%q was just killed by a swift %s%q."
+   system_user_killed_tough = "~B~U~k[###]~n ~B~v%q was just killed by a tough %s%q."
+   system_user_killed_deadly = "~B~U~k[###]~n ~B~v%q was just killed by a deadly %s%q."
+   system_user_killed_indomitable = "~B~U~k[###]~n ~B~v%q was just killed by an indomitable %s%q."
+   system_user_killed_legendary = "~B~U~k[###]~n ~B~v%q was just killed by a legendary %s%q."
+   system_user_killed_legendary_at = "~B~U~k[###]~n ~B~v%q was just killed by a legendary %s%q at %s%q."
+   
    system_user_killed_by_pker = "~B~U~k[###]~n ~B~v%q has been murdered in cold blood."
    system_user_killed_pker = \
       "~B~U~k[###]~n ~B~vThe notorious murderer, %q, has been killed by %s%q."
@@ -53,7 +61,7 @@ resources:
       "~B~U~k[###]~n ~B~vThe feared outlaw, %q, has just met justice at %s%q's hands."
    system_killed_self = "~B~U~k[###]~n ~B~v%q was just slain by %s own folly."
    system_user_killed_room = \
-      "~B~U~k[###]~n ~B~v%s have laid claim to yet another poor soul, %q."
+      "~B~U~k[###]~n ~B~v%q died horribly to the hazards at %s%q."
    system_user_killed_bridge_faith = \
       "~B~U~k[###]~n ~B~v%q just hurled %sself from the cliffs of Riija to find a watery "
       "grave."
@@ -1835,15 +1843,13 @@ messages:
          {
             rMessage = system_user_killed_bridge_faith;
             param2 = Send(what,@GetHisHer);
+            % Eliminate param3 that was set by default
+            param3 = $;
          }
          else
          {
             rMessage = system_user_killed_room;
-            param2 = Send(what,@GetTrueName);
          }
-
-         % Eliminate param3 that was set by default
-         param3 = $;
       }
 
       if what = killer
@@ -1963,6 +1969,45 @@ messages:
       if rMessage = $
       {
          rMessage = system_user_killed;
+      }
+      if killer <> $
+         AND IsClass(killer,&Monster)
+      {
+         if Send(killer,@GetChampStatus) <> 0
+         {
+            param2 = Send(killer,@LookupArticle,#article_num=ARTICLE_NONE);
+            if Send(killer,@GetChampStatus) = 1
+            {
+               rMessage = system_user_killed_tough;
+            }
+            if Send(killer,@GetChampStatus) = 2
+            {
+               rMessage = system_user_killed_swift;
+            }
+            if Send(killer,@GetChampStatus) = 3
+            {
+               rMessage = system_user_killed_deadly;
+            }
+            if Send(killer,@GetChampStatus) = 4
+            {
+               rMessage = system_user_killed_indomitable;
+            }
+            if Send(killer,@GetChampStatus) = 5
+            {
+               if Send(killer,@GetOwner) <> $
+               {
+                  rMessage = system_user_killed_legendary_at;
+                  param3 = Send(killer,@GetName);
+                  param4 = Send(killer,@LookupArticle,#article_num=ARTICLE_NONE);
+                  param5 = Send(Send(killer,@GetOwner),@GetName);
+                  type5 = STRING_RESOURCE;
+               }
+               else
+               {
+                  rMessage = system_user_killed_legendary;
+               }
+            }
+         }
       }
 
       % Send the proper message to all logged on, if we get a message.
