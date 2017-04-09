@@ -28,6 +28,9 @@ resources:
       "This ancient service gate was solidly built to prevent any unauthorized intrusion. "
       "You will not be able to open it from this side."
 
+   db2_cant_movement_spell_msg = \
+      "Strange forces flowing through this area make the use of a movement spell dangerous."
+
 classvars:
 
    vrName = room_name_desertbridge2
@@ -107,6 +110,21 @@ messages:
             Send(what,@MsgSendUser,#message_rsc=sorcerer_gate_closed_msg);
             return TRUE;
          }
+      }
+
+      propagate;
+   }
+
+   ReqSpellCast(oSpell=$,who=$)
+   {
+      if IsClass(oSpell,&MovementSpell)
+      {
+         if who <> $
+            AND IsClass(who,&Player)
+         {
+            Send(who,@MsgSendUser,#message_rsc=db2_cant_movement_spell_msg);
+         }
+         return FALSE;
       }
 
       propagate;

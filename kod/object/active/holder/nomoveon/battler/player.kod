@@ -6406,6 +6406,7 @@ messages:
 
          iResistance = Send(self,@ResistanceCheck,#atype=atype,#aspell=aspell);
 
+         Debug(iResistance);
          foreach i in plRadiusEnchantments
          {
             iResistance = Send(First(i),@ModifyResistance,#attacker=what,
@@ -6613,6 +6614,7 @@ messages:
       {
          if IsClass(what,&User)
          {
+            Debug(iResistance);
             Post(what,@MsgPlayerHitResisted,#what=what,
                   #resistance=iResistance,#target=self);
          }
@@ -12804,6 +12806,7 @@ messages:
          return;
       }
 
+      Debug(resistance);
       rMessage = $;
 
       if resistance > (MAX_RESISTANCE/5)

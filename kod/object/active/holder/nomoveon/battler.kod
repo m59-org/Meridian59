@@ -480,6 +480,8 @@ messages:
       foreach j in resistance_list
       {
          iResType = Nth(j,1);
+         Debug("Resistance type:");
+         Debug(iResType);
          if iResType > 0
          {
             % It's a resistance to weapon type
@@ -488,6 +490,21 @@ messages:
             {
                iWeaponResist = Nth(j,2);
                continue;
+            }
+
+            if (atype & iResType) <> 0
+            {
+               iResistance = Nth(j,2);
+
+               if iResistance > iMaxRes
+               {
+                  iMaxRes = iResistance;
+               }
+
+               if iResistance < iMinRes
+               {
+                  iMinRes = iResistance;
+               }
             }
          }
          else
@@ -502,7 +519,7 @@ messages:
                continue;
             }
             
-            if aspell & iResType <> 0
+            if (aspell & iResType) <> 0
             {
                iResistance = Nth(j,2);
                
