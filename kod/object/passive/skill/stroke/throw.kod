@@ -206,7 +206,7 @@ messages:
 
       if Send(oRoom,@NoReagents)=FALSE
       {
-         Send(oAmmo,@SubtractNumber,#number=1);
+         Post(oAmmo,@SubtractNumber,#number=1);
       }
 
       propagate;
@@ -249,7 +249,7 @@ messages:
       local iDamage, stat;
 
       iDamage = damage;
-      iDamage = iDamage + (Send(weapon_used,@GetProf,#who=who)+1)*viMaxProficiencyDamage/100;
+      iDamage = iDamage + (Send(who,@GetSkillAbility,#skill_num=SKID_PROFICIENCY_THROW)+1)*viMaxProficiencyDamage/100;
 
       % Get Aim damage bonus.
       stat = Send(self,@GetRequisiteStat,#who=who);

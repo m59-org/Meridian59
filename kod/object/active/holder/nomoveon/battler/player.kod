@@ -1403,7 +1403,7 @@ messages:
       % 266 9
       % 290 for reincarnation ten
 
-      return 50+((piReincarnations+1)*Send(SETTINGS_OBJECT,@GetReincarnationSumMultiple));
+      return 29+((piReincarnations+1)*Send(SETTINGS_OBJECT,@GetReincarnationSumMultiple));
    }
 
    HasReincarnationStatsReset()
@@ -5683,7 +5683,7 @@ messages:
       if Send(what,@CanPlayerAdvanceOnMe)         
       {
          % We got another swing in, so increment that.
-         Send(self,@SwingWeapon,#times=1);
+         Send(self,@SwingWeapon,#times=1,#stroke_obj=stroke_obj);
       }
 
       % Give offensive buffs a small chance to improve each swing!
@@ -5793,7 +5793,7 @@ messages:
    GetOffense(what = $, stroke_obj=$)
    {
       local i, oWeapon, iStroke, iProficiency, iAim, iOffense,
-            oMonster, lRadiusState;
+            oMonster, lRadiusState, oAmmo;
 
       oWeapon = $;
 
@@ -5810,17 +5810,37 @@ messages:
          % proficiency (advanced) skills, aim and max hps.
          oWeapon = Send(self,@GetWeapon);
 
-         if oWeapon <> $
+         if stroke_obj <> $
+            AND IsClass(stroke_obj,&Throw)
          {
-            % Get weapon's numbers.
-            iStroke = Send(oWeapon,@GetStroke,#who=self);
-            iProficiency = Send(oWeapon,@GetProf,#who=self);
+            oAmmo = Send(stroke_obj,@FindLikelyAmmo,#who=self);
+
+            if oAmmo <> $
+            {
+               iStroke = Send(oAmmo,@GetStroke,#who=self);
+               iProficiency = Send(oAmmo,@GetProf,#who=self);
+            }
+            else
+            {
+               % We already know we have ammo, but let's be careful and cover this case.
+               iStroke = 0;
+               iProficiency = 0;
+            }            
          }
          else
          {
-            % Unarmed
-            iStroke = Send(self,@GetSkillAbility,#skill_num=SKID_PUNCH);
-            iProficiency = Send(self,@GetSkillAbility,#skill_num=SKID_BRAWLING);
+            if oWeapon <> $
+            {
+               % Get weapon's numbers.
+               iStroke = Send(oWeapon,@GetStroke,#who=self);
+               iProficiency = Send(oWeapon,@GetProf,#who=self);
+            }
+            else
+            {
+               % Unarmed
+               iStroke = Send(self,@GetSkillAbility,#skill_num=SKID_PUNCH);
+               iProficiency = Send(self,@GetSkillAbility,#skill_num=SKID_BRAWLING);
+            }
          }
 
          iAim = Send(self,@GetAim);
@@ -6235,21 +6255,35 @@ messages:
 
    AssessHit(what = $, stroke_obj = $, damage = $)
    {
-      local oMonster;
+      local oMonster, oMorph, oWeapon;
 
       if stroke_obj <> $
-         AND Send(self,@GetWeaponSwingBonus) > 0
       {
-         Send(stroke_obj,@ImproveStroke,#who=self,#target=what,
-               #use_weapon=Send(self,@GetWeapon));
+         if IsClass(stroke_obj,&Throw)
+         {
+            oWeapon = Send(stroke_obj,@FindLikelyAmmo,#who=self);
+         }
+         else
+         {
+            oWeapon = Send(self,@GetWeapon);
+         }
+         
+         if Send(self,@GetWeaponSwingBonus) > 0
+         {
+            Send(stroke_obj,@ImproveStroke,#who=self,#target=what,
+                  #use_weapon=oWeapon);
+         }
       }
 
-      % Morphed? As a bonus, people in illusionary form
-      % get the hit side effect.  :)
+      % Morphed?
       oMonster = Send(self,@GetIllusionForm);
       if (oMonster <> $)
       {
-         Send(oMonster,@HitSideEffect,#what=what,#who=self);
+         oMorph = Send(SYS,@FindSpellByNum,#Num=SID_MORPH);
+         if Send(self,@IsEnchanted,#what=oMorph)
+         {
+            Send(oMonster,@HitSideEffect,#what=what,#who=self);
+         }
       }
 
       Send(self,@DoHitMessageSound,#what=what,#damage=damage,#stroke_obj=stroke_obj);
@@ -6638,15 +6672,23 @@ messages:
    }
 
    % This message kicks in when damage is done to the opponent.
-   DidDamage(what = $, amount = 0)
+   DidDamage(what = $, amount = 0, stroke_obj = $)
    {
       local oWeapon, i, shrunken;
 
-      oWeapon = Send(self,@GetWeapon);
-
-      if oWeapon <> $
+      if stroke_obj <> $
+         AND IsClass(stroke_obj,&Throw)
       {
-         Send(oWeapon,@WeaponHitTarget);
+         oWeapon = $;
+      }
+      else
+      {
+         oWeapon = Send(self,@GetWeapon);
+
+         if oWeapon <> $
+         {
+            Send(oWeapon,@WeaponHitTarget);
+         }
       }
 
       foreach i in plAttack_modifiers
@@ -6700,21 +6742,29 @@ messages:
    % The next three functions deal with weapon improvement.
 
    % This keeps track of the weapon swings.
-   SwingWeapon(times=1)
+   SwingWeapon(times=1,stroke_obj=$)
    {
       local oWeapon, iProfNum;
 
-      oWeapon = Send(self,@LookupPlayerWeapon);
-
-      if oWeapon <> $
+      if stroke_obj <> $
+         AND IsClass(stroke_obj,&Throw)
       {
-         % Get weapon's numbers.
-         iProfNum = Send(oWeapon,@GetProfNumber,#who=self);
+         iProfNum = SKID_PROFICIENCY_THROW;
       }
       else
       {
-         % Unarmed or touch attacks.
-         iProfNum = SKID_BRAWLING;
+         oWeapon = Send(self,@LookupPlayerWeapon);
+
+         if oWeapon <> $
+         {
+            % Get weapon's numbers.
+            iProfNum = Send(oWeapon,@GetProfNumber,#who=self);
+         }
+         else
+         {
+            % Unarmed or touch attacks.
+            iProfNum = SKID_BRAWLING;
+         }
       }
 
       if iProfNum <> (piWeaponInfo MOD 1000)
