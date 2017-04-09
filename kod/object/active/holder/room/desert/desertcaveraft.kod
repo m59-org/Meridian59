@@ -19,6 +19,11 @@ resources:
    room_desertcaveraft = desertcaveraft.roo
    room_name_desertcaveraft = "Underground River"
 
+   climb_onto_raft_msg = \
+      "You nearly fall into the rushing rapids of an underground river, but "
+      "a timeworn raft etched with sorcerer's runes gives you temporary safety. "
+      "This place is not a refuge, however, for a swarm of Xeochicatl turn and attack!"
+
    advance_to_prism_of_acid_msg = \
       "The river lets out onto a vast ocean of acid. The nomads' raft "
       "overturns, but, strangely, the rising columns of pressurized acid "
@@ -50,6 +55,16 @@ properties:
    ptAggroXeoTimer = $
 
 messages:
+   
+   NewHold(what = $)
+   {
+      % Warn players of the danger.
+      if IsClass(what,&Player)
+      {
+         Send(what,@MsgSendUser,#message_rsc=climb_onto_raft_msg);
+      }
+      propagate;
+   }
 
    GetPhaseThreats()
    {

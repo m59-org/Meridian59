@@ -77,8 +77,17 @@ messages:
             }
             return [&HeatThreat,&DesertRiver1Storm];
          case DAY_PHASE_DUSK:
+            if Send(Send(SYS,@FindRoomByNum,#num=RID_WAYLAYOASIS),
+                     @GetPrismOfAcidDefeated)
+            {
+               return [&AcidStorm,&DesertRiver1Storm];
+            }
             return [&AcidThreat,&DesertRiver1Storm];
          case DAY_PHASE_NIGHT:
+            if Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTSANDBAR),@GetPrismOfIceDefeated)
+            {
+               return [&ColdStorm,&DesertRiver1Storm];
+            }
             return [&ColdThreat,&DesertRiver1Storm];
       }
       return [&ShockStorm,&DesertRiver1Storm];

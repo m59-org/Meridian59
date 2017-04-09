@@ -18,12 +18,22 @@ constants:
 
 resources:
 
+   acid_storm_name_rsc = "calcifying rain"
+   acid_storm_icon_rsc = isplacid.bgf
+   acid_storm_desc_rsc = \
+      "Acidic rain falls all around you. Strangely, "
+      "the effects don't seem to be dangerous..."
+
    acid_storm_begin_msg = \
       "Curious acidities overwhelm the area."
    acid_storm_end_msg = \
       "The acidic energies depart the area."
 
 classvars:
+
+   vrName = acid_storm_name_rsc
+   vrIcon = acid_storm_icon_rsc
+   vrDesc = acid_storm_desc_rsc
 
    viStormBeginMsg = acid_storm_begin_msg
    viStormEndMsg = acid_storm_end_msg
@@ -37,7 +47,7 @@ properties:
    % How long does the storm last? (ms)
    % Send iDuration to constructor to change
    % $ means indefinite
-   piStormTime = 3 * 60 * 1000
+   piStormTime = $
    ptStormTimer = $
 
    % How many magical bubbles do we have max at one time?
@@ -67,6 +77,20 @@ messages:
    Delete()
    {
       Send(poHostObject,@EndRain);
+      propagate;
+   }
+   
+   ApplyDirectEffect(who=$)
+   {
+      local oPurify;
+      
+      oPurify = Send(SYS,@FindSpellByNum,#num=SID_PURIFY);
+      
+      if oPurify <> $
+      {
+         Send(oPurify,@DoPurify,#who=who,#iChance=10);
+      }
+
       propagate;
    }
 
