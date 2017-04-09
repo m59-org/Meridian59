@@ -421,7 +421,10 @@ messages:
                                     #iFineRow=Send(each_obj,@GetFineRow),
                                     #iFineCol=Send(each_obj,@GetFineCol));
 
-            if iSpeakerSection = iEachObjSection
+            if (iSpeakerSection = AREA_INSIDE
+               AND iEachObjSection = AREA_INSIDE)
+               OR (iSpeakerSection <> AREA_INSIDE
+                  AND iEachObjSection <> AREA_INSIDE)
                OR iSpeakerSection = AREA_LEDGES
             {
                Send(each_obj,@SomeoneSaid,#what=what,#type=type,#string=string,
