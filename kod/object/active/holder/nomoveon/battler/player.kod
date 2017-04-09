@@ -6341,8 +6341,7 @@ messages:
          iEmpowermentPercentage = 0;
          foreach i in Send(what,@GetCurrentEmpowerments)
          {
-            if atype & Nth(i,1) <> 0
-               OR aspell & Nth(i,1) <> 0
+            if aspell & Nth(i,1) <> 0
             {
                iEmpowermentPercentage = iEmpowermentPercentage + Nth(i,2);
             }
@@ -6615,7 +6614,6 @@ messages:
       {
          if IsClass(what,&User)
          {
-            Debug(iResistance);
             Post(what,@MsgPlayerHitResisted,#what=what,
                   #resistance=iResistance,#target=self);
          }
@@ -9695,7 +9693,7 @@ messages:
    "Admin supported\n"
    "Adds a Skill by Skill ID to the user's castable list of Skills"
    {
-      local i,j,oSkill, lSkill_info, lPrereqs, bFound, iBoundAbility;
+      local i,j,oSkill, lSkill_info, lPrereqs, bFound, iBoundAbility, iPrevLearnPoints;
 
       if Send(self,@HasSkill,#num=num)
       {
@@ -9716,6 +9714,8 @@ messages:
          % System has no info on this skill.
          return False;
       }
+
+      iPrevLearnPoints = Send(self,@GetTotalLearnPoints);
 
       % Skill format: [ num * 100 + ability ]
 
@@ -9743,6 +9743,12 @@ messages:
       {
          Send(self,@AddToSchools,#school=Send(oSkill,@GetSchool),
                #change=iBoundAbility);
+      }
+      
+      if iPrevLearnPoints <> Send(self,@GetTotalLearnPoints)
+      {
+         % We've just learned a new level.
+         Post(self,@ReportReincarnationProgress);
       }
 
       return True;
@@ -17342,7 +17348,7 @@ messages:
 
    GetBaseEmpowerments()
    {
-    %  return [[-ATCK_SPELL_SHOCK,300]];
+     % return [[ATCK_SPELL_SHOCK,300]];
       return $;
    }
 
