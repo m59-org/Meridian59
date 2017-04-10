@@ -14215,7 +14215,7 @@ messages:
 
    GetTotalLearnPoints(except = $)
    {
-      local iSpell, iSID, oSpellObj, iSchool, iLevel, iKraanan, iShalille,
+      local iSpell, iSID, oSpellObj, iSchool, iLevel, iKraanan, iShalille, iSkill, oSkillObj,
             iQor, iFaren, iRiija, iJala, iWeapon, iBanditry, iSorcery, iWitchery, iTotalLearnPoints;
 
       iKraanan = 0;
@@ -14291,20 +14291,20 @@ messages:
          }
       }
 
-      foreach iSpell in plSkills
+      foreach iSkill in plSkills
       {
-         iSID = Send(self,@DecodeSpellNum,#compound=iSpell);
-         oSpellObj = Send(SYS,@FindSpellByNum,#num=iSID);
+         iSID = Send(self,@DecodeSkillNum,#compound=iSkill);
+         oSkillObj = Send(SYS,@FindSkillByNum,#num=iSID);
          
-         if oSpellObj = $
+         if oSkillObj = $
          {
             continue;
          }
 
-         iSchool = Send(oSpellObj,@GetSchool);
-         iLevel = Send(oSpellObj,@GetLevel);
+         iSchool = Send(oSkillObj,@GetSchool);
+         iLevel = Send(oSkillObj,@GetLevel);
 
-         if NOT Send(oSpellObj,@IsUtilitySkill)
+         if NOT Send(oSkillObj,@IsUtilitySkill)
             AND iSchool <> SS_DM_COMMAND
             AND except <> iSchool
          {
