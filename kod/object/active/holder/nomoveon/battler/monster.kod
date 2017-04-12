@@ -2334,7 +2334,7 @@ messages:
       absolute=FALSE,precision=FALSE,bDoingBackstab=FALSE)
    {
       local iDamage, iResist, iPercentClass, i, each_obj, bAttackerEmpowered,
-            iCorrode, iCorrodeMultiple, iCorrodeReduction, lCurrentEmpowerments, iEmpowermentPercentage;
+            iCorrode, iCorrodeMultiple, iCorrodeReduction, iEmpowermentPercentage;
 
       % Check for stat steals
       foreach i in Send(self,@GetEnchantmentsByClass,#enchClass=&DrainHex)
@@ -2377,14 +2377,24 @@ messages:
          AND Send(SETTINGS_OBJECT,@GetEmpowermentsEnabled)
       {
          % Empowerments e.g. 6% increased acid damage
-         lCurrentEmpowerments = Send(what,@GetCurrentEmpowerments);
          iEmpowermentPercentage = 0;
-         foreach i in lCurrentEmpowerments
+         foreach i in Send(what,@GetCurrentEmpowerments)
          {
-            if atype & Nth(i,1) <> 0
-               OR aspell & Nth(i,1) <> 0
+            if Nth(i,1) > 0
             {
-               iEmpowermentPercentage = iEmpowermentPercentage + Nth(i,2);
+               % Weapon empowerment.
+               if atype & Nth(i,1)
+               {
+                  iEmpowermentPercentage = iEmpowermentPercentage + Nth(i,2);
+               }
+            }
+            else
+            {
+               % Spell empowerment.
+               if aspell & -Nth(i,1)
+               {
+                  iEmpowermentPercentage = iEmpowermentPercentage + Nth(i,2);
+               }
             }
          }
          damage = (damage * (100+iEmpowermentPercentage))/100;

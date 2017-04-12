@@ -6341,9 +6341,21 @@ messages:
          iEmpowermentPercentage = 0;
          foreach i in Send(what,@GetCurrentEmpowerments)
          {
-            if aspell & Nth(i,1) <> 0
+            if Nth(i,1) > 0
             {
-               iEmpowermentPercentage = iEmpowermentPercentage + Nth(i,2);
+               % Weapon empowerment.
+               if atype & Nth(i,1)
+               {
+                  iEmpowermentPercentage = iEmpowermentPercentage + Nth(i,2);
+               }
+            }
+            else
+            {
+               % Spell empowerment.
+               if aspell & -Nth(i,1)
+               {
+                  iEmpowermentPercentage = iEmpowermentPercentage + Nth(i,2);
+               }
             }
          }
          damage = (damage * (100+iEmpowermentPercentage))/100;
@@ -17434,8 +17446,8 @@ messages:
 
    GetBaseEmpowerments()
    {
-     % return [[ATCK_SPELL_SHOCK,300]];
-      return $;
+      return [[-ATCK_SPELL_SHOCK,300]];
+     % return $;
    }
 
 end
