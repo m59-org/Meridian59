@@ -16,7 +16,7 @@ constants:
 
 resources:
 
-   weapon_damage_mod_name = "melee damage"
+   weapon_damage_mod_name = "melee weapon damage"
 
 classvars:
 
@@ -45,8 +45,9 @@ messages:
       }
 
       oWeapon = Send(who,@GetWeapon);
-      if (oWeapon = $)
-         or (not IsClass(oWeapon,&RangedWeapon))
+      if oWeapon <> $
+         AND IsClass(oWeapon,&Weapon)
+         AND NOT IsClass(oWeapon,&RangedWeapon)
       {
          return damage + iState;
       }
