@@ -115,6 +115,21 @@ messages:
       propagate;
    }
 
+   CanAddSpell(who=$,num=0)
+   "We require that a quest be done before one of the spells can be learned"
+   {
+      if num = SID_FLAME_DASH
+         OR num = SID_LIGHTNING_STRIKE
+      {
+         if NOT Send(self,@SpecialTeachChecks,#report=FALSE,#who=who,#num=num)
+         {
+            return FALSE;
+         }
+      }
+
+      propagate;
+   }
+
    SpecialTeachChecks(who=$,num=0,report=FALSE)
    {
       local i, oSpell, oSkill, iLevelRequired, bFound;
