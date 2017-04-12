@@ -14310,6 +14310,7 @@ messages:
          {
             if iSchool = SKS_FENCING
                AND iLevel > iWeapon
+               AND iLevel <> 50
             {
                iWeapon = iLevel;
             }
@@ -17147,7 +17148,22 @@ messages:
    {
       return plReservedSpells;
    }
-   
+
+   HasPurgeableReservedSpell()
+   {
+      local i;
+
+      foreach i in plReservedSpells
+      {
+         if Send(First(i),@CanBeRemovedByPlayer)
+         {
+            return TRUE;
+         }
+      }
+
+      return FALSE;
+   }
+
    HasReservedSpell(oSpell=$)
    {
       local i;

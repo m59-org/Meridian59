@@ -33,7 +33,7 @@ resources:
       "A bright, holy light is trying to burn away your beneficial "
       "enchantments."
    Purge_not_enchanted = "%s%s is not affected by any helpful magical "
-      "energies."
+      "energies that can be purged."
    Purge_spell_intro = \
       "Shal'ille Lv. 5: Removes helpful personal enchantments on the target."
 
@@ -127,8 +127,7 @@ messages:
       if NOT bHasEnchantment
          AND Send(SETTINGS_OBJECT,@GetReservedSpellsPurgeable)
       {
-         lEnchantment = Send(target,@GetReservedSpells);
-         if lEnchantment <> $
+         if Send(target,@HasPurgeableReservedSpell)
          {
             bHasEnchantment = TRUE;
          }
