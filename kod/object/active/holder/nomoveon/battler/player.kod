@@ -6820,7 +6820,7 @@ messages:
       return piWeaponInfo/1000;
    }
 
-   KilledSomething(what = $,use_weapon = $,stroke_obj = $)
+   KilledSomething(what = $,use_weapon = $,stroke_obj = $,bDoingBackstab = FALSE)
    "Called when the player killed something."
    {
       local bReflection, i, oSoldierShield, monstkarma, iChance, oEnemyGuild,
@@ -7009,7 +7009,7 @@ messages:
                #bIsMob=TRUE);
       }
 
-      Send(what,@Killed,#what=self,#stroke_obj=stroke_obj);
+      Send(what,@Killed,#what=self,#stroke_obj=stroke_obj,#bDoingBackstab=bDoingBackstab);
       %Send(self,@DrawHPChance);
 
       % Report to shrunken head
@@ -10883,7 +10883,7 @@ messages:
 
    %%% Player Killed %
 
-   Killed(what = $, stroke_obj = $)
+   Killed(what = $, stroke_obj = $,bDoingBackstab = FALSE)
    {
       local lItems,i, j, amount, oBody, oSoldierShield, bNo_drop_death, oItemAtt,
             oRoom, iRow, iCol, iFine_Row, iFine_Col, iAngle, oItem,
@@ -11035,7 +11035,7 @@ messages:
 
       % Record-keeping. Keep this before the token check,
       % so we can give proper message.
-      Send(SYS,@UserKilled,#what=self,#killer=what,#oRoom=oRoom,#stroke_obj=stroke_obj);
+      Send(SYS,@UserKilled,#what=self,#killer=what,#oRoom=oRoom,#stroke_obj=stroke_obj,#bDoingBackstab=bDoingBackstab);
       Send(Send(SYS,@GetStatistics),@PlayerDiedCounter);
 
       % Token death?

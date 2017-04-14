@@ -53,7 +53,10 @@ resources:
    system_user_killed_indomitable = "~B~U~k[###]~n ~B~v%q was just killed by an indomitable %s%q."
    system_user_killed_legendary = "~B~U~k[###]~n ~B~v%q was just killed by a legendary %s%q."
    system_user_killed_legendary_at = "~B~U~k[###]~n ~B~v%q was just killed by a legendary %s%q at %s%q."
-   
+
+   system_user_killed_by_backstab = \
+      "~B~U~k[###]~n ~B~v%q was backstabbed and killed in one strike by %s%q!"
+
    system_user_killed_by_pker = "~B~U~k[###]~n ~B~v%q has been murdered in cold blood."
    system_user_killed_pker = \
       "~B~U~k[###]~n ~B~vThe notorious murderer, %q, has been killed by %s%q."
@@ -1766,7 +1769,7 @@ messages:
       return $;
    }
 
-   UserKilled(what = $,killer = $, oRoom = $,stroke_obj = $)
+   UserKilled(what = $,killer = $, oRoom = $,stroke_obj = $,bDoingBackstab = FALSE)
    {
       local i, rMessage, bMurder, oSoldierShield, oToken, oGuild, oKillerGuild,
             param2, param3, param4, param5, param6, param7, type5, type7,
@@ -1954,12 +1957,19 @@ messages:
                   AND (Send(what,@GetOwner) = $
                        OR NOT Send(Send(what,@GetOwner),@SafePlayerAttack))
                {
-                  rMessage = system_user_killed_by_pker;
                   poLastMurderer = killer;
 
-                  % Nil out the values set by default.
-                  param2 = $;
-                  param3 = $;
+                  if bDoingBackstab
+                  {
+                     rMessage = system_user_killed_by_backstab;
+                  }
+                  else
+                  {
+                     rMessage = system_user_killed_by_pker;
+                     % Nil out the values set by default.
+                     param2 = $;
+                     param3 = $;
+                  }
                }
             }
          }
@@ -2728,6 +2738,8 @@ messages:
       Send(self,@CreateOneRoomIfNew,#num=RID_DESERTALDUNES3E,#class=&DesertAfterlifeDunes3East);
       Send(self,@CreateOneRoomIfNew,#num=RID_DESERTALDUNES4E,#class=&DesertAfterlifeDunes4East);
       Send(self,@CreateOneRoomIfNew,#num=RID_SORCEROUS_MORTUARY_START,#class=&AncientTomb2);
+      
+      Send(self,@CreateOneRoomIfNew,#num=RID_ACIDPATH,#class=&AcidPath);
       
       Send(self,@CreateOneRoomIfNew,#num=RID_PRISMLIFEFRAG,#class=&PrismOfLifeFragment);
 

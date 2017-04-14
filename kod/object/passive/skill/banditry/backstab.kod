@@ -40,7 +40,7 @@ classvars:
    viSkill_num = SKID_BACKSTAB
    viSchool = SKS_BANDITRY
    viSkill_Level = 5
-   viChance_to_Increase = 10
+   viChance_to_Increase = 20
    viMeditate_ratio = 400
 
    viSkillExertion = 0
@@ -105,9 +105,9 @@ messages:
    LastPriorityModifyDamage(who=$,what=$,damage=$)
    {
       local iAgility, iAbility, iTargetHealth, iTargetMaxHealth, iDamageBonus;
-      
-      Post(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@StopHiding,#who=who);
-      Post(Send(SYS,@FindSkillByNum,#num=SKID_SNEAK),@StopSneaking,#who=who);
+
+%      Post(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@StopHiding,#who=who);
+%      Post(Send(SYS,@FindSkillByNum,#num=SKID_SNEAK),@StopSneaking,#who=who);
 
       % This skill can be used by both players and monsters.
       iAgility = Send(who,@GetAgility);
@@ -126,7 +126,7 @@ messages:
       % Daggers up to 100% more damage from skill, and up to 70% more damage from stat
       % Other melee weapons do half that
       % No bonus for ranged
-      if iTargetHealth >= iTargetMaxHealth * 95 / 100
+      if iTargetHealth >= (iTargetMaxHealth * 95) / 100
       {
          if Send(who,@LookUpPlayerWeapon) = $
             OR IsClass(Send(who,@LookUpPlayerWeapon),&Bow)
@@ -154,7 +154,7 @@ messages:
 
          Send(self,@ImproveAbility,#who=who,#target=what);  
          
-         return damage * iDamageBonus / 100;
+         return (damage * iDamageBonus) / 100;
       }
       
       return damage;
