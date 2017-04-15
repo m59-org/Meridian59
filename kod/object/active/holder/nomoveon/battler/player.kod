@@ -17069,6 +17069,8 @@ messages:
          Post(self,@ResetPlayerFlagList);
          Post(self,@ComputeMaxMana);
          Send(self,@ShowAddEnchantment,#what=oSpell,#type=ENCHANTMENT_PLAYER);
+
+         Post(self,@DrawResistances);
          
          return TRUE;
       }
@@ -17093,6 +17095,9 @@ messages:
                Send(self,@ShowRemoveEnchantment,#what=oSpell,
                                                 #type=ENCHANTMENT_PLAYER);
                Post(self,@ResetPlayerFlagList);
+
+               Post(self,@DrawResistances);
+
                return TRUE;
             }
          }
@@ -17446,8 +17451,8 @@ messages:
 
    GetBaseEmpowerments()
    {
-      return [[-ATCK_SPELL_SHOCK,300]];
-     % return $;
+      % Some races will do more damage of certain types.
+      return $;
    }
 
 end

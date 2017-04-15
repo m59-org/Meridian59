@@ -365,6 +365,14 @@ messages:
          }
       }
 
+      if IsClass(self,&Player)
+      {
+         foreach oEnchantment in Send(self,@GetReservedSpells)
+         {
+            lCurResist = Send(Nth(oEnchantment,1),@ModifyResistance,#resistance_list=lCurResist,#iState=Nth(oEnchantment,3));
+         }
+      }
+
       lCurResist = Send(self,@ApplyMaximumResistances,#resistance_list=lCurResist);
 
       iHumbled = Send(self,@GetStatusEffect,#type=STATUS_HUMBLED);
@@ -2439,20 +2447,20 @@ messages:
    GetCurrentEmpowerments()
    "Boost dealt damage of certain types."
    {
-      local oObjectAttribute, plCurrentEmpowerments, oEquipment, oEnchantment;
+      local oObjectAttribute, lCurrentEmpowerments, oEquipment, oEnchantment;
 
-      plCurrentEmpowerments = ListCopy(Send(self,@GetBaseEmpowerments));
+      lCurrentEmpowerments = ListCopy(Send(self,@GetBaseEmpowerments));
       
       foreach oObjectAttribute in plObject_attributes
       {
-         plCurrentEmpowerments = Send(oObjectAttribute,@ModifyEmpowerment,
-                                  #resistance_list=plCurrentEmpowerments);
+         lCurrentEmpowerments = Send(oObjectAttribute,@ModifyEmpowerment,
+                                  #resistance_list=lCurrentEmpowerments);
       }
       
       foreach oEquipment in Send(self,@GetEquippedItems)
       {
-         plCurrentEmpowerments = Send(oEquipment,@ModifyEmpowerment,
-                                     #empowerment_list=plCurrentEmpowerments);
+         lCurrentEmpowerments = Send(oEquipment,@ModifyEmpowerment,
+                                     #empowerment_list=lCurrentEmpowerments);
       }
       
       If IsClass(self,&User)
@@ -2461,21 +2469,26 @@ messages:
          {
             if Length(oEnchantment) > 2
             {
-               plCurrentEmpowerments = Send(Nth(oEnchantment,2),
+               lCurrentEmpowerments = Send(Nth(oEnchantment,2),
                   @ModifyEmpowerment,
-                  #empowerment_list=plCurrentEmpowerments,
+                  #empowerment_list=lCurrentEmpowerments,
                   #iState=Nth(oEnchantment,3));
             }
             else
             {
-               plCurrentEmpowerments = Send(Nth(oEnchantment,2),
+               lCurrentEmpowerments = Send(Nth(oEnchantment,2),
                   @ModifyEmpowerment,
-                  #empowerment_list=plCurrentEmpowerments);
+                  #empowerment_list=lCurrentEmpowerments);
             }
+         }
+
+         foreach oEnchantment in Send(self,@GetReservedSpells)
+         {
+            lCurrentEmpowerments = Send(Nth(oEnchantment,1),@ModifyEmpowerment,#empowerment_list=lCurrentEmpowerments,#iState=Nth(oEnchantment,3));
          }
       }
       
-      return plCurrentEmpowerments;
+      return lCurrentEmpowerments;
    }
 
 end
