@@ -84,7 +84,7 @@ messages:
    FirstUserEntered()
    {
       local i;
-      Post(self,@StartThreat,#cClasses=[&IcewaterThreat]);
+      Post(self,@StartThreat,#cClasses=[&IcewaterThreat,&PhaseThreat]);
       
       foreach i in Send(self,@GetHolderActive)
       {
@@ -423,6 +423,11 @@ messages:
    }
 
    OverridesDeathAllowPhasing()
+   {
+      return TRUE;
+   }
+
+   SpecialPhaseConditionsSatisfied(sector=0)
    {
       return TRUE;
    }

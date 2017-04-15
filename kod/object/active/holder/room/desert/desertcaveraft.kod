@@ -21,13 +21,11 @@ resources:
 
    climb_onto_raft_msg = \
       "You nearly fall into the rushing rapids of an underground river, but "
-      "a timeworn raft etched with sorcerer's runes gives you temporary safety. "
-      "This place is not a refuge, however, for a swarm of Xeochicatl turn and attack!"
+      "the raft holds true. "
+      "This danger is not over, however, for a swarm of Xeochicatl turn and attack!"
 
    advance_to_prism_of_acid_msg = \
-      "The river lets out onto a vast ocean of acid. The nomads' raft "
-      "overturns, but, strangely, the rising columns of pressurized acid "
-      "prove to be solid enough to walk on."
+      "With the ambush defeated, you float the rest of the way and moor the raft on the rocks."
 
 classvars:
 
@@ -223,7 +221,10 @@ messages:
          if IsClass(First(i),&Player)
          {
             Send(First(i),@MsgSendUser,#message_rsc=advance_to_prism_of_acid_msg);
-            Send(Send(SYS,@FindRoomByNum,#num=RID_ELEMENTAL_DUNGEON4),@Teleport,#what=First(i));
+            Send(Send(SYS,@FindRoomByNum,#num=RID_ACIDPATH),@RaiseRaftTwo);
+            Send(SYS,@UtilGoNearSquare,#what=First(i),
+                 #where=Send(SYS,@FindRoomByNum,#num=RID_ACIDPATH),
+                 #new_row=95,#new_col=164,#fine_row=60,#fine_col=0,#new_angle=ANGLE_NORTH);
          }
       }
       return;
