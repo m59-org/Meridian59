@@ -1422,6 +1422,23 @@ messages:
       return piReincarnations;
    }
 
+   GetBaseEmpowerments()
+   {
+      switch(piPlayerRace)
+      {
+         case RACE_HALF_ORC:
+            return [ [ATCK_WEAP_SLASH, 10 ] ];
+         case RACE_HALF_DEMON:
+            return [ [-ATCK_SPELL_ACID, 10 ] ];
+         case RACE_HALF_ELF:
+            return [ [ATCK_WEAP_MAGIC, 20 ] ];
+         case RACE_HALF_UNDINE:
+            return [ [-ATCK_SPELL_COLD, 5 ] ];
+      }
+      
+      return $;
+   }
+
    GetRacialBaseResistances(race=$)
    {
       if race = $
@@ -17447,12 +17464,6 @@ messages:
    GetFemaleDeathWav()
    {
       return playerf_death_wav;
-   }
-
-   GetBaseEmpowerments()
-   {
-      % Some races will do more damage of certain types.
-      return $;
    }
 
 end
