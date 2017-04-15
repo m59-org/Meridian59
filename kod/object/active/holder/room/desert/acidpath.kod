@@ -480,6 +480,7 @@ messages:
    PrismOfAcidDefeated()
    {
       local i;
+      Send(self,@EndAllThreats);
 
       Send(self,@ClosePrismOfAcidEntrance);
       pbPrismOfAcidDefeated = TRUE;
@@ -491,6 +492,7 @@ messages:
       {
          Send(i,@MsgSendUser,#message_rsc=prism_of_acid_defeated_msg);
       }
+      Send(self,@StartThreat,#cClasses=Send(self,@GetPhaseThreats),#report=TRUE);
 
       return;
    }
