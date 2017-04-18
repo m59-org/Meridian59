@@ -215,11 +215,14 @@ messages:
             return FALSE;
          }
 
-         iManaCost = Send(oSpell,@GetManaCost,#who=what,#iSpellPower=piSpellPower,#lTargets=[apply_on]);
-         if Send(what,@GetMana) < iManaCost
+         if Send(SETTINGS_OBJECT,@GetSpellItemManaCostsEnabled)
          {
-            Send(what,@MsgSendUser,#message_rsc=spellitem_need_mana);
-            return FALSE;
+            iManaCost = Send(oSpell,@GetManaCost,#who=what,#iSpellPower=piSpellPower,#lTargets=[apply_on]);
+            if Send(what,@GetMana) < iManaCost
+            {
+               Send(what,@MsgSendUser,#message_rsc=spellitem_need_mana);
+               return FALSE;
+            }
          }
 
          iPostCastDelay = Send(oSpell,@GetPostCastDelay);
@@ -316,7 +319,10 @@ messages:
                    OR Send(Send(what,@GetOwner),@ReqSomethingAttack,#what=what,
                             #victim=apply_on)) )
       {
-         Send(what,@LoseMana,#amount=Send(oSpell,@GetManaCost,#who=what,#iSpellPower=iSpellPower,#lTargets=[apply_on]));
+         if Send(SETTINGS_OBJECT,@GetSpellItemManaCostsEnabled)
+         {
+            Send(what,@LoseMana,#amount=Send(oSpell,@GetManaCost,#who=what,#iSpellPower=iSpellPower,#lTargets=[apply_on]));
+         }
          Send(oSpell,@CastSpell,#who=poOwner,#lTargets=lTargets,
                #iSpellPower=iSpellPower,#bItemCast=TRUE);
       }
