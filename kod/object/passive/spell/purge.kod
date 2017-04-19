@@ -218,6 +218,7 @@ messages:
 
       % User's enchantment list might change, so get it now.
       lEnchantments = Send(who,@GetEnchantmentList);
+      lReservedEnchantments = Send(who,@GetReservedSpells);
 
       foreach i in lEnchantments
       {
@@ -371,7 +372,7 @@ messages:
             {
                if ((iSpellPower * Send(oSpell,@GetPurgeFactor))/100) > Random(1,100)
                {
-                  Send(who,@RemoveEnchantment,#what=oSpell,#report=TRUE);
+                  Send(who,@UnReserveSpell,#oSpell=oSpell,#report=TRUE);
                   bRemovedSomething = TRUE;
                }
 
@@ -379,11 +380,10 @@ messages:
             }
 
             % Remove the current enchantment, but don't report.
-            Send(who,@RemoveEnchantment,#what=oSpell,#report=FALSE,#remain=TRUE);
+            Send(who,@UnReserveSpell,#oSpell=oSpell,#report=FALSE,#remain=TRUE);
 
-            % Restart the enchantment with the same reservation but new spellpower.
-            
-            Send(who,@ReserveSpell,#oSpell=oSpell,#iPercentManaReserved=iPercentManaReserved,#iSpellPower=iSpellPower);
+            % Restart the enchantment with the same reservation but new spellpower
+            Send(who,@ReserveSpell,#oSpell=oSpell,#iPercentManaReserved=iPercentManaReserved,#iSpellPower=iNewPower);
 
             % We had an effect, so we still report TRUE.
             bRemovedSomething = TRUE;
@@ -391,7 +391,7 @@ messages:
          else
          {
             % Remove the current enchantment and report.
-            Send(who,@RemoveEnchantment,#what=oSpell,#report=TRUE);
+            Send(who,@UnReserveSpell,#oSpell=oSpell,#report=TRUE);
             bRemovedSomething = TRUE;
          }
       }

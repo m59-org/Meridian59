@@ -124,11 +124,12 @@ messages:
          iDuration = (iDuration * (100-Send(oTarget,@GetBlindResistance)))/100;
       }
 
-      % Re-check the bound on duration.
-      iDuration = Bound(iDuration,piMinBlind,piMaxBlind);
 
       if IsClass(oTarget,&Player)
       {
+         % Re-check the bound on duration.
+         iDuration = Bound(iDuration,piMinBlind,piMaxBlind);
+
          if NOT (IsClass(oTarget,&DM) AND Send(oTarget,@PlayerIsImmortal))
          {
             Send(oTarget,@MsgSendUser,#message_rsc=vrEnchantment_On);

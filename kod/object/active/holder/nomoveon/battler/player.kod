@@ -17096,7 +17096,7 @@ messages:
       return FALSE;
    }
    
-   UnReserveSpell(oSpell=$)
+   UnReserveSpell(oSpell=$,report=TRUE,remain=FALSE)
    {
       local i;
 
@@ -17107,7 +17107,7 @@ messages:
          {
             if First(i) = oSpell
             {
-               Send(First(i),@EndEnchantment,#who=self,#state=Nth(i,3));
+               Send(First(i),@EndEnchantment,#who=self,#state=Nth(i,3),#report=report,#remain=remain);
                Post(self,@ComputeMaxMana);
                plReservedSpells = DelListElem(plReservedSpells,i);
                Send(self,@ShowRemoveEnchantment,#what=oSpell,

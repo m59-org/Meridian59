@@ -123,6 +123,12 @@ messages:
          return FALSE;
       }
 
+      if Send(apply_on,@HasSkill,#num=piSorcerySkillID)
+      {
+         Send(apply_on,@MsgSendUser,#message_rsc=already_know_msg);
+         return FALSE;
+      }
+
       iLearnAttempt = Send(apply_on,@PlayerCanLearn,#skill_num=piSorcerySkillID);
 
       if iLearnAttempt mod 10 = PLAYER_LEARN_BASE
