@@ -8,7 +8,7 @@
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-ForgetPotionSkills is ForgetPotion
+ForgetPotionBanditry is ForgetPotion
 
 constants:
 
@@ -18,19 +18,17 @@ constants:
 
 resources:
 
-   include forgetsk.lkod
-
-   forgetpotionskills_desc_rsc = \
-      "Drinking this potion causes one to forget all weaponcraft skills that he or she "
+   forgetpotionbanditry_desc_rsc = \
+      "Drinking this potion causes one to forget all banditry skills that he or she "
       "possesses.\n\nMay have very serious side effects."
 
-   forgetpotionskills_forget_skill = "The art of '%s' slips from your mind!"
-   forgetpotionskills_vulnerable = "You suddenly feel more vulnerable!"
+   forgetpotionbanditry_forget_skill = "The art of '%s' slips from your mind!"
+   forgetpotionbanditry_vulnerable = "You suddenly feel more vulnerable!"
 
 classvars:
 
-   vrDesc = forgetpotionskills_desc_rsc
-   viForget_school = SKS_FENCING
+   vrDesc = forgetpotionbanditry_desc_rsc
+   viForget_school = SKS_BANDITRY
 
 properties:
 
@@ -59,7 +57,7 @@ messages:
          % Delete all skills!
          Send(poApply_target,@RemoveSkill,#num=iSkillNum);
          Send(poApply_target,@MsgSendUser,
-               #message_rsc=forgetpotionskills_forget_skill,
+               #message_rsc=forgetpotionbanditry_forget_skill,
                #parm1=Send(oSkill,@GetName));
          piCount = piCount + 1;
       }
@@ -72,7 +70,7 @@ messages:
       else
       {
          Send(poApply_target,@MsgSendUser,
-               #message_rsc=forgetpotionskills_vulnerable);
+               #message_rsc=forgetpotionbanditry_vulnerable);
 
          Send(self,@DoSideEffects);
          Send(poApply_target,@ToCliStats,#group=2);

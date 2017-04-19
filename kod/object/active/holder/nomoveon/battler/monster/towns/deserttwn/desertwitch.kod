@@ -14,6 +14,11 @@ resources:
       "pact is struggling to keep her young. She watches you with peaceful eyes "
       "that mask regret."
 
+   Ventdal_witchery_forget_potion_sale = \
+      "You choose to leave Ventdal's protection? So be it, %s%s is yours if you "
+      "wish to buy one. Beware though, the powers of the amnesiac are "
+      "permanent."
+
    vrinna_hello_response = \
       "Greetings. How fare the elements for you today?"
 
@@ -191,7 +196,8 @@ messages:
    SetForSale()
    {
       plFor_Sale = [[
-            Create(&ColdFragment,#number=4)],
+            Create(&ColdFragment,#number=4),
+            Create(&ForgetPotionVentdalWitchery)],
          [SKID_NIGHTGRIP,
             SKID_AVERSION,
             SKID_HERMITAGE],
@@ -204,6 +210,18 @@ messages:
             SID_HEX_SPIRIT_SHACKLES
          ],
      $];
+
+      return;
+   }
+
+   InitCondSale()
+   {
+      local oObj;
+
+      oObj=Create(&ForgetPotionVentdalWitchery);
+      Send(Send(SYS,@GetLibrary),@AddToMobLib,#mob=self,
+            #triggers=[Send(oObj,@GetName)],
+            #action=[LIBACT_CONDITIONAL,oObj,25000,Ventdal_witchery_forget_potion_sale]);
 
       return;
    }
