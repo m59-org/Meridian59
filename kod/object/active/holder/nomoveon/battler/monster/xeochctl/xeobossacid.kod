@@ -233,5 +233,19 @@ messages:
       return;
    }
 
+   Killed()
+   {
+      local i;
+      
+      foreach i in plHurtMeRecently
+      {
+         if IsClass(First(i),&Player)
+         {
+            Send(First(i),@SetPrismDefeated,#num=NTH_ACID_PRISM,#value=1);
+         }
+      }
+      propagate;
+   }
+
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

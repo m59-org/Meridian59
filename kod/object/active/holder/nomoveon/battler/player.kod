@@ -836,6 +836,46 @@ resources:
 
    pvp_notify_wav = gong.wav
 
+   lightning_attunement_msg = \
+      "~BThe Essence of Lightning grants you attunement with the element of shock. "
+      "For the rest of this life, your base resistance to shock has been increased by %d%%, "
+      "your maximum resistance to shock has been increased by %d%%, "
+      "and you will deal %d%% increased shock damage with any source."
+   ice_attunement_msg = \
+      "~BYour experience in the Prism of Ice has left your soul permanently chilled. "
+      "For the rest of this life, your base resistance to cold has been increased by %d%%, "
+      "your maximum resistance to cold has been increased by %d%%, "
+      "and you will deal %d%% increased cold damage with any source."
+   acid_attunement_msg = \
+      "~BHaving experienced the utmost corrosive energies of the plane of acid, you come away "
+      "with greater understanding of its element. "
+      "For the rest of this life, your base resistance to acid has been increased by %d%%, "
+      "your maximum resistance to acid has been increased by %d%%, "
+      "and you will deal %d%% increased acid damage with any source."
+   fire_attunement_msg = \
+      "~BThe fire of battle lingers with you. Something of the plane of fire remains. "
+      "For the rest of this life, your base resistance to fire has been increased by %d%%, "
+      "your maximum resistance to fire has been increased by %d%%, "
+      "and you will deal %d%% increased fire damage with any source."
+   death_attunement_msg = \
+      "~BYou are nigh upon the power the High Sorcerers have sought for centuries. "
+      "Soon you may master death in ways they never could. "
+      "For the rest of this life, your base resistance to unholy has been increased by %d%%, "
+      "your maximum resistance to unholy has been increased by %d%%, "
+      "and you will deal %d%% increased unholy damage with any source."
+   life_attunement_msg = \
+      "~BYour muscles vibrate with the power of rebirth. Your soul seems closer, tangible, "
+      "and one with your body. "
+      "For the rest of this life, your base resistance to holy has been increased by %d%%, "
+      "your maximum resistance to holy has been increased by %d%%, "
+      "and you will deal %d%% increased holy damage with any source."
+   all_six_prisms_defeated_msg = \
+      "~BAs the alignment comes to fruition and power roars through your every nerve, "
+      "you realize that the balance the nomads of Biskalane have hoped for has not been achieved "
+      "in the land itself - rather, it has been achieved in you. The six elements flow through you "
+      "with the even measures of mastery, offering decisive power. It is time to end the High Sorcerers "
+      "and finally heal the Diffraction they have caused in their foolish quest for immortality."
+
 classvars:
 
    viHand_space = 2
@@ -1165,6 +1205,10 @@ properties:
    % Timer for refreshing phase time if players have been logged on for 5 minutes
    ptLoggedOnRefreshPhaseTimer = $
 
+   % Which elemental prisms have we defeated in Biskalane?
+   % [Lightning, Ice, Acid, Fire, Death, Life]
+   plPrismsDefeated = $
+
 messages:
 
    Constructor()
@@ -1172,6 +1216,8 @@ messages:
       % Let the poor bastards eat something.
       piTimeLastStomachUpdate = GetTime();
       piReward_timestamp = GetTime();
+
+      Send(self,@ClearPrismsDefeated);
 
       propagate;
    }
@@ -1425,19 +1471,67 @@ messages:
 
    GetBaseEmpowerments()
    {
+      local lBaseEmpowerments, i;
+
       switch(piPlayerRace)
       {
          case RACE_HALF_ORC:
-            return [ [ATCK_WEAP_SLASH, 10 ] ];
+            lBaseEmpowerments = Cons([ATCK_WEAP_SLASH, 10],lBaseEmpowerments);
+            break;
          case RACE_HALF_DEMON:
-            return [ [-ATCK_SPELL_ACID, 10 ] ];
+            lBaseEmpowerments = Cons([-ATCK_SPELL_ACID, 10],lBaseEmpowerments);
+            break;
          case RACE_HALF_ELF:
-            return [ [ATCK_WEAP_MAGIC, 20 ] ];
+            lBaseEmpowerments = Cons([ATCK_WEAP_MAGIC, 20],lBaseEmpowerments);
+            break;
          case RACE_HALF_UNDINE:
-            return [ [-ATCK_SPELL_COLD, 5 ] ];
+            lBaseEmpowerments = Cons([-ATCK_SPELL_COLD, 10],lBaseEmpowerments);
+            break;
       }
-      
-      return $;
+
+      if Nth(plPrismsDefeated,NTH_LIGHTNING_PRISM) = 1
+      {
+         lBaseEmpowerments = Send(SYS,@AddEmpowerment,#empowerment_list=lBaseEmpowerments,
+                                                      #what=-ATCK_SPELL_SHOCK,
+                                                      #value=Send(SETTINGS_OBJECT,@GetPrismEmpowermentReward));
+      }
+
+      if Nth(plPrismsDefeated,NTH_ICE_PRISM) = 1
+      {
+         lBaseEmpowerments = Send(SYS,@AddEmpowerment,#empowerment_list=lBaseEmpowerments,
+                                                      #what=-ATCK_SPELL_COLD,
+                                                      #value=Send(SETTINGS_OBJECT,@GetPrismEmpowermentReward));
+      }
+
+      if Nth(plPrismsDefeated,NTH_ACID_PRISM) = 1
+      {
+         lBaseEmpowerments = Send(SYS,@AddEmpowerment,#empowerment_list=lBaseEmpowerments,
+                                                      #what=-ATCK_SPELL_ACID,
+                                                      #value=Send(SETTINGS_OBJECT,@GetPrismEmpowermentReward));
+      }
+
+      if Nth(plPrismsDefeated,NTH_FIRE_PRISM) = 1
+      {
+         lBaseEmpowerments = Send(SYS,@AddEmpowerment,#empowerment_list=lBaseEmpowerments,
+                                                      #what=-ATCK_SPELL_FIRE,
+                                                      #value=Send(SETTINGS_OBJECT,@GetPrismEmpowermentReward));
+      }
+
+      if Nth(plPrismsDefeated,NTH_DEATH_PRISM) = 1
+      {
+         lBaseEmpowerments = Send(SYS,@AddEmpowerment,#empowerment_list=lBaseEmpowerments,
+                                                      #what=-ATCK_SPELL_UNHOLY,
+                                                      #value=Send(SETTINGS_OBJECT,@GetPrismEmpowermentReward));
+      }
+
+      if Nth(plPrismsDefeated,NTH_LIFE_PRISM) = 1
+      {
+         lBaseEmpowerments = Send(SYS,@AddEmpowerment,#empowerment_list=lBaseEmpowerments,
+                                                      #what=-ATCK_SPELL_HOLY,
+                                                      #value=Send(SETTINGS_OBJECT,@GetPrismEmpowermentReward));
+      }
+
+      return lBaseEmpowerments;
    }
 
    GetRacialBaseResistances(race=$)
@@ -1482,7 +1576,7 @@ messages:
       return $;
    }
 
-   GetMaxResistanceMod(type=-ATCK_SPELL_FIRE)
+   GetRacialMaxResistanceMod(type=-ATCK_SPELL_FIRE)
    {
       if piPlayerRace = RACE_HALF_ORC
       {
@@ -1539,6 +1633,51 @@ messages:
          }
       }
       return 0;
+   }
+
+   GetMaxResistanceMod(type=-ATCK_SPELL_FIRE)
+   {
+      local iSum;
+
+      iSum = Send(self,@GetRacialMaxResistanceMod,#type=type);
+
+      if type = -ATCK_SPELL_SHOCK
+         AND Nth(plPrismsDefeated,NTH_LIGHTNING_PRISM) = 1
+      {
+         iSum = iSum + Send(SETTINGS_OBJECT,@GetPrismMaxResistanceReward);
+      }
+
+      if type = -ATCK_SPELL_COLD
+         AND Nth(plPrismsDefeated,NTH_ICE_PRISM) = 1
+      {
+         iSum = iSum + Send(SETTINGS_OBJECT,@GetPrismMaxResistanceReward);
+      }
+
+      if type = -ATCK_SPELL_ACID
+         AND Nth(plPrismsDefeated,NTH_ACID_PRISM) = 1
+      {
+         iSum = iSum + Send(SETTINGS_OBJECT,@GetPrismMaxResistanceReward);
+      }
+
+      if type = -ATCK_SPELL_FIRE
+         AND Nth(plPrismsDefeated,NTH_FIRE_PRISM) = 1
+      {
+         iSum = iSum + Send(SETTINGS_OBJECT,@GetPrismMaxResistanceReward);
+      }
+
+      if type = -ATCK_SPELL_UNHOLY
+         AND Nth(plPrismsDefeated,NTH_DEATH_PRISM) = 1
+      {
+         iSum = iSum + Send(SETTINGS_OBJECT,@GetPrismMaxResistanceReward);
+      }
+
+      if type = -ATCK_SPELL_HOLY
+         AND Nth(plPrismsDefeated,NTH_LIFE_PRISM) = 1
+      {
+         iSum = iSum + Send(SETTINGS_OBJECT,@GetPrismMaxResistanceReward);
+      }
+
+      return iSum;
    }
 
    SetPlayerRace(race=0)
@@ -1689,7 +1828,41 @@ messages:
 
    GetBaseResistances()
    {
-      return plResistances;
+      local lResistances;
+      
+      lResistances = ListCopy(plResistances);
+
+      if Nth(plPrismsDefeated,NTH_LIGHTNING_PRISM) = 1
+      {
+         lResistances = Send(SYS,@AddResistance,#resistance_list=lResistances,#what=-ATCK_SPELL_SHOCK,#value=Send(SETTINGS_OBJECT,@GetPrismResistanceReward));
+      }
+
+      if Nth(plPrismsDefeated,NTH_ICE_PRISM) = 1
+      {
+         lResistances = Send(SYS,@AddResistance,#resistance_list=lResistances,#what=-ATCK_SPELL_COLD,#value=Send(SETTINGS_OBJECT,@GetPrismResistanceReward));
+      }
+
+      if Nth(plPrismsDefeated,NTH_ACID_PRISM) = 1
+      {
+         lResistances = Send(SYS,@AddResistance,#resistance_list=lResistances,#what=-ATCK_SPELL_ACID,#value=Send(SETTINGS_OBJECT,@GetPrismResistanceReward));
+      }
+
+      if Nth(plPrismsDefeated,NTH_FIRE_PRISM) = 1
+      {
+         lResistances = Send(SYS,@AddResistance,#resistance_list=lResistances,#what=-ATCK_SPELL_FIRE,#value=Send(SETTINGS_OBJECT,@GetPrismResistanceReward));
+      }
+
+      if Nth(plPrismsDefeated,NTH_DEATH_PRISM) = 1
+      {
+         lResistances = Send(SYS,@AddResistance,#resistance_list=lResistances,#what=-ATCK_SPELL_UNHOLY,#value=Send(SETTINGS_OBJECT,@GetPrismResistanceReward));
+      }
+
+      if Nth(plPrismsDefeated,NTH_LIFE_PRISM) = 1
+      {
+         lResistances = Send(SYS,@AddResistance,#resistance_list=lResistances,#what=-ATCK_SPELL_HOLY,#value=Send(SETTINGS_OBJECT,@GetPrismResistanceReward));
+      }
+
+      return lResistances;
    }
    
    CalculateVigorThreshold()
@@ -3338,6 +3511,7 @@ messages:
 
       Send(self,@RemoveAllEnchantments,#report=FALSE);
       Send(self,@ClearAllStatusEffects);
+      Send(self,@ClearPrismsDefeated);
 
       Send(self,@ClearStance);
 
@@ -17465,6 +17639,80 @@ messages:
    GetFemaleDeathWav()
    {
       return playerf_death_wav;
+   }
+
+   SetPrismDefeated(num=NTH_LIGHTNING_PRISM, value=1)
+   {
+      if Nth(plPrismsDefeated,num) = 0
+         AND value = 1
+      {
+         Send(self,@PrismDefeatedMessage,#type=num);
+      }
+      SetNth(plPrismsDefeated,num,value);
+      
+      if Nth(plPrismsDefeated,NTH_LIGHTNING_PRISM) = 1
+         AND Nth(plPrismsDefeated,NTH_ICE_PRISM) = 1
+         AND Nth(plPrismsDefeated,NTH_ACID_PRISM) = 1
+         AND Nth(plPrismsDefeated,NTH_FIRE_PRISM) = 1
+         AND Nth(plPrismsDefeated,NTH_DEATH_PRISM) = 1
+         AND Nth(plPrismsDefeated,NTH_LIFE_PRISM) = 1
+      {
+         Post(self,@MsgSendUser,#message_rsc=all_six_prisms_defeated_msg);
+      }
+
+      return;
+   }
+   
+   ClearPrismsDefeated()
+   {
+      plPrismsDefeated = [0,0,0,0,0,0];
+      return;
+   }
+
+   PrismDefeatedMessage(type=NTH_LIGHTNING_PRISM)
+   {
+      % Handles the various elemental attunement messages.
+
+      switch(type)
+      {
+         case NTH_LIGHTNING_PRISM:
+            Post(self,@MsgSendUser,#message_rsc=lightning_attunement_msg,
+                                   #parm1=Send(SETTINGS_OBJECT,@GetPrismResistanceReward),
+                                   #parm2=Send(SETTINGS_OBJECT,@GetPrismMaxResistanceReward),
+                                   #parm3=Send(SETTINGS_OBJECT,@GetPrismEmpowermentReward));
+            return;
+         case NTH_ICE_PRISM:
+            Post(self,@MsgSendUser,#message_rsc=ice_attunement_msg,
+                                   #parm1=Send(SETTINGS_OBJECT,@GetPrismResistanceReward),
+                                   #parm2=Send(SETTINGS_OBJECT,@GetPrismMaxResistanceReward),
+                                   #parm3=Send(SETTINGS_OBJECT,@GetPrismEmpowermentReward));
+            return;
+         case NTH_ACID_PRISM:
+            Post(self,@MsgSendUser,#message_rsc=acid_attunement_msg,
+                                   #parm1=Send(SETTINGS_OBJECT,@GetPrismResistanceReward),
+                                   #parm2=Send(SETTINGS_OBJECT,@GetPrismMaxResistanceReward),
+                                   #parm3=Send(SETTINGS_OBJECT,@GetPrismEmpowermentReward));
+            return;
+         case NTH_FIRE_PRISM:
+            Post(self,@MsgSendUser,#message_rsc=fire_attunement_msg,
+                                   #parm1=Send(SETTINGS_OBJECT,@GetPrismResistanceReward),
+                                   #parm2=Send(SETTINGS_OBJECT,@GetPrismMaxResistanceReward),
+                                   #parm3=Send(SETTINGS_OBJECT,@GetPrismEmpowermentReward));
+            return;
+         case NTH_DEATH_PRISM:
+            Post(self,@MsgSendUser,#message_rsc=death_attunement_msg,
+                                   #parm1=Send(SETTINGS_OBJECT,@GetPrismResistanceReward),
+                                   #parm2=Send(SETTINGS_OBJECT,@GetPrismMaxResistanceReward),
+                                   #parm3=Send(SETTINGS_OBJECT,@GetPrismEmpowermentReward));
+            return;
+         case NTH_LIFE_PRISM:
+            Post(self,@MsgSendUser,#message_rsc=life_attunement_msg,
+                                   #parm1=Send(SETTINGS_OBJECT,@GetPrismResistanceReward),
+                                   #parm2=Send(SETTINGS_OBJECT,@GetPrismMaxResistanceReward),
+                                   #parm3=Send(SETTINGS_OBJECT,@GetPrismEmpowermentReward));
+            return;
+      }
+      return;
    }
 
 end
