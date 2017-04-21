@@ -2191,8 +2191,6 @@ messages:
 
       lDisposeItems = $;
       ptDispose = $;
-      iTime = piDispose_delay + Random(-5000,5000);
-      ptDispose = CreateTimer(self,@DisposeTimer,iTime);
 
       foreach i in plPassive
       {
@@ -2204,6 +2202,9 @@ messages:
 
          if IsClass(oEachObj,&DeadBody) AND Send(oEachObj,@WasPlayer)
          {
+            % Restart dispose timer.
+            iTime = piDispose_delay + Random(-5000,5000);
+            ptDispose = CreateTimer(self,@DisposeTimer,iTime);
             return;
          }
       }
@@ -2213,6 +2214,8 @@ messages:
          % If no one is here, then try to destroy everything.
          Send(self,@DestroyDisposable);
 
+         % Here we do not restart disposetimer until FirstUserEntered.
+         % We've destroyed everything there was to destroy and nobody is here.
          return;
       }
       else
@@ -2264,6 +2267,9 @@ messages:
                }
             }
          }
+
+         iTime = piDispose_delay + Random(-5000,5000);
+         ptDispose = CreateTimer(self,@DisposeTimer,iTime);
       }
 
       return;
@@ -3279,6 +3285,13 @@ messages:
       local iTime;
 
       pbUser_in_room = TRUE;
+
+      if ptDispose = $
+      {
+         % Start up dispose timer if we don't have one already.
+         iTime = piDispose_delay + Random(-5000,5000);
+         ptDispose = CreateTimer(self,@DisposeTimer,iTime);
+      }
 
       if plPeriodic_sounds <> $ AND ptPeriodic_sounds = $
       {

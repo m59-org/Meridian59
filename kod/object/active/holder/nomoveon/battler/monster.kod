@@ -1049,6 +1049,7 @@ messages:
 
    EnterStateMove( actnow=FALSE )
    {
+      local iGetTime;
       % Note: All monsters "move" even the ones who physically can't.
       Send(self,@SetState,#bit=STATE_MOVE);
 
@@ -1071,7 +1072,9 @@ messages:
       }
       else
       {
-         ptBehavior = CreateTimer(self,@MoveTimer,Send(self,@GetMoveTime));
+         iGetTime = Send(self,@GetMoveTime);
+       %  Debug(Send(self,@GetName), " making timer of ", iGetTime, " ms");
+         ptBehavior = CreateTimer(self,@MoveTimer,iGetTime);
       }
 
       return;
@@ -1675,6 +1678,9 @@ messages:
 
       % Sanity checks
       if poOwner = $
+         OR NOT IsClass(poOwner,&Room)
+         OR (IsClass(poOwner,&Room)
+             AND NOT Send(poOwner,@IsUserInRoom))
       {
          Send(self,@EnterStateLimbo);
 
