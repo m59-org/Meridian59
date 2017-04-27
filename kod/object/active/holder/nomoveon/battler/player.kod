@@ -6491,11 +6491,11 @@ messages:
    % calculations. Most notably, damage from attackspells and melee is now 
    % handled with high precision. Eventually, all damage calculations should 
    % be handled in high precision mode.
-   AssessDamage(what=$,damage=$,atype=0,aspell=0,stroke_obj=$,bonus=0,
+   AssessDamage(what=$,damage=0,atype=0,aspell=0,stroke_obj=$,bonus=0,
       scalefactor=1000,report=TRUE,report_resistance=TRUE,absolute=FALSE,
       precision=FALSE,bDoingBackstab=FALSE)
    {
-      local i, j, iResistance, oSoldierShield, gainchance, color_rsc,
+      local i, iResistance, oSoldierShield, color_rsc,
             iDuration, oSpell, oGort,iLimit, origdamage, oWeapon,
             iEmpowermentPercentage, bShielded, iCorrode, iCorrodeMultiple,
             iCorrodeReduction, iDamagePreArmor;
@@ -6529,7 +6529,7 @@ messages:
       if IsClass(what,&Battler)
          AND Send(SETTINGS_OBJECT,@GetEmpowermentsEnabled)
       {
-         % Empowerments e.g. 6% increased acid damage
+         % Empowerments e.g. 6% increased acid dam
          iEmpowermentPercentage = 0;
          foreach i in Send(what,@GetCurrentEmpowerments)
          {
@@ -6566,7 +6566,7 @@ messages:
       if damage = 0
       {
          % Spirit Shackles took all the damage.
-         return;
+         return 0;
       }
 
       % Check for Aversion.

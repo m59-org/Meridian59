@@ -2336,7 +2336,7 @@ messages:
    % calculations. Most notably, damage from attackspells and melee is now 
    % handled with high precision. Eventually, all damage calculations should 
    % be handled in high precision mode.
-   AssessDamage(what=$,damage=$,atype=0,aspell=0,bonus=0,scalefactor=1000,
+   AssessDamage(what=$,damage=0,atype=0,aspell=0,bonus=0,scalefactor=1000,
       absolute=FALSE,precision=FALSE,bDoingBackstab=FALSE)
    {
       local iDamage, iResist, iPercentClass, i, each_obj, bAttackerEmpowered,
@@ -2373,7 +2373,7 @@ messages:
       if damage = 0
       {
          % Spirit Shackles took all the damage.
-         return;
+         return 0;
       }
 
       % Attacks against a minion master will cause minions to defend the master
