@@ -115,6 +115,9 @@ resources:
       "You can't drink this acidic sludge!"
    waylayoasis_drink_sound = drink.wav
 
+   waylayoasis_cannot_truce_here = \
+      "Centuries of violence have imbued these sands with too much pain to call a truce."
+
 classvars:
 
    vrName = room_name_waylayoasis
@@ -1283,6 +1286,14 @@ messages:
 
    ReqSpellCast(who = $, oSpell = $, lItems = $)
    {
+      if IsClass(oSpell,&Truce)
+      {
+         if IsClass(who,&Player)
+         {
+            Send(who,@MsgSendUser,#message_rsc=waylayoasis_cannot_truce_here);
+         }
+         return FALSE;
+      }
       if IsClass(oSpell,&DeathRift)
          OR IsClass(oSpell,&PortalOfLife)
       {
