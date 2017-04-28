@@ -66,6 +66,9 @@ properties:
    % Min and max values for Blind duration.
    piMinBlind = 4000
    piMaxBlind = 12000
+   
+   % Monster min value
+   piMonsterMinBlind = 500
 
 messages:
 
@@ -139,6 +142,7 @@ messages:
       else
       {
          % class is Monster
+         iDuration = Bound(iDuration,piMonsterMinBlind,piMaxBlind);
          Post(oTarget,@ResetBehaviorFlags);
       }
 

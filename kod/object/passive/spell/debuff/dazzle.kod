@@ -64,6 +64,7 @@ properties:
    % Min and max values for Dazzle duration.
    piMinDazzle = 3000
    piMaxDazzle = 10000
+   piMonsterMinDazzle = 500
 
    % Duration of the red pain effect after spell wears off.
    piPainDuration = 1000
@@ -114,11 +115,10 @@ messages:
          iDuration = (iDuration * (100-Send(oTarget,@GetBlindResistance)))/100;
       }
 
-      % Re-check the bound on duration.
-      iDuration = Bound(iDuration,piMinDazzle,piMaxDazzle);
-
       if IsClass(oTarget,&Player)
       {
+         % Re-check the bound on duration.
+         iDuration = Bound(iDuration,piMinDazzle,piMaxDazzle);
          Send(oTarget,@MsgSendUser,#message_rsc=vrEnchantment_On);
          Send(oTarget,@EffectSendUserDuration,#effect=EFFECT_WHITEOUT,
                #duration=iDuration);
@@ -126,6 +126,8 @@ messages:
       else
       {
          % Class is Monster
+         % Re-check the bound on duration.
+         iDuration = Bound(iDuration,piMonsterMinDazzle,piMaxDazzle);
          Post(oTarget,@ResetBehaviorFlags);
       }
 
