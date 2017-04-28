@@ -265,18 +265,27 @@ properties:
    % Shocked temporarily reduces defense by a multiple of damage taken (X*m defense)
    % Chilled temporarily slows attack and cast timers (X*m ms)
    % Burning temporarily deals burning damage over time by a divisor (X/m damage)
-   % Corrode temporarily lowers armor (X/m armor)
+   % Corrode temporarily lowers armor (X/m armor) and weapon resists (X/m resist)
    % Humbled temporarily lowers resistances (X/m resist)
    % Mantled temporarily lowers the effect of healing on the victim (X/m healing)
    piShockedMultiple = 4
    piChilledMultiple = 30
    piBurningDivisor = 3
-   piCorrodeDivisor = 6
+   piCorrodeDivisor = 3
    piHumbledDivisor = 3
    piMantledDivisor = 6
    
    piStatusEffectReductionTime = 3000
+   
+   % No longer used.
    piStatusEffectReductionAmount = 10
+   
+   % Use these instead.
+   piChilledReductionAmount = 10
+   piShockedReductionAmount = 5
+   piCorrodeReductionAmount = 3
+   piHumbledReductionAmount = 3
+   piMantledReductionAmount = 1
 
    % Percent of mana required/used for broadcasting. Default 0 (no cost).
    piBroadcastManaPercent = 0
@@ -794,8 +803,21 @@ messages:
       return piStatusEffectReductionTime;
    }
    
-   GetStatusEffectReductionAmount()
+   GetStatusEffectReductionAmount(type=STATUS_CHILLED)
    {
+      switch(type)
+      {
+         case STATUS_CORRODE:
+            return piCorrodeReductionAmount;
+         case STATUS_HUMBLED:
+            return piHumbledReductionAmount;
+         case STATUS_MANTLED:
+            return piMantledReductionAmount;
+         case STATUS_SHOCKED:
+            return piShockedReductionAmount;
+         case STATUS_CHILLED:
+            return piChilledReductionAmount;
+      }
       return piStatusEffectReductionAmount;
    }
 

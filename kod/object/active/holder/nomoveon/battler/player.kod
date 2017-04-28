@@ -3125,7 +3125,6 @@ messages:
       }
 
       Send(self,@ClearStance);
-      Send(self,@ClearAllStatusEffects);
 
       % client assumes not resting upon login
       Send(self,@StopResting);
@@ -13345,7 +13344,7 @@ messages:
 
       if Send(self,@GetStance) <> $
       {
-         iTime = Send(Send(self,@GetStance),@ModifyRegenerationTime,#who=self,#iTime=iTime);
+         iTime = Send(Send(self,@GetStance),@ModifyRestTime,#who=self,#iTime=iTime);
       }
 
       return iTime;
