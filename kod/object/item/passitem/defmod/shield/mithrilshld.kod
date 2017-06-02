@@ -1,0 +1,70 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+MithrilShield is Shield
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   mithrilshield_name_rsc = "mithril shield"
+   mithrilshield_icon_rsc = newestshield.bgf
+   mithrilshield_desc_rsc = \
+      "This shield is new."
+
+   mithrilshield_window_overlay_rsc = povshldD.bgf
+
+classvars:
+
+   vrName = mithrilshield_name_rsc
+   vrIcon = mithrilshield_icon_rsc
+   vrDesc = mithrilshield_desc_rsc
+
+   viHits_init_min = 250
+   viHits_init_max = 300
+
+   viValue_average = 5000
+   viWeight = 155
+   viBulk = 155
+
+   vrShield_window_overlay = mithrilshield_window_overlay_rsc
+   vrShield_overlay = mithrilshield_icon_rsc
+
+   viGround_group = 3
+   viInventory_group = 1
+   viBroken_group = 4
+
+   viDefense_base = 0
+   viDamage_base = 0
+
+properties:
+
+messages:
+
+   GetResistanceModifiers()
+   {
+      if Send(SETTINGS_OBJECT,@GetDirectArmorEnabled)
+      { 
+         return [ [ATCK_WEAP_SLASH,10],
+                  [ATCK_WEAP_BLUDGEON,10],
+                  [ATCK_WEAP_THRUST,10]
+                ];
+      }
+      
+      return [ [ATCK_WEAP_ALL,30],
+               [-ATCK_SPELL_ALL,-30]
+               ];
+   }
+
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

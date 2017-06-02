@@ -17,9 +17,12 @@ constants:
 resources:
 
    throwing_dagger_name_rsc = "throwing daggers"
-   throwing_dagger_icon_rsc = bkswd.bgf
+   throwing_dagger_icon_rsc = throwingdaggers.bgf
    throwing_dagger_desc_rsc = \
       "These wicked blades are elegantly carved to be throwable at range."
+
+   throwing_dagger_proj_rsc = \
+      throwknifeproj.bgf
 
 classvars:
 
@@ -27,6 +30,8 @@ classvars:
    vrIcon = throwing_dagger_icon_rsc
    vrDesc = throwing_dagger_desc_rsc
    
+   vrProjectile = throwing_dagger_proj_rsc
+
    viProficiency_needed = SKID_PROFICIENCY_THROW
 
    viUse_type = ITEM_USE_THROWING_DAGGERS
@@ -52,14 +57,14 @@ messages:
 
    SendProjectileAnimation()
    {
-      AddPacket(1,ANIMATE_NONE,2,1);
+      AddPacket(1,ANIMATE_CYCLE, 4,30, 2,1, 2,6);
 
       return;
    }
 
    GetProjectileSpeed()
    {
-      return 11;
+      return 6;
    }
 
    GetProjectileLightColor()
@@ -69,7 +74,7 @@ messages:
 
    GetProjectileIcon()
    {
-      return arrow_icon_rsc;
+      return vrProjectile;
    }
    
    GetMinDamage()

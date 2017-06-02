@@ -8,7 +8,9 @@ OUTDIR = .
 
 BGFS = neeleme.bgf neelemeX.bgf iunholyt.bgf xeoneru.bgf xeoneruX.bgf \
        pear.bgf peartree.bgf orange.bgf orangetree.bgf cookie.bgf \
-       mmdrat.bgf mfdrat.bgf arrowgold.bgf
+       mmdrat.bgf mfdrat.bgf arrowgold.bgf newshield.bgf newestshield.bgf \
+       brm.bgf throwingdaggers.bgf throwknifeproj.bgf icedrag.bgf dicedrag.bgf \
+       grd00050.bgf
 
 !include $(RESOURCEDIR)\copy.mak
 

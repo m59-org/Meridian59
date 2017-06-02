@@ -1,0 +1,149 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Dragon is Monster
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   dragon_koc_name_rsc = "zorioc"
+   dragon_name_rsc = "ice dragon"
+   dragon_icon_rsc = icedrag.bgf
+   dragon_desc_rsc = \
+      "Dragons are supposed to be mythical! It isn't fair!"
+
+   dragon_dead_icon_rsc = dicedrag.bgf
+   dragon_dead_name_rsc = "dead ice dragon"
+
+   dragon_sound_hit = icedragonroar2.wav
+   dragon_sound_miss = icedragonroar3.wav
+   dragon_sound_death = icedragonroar1.wav
+   dragon_sound_aware = icedragonroar4.wav
+
+classvars:
+
+   vrKocName = dragon_koc_name_rsc
+   vrName = dragon_name_rsc
+   vrIcon = dragon_icon_rsc
+   vrDesc = dragon_desc_rsc
+   vrDead_icon = dragon_dead_icon_rsc
+   vrDead_name = dragon_dead_name_rsc
+
+   viTreasure_type = TID_RAT
+   viIndefinite = ARTICLE_AN
+
+   viSpeed = SPEED_FAST
+   viAttack_type = ATCK_WEAP_CLAW
+   viAttributes = 0
+   viLevel = 250
+   viDifficulty = 10
+   viVisionDistance = 18
+   viKarma = 0
+   viDefault_behavior = AI_FIGHT_AGGRESSIVE | AI_FIGHT_SWITCHALOT
+   viCashmin = 150000
+   viCashmax = 750000
+
+   vrSound_hit = dragon_sound_hit
+   vrSound_miss = dragon_sound_miss
+   vrSound_aware = dragon_sound_aware
+   vrSound_death = dragon_sound_death
+
+properties:
+
+   piAnimation = ANIM_NONE
+   piDrawfx = DRAWFX_TRANSLUCENT_25
+
+messages:
+
+   Constructed()
+   {
+      plResistances = [ [-ATCK_SPELL_FIRE, -20],
+                        [ATCK_WEAP_BLUDGEON, -10],
+                        [ATCK_WEAP_SLASH, 20] ];
+      propagate;
+   }
+
+   MonsterAttack(what = $)
+   {
+      % add in any attack animation calls
+      Send(self,@DoSlash);
+
+      return;
+   }
+
+   DoSlash()
+   {
+      piAnimation = ANIM_ATTACK;
+      Send(poOwner,@SomethingChanged,#what=self);
+      piAnimation = ANIM_NONE;
+
+      return;
+   }
+
+   SendLookAnimation()
+   {
+      AddPacket(1,ANIMATE_CYCLE,4,200,2,1,2,4);
+
+      return;
+   }
+
+   SendMoveAnimation()
+   {
+      AddPacket(1,ANIMATE_CYCLE,4,200,2,1,2,4);
+
+      return;
+   }
+
+   SendAnimation()
+   {
+      if piAnimation = ANIM_ATTACK
+      {
+         AddPacket(1,ANIMATE_ONCE,4,125,2,5,2,8,2,1);
+
+         return;
+      }
+
+      % if no body animation
+
+      propagate;
+   }
+
+   IsAlly(target = $)
+   {
+      if IsClass(target,&Dragon)
+      {
+         return TRUE;
+      }
+   
+      return FALSE;
+   }
+
+   SomethingMoved(what=$)
+   {
+      local oTrance, oActive, lActive, i;
+
+      if what <> self OR poOwner = $
+      {
+         propagate;
+      }
+
+      % Shake the ground when I take a step.
+      % Small chance each person might lose any active trance.
+
+      Send(poOwner,@Rumble,#duration=250,#disruption=50);
+      
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

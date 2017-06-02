@@ -6328,7 +6328,7 @@ messages:
 
    UserAttack(type=STROKE_NORMAL,what=$)
    {
-      local i, use_weapon, stroke_id, stroke_obj, is_spell;
+      local i, use_weapon, stroke_id, stroke_obj, is_spell, oStance;
 
       % User took an action!  Wake any AIs in the room to the user's presence!
       % bitflag check instead of function for speed.
@@ -6412,6 +6412,17 @@ messages:
       {
          % Use the "weapon" (spell) as the stroke object.
          stroke_obj = use_weapon;
+      }
+      
+      oStance = Send(self,@GetStance);
+      if oStance <> $
+         AND IsClass(oStance,&Cleave)
+      {
+         % User is attempting to multi-attack.
+         if Send(use_weapon,@CanCleave)
+         {
+            return Send(self,@TryCleaveAttack,#what=what,#use_weapon=use_weapon,#stroke_obj=stroke_obj);
+         }
       }
 
       return Send(self,@TryAttack,#what=what,#use_weapon=use_weapon,

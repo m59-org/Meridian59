@@ -876,6 +876,11 @@ resources:
       "with the even measures of mastery, offering decisive power. It is time to end the High Sorcerers "
       "and finally heal the Diffraction they have caused in their foolish quest for immortality."
 
+   attempting_cleave_msg = \
+      "~B~oYou tense for a mighty cleaving swing!"
+   no_enemies_in_range_msg = \
+      "~oThere are no enemies in range for a cleaving attack."
+
 classvars:
 
    viHand_space = 2
@@ -5697,7 +5702,52 @@ messages:
       return TRUE;
    }
 
-   TryAttack(what = $,use_weapon = $,stroke_obj=$)
+   TryCleaveAttack(what = $,use_weapon = $,stroke_obj = $)
+   {
+      local i, each_target, bSwungAtLeastOnce, iSwingCount;
+      
+      bSwungAtLeastOnce = FALSE;
+      iSwingCount = 0;
+
+      Send(self,@MsgSendUser,#message_rsc=attempting_cleave_msg);
+
+      if poOwner <> $
+         AND IsClass(poOwner,&Room)
+         AND Send(self,@IsOkayAttackTime)
+      {
+         foreach i in Send(poOwner,@GetHolderActive)
+         {
+            each_target = Send(poOwner,@HolderExtractObject,#data=i);
+            if IsClass(each_target,&Battler)
+               AND each_target <> self
+            {
+               if Send(self,@SquaredFineDistanceTo3D,#what=each_target) <= Send(use_weapon,@GetRange) * Send(use_weapon,@GetRange)
+               {
+                  Send(self,@ClearAttackTimer);
+                  if Send(self,@TryAttack,#what=each_target,#use_weapon=use_weapon,#stroke_obj=stroke_obj,#bCleaving=TRUE)
+                  {
+                     bSwungAtLeastOnce = TRUE;
+                     ++iSwingCount;
+                  }
+               }
+            }
+            
+            if iSwingCount >= Send(SETTINGS_OBJECT,@GetMaxCleaveAttacks)
+            {
+               return bSwungAtLeastOnce;
+            }
+         }
+      }
+
+      if NOT bSwungAtLeastOnce
+      {
+         Send(self,@MsgSendUser,#message_rsc=no_enemies_in_range_msg);
+      }
+
+      return bSwungAtLeastOnce;
+   }
+
+   TryAttack(what = $,use_weapon = $,stroke_obj=$,bCleaving = FALSE)
    {
       local i, iRange, lWindsState, lSandstormState;
 
@@ -5739,7 +5789,8 @@ messages:
       }
 
       % Deny attack if no line of sight
-      if NOT Send(poOwner,@LineOfSight,#obj1=self,#obj2=what)
+      if NOT bCleaving
+         AND NOT Send(poOwner,@LineOfSight,#obj1=self,#obj2=what)
       {
          Send(self,@MsgSendUser,#message_rsc=player_attack_not_in_view);
          return FALSE;
@@ -5756,7 +5807,8 @@ messages:
          iRange = iRange + RANGE_MOVEMENT_BONUS;
       }
 
-      if NOT Send(self,@TargetWithinSightAndRange,#oTarget=what,#iRange=iRange,
+      if NOT bCleaving
+         AND NOT Send(self,@TargetWithinSightAndRange,#oTarget=what,#iRange=iRange,
                   #use_weapon=use_weapon,#stroke_obj=stroke_obj)
       {
          return FALSE;
@@ -6330,6 +6382,14 @@ messages:
       % Convert to high precision. Super dirty, will be cleaned up shortly.
       iDamageBonus = iDamageBonus*100;
 
+      if poStance <> $
+         AND IsClass(poStance,&Cleave)
+         AND oWeapon <> $
+         AND Send(oWeapon,@CanCleave)
+      {
+         iDamage = Send(poStance,@GetCleaveDamage,#who=self,#damage=iDamage);
+      }
+
       foreach i in Send(self,@GetEnchantmentsByClass,#enchClass=&Hex)
       {
          iDamage = Send(Nth(i,2),@ModifyDamage,
@@ -6374,6 +6434,15 @@ messages:
       {
          % No weapon means we are punching
          return ATCK_WEAP_UNARMED+ATCK_WEAP_PUNCH;
+      }
+
+      if poStance <> $
+         AND IsClass(poStance,&Cleave)
+         AND Send(oWeapon,@CanCleave)
+      {
+         % Cleave changes all attacks to ATCK_WEAP_SLASH, but still must check
+         % to retain MAGIC, NONMAGIC, and NERUDITE.
+         return Send(poStance,@GetCleaveAttackType,#weapon_used=oWeapon);
       }
 
       return Send(oWeapon,@GetAttackType);
