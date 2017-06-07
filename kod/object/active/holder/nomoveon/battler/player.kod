@@ -1214,6 +1214,9 @@ properties:
    % [Lightning, Ice, Acid, Fire, Death, Life]
    plPrismsDefeated = $
 
+   % Is player a sorcerer?
+   pbTattooed = FALSE
+
 messages:
 
    Constructor()
@@ -3518,6 +3521,8 @@ messages:
       Send(self,@ClearPrismsDefeated);
 
       Send(self,@ClearStance);
+
+      Send(self,@SetTattooed,#value=FALSE);
 
       foreach i in plActive
       {
@@ -10023,6 +10028,11 @@ messages:
          Post(self,@ReportReincarnationProgress);
       }
 
+      if Send(oSkill,@GetSchool) = SKS_SORCERY
+      {
+         Send(self,@SetTattooed,#value=TRUE);
+      }
+
       return True;
    }
 
@@ -11400,7 +11410,7 @@ messages:
          Post(self,@EvaluatePKStatus);
 
          % Let SoldierShields know we died. It handles itself as appropriate.
-         oSoldierShield = Send(self,@FindUsing,#what=&SoldierShield);
+         oSoldierShield = Send(self,@FindUsing,#class=&SoldierShield);
          if oSoldierShield <> $
          {
             Send(oSoldierShield,@OwnerDied,#what=what);
@@ -16059,11 +16069,71 @@ messages:
       return;
    }
 
+   GetTattooed()
+   {
+      return pbTattooed;
+   }
+
+   SetTattooed(value=FALSE)
+   {
+      pbTattooed = value;
+      
+      if value = TRUE
+      {
+         if Send(self,@FindUsing,#class=&ShrunkenHeadMask) = $
+         {
+            if piGender = GENDER_MALE
+            {
+               Send(self,@SetHead,#head=charinfo_head_axt6_icon);
+            }
+            else
+            {
+               Send(self,@SetHead,#head=charinfo_head_kxt6_icon);
+            }
+            Send(poOwner,@SomethingChanged,#what=self);
+         }
+      }
+      
+      if value = FALSE
+      {
+         if Send(self,@FindUsing,#class=&ShrunkenHeadMask) = $
+         {
+            if piGender = GENDER_MALE
+            {
+               Send(self,@SetHead,#head=charinfo_head_ax_icon);
+            }
+            else
+            {
+               Send(self,@SetHead,#head=charinfo_head_kx_icon);
+            }
+            Send(poOwner,@SomethingChanged,#what=self);
+         }
+      }
+      
+      return;
+   }
+
    SetHead(head=$)
    {
       if head = $
       {
          return;
+      }
+
+      if (head = charinfo_head_ax_icon
+          OR head = charinfo_head_kx_icon)
+         AND Send(self,@GetTattooed)
+      {
+         if piGender = GENDER_MALE
+         {
+            prHead = charinfo_head_axt6_icon;
+            return;
+         }
+         else
+         {
+            prHead = charinfo_head_kxt6_icon;
+            return;
+         }
       }
 
       prHead = head;
