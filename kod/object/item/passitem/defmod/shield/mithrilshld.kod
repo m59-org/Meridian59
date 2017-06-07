@@ -16,12 +16,18 @@ constants:
 
 resources:
 
-   mithrilshield_name_rsc = "mithril shield"
+   mithrilshield_name_rsc = "spiritual shield"
    mithrilshield_icon_rsc = newestshield.bgf
    mithrilshield_desc_rsc = \
-      "This shield is new."
+      "Coalesced out of pure holy essences, this shield "
+      "glows with the reflection of unseen spiritual light. It is far "
+      "sturdier than its ethereal and thin span would seem to indicate. "
+      "This shield draws its strength from the goodness of your soul, "
+      "and will be weaker or stronger based on your karma. It can also "
+      "be enchanted with magical modifications. Be wary; creating another "
+      "spiritual shield will replace your current spiritual shield entirely."
 
-   mithrilshield_window_overlay_rsc = povshldD.bgf
+   mithrilshield_window_overlay_rsc = povshldN2.bgf
 
 classvars:
 
@@ -32,9 +38,9 @@ classvars:
    viHits_init_min = 250
    viHits_init_max = 300
 
-   viValue_average = 5000
-   viWeight = 155
-   viBulk = 155
+   viValue_average = 1
+   viWeight = 0
+   viBulk = 0
 
    vrShield_window_overlay = mithrilshield_window_overlay_rsc
    vrShield_overlay = mithrilshield_icon_rsc
@@ -48,10 +54,66 @@ classvars:
 
 properties:
 
+   piCreatedSpellpower = 0
+
 messages:
+
+   Constructor(iCreatedSpellpower=0)
+   {
+      piCreatedSpellpower = iCreatedSpellpower;
+
+      propagate;
+   }
+
+   Constructed()
+   {
+      % Spiritual shields have iLvl equal to spellpower+1 * 2.
+      piItemLevel = (piCreatedSpellpower+1)*2;
+      propagate;
+   }
+
+   GetDefenseBonus()
+   {
+      local iKarma, iRating;
+      
+      iKarma = 0;
+      if poOwner <> $
+         AND IsClass(poOwner,&Player)
+      {
+         iKarma = Send(poOwner,@GetKarma);
+      }
+      
+      if iKarma = $
+      {
+         iKarma = 0;
+      }
+
+      return Bound(iKarma,0,piCreatedSpellpower+1);
+   }
+
+   GetBlockAbility(who = $)
+   {
+      local iKarma, iRating;
+      
+      iKarma = 0;
+      if poOwner <> $
+         AND IsClass(poOwner,&Player)
+      {
+         iKarma = Send(poOwner,@GetKarma);
+      }
+      
+      if iKarma = $
+      {
+         iKarma = 0;
+      }
+
+      return Send(who,@GetSkillAbility,#skill_num=SKID_BLOCK) + Bound(iKarma,0,piCreatedSpellpower+1);
+   }
 
    GetResistanceModifiers()
    {
+      local iKarma, iRating;
+
       if Send(SETTINGS_OBJECT,@GetDirectArmorEnabled)
       { 
          return [ [ATCK_WEAP_SLASH,10],
@@ -59,12 +121,56 @@ messages:
                   [ATCK_WEAP_THRUST,10]
                 ];
       }
-      
-      return [ [ATCK_WEAP_ALL,30],
-               [-ATCK_SPELL_ALL,-30]
+
+      iKarma = 0;
+      if poOwner <> $
+         AND IsClass(poOwner,&Player)
+      {
+         iKarma = Send(poOwner,@GetKarma);
+      }
+
+      if iKarma = $
+      {
+         iKarma = 0;
+      }
+
+      iRating = Bound(iKarma/10,0,(piCreatedSpellpower+1)/10);
+
+      return [ [ATCK_WEAP_ALL,iRating],
+               [-ATCK_SPELL_ALL,iRating]
                ];
    }
 
+   CanBeGivenToNPC()
+   {
+      return FALSE;
+   }
+
+   CanSwap()
+   {
+      return FALSE;
+   }
+
+   CanShatter()
+   {
+      return FALSE;
+   }
+   
+   CanBeStoredInVault()
+   {
+      return FALSE;
+   }
+
+   DropOnDeath()
+   {
+      return FALSE;
+   }
+
+   ReqNewOwner(what=$)
+   {
+      % No dropping.
+      return FALSE;
+   }
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
