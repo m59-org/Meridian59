@@ -16074,40 +16074,59 @@ messages:
       return pbTattooed;
    }
 
-   SetTattooed(value=FALSE)
+   VerifySorceryAndTattooed()
+   "Implemented to check all existing players for sorcery skills and set them to tattooed."
    {
-      pbTattooed = value;
+      local i, oAbility;
       
-      if value = TRUE
+      foreach i in plSkills
       {
-         if Send(self,@FindUsing,#class=&ShrunkenHeadMask) = $
+         oAbility = Send(SYS,@FindSkillByNum,#num=Send(self,@DecodeSkillNum,#compound=i));
+         if Send(oAbility,@GetSchool) = SKS_SORCERY
          {
-            if piGender = GENDER_MALE
-            {
-               Send(self,@SetHead,#head=charinfo_head_axt6_icon);
-            }
-            else
-            {
-               Send(self,@SetHead,#head=charinfo_head_kxt6_icon);
-            }
-            Send(poOwner,@SomethingChanged,#what=self);
+            Send(self,@SetTattooed,#value=TRUE);
+            return;
          }
       }
-      
-      if value = FALSE
+   }
+
+   CheckTattooed()
+   "Call this function when Sorcery skills are bought or lost, or when reserving spells."
+   {
+      % Shrunken head takes over the player's head and will call SetHead when removed
+      if Send(self,@FindUsing,#class=&ShrunkenHeadMask) = $
       {
-         if Send(self,@FindUsing,#class=&ShrunkenHeadMask) = $
+         if piGender = GENDER_MALE
          {
-            if piGender = GENDER_MALE
-            {
-               Send(self,@SetHead,#head=charinfo_head_ax_icon);
-            }
-            else
-            {
-               Send(self,@SetHead,#head=charinfo_head_kx_icon);
-            }
-            Send(poOwner,@SomethingChanged,#what=self);
+            Send(self,@SetHead,#head=charinfo_head_ax_icon);
          }
+         else
+         {
+            Send(self,@SetHead,#head=charinfo_head_kx_icon);
+         }
+         Send(poOwner,@SomethingChanged,#what=self);
+      }
+      
+      return;
+   }
+
+   SetTattooed(value=FALSE)
+   "Call this function when Sorcery skills are bought or lost, or when reserving spells."
+   {
+      pbTattooed = value;
+
+      % Shrunken head takes over the player's head and will call SetHead when removed
+      if Send(self,@FindUsing,#class=&ShrunkenHeadMask) = $
+      {
+         if piGender = GENDER_MALE
+         {
+            Send(self,@SetHead,#head=charinfo_head_ax_icon);
+         }
+         else
+         {
+            Send(self,@SetHead,#head=charinfo_head_kx_icon);
+         }
+         Send(poOwner,@SomethingChanged,#what=self);
       }
       
       return;
@@ -16115,6 +16134,8 @@ messages:
 
    SetHead(head=$)
    {
+      local iReservedPercent;
+
       if head = $
       {
          return;
@@ -16126,12 +16147,62 @@ messages:
       {
          if piGender = GENDER_MALE
          {
-            prHead = charinfo_head_axt6_icon;
+            iReservedPercent = Send(self,@GetPercentReservedManaTotal);
+            
+            if iReservedPercent = 0
+            {
+               prHead = charinfo_head_axt6_icon;
+            }
+            else if iReservedPercent < 25
+            {
+               prHead = charinfo_head_axt5_icon;
+            }
+            else if iReservedPercent < 50
+            {
+               prHead = charinfo_head_axt4_icon;
+            }
+            else if iReservedPercent < 75
+            {
+               prHead = charinfo_head_axt3_icon;
+            }
+            else if iReservedPercent < 100
+            {
+               prHead = charinfo_head_axt2_icon;
+            }
+            else
+            {
+               prHead = charinfo_head_axt1_icon;
+            }
             return;
          }
          else
          {
-            prHead = charinfo_head_kxt6_icon;
+            iReservedPercent = Send(self,@GetPercentReservedManaTotal);
+            
+            if iReservedPercent = 0
+            {
+               prHead = charinfo_head_kxt6_icon;
+            }
+            else if iReservedPercent < 25
+            {
+               prHead = charinfo_head_kxt5_icon;
+            }
+            else if iReservedPercent < 50
+            {
+               prHead = charinfo_head_kxt4_icon;
+            }
+            else if iReservedPercent < 75
+            {
+               prHead = charinfo_head_kxt3_icon;
+            }
+            else if iReservedPercent < 100
+            {
+               prHead = charinfo_head_kxt2_icon;
+            }
+            else
+            {
+               prHead = charinfo_head_kxt1_icon;
+            }
             return;
          }
       }
@@ -17399,6 +17470,7 @@ messages:
          Post(self,@ResetPlayerFlagList);
          Post(self,@ComputeMaxMana);
          Send(self,@ShowAddEnchantment,#what=oSpell,#type=ENCHANTMENT_PLAYER);
+         Post(self,@CheckTattooed);
 
          Post(self,@DrawResistances);
          
@@ -17425,6 +17497,8 @@ messages:
                Send(self,@ShowRemoveEnchantment,#what=oSpell,
                                                 #type=ENCHANTMENT_PLAYER);
                Post(self,@ResetPlayerFlagList);
+
+               Post(self,@CheckTattooed);
 
                Post(self,@DrawResistances);
 
