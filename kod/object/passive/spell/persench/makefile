@@ -29,6 +29,7 @@ BOFS = anon.bof \
        shadform.bof \
        strength.bof \
        touchatk.bof \
-       greyghost.bof
+       greyghost.bof \
+       singularfocus.bof
 
 !include $(KODDIR)\kod.mak

@@ -268,12 +268,14 @@ properties:
    % Corrode temporarily lowers armor (X/m armor) and weapon resists (X/m resist)
    % Humbled temporarily lowers resistances (X/m resist)
    % Mantled temporarily lowers the effect of healing on the victim (X/m healing)
+   % Tricked heals the user when it wears off (illusionary damage)
    piShockedMultiple = 4
    piChilledMultiple = 30
    piBurningDivisor = 3
    piCorrodeDivisor = 3
    piHumbledDivisor = 3
    piMantledDivisor = 6
+   piTrickedDivisor = 1
    
    piStatusEffectReductionTime = 3000
    
@@ -286,6 +288,7 @@ properties:
    piCorrodeReductionAmount = 3
    piHumbledReductionAmount = 3
    piMantledReductionAmount = 1
+   piTrickedReductionAmount = 7
 
    % Percent of mana required/used for broadcasting. Default 0 (no cost).
    piBroadcastManaPercent = 0
@@ -799,6 +802,10 @@ messages:
       {
          return bound(piMantledDivisor,1,100);
       }
+      if type = STATUS_TRICKED
+      {
+         return bound(piTrickedDivisor,1,100);
+      }
       return 0;
    }
    
@@ -821,6 +828,8 @@ messages:
             return piShockedReductionAmount;
          case STATUS_CHILLED:
             return piChilledReductionAmount;
+         case STATUS_TRICKED:
+            return piTrickedReductionAmount;
       }
       return piStatusEffectReductionAmount;
    }

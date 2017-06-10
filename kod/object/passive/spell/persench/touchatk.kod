@@ -272,7 +272,7 @@ messages:
       damage = (damage * (iAbility+1));
       damage = Send(self,@DamageFactors,#damage=damage,#who=who)/100;
       
-      return bound(damage,0,$);
+      return bound(damage,1,$);
    }
    
    FindMaxDamage(who=$)
@@ -284,7 +284,7 @@ messages:
       damage = (damage * (iAbility+1));
       damage = Send(self,@DamageFactors,#damage=damage,#who=who)/100;
       
-      return bound(damage,0,$);
+      return bound(damage,1,$);
    }
 
    FindDamage(weapon_used=$,who=$,victim=$)
@@ -309,7 +309,7 @@ messages:
       damage = Send(self,@DamageFactors,#damage=damage,#who=who,
                     #victim=victim);
       
-      return bound(damage,0,$);
+      return bound(damage,1,$);
    }
 
    PlayerWasHitMsg(who=$,attacker=$,damage=$)

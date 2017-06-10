@@ -100,6 +100,12 @@ resources:
    battler_unholy_damage = "appalls"
    battler_unholy_slay = "corrupts"
 
+   battler_illusion_fail = "perturbs"
+   battler_illusion_nick = "dismays"
+   battler_illusion_wound = "frightens"
+   battler_illusion_damage = "terrifies"
+   battler_illusion_slay = "deranges"
+
    battler_quake_fail = "startles"
    battler_quake_nick = "shakes"
    battler_quake_wound = "buffets"
@@ -162,6 +168,8 @@ resources:
    rTumbleSoundFour = Swoosh04.wav
    
    backstab_sound = Knife-Slice.wav
+
+   illusion_damage_heal_msg = "Hey!  Some of those wounds were illusionary!"
 
 classvars:
 
@@ -1223,6 +1231,31 @@ messages:
 
             return battler_quake_fail;
          }
+
+         if (type & ATCK_SPELL_ILLUSION)
+         {
+            if damage = $
+            {
+               return battler_illusion_slay;
+            }
+
+            if damage > DAMAGE_THRESHOLD_DAMAGE
+            {
+               return battler_illusion_damage;
+            }
+
+            if damage > DAMAGE_THRESHOLD_WOUND
+            {
+               return battler_illusion_wound;
+            }
+
+            if damage > 99
+            {
+               return battler_illusion_nick;
+            }
+
+            return battler_illusion_fail;
+         }
       }
       else
       {
@@ -2015,11 +2048,16 @@ messages:
 
    ApplyElementalStatusEffects(damage=1,aspell=0,what=$,absolute=FALSE)
    {
+      local iIllusionDamage;
+
       if absolute
       {
-         % Illusionary or special damage doesn't apply status effects.
+         % Special damage doesn't apply status effects.
          return;
       }
+
+      % Illusion damage is not altered by Sorcery.
+      iIllusionDamage = damage;
 
       if what <> $
          AND IsClass(what,&Player)
@@ -2068,6 +2106,10 @@ messages:
       if aspell & ATCK_SPELL_UNHOLY
       {
          Send(self,@AddStatusEffect,#value=damage,#type=STATUS_MANTLED);
+      }
+      if aspell & ATCK_SPELL_ILLUSION
+      {
+         Send(self,@AddStatusEffect,#value=iIllusionDamage,#type=STATUS_TRICKED);
       }
       return;
    }
@@ -2176,7 +2218,7 @@ messages:
 
    StatusEffectTimer(timer=$)
    {
-      local i, iBurningDamage, oOpponent;
+      local i, iBurningDamage, iIllusionHeal, oOpponent;
       
       ptStatusEffectTimer = $;
       
@@ -2230,6 +2272,20 @@ messages:
                   }
                }
             }
+         }
+         else if Nth(i,2) = STATUS_TRICKED
+         {
+            iIllusionHeal = Send(SETTINGS_OBJECT,
+                                  @GetStatusEffectReductionAmount,
+                                  #type=STATUS_TRICKED);
+            iIllusionHeal = Bound(iIllusionHeal,0,Nth(i,1));
+            Send(self,@GainHealthNormal,#amount=iIllusionHeal);
+            if IsClass(self,&Player)
+               AND Send(self,@IsLoggedOn)
+            {
+               Send(self,@MsgSendUser,#message_rsc=illusion_damage_heal_msg);
+            }
+            SetNth(i,1,Nth(i,1) - iIllusionHeal);
          }
          else
          {

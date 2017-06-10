@@ -92,6 +92,9 @@ messages:
          }
       }
 
+      % Remember, ATCK_SPELL_ILLUSION is not one of the six elements.
+      % Make sure we don't pass along illusion.
+      % Exception: Riija sword can do it :)
       if bDoChargedClutch
          AND Random(1,100) <= iAbility
       {
@@ -102,15 +105,14 @@ messages:
          
          if NOT IsClass(oWeapon,&RiijaSword)
          {
-            return Send(oTouchSpell,@GetAttackSpell);
+            if NOT IsClass(oTouchSpell,&IllusionaryGrasp)
+            {
+               return Send(oTouchSpell,@GetAttackSpell);
+            }
          }
          else
          {
-            lElements = [ATCK_SPELL_FIRE + ATCK_SPELL_ALL,
-                         ATCK_SPELL_COLD + ATCK_SPELL_ALL,
-                         ATCK_SPELL_SHOCK + ATCK_SPELL_ALL,
-                         ATCK_SPELL_ACID + ATCK_SPELL_ALL];
-            return Nth(lElements,Random(1,4));
+            return Send(oTouchSpell,@GetAttackSpell);
          }
       }
       

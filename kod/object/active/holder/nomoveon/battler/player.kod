@@ -1840,6 +1840,8 @@ messages:
       
       lResistances = ListCopy(plResistances);
 
+      lResistances = Send(SYS,@AddResistance,#resistance_list=lResistances,#what=-ATCK_SPELL_ILLUSION,#value=Send(self,@GetIntellect));
+
       if Nth(plPrismsDefeated,NTH_LIGHTNING_PRISM) = 1
       {
          lResistances = Send(SYS,@AddResistance,#resistance_list=lResistances,#what=-ATCK_SPELL_SHOCK,#value=Send(SETTINGS_OBJECT,@GetPrismResistanceReward));
@@ -6472,7 +6474,7 @@ messages:
       if (oMonster <> $)
          AND (piFlags & PFLAG_MORPHED)
       {
-         return Send(oMonster,@GetSpellType,#what=what);
+         return ATCK_SPELL_ILLUSION;
       }
 
       if use_weapon = $

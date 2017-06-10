@@ -2308,6 +2308,10 @@ messages:
    % This is the type of damage done.
    GetDamageType(what = $)
    {
+      if pbIllusion
+      {
+         return 0;
+      }
       return viAttack_type;
    }
 
@@ -2315,6 +2319,11 @@ messages:
    GetSpellType(what = $)
    {
       local i;
+      
+      if pbIllusion
+      {
+         return ATCK_SPELL_ILLUSION;
+      }
       
       foreach i in plChampionAbilities
       {
@@ -5128,7 +5137,7 @@ messages:
 
       if amount = $
       {
-         return;
+         return 0;
       }
 
       if NOT precision
@@ -5146,7 +5155,7 @@ messages:
 
       piHit_points = Bound(piHit_points+amount,1,piMax_hit_points*100);
 
-      return;
+      return 0;
    }
 
    NewMaxMana(amount=0)
