@@ -477,6 +477,9 @@ resources:
    hex_mute_prevents_speech = \
       "~BYour words catch in your throat and you cannot speak!"
 
+   track_target_not_logged_on = \
+      "That person is not in the world at this time."
+
 classvars:
 
    viIndefinite = ARTICLE_NONE
@@ -952,6 +955,11 @@ messages:
    UserLogoff()
    {
       local theTime, iPenaltyTime, i, j;
+
+      if Send(self,@GetSkillAbility,#skill_num=SKID_TRACK) > 0
+      {
+         Send(Send(SYS,@FindSkillByNum,#num=SKID_TRACK),@StopTracking,#who=self);
+      }
 
       piTimeLoggedIn = Send(self,@GetTimeLoggedIn);
       Send(self,@BreakTrance);
@@ -5187,6 +5195,11 @@ messages:
             if oPrey <> $
                AND IsClass(oPrey,&User)
             {
+               if NOT Send(oPrey,@IsLoggedOn)
+               {
+                  Send(self,@MsgSendUser,#message_rsc=track_target_not_logged_on);
+                  return;
+               }
                Send(Send(SYS,@FindSkillByNum,#num=SKID_TRACK),@StartTracking,#who=self,#oTarget=oPrey);
             }
 

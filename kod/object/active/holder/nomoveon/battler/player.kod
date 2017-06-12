@@ -13403,6 +13403,11 @@ messages:
          return;
       }
 
+      if Send(self,@GetSkillAbility,#skill_num=SKID_TRACK) > 0
+      {
+         Send(Send(SYS,@FindSkillByNum,#num=SKID_TRACK),@StopTracking,#who=self);
+      }
+
       Send(self,@BreakTrance,#event=EVENT_REST);
       ptRest = CreateTimer(self,@RestTimer,Send(self,@GetRestTime));
       Send(self,@ResetPlayerFlagList);
