@@ -8,7 +8,7 @@
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-OffenseMod is WeaponOffenseMod
+RangedOffenseMod is WeaponOffenseMod
 
 constants:
 
@@ -16,16 +16,16 @@ constants:
 
 resources:
 
-   offense_mod_name = "melee offense"
+   ranged_offense_mod_name = "ranged offense"
 
 classvars:
 
-   viModName = offense_mod_name
+   viModName = ranged_offense_mod_name
    viModType = MOD_PREFIX
    viModGroup = GROUP_OFFENSE
 
    viModRangeMin = 1
-   viModRangeMax = 200
+   viModRangeMax = 100
    
    viPowerDivisor = 1
 
@@ -45,8 +45,8 @@ messages:
       }
 
       oWeapon = Send(who,@GetWeapon);
-      if (oWeapon = $)
-         or (not IsClass(oWeapon,&RangedWeapon))
+      if oWeapon <> $
+         AND IsClass(oWeapon,&RangedWeapon)
       {
          return hit_roll + iState;
       }

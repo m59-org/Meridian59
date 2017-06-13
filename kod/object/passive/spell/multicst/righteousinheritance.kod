@@ -8,7 +8,7 @@
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-BloodInheritance is MultiCastSpell
+RighteousInheritance is MultiCastSpell
 
 constants:
 
@@ -16,35 +16,32 @@ constants:
 
 resources:
 
-   include bldinher.lkod
-
-
-   BloodInheritance_name_rsc = "blood inheritance"
-   BloodInheritance_icon_rsc = ibloodin.bgf
-   BloodInheritance_desc_rsc = \
-      "Infuses a weapon with the malevolent power of Qor. "
-      "It is impossible to predict exactly what form this dark "
-      "benediction will take, but it will always be deadly. "
-      "Requires shaman blood, entroot berries, and orc teeth."
+   RighteousInheritance_name_rsc = "righteous inheritance"
+   RighteousInheritance_icon_rsc = ibloodin.bgf
+   RighteousInheritance_desc_rsc = \
+      "Infuses a weapon with the righteous power of Shal'ille. "
+      "It is impossible to predict exactly what form this zealous "
+      "benediction will take, but it will always be forceful. "
+      "Requires emeralds, diamonds, and polished seraphym."
    
-   BloodInheritance_sound = qunbond.wav
+   RighteousInheritance_sound = sbond.wav
 
-   BloodInheritance_bad_target = "You must target this spell at a melee weapon."
-   BloodInheritance_bad_target2 = "You cannot give Qor's gift to a weapon which is already enchanted."
-   BloodInheritance_succeeded = "The evil force of your spell lashes out at %s%s, infusing it with Qor's power."
+   RighteousInheritance_bad_target = "You must target this spell at a melee weapon."
+   RighteousInheritance_bad_target2 = "You cannot give Shal'ille's gift to a weapon which is already enchanted."
+   RighteousInheritance_succeeded = "The righteous force of your spell lashes out at %s%s, infusing it with Shal'ille's power."
 
 classvars:
 
-   vrName = BloodInheritance_name_rsc
-   vrIcon = BloodInheritance_icon_rsc
-   vrDesc = BloodInheritance_desc_rsc
+   vrName = RighteousInheritance_name_rsc
+   vrIcon = RighteousInheritance_icon_rsc
+   vrDesc = RighteousInheritance_desc_rsc
 
-   vrSucceed_wav = BloodInheritance_sound
+   vrSucceed_wav = RighteousInheritance_sound
 
    viMana = 50
 
-   viSpell_num = SID_BLOOD_INHERITANCE
-   viSchool = SS_QOR
+   viSpell_num = SID_RIGHTEOUS_INHERITANCE
+   viSchool = SS_SHALILLE
    viSpell_level = 5
 
    viSpellExertion = 50
@@ -64,9 +61,9 @@ messages:
    ResetReagents()
    {
       plReagents = $;
-      plReagents = Cons([&ShamanBlood,2] ,plReagents);
-      plReagents = Cons([&EntrootBerry,2] ,plReagents);
-      plReagents = Cons([&OrcTooth,1] ,plReagents);
+      plReagents = Cons([&Emerald,2] ,plReagents);
+      plReagents = Cons([&Diamond,2] ,plReagents);
+      plReagents = Cons([&PolishedSeraphym,1] ,plReagents);
 
       return;
    }
@@ -78,14 +75,14 @@ messages:
       if not isClass(first(lTargets),&Weapon)
          OR isClass(first(lTargets),&RangedWeapon)
       {
-         Send(who,@MsgSendUser,#message_rsc=BloodInheritance_bad_target);
+         Send(who,@MsgSendUser,#message_rsc=RighteousInheritance_bad_target);
          return;
       }
 
       % Can't have any other enchantments.
       if send(first(lTargets),@HasAnyAttribute)
       {
-         Send(who,@MsgSendUser,#message_rsc=BloodInheritance_bad_target2);
+         Send(who,@MsgSendUser,#message_rsc=RighteousInheritance_bad_target2);
          return;
       }
       
@@ -101,14 +98,14 @@ messages:
       {
          foreach oCaster in lCasters
          {
-            Send(oCaster,@MsgSendUser,#message_rsc=BloodInheritance_bad_target2);
+            Send(oCaster,@MsgSendUser,#message_rsc=RighteousInheritance_bad_target2);
          }
          return;
       }
 
       foreach oCaster in lCasters
       {
-         Send(oCaster,@MsgSendUser,#message_rsc=BloodInheritance_succeeded,
+         Send(oCaster,@MsgSendUser,#message_rsc=RighteousInheritance_succeeded,
                   #parm1=send(first(lTargets),@GetIndef),
                     #parm2=send(first(lTargets),@GetName));
       }
@@ -117,24 +114,24 @@ messages:
 
       if iRandom = 1
       {
-         ItemAtt = WA_VAMPER;
+         ItemAtt = WA_SIPHON;
       }
 
       if iRandom = 2
       {
-         ItemAtt = WA_BLINDER;
+         ItemAtt = WA_SPELLCASTER;
+         send(send(SYS,@FindItemAttByNum,#Num=ItemAtt),@AddToItem,#oItem=first(lTargets),#spellNum=SID_MARK_OF_DISHONOR);
+         return;
       }
 
       if iRandom = 3
       {
-         ItemAtt = WA_PARALYZER;
+         ItemAtt = WA_PURGER;
       }
 
       if iRandom >= 4
       {
-         ItemAtt = WA_SPELLCASTER;
-         send(send(SYS,@FindItemAttByNum,#Num=ItemAtt),@AddToItem,#oItem=first(lTargets),#spellNum=SID_ENFEEBLE);
-         return;
+         ItemAtt = WA_PUNISHER;
       }
 
       send(send(SYS,@FindItemAttByNum,#Num=ItemAtt),@AddToItem,#oItem=first(lTargets));

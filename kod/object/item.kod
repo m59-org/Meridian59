@@ -58,7 +58,8 @@ resources:
    special_properties_header = \
       "\n\nThis item has the following properties:\n"
    item_stats_range = "%i range\n"
-   item_stats_offense = "%i offense rating bonus\n"
+   item_stats_offense = "%i melee offense rating bonus\n"
+   item_stats_ranged_offense = "%i ranged offense rating bonus\n"
    item_stats_armor = "%i armor\n"
    item_stats_defense = "%i defense rating bonus\n"
    item_stats_melee = "%i melee weapon damage bonus\n"
@@ -242,17 +243,35 @@ messages:
 
       if Send(self,@GetHitBonus) <> 0
       {
-         if bFoundProperties
+         if IsClass(self,&RangedWeapon)
          {
-            % bFoundProperties TRUE, already added headers.
-            AddPacket(4,item_stats_offense, 4,Send(self,@GetHitBonus));
+            if bFoundProperties
+            {
+               % bFoundProperties TRUE, already added headers.
+               AddPacket(4,item_stats_ranged_offense, 4,Send(self,@GetHitBonus));
+            }
+            else
+            {
+               % bFoundProperties FALSE, add headers.
+               AddPacket(4,system_rsc_template_18, 4,special_properties_header,
+                         4,item_stats_ranged_offense, 4,Send(self,@GetHitBonus));
+               bFoundProperties = TRUE;
+            }
          }
          else
          {
-            % bFoundProperties FALSE, add headers.
-            AddPacket(4,system_rsc_template_18, 4,special_properties_header,
-                      4,item_stats_offense, 4,Send(self,@GetHitBonus));
-            bFoundProperties = TRUE;
+            if bFoundProperties
+            {
+               % bFoundProperties TRUE, already added headers.
+               AddPacket(4,item_stats_offense, 4,Send(self,@GetHitBonus));
+            }
+            else
+            {
+               % bFoundProperties FALSE, add headers.
+               AddPacket(4,system_rsc_template_18, 4,special_properties_header,
+                         4,item_stats_offense, 4,Send(self,@GetHitBonus));
+               bFoundProperties = TRUE;
+            }
          }
       }
       else if bFoundProperties

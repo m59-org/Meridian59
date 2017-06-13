@@ -956,10 +956,10 @@ messages:
    {
       local theTime, iPenaltyTime, i, j;
 
-      if Send(self,@GetSkillAbility,#skill_num=SKID_TRACK) > 0
-      {
-         Send(Send(SYS,@FindSkillByNum,#num=SKID_TRACK),@StopTracking,#who=self);
-      }
+      Send(Send(SYS,@FindSkillByNum,#num=SKID_TRACK),@StopTracking,#who=self);
+      Send(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@StopHiding,#who=self);
+      Send(Send(SYS,@FindSkillByNum,#num=SKID_SNEAK),@StopSneaking,#who=self);
+      Send(Send(SYS,@FindSkillByNum,#num=SKID_SPY),@StopSpying,#who=self);
 
       piTimeLoggedIn = Send(self,@GetTimeLoggedIn);
       Send(self,@BreakTrance);
@@ -3943,12 +3943,12 @@ messages:
       {
          if ptSneakTimer = $
             AND Send(self,@GetSkillAbility,#skill_num=SKID_SNEAK) > 0
-            AND NOT Send(Send(SYS,@FindSkillByNum,#num=SKID_SNEAK),@IsSneaking)
+            AND NOT Send(Send(SYS,@FindSkillByNum,#num=SKID_SNEAK),@IsSneaking,#who=self)
          {
             ptSneakTimer = CreateTimer(self,@AttemptSneak,1000);
          }
 
-         if Send(Send(SYS,@FindSkillByNum,#num=SKID_SNEAK),@IsSneaking)
+         if Send(Send(SYS,@FindSkillByNum,#num=SKID_SNEAK),@IsSneaking,#who=self)
             AND piAccruedSneak <> 0
          {
             piAccruedSneak = 0;
@@ -3957,12 +3957,12 @@ messages:
          if ptHideTimer = $
             AND Send(Send(SYS,@FindSkillByNum,#num=SKID_SNEAK),@IsSneaking,#who=self)
             AND Send(self,@GetSkillAbility,#skill_num=SKID_HIDE) > 0
-            AND NOT Send(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@IsHiding)
+            AND NOT Send(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@IsHiding,#who=self)
          {
             ptHideTimer = CreateTimer(self,@AttemptHide,1000);
          }
 
-         if Send(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@IsHiding)
+         if Send(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@IsHiding,#who=self)
             AND piAccruedHide <> 0
          {
             piAccruedHide = 0;
@@ -4065,7 +4065,7 @@ messages:
 
       if Send(self,@GetSkillAbility,#skill_num=SKID_SNEAK) > 0
          AND piAccruedSneak > 4000
-         AND NOT Send(Send(SYS,@FindSkillByNum,#num=SKID_SNEAK),@IsSneaking)
+         AND NOT Send(Send(SYS,@FindSkillByNum,#num=SKID_SNEAK),@IsSneaking,#who=self)
       {
          piAccruedSneak = 0;
          Send(Send(SYS,@FindSkillByNum,#num=SKID_SNEAK),@DoSkill,#who=self);
@@ -4081,7 +4081,7 @@ messages:
       
       if Send(self,@GetSkillAbility,#skill_num=SKID_HIDE) > 0
          AND piAccruedHide > 4000
-         AND NOT Send(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@IsHiding)
+         AND NOT Send(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@IsHiding,#who=self)
       {
          piAccruedHide = 0;
          Send(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@DoSkill,#who=self);

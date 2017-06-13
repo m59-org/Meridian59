@@ -1547,9 +1547,11 @@ messages:
          return;
       }
 
-      % Victim phased out or is now in spectator mode, break aggro.
+      % Victim phased out, is now in spectator mode, or hiding, break aggro.
       if IsClass(poTarget,&User)
-         AND Send(poTarget,@IsInCannotInteractMode)
+         AND (Send(poTarget,@IsInCannotInteractMode)
+             OR (Send(poTarget,@GetSkillAbility,#skill_num=SKID_HIDE) >= viLevel*2
+               AND Send(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@IsHiding,#who=poTarget)))
       {
          Send(self,@EnterStateMove);
 
@@ -1624,9 +1626,11 @@ messages:
          return;
       }
 
-      % Victim phased out or is now in spectator mode, break aggro.
+      % Victim phased out, is now in spectator mode, or hiding, break aggro.
       if IsClass(oVictim,&User)
-         AND Send(oVictim,@IsInCannotInteractMode)
+         AND (Send(oVictim,@IsInCannotInteractMode)
+             OR (Send(oVictim,@GetSkillAbility,#skill_num=SKID_HIDE) >= viLevel*2
+               AND Send(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@IsHiding,#who=oVictim)))
       {
          Send(self,@EnterStateMove);
 

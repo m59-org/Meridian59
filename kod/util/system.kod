@@ -3480,6 +3480,7 @@ messages:
       Send(self,@CreateOneSpellIfNew,#num=SID_EVIL_TWIN,#class=&SummonEvilTwin);
       Send(self,@CreateOneSpellIfNew,#num=SID_BOND,#class=&Bond);
       Send(self,@CreateOneSpellIfNew,#num=SID_BLOOD_INHERITANCE,#class=&BloodInheritance);
+      Send(self,@CreateOneSpellIfNew,#num=SID_RIGHTEOUS_INHERITANCE,#class=&RighteousInheritance);
       Send(self,@CreateOneSpellIfNew,#num=SID_DEATHS_DOOR,#class=&DeathsDoor);
 
       Send(self,@CreateOneSpellIfNew,#num=SID_BREATH_OF_LIFE,#class=&BreathOfLife);
@@ -5730,6 +5731,7 @@ messages:
       plItemTemplates = cons(create(&ManaCrystal),plItemTemplates);
       plItemTemplates = cons(create(&Chalice),plItemTemplates);
       plItemTemplates = cons(create(&Prism),plItemTemplates);
+      plItemTemplates = cons(create(&SpherePrism),plItemTemplates);
       plItemTemplates = cons(create(&JewelOfFroz),plItemTemplates);
       plItemTemplates = cons(create(&Gauntlet),plItemTemplates);
       plItemTemplates = cons(create(&Glove),plItemTemplates);
@@ -6207,6 +6209,7 @@ messages:
       
       plMagicMods = Cons(Create(&OffenseMod),plMagicMods);
       plMagicMods = Cons(Create(&WeaponDamageMod),plMagicMods);
+      plMagicMods = Cons(Create(&RangedOffenseMod),plMagicMods);
 
       plMagicMods = Cons(Create(&WeaponMightMod),plMagicMods);
       plMagicMods = Cons(Create(&WeaponAgilityMod),plMagicMods);
@@ -6261,6 +6264,12 @@ messages:
       if class = &ArmorMod
       {
          return GROUP_ARMOR;
+      }
+
+      if class = &OffenseMod
+         OR class = &RangedOffenseMod
+      {
+         return GROUP_OFFENSE;
       }
 
       if class = &DefenseMod

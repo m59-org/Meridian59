@@ -1,0 +1,91 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+SpherePrism is Prism
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   spherical_prism_name_rsc = "spherical prism"
+
+   spherical_prism_1_icon_rsc = prism1.bgf
+
+   spherical_prism_desc_rsc = "When held up to the light, this prism refracts a pretty rainbow of colors. "
+      "If the legends of these magical items hold true, however, "
+      "its true worth lies in its ability to focus the magical energies of a "
+      "spellcaster for the casting of certain special spells. "
+      "According to the mages of antiquity, a prism must be placed upon the ground before a spell "
+      "may be focused through it. The spell being chanted will fire "
+      "when enough magical power has been stored in the prism. This spherical prism requires only %i%s"
+   spherical_prism_desc2_rsc = " caster and currently contains no magical energy."
+   spherical_prism_desc2a_rsc = " caster and glows faintly from within."
+   spherical_prism_desc2b_rsc = " caster and is glowing from a point at its center."
+   spherical_prism_desc2c_rsc = " caster and is glowing fairly brightly."
+   spherical_prism_desc2d_rsc = " caster and glows extremely brightly."
+
+   spherical_prism_projectile = lightnin.bgf
+
+   spherical_prism_charged_wav_rsc = portal.wav
+
+classvars:
+
+   vrName = spherical_prism_name_rsc
+   vrDesc = spherical_prism_desc_rsc
+
+properties:
+
+   vrIcon = spherical_prism_1_icon_rsc
+   
+messages:
+
+   Constructor(numSides=1)
+   {
+      Send(self,@SetNumSides,#numSides=numSides);
+
+      propagate;
+   }
+
+   DoBaseDesc()
+   {
+      local lDescs;
+
+      lDescs = [spherical_prism_desc2_rsc, spherical_prism_desc2a_rsc,
+                spherical_prism_desc2b_rsc, spherical_prism_desc2d_rsc];
+
+      % Append the glow description based on the charge level.
+      AddPacket(4,vrDesc, 4,piNumSides,
+                4,Nth(lDescs,(Send(self,@GetChargeLevel)+1)));
+
+      return;
+   }
+
+   SetNumSides(numSides=1)
+   {
+      piNumSides = 1;
+      vrIcon = spherical_prism_1_icon_rsc;
+
+      return;
+   }
+
+   CanAcceptCasters()
+   {
+      if Length(plCasters) >= piNumSides
+      {
+         return FALSE;
+      }
+
+      return TRUE;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
