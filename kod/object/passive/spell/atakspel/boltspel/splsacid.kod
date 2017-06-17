@@ -8,7 +8,7 @@
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-SplashOfAcid is AttackSpell
+SplashOfAcid is BoltSpell
 
 constants:
 
@@ -27,6 +27,8 @@ resources:
       "Requires entroot berries to cast."
 
    SplashOfAcid_sound = qacid.wav
+   
+   SplashOfAcid_projectile_icon_rsc = splashofacidproj.bgf
 
 classvars:
 
@@ -49,6 +51,18 @@ classvars:
 
    viChance_To_Increase = 15
 
+   vrProjectile_Icon = SplashOfAcid_projectile_icon_rsc
+
+   % Short range blast
+   vbIsRangedAttack = FALSE
+
+   % Projectile lighting information.
+   viProjectileLightFlags = LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC
+   % Medium light range, out of 255.
+   viProjectileLightIntensity = 100
+   % Default color is lightning.
+   viProjectileLightColor = LIGHT_BGREEN
+
 properties:
 
    piDamageMin = 16
@@ -70,6 +84,25 @@ messages:
       return;
    }
 
+   GetProjectileSpeed()
+   {
+      return 10;
+   }
+
+   SendLookAnimation()
+   {
+      AddPacket(1,ANIMATE_NONE, 2,2);
+
+      return;
+   }
+
+   SendProjectileAnimation()
+   {
+      % 40ms between animations, between frames 1-2
+      AddPacket(1,ANIMATE_CYCLE, 4,40, 2,1, 2,2);   
+
+      return;
+   }
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

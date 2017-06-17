@@ -8,7 +8,7 @@
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-IllusionaryWounds is AttackSpell
+IllusionaryWounds is BoltSpell
 
 constants:
    include blakston.khd
@@ -28,6 +28,8 @@ resources:
 
    illusionarywounds_off = "Hey!  Some of those wounds were illusionary!"
    illusionarywounds_sound = 195568jacobalcookcreatureroar1.wav
+
+   IllWounds_projectile_icon_rsc = illwoundsproj.bgf
 
 classvars:
 
@@ -50,6 +52,18 @@ classvars:
 
    viAttack_spell = ATCK_SPELL_ALL + ATCK_SPELL_ILLUSION
 
+   vrProjectile_Icon = IllWounds_projectile_icon_rsc
+
+   % Short range blast
+   vbIsRangedAttack = FALSE
+
+   % Projectile lighting information.
+   viProjectileLightFlags = LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC
+   % Medium light range, out of 255.
+   viProjectileLightIntensity = 100
+   % Default color is lightning.
+   viProjectileLightColor = LIGHT_BPURPLE
+
 properties:
 
    piRange = 4 * FINENESS
@@ -58,7 +72,9 @@ properties:
    piDamageMax = 18
    piRange = 4 * FINENESS
 
-   piManaFocusBonus = 0
+
+   % Maximum amount of bonus damage mana focus gives us for casting this spell.
+   piManaFocusBonus = 5
 
    pbAbsolute = FALSE
 
@@ -96,6 +112,26 @@ messages:
       iDamage = ((100+Bound(iIntellect-25,0,100))*damage)/100;
 
       return iDamage;
+   }
+
+   GetProjectileSpeed()
+   {
+      return 10;
+   }
+
+   SendLookAnimation()
+   {
+      AddPacket(1,ANIMATE_NONE, 2,2);
+
+      return;
+   }
+
+   SendProjectileAnimation()
+   {
+      % 40ms between animations, between frames 1-2
+      AddPacket(1,ANIMATE_CYCLE, 4,40, 2,1, 2,2);   
+
+      return;
    }
 
 %   CastSpell(who = $, lTargets = $, iSpellPower = 0, bItemCast = FALSE)

@@ -8,7 +8,7 @@
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-VampiricDrain is AttackSpell
+VampiricDrain is BoltSpell
 
 constants:
 
@@ -32,6 +32,8 @@ resources:
       "You siphon your victim's life force, gaining ~g~B%i~B~n health."
 
    VampiricDrain_sound = qvtouch.wav
+   
+   VampiricDrain_projectile_icon_rsc = vampdrainproj.bgf
 
 classvars:
 
@@ -54,6 +56,18 @@ classvars:
    viPostCast_time = 2
    
    viChance_To_Increase = 20
+
+   vrProjectile_Icon = VampiricDrain_projectile_icon_rsc
+
+   % Short range blast
+   vbIsRangedAttack = FALSE
+
+   % Projectile lighting information.
+   viProjectileLightFlags = LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC
+   % Medium light range, out of 255.
+   viProjectileLightIntensity = 100
+   % Default color is lightning.
+   viProjectileLightColor = LIGHT_BRED
 
 properties:
 
@@ -106,6 +120,25 @@ messages:
       propagate;
    }
 
+   GetProjectileSpeed()
+   {
+      return 10;
+   }
+
+   SendLookAnimation()
+   {
+      AddPacket(1,ANIMATE_NONE, 2,2);
+
+      return;
+   }
+
+   SendProjectileAnimation()
+   {
+      % 40ms between animations, between frames 1-2
+      AddPacket(1,ANIMATE_CYCLE, 4,40, 2,1, 2,2);   
+
+      return;
+   }
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
