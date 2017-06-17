@@ -28,6 +28,7 @@ BGFS = igreyinvis.bgf isitting.bgf itransferitem.bgf iexplosion.bgf irift.bgf \
        phaxt1.bgf phkxt6.bgf phaxt6.bgf phkxt5.bgf phkxt4.bgf \
        phkxt3.bgf phkxt2.bgf phkxt1.bgf phaxt2.bgf phaxt3.bgf phaxt4.bgf \
        phaxt5.bgf blastfireproj.bgf explosivefrostproj.bgf illwoundsproj.bgf \
+       shockingfuryproj.bgf vampdrainproj.bgf
 
 DIRS = 
 
