@@ -33,6 +33,9 @@ resources:
    hold_break_rod_active = \
       "Flowing energies dissipate your spell before you even begin!"
 
+   hold_player_rsc = \
+      holdrings.bgf
+
 classvars:
 
    vrName = hold_name_rsc
@@ -58,6 +61,10 @@ classvars:
 
    % In seconds, since it works off GetTime()
    viPostCast_time = 2 % Recommended value 1.
+
+   vrHoldRings = hold_player_rsc
+
+   viLayer = 9
 
 properties:
 
@@ -232,6 +239,7 @@ messages:
 
    EndEnchantment(who=$,report=TRUE,state=$)
    {
+      Send(who,@RemoveOverlay,#what=self);
       if IsClass(who,&Player)
       {
          % Don't override phasing hold.
@@ -282,6 +290,52 @@ messages:
       }
 
       return;
+   }
+
+   GetLayer()
+   {
+      return viLayer;
+   }
+   
+   GetOverlayHotspot()
+   {
+      return HS_LEGS;
+   }
+
+   SendOverlayAnimation()
+   {
+      AddPacket(1,ANIMATE_CYCLE, 4,80, 2,1, 2,5);
+    %  AddPacket(1,ANIMATE_NONE,2,1); % group 2 is the player-overlay group
+      
+      return;
+   }
+
+   SendInventoryOverlays()
+   {
+      AddPacket(1, 0);
+      
+      return;
+   }
+
+   SendOverlayInformation()
+   {
+      AddPacket(4,Send(self,@GetOverlay));
+      AddPacket(1,Send(self,@GetOverlayHotspot));
+      Send(self,@SendOverlayAnimation);
+      
+      return;
+   }
+
+   GetNumberOverlays()
+   {
+      % Most overlay items only offer one overlay.
+      %  Some items like weapons and bows may offer two.
+      return 1;
+   }
+
+   GetOverlay(animation = $)
+   {
+      return hold_player_rsc;
    }
 
 end

@@ -881,6 +881,8 @@ resources:
    no_enemies_in_range_msg = \
       "~oThere are no enemies in range for a cleaving attack."
 
+   hold_rings_rsc = holdrings.bgf
+
 classvars:
 
    viHand_space = 2
@@ -4219,6 +4221,11 @@ messages:
       if addicon
       {
          Send(self,@ShowAddEnchantment,#what=what,#type=ENCHANTMENT_PLAYER);
+      }
+      
+      if IsClass(what,&Hold)
+      {
+         Send(self,@SetOverlay,#what=what);
       }
 
       Post(self,@DrawResistances);
