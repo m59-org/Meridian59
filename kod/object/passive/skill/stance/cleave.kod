@@ -69,6 +69,8 @@ classvars:
    vbCheck_exertion = FALSE
 
    vbAutomatic = TRUE
+   
+   viCleaveExertion = 3
 
 properties:
 
@@ -117,6 +119,7 @@ messages:
       iDamagePercentage = 20 + iCleaveAbility/3 + iStat/10;
       iDamagePercentage = Bound(iDamagePercentage,20,63);
 
+      Send(who,@AddExertion,#amount=10000*viCleaveExertion);
       Send(self,@ImproveAbility,#who=who);
 
       return (damage * iDamagePercentage)/100;
