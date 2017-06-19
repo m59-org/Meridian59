@@ -2255,21 +2255,19 @@ messages:
                AND NOT (IsClass(self,&Player) AND NOT Send(self,@IsLoggedOn))
                AND NOT (IsClass(self,&Player) AND Send(self,@IsInCannotInteractMode))
             {
-               if Send(self,@AssessDamage,#what=self,
+               oOpponent = Send(self,@GetHighestHurtMeRecentlyBattler);
+               
+               if oOpponent = $
+               {
+                  oOpponent = self;
+               }
+               if Send(self,@AssessDamage,#what=oOpponent,
                               #damage=iBurningDamage,
                               #aspell=ATCK_SPELL_FIRE,
                               #report=FALSE,
                               #report_resistance=FALSE) = $
                {
-                  oOpponent = Send(self,@GetHighestHurtMeRecentlyBattler);
-                  if oOpponent <> $
-                  {
-                     Post(oOpponent,@KilledSomething,#what=self);
-                  }
-                  else
-                  {
-                     Post(self,@KilledSomething,#what=self);
-                  }
+                  Post(oOpponent,@KilledSomething,#what=self);
                }
             }
          }
