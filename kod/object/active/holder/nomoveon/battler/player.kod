@@ -1810,6 +1810,19 @@ messages:
      
       return;
    }
+   
+   GetBlindResistance()
+   {
+      local i, sum;
+      
+      sum = 0;
+      foreach i in plRadiusEnchantments
+      {
+         sum = Send(First(i),@AddBlindResistance,#power=Nth(i,2),#resistance=sum);
+      }
+
+      return sum;
+   }
 
    GetHoldResistance()
    {
@@ -1840,11 +1853,16 @@ messages:
 
    GetBaseResistances()
    {
-      local lResistances;
+      local lResistances, i;
       
       lResistances = ListCopy(plResistances);
 
       lResistances = Send(SYS,@AddResistance,#resistance_list=lResistances,#what=-ATCK_SPELL_ILLUSION,#value=Send(self,@GetIntellect));
+
+      foreach i in plRadiusEnchantments
+      {
+         lResistances = Send(First(i),@ModifyResistances,#resistance_list=lResistances,#lRadiusState=i);
+      }
 
       if Nth(plPrismsDefeated,NTH_LIGHTNING_PRISM) = 1
       {
