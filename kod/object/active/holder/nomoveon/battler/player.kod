@@ -800,6 +800,8 @@ resources:
       "charge from the released energy of your kill."
    rods_fully_recharged_by_safe_place_msg = \
       "This place of safety has recharged your magical rods."
+   hexes_removed_by_safe_place_msg = \
+      "As you reach safety, you feel your curse ebb."
 
    player_truced = "Shal'ille's magic compels you to respect the truce."
 
@@ -17001,6 +17003,29 @@ messages:
    GetManaSurgeTimer()
    {
       return ptCrystalizeManaSurgeTimer;
+   }
+
+   RemoveAllHexes()
+   {
+      local i, bRemovedHexes;
+      
+      bRemovedHexes = FALSE;
+      
+      foreach i in plEnchantments
+      {
+         if isClass(Nth(i,2),&Hex)
+         {
+            Send(self,@RemoveEnchantment,#what=Nth(i,2));
+            bRemovedHexes = TRUE;
+         }
+      }
+      
+      if bRemovedHexes
+      {
+         Send(self,@MsgSendUser,#message_rsc=hexes_removed_by_safe_place_msg);
+      }
+      
+      return;
    }
 
    RechargeAllRods()
