@@ -36,6 +36,9 @@ resources:
    hold_player_rsc = \
       holdrings.bgf
 
+   hold_ring_projectile_rsc = \
+      blindring.bgf
+
 classvars:
 
    vrName = hold_name_rsc
@@ -65,6 +68,19 @@ classvars:
    vrHoldRings = hold_player_rsc
 
    viLayer = 9
+
+   vrProjectile_Icon = hold_ring_projectile_rsc
+
+   vbIsRangedAttack = FALSE
+
+   viProjectileFlag = PROJ_FLAG_LIGHT_SOURCE
+
+   % Projectile lighting information.
+   viProjectileLightFlags = LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC
+   % Medium light range, out of 255.
+   viProjectileLightIntensity = 100
+   % Default color is lightning.
+   viProjectileLightColor = LIGHT_BPURPLE
 
 properties:
 
@@ -131,9 +147,12 @@ messages:
 
    CastSpell(who=$,lTargets=$,iSpellpower=0,report=TRUE)
    {
-      local oTarget;
+      local oTarget, oOwner, i;
 
+      oOwner = Send(who,@GetOwner);
       oTarget = First(lTargets);
+
+      Send(oOwner,@SomethingShot,#who=who,#target=oTarget,#projectile=self,#flags=viProjectileFlag);
 
       % Spell effects.
       Send(self,@DoSpell,#what=who,#oTarget=oTarget,#report=report,
@@ -239,7 +258,12 @@ messages:
 
    EndEnchantment(who=$,report=TRUE,state=$)
    {
-      Send(who,@RemoveOverlay,#what=self);
+      if who <> $
+         AND IsClass(who,&Player)
+      {
+         Send(who,@RemoveOverlay,#what=self);
+      }
+      
       if IsClass(who,&Player)
       {
          % Don't override phasing hold.
@@ -336,6 +360,38 @@ messages:
    GetOverlay(animation = $)
    {
       return hold_player_rsc;
+   }
+
+   % Return the icon used to display a spell shooting through the air.
+   GetProjectileIcon()
+   {
+      return vrProjectile_Icon;
+   }
+
+   GetProjectileSpeed()
+   {
+      return 18;
+   }
+
+   SendProjectileAnimation()
+   {
+      AddPacket(1, ANIMATE_CYCLE, 4, 40, 2, 1, 2, 6);   % 40ms between animations
+      return;
+   }
+
+   GetProjectileLightFlags()
+   {
+      return viProjectileLightFlags;
+   }
+
+   GetProjectileLightIntensity()
+   {
+      return viProjectileLightIntensity;
+   }
+
+   GetProjectileLightColor()
+   {
+      return viProjectileLightColor;
    }
 
 end

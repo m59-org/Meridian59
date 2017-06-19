@@ -16618,6 +16618,14 @@ messages:
 
          return;
       }
+      
+      % Hold gives off a purple glow
+      if Send(self,@IsEnchanted,#byClass=&Hold)
+      {
+         AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC),
+                   1,100, 2,LIGHT_BPURPLE);
+         return;
+      }
 
       % Bitflag check, don't need to check anything if not set.
       if NOT (piDrawEffectFlag & OF_FLICKERING)
