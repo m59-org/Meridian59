@@ -916,14 +916,15 @@ messages:
    
    DoCurse(who=$)
    {
-      local iRandomCurse, i;
+      local iRandomCurse, i, oAfterlife;
       
       iRandomCurse = Random(1,4);
       switch(iRandomCurse)
       {
          case 1:
             Send(who,@MsgSendUser,#message_rsc=altar_curse_death);
-            Send(who,@Killed);
+            oAfterlife = Send(SYS,@FindRoomByNum,#num=RID_DESERTALDUNES);
+            Send(oAfterlife,@Teleport,#what=who);
             break;
          case 2:
             Send(who,@MsgSendUser,#message_rsc=altar_curse_lose_experience);
