@@ -145,14 +145,22 @@ messages:
       propagate;
    }
 
-   CastSpell(who=$,lTargets=$,iSpellpower=0,report=TRUE)
+   CastSpell(who=$,wielder=$,lTargets=$,iSpellpower=0,report=TRUE)
    {
-      local oTarget, oOwner, i;
+      local oTarget, oRoom, i;
 
-      oOwner = Send(who,@GetOwner);
       oTarget = First(lTargets);
-
-      Send(oOwner,@SomethingShot,#who=who,#target=oTarget,#projectile=self,#flags=viProjectileFlag);
+      % Is this a proc from a weapon?
+      if wielder = $
+      {
+         oRoom = Send(who,@GetOwner);
+         Send(oRoom,@SomethingShot,#who=who,#target=oTarget,#projectile=self,#flags=viProjectileFlag);
+      }
+      else
+      {
+         oRoom = Send(wielder,@GetOwner);
+         Send(oRoom,@SomethingShot,#who=wielder,#target=oTarget,#projectile=self,#flags=viProjectileFlag);
+      }
 
       % Spell effects.
       Send(self,@DoSpell,#what=who,#oTarget=oTarget,#report=report,
