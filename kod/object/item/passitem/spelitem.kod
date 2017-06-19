@@ -286,9 +286,12 @@ messages:
                            #byClass=&AntiMagicAura);
       if lRadiusState <> $
       {
-         iSpellPower = Send(First(lRadiusState),@ModifySpellpower,#who=poOwner,
+         if IsClass(self,&Wand)
+         {
+            iSpellPower = Send(First(lRadiusState),@ModifySpellpower,#who=poOwner,
                               #oSpell=oSpell,#state=lRadiusState,
                               #iSpellPower=iSpellPower);
+         }
       }
 
       % Mana convergence adds spellpower.
