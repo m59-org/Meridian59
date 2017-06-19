@@ -29,7 +29,7 @@ BGFS = igreyinvis.bgf isitting.bgf itransferitem.bgf iexplosion.bgf irift.bgf \
        phkxt3.bgf phkxt2.bgf phkxt1.bgf phaxt2.bgf phaxt3.bgf phaxt4.bgf \
        phaxt5.bgf blastfireproj.bgf explosivefrostproj.bgf illwoundsproj.bgf \
        shockingfuryproj.bgf vampdrainproj.bgf holdrings.bgf \
-       blindring.bgf
+       blindring.bgf majorheartstone.bgf
 
 DIRS = 
 
