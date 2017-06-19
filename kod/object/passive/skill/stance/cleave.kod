@@ -32,7 +32,7 @@ resources:
       "Such attacks may do less than full damage, but will still be deadly. Cleaving can be done with "
       "fencing weapons, axes, and scimitars, but the maneuver will result in a slashing attack type "
       "regardless of weapon employed. A cleaving attack will attempt to strike all enemies within "
-      "range."
+      "range. Axes are the most effective weapon for cleaving."
 
    Cleave_skill_intro = \
       "Weaponcraft Lv. 5: A stance that allows the warrior to swing at multiple enemies."
@@ -108,16 +108,24 @@ messages:
 
    GetCleaveDamage(who=$, damage=0)
    {
-      local iCleaveAbility, iStat, iDamagePercentage;
+      local iCleaveAbility, iStat, iDamagePercentage, oWeapon, iWeaponModifier;
       
+      oWeapon = Send(who,@GetWeapon);
       iCleaveAbility = Send(who,@GetSkillAbility,#skill_num=viSkill_num);
       iStat = Send(self,@GetRequisiteStat,#who=who);
 
       % Cleaving attacks do as little as 20% damage,
       % and as much as 60% damage at 70 Might and 99%.
+      
+      iWeaponModifier = 100;
+      if oWeapon <> $
+      {
+         % Different types of weapons are better or worse for cleaving
+         iWeaponModifier = Send(oWeapon,@GetCleaveModifier);
+      }
 
-      iDamagePercentage = 20 + iCleaveAbility/3 + iStat/10;
-      iDamagePercentage = Bound(iDamagePercentage,20,63);
+      iDamagePercentage = ((20 + iCleaveAbility/3 + iStat/10) * (iWeaponModifier))/100;
+      iDamagePercentage = Bound(iDamagePercentage,1,63);
 
       Send(who,@AddExertion,#amount=10000*viCleaveExertion);
       Send(self,@ImproveAbility,#who=who);
