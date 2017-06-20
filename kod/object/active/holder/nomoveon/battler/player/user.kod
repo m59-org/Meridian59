@@ -6441,7 +6441,8 @@ messages:
          AND IsClass(oStance,&Cleave)
       {
          % User is attempting to multi-attack.
-         if Send(use_weapon,@CanCleave)
+         if use_weapon <> $
+            AND Send(use_weapon,@CanCleave)
          {
             return Send(self,@TryCleaveAttack,#what=what,#use_weapon=use_weapon,#stroke_obj=stroke_obj);
          }
