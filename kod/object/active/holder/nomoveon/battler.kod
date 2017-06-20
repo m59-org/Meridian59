@@ -2046,7 +2046,7 @@ messages:
       return rTumbleSoundFour;
    }
 
-   ApplyElementalStatusEffects(damage=1,aspell=0,what=$,absolute=FALSE)
+   ApplyElementalStatusEffects(damage=1,bSecondary=FALSE,aspell=0,what=$,absolute=FALSE)
    {
       local iIllusionDamage;
 
@@ -2063,6 +2063,7 @@ messages:
          AND IsClass(what,&Player)
          AND Send(SETTINGS_OBJECT,@GetSorcerySchoolExpansion)
          AND Send(what,@GetSkillAbility,#skill_num=SKID_EMPOWERMENT) > 0
+         AND NOT bSecondary
       {
          % Is a master Sorcerer applying these effects? Boost them.
          damage = (damage * Send(Send(SYS,@FindSkillByNum,
@@ -2263,6 +2264,7 @@ messages:
                }
                if Send(self,@AssessDamage,#what=oOpponent,
                               #damage=iBurningDamage,
+                              #bSecondary=TRUE,
                               #aspell=ATCK_SPELL_FIRE,
                               #report=FALSE,
                               #report_resistance=FALSE) = $
@@ -2302,6 +2304,7 @@ messages:
       }
       
       if plStatusEffects <> $
+         AND ptStatusEffectTimer = $
       {
          ptStatusEffectTimer = CreateTimer(self,@StatusEffectTimer,
                                            Send(SETTINGS_OBJECT,
