@@ -6422,9 +6422,10 @@ messages:
 
       if poStance <> $
          AND IsClass(poStance,&Cleave)
-         AND oWeapon <> $
-         AND Send(oWeapon,@CanCleave)
+         AND Send(self,@GetWeapon) <> $
+         AND Send(Send(self,@GetWeapon),@CanCleave)
       {
+         Debug("doing cleave damage");
          iDamage = Send(poStance,@GetCleaveDamage,#who=self,#damage=iDamage);
       }
 
