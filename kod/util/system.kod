@@ -556,6 +556,11 @@ properties:
    % [mantra, skid]
    plStanceMantras = $
 
+   % There is only one Spherical (AKA one-sided) Prism per server.
+   % It can only be used by the Necromancer Guild, and it always resides in the Sanctum of Queen Venya'cyr.
+   % It is accessed by some Necromancer-Guild-only spells.
+   poSphericalPrism = $
+
 messages:
 
    GetName()
@@ -8645,6 +8650,23 @@ messages:
       }
       
       return iHighestHolder;
+   }
+
+   SphericalPrismCreated(what=$)
+   {
+      poSphericalPrism = what;
+      return;
+   }
+   
+   SphericalPrismDestroyed()
+   {
+      poSphericalPrism = $;
+      return;
+   }
+
+   GetSphericalPrism()
+   {
+      return poSphericalPrism;
    }
 
 end

@@ -52,8 +52,8 @@ classvars:
 
    vrName = room_name_guildh15
 
-   viTeleport_row = 13
-   viTeleport_col = 14
+   viTeleport_row = 3
+   viTeleport_col = 4
 
    viNews_row = 16
    viNews_col = 47
@@ -97,6 +97,12 @@ properties:
 
    plChestArea1 = $
    plChestArea2 = $
+   
+   % There is only one spherical prism per server, and it is here.
+   % It cannot be moved.
+   % It can only be used by the Necromancer Guild.
+   % Coordinates same as Ao3: 13,14,29,22
+   poSphericalPrism = $
 
 messages:
 
@@ -114,6 +120,16 @@ messages:
       plChestArea1 = [1951, 2240, 1371, 1501];
       plChestArea2 = [2187, 2612, 1125, 1750];
 
+      propagate;
+   }
+   
+   Constructed()
+   {
+      poSphericalPrism = Create(&SpherePrism);
+      Send(self,@NewHold,#what=poSphericalPrism,#new_row=13,
+                                                #new_col=14,
+                                                #fine_row=29,
+                                                #fine_col=22);
       propagate;
    }
 

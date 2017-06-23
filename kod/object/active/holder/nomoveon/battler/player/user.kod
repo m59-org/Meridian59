@@ -480,6 +480,12 @@ resources:
    track_target_not_logged_on = \
       "That person is not in the world at this time."
 
+   necromancer_guildmaster_bind_here = \
+      "You mutter mystic necromantic incantations under your breath and spill a small amount of blood. "
+      "The spherical prism in your Queen's Inner Sanctum will now lead here."
+   necromancer_guildmaster_cant_bind_here = \
+      "This place refuses that kind of energy. You cannot bind here."
+
 classvars:
 
    viIndefinite = ARTICLE_NONE
@@ -5178,6 +5184,25 @@ messages:
 
       if type = SAY_NORMAL
       {
+         if StringEqual(String,"Bind our will here.")
+            AND Send(self,@GetGuild) <> $
+            AND IsClass(Send(self,@GetGuild),&NecromancerGuild)
+            AND Send(Send(self,@GetGuild),@GetGuildMaster) = self
+            AND Send(SYS,@GetSphericalPrism) <> $
+            AND poOwner <> $
+         {
+            if Send(poOwner,@CanHavePlayerPortal)
+            {
+               Send(self,@MsgSendUser,#message_rsc=necromancer_guildmaster_bind_here);
+               Send(Send(SYS,@GetSphericalPrism),@LearnLocation,#lLocation=[Send(poOwner,@GetRoomNum),Send(self,@GetRow),Send(self,@GetCol),Send(self,@GetFineRow),Send(self,@GetFineCol)]);
+            }
+            else
+            {
+               Send(self,@MsgSendUser,#message_rsc=necromancer_guildmaster_cant_bind_here);
+            }
+            return;
+         }
+
          if StringEqual(String,"surrender")
             AND Send(self,@IsPhasedOut)
          {
