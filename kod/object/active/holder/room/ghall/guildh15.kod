@@ -557,5 +557,21 @@ messages:
       return RID_BRAX;
    }
 
+   GetSphericalPrism()
+   {
+      local i, each_obj;
+      
+      foreach i in Send(self,@GetHolderPassive)
+      {
+         each_obj = Send(self,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&SpherePrism)
+         {
+            return each_obj;
+         }
+      }
+
+      return $;
+   }
+
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

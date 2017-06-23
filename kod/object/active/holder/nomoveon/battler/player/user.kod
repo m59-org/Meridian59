@@ -5188,13 +5188,13 @@ messages:
             AND Send(self,@GetGuild) <> $
             AND IsClass(Send(self,@GetGuild),&NecromancerGuild)
             AND Send(Send(self,@GetGuild),@GetGuildMaster) = self
-            AND Send(SYS,@GetSphericalPrism) <> $
+            AND Send(Send(self,@GetGuild),@GetGuildHall) <> $
             AND poOwner <> $
          {
             if Send(poOwner,@CanHavePlayerPortal)
             {
                Send(self,@MsgSendUser,#message_rsc=necromancer_guildmaster_bind_here);
-               Send(Send(SYS,@GetSphericalPrism),@LearnLocation,#lLocation=[Send(poOwner,@GetRoomNum),Send(self,@GetRow),Send(self,@GetCol),Send(self,@GetFineRow),Send(self,@GetFineCol)]);
+               Send(Send(Send(Send(self,@GetGuild),@GetGuildHall),@GetSphericalPrism),@LearnLocation,#lLocation=[Send(poOwner,@GetRoomNum),Send(self,@GetRow),Send(self,@GetCol),Send(self,@GetFineRow),Send(self,@GetFineCol)]);
             }
             else
             {

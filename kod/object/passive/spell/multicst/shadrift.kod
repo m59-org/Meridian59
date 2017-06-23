@@ -135,12 +135,24 @@ messages:
 
    CanPayCosts(who=$,lTargets=$,iSpellPower=0)
    {
+      local i, each_obj;
       if IsClass(who,&Player)
          AND NOT Send(who,@IsUndead)
          AND NOT IsClass(who,&DM)
       {
          Send(who,@MsgSendUser,#message_rsc=deathsDoor_necros_only);
          return FALSE;
+      }
+      
+      foreach i in Send(Send(who,@GetOwner),@GetHolderActive)
+      {
+         each_obj = Send(Send(who,@GetOwner),@HolderExtractObject,#data=i);
+         
+         if IsClass(each_obj,&NecropolisPortal)
+         {
+            Send(who,@MsgSendUser,#message_rsc=DeathsDoor_already);
+            return FALSE;
+         }
       }
       propagate;
    }
