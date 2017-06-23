@@ -15016,6 +15016,8 @@ messages:
 
       local iHistory;
       
+      ptFactionTimer = $;
+      
       if piFaction = FACTION_NEUTRAL
       {
          return;
@@ -18007,6 +18009,20 @@ messages:
                                    #parm2=Send(SETTINGS_OBJECT,@GetPrismMaxResistanceReward),
                                    #parm3=Send(SETTINGS_OBJECT,@GetPrismEmpowermentReward));
             return;
+      }
+      return;
+   }
+
+   BrokenFactionTimerCheck()
+   {
+      % This will throw one-time errors because GetTimeRemaining will fail.
+      % However, it will fix the error on existing characters.
+      % ptFactionTimer sometimes didn't clear for some reason
+      % and ResetTimerReference will throw complaints forever.
+      if ptFactionTimer <> $
+         AND GetTimeRemaining(ptFactionTimer) = $
+      {
+         ptFactionTimer = $;
       }
       return;
    }
