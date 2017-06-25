@@ -112,6 +112,9 @@ resources:
       "I promise you.)"
 
 
+   cannot_lightning_strike_here_ancient = \
+      "Underground mechanisms drain away the energy of your lightning strike!"
+
 classvars:
 
    vrName = room_name_OutdoorsG9
@@ -1137,6 +1140,17 @@ messages:
    CanHavePlayerPortal()
    {
       return FALSE;
+   }
+
+   ReqSpellCast(who = $, oSpell = $, lItems = $)
+   {
+      if IsClass(oSpell,&LightningStrike)
+      {
+         Send(who,@MsgSendUser,#message_rsc=cannot_lightning_strike_here_ancient);
+         return FALSE;
+      }
+
+      propagate;
    }
 
 end

@@ -22,6 +22,9 @@ resources:
    room_name_OutdoorsG8 ="The Cragged Mountains"
    OutdoorsG8_music = walk4.mp3
 
+   cannot_lightning_strike_here_cragged = \
+      "Strange dampening magics prevent your lightning strike!"
+
 classvars:
 
    vrName = room_name_OutdoorsG8
@@ -88,6 +91,17 @@ messages:
    CanHavePlayerPortal()
    {
       return FALSE;
+   }
+
+   ReqSpellCast(who = $, oSpell = $, lItems = $)
+   {
+      if IsClass(oSpell,&LightningStrike)
+      {
+         Send(who,@MsgSendUser,#message_rsc=cannot_lightning_strike_here_cragged);
+         return FALSE;
+      }
+
+      propagate;
    }
 
 end
