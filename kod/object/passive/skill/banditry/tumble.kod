@@ -77,9 +77,12 @@ messages:
 
          % Up to 5% from skill, and 5-7% from stat
          chance = ((iAbility+1)/20) + (iAgility / 10);
+         
+         % Give them at least 1% minimum chance to tumble if they have the skill
+         chance = Bound(chance,1,$);
       }
 
-      if chance > Random(1,100)
+      if chance >= Random(1,100)
       {
          Send(self,@ImproveAbility,#who=who);
       
