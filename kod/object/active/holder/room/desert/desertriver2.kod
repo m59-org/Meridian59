@@ -132,6 +132,14 @@ resources:
       "This water is on the verge of boiling. You cannot proceed while the Prism of Fire "
       "remains undefeated!"
 
+   sucked_into_dimensional_breach = \
+      "As %s phases into the elemental plane of fire, a tremendous blast of heated energy "
+      "pushes you beyond the dimensional barrier as well!"
+
+   enter_dimensional_breach = \
+      "As you phase into the elemental plane of fire, you feel a blast of heated energy "
+      "roar around you!"
+
 classvars:
 
    viTeleport_row = 8
@@ -801,6 +809,29 @@ messages:
       }
 
       propagate;
+   }
+
+   EnterPrism(who=$)
+   {
+      local i, each_obj;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         each_obj = Send(self,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&Player)
+         {
+            if each_obj = who
+            {
+               Send(each_obj,@MsgSendUser,#message_rsc=enter_dimensional_breach);
+            }
+            else
+            {
+               Send(each_obj,@MsgSendUser,#message_rsc=sucked_into_dimensional_breach,#parm1=Send(who,@GetName));
+            }
+            Post(Send(SYS,@FindRoomByNum,#num=RID_PRISM_OF_FIRE),@Teleport,#what=each_obj);
+         }
+      }
+      return;
    }
 
 end
