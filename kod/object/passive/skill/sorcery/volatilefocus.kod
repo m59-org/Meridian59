@@ -104,6 +104,11 @@ messages:
       iInitialManaCost = Send(oSpell,@GetManaCost,#who=who,#iSpellPower=iSpellPower);
       iInitialTimeCost = Send(oSpell,@GetCastTime);
       
+      if iInitialTimeCost = 0
+      {
+         return FALSE;
+      }
+      
       % This produces the percentage we are through the spell.
       iTimeProgress = ((iInitialTimeCost - time_remaining)*100)/iInitialTimeCost;
       iTimeProgress = Bound(iTimeProgress,0,100);
