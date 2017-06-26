@@ -32,9 +32,14 @@ constants:
 
    include blakston.khd
 
-   % South wall sectors: 6, 15, 22, 39, 46, 63, 70, 87, 94, 111, 118, 135, 142, 159, 165, 182
-   % Southeast wall sec: 110, 119, 120, 133, 132, 145, 146, 155, 153, 154, 152, 151
    % east wall sectors: 151-162
+   % Southeast wall sec: 110, 119, 120, 133, 132, 145, 146, 155, 153, 154, 152, 151
+   % South wall sectors: 6, 15, 22, 39, 46, 63, 70, 87, 94, 111, 118, 135, 142, 159, 165, 182
+   % Southwest wall sec: 71, 62, 61, 48, 49, 36, 35, 34, 33, 32, 31
+   % West wall sectors: 31-42
+   % northwest wall sectors: 59, 50, 49, 36, 37, 38, 39
+   % north wall sectors: 10, 27, 34, 51, 58, 75, 82, 99, 106, 123, 130, 147, 154, 171, 178, 192
+   % northeast wall sectors; 122, 131, 132, 145, 144, 157, 158, 159, 
    
 resources:
 
@@ -56,18 +61,50 @@ properties:
    piDirectional_percent = DIRECTIONAL_PERCENT_OUTDOORS
 
    prRoom = room_desertsteppes
-   piRoom_num = $
+   piRoom_num = RID_DESERTSTEPPES
    
    piLatitude = 1
    piLongitude = 1
+   
+   piDrop = -8
+   piRaise = 8
 
 messages:
 
-   Constructor(iLatitude=$,iLongitude=$)
+   Constructor(iLatitude=1,iLongitude=1)
    {
       piLatitude = iLatitude;
       piLongitude = iLongitude;
+      
+      
       propagate;
+   }
+
+   Randomize()
+   {
+      local iCount, iLastHeight;
+      
+      iCount = 192;
+      iLastHeight = 100;
+      
+      while iCount >= 1
+      {
+         if Random(1,100) = 1
+         {
+            Send(self,@SetSector,#sector=iCount,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+         }
+         else
+         {
+            iLastHeight = iLastHeight + Random(piDrop,piRaise);
+            Send(self,@SetSector,#sector=iCount,#animation=ANIMATE_FLOOR_LIFT,#height=iLastHeight,#speed=0);
+         }
+         iCount--;
+      }
+      
+      prBackground = background_chaos_night;
+      Send(self,@BackgroundChanged);
+
+      return;
    }
 
    SomethingMoved(what = $,new_row = $, new_col = $)
@@ -97,6 +134,68 @@ messages:
       }
 
       propagate;
+   }
+
+   
+   RaiseEastWall()
+   {
+      Send(self,@SetSector,#sector=151,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=152,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=153,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=154,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=155,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=156,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=157,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=158,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=159,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=160,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=161,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=162,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      return;
+   }
+   
+   RaiseSouthEastWall()
+   {
+      Send(self,@SetSector,#sector=110,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=119,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=120,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=133,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=132,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=145,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=146,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=155,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=153,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=154,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=152,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=151,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      return;
+   }
+
+   % Southwest wall sec: 71, 62, 61, 48, 49, 36, 35, 34, 33, 32, 31
+   % West wall sectors: 31-42
+   % northwest wall sectors: 59, 50, 49, 36, 37, 38, 39
+   % north wall sectors: 10, 27, 34, 51, 58, 75, 82, 99, 106, 123, 130, 147, 154, 171, 178, 192
+   % northeast wall sectors; 122, 131, 132, 145, 144, 157, 158, 159, 
+   
+   RaiseSouthWall()
+   {
+      Send(self,@SetSector,#sector=6,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=15,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=22,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=39,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=46,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=63,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=70,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=87,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=94,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=111,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=118,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=135,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=142,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=159,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=165,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=182,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      return;
    }
 
 end

@@ -128,6 +128,10 @@ resources:
       "~BA band of brave warriors have sealed the Prism of Fire in Biskalane! "
       "For a time, the element of fire will be ally instead of foe."
 
+   cannot_proceed_wallhack = \
+      "This water is on the verge of boiling. You cannot proceed while the Prism of Fire "
+      "remains undefeated!"
+
 classvars:
 
    viTeleport_row = 8
@@ -284,6 +288,22 @@ messages:
               #new_row=37,#new_col=18,#fine_row=42,#fine_col=12,
               #new_angle=Send(what,@GetAngle));
               
+         return;
+      }
+
+      if new_row > (Send(self,@GetRoomRows)-2)
+      {
+         if pbPrismOfFireDefeated
+         {
+            Send(SYS,@UtilGoNearSquare,#what=what,
+                 #where=Send(SYS,@FindRoomByNum,#num=RID_DESERTRIVER3),
+                 #new_row=3,#new_col=7,#fine_row=36,#fine_col=0,
+                 #new_angle=Send(what,@GetAngle));
+         }
+         else
+         {
+            Send(what,@MsgSendUser,#message_rsc=cannot_proceed_wallhack);
+         }
          return;
       }
 
