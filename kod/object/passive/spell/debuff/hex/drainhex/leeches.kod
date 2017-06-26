@@ -85,6 +85,12 @@ messages:
    {
       local iStealAmount;
       
+      if NOT IsClass(what,&Monster)
+         AND NOT IsClass(what,&Player)
+      {
+         return;
+      }
+      
       iStealAmount = piBaseEffect * state / 100;
       if Send(what,@GetExactHealth) > iStealAmount
       {

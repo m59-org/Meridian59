@@ -79,6 +79,12 @@ messages:
    {
       local iStealAmount;
       
+      if NOT IsClass(what,&Monster)
+         AND NOT IsClass(what,&Player)
+      {
+         return;
+      }
+      
       iStealAmount = piBaseEffect * state / 100;
       if IsClass(what,&Monster)
          OR Send(what,@GetVigor)*1000 > iStealAmount

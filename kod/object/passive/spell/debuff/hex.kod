@@ -63,6 +63,13 @@ messages:
          return FALSE;
       }
       
+      if First(lTargets) = $
+         OR (NOT IsClass(First(lTargets),&Player)
+            AND NOT IsClass(First(lTargets),&Monster))
+      {
+         return FALSE;
+      }
+      
       if (Send(First(lTargets),@GetNumHexes) >= 
             Send(SETTINGS_OBJECT,@GetHexesMax))
          AND NOT Send(SETTINGS_OBJECT,@GetHexesReplace)
