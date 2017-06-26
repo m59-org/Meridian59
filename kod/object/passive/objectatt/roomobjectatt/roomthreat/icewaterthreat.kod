@@ -30,7 +30,13 @@ resources:
    icewater_threat_end_msg = \
       "The elemental chill fades."
    icewater_threat_damage_msg = \
-      "The elemental chill scrapes like raw daggers down the bones in your legs."
+      "~b~BThe elemental chill scrapes like raw daggers down the bones in your legs."
+
+   remove_all_minions_icewater = \
+      "~bThe extreme cold drains all the energy from your connection to your minions!"
+
+   icewater_remove_shadow_form = \
+      "~b~BThe shadows clinging to your body make you more vulnerable to the cold here!"
 
    icewater_death_msg = \
       "~B~U~k[###]~n ~B~v%s froze to death in the Prism of Ice."
@@ -81,9 +87,22 @@ messages:
       
       if who <> $
          AND IsClass(who,&Player)
-         AND Send(who,@GetHeightAtObject) >= 0
       {
-         return FALSE;
+         if Send(who,@GetControlledMinions) <> $
+         {
+            Send(who,@MsgSendUser,#message_rsc=remove_all_minions_icewater);
+            Send(who,@RemoveAllMinions);
+         }
+         if Send(who,@IsEnchanted,#byClass=&ShadowForm)
+         {
+            % Let them get hit by the ice water anywhere if shadow formed.
+            Send(who,@MsgSendUser,#message_rsc=icewater_remove_shadow_form);
+            return TRUE;
+         }
+         if Send(who,@GetHeightAtObject) >= 0
+         {
+            return FALSE;
+         }
       }
 
       propagate;

@@ -56,7 +56,12 @@ resources:
 
    magma_death_msg = \
       "~B~U~k[###]~n ~B~v%s was cooked alive by the heat of elemental magma."
-      
+
+   magma_kills_illusion_summons = \
+      "~B~rThe heat melts away your illusionary minion!"
+   magma_burns_away_shadow_form = \
+      "~B~rThe heat burns away the shadows clinging to you!"
+
    magma_sound = fire02.wav
 
 classvars:
@@ -119,6 +124,13 @@ messages:
          if IsClass(First(i),&Player)
          {
             Send(self,@DealLavaHeatDamage,#who=First(i));
+            Send(self,@RemoveOffendingEnchantments,#who=First(i));
+         }
+         if IsClass(First(i),&Reflection)
+            or IsClass(First(i),&EvilTwin)
+         {
+            Send(Send(First(i),@GetMaster),@MsgSendUser,#message_rsc=magma_kills_illusion_summons);
+            Send(First(i),@Delete);
          }
       }
 
@@ -139,6 +151,19 @@ messages:
      % Interferes with room's events
      % Send(poHostObject,@Rumble,#duration=piRumbleDuration);
 
+      return;
+   }
+
+   RemoveOffendingEnchantments(who=$)
+   {
+      local oShadowForm;
+      
+      oShadowForm = Send(SYS,@FindSpellByNum,#num=SID_SHADOW_FORM);
+      if Send(who,@IsEnchanted,#what=oShadowForm)
+      {
+         Send(who,@MsgSendUser,#message_rsc=magma_burns_away_shadow_form);
+         Send(who,@RemoveEnchantment,#what=oShadowForm);
+      }
       return;
    }
 
