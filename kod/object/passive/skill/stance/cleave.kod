@@ -70,7 +70,7 @@ classvars:
 
    vbAutomatic = TRUE
    
-   viCleaveExertion = 3
+   viCleaveExertion = 1
 
 properties:
 
@@ -114,8 +114,8 @@ messages:
       iCleaveAbility = Send(who,@GetSkillAbility,#skill_num=viSkill_num);
       iStat = Send(self,@GetRequisiteStat,#who=who);
 
-      % Cleaving attacks do as little as 20% damage,
-      % and as much as 60% damage at 70 Might and 99%.
+      % Cleaving attacks do as little as 40% damage,
+      % and as much as 80% damage at 70 Might and 99%.
       
       iWeaponModifier = 100;
       if oWeapon <> $
@@ -124,8 +124,8 @@ messages:
          iWeaponModifier = Send(oWeapon,@GetCleaveModifier);
       }
 
-      iDamagePercentage = ((20 + iCleaveAbility/3 + iStat/10) * (iWeaponModifier))/100;
-      iDamagePercentage = Bound(iDamagePercentage,1,63);
+      iDamagePercentage = ((40 + iCleaveAbility/3 + iStat/10) * (iWeaponModifier))/100;
+      iDamagePercentage = Bound(iDamagePercentage,1,83);
 
       Send(who,@AddExertion,#amount=10000*viCleaveExertion);
       Send(self,@ImproveAbility,#who=who);

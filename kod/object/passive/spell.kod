@@ -1796,7 +1796,10 @@ messages:
       }
       
       % Spell successfully cast. Remove Blood Magic no-imp boolean.
-      Send(who,@CastOrFizzledNoteBloodMagic);
+      if IsClass(who,&Player)
+      {
+         Send(who,@CastOrFizzledNoteBloodMagic);
+      }
 
       % Count that this spell was cast successfully
       Send(Send(SYS,@GetStatistics),@SpellCast,#oSpell=self,#who=who);
