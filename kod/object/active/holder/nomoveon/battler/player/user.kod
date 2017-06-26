@@ -9265,15 +9265,24 @@ messages:
 
    SendStatHPChance()
    {
-      local iHPChance_Send, highmark, iExperienceSystem, iExperienceNeeded;
+      local iHPChance_Send, highmark, iExperienceSystem, iExperience, iExperienceNeeded;
   
       iExperienceSystem = Send(SETTINGS_OBJECT,@GetExperienceSystem);
       
       if iExperienceSystem = EXPERIENCE_SYSTEM_MODERN
       {
          iExperienceNeeded = Send(self,@GetExperienceNeeded);
+         iExperience = piExperience;
+         if iExperienceNeeded = 0
+         {
+            iExperienceNeeded = 1;
+         }
+         if iExperience = 0
+         {
+            iExperience = 1;
+         }
          AddPacket(1,4, 4,user_stat_hpgainchance, 1,STAT_VALUE, 1,STAT_INTEGER,
-               4,piExperience, 4,0, 4,iExperienceNeeded, 4,iExperienceNeeded);
+               4,iExperience, 4,0, 4,iExperienceNeeded, 4,iExperienceNeeded);
          return;
       }
 
