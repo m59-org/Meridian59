@@ -46,12 +46,20 @@ resources:
    room_desertsteppes = desertsteppes.roo
    room_name_desertsteppes = "Sandswept Steppes"
 
+   second_desert_incomplete = \
+      "Congratulations! You've reached the second area of the desert! "
+      "This area is not yet in to avoid it being spoiled by players looking at "
+      "the open source code on Github. Please inform the administrator it's time "
+      "to patch :)"
+
 classvars:
 
    vrName = room_name_desertsteppes
 
    viTeleport_row = 60
    viTeleport_col = 102
+   
+   vbSpawnMonsters = TRUE
 
 properties:
 
@@ -78,6 +86,84 @@ messages:
       
       
       propagate;
+   }
+   
+   NewHold(what = $)
+   {
+      % Inform players of the situation.
+      if IsClass(what,&Player)
+      {
+         Send(what,@MsgSendUser,#message_rsc=second_desert_incomplete);
+      }
+      propagate;
+   }
+   
+   FirstUserEntered()
+   {
+      Send(self,@Randomize);
+
+      propagate;
+   }
+
+   PopulateArea()
+   {
+      local i, iNumMonsters, oMonster, lMonsters, lClasses, iMinRow, iMinCol, iMaxRow, iMaxCol, iChosenAngle;
+
+      lClasses = [&Chupacabra];
+
+      iNumMonsters = Random(5,15);
+      lMonsters = $;
+
+      while iNumMonsters > 0
+      {
+         lMonsters = Cons(Nth(lClasses,Random(1,Length(lClasses))),lMonsters);
+         --iNumMonsters;
+      }
+
+      if viMaxSpawnRow = 0
+      {
+         iMaxRow = Send(self,@GetRoomRows)-1;
+      }
+      else
+      {
+         iMaxRow = viMaxSpawnRow;
+      }
+
+      if viMaxSpawnCol = 0
+      {
+         iMaxCol = Send(self,@GetRoomCols)-1;
+      }
+      else
+      {
+         iMaxCol = viMaxSpawnCol;
+      }
+
+      iChosenAngle = ANGLE_EAST;
+      switch(Random(1,4))
+      {
+         case 1:
+            iChosenAngle = ANGLE_WEST;
+            break;
+         case 2:
+            iChosenAngle = ANGLE_NORTH;
+            break;
+         case 3:
+            iChosenAngle = ANGLE_SOUTH;
+            break;
+         case 4:
+            iChosenAngle = ANGLE_EAST;
+            break;
+      }
+
+      foreach i in lMonsters
+      {
+         Send(self,@NewHold,#what=Create(i,#piSurvivalLevel=Send(Send(SYS,@GetDesertRoomMaintenance),@GetBoostDesertLevel)),
+               #new_row=Random(viMinSpawnRow,iMaxRow),
+               #new_col=Random(viMinSpawnCol,iMaxCol),
+               #new_angle=iChosenAngle);
+      }
+
+      return;
    }
 
    Randomize()
@@ -109,6 +195,11 @@ messages:
 
    SomethingMoved(what = $,new_row = $, new_col = $)
    {
+      if IsClass(what,&Monster)
+      {
+         propagate;
+      }
+
       % GO EAST
       if new_col > (Send(self,@GetRoomCols)-2)
       {
