@@ -1229,6 +1229,9 @@ properties:
 
    % Is player a sorcerer?
    pbTattooed = FALSE
+   
+   % If this is TRUE, player cannot improve spellcasts.
+   pbUsedBloodMagic = FALSE
 
 messages:
 
@@ -18033,6 +18036,24 @@ messages:
          ptFactionTimer = $;
       }
       return;
+   }
+
+   UsedBloodMagic()
+   {
+      pbUsedBloodMagic = TRUE;
+      return;
+   }
+   
+   CastOrFizzledNoteBloodMagic()
+   {
+      % Once the spell's cast or fizzled, turn imping back on.
+      pbUsedBloodMagic = FALSE;
+      return;
+   }
+   
+   GetUsedBloodMagic()
+   {
+      return pbUsedBloodMagic;
    }
 
 end

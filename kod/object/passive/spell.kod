@@ -148,6 +148,9 @@ resources:
    cannot_cast_on_phased_out = \
       "You can't cast anything on %s while %s is phased out of existence!"
 
+   unable_to_improve_blood_magic = \
+      "The pain involved in using blood magic makes it impossible for you to improve this spell."
+
 classvars:
 
    vrName = spell_name_rsc
@@ -821,6 +824,7 @@ messages:
                                #oSpell=self,
                                #iSpellPower=iSpellPower)
                {
+                  Send(who,@UsedBloodMagic);
                   return TRUE;
                }
             }
@@ -1332,6 +1336,8 @@ messages:
          Send(who,@AddExertion,#amount=(10000*viSpellExertion)/2);
       }
       
+      Send(who,@CastOrFizzledNoteBloodMagic);
+      
       Send(who,@MsgSendUser,#message_rsc=spell_failed_by_chance,#Parm1=vrName);
       
       return;
@@ -1788,6 +1794,9 @@ messages:
             }
          }
       }
+      
+      % Spell successfully cast. Remove Blood Magic no-imp boolean.
+      Send(who,@CastOrFizzledNoteBloodMagic);
 
       % Count that this spell was cast successfully
       Send(Send(SYS,@GetStatistics),@SpellCast,#oSpell=self,#who=who);
@@ -1946,6 +1955,16 @@ messages:
       % Monsters can cast spells, can't improve in them.
       if NOT IsClass(who,&Player)    
       {
+         return FALSE;
+      }
+      
+      % Players using Blood Magic to avoid reagent use cannot improve.
+      if Send(who,@GetUsedBloodMagic)
+      {
+         if Send(self,@GetAbility,#who=who) < 99
+         {
+            Send(who,@MsgSendUser,#message_rsc=unable_to_improve_blood_magic);
+         }
          return FALSE;
       }
 
