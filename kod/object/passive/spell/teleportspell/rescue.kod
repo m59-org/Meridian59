@@ -105,10 +105,10 @@ messages:
 
       % Start with the base time.  Reduce time by spellpower.
       iDelay = 1000 * Send(SETTINGS_OBJECT, @RescueBaseDelaySec);
-      iDelay = iDelay - (iSpellPower * iDelay) / 100 / 4;
+      iDelay = iDelay - (iSpellPower * iDelay) / 100 / 2;
 
       % Add a little delay in sometimes.
-      if random(1,2) = 1
+      if random(1,4) = 1
       {
          iDelay = iDelay + random(2000, 6000);
       }
@@ -129,40 +129,10 @@ messages:
 
       if oCurrentRoom <> $
       {
-         % Are they guilded with a guild hall?
-         oGuild = Send(who,@GetGuild);
-         if oGuild <> $
-            AND NOT Send(who,@CheckPlayerFlag,#flag=PFLAG_TEMPSAFE)
-         {
-            oTargetRoom = Send(oGuild,@GetGuildHall);
-
-            % If we have a guild hall, and not already in the guild hall,
-            %  and we're in the same region as the hall, go there.
-            if oTargetRoom <> $
-               AND oTargetRoom <> oCurrentRoom
-               AND Send(oTargetRoom,@GetRegion) = Send(oCurrentRoom,@GetRegion)
-            {
-               Post(oTargetRoom,@Teleport,#what=who);
-
-               return;
-            }
-         }
-
-         % Teleport to Ko'catan Inn if we're in Kocatan, or at Vigor Pool.
+         % Teleport to Ko'catan Inn if we're in Kocatan.
          if Send(oCurrentRoom,@GetRegion) = RID_KOCATAN
-            OR Send(oCurrentRoom,@GetRoomNum) = RID_ORC_CAVE5_EXT
          {
             oTargetRoom = Send(SYS,@FindRoomByNum,#num=RID_KOC_INN);
-            Post(oTargetRoom,@Teleport,#what=who);
-
-            return;
-         }
-
-         % If we're in the orc caves, teleport to the Pool of Vigor.
-         % Except: actually being in the Pool of Vigor is handled above.
-         if Send(oCurrentRoom,@GetRegion) = RID_ORC_CAVE1
-         {
-            oTargetRoom = Send(SYS,@FindRoomByNum,#num=RID_ORC_CAVE5_EXT);
             Post(oTargetRoom,@Teleport,#what=who);
 
             return;

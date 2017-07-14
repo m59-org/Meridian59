@@ -3751,6 +3751,8 @@ messages:
       Send(self,@AddSpell,#num=SID_CONVEYANCE,#initial=TRUE);
       Send(self,@AddSpell,#num=SID_PHASE,#initial=TRUE);
       Send(self,@AddSpell,#num=SID_MEDITATE,#initial=TRUE,#iability=1);
+      Send(self,@AddSpell,#num=SID_RECALL,#initial=TRUE);
+      Send(self,@AddSpell,#num=SID_GUILD_HALL_RECALL,#initial=TRUE);
 
       return;
    }
@@ -13980,6 +13982,8 @@ messages:
 
          if IsClass(nObj,&UtilitySpell)
             OR IsClass(nObj,&Blink)
+            OR IsClass(nObj,&Recall)
+            OR IsClass(nObj,&GuildHallRecall)
          {
             continue;
          }
@@ -14271,6 +14275,8 @@ messages:
          }
 
          if NOT IsClass(nobj,&Blink)  % DON'T COUNT BLINK!
+            AND NOT IsClass(nobj,&Recall)
+            AND NOT IsClass(nobj,&GuildHallRecall)
             AND NOT IsClass(nobj,&UtilitySpell) % Don't count utility spells
          {
             if nSchool = SS_KRAANAN
@@ -14581,6 +14587,8 @@ messages:
          iLevel = Send(oSpellObj,@GetLevel);
 
          if NOT IsClass(oSpellObj,&Blink)  % DON'T COUNT BLINK!
+            AND NOT IsClass(oSpellObj,&Recall)
+            AND NOT IsClass(oSpellObj,&GuildHallRecall)
             AND NOT IsClass(oSpellObj,&UtilitySpell) % Don't count utility spells
             AND iSchool <> SS_DM_COMMAND
             AND except <> iSchool
