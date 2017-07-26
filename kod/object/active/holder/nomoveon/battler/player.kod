@@ -5319,6 +5319,18 @@ messages:
 
          return FALSE;
       }
+      
+      if (Send(self,@HasSwordOfTheHunt)
+         AND Send(victim,@IsUsingA,#class=&NecromancerAmulet))
+         OR (Send(self,@IsUsingA,#class=&NecromancerAmulet)
+            AND Send(victim,@HasSwordOfTheHunt))
+      {
+         % Can hunters and necromancers fight each other?
+         if Send(SETTINGS_OBJECT,@GetNecroAndHunterPvPOn)
+         {
+            return TRUE;
+         }
+      }
 
       % Can always attack mortal event characters.
       if IsClass(victim,&DM)
@@ -5475,11 +5487,6 @@ messages:
          }
       }
 
-      if IsClass(oRoom,&GuildHall)
-      {
-         return TRUE;
-      }
-
       % Truce itself returns TRUE, not counting as an attack. 
       % Truce will only block actual attacks between two players who 
       % are both Truced.
@@ -5506,6 +5513,11 @@ messages:
                return FALSE;
             }
          }
+      }
+
+      if IsClass(oRoom,&GuildHall)
+      {
+         return TRUE;
       }
 
       % Finally, check status and safety.
@@ -7268,12 +7280,15 @@ messages:
                % not in a mutual war
                % AND if we're not a faction soldier, the opponent isn't an
                % opposing faction soldier
+               % AND necro vs hunter
                if (poGuild = $
                    OR oEnemyGuild = $
                    OR NOT Send(poGuild,@IsMutualEnemy,#otherguild=oEnemyGuild))
                   AND (oSoldierShield = $
                        OR NOT Send(oSoldierShield,@IsEnemyAttack,#who=what,
                                     #what=self,#damage=TRUE))
+                  AND NOT (Send(self,@HasSwordOfTheHunt) AND Send(what,@IsUsingA,#class=&NecromancerAmulet) AND Send(SETTINGS_OBJECT,@GetNecroAndHunterPvPOn))
+                  AND NOT (Send(self,@IsUsingA,#class=&NecromancerAmulet) AND Send(what,@HasSwordOfTheHunt) AND Send(SETTINGS_OBJECT,@GetNecroAndHunterPvPOn))
                {
                   % SUBTLE BUG: Somehow, the faction check is missed when you
                   % kill something. We check it here, but only for players.
@@ -18060,7 +18075,7 @@ messages:
    {
       local i;
 
-      foreach i in plPassive
+      foreach i in plActive
       {
          if IsClass(i,&HunterSword)
          {
@@ -18074,7 +18089,7 @@ messages:
    {
       local i;
 
-      foreach i in plPassive
+      foreach i in plActive
       {
          if IsClass(i,&NecromancerAmulet)
          {
