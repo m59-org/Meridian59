@@ -403,7 +403,8 @@ messages:
    {
       Send(who,@MsgSendUser,#message_rsc=Purge_monster,#parm1=Send(oTarget,@GetDef),#parm2=Send(oTarget,@GetName));
 
-      Send(oTarget,@ApplyElementalStatusEffects,#what=who,#damage=iSpellPower,#aspell=ATCK_SPELL_HOLY);
+      % Divide spellpower by 3 because Humbled's effectiveness was increased by x3
+      Send(oTarget,@ApplyElementalStatusEffects,#what=who,#damage=iSpellPower/3,#aspell=ATCK_SPELL_HOLY);
       
       return;
    }

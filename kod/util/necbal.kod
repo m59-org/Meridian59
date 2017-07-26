@@ -309,6 +309,17 @@ messages:
       return;
    }
 
+   ForceGenerateAmulet()
+   {
+      if ptGenerateAmulet <> $
+      {
+         DeleteTimer(ptGenerateAmulet);
+      }
+      Send(self,@GenerateAmulet);
+ 
+      return;
+   }
+
    GenerateAmulet()
    "Actually does the artifact generation."
    {
@@ -399,6 +410,16 @@ messages:
          ptGenerateSword = CreateTimer(self,@GenerateSword,Random(0,iPeriod/5));
       }
 
+      return;
+   }
+
+   ForceGenerateSword()
+   {
+      if ptGenerateSword <> $
+      {
+         DeleteTimer(ptGenerateSword);
+      }
+      Send(self,@GenerateSword);
       return;
    }
 
