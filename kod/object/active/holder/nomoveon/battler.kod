@@ -2131,11 +2131,17 @@ messages:
                                            Send(SETTINGS_OBJECT,
                                            @GetStatusEffectReductionTime));
       }
-      
+
       if type=STATUS_SHOCKED
          AND IsClass(self,&Player)
       {
          Post(self,@DrawDefense);
+      }
+      
+      if type=STATUS_CHILLED
+         AND IsClass(self,&Player)
+      {
+         Post(self,@DrawOffense);
       }
       
       if type=STATUS_CORRODE
@@ -2229,6 +2235,11 @@ messages:
             AND IsClass(self,&Player)
          {
             Post(self,@DrawDefense);
+         }
+         if Nth(i,2) = STATUS_CHILLED
+            AND IsClass(self,&Player)
+         {
+            Post(self,@DrawOffense);
          }
          if Nth(i,2) = STATUS_CORRODE
             AND IsClass(self,&Player)

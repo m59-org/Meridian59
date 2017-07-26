@@ -2165,7 +2165,7 @@ messages:
    GetOffense(what = $, stroke_obj=$)
    "This returns the battler's ability to-hit.  Ranges from 1 to 2000."
    {
-      local iAttack, i;
+      local iAttack, i, iChilled;
 
       if piOffense = $
       {
@@ -2174,6 +2174,15 @@ messages:
       else
       {
          iAttack = piOffense;
+      }
+
+      % Check for Chilled status effect, which lowers offense.
+      iChilled = Send(self,@GetStatusEffect,#type=STATUS_CHILLED);
+      if iChilled > 0
+      {
+         iAttack = iAttack - (iChilled * Send(SETTINGS_OBJECT,
+                                                @GetElementalMultiple,
+                                                #type=STATUS_CHILLED));
       }
 
       if piChampionStatus = CHAMPION_DEADLY
@@ -2217,6 +2226,15 @@ messages:
          iDefense = piDefense;
       }
 
+      % Check for Shocked status effect, which lowers defense.
+      iShocked = Send(self,@GetStatusEffect,#type=STATUS_SHOCKED);
+      if iShocked > 0
+      {
+         iDefense = iDefense - (iShocked * Send(SETTINGS_OBJECT,
+                                                @GetElementalMultiple,
+                                                #type=STATUS_SHOCKED));
+      }
+
       foreach i in Send(self,@GetEnchantmentsByClass,#enchClass=&Hex)
       {
          iDefense = Send(Nth(i,2),@ModifyDefensePower,
@@ -2233,15 +2251,6 @@ messages:
       if piChampionStatus = CHAMPION_LEGENDARY
       {
          iDefense = (iDefense * 3) / 2;
-      }
-
-      % Check for Shocked status effect, which lowers defense.
-      iShocked = Send(self,@GetStatusEffect,#type=STATUS_SHOCKED);
-      if iShocked > 0
-      {
-         iDefense = iDefense - (iShocked * Send(SETTINGS_OBJECT,
-                                                @GetElementalMultiple,
-                                                #type=STATUS_SHOCKED));
       }
 
       return Bound(iDefense,1,2000);
@@ -5795,19 +5804,8 @@ messages:
 
    GetAttackTime()
    {
-      local iChilled, iChilledTotal, iChilledMultiple;
-
-      iChilledTotal = 0;
-      iChilled = Send(self,@GetStatusEffect,#type=STATUS_CHILLED);
-      if iChilled > 0
-      {
-         iChilledMultiple = Send(SETTINGS_OBJECT,
-                             @GetElementalMultiple,#type=STATUS_CHILLED);
-         iChilledTotal = iChilled * iChilledMultiple;
-      }
-
       return Bound(Send(self,@Fuzzy,#num=MOB_ATTACK_TIMER_WAIT)
-             + 3500-70*(3*viDifficulty+piSpeed),250,$) + iChilledTotal;
+             + 3500-70*(3*viDifficulty+piSpeed),250,$);
    }
 
    GetMoveTime()

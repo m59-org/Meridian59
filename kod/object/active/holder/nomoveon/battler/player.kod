@@ -6088,7 +6088,7 @@ messages:
    GetOffense(what = $, stroke_obj=$)
    {
       local i, oWeapon, iStroke, iProficiency, iAim, iOffense,
-            oMonster, lRadiusState, oAmmo;
+            oMonster, lRadiusState, oAmmo, iChilled;
 
       oWeapon = $;
 
@@ -6185,6 +6185,15 @@ messages:
       {
          Send(self,@MsgSendUser,#message_rsc=bad_line_of_sight);
          iOffense = iOffense / 2;
+      }
+
+      % Check for Chilled status effect, which lowers offense.
+      iChilled = Send(self,@GetStatusEffect,#type=STATUS_CHILLED);
+      if iChilled > 0
+      {
+         iOffense = iOffense - (iChilled * Send(SETTINGS_OBJECT,
+                                                @GetElementalMultiple,
+                                                #type=STATUS_CHILLED));
       }
 
       foreach i in Send(self,@GetEnchantmentsByClass,#enchClass=&Hex)
@@ -7734,7 +7743,7 @@ messages:
    "Have we waited long enough since the last attack/spell? Sets new "
    "valid attack time (time in msec, default 1 second)."
    {
-      local i, n, iChilled, iChilledMultiple, iChilledTotal;
+      local i, n;
 
       if ptAttackTimer <> $
       {
@@ -7758,22 +7767,6 @@ messages:
 
       if i > 0
       {
-         iChilled = Send(self,@GetStatusEffect,#type=STATUS_CHILLED);
-         if iChilled > 0
-         {
-            iChilledMultiple = Send(SETTINGS_OBJECT,
-                                @GetElementalMultiple,#type=STATUS_CHILLED);
-            iChilledTotal = iChilled * iChilledMultiple;
-            
-            if iChilledTotal > 100
-            {
-               while iChilledTotal > 100
-               {
-                  i = i + 100;
-                  iChilledTotal = iChilledTotal - 100;
-               }
-            }
-         }
          ptAttackTimer = CreateTimer(self,@AttackTimer,i);
       }
 
