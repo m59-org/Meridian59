@@ -12,6 +12,7 @@ BOFS = desertpath1.bof desertdunes.bof desertcliffaccess.bof \
        desertshore3.bof desertriver1.bof desertriver2.bof desertbridge.bof \
        desertcaveraft.bof desertsandbar.bof desertsteppes.bof \
        desertdunes2.bof desertdunes3.bof deserttomb1.bof desertdunesroom.bof \
-       desertbridge2.bof acidpath.bof desertriver3.bof
+       desertbridge2.bof acidpath.bof desertriver3.bof \
+       desertcity1.bof
 
 !include $(KODDIR)\kod.mak
