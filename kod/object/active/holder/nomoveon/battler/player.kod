@@ -5320,10 +5320,11 @@ messages:
          return FALSE;
       }
       
-      if (Send(self,@HasSwordOfTheHunt)
+      if IsClass(victim,&Player)
+         AND ((Send(self,@HasSwordOfTheHunt)
          AND Send(victim,@IsUsingA,#class=&NecromancerAmulet))
          OR (Send(self,@IsUsingA,#class=&NecromancerAmulet)
-            AND Send(victim,@HasSwordOfTheHunt))
+            AND Send(victim,@HasSwordOfTheHunt)))
       {
          % Can hunters and necromancers fight each other?
          if Send(SETTINGS_OBJECT,@GetNecroAndHunterPvPOn)
