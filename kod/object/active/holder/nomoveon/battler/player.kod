@@ -13646,8 +13646,12 @@ messages:
          OR event = EVENT_ATTACK
          OR event = EVENT_CAST
       {
-         Post(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@StopHiding,#who=self);
-         Post(Send(SYS,@FindSkillByNum,#num=SKID_SNEAK),@StopSneaking,#who=self);
+         if NOT (poStance <> $
+               AND IsClass(poStance,&LightFeet))
+         {
+            Post(Send(SYS,@FindSkillByNum,#num=SKID_SNEAK),@StopSneaking,#who=self);
+            Post(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@StopHiding,#who=self);
+         }
          Post(Send(SYS,@FindSkillByNum,#num=SKID_SPY),@StopSpying,#who=self);
       }
 

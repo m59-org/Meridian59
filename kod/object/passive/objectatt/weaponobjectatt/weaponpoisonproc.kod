@@ -87,7 +87,15 @@ messages:
          AND piPoisonCharges > 0
          AND Random(1,100) <= piProcChance
       {
-         Send(oPoison,@MakePoisoned,#who=what,#lossrate=piPoisonPower,#duration=piPoisonDuration);
+         if IsClass(what,&Monster)
+         {
+            Send(oPoison,@MakePoisoned,#who=what,#lossrate=piPoisonPower*2,#duration=piPoisonDuration*2);
+         }
+         else
+         {
+            Send(oPoison,@MakePoisoned,#who=what,#lossrate=piPoisonPower,#duration=piPoisonDuration);
+         }
+
          if IsClass(who,&Player)
          {
             Send(who,@MsgSendUser,#message_rsc=poison_proc_you,#parm1=Send(poHostObject,@GetName),#parm2=Send(what,@GetCapDef),#parm3=Send(what,@GetName));

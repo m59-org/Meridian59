@@ -1106,8 +1106,13 @@ messages:
    {
       if poTarget <> target AND vrSound_aware <> $
       {
-         Send(poOwner,@SomethingWaveRoom,#what=self,#wave_rsc=vrSound_aware,
-              #flags=SOUND_RANDOM_PITCH);
+         if NOT (IsClass(target,&Player)
+               AND Send(target,@GetSkillAbility,#skill_num=SKID_HIDE) >= viLevel/2
+               AND Send(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@IsHiding,#who=target))
+         {
+            Send(poOwner,@SomethingWaveRoom,#what=self,#wave_rsc=vrSound_aware,
+                 #flags=SOUND_RANDOM_PITCH);
+         }
       }
 
       Send(self,@SetState,#bit=STATE_CHASE);
@@ -1552,7 +1557,7 @@ messages:
       % Victim phased out, is now in spectator mode, or hiding, break aggro.
       if IsClass(poTarget,&User)
          AND (Send(poTarget,@IsInCannotInteractMode)
-             OR (Send(poTarget,@GetSkillAbility,#skill_num=SKID_HIDE) >= viLevel*2
+             OR (Send(poTarget,@GetSkillAbility,#skill_num=SKID_HIDE) >= viLevel/2
                AND Send(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@IsHiding,#who=poTarget)))
       {
          Send(self,@EnterStateMove);
@@ -1631,7 +1636,7 @@ messages:
       % Victim phased out, is now in spectator mode, or hiding, break aggro.
       if IsClass(oVictim,&User)
          AND (Send(oVictim,@IsInCannotInteractMode)
-             OR (Send(oVictim,@GetSkillAbility,#skill_num=SKID_HIDE) >= viLevel*2
+             OR (Send(oVictim,@GetSkillAbility,#skill_num=SKID_HIDE) >= viLevel/2
                AND Send(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@IsHiding,#who=oVictim)))
       {
          Send(self,@EnterStateMove);
@@ -7399,6 +7404,13 @@ messages:
          AND NOT Send(what,@IsLoggedOn)
       {
          % Trying to switch to someone logged off. Can't do that.
+         return;
+      }
+      if IsClass(what,&Player)
+            AND Send(what,@GetSkillAbility,#skill_num=SKID_HIDE) >= viLevel/2
+            AND Send(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@IsHiding,#who=what)
+      {
+         % Trying to switch to a hidden player
          return;
       }
 

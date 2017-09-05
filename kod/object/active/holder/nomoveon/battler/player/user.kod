@@ -4066,12 +4066,17 @@ messages:
 
    AttemptSneak()
    {
+      local iSneakAbility, iAgility;
+
       ptSneakTimer = $;
       
-      piAccruedSneak = piAccruedSneak + 1000;
+      iSneakAbility = Send(self,@GetSkillAbility,#skill_num=SKID_SNEAK);
+      iAgility = Send(self,@GetAgility);
+      
+      piAccruedSneak = piAccruedSneak + 1000 + (iSneakAbility+1)*15 + iAgility*25;
 
-      if Send(self,@GetSkillAbility,#skill_num=SKID_SNEAK) > 0
-         AND piAccruedSneak > 4000
+      if iSneakAbility > 0
+         AND piAccruedSneak >= 4000
          AND NOT Send(Send(SYS,@FindSkillByNum,#num=SKID_SNEAK),@IsSneaking,#who=self)
       {
          piAccruedSneak = 0;
@@ -4082,12 +4087,17 @@ messages:
    
    AttemptHide()
    {
+      local iHideAbility, iAgility;
+
       ptHideTimer = $;
+
+      iHideAbility = Send(self,@GetSkillAbility,#skill_num=SKID_HIDE);
+      iAgility = Send(self,@GetAgility);
       
-      piAccruedHide = piAccruedHide + 1000;
+      piAccruedHide = piAccruedHide + 1000 + bound((iHideAbility+1)*5 + iAgility*10,$,1000);
       
-      if Send(self,@GetSkillAbility,#skill_num=SKID_HIDE) > 0
-         AND piAccruedHide > 4000
+      if iHideAbility > 0
+         AND piAccruedHide >= 4000
          AND NOT Send(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@IsHiding,#who=self)
       {
          piAccruedHide = 0;
