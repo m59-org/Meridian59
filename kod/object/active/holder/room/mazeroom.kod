@@ -1,0 +1,1353 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+MinotaurMazeRoom is Room
+
+% The Maze of the Minotaur changes each day.
+% You have until your Elemental Torch runs out.
+% Night vision, light, firewall, glow, etc do not work. Your only light is the torch.
+
+% Keeps a list of trap timers in plTrapTimers
+%
+%
+%
+%
+% Core mazeroom functions that are inherited, i.e. don't change them:
+% CreateStandardObjects - sends CreateMazeRoomObjects
+% FirstUserEntered - sends StartSpikeCycle
+% LastUserLeft - sends EndSpikeCycle
+% Delete - goes through all timers
+% SomethingChanged - sends LeverPulled (lever_object)
+% SomethingMoved - sends EvaluateMovement (who, section)
+% GetSection - custom function for maze rooms that just returns sector ID
+% LeverPulled (lever_object) - edit constants to alter what levers do.
+%                              Make LeverPulled() below and propagate if special functions needed
+%
+%
+% Fill these in for lower rooms:
+% CreateMazeRoomObjects
+
+constants:
+
+   include blakston.khd
+   
+   %% TEXTURES %%%%%%%%
+   
+   blank_texture = 00000
+   spikes_texture = 00001
+   sawblade_trap_texture = 00003
+   
+   % Don't modify these
+   TRAP_READY = 0
+   TRAP_TRIGGERED = 1
+   TRAP_ACTING = 2
+   TRAP_HIT = 3
+   TRAP_RETREATING = 4
+
+   % Don't modify these
+   SECRET_DOOR_ONLY_ONCE = 0
+   SECRET_DOOR_REPEAT = 1
+   
+   % Don't change these
+   SPIKES_SIMULTANEOUS = 0
+   SPIKES_IN_SEQUENCE = 1
+   SPIKES_DORMANT = 0
+   SPIKES_ACTIVE = 1
+   SPIKES_PAIN_TIME = 2000
+
+resources:
+
+   room_minotaurmazeroom = mazepieces.roo
+   room_name_minotaurmazeroom = "Maze of the Minotaur"
+
+   maze_lift_sound = stoneup2.wav
+   maze_click_sound = mechanical1.wav
+   maze_trap_slam = trapslam.wav
+   maze_spike_rise = spiketrap.wav
+   maze_sawblade_rise = sawbladerise.wav
+   
+   trap_damages_you = \
+      "Crushing pain radiates through your bones!"
+   
+   spikes_damage_you = \
+      "Spikes stab up from beneath you!"
+
+   lava_applying_burn = \
+      "You are being set on fire!"
+
+classvars:
+
+   vrName = room_name_minotaurmazeroom
+
+   viTeleport_row = 5
+   viTeleport_col = 3
+
+   %%%%%%%%%%%%%%%%%%%% CRUSHERS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+   
+   % How do crusher traps function in this room?
+   TRAP_TRIGGERED_DELAY = 50
+   TRAP_ACTING_DELAY = 500
+   TRAP_HIT_DELAY = 2000
+   TRAP_RETREATING_DELAY = 10000
+   TRAP_DAMAGE = 50
+
+   % Specific IDs for this room
+   % -1 means unused (don't use 0, all sectors are default 0)
+
+   CRUSHER_TRAP_ONE_TRIGGER_SECTOR = 2
+   CRUSHER_TRAP_ONE_CRUSH_SECTOR = 3
+   CRUSHER_TRAP_ONE_TYPE = ANIMATE_CEILING_LIFT
+   CRUSHER_TRAP_ONE_DOWN_HEIGHT = 1050
+   CRUSHER_TRAP_ONE_DOWN_SPEED = 220
+   CRUSHER_TRAP_ONE_UP_HEIGHT = 1160
+   CRUSHER_TRAP_ONE_UP_SPEED = 11
+   CRUSHER_TRAP_ONE_WALL_ID = 4
+   
+   CRUSHER_TRAP_TWO_TRIGGER_SECTOR = -1
+   CRUSHER_TRAP_TWO_CRUSH_SECTOR = -1
+   CRUSHER_TRAP_TWO_TYPE = ANIMATE_CEILING_LIFT
+   CRUSHER_TRAP_TWO_DOWN_HEIGHT = 1050
+   CRUSHER_TRAP_TWO_DOWN_SPEED = 220
+   CRUSHER_TRAP_TWO_UP_HEIGHT = 1160
+   CRUSHER_TRAP_TWO_UP_SPEED = 11
+   CRUSHER_TRAP_TWO_WALL_ID = -1
+
+   CRUSHER_TRAP_THREE_TRIGGER_SECTOR = -1
+   CRUSHER_TRAP_THREE_CRUSH_SECTOR = -1
+   CRUSHER_TRAP_THREE_TYPE = ANIMATE_CEILING_LIFT
+   CRUSHER_TRAP_THREE_DOWN_HEIGHT = 1050
+   CRUSHER_TRAP_THREE_DOWN_SPEED = 220
+   CRUSHER_TRAP_THREE_UP_HEIGHT = 1160
+   CRUSHER_TRAP_THREE_UP_SPEED = 11
+   CRUSHER_TRAP_THREE_WALL_ID = -1
+
+   CRUSHER_TRAP_FOUR_TRIGGER_SECTOR = -1
+   CRUSHER_TRAP_FOUR_CRUSH_SECTOR = -1
+   CRUSHER_TRAP_FOUR_TYPE = ANIMATE_CEILING_LIFT
+   CRUSHER_TRAP_FOUR_DOWN_HEIGHT = 1050
+   CRUSHER_TRAP_FOUR_DOWN_SPEED = 220
+   CRUSHER_TRAP_FOUR_UP_HEIGHT = 1160
+   CRUSHER_TRAP_FOUR_UP_SPEED = 11
+   CRUSHER_TRAP_FOUR_WALL_ID = -1
+
+   CRUSHER_TRAP_FIVE_TRIGGER_SECTOR = -1
+   CRUSHER_TRAP_FIVE_CRUSH_SECTOR = -1
+   CRUSHER_TRAP_FIVE_TYPE = ANIMATE_CEILING_LIFT
+   CRUSHER_TRAP_FIVE_DOWN_HEIGHT = 1050
+   CRUSHER_TRAP_FIVE_DOWN_SPEED = 220
+   CRUSHER_TRAP_FIVE_UP_HEIGHT = 1160
+   CRUSHER_TRAP_FIVE_UP_SPEED = 11
+   CRUSHER_TRAP_FIVE_WALL_ID = -1
+
+   CRUSHER_TRAP_SIX_TRIGGER_SECTOR = -1
+   CRUSHER_TRAP_SIX_CRUSH_SECTOR = -1
+   CRUSHER_TRAP_SIX_TYPE = ANIMATE_CEILING_LIFT
+   CRUSHER_TRAP_SIX_DOWN_HEIGHT = 1050
+   CRUSHER_TRAP_SIX_DOWN_SPEED = 220
+   CRUSHER_TRAP_SIX_UP_HEIGHT = 1160
+   CRUSHER_TRAP_SIX_UP_SPEED = 11
+   CRUSHER_TRAP_SIX_WALL_ID = -1
+
+   CRUSHER_TRAP_SEVEN_TRIGGER_SECTOR = -1
+   CRUSHER_TRAP_SEVEN_CRUSH_SECTOR = -1
+   CRUSHER_TRAP_SEVEN_TYPE = ANIMATE_CEILING_LIFT
+   CRUSHER_TRAP_SEVEN_DOWN_HEIGHT = 1050
+   CRUSHER_TRAP_SEVEN_DOWN_SPEED = 220
+   CRUSHER_TRAP_SEVEN_UP_HEIGHT = 1160
+   CRUSHER_TRAP_SEVEN_UP_SPEED = 11
+   CRUSHER_TRAP_SEVEN_WALL_ID = -1
+
+   CRUSHER_TRAP_EIGHT_TRIGGER_SECTOR = -1
+   CRUSHER_TRAP_EIGHT_CRUSH_SECTOR = -1
+   CRUSHER_TRAP_EIGHT_TYPE = ANIMATE_CEILING_LIFT
+   CRUSHER_TRAP_EIGHT_DOWN_HEIGHT = 1050
+   CRUSHER_TRAP_EIGHT_DOWN_SPEED = 220
+   CRUSHER_TRAP_EIGHT_UP_HEIGHT = 1160
+   CRUSHER_TRAP_EIGHT_UP_SPEED = 11
+   CRUSHER_TRAP_EIGHT_WALL_ID = -1
+
+   CRUSHER_TRAP_NINE_TRIGGER_SECTOR = -1
+   CRUSHER_TRAP_NINE_CRUSH_SECTOR = -1
+   CRUSHER_TRAP_NINE_TYPE = ANIMATE_CEILING_LIFT
+   CRUSHER_TRAP_NINE_DOWN_HEIGHT = 1050
+   CRUSHER_TRAP_NINE_DOWN_SPEED = 220
+   CRUSHER_TRAP_NINE_UP_HEIGHT = 1160
+   CRUSHER_TRAP_NINE_UP_SPEED = 11
+   CRUSHER_TRAP_NINE_WALL_ID = -1
+
+   CRUSHER_TRAP_TEN_TRIGGER_SECTOR = -1
+   CRUSHER_TRAP_TEN_CRUSH_SECTOR = -1
+   CRUSHER_TRAP_TEN_TYPE = ANIMATE_CEILING_LIFT
+   CRUSHER_TRAP_TEN_DOWN_HEIGHT = 1050
+   CRUSHER_TRAP_TEN_DOWN_SPEED = 220
+   CRUSHER_TRAP_TEN_UP_HEIGHT = 1160
+   CRUSHER_TRAP_TEN_UP_SPEED = 11
+   CRUSHER_TRAP_TEN_WALL_ID = -1
+
+   %%%%%%%%%%%%%%%%%%%% SECRET DOORS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+   % Specific secret doors
+
+   SECRET_DOOR_ONE_TRIGGER_SECTOR = 4
+   SECRET_DOOR_ONE_OPEN_SECTOR = 5
+   SECRET_DOOR_ONE_TYPE = ANIMATE_FLOOR_LIFT
+   SECRET_DOOR_ONE_HEIGHT = 1000
+   SECRET_DOOR_ONE_SPEED = 50
+   SECRET_DOOR_ONE_REPEAT_TYPE = SECRET_DOOR_ONLY_ONCE
+
+   SECRET_DOOR_TWO_TRIGGER_SECTOR = -1
+   SECRET_DOOR_TWO_OPEN_SECTOR = -1
+   SECRET_DOOR_TWO_TYPE = ANIMATE_FLOOR_LIFT
+   SECRET_DOOR_TWO_HEIGHT = 1000
+   SECRET_DOOR_TWO_SPEED = 50
+   SECRET_DOOR_TWO_REPEAT_TYPE = SECRET_DOOR_ONLY_ONCE
+
+   SECRET_DOOR_THREE_TRIGGER_SECTOR = -1
+   SECRET_DOOR_THREE_OPEN_SECTOR = -1
+   SECRET_DOOR_THREE_TYPE = ANIMATE_FLOOR_LIFT
+   SECRET_DOOR_THREE_HEIGHT = 1000
+   SECRET_DOOR_THREE_SPEED = 50
+   SECRET_DOOR_THREE_REPEAT_TYPE = SECRET_DOOR_ONLY_ONCE
+
+   %%%%%%%%%%%%%%%%%%%% LEVERS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+   LEVER_ONE_ROW = 3
+   LEVER_ONE_TYPE = ANIMATE_CEILING_LIFT
+   LEVER_ONE_ACTIVATES_SECTOR = 1
+   LEVER_ONE_DOWN_HEIGHT = 1160
+   LEVER_ONE_DOWN_SPEED = 50
+   LEVER_ONE_UP_HEIGHT = 1035
+   LEVER_ONE_UP_SPEED = 50
+   
+   LEVER_TWO_ROW = 25
+   LEVER_TWO_TYPE = ANIMATE_FLOOR_LIFT
+   LEVER_TWO_ACTIVATES_SECTOR = 6
+   LEVER_TWO_DOWN_HEIGHT = 0
+   LEVER_TWO_DOWN_SPEED = 50
+   LEVER_TWO_UP_HEIGHT = 1000
+   LEVER_TWO_UP_SPEED = 0
+   
+   %%%%%%%%%%%%%%%%%%%% SPIKES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+   
+   % How do spikes function in this room?
+   SPIKES_DORMANT_TIME = 5000
+   SPIKES_ACTIVE_TIME = 2000
+   SPIKES_DELAY_IF_SEQUENCE = 500
+   SPIKES_SOUND_RADIUS = 10
+   SPIKES_DAMAGE = 40
+
+   % Specific spike values
+   SPIKES_ONE_BEHAVIOR = SPIKES_SIMULTANEOUS
+   SPIKES_ONE_PAIN_SECTOR = 8
+   SPIKES_ONE_DOWN_WALL_ID = 9
+   SPIKES_ONE_UP_WALL_ID = 10
+   SPIKES_ONE_SOUND_ROW = 8
+   SPIKES_ONE_SOUND_COL = 52
+
+   SPIKES_TWO_BEHAVIOR = SPIKES_SIMULTANEOUS
+   SPIKES_TWO_PAIN_SECTOR = -1
+   SPIKES_TWO_DOWN_WALL_ID = -1
+   SPIKES_TWO_UP_WALL_ID = -1
+   SPIKES_TWO_SOUND_ROW = 0
+   SPIKES_TWO_SOUND_COL = 0
+
+   SPIKES_THREE_BEHAVIOR = SPIKES_SIMULTANEOUS
+   SPIKES_THREE_PAIN_SECTOR = -1
+   SPIKES_THREE_DOWN_WALL_ID = -1
+   SPIKES_THREE_UP_WALL_ID = -1
+   SPIKES_THREE_SOUND_ROW = 0
+   SPIKES_THREE_SOUND_COL = 0
+
+   SPIKES_FOUR_BEHAVIOR = SPIKES_SIMULTANEOUS
+   SPIKES_FOUR_PAIN_SECTOR = -1
+   SPIKES_FOUR_DOWN_WALL_ID = -1
+   SPIKES_FOUR_UP_WALL_ID = -1
+   SPIKES_FOUR_SOUND_ROW = 0
+   SPIKES_FOUR_SOUND_COL = 0
+
+   SPIKES_FIVE_BEHAVIOR = SPIKES_SIMULTANEOUS
+   SPIKES_FIVE_PAIN_SECTOR = -1
+   SPIKES_FIVE_DOWN_WALL_ID = -1
+   SPIKES_FIVE_UP_WALL_ID = -1
+   SPIKES_FIVE_SOUND_ROW = 0
+   SPIKES_FIVE_SOUND_COL = 0
+
+   SPIKES_SIX_BEHAVIOR = SPIKES_SIMULTANEOUS
+   SPIKES_SIX_PAIN_SECTOR = -1
+   SPIKES_SIX_DOWN_WALL_ID = -1
+   SPIKES_SIX_UP_WALL_ID = -1
+   SPIKES_SIX_SOUND_ROW = 0
+   SPIKES_SIX_SOUND_COL = 0
+
+   SPIKES_SEVEN_BEHAVIOR = SPIKES_SIMULTANEOUS
+   SPIKES_SEVEN_PAIN_SECTOR = -1
+   SPIKES_SEVEN_DOWN_WALL_ID = -1
+   SPIKES_SEVEN_UP_WALL_ID = -1
+   SPIKES_SEVEN_SOUND_ROW = 0
+   SPIKES_SEVEN_SOUND_COL = 0
+
+   SPIKES_EIGHT_BEHAVIOR = SPIKES_SIMULTANEOUS
+   SPIKES_EIGHT_PAIN_SECTOR = -1
+   SPIKES_EIGHT_DOWN_WALL_ID = -1
+   SPIKES_EIGHT_UP_WALL_ID = -1
+   SPIKES_EIGHT_SOUND_ROW = 0
+   SPIKES_EIGHT_SOUND_COL = 0
+
+   SPIKES_NINE_BEHAVIOR = SPIKES_SIMULTANEOUS
+   SPIKES_NINE_PAIN_SECTOR = -1
+   SPIKES_NINE_DOWN_WALL_ID = -1
+   SPIKES_NINE_UP_WALL_ID = -1
+   SPIKES_NINE_SOUND_ROW = 0
+   SPIKES_NINE_SOUND_COL = 0
+
+   SPIKES_TEN_BEHAVIOR = SPIKES_SIMULTANEOUS
+   SPIKES_TEN_PAIN_SECTOR = -1
+   SPIKES_TEN_DOWN_WALL_ID = -1
+   SPIKES_TEN_UP_WALL_ID = -1
+   SPIKES_TEN_SOUND_ROW = 0
+   SPIKES_TEN_SOUND_COL = 0
+   
+   %%%%%%%%%%%%%%%%%%%% TOTEMS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+   
+   % Totem respawn time in this room
+   TOTEM_RESPAWN_TIME = 7000
+   
+   % Totem settings
+   TOTEM_ONE_SPELL_ID = SID_LIGHTNING_BOLT
+   TOTEM_ONE_ROW = 12
+   TOTEM_ONE_COL = 34
+   TOTEM_ONE_FINE_ROW = 8
+   TOTEM_ONE_FINE_COL = 15
+   
+   TOTEM_TWO_SPELL_ID = -1
+   TOTEM_TWO_ROW = -1
+   TOTEM_TWO_COL = -1
+   TOTEM_TWO_FINE_ROW = -1
+   TOTEM_TWO_FINE_COL = -1
+   
+   TOTEM_THREE_SPELL_ID = -1
+   TOTEM_THREE_ROW = -1
+   TOTEM_THREE_COL = -1
+   TOTEM_THREE_FINE_ROW = -1
+   TOTEM_THREE_FINE_COL = -1
+   
+   %%%%%%%%%%%%%%%%%%%% LAVA %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+   
+   % Lava settings in this room
+   LAVA_BURN_TIME = 200
+   LAVA_DAMAGE = 500
+   LAVA_BURN_APPLIED = 500
+   
+   LAVA_SECTOR_ONE = 50
+   LAVA_SECTOR_TWO = -1
+   LAVA_SECTOR_THREE = -1
+   LAVA_SECTOR_FOUR = -1
+   LAVA_SECTOR_FIVE = -1
+   
+   %%%%%%%%%%%%%%%%%%%% SAWBLADES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+   
+   % Sawblade settings
+   SAWBLADE_FULL_CYCLE_TIME = 3900
+   SAWBLADE_DAMAGE_TIME = 30
+   SAWBLADE_DAMAGE = 1
+
+   SAWBLADE_ONE_TRIGGER_SECTOR = 68
+   SAWBLADE_ONE_DAMAGE_SECTOR = 69
+   SAWBLADE_ONE_WALL_ID = 70
+   SAWBLADE_ONE_SOUND_ROW = 8
+   SAWBLADE_ONE_SOUND_COL = 32
+
+   SAWBLADE_TWO_TRIGGER_SECTOR = -1
+   SAWBLADE_TWO_DAMAGE_SECTOR = -1
+   SAWBLADE_TWO_WALL_ID = -1
+   SAWBLADE_TWO_SOUND_ROW = -1
+   SAWBLADE_TWO_SOUND_COL = -1
+
+   SAWBLADE_THREE_TRIGGER_SECTOR = -1
+   SAWBLADE_THREE_DAMAGE_SECTOR = -1
+   SAWBLADE_THREE_WALL_ID = -1
+   SAWBLADE_THREE_SOUND_ROW = -1
+   SAWBLADE_THREE_SOUND_COL = -1
+
+properties:
+
+   piBaseLight = LIGHT_MIN
+   piOutside_factor = OUTDOORS_NONE 
+
+   prRoom = room_minotaurmazeroom
+   piRoom_num = RID_MINOTAURMAZEROOM
+   
+   % of the format [trigger sector, crusher sector, timer, state, type, down height, down speed, up height, up speed, wall ID]
+   plTrapStates = $
+   
+   % of the format [trigger sector, open sector, type, height, speed, repeatable type]
+   plSecretDoors = $
+   
+   % of the format [pain sector, down wall id, up wall id, timer, state, behavior, row, col]
+   plSpikeStates = $
+   
+   % Totems that cast curses and bolts on players in sight/range
+   % of the format [totem object, spell ID, respawn timer, row, col]
+   plTotems = $
+
+   % These areas inflict burning status effects
+   % of the format [sector ID]
+   plLavaSectors = $
+   ptLavaBurnTimer = $
+   
+   % Two invisible objects, SomethingShot between them
+   plDartTraps = $
+   
+   % Cross this line and it damages you
+   % of the format [trigger sector, damage sector, wall id, cycle timer, damage timer]
+   plSawbladeStates = $
+
+messages:
+
+   CreateStandardObjects()
+   {
+      Send(self,@CreateMazeRoomObjects);
+
+      propagate;
+   }
+
+   CreateMazeRoomObjects()
+   {
+      Send(self,@NewHold,#what=Create(&Lever),
+            #new_row=3,#new_col=12,#fine_row=35,#fine_col=46);
+
+      Send(self,@NewHold,#what=Create(&Lever),
+            #new_row=25,#new_col=30,#fine_row=7,#fine_col=43);
+
+      return;
+   }
+   
+   Constructed()
+   {
+      local i;
+
+      plTrapStates = Cons([CRUSHER_TRAP_ONE_TRIGGER_SECTOR,CRUSHER_TRAP_ONE_CRUSH_SECTOR,$,TRAP_READY,CRUSHER_TRAP_ONE_TYPE,CRUSHER_TRAP_ONE_DOWN_HEIGHT,CRUSHER_TRAP_ONE_DOWN_SPEED,CRUSHER_TRAP_ONE_UP_HEIGHT,CRUSHER_TRAP_ONE_UP_SPEED,CRUSHER_TRAP_ONE_WALL_ID],plTrapStates);
+      plTrapStates = Cons([CRUSHER_TRAP_TWO_TRIGGER_SECTOR,CRUSHER_TRAP_TWO_CRUSH_SECTOR,$,TRAP_READY,CRUSHER_TRAP_TWO_TYPE,CRUSHER_TRAP_TWO_DOWN_HEIGHT,CRUSHER_TRAP_TWO_DOWN_SPEED,CRUSHER_TRAP_TWO_UP_HEIGHT,CRUSHER_TRAP_TWO_UP_SPEED,CRUSHER_TRAP_TWO_WALL_ID],plTrapStates);
+      plTrapStates = Cons([CRUSHER_TRAP_THREE_TRIGGER_SECTOR,CRUSHER_TRAP_THREE_CRUSH_SECTOR,$,TRAP_READY,CRUSHER_TRAP_THREE_TYPE,CRUSHER_TRAP_THREE_DOWN_HEIGHT,CRUSHER_TRAP_THREE_DOWN_SPEED,CRUSHER_TRAP_THREE_UP_HEIGHT,CRUSHER_TRAP_THREE_UP_SPEED,CRUSHER_TRAP_THREE_WALL_ID],plTrapStates);
+      plTrapStates = Cons([CRUSHER_TRAP_FOUR_TRIGGER_SECTOR,CRUSHER_TRAP_FOUR_CRUSH_SECTOR,$,TRAP_READY,CRUSHER_TRAP_TWO_TYPE,CRUSHER_TRAP_FOUR_DOWN_HEIGHT,CRUSHER_TRAP_FOUR_DOWN_SPEED,CRUSHER_TRAP_FOUR_UP_HEIGHT,CRUSHER_TRAP_FOUR_UP_SPEED,CRUSHER_TRAP_FOUR_WALL_ID],plTrapStates);
+      plTrapStates = Cons([CRUSHER_TRAP_THREE_TRIGGER_SECTOR,CRUSHER_TRAP_FIVE_CRUSH_SECTOR,$,TRAP_READY,CRUSHER_TRAP_TWO_TYPE,CRUSHER_TRAP_FIVE_DOWN_HEIGHT,CRUSHER_TRAP_FIVE_DOWN_SPEED,CRUSHER_TRAP_FIVE_UP_HEIGHT,CRUSHER_TRAP_FIVE_UP_SPEED,CRUSHER_TRAP_FIVE_WALL_ID],plTrapStates);
+      plTrapStates = Cons([CRUSHER_TRAP_SIX_TRIGGER_SECTOR,CRUSHER_TRAP_SIX_CRUSH_SECTOR,$,TRAP_READY,CRUSHER_TRAP_TWO_TYPE,CRUSHER_TRAP_SIX_DOWN_HEIGHT,CRUSHER_TRAP_SIX_DOWN_SPEED,CRUSHER_TRAP_SIX_UP_HEIGHT,CRUSHER_TRAP_SIX_UP_SPEED,CRUSHER_TRAP_SIX_WALL_ID],plTrapStates);
+      plTrapStates = Cons([CRUSHER_TRAP_SEVEN_TRIGGER_SECTOR,CRUSHER_TRAP_SEVEN_CRUSH_SECTOR,$,TRAP_READY,CRUSHER_TRAP_TWO_TYPE,CRUSHER_TRAP_SEVEN_DOWN_HEIGHT,CRUSHER_TRAP_SEVEN_DOWN_SPEED,CRUSHER_TRAP_SEVEN_UP_HEIGHT,CRUSHER_TRAP_SEVEN_UP_SPEED,CRUSHER_TRAP_SEVEN_WALL_ID],plTrapStates);
+      plTrapStates = Cons([CRUSHER_TRAP_EIGHT_TRIGGER_SECTOR,CRUSHER_TRAP_EIGHT_CRUSH_SECTOR,$,TRAP_READY,CRUSHER_TRAP_TWO_TYPE,CRUSHER_TRAP_EIGHT_DOWN_HEIGHT,CRUSHER_TRAP_EIGHT_DOWN_SPEED,CRUSHER_TRAP_EIGHT_UP_HEIGHT,CRUSHER_TRAP_EIGHT_UP_SPEED,CRUSHER_TRAP_EIGHT_WALL_ID],plTrapStates);
+      plTrapStates = Cons([CRUSHER_TRAP_NINE_TRIGGER_SECTOR,CRUSHER_TRAP_NINE_CRUSH_SECTOR,$,TRAP_READY,CRUSHER_TRAP_TWO_TYPE,CRUSHER_TRAP_NINE_DOWN_HEIGHT,CRUSHER_TRAP_NINE_DOWN_SPEED,CRUSHER_TRAP_NINE_UP_HEIGHT,CRUSHER_TRAP_NINE_UP_SPEED,CRUSHER_TRAP_NINE_WALL_ID],plTrapStates);
+      plTrapStates = Cons([CRUSHER_TRAP_TEN_TRIGGER_SECTOR,CRUSHER_TRAP_TEN_CRUSH_SECTOR,$,TRAP_READY,CRUSHER_TRAP_TWO_TYPE,CRUSHER_TRAP_TEN_DOWN_HEIGHT,CRUSHER_TRAP_TEN_DOWN_SPEED,CRUSHER_TRAP_TEN_UP_HEIGHT,CRUSHER_TRAP_TEN_UP_SPEED,CRUSHER_TRAP_TEN_WALL_ID],plTrapStates);
+
+      foreach i in plTrapStates
+      {
+         if Nth(i,1) = -1
+         {
+            plTrapStates = DelListElem(plTrapStates,i);
+         }
+      }
+      
+      plSecretDoors = Cons([SECRET_DOOR_ONE_TRIGGER_SECTOR,SECRET_DOOR_ONE_OPEN_SECTOR,SECRET_DOOR_ONE_TYPE,SECRET_DOOR_ONE_HEIGHT,SECRET_DOOR_ONE_SPEED,SECRET_DOOR_ONE_REPEAT_TYPE],plSecretDoors);
+      plSecretDoors = Cons([SECRET_DOOR_TWO_TRIGGER_SECTOR,SECRET_DOOR_TWO_OPEN_SECTOR,SECRET_DOOR_TWO_TYPE,SECRET_DOOR_TWO_HEIGHT,SECRET_DOOR_TWO_SPEED,SECRET_DOOR_TWO_REPEAT_TYPE],plSecretDoors);
+      plSecretDoors = Cons([SECRET_DOOR_THREE_TRIGGER_SECTOR,SECRET_DOOR_THREE_OPEN_SECTOR,SECRET_DOOR_THREE_TYPE,SECRET_DOOR_THREE_HEIGHT,SECRET_DOOR_THREE_SPEED,SECRET_DOOR_THREE_REPEAT_TYPE],plSecretDoors);
+
+      foreach i in plSecretDoors
+      {
+         if Nth(i,1) = -1
+         {
+            plSecretDoors = DelListElem(plSecretDoors,i);
+         }
+      }
+
+      plSpikeStates = Cons([SPIKES_ONE_PAIN_SECTOR,SPIKES_ONE_DOWN_WALL_ID,SPIKES_ONE_UP_WALL_ID,$,SPIKES_DORMANT,SPIKES_ONE_BEHAVIOR,SPIKES_ONE_SOUND_ROW, SPIKES_ONE_SOUND_COL],plSpikeStates);
+      plSpikeStates = Cons([SPIKES_TWO_PAIN_SECTOR,SPIKES_TWO_DOWN_WALL_ID,SPIKES_TWO_UP_WALL_ID,$,SPIKES_DORMANT,SPIKES_TWO_BEHAVIOR,SPIKES_TWO_SOUND_ROW, SPIKES_TWO_SOUND_COL],plSpikeStates);
+      plSpikeStates = Cons([SPIKES_THREE_PAIN_SECTOR,SPIKES_THREE_DOWN_WALL_ID,SPIKES_THREE_UP_WALL_ID,$,SPIKES_DORMANT,SPIKES_THREE_BEHAVIOR,SPIKES_THREE_SOUND_ROW, SPIKES_THREE_SOUND_COL],plSpikeStates);
+      plSpikeStates = Cons([SPIKES_FOUR_PAIN_SECTOR,SPIKES_FOUR_DOWN_WALL_ID,SPIKES_FOUR_UP_WALL_ID,$,SPIKES_DORMANT,SPIKES_FOUR_BEHAVIOR,SPIKES_FOUR_SOUND_ROW, SPIKES_FOUR_SOUND_COL],plSpikeStates);
+      plSpikeStates = Cons([SPIKES_FIVE_PAIN_SECTOR,SPIKES_FIVE_DOWN_WALL_ID,SPIKES_FIVE_UP_WALL_ID,$,SPIKES_DORMANT,SPIKES_FIVE_BEHAVIOR,SPIKES_FIVE_SOUND_ROW, SPIKES_FIVE_SOUND_COL],plSpikeStates);
+      plSpikeStates = Cons([SPIKES_SIX_PAIN_SECTOR,SPIKES_SIX_DOWN_WALL_ID,SPIKES_SIX_UP_WALL_ID,$,SPIKES_DORMANT,SPIKES_SIX_BEHAVIOR,SPIKES_SIX_SOUND_ROW, SPIKES_SIX_SOUND_COL],plSpikeStates);
+      plSpikeStates = Cons([SPIKES_SEVEN_PAIN_SECTOR,SPIKES_SEVEN_DOWN_WALL_ID,SPIKES_SEVEN_UP_WALL_ID,$,SPIKES_DORMANT,SPIKES_SEVEN_BEHAVIOR,SPIKES_SEVEN_SOUND_ROW, SPIKES_SEVEN_SOUND_COL],plSpikeStates);
+      plSpikeStates = Cons([SPIKES_EIGHT_PAIN_SECTOR,SPIKES_EIGHT_DOWN_WALL_ID,SPIKES_EIGHT_UP_WALL_ID,$,SPIKES_DORMANT,SPIKES_EIGHT_BEHAVIOR,SPIKES_EIGHT_SOUND_ROW, SPIKES_EIGHT_SOUND_COL],plSpikeStates);
+      plSpikeStates = Cons([SPIKES_NINE_PAIN_SECTOR,SPIKES_NINE_DOWN_WALL_ID,SPIKES_NINE_UP_WALL_ID,$,SPIKES_DORMANT,SPIKES_NINE_BEHAVIOR,SPIKES_NINE_SOUND_ROW, SPIKES_NINE_SOUND_COL],plSpikeStates);
+      plSpikeStates = Cons([SPIKES_TEN_PAIN_SECTOR,SPIKES_TEN_DOWN_WALL_ID,SPIKES_TEN_UP_WALL_ID,$,SPIKES_DORMANT,SPIKES_TEN_BEHAVIOR,SPIKES_TEN_SOUND_ROW, SPIKES_TEN_SOUND_COL],plSpikeStates);
+
+      foreach i in plSpikeStates
+      {
+         if Nth(i,1) = -1
+         {
+            plSpikeStates = DelListElem(plSpikeStates,i);
+         }
+      }
+
+      plTotems = Cons([TOTEM_ONE_SPELL_ID,
+                           $,
+                           $,
+                           TOTEM_ONE_ROW,
+                           TOTEM_ONE_COL,
+                           TOTEM_ONE_FINE_ROW,
+                           TOTEM_ONE_FINE_COL],plTotems);
+      plTotems = Cons([TOTEM_TWO_SPELL_ID,
+                           $,
+                           $,
+                           TOTEM_TWO_ROW,
+                           TOTEM_TWO_COL,
+                           TOTEM_TWO_FINE_ROW,
+                           TOTEM_TWO_FINE_COL],plTotems);
+      plTotems = Cons([TOTEM_THREE_SPELL_ID,
+                           $,
+                           $,
+                           TOTEM_THREE_ROW,
+                           TOTEM_THREE_COL,
+                           TOTEM_THREE_FINE_ROW,
+                           TOTEM_THREE_FINE_COL],plTotems);
+
+      foreach i in plTotems
+      {
+         if Nth(i,1) = -1
+         {
+            plTotems = DelListElem(plTotems,i);
+         }
+      }
+
+      plLavaSectors = Cons([LAVA_SECTOR_ONE,$],plLavaSectors);
+      plLavaSectors = Cons([LAVA_SECTOR_TWO,$],plLavaSectors);
+      plLavaSectors = Cons([LAVA_SECTOR_THREE,$],plLavaSectors);
+      plLavaSectors = Cons([LAVA_SECTOR_FOUR,$],plLavaSectors);
+      plLavaSectors = Cons([LAVA_SECTOR_FIVE,$],plLavaSectors);
+
+      foreach i in plLavaSectors
+      {
+         if Nth(i,1) = -1
+         {
+            plLavaSectors = DelListElem(plLavaSectors,i);
+         }
+      }
+
+      plSawbladeStates = Cons([SAWBLADE_ONE_TRIGGER_SECTOR,
+                               SAWBLADE_ONE_DAMAGE_SECTOR,
+                               SAWBLADE_ONE_WALL_ID,
+                               $,
+                               $,
+                               SAWBLADE_ONE_SOUND_ROW,
+                               SAWBLADE_ONE_SOUND_COL],plSawbladeStates);
+
+      plSawbladeStates = Cons([SAWBLADE_TWO_TRIGGER_SECTOR,
+                               SAWBLADE_TWO_DAMAGE_SECTOR,
+                               SAWBLADE_TWO_WALL_ID,
+                               $,
+                               $,
+                               SAWBLADE_TWO_SOUND_ROW,
+                               SAWBLADE_TWO_SOUND_COL],plSawbladeStates);
+
+      plSawbladeStates = Cons([SAWBLADE_THREE_TRIGGER_SECTOR,
+                               SAWBLADE_THREE_DAMAGE_SECTOR,
+                               SAWBLADE_THREE_WALL_ID,
+                               $,
+                               $,
+                               SAWBLADE_THREE_SOUND_ROW,
+                               SAWBLADE_THREE_SOUND_COL],plSawbladeStates);
+
+      foreach i in plSawbladeStates
+      {
+         if Nth(i,1) = -1
+         {
+            plSawbladeStates = DelListElem(plSawbladeStates,i);
+         }
+      }
+      propagate;
+   }
+
+   Delete()
+   {
+      local i;
+      
+      foreach i in plTrapStates
+      {
+         if Nth(i,3) <> $
+            AND IsTimer(Nth(i,3))
+         {
+            DeleteTimer(Nth(i,3));
+         }
+         SetNth(i,3,$);
+         plTrapStates = DelListElem(plTrapStates,i);
+      }
+
+      Send(self,@RemoveTotems);
+
+      propagate;
+   }
+
+% ============
+% SOUNDS
+% ============
+
+   PlayLiftSound(row=$,col=$,cutoff_radius=10)
+   {
+      if row = $
+         OR col = $
+      {
+         Send(self,@SomethingWaveRoom,#wave_rsc=maze_lift_sound);
+      }
+      else
+      {
+         Send(self,@SomethingWaveRoomCoords,#wave_rsc=maze_lift_sound,#row=row,#col=col,#cutoff_radius=cutoff_radius);
+      }
+      return;
+   }
+   
+   PlayClickSound(row=$,col=$,cutoff_radius=10)
+   {
+      if row = $
+         OR col = $
+      {
+         Send(self,@SomethingWaveRoom,#wave_rsc=maze_click_sound);
+      }
+      else
+      {
+         Send(self,@SomethingWaveRoomCoords,#wave_rsc=maze_click_sound,#row=row,#col=col,#cutoff_radius=cutoff_radius);
+      }
+      return;
+   }
+   
+   PlayTrapSlamSound(row=$,col=$,cutoff_radius=10)
+   {
+      if row = $
+         OR col = $
+      {
+         Send(self,@SomethingWaveRoom,#wave_rsc=maze_trap_slam);
+      }
+      else
+      {
+         Send(self,@SomethingWaveRoomCoords,#wave_rsc=maze_trap_slam,#row=row,#col=col,#cutoff_radius=cutoff_radius);
+      }
+      return;
+   }
+   
+   PlaySpikeSound(row=$,col=$,cutoff_radius=10)
+   {
+      if row = $
+         OR col = $
+      {
+         Send(self,@SomethingWaveRoom,#wave_rsc=maze_spike_rise);
+      }
+      else
+      {
+         Send(self,@SomethingWaveRoomCoords,#wave_rsc=maze_spike_rise,#row=row,#col=col,#cutoff_radius=cutoff_radius);
+      }
+      return;
+   }
+
+   PlaySawbladeSound(row=$,col=$,cutoff_radius=10)
+   {
+      if row = $
+         OR col = $
+      {
+         Send(self,@SomethingWaveRoom,#wave_rsc=maze_sawblade_rise);
+      }
+      else
+      {
+         Send(self,@SomethingWaveRoomCoords,#wave_rsc=maze_sawblade_rise,#row=row,#col=col,#cutoff_radius=cutoff_radius);
+      }
+      return;
+   }
+
+% ============
+% MOVEMENT EVALUATION
+% ============
+
+   FirstUserEntered()
+   {
+      Send(self,@StartSpikeCycle);
+      Send(self,@PlaceTotems);
+      Send(self,@StartLava);
+
+      propagate;
+   }
+
+   LastUserLeft()
+   {
+      Send(self,@EndSpikeCycle);
+      Send(self,@RemoveTotems);
+      Send(self,@EndLava);
+
+      propagate;
+   }
+
+   SomethingMoved(what = $,new_row = $, new_col = $)
+   {
+      if NOT IsClass(what,&Player)
+      {
+         propagate;
+      }
+
+      Send(self,@EvaluateMovement,#who=what,#section=Send(self,@GetSection,#who=what));
+
+      propagate;
+   }
+   
+   EvaluateMovement(who=$,section=0)
+   {
+      local i;
+
+      foreach i in plSawbladeStates
+      {
+         if section = Nth(i,1)
+         {
+            Send(self,@EvaluateSawblade,#trap_trigger_sector=section);
+         }
+      }
+      
+      foreach i in plTrapStates
+      {
+         if section = Nth(i,1)
+         {
+            Send(self,@EvaluateTrap,#trap_trigger_sector=section);
+         }
+      }
+      
+      foreach i in plSecretDoors
+      {
+         if section = Nth(i,1)
+         {
+            Send(self,@LowerSecretDoor,#trigger_id=Nth(i,1),
+                                       #open_id=Nth(i,2),
+                                       #sd_type=Nth(i,3),
+                                       #sd_height=Nth(i,4),
+                                       #sd_speed=Nth(i,5));
+            
+            if Nth(i,6) = SECRET_DOOR_ONLY_ONCE
+            {
+               % Don't keep track of this anymore, it's been opened.
+               plSecretDoors = DelListElem(plSecretDoors,i);
+            }
+         }
+      }
+
+      return;
+   }
+
+   GetSection(who=$,iRow=$,iCol=$,iFineRow=$,iFineCol=$,bCheckForPool=FALSE)
+   {
+      local iQflags, iRflags, iHeightF, iHeightFWD, iHeightC, iServerID;
+      
+      if iRow = $
+         OR iCol = $
+         OR iFineRow = $
+         OR iFineCol = $
+      {
+         if who <> $
+         {
+            iRow = Send(who,@GetRow);
+            iCol = Send(who,@GetCol);
+            iFineRow = Send(who,@GetFineRow);
+            iFineCol = Send(who,@GetFineCol);
+         }
+         else
+         {
+            return 0;
+         }
+         if iRow = $
+            OR iCol = $
+            OR iFineRow = $
+            OR iFineCol = $
+         {
+            % Who gave us some nil coords.
+            return 0;
+         }
+      }
+
+      iQflags = LIQ_GET_SECTORINFO;
+
+      if GetLocationInfoBSP(
+                      prmRoom, iQflags, iRow, iCol, iFineRow, iFineCol,
+                      *iRflags, *iHeightF, *iHeightFWD, *iHeightC, *iServerID)
+      {
+         return iServerID;
+      }
+
+      return 0;
+   }
+
+   % This function can tell us the height of sectors that have been altered.
+   % If no alteration over starting conditions, returns $.
+   % Send ANIMATE_FLOOR_LIFT or ANIMATE_CEILING_LIFT to check floor or ceiling.
+   GetChangedHeightOfSector(sector_id=-1,type=ANIMATE_FLOOR_LIFT)
+   {
+      local i;
+      
+      foreach i in Send(self,@GetSectorChanges)
+      {
+         if sector_id = Nth(i,1)
+            AND type = Nth(i,2)
+         {
+            return Nth(i,3);
+         }
+      }
+
+      return $;
+   }
+
+% ============
+% LEVERS
+% ============
+
+   SomethingChanged(what=$)
+   {
+      if what <> $
+         AND IsClass(what,&Lever)
+      {
+         Send(self,@LeverPulled,#lever_object=what);
+      }
+
+      propagate;
+   }
+
+   LeverPulled(lever_object=$)
+   {
+      if lever_object <> $
+      {
+         if Send(lever_object,@GetRow) = LEVER_ONE_ROW
+         {
+            if Send(lever_object,@GetState) = LEVER_DOWN
+            {
+               Send(self,@SetSector,#sector=LEVER_ONE_ACTIVATES_SECTOR,
+                                    #animation=LEVER_ONE_TYPE,
+                                    #height=LEVER_ONE_DOWN_HEIGHT,
+                                    #speed=LEVER_ONE_DOWN_SPEED);
+            }
+            else
+            {
+               Send(self,@SetSector,#sector=LEVER_ONE_ACTIVATES_SECTOR,
+                                    #animation=LEVER_ONE_TYPE,
+                                    #height=LEVER_ONE_UP_HEIGHT,
+                                    #speed=LEVER_ONE_UP_SPEED);
+            }
+         }
+
+         if Send(lever_object,@GetRow) = LEVER_TWO_ROW
+         {
+            if Send(lever_object,@GetState) = LEVER_DOWN
+            {
+               Send(self,@SetSector,#sector=LEVER_TWO_ACTIVATES_SECTOR,
+                                    #animation=LEVER_TWO_TYPE,
+                                    #height=LEVER_TWO_DOWN_HEIGHT,
+                                    #speed=LEVER_TWO_DOWN_SPEED);
+            }
+            else
+            {
+               Send(self,@SetSector,#sector=LEVER_TWO_ACTIVATES_SECTOR,
+                                    #animation=LEVER_TWO_TYPE,
+                                    #height=LEVER_TWO_UP_HEIGHT,
+                                    #speed=LEVER_TWO_UP_SPEED);
+            }
+         }
+      }
+      Send(self,@PlayLiftSound);
+      return;
+   }
+
+% ============
+% CRUSHERS
+% ============
+   
+   EvaluateTrap(trap_trigger_sector=-1)
+   {
+      local i, iTrapState;
+      
+      foreach i in plTrapStates
+      {
+         if Nth(i,1) = trap_trigger_sector
+         {
+            iTrapState = Nth(i,4);
+         }
+         switch(iTrapState)
+         {
+            case TRAP_READY:
+               SetNth(i,4,TRAP_TRIGGERED);
+               Send(self,@PlayClickSound);
+               SetNth(i,3,CreateTimer(self,@TriggerTrap,TRAP_TRIGGERED_DELAY));
+               break;
+            case TRAP_TRIGGERED:
+               break;
+            case TRAP_ACTING:
+               break;
+            case TRAP_RETREATING:
+               break;
+         }
+      }
+
+      return;
+   }
+
+   TriggerTrap(timer=$)
+   {
+      local i;
+      
+      foreach i in plTrapStates
+      {
+         if timer = Nth(i,3)
+         {
+            SetNth(i,3,$);
+            SetNth(i,4,TRAP_ACTING);
+            Send(self,@PlayTrapSlamSound);
+            SetNth(i,3,CreateTimer(self,@HitTrap,TRAP_ACTING_DELAY));
+            Send(self,@SetSector,#sector=Nth(i,2),
+                                 #animation=Nth(i,5),
+                                 #height=Nth(i,6),
+                                 #speed=Nth(i,7));
+         }
+      }
+      return;
+   }
+
+   HitTrap(timer=$)
+   {
+      local i, n, each_obj;
+      
+      foreach i in plTrapStates
+      {
+         if timer = Nth(i,3)
+         {
+            SetNth(i,3,$);
+            SetNth(i,4,TRAP_HIT);
+            SetNth(i,3,CreateTimer(self,@RetreatTrap,TRAP_HIT_DELAY));
+            Send(self,@AnimateWall,#wall=Nth(i,10),#animation=ANIMATE_NONE,#first_group=2,#passable=FALSE);
+      
+            foreach n in Send(self,@GetHolderActive)
+            {
+               each_obj = Send(self,@HolderExtractObject,#data=n);
+               if IsClass(each_obj,&Player)
+                  AND Send(self,@GetSection,#who=each_obj) = Nth(i,2)
+               {
+                  Send(each_obj,@MsgSendUser,#message_rsc=trap_damages_you);
+                  Send(each_obj,@LoseHealth,#amount=TRAP_DAMAGE);
+                  Send(Send(SYS,@FindSpellByNum,#num=SID_EVENT_HOLD),@DoSpell,
+                        #what=self,#oTarget=each_obj,#iDuration=TRAP_HIT_DELAY,#report=FALSE);
+                  Send(each_obj,@EffectSendUserDuration,#effect=EFFECT_PAIN,#duration=TRAP_HIT_DELAY);
+                  Send(each_obj,@EffectSendUserXLat,#xlat=0);
+               }
+            }
+         }
+      }
+
+      return;
+   }
+   
+   RetreatTrap(timer=$)
+   {
+      local i;
+      
+      foreach i in plTrapStates
+      {
+         if timer = Nth(i,3)
+         {
+            SetNth(i,3,$);
+            SetNth(i,4,TRAP_RETREATING);
+            Send(self,@AnimateWall,#wall=Nth(i,10),#animation=ANIMATE_NONE,#first_group=2,#passable=TRUE);
+            Send(self,@SetSector,#sector=Nth(i,2),#animation=Nth(i,5),#height=Nth(i,8),#speed=Nth(i,9));
+            SetNth(i,3,CreateTimer(self,@ResetTrap,TRAP_RETREATING_DELAY));
+         }
+      }
+      return;
+   }
+   
+   ResetTrap(timer=$)
+   {
+      local i;
+      
+      foreach i in plTrapStates
+      {
+         if timer = Nth(i,3)
+         {
+            SetNth(i,3,$);
+            SetNth(i,4,TRAP_READY);
+         }
+      }
+      return;
+   }
+
+% ============
+% SECRET DOORS
+% ============
+   
+   LowerSecretDoor(trigger_id=0,door_id=0,sd_type=0,sd_height=0,sd_speed=0)
+   {
+      if trigger_id <> 0
+         AND Send(self,@GetChangedHeightOfSector,#sector_id=door_id,#type=sd_type) <> sd_height
+      {
+         Send(self,@PlayLiftSound);
+         Send(self,@SetSector,#sector=door_id,
+                              #animation=sd_type,
+                              #height=sd_height,
+                              #speed=sd_speed);
+      }
+
+      return;
+   }
+
+% ============
+% SPIKES
+% ============
+   
+   StartSpikeCycle()
+   {
+      local i, iSequenceDelay;
+      
+      iSequenceDelay = 0;
+      foreach i in plSpikeStates
+      {
+         switch(Nth(i,6))
+         {
+            case SPIKES_SIMULTANEOUS:
+               SetNth(i,4,CreateTimer(self,@RaiseSpikes,SPIKES_DORMANT_TIME));
+               break;
+            case SPIKES_IN_SEQUENCE:
+               SetNth(i,4,CreateTimer(self,@RaiseSpikes,SPIKES_DORMANT_TIME+iSequenceDelay*SPIKES_DELAY_IF_SEQUENCE));
+               iSequenceDelay++;
+               break;
+         }
+            
+      }
+      return;
+   }
+
+   EndSpikeCycle()
+   {
+      local i;
+
+      foreach i in plSpikeStates
+      {
+         if IsTimer(Nth(i,4))
+         {
+            DeleteTimer(Nth(i,4));
+         }
+         SetNth(i,4,$);
+         SetNth(i,5,SPIKES_DORMANT);
+            
+         Send(self,@ChangeTexture,#id=Nth(i,2),#new_texture=spikes_texture,#flags=CTF_NORMALWALL);
+         Send(self,@ChangeTexture,#id=Nth(i,3),#new_texture=blank_texture,#flags=CTF_NORMALWALL);
+         Send(self,@AnimateWall,#wall=Nth(i,2),#animation=ANIMATE_NONE,#first_group=2,#passable=TRUE);
+         Send(self,@AnimateWall,#wall=Nth(i,3),#animation=ANIMATE_NONE,#first_group=2,#passable=TRUE);
+      }
+
+      return;
+   }
+
+   RaiseSpikes(timer=$)
+   {
+      local i, n, each_obj;
+
+      foreach i in plSpikeStates
+      {
+         if timer = Nth(i,4)
+         {
+            SetNth(i,4,$);
+            SetNth(i,5,SPIKES_ACTIVE);
+
+            Send(self,@PlaySpikeSound,#row=Nth(i,7),#col=Nth(i,8),#cutoff_radius=SPIKES_SOUND_RADIUS);
+            
+            Send(self,@ChangeTexture,#id=Nth(i,2),#new_texture=blank_texture,#flags=CTF_NORMALWALL);
+            Send(self,@ChangeTexture,#id=Nth(i,3),#new_texture=spikes_texture,#flags=CTF_NORMALWALL);
+            Send(self,@AnimateWall,#wall=Nth(i,2),#animation=ANIMATE_NONE,#first_group=2,#passable=FALSE);
+            Send(self,@AnimateWall,#wall=Nth(i,3),#animation=ANIMATE_NONE,#first_group=2,#passable=FALSE);
+
+            foreach n in Send(self,@GetHolderActive)
+            {
+               each_obj = Send(self,@HolderExtractObject,#data=n);
+               if IsClass(each_obj,&Player)
+                  AND Send(self,@GetSection,#who=each_obj) = Nth(i,1)
+               {
+                  Send(each_obj,@MsgSendUser,#message_rsc=spikes_damage_you);
+      
+                  Send(each_obj,@LoseHealth,#amount=SPIKES_DAMAGE);
+                  Send(each_obj,@EffectSendUserDuration,#effect=EFFECT_PAIN,#duration=SPIKES_PAIN_TIME);
+                  Send(each_obj,@EffectSendUserXLat,#xlat=0);
+               }
+            }
+            
+            SetNth(i,4,CreateTimer(self,@LowerSpikes,SPIKES_ACTIVE_TIME));
+         }
+      }
+
+      return;
+   }
+   
+   LowerSpikes(timer=$)
+   {
+      local i;
+
+      foreach i in plSpikeStates
+      {
+         if timer = Nth(i,4)
+         {
+            SetNth(i,4,$);
+            SetNth(i,5,SPIKES_DORMANT);
+            
+            Send(self,@ChangeTexture,#id=Nth(i,2),#new_texture=spikes_texture,#flags=CTF_NORMALWALL);
+            Send(self,@ChangeTexture,#id=Nth(i,3),#new_texture=blank_texture,#flags=CTF_NORMALWALL);
+            Send(self,@AnimateWall,#wall=Nth(i,2),#animation=ANIMATE_NONE,#first_group=2,#passable=TRUE);
+            Send(self,@AnimateWall,#wall=Nth(i,3),#animation=ANIMATE_NONE,#first_group=2,#passable=TRUE);
+            
+            SetNth(i,4,CreateTimer(self,@RaiseSpikes,SPIKES_DORMANT_TIME));
+         }
+      }
+      return;
+   }
+
+% ============
+% TOTEMS
+% ============
+
+   PlaceTotems()
+   {
+      local i;
+      
+      foreach i in plTotems
+      {
+         if Nth(i,2) <> $
+         {
+            continue;
+         }
+
+         SetNth(i,2,Create(&MazeTotem,#iSpellID=Nth(i,1)));
+         Send(self,@NewHold,#what=Nth(i,2),
+                            #new_row=Nth(i,4),
+                            #new_col=Nth(i,5),
+                            #fine_row=Nth(i,6),
+                            #fine_col=Nth(i,7));
+      }
+
+      return;
+   }
+
+   TotemKilled(totem_object=$)
+   {
+      local i;
+      
+      foreach i in plTotems
+      {
+         if totem_object = Nth(i,2)
+         {
+            SetNth(i,2,$);
+            SetNth(i,3,CreateTimer(self,@RespawnTotem,TOTEM_RESPAWN_TIME));
+         }
+      }
+
+      return;
+   }
+
+   RespawnTotem(timer=$)
+   {
+      local i;
+      
+      foreach i in plTotems
+      {
+         if timer = Nth(i,3)
+         {
+            SetNth(i,3,$);
+            SetNth(i,2,Create(&MazeTotem,#iSpellID=Nth(i,1)));
+            Send(self,@NewHold,#what=Nth(i,2),
+                               #new_row=Nth(i,4),
+                               #new_col=Nth(i,5),
+                               #fine_row=Nth(i,6),
+                               #fine_col=Nth(i,7));
+         }
+      }
+
+      return;
+   }
+   
+   RemoveTotems()
+   {
+      local i;
+      
+      foreach i in plTotems
+      {
+         if Nth(i,2) <> $
+         {
+            Send(Nth(i,2),@Delete);
+            SetNth(i,2,$);
+         }
+         if Nth(i,3) <> $
+         {
+            if IsTimer(Nth(i,3))
+            {
+               DeleteTimer(Nth(i,3));
+            }
+            SetNth(i,3,$);
+         }
+      }
+
+      return;
+   }
+
+% ============
+% LAVA
+% ============
+
+   StartLava()
+   {
+      if plLavaSectors <> $
+      {
+         ptLavaBurnTimer = CreateTimer(self,@DoLava,LAVA_BURN_TIME);
+      }
+      return;
+   }
+
+   DoLava(timer=$)
+   {
+      local i, n, each_obj;
+
+      ptLavaBurnTimer = $;
+
+      foreach i in plLavaSectors
+      {
+         foreach n in Send(self,@GetHolderActive)
+         {
+            each_obj = Send(self,@HolderExtractObject,#data=n);
+            if IsClass(each_obj,&Player)
+               AND Send(self,@GetSection,#who=each_obj) = Nth(i,1)
+            {
+               Send(each_obj,@MsgSendUser,#message_rsc=lava_applying_burn);
+               Send(each_obj,@EffectSendUserDurationAndXlat,#effect=EFFECT_FLASHXLAT,#duration=100,#xlat=81);
+               Send(each_obj,@ApplyElementalStatusEffects,#damage=LAVA_BURN_APPLIED,#aspell=ATCK_SPELL_FIRE);
+            }
+         }
+      }
+
+      ptLavaBurnTimer = CreateTimer(self,@DoLava,LAVA_BURN_TIME);
+      return;
+   }
+
+   EndLava()
+   {
+      if ptLavaBurnTimer <> $
+      {
+         DeleteTimer(ptLavaBurnTimer);
+      }
+      ptLavaBurnTimer = $;
+      return;
+   }
+
+% ============
+% SAWBLADES
+% ============
+
+   EvaluateSawblade(trap_trigger_sector=0)
+   {
+      local i;
+
+      foreach i in plSawbladeStates
+      {
+         if trap_trigger_sector = Nth(i,1)
+            AND Nth(i,4) = $
+         {
+            Send(self,@ChangeTexture,#id=Nth(i,3),#new_texture=00003,#flags=CTF_NORMALWALL);
+            Send(self,@AnimateWall,#wall=Nth(i,3),
+                                   #animation=ANIMATE_CYCLE,
+                                   #first_group=1,
+                                   #second_group=241,
+                                   #end_group=241,
+                                   #speed=10,
+                                   #passable=TRUE);
+            Send(self,@PlaySawbladeSound,#row=Nth(i,5),#col=Nth(i,6));
+
+            SetNth(i,4,CreateTimer(self,@DeactivateSawblade,SAWBLADE_FULL_CYCLE_TIME));
+            SetNth(i,5,CreateTimer(self,@DealSawbladeDamage,SAWBLADE_DAMAGE_TIME));
+         }
+      }
+
+      return;
+   }
+
+   DeactivateSawblade(timer=$)
+   {
+      local i;
+      
+      foreach i in plSawbladeStates
+      {
+         if timer = Nth(i,4)
+         {
+            SetNth(i,4,$);
+
+            Send(self,@ChangeTexture,#id=Nth(i,3),#new_texture=blank_texture,#flags=CTF_NORMALWALL);
+            Send(self,@AnimateWall,#wall=Nth(i,3),
+                                   #animation=ANIMATE_NONE,
+                                   #first_group=1,
+                                   #second_group=241,
+                                   #end_group=241,
+                                   #speed=10,
+                                   #passable=TRUE);
+
+            DeleteTimer(Nth(i,5));
+            SetNth(i,5,$);
+         }
+      }
+
+      return;
+   }
+
+   DealSawbladeDamage(timer=$)
+   {
+      local i, n, each_obj;
+
+      foreach i in plSawbladeStates
+      {
+         if timer = Nth(i,5)
+         {
+            SetNth(i,5,$);
+            foreach n in Send(self,@GetHolderActive)
+            {
+               each_obj = Send(self,@HolderExtractObject,#data=n);
+               if IsClass(each_obj,&Player)
+                  AND Send(self,@GetSection,#who=each_obj) = Nth(i,2)
+               {
+                  Send(each_obj,@EffectSendUserDuration,#effect=EFFECT_PAIN,#duration=SAWBLADE_DAMAGE_TIME);
+                  Send(each_obj,@LoseHealth,#amount=SAWBLADE_DAMAGE);
+               }
+            }
+            SetNth(i,5,CreateTimer(self,@DealSawbladeDamage,SAWBLADE_DAMAGE_TIME));
+         }
+      }
+      return;
+   }
+
+% ==================================================================================================================
+% ==================================================================================================================
+% SPECIFIC FUNCTIONS
+% ==================================================================================================================
+% ==================================================================================================================
+
+% ============
+% OTHER
+% ============
+
+   SendPlayersToNextRoom()
+   {
+      local i, each_obj;
+
+%      ptNextRoomTimer = $;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         each_obj = Send(self,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&Player)
+            AND Send(self,@GetSection,#who=each_obj) = LEVER_TWO_ACTIVATES_SECTOR
+         {
+            Send(Send(SYS,@FindRoomByNum,#num=RID_MAZE1),@Teleport,#what=each_obj);
+         }
+      }
+      Send(self,@SetSector,#sector=LEVER_TWO_ACTIVATES_SECTOR,
+                           #animation=LEVER_TWO_TYPE,
+                           #height=LEVER_TWO_UP_HEIGHT,
+                           #speed=LEVER_TWO_UP_SPEED);
+      
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

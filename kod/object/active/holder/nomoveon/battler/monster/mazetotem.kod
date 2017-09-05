@@ -1,0 +1,133 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+MazeTotem is Monster
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   maze_totem_name_rsc = "totem"
+   maze_totem_icon_rsc = mazetotem.bgf
+   maze_totem_desc_rsc = \
+      "This animated pillar appears to be immobile but hostile!"
+
+   maze_totem_dead_name_rsc = "dead remains of a totem trap"
+
+classvars:
+
+   vrName = maze_totem_name_rsc
+   vrIcon = maze_totem_icon_rsc
+   vrDesc = maze_totem_desc_rsc
+   vrDead_icon = $
+   vrDead_name = maze_totem_dead_name_rsc
+
+   viTreasure_type = TID_NONE
+   viAttack_type = ATCK_WEAP_BLUDGEON
+   viSpeed = SPEED_VERY_FAST
+   viAttributes = MOB_NOMOVE
+   viDefault_behavior = AI_NOMOVE | AI_FIGHT_LASHOUT | AI_FIGHT_HYPERAGGRESSIVE
+   viLevel = 50
+   viDifficulty = 4
+   viVisionDistance = 14
+   viKarma = 0
+   viCashmin = 0
+   viCashmax = 0
+
+   % 1 in x chance to cast a spell.
+   viSpellChance = 1
+
+   vrSound_hit = $
+   vrSound_miss = $
+   vrSound_aware = $
+   vrSound_death = $
+
+properties:
+
+   piAnimation = ANIM_NONE
+
+   piSpellPower = 99
+   piMax_mana = 120
+   
+   poPlayerTarget = $
+
+messages:
+
+   Constructor(iSpellID=SID_LIGHTNING)
+   {
+      plSpellBook = [ [iSpellID, 0, 100] ];
+   
+      propagate;
+   }
+
+   Constructed()
+   {
+      plResistances = [ [ATCK_WEAP_ALL, 50 ],
+                        [-ATCK_SPELL_ALL, 50 ] ];
+
+      propagate;
+   }
+   
+   SomethingMoved(what=$,new_row=$,new_col=$,fine_row=$,fine_col=$)
+   "Check to see if we need to change our combat plan because someone moved."
+   {
+      if what <> $
+         AND IsClass(what,&Player)
+      {
+         Post(self,@TargetSwitch,#what=what,#iHatred=100);
+         Post(self,@EnterStateChase,#target=what,#actnow=TRUE);
+      }
+
+      propagate;
+   }
+
+   CreateDeadBody(killer=$)
+   {
+      Send(poOwner,@TotemKilled,#totem_object=self);
+      return $;
+   }
+
+   TryAttack(what=$,stroke_obj=$)
+   "Ok, we got someone to attack, lets try and hit them."
+   {
+      % Phased players can't be hit.
+      if IsClass(what,&User)
+         AND Send(what,@IsInCannotInteractMode)
+      {
+         return FALSE;
+      }
+
+      % Make sure room allows the attack.
+      if NOT Send(poOwner,@ReqSomethingAttack,#what=self,#victim=what,
+                  #stroke_obj=stroke_obj)
+      {
+         % Check if room has special combat effects.
+         return FALSE;
+      }
+
+      % If we're hitting another monster, check if we can reach or attack it.
+      if IsClass(what,&Monster)
+      {
+         if NOT Send(what,@CanMonsterFight,#who=self,#oStroke=stroke_obj,
+                     #use_weapon=stroke_obj)
+         {
+            return FALSE;
+         }
+      }
+
+      Send(self,@MonsterCastSpell);
+
+      return TRUE;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

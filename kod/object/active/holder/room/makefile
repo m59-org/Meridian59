@@ -17,7 +17,7 @@ BOFS =  barlqrm.bof crnthrm.bof jasperrm.bof kocarm.bof marnrm.bof tosrm.bof \
 	castle2e.bof gallery.bof \
 	bowhut.bof tpost1.bof tpost2.bof rentroom.bof necarena.bof desert.bof \
    battlearena.bof prismoffire.bof \
-   ancienttomb1.bof ancienttomb2.bof
+   ancienttomb1.bof ancienttomb2.bof mazeroom.bof
 
 # Removed
 #        a4.bof a5.bof b4.bof b5.bof b7.bof b8.bof c3.bof c8.bof c9.bof \

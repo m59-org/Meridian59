@@ -30,7 +30,8 @@ BGFS = igreyinvis.bgf isitting.bgf itransferitem.bgf iexplosion.bgf irift.bgf \
        phaxt5.bgf blastfireproj.bgf explosivefrostproj.bgf illwoundsproj.bgf \
        shockingfuryproj.bgf vampdrainproj.bgf holdrings.bgf \
        blindring.bgf majorheartstone.bgf \
-       deserttwister.bgf airelementaldead.bgf
+       deserttwister.bgf airelementaldead.bgf grd00000.bgf \
+       grd00001.bgf mazetotem.bgf grd00002.bgf grd00003.bgf
 
 DIRS = 
 

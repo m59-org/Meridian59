@@ -1,0 +1,536 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Maze1 is MinotaurMazeRoom
+
+% Mostly spikes, one ceiling trap.
+
+constants:
+
+   include blakston.khd
+   
+   TRAP_READY = 0
+   TRAP_TRIGGERED = 1
+   TRAP_ACTING = 2
+   TRAP_HIT = 3
+   TRAP_RETREATING = 4
+
+resources:
+
+   room_maze1 = maze1.roo
+
+   maze1_lift_sound = stoneup2.wav
+   maze1_click_sound = mechanical1.wav
+   maze1_trap_slam = trapslam.wav
+   maze1_spike_rise = spiketrap.wav
+   
+   maze1_trap_damages_you = \
+      "Crushing pain radiates through your bones!"
+   
+   maze1_spikes_damage_you = \
+      "Spikes stab up from beneath you!"
+
+classvars:
+
+   viTeleport_row = 28
+   viTeleport_col = 3
+
+properties:
+
+   piBaseLight = LIGHT_MIN
+   piOutside_factor = OUTDOORS_NONE 
+
+   piDirectional_percent = DIRECTIONAL_PERCENT_OUTDOORS
+
+   prRoom = room_maze1
+   piRoom_num = RID_MAZE1
+
+   piTrapState = 0
+   ptTrapTimer = $
+   
+   ptSpikes1 = $
+   ptSpikes2 = $
+   ptSpikes3 = $
+   ptSpikes4 = $
+   ptSpikes5 = $
+   ptSpikes6 = $
+
+messages:
+
+   CreateMazeRoomObjects()
+   {
+      return;
+   }
+
+   Delete()
+   {
+      if ptTrapTimer <> $
+      {
+         DeleteTimer(ptTrapTimer);
+         ptTrapTimer = $;
+      }
+      if ptSpikes1 <> $
+      {
+         DeleteTimer(ptSpikes1);
+         ptSpikes1 = $;
+      }
+      if ptSpikes2 <> $
+      {
+         DeleteTimer(ptSpikes2);
+         ptSpikes2 = $;
+      }
+      if ptSpikes3 <> $
+      {
+         DeleteTimer(ptSpikes3);
+         ptSpikes3 = $;
+      }
+      if ptSpikes4 <> $
+      {
+         DeleteTimer(ptSpikes4);
+         ptSpikes4 = $;
+      }
+      if ptSpikes5 <> $
+      {
+         DeleteTimer(ptSpikes5);
+         ptSpikes5 = $;
+      }
+      if ptSpikes6 <> $
+      {
+         DeleteTimer(ptSpikes6);
+         ptSpikes6 = $;
+      }
+      propagate;
+   }
+
+   EvaluateThisRoom(who=$)
+   {
+      local iSection;
+
+      iSection = Send(self,@GetSection,#who=who);
+      
+      if iSection = 6
+      {
+         Send(self,@EvaluateTrap);
+      }
+
+      return;
+   }
+   
+   EvaluateTrap()
+   {
+      switch(piTrapState)
+      {
+         case TRAP_READY:
+            piTrapState = TRAP_TRIGGERED;
+            Send(self,@SomethingWaveRoom,#wave_rsc=maze_click_sound);
+            ptTrapTimer = CreateTimer(self,@TriggerTrap,TRAP_TRIGGERED_DELAY);
+            break;
+         case TRAP_TRIGGERED:
+            break;
+         case TRAP_ACTING:
+            break;
+         case TRAP_RETREATING:
+            break;
+      }
+      return;
+   }
+
+   TriggerTrap()
+   {
+      ptTrapTimer = $;
+      piTrapState = TRAP_ACTING;
+      Send(self,@SomethingWaveRoom,#wave_rsc=maze_trap_slam);
+      ptTrapTimer = CreateTimer(self,@HitTrap,TRAP_ACTING_DELAY);
+      Send(self,@SetSector,#sector=7,#animation=ANIMATE_CEILING_LIFT,#height=1050,#speed=220);
+   
+      return;
+   }
+
+   HitTrap()
+   {
+      local i, each_obj;
+
+      ptTrapTimer = $;
+      piTrapState = TRAP_HIT;
+      ptTrapTimer = CreateTimer(self,@RetreatTrap,TRAP_HIT_DELAY);
+      Send(self,@AnimateWall,#wall=71,#animation=ANIMATE_NONE,#first_group=2,#passable=FALSE);
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         each_obj = Send(self,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&Player)
+            AND Send(self,@GetSection,#who=each_obj) = 7
+         {
+            Send(each_obj,@MsgSendUser,#message_rsc=trap_damages_you);
+      
+            Send(each_obj,@LoseHealth,#amount=50);
+            Send(Send(SYS,@FindSpellByNum,#num=SID_EVENT_HOLD),@DoSpell,
+                  #what=self,#oTarget=each_obj,#iDuration=TRAP_HIT_DELAY,#report=FALSE);
+            Send(each_obj,@EffectSendUserDuration,#effect=EFFECT_PAIN,#duration=TRAP_HIT_DELAY);
+            Send(each_obj,@EffectSendUserXLat,#xlat=0);
+         }
+      }
+   
+      return;
+   }
+   
+   RetreatTrap()
+   {
+      Send(self,@AnimateWall,#wall=71,#animation=ANIMATE_NONE,#first_group=2,#passable=TRUE);
+      ptTrapTimer = $;
+      piTrapState = TRAP_RETREATING;
+      ptTrapTimer = CreateTimer(self,@ResetTrap,TRAP_RETREATING_DELAY);
+      Send(self,@SetSector,#sector=7,#animation=ANIMATE_CEILING_LIFT,#height=1160,#speed=11);
+      return;
+   }
+   
+   ResetTrap()
+   {
+      ptTrapTimer = $;
+      piTrapState = TRAP_READY;
+      return;
+   }
+   
+   StartSpikeCycle()
+   {
+      if ptSpikes1 = $
+      {
+         ptSpikes1 = CreateTimer(self,@RaiseSpikes1,1000);
+      }
+      if ptSpikes2 = $
+      {
+         ptSpikes2 = CreateTimer(self,@RaiseSpikes2,1500);
+      }
+      if ptSpikes3 = $
+      {
+         ptSpikes3 = CreateTimer(self,@RaiseSpikes3,2000);
+      }
+      if ptSpikes4 = $
+      {
+         ptSpikes4 = CreateTimer(self,@RaiseSpikes4,2500);
+      }
+      if ptSpikes5 = $
+      {
+         ptSpikes5 = CreateTimer(self,@RaiseSpikes5,3000);
+      }
+      if ptSpikes6 = $
+      {
+         ptSpikes6 = CreateTimer(self,@RaiseSpikes6,3500);
+      }
+      return;
+   }
+
+   EndSpikeCycle()
+   {
+      if ptSpikes1 <> $
+      {
+         DeleteTimer(ptSpikes1);
+         ptSpikes1 = $;
+      }
+      if ptSpikes2 <> $
+      {
+         DeleteTimer(ptSpikes2);
+         ptSpikes2 = $;
+      }
+      if ptSpikes3 <> $
+      {
+         DeleteTimer(ptSpikes3);
+         ptSpikes3 = $;
+      }
+      if ptSpikes4 <> $
+      {
+         DeleteTimer(ptSpikes4);
+         ptSpikes4 = $;
+      }
+      if ptSpikes5 <> $
+      {
+         DeleteTimer(ptSpikes5);
+         ptSpikes5 = $;
+      }
+      if ptSpikes6 <> $
+      {
+         DeleteTimer(ptSpikes6);
+         ptSpikes6 = $;
+      }
+      return;
+   }
+
+   RaiseSpikes1()
+   {
+      local i, each_obj;
+
+      foreach i in Send(self,@GetHolderActive)
+      {
+         each_obj = Send(self,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&Player)
+            AND Send(self,@GetSection,#who=each_obj) = 1
+         {
+            Send(each_obj,@MsgSendUser,#message_rsc=maze1_spikes_damage_you);
+      
+            Send(each_obj,@LoseHealth,#amount=40);
+            Send(each_obj,@EffectSendUserDuration,#effect=EFFECT_PAIN,#duration=TRAP_HIT_DELAY);
+            Send(each_obj,@EffectSendUserXLat,#xlat=0);
+         }
+      }
+
+      ptSpikes1 = $;
+      Send(self,@SomethingWaveRoomCoords,#wave_rsc=maze_spike_rise,#row=25,#col=2,#cutoff_radius=10);
+      Send(self,@ChangeTexture,#id=12,#new_texture=00001,#flags=CTF_NORMALWALL);
+      Send(self,@ChangeTexture,#id=11,#new_texture=00000,#flags=CTF_NORMALWALL);
+
+      Send(self,@AnimateWall,#wall=12,#animation=ANIMATE_NONE,#first_group=2,#passable=FALSE);
+      Send(self,@AnimateWall,#wall=11,#animation=ANIMATE_NONE,#first_group=2,#passable=FALSE);
+
+      ptSpikes1 = CreateTimer(self,@LowerSpikes1,2000);
+      return;
+   }
+   
+   LowerSpikes1()
+   {
+      ptSpikes1 = $;
+
+      Send(self,@SomethingWaveRoomCoords,#wave_rsc=maze_click_sound,#row=25,#col=2,#cutoff_radius=10);
+      Send(self,@ChangeTexture,#id=12,#new_texture=00000,#flags=CTF_NORMALWALL);
+      Send(self,@ChangeTexture,#id=11,#new_texture=00001,#flags=CTF_NORMALWALL);
+
+      Send(self,@AnimateWall,#wall=12,#animation=ANIMATE_NONE,#first_group=2,#passable=TRUE);
+      Send(self,@AnimateWall,#wall=11,#animation=ANIMATE_NONE,#first_group=2,#passable=TRUE);
+
+      ptSpikes1 = CreateTimer(self,@RaiseSpikes1,3000);
+      return;
+   }
+
+   RaiseSpikes2()
+   {
+      local i, each_obj;
+
+      foreach i in Send(self,@GetHolderActive)
+      {
+         each_obj = Send(self,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&Player)
+            AND Send(self,@GetSection,#who=each_obj) = 2
+         {
+            Send(each_obj,@MsgSendUser,#message_rsc=maze1_spikes_damage_you);
+      
+            Send(each_obj,@LoseHealth,#amount=40);
+            Send(each_obj,@EffectSendUserDuration,#effect=EFFECT_PAIN,#duration=TRAP_HIT_DELAY);
+            Send(each_obj,@EffectSendUserXLat,#xlat=0);
+         }
+      }
+
+      ptSpikes2 = $;
+      Send(self,@SomethingWaveRoomCoords,#wave_rsc=maze_spike_rise,#row=22,#col=2,#cutoff_radius=10);
+      Send(self,@ChangeTexture,#id=22,#new_texture=00001,#flags=CTF_NORMALWALL);
+      Send(self,@ChangeTexture,#id=21,#new_texture=00000,#flags=CTF_NORMALWALL);
+
+      Send(self,@AnimateWall,#wall=22,#animation=ANIMATE_NONE,#first_group=2,#passable=FALSE);
+      Send(self,@AnimateWall,#wall=21,#animation=ANIMATE_NONE,#first_group=2,#passable=FALSE);
+
+      ptSpikes2 = CreateTimer(self,@LowerSpikes2,2000);
+      return;
+   }
+   
+   LowerSpikes2()
+   {
+      ptSpikes2 = $;
+
+      Send(self,@SomethingWaveRoomCoords,#wave_rsc=maze_click_sound,#row=22,#col=2,#cutoff_radius=10);
+      Send(self,@ChangeTexture,#id=22,#new_texture=00000,#flags=CTF_NORMALWALL);
+      Send(self,@ChangeTexture,#id=21,#new_texture=00001,#flags=CTF_NORMALWALL);
+
+      Send(self,@AnimateWall,#wall=22,#animation=ANIMATE_NONE,#first_group=2,#passable=TRUE);
+      Send(self,@AnimateWall,#wall=21,#animation=ANIMATE_NONE,#first_group=2,#passable=TRUE);
+
+      ptSpikes2 = CreateTimer(self,@RaiseSpikes2,3000);
+      return;
+   }
+
+   RaiseSpikes3()
+   {
+      local i, each_obj;
+
+      foreach i in Send(self,@GetHolderActive)
+      {
+         each_obj = Send(self,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&Player)
+            AND Send(self,@GetSection,#who=each_obj) = 3
+         {
+            Send(each_obj,@MsgSendUser,#message_rsc=maze1_spikes_damage_you);
+      
+            Send(each_obj,@LoseHealth,#amount=40);
+            Send(each_obj,@EffectSendUserDuration,#effect=EFFECT_PAIN,#duration=TRAP_HIT_DELAY);
+            Send(each_obj,@EffectSendUserXLat,#xlat=0);
+         }
+      }
+
+      ptSpikes3 = $;
+      Send(self,@SomethingWaveRoomCoords,#wave_rsc=maze_spike_rise,#row=19,#col=2,#cutoff_radius=10);
+      Send(self,@ChangeTexture,#id=32,#new_texture=00001,#flags=CTF_NORMALWALL);
+      Send(self,@ChangeTexture,#id=31,#new_texture=00000,#flags=CTF_NORMALWALL);
+
+      Send(self,@AnimateWall,#wall=32,#animation=ANIMATE_NONE,#first_group=2,#passable=FALSE);
+      Send(self,@AnimateWall,#wall=31,#animation=ANIMATE_NONE,#first_group=2,#passable=FALSE);
+
+      ptSpikes3 = CreateTimer(self,@LowerSpikes3,2000);
+      return;
+   }
+   
+   LowerSpikes3()
+   {
+      ptSpikes3 = $;
+
+      Send(self,@SomethingWaveRoomCoords,#wave_rsc=maze_click_sound,#row=19,#col=2,#cutoff_radius=10);
+      Send(self,@ChangeTexture,#id=32,#new_texture=00000,#flags=CTF_NORMALWALL);
+      Send(self,@ChangeTexture,#id=31,#new_texture=00001,#flags=CTF_NORMALWALL);
+
+      Send(self,@AnimateWall,#wall=32,#animation=ANIMATE_NONE,#first_group=2,#passable=TRUE);
+      Send(self,@AnimateWall,#wall=31,#animation=ANIMATE_NONE,#first_group=2,#passable=TRUE);
+
+      ptSpikes3 = CreateTimer(self,@RaiseSpikes3,3000);
+      return;
+   }
+
+   RaiseSpikes4()
+   {
+      local i, each_obj;
+
+      foreach i in Send(self,@GetHolderActive)
+      {
+         each_obj = Send(self,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&Player)
+            AND Send(self,@GetSection,#who=each_obj) = 4
+         {
+            Send(each_obj,@MsgSendUser,#message_rsc=maze1_spikes_damage_you);
+      
+            Send(each_obj,@LoseHealth,#amount=40);
+            Send(each_obj,@EffectSendUserDuration,#effect=EFFECT_PAIN,#duration=TRAP_HIT_DELAY);
+            Send(each_obj,@EffectSendUserXLat,#xlat=0);
+         }
+      }
+
+      ptSpikes4 = $;
+      Send(self,@SomethingWaveRoomCoords,#wave_rsc=maze_spike_rise,#row=16,#col=2,#cutoff_radius=10);
+      Send(self,@ChangeTexture,#id=42,#new_texture=00001,#flags=CTF_NORMALWALL);
+      Send(self,@ChangeTexture,#id=41,#new_texture=00000,#flags=CTF_NORMALWALL);
+
+      Send(self,@AnimateWall,#wall=42,#animation=ANIMATE_NONE,#first_group=2,#passable=FALSE);
+      Send(self,@AnimateWall,#wall=41,#animation=ANIMATE_NONE,#first_group=2,#passable=FALSE);
+
+      ptSpikes4 = CreateTimer(self,@LowerSpikes4,2000);
+      return;
+   }
+   
+   LowerSpikes4()
+   {
+      ptSpikes4 = $;
+
+      Send(self,@SomethingWaveRoomCoords,#wave_rsc=maze_click_sound,#row=16,#col=2,#cutoff_radius=10);
+      Send(self,@ChangeTexture,#id=42,#new_texture=00000,#flags=CTF_NORMALWALL);
+      Send(self,@ChangeTexture,#id=41,#new_texture=00001,#flags=CTF_NORMALWALL);
+
+      Send(self,@AnimateWall,#wall=42,#animation=ANIMATE_NONE,#first_group=2,#passable=TRUE);
+      Send(self,@AnimateWall,#wall=41,#animation=ANIMATE_NONE,#first_group=2,#passable=TRUE);
+
+      ptSpikes4 = CreateTimer(self,@RaiseSpikes4,3000);
+      return;
+   }
+
+   RaiseSpikes5()
+   {
+      local i, each_obj;
+
+      foreach i in Send(self,@GetHolderActive)
+      {
+         each_obj = Send(self,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&Player)
+            AND Send(self,@GetSection,#who=each_obj) = 5
+         {
+            Send(each_obj,@MsgSendUser,#message_rsc=maze1_spikes_damage_you);
+      
+            Send(each_obj,@LoseHealth,#amount=40);
+            Send(each_obj,@EffectSendUserDuration,#effect=EFFECT_PAIN,#duration=TRAP_HIT_DELAY);
+            Send(each_obj,@EffectSendUserXLat,#xlat=0);
+         }
+      }
+
+      ptSpikes5 = $;
+      Send(self,@SomethingWaveRoomCoords,#wave_rsc=maze_spike_rise,#row=13,#col=2,#cutoff_radius=10);
+      Send(self,@ChangeTexture,#id=52,#new_texture=00001,#flags=CTF_NORMALWALL);
+      Send(self,@ChangeTexture,#id=51,#new_texture=00000,#flags=CTF_NORMALWALL);
+
+      Send(self,@AnimateWall,#wall=52,#animation=ANIMATE_NONE,#first_group=2,#passable=FALSE);
+      Send(self,@AnimateWall,#wall=51,#animation=ANIMATE_NONE,#first_group=2,#passable=FALSE);
+
+      ptSpikes5 = CreateTimer(self,@LowerSpikes5,2000);
+      return;
+   }
+   
+   LowerSpikes5()
+   {
+      ptSpikes5 = $;
+
+      Send(self,@SomethingWaveRoomCoords,#wave_rsc=maze_click_sound,#row=13,#col=2,#cutoff_radius=10);
+      Send(self,@ChangeTexture,#id=52,#new_texture=00000,#flags=CTF_NORMALWALL);
+      Send(self,@ChangeTexture,#id=51,#new_texture=00001,#flags=CTF_NORMALWALL);
+
+      Send(self,@AnimateWall,#wall=52,#animation=ANIMATE_NONE,#first_group=2,#passable=TRUE);
+      Send(self,@AnimateWall,#wall=51,#animation=ANIMATE_NONE,#first_group=2,#passable=TRUE);
+
+      ptSpikes5 = CreateTimer(self,@RaiseSpikes5,3000);
+      return;
+   }
+
+   RaiseSpikes6()
+   {
+      local i, each_obj;
+
+      foreach i in Send(self,@GetHolderActive)
+      {
+         each_obj = Send(self,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&Player)
+            AND Send(self,@GetSection,#who=each_obj) = 6
+         {
+            Send(each_obj,@MsgSendUser,#message_rsc=maze1_spikes_damage_you);
+      
+            Send(each_obj,@LoseHealth,#amount=40);
+            Send(each_obj,@EffectSendUserDuration,#effect=EFFECT_PAIN,#duration=TRAP_HIT_DELAY);
+            Send(each_obj,@EffectSendUserXLat,#xlat=0);
+         }
+      }
+
+      ptSpikes6 = $;
+      Send(self,@SomethingWaveRoomCoords,#wave_rsc=maze_spike_rise,#row=10,#col=2,#cutoff_radius=10);
+      Send(self,@ChangeTexture,#id=62,#new_texture=00001,#flags=CTF_NORMALWALL);
+      Send(self,@ChangeTexture,#id=61,#new_texture=00000,#flags=CTF_NORMALWALL);
+
+      Send(self,@AnimateWall,#wall=62,#animation=ANIMATE_NONE,#first_group=2,#passable=FALSE);
+      Send(self,@AnimateWall,#wall=61,#animation=ANIMATE_NONE,#first_group=2,#passable=FALSE);
+
+      ptSpikes6 = CreateTimer(self,@LowerSpikes6,2000);
+      return;
+   }
+   
+   LowerSpikes6()
+   {
+      ptSpikes6 = $;
+
+      Send(self,@SomethingWaveRoomCoords,#wave_rsc=maze_click_sound,#row=10,#col=2,#cutoff_radius=10);
+      Send(self,@ChangeTexture,#id=62,#new_texture=00000,#flags=CTF_NORMALWALL);
+      Send(self,@ChangeTexture,#id=61,#new_texture=00001,#flags=CTF_NORMALWALL);
+
+      Send(self,@AnimateWall,#wall=62,#animation=ANIMATE_NONE,#first_group=2,#passable=TRUE);
+      Send(self,@AnimateWall,#wall=61,#animation=ANIMATE_NONE,#first_group=2,#passable=TRUE);
+
+      ptSpikes6 = CreateTimer(self,@RaiseSpikes6,3000);
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

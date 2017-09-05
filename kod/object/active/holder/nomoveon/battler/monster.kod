@@ -1655,7 +1655,7 @@ messages:
       if Send(self,@MonsterCanCastSpell)
       {
          bCast = Send(self,@MonsterCastSpell);
-      }         
+      }
 
       % If we can move, we physically try to get closer
       if not bCast
@@ -5236,8 +5236,7 @@ messages:
       % when we can't get our target. Instead, we use that time
       % walking to the target.
 
-      if iDistance > (piAttackRange * piAttackRange)
-         AND iDistance <= piSpellRange * piSpellRange
+      if iDistance <= piSpellRange * piSpellRange
          AND Send(poOwner,@LineOfSight,#obj1=self,#obj2=poTarget)
          AND Send(poOwner,@ReqSomethingAttack,#what=self,#victim=poTarget,
                   #use_weapon=self)
