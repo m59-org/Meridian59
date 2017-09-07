@@ -6,6 +6,6 @@
 
 DEPEND = ..\mazeroom.bof
 
-BOFS =  maze1.bof maze2.bof
+BOFS =  maze1.bof maze2.bof maze4a.bof
 
 !include $(KODDIR)\kod.mak

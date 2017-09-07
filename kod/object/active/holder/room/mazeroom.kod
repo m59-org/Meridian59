@@ -14,53 +14,22 @@ MinotaurMazeRoom is Room
 % You have until your Elemental Torch runs out.
 % Night vision, light, firewall, glow, etc do not work. Your only light is the torch.
 
-% Keeps a list of trap timers in plTrapTimers
+
+% Musical attributions:
+% https://freesound.org/people/Lalks/sounds/316830/
+% Lalks Ferambie
+% No changes made
 %
-%
-%
-%
-% Core mazeroom functions that are inherited, i.e. don't change them:
-% CreateStandardObjects - sends CreateMazeRoomObjects
-% FirstUserEntered - sends StartSpikeCycle
-% LastUserLeft - sends EndSpikeCycle
-% Delete - goes through all timers
-% SomethingChanged - sends LeverPulled (lever_object)
-% SomethingMoved - sends EvaluateMovement (who, section)
-% GetSection - custom function for maze rooms that just returns sector ID
-% LeverPulled (lever_object) - edit constants to alter what levers do.
-%                              Make LeverPulled() below and propagate if special functions needed
-%
-%
-% Fill these in for lower rooms:
-% CreateMazeRoomObjects
+% https://freesound.org/people/knarmahfox/sounds/72146/
+% Through the Caves
+% knarmahfox
+% no changes made
+% 
+
 
 constants:
 
    include blakston.khd
-   
-   %% TEXTURES %%%%%%%%
-   
-   blank_texture = 00000
-   spikes_texture = 00001
-   sawblade_trap_texture = 00003
-   
-   % Don't modify these
-   TRAP_READY = 0
-   TRAP_TRIGGERED = 1
-   TRAP_ACTING = 2
-   TRAP_HIT = 3
-   TRAP_RETREATING = 4
-
-   % Don't modify these
-   SECRET_DOOR_ONLY_ONCE = 0
-   SECRET_DOOR_REPEAT = 1
-   
-   % Don't change these
-   SPIKES_SIMULTANEOUS = 0
-   SPIKES_IN_SEQUENCE = 1
-   SPIKES_DORMANT = 0
-   SPIKES_ACTIVE = 1
-   SPIKES_PAIN_TIME = 2000
 
 resources:
 
@@ -98,124 +67,6 @@ classvars:
    TRAP_RETREATING_DELAY = 10000
    TRAP_DAMAGE = 50
 
-   % Specific IDs for this room
-   % -1 means unused (don't use 0, all sectors are default 0)
-
-   CRUSHER_TRAP_ONE_TRIGGER_SECTOR = 2
-   CRUSHER_TRAP_ONE_CRUSH_SECTOR = 3
-   CRUSHER_TRAP_ONE_TYPE = ANIMATE_CEILING_LIFT
-   CRUSHER_TRAP_ONE_DOWN_HEIGHT = 1050
-   CRUSHER_TRAP_ONE_DOWN_SPEED = 220
-   CRUSHER_TRAP_ONE_UP_HEIGHT = 1160
-   CRUSHER_TRAP_ONE_UP_SPEED = 11
-   CRUSHER_TRAP_ONE_WALL_ID = 4
-   
-   CRUSHER_TRAP_TWO_TRIGGER_SECTOR = -1
-   CRUSHER_TRAP_TWO_CRUSH_SECTOR = -1
-   CRUSHER_TRAP_TWO_TYPE = ANIMATE_CEILING_LIFT
-   CRUSHER_TRAP_TWO_DOWN_HEIGHT = 1050
-   CRUSHER_TRAP_TWO_DOWN_SPEED = 220
-   CRUSHER_TRAP_TWO_UP_HEIGHT = 1160
-   CRUSHER_TRAP_TWO_UP_SPEED = 11
-   CRUSHER_TRAP_TWO_WALL_ID = -1
-
-   CRUSHER_TRAP_THREE_TRIGGER_SECTOR = -1
-   CRUSHER_TRAP_THREE_CRUSH_SECTOR = -1
-   CRUSHER_TRAP_THREE_TYPE = ANIMATE_CEILING_LIFT
-   CRUSHER_TRAP_THREE_DOWN_HEIGHT = 1050
-   CRUSHER_TRAP_THREE_DOWN_SPEED = 220
-   CRUSHER_TRAP_THREE_UP_HEIGHT = 1160
-   CRUSHER_TRAP_THREE_UP_SPEED = 11
-   CRUSHER_TRAP_THREE_WALL_ID = -1
-
-   CRUSHER_TRAP_FOUR_TRIGGER_SECTOR = -1
-   CRUSHER_TRAP_FOUR_CRUSH_SECTOR = -1
-   CRUSHER_TRAP_FOUR_TYPE = ANIMATE_CEILING_LIFT
-   CRUSHER_TRAP_FOUR_DOWN_HEIGHT = 1050
-   CRUSHER_TRAP_FOUR_DOWN_SPEED = 220
-   CRUSHER_TRAP_FOUR_UP_HEIGHT = 1160
-   CRUSHER_TRAP_FOUR_UP_SPEED = 11
-   CRUSHER_TRAP_FOUR_WALL_ID = -1
-
-   CRUSHER_TRAP_FIVE_TRIGGER_SECTOR = -1
-   CRUSHER_TRAP_FIVE_CRUSH_SECTOR = -1
-   CRUSHER_TRAP_FIVE_TYPE = ANIMATE_CEILING_LIFT
-   CRUSHER_TRAP_FIVE_DOWN_HEIGHT = 1050
-   CRUSHER_TRAP_FIVE_DOWN_SPEED = 220
-   CRUSHER_TRAP_FIVE_UP_HEIGHT = 1160
-   CRUSHER_TRAP_FIVE_UP_SPEED = 11
-   CRUSHER_TRAP_FIVE_WALL_ID = -1
-
-   CRUSHER_TRAP_SIX_TRIGGER_SECTOR = -1
-   CRUSHER_TRAP_SIX_CRUSH_SECTOR = -1
-   CRUSHER_TRAP_SIX_TYPE = ANIMATE_CEILING_LIFT
-   CRUSHER_TRAP_SIX_DOWN_HEIGHT = 1050
-   CRUSHER_TRAP_SIX_DOWN_SPEED = 220
-   CRUSHER_TRAP_SIX_UP_HEIGHT = 1160
-   CRUSHER_TRAP_SIX_UP_SPEED = 11
-   CRUSHER_TRAP_SIX_WALL_ID = -1
-
-   CRUSHER_TRAP_SEVEN_TRIGGER_SECTOR = -1
-   CRUSHER_TRAP_SEVEN_CRUSH_SECTOR = -1
-   CRUSHER_TRAP_SEVEN_TYPE = ANIMATE_CEILING_LIFT
-   CRUSHER_TRAP_SEVEN_DOWN_HEIGHT = 1050
-   CRUSHER_TRAP_SEVEN_DOWN_SPEED = 220
-   CRUSHER_TRAP_SEVEN_UP_HEIGHT = 1160
-   CRUSHER_TRAP_SEVEN_UP_SPEED = 11
-   CRUSHER_TRAP_SEVEN_WALL_ID = -1
-
-   CRUSHER_TRAP_EIGHT_TRIGGER_SECTOR = -1
-   CRUSHER_TRAP_EIGHT_CRUSH_SECTOR = -1
-   CRUSHER_TRAP_EIGHT_TYPE = ANIMATE_CEILING_LIFT
-   CRUSHER_TRAP_EIGHT_DOWN_HEIGHT = 1050
-   CRUSHER_TRAP_EIGHT_DOWN_SPEED = 220
-   CRUSHER_TRAP_EIGHT_UP_HEIGHT = 1160
-   CRUSHER_TRAP_EIGHT_UP_SPEED = 11
-   CRUSHER_TRAP_EIGHT_WALL_ID = -1
-
-   CRUSHER_TRAP_NINE_TRIGGER_SECTOR = -1
-   CRUSHER_TRAP_NINE_CRUSH_SECTOR = -1
-   CRUSHER_TRAP_NINE_TYPE = ANIMATE_CEILING_LIFT
-   CRUSHER_TRAP_NINE_DOWN_HEIGHT = 1050
-   CRUSHER_TRAP_NINE_DOWN_SPEED = 220
-   CRUSHER_TRAP_NINE_UP_HEIGHT = 1160
-   CRUSHER_TRAP_NINE_UP_SPEED = 11
-   CRUSHER_TRAP_NINE_WALL_ID = -1
-
-   CRUSHER_TRAP_TEN_TRIGGER_SECTOR = -1
-   CRUSHER_TRAP_TEN_CRUSH_SECTOR = -1
-   CRUSHER_TRAP_TEN_TYPE = ANIMATE_CEILING_LIFT
-   CRUSHER_TRAP_TEN_DOWN_HEIGHT = 1050
-   CRUSHER_TRAP_TEN_DOWN_SPEED = 220
-   CRUSHER_TRAP_TEN_UP_HEIGHT = 1160
-   CRUSHER_TRAP_TEN_UP_SPEED = 11
-   CRUSHER_TRAP_TEN_WALL_ID = -1
-
-   %%%%%%%%%%%%%%%%%%%% SECRET DOORS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-   % Specific secret doors
-
-   SECRET_DOOR_ONE_TRIGGER_SECTOR = 4
-   SECRET_DOOR_ONE_OPEN_SECTOR = 5
-   SECRET_DOOR_ONE_TYPE = ANIMATE_FLOOR_LIFT
-   SECRET_DOOR_ONE_HEIGHT = 1000
-   SECRET_DOOR_ONE_SPEED = 50
-   SECRET_DOOR_ONE_REPEAT_TYPE = SECRET_DOOR_ONLY_ONCE
-
-   SECRET_DOOR_TWO_TRIGGER_SECTOR = -1
-   SECRET_DOOR_TWO_OPEN_SECTOR = -1
-   SECRET_DOOR_TWO_TYPE = ANIMATE_FLOOR_LIFT
-   SECRET_DOOR_TWO_HEIGHT = 1000
-   SECRET_DOOR_TWO_SPEED = 50
-   SECRET_DOOR_TWO_REPEAT_TYPE = SECRET_DOOR_ONLY_ONCE
-
-   SECRET_DOOR_THREE_TRIGGER_SECTOR = -1
-   SECRET_DOOR_THREE_OPEN_SECTOR = -1
-   SECRET_DOOR_THREE_TYPE = ANIMATE_FLOOR_LIFT
-   SECRET_DOOR_THREE_HEIGHT = 1000
-   SECRET_DOOR_THREE_SPEED = 50
-   SECRET_DOOR_THREE_REPEAT_TYPE = SECRET_DOOR_ONLY_ONCE
-
    %%%%%%%%%%%%%%%%%%%% LEVERS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
    LEVER_ONE_ROW = 3
@@ -242,101 +93,11 @@ classvars:
    SPIKES_DELAY_IF_SEQUENCE = 500
    SPIKES_SOUND_RADIUS = 10
    SPIKES_DAMAGE = 40
-
-   % Specific spike values
-   SPIKES_ONE_BEHAVIOR = SPIKES_SIMULTANEOUS
-   SPIKES_ONE_PAIN_SECTOR = 8
-   SPIKES_ONE_DOWN_WALL_ID = 9
-   SPIKES_ONE_UP_WALL_ID = 10
-   SPIKES_ONE_SOUND_ROW = 8
-   SPIKES_ONE_SOUND_COL = 52
-
-   SPIKES_TWO_BEHAVIOR = SPIKES_SIMULTANEOUS
-   SPIKES_TWO_PAIN_SECTOR = -1
-   SPIKES_TWO_DOWN_WALL_ID = -1
-   SPIKES_TWO_UP_WALL_ID = -1
-   SPIKES_TWO_SOUND_ROW = 0
-   SPIKES_TWO_SOUND_COL = 0
-
-   SPIKES_THREE_BEHAVIOR = SPIKES_SIMULTANEOUS
-   SPIKES_THREE_PAIN_SECTOR = -1
-   SPIKES_THREE_DOWN_WALL_ID = -1
-   SPIKES_THREE_UP_WALL_ID = -1
-   SPIKES_THREE_SOUND_ROW = 0
-   SPIKES_THREE_SOUND_COL = 0
-
-   SPIKES_FOUR_BEHAVIOR = SPIKES_SIMULTANEOUS
-   SPIKES_FOUR_PAIN_SECTOR = -1
-   SPIKES_FOUR_DOWN_WALL_ID = -1
-   SPIKES_FOUR_UP_WALL_ID = -1
-   SPIKES_FOUR_SOUND_ROW = 0
-   SPIKES_FOUR_SOUND_COL = 0
-
-   SPIKES_FIVE_BEHAVIOR = SPIKES_SIMULTANEOUS
-   SPIKES_FIVE_PAIN_SECTOR = -1
-   SPIKES_FIVE_DOWN_WALL_ID = -1
-   SPIKES_FIVE_UP_WALL_ID = -1
-   SPIKES_FIVE_SOUND_ROW = 0
-   SPIKES_FIVE_SOUND_COL = 0
-
-   SPIKES_SIX_BEHAVIOR = SPIKES_SIMULTANEOUS
-   SPIKES_SIX_PAIN_SECTOR = -1
-   SPIKES_SIX_DOWN_WALL_ID = -1
-   SPIKES_SIX_UP_WALL_ID = -1
-   SPIKES_SIX_SOUND_ROW = 0
-   SPIKES_SIX_SOUND_COL = 0
-
-   SPIKES_SEVEN_BEHAVIOR = SPIKES_SIMULTANEOUS
-   SPIKES_SEVEN_PAIN_SECTOR = -1
-   SPIKES_SEVEN_DOWN_WALL_ID = -1
-   SPIKES_SEVEN_UP_WALL_ID = -1
-   SPIKES_SEVEN_SOUND_ROW = 0
-   SPIKES_SEVEN_SOUND_COL = 0
-
-   SPIKES_EIGHT_BEHAVIOR = SPIKES_SIMULTANEOUS
-   SPIKES_EIGHT_PAIN_SECTOR = -1
-   SPIKES_EIGHT_DOWN_WALL_ID = -1
-   SPIKES_EIGHT_UP_WALL_ID = -1
-   SPIKES_EIGHT_SOUND_ROW = 0
-   SPIKES_EIGHT_SOUND_COL = 0
-
-   SPIKES_NINE_BEHAVIOR = SPIKES_SIMULTANEOUS
-   SPIKES_NINE_PAIN_SECTOR = -1
-   SPIKES_NINE_DOWN_WALL_ID = -1
-   SPIKES_NINE_UP_WALL_ID = -1
-   SPIKES_NINE_SOUND_ROW = 0
-   SPIKES_NINE_SOUND_COL = 0
-
-   SPIKES_TEN_BEHAVIOR = SPIKES_SIMULTANEOUS
-   SPIKES_TEN_PAIN_SECTOR = -1
-   SPIKES_TEN_DOWN_WALL_ID = -1
-   SPIKES_TEN_UP_WALL_ID = -1
-   SPIKES_TEN_SOUND_ROW = 0
-   SPIKES_TEN_SOUND_COL = 0
    
    %%%%%%%%%%%%%%%%%%%% TOTEMS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
    
    % Totem respawn time in this room
    TOTEM_RESPAWN_TIME = 7000
-   
-   % Totem settings
-   TOTEM_ONE_SPELL_ID = SID_LIGHTNING_BOLT
-   TOTEM_ONE_ROW = 12
-   TOTEM_ONE_COL = 34
-   TOTEM_ONE_FINE_ROW = 8
-   TOTEM_ONE_FINE_COL = 15
-   
-   TOTEM_TWO_SPELL_ID = -1
-   TOTEM_TWO_ROW = -1
-   TOTEM_TWO_COL = -1
-   TOTEM_TWO_FINE_ROW = -1
-   TOTEM_TWO_FINE_COL = -1
-   
-   TOTEM_THREE_SPELL_ID = -1
-   TOTEM_THREE_ROW = -1
-   TOTEM_THREE_COL = -1
-   TOTEM_THREE_FINE_ROW = -1
-   TOTEM_THREE_FINE_COL = -1
    
    %%%%%%%%%%%%%%%%%%%% LAVA %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
    
@@ -344,37 +105,15 @@ classvars:
    LAVA_BURN_TIME = 200
    LAVA_DAMAGE = 500
    LAVA_BURN_APPLIED = 500
-   
-   LAVA_SECTOR_ONE = 50
-   LAVA_SECTOR_TWO = -1
-   LAVA_SECTOR_THREE = -1
-   LAVA_SECTOR_FOUR = -1
-   LAVA_SECTOR_FIVE = -1
-   
+
    %%%%%%%%%%%%%%%%%%%% SAWBLADES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
    
    % Sawblade settings
    SAWBLADE_FULL_CYCLE_TIME = 3900
    SAWBLADE_DAMAGE_TIME = 30
+   SAWBLADE_DORMANT_TIME = 2000
    SAWBLADE_DAMAGE = 1
-
-   SAWBLADE_ONE_TRIGGER_SECTOR = 68
-   SAWBLADE_ONE_DAMAGE_SECTOR = 69
-   SAWBLADE_ONE_WALL_ID = 70
-   SAWBLADE_ONE_SOUND_ROW = 8
-   SAWBLADE_ONE_SOUND_COL = 32
-
-   SAWBLADE_TWO_TRIGGER_SECTOR = -1
-   SAWBLADE_TWO_DAMAGE_SECTOR = -1
-   SAWBLADE_TWO_WALL_ID = -1
-   SAWBLADE_TWO_SOUND_ROW = -1
-   SAWBLADE_TWO_SOUND_COL = -1
-
-   SAWBLADE_THREE_TRIGGER_SECTOR = -1
-   SAWBLADE_THREE_DAMAGE_SECTOR = -1
-   SAWBLADE_THREE_WALL_ID = -1
-   SAWBLADE_THREE_SOUND_ROW = -1
-   SAWBLADE_THREE_SOUND_COL = -1
+   SAWBLADE_SPEED = 10
 
 properties:
 
@@ -384,13 +123,13 @@ properties:
    prRoom = room_minotaurmazeroom
    piRoom_num = RID_MINOTAURMAZEROOM
    
-   % of the format [trigger sector, crusher sector, timer, state, type, down height, down speed, up height, up speed, wall ID]
-   plTrapStates = $
-   
-   % of the format [trigger sector, open sector, type, height, speed, repeatable type]
+   % of the format [[trigger sectors], [crusher sectors], timer, state, type, down height, down speed, up height, up speed, wall ID]
+   plCrusherStates = $
+
+   % of the format [[trigger sectors], [open sectors], type, height, speed, repeatable type]
    plSecretDoors = $
    
-   % of the format [pain sector, down wall id, up wall id, timer, state, behavior, row, col]
+   % of the format [[pain sectors], down wall id, up wall id, timer, state, behavior, sound row, sound col]
    plSpikeStates = $
    
    % Totems that cast curses and bolts on players in sight/range
@@ -398,7 +137,7 @@ properties:
    plTotems = $
 
    % These areas inflict burning status effects
-   % of the format [sector ID]
+   % of the format [[pain sectors]]
    plLavaSectors = $
    ptLavaBurnTimer = $
    
@@ -406,7 +145,7 @@ properties:
    plDartTraps = $
    
    % Cross this line and it damages you
-   % of the format [trigger sector, damage sector, wall id, cycle timer, damage timer]
+   % of the format [[trigger sectors], [damage sectors], wall id, nopass id, cycle timer, damage timer, nonpassable wall ID]
    plSawbladeStates = $
 
 messages:
@@ -420,152 +159,73 @@ messages:
 
    CreateMazeRoomObjects()
    {
+      local i;
+
       Send(self,@NewHold,#what=Create(&Lever),
             #new_row=3,#new_col=12,#fine_row=35,#fine_col=46);
 
       Send(self,@NewHold,#what=Create(&Lever),
             #new_row=25,#new_col=30,#fine_row=7,#fine_col=43);
 
-      return;
-   }
-   
-   Constructed()
-   {
-      local i;
-
-      plTrapStates = Cons([CRUSHER_TRAP_ONE_TRIGGER_SECTOR,CRUSHER_TRAP_ONE_CRUSH_SECTOR,$,TRAP_READY,CRUSHER_TRAP_ONE_TYPE,CRUSHER_TRAP_ONE_DOWN_HEIGHT,CRUSHER_TRAP_ONE_DOWN_SPEED,CRUSHER_TRAP_ONE_UP_HEIGHT,CRUSHER_TRAP_ONE_UP_SPEED,CRUSHER_TRAP_ONE_WALL_ID],plTrapStates);
-      plTrapStates = Cons([CRUSHER_TRAP_TWO_TRIGGER_SECTOR,CRUSHER_TRAP_TWO_CRUSH_SECTOR,$,TRAP_READY,CRUSHER_TRAP_TWO_TYPE,CRUSHER_TRAP_TWO_DOWN_HEIGHT,CRUSHER_TRAP_TWO_DOWN_SPEED,CRUSHER_TRAP_TWO_UP_HEIGHT,CRUSHER_TRAP_TWO_UP_SPEED,CRUSHER_TRAP_TWO_WALL_ID],plTrapStates);
-      plTrapStates = Cons([CRUSHER_TRAP_THREE_TRIGGER_SECTOR,CRUSHER_TRAP_THREE_CRUSH_SECTOR,$,TRAP_READY,CRUSHER_TRAP_THREE_TYPE,CRUSHER_TRAP_THREE_DOWN_HEIGHT,CRUSHER_TRAP_THREE_DOWN_SPEED,CRUSHER_TRAP_THREE_UP_HEIGHT,CRUSHER_TRAP_THREE_UP_SPEED,CRUSHER_TRAP_THREE_WALL_ID],plTrapStates);
-      plTrapStates = Cons([CRUSHER_TRAP_FOUR_TRIGGER_SECTOR,CRUSHER_TRAP_FOUR_CRUSH_SECTOR,$,TRAP_READY,CRUSHER_TRAP_TWO_TYPE,CRUSHER_TRAP_FOUR_DOWN_HEIGHT,CRUSHER_TRAP_FOUR_DOWN_SPEED,CRUSHER_TRAP_FOUR_UP_HEIGHT,CRUSHER_TRAP_FOUR_UP_SPEED,CRUSHER_TRAP_FOUR_WALL_ID],plTrapStates);
-      plTrapStates = Cons([CRUSHER_TRAP_THREE_TRIGGER_SECTOR,CRUSHER_TRAP_FIVE_CRUSH_SECTOR,$,TRAP_READY,CRUSHER_TRAP_TWO_TYPE,CRUSHER_TRAP_FIVE_DOWN_HEIGHT,CRUSHER_TRAP_FIVE_DOWN_SPEED,CRUSHER_TRAP_FIVE_UP_HEIGHT,CRUSHER_TRAP_FIVE_UP_SPEED,CRUSHER_TRAP_FIVE_WALL_ID],plTrapStates);
-      plTrapStates = Cons([CRUSHER_TRAP_SIX_TRIGGER_SECTOR,CRUSHER_TRAP_SIX_CRUSH_SECTOR,$,TRAP_READY,CRUSHER_TRAP_TWO_TYPE,CRUSHER_TRAP_SIX_DOWN_HEIGHT,CRUSHER_TRAP_SIX_DOWN_SPEED,CRUSHER_TRAP_SIX_UP_HEIGHT,CRUSHER_TRAP_SIX_UP_SPEED,CRUSHER_TRAP_SIX_WALL_ID],plTrapStates);
-      plTrapStates = Cons([CRUSHER_TRAP_SEVEN_TRIGGER_SECTOR,CRUSHER_TRAP_SEVEN_CRUSH_SECTOR,$,TRAP_READY,CRUSHER_TRAP_TWO_TYPE,CRUSHER_TRAP_SEVEN_DOWN_HEIGHT,CRUSHER_TRAP_SEVEN_DOWN_SPEED,CRUSHER_TRAP_SEVEN_UP_HEIGHT,CRUSHER_TRAP_SEVEN_UP_SPEED,CRUSHER_TRAP_SEVEN_WALL_ID],plTrapStates);
-      plTrapStates = Cons([CRUSHER_TRAP_EIGHT_TRIGGER_SECTOR,CRUSHER_TRAP_EIGHT_CRUSH_SECTOR,$,TRAP_READY,CRUSHER_TRAP_TWO_TYPE,CRUSHER_TRAP_EIGHT_DOWN_HEIGHT,CRUSHER_TRAP_EIGHT_DOWN_SPEED,CRUSHER_TRAP_EIGHT_UP_HEIGHT,CRUSHER_TRAP_EIGHT_UP_SPEED,CRUSHER_TRAP_EIGHT_WALL_ID],plTrapStates);
-      plTrapStates = Cons([CRUSHER_TRAP_NINE_TRIGGER_SECTOR,CRUSHER_TRAP_NINE_CRUSH_SECTOR,$,TRAP_READY,CRUSHER_TRAP_TWO_TYPE,CRUSHER_TRAP_NINE_DOWN_HEIGHT,CRUSHER_TRAP_NINE_DOWN_SPEED,CRUSHER_TRAP_NINE_UP_HEIGHT,CRUSHER_TRAP_NINE_UP_SPEED,CRUSHER_TRAP_NINE_WALL_ID],plTrapStates);
-      plTrapStates = Cons([CRUSHER_TRAP_TEN_TRIGGER_SECTOR,CRUSHER_TRAP_TEN_CRUSH_SECTOR,$,TRAP_READY,CRUSHER_TRAP_TWO_TYPE,CRUSHER_TRAP_TEN_DOWN_HEIGHT,CRUSHER_TRAP_TEN_DOWN_SPEED,CRUSHER_TRAP_TEN_UP_HEIGHT,CRUSHER_TRAP_TEN_UP_SPEED,CRUSHER_TRAP_TEN_WALL_ID],plTrapStates);
-
-      foreach i in plTrapStates
-      {
-         if Nth(i,1) = -1
-         {
-            plTrapStates = DelListElem(plTrapStates,i);
-         }
-      }
+      plCrusherStates = Cons([[2],                          % Trigger sectors
+                           [3],                             % Crusher sectors
+                           $,
+                           TRAP_READY,
+                           ANIMATE_CEILING_LIFT,
+                           1050,                            % down height
+                           220,                             % down speed
+                           1160,                            % up height
+                           11,                              % up speed
+                           4                               % nopass Wall ID for Crusher
+                           ],plCrusherStates);
       
-      plSecretDoors = Cons([SECRET_DOOR_ONE_TRIGGER_SECTOR,SECRET_DOOR_ONE_OPEN_SECTOR,SECRET_DOOR_ONE_TYPE,SECRET_DOOR_ONE_HEIGHT,SECRET_DOOR_ONE_SPEED,SECRET_DOOR_ONE_REPEAT_TYPE],plSecretDoors);
-      plSecretDoors = Cons([SECRET_DOOR_TWO_TRIGGER_SECTOR,SECRET_DOOR_TWO_OPEN_SECTOR,SECRET_DOOR_TWO_TYPE,SECRET_DOOR_TWO_HEIGHT,SECRET_DOOR_TWO_SPEED,SECRET_DOOR_TWO_REPEAT_TYPE],plSecretDoors);
-      plSecretDoors = Cons([SECRET_DOOR_THREE_TRIGGER_SECTOR,SECRET_DOOR_THREE_OPEN_SECTOR,SECRET_DOOR_THREE_TYPE,SECRET_DOOR_THREE_HEIGHT,SECRET_DOOR_THREE_SPEED,SECRET_DOOR_THREE_REPEAT_TYPE],plSecretDoors);
+      plSecretDoors = Cons([[4],                          % Trigger sectors
+                            [5],                          % Door sector
+                            ANIMATE_FLOOR_LIFT,
+                            1000,                         % Height
+                            50,                           % Speed
+                            SECRET_DOOR_ONLY_ONCE],plSecretDoors);
+      
+      plSpikeStates = Cons([[8],                            % Pain sectors
+                            9,                              % down wall ID
+                            10,                             % Up wall ID
+                            $,
+                            SPIKES_DORMANT,
+                            SPIKES_SIMULTANEOUS,
+                            8,                              % sound row
+                            52                              % sound col
+                            ],plSpikeStates);
 
-      foreach i in plSecretDoors
-      {
-         if Nth(i,1) = -1
-         {
-            plSecretDoors = DelListElem(plSecretDoors,i);
-         }
-      }
+      plLavaSectors = Cons(50,plLavaSectors);               % Lava pain sectors
+                             
 
-      plSpikeStates = Cons([SPIKES_ONE_PAIN_SECTOR,SPIKES_ONE_DOWN_WALL_ID,SPIKES_ONE_UP_WALL_ID,$,SPIKES_DORMANT,SPIKES_ONE_BEHAVIOR,SPIKES_ONE_SOUND_ROW, SPIKES_ONE_SOUND_COL],plSpikeStates);
-      plSpikeStates = Cons([SPIKES_TWO_PAIN_SECTOR,SPIKES_TWO_DOWN_WALL_ID,SPIKES_TWO_UP_WALL_ID,$,SPIKES_DORMANT,SPIKES_TWO_BEHAVIOR,SPIKES_TWO_SOUND_ROW, SPIKES_TWO_SOUND_COL],plSpikeStates);
-      plSpikeStates = Cons([SPIKES_THREE_PAIN_SECTOR,SPIKES_THREE_DOWN_WALL_ID,SPIKES_THREE_UP_WALL_ID,$,SPIKES_DORMANT,SPIKES_THREE_BEHAVIOR,SPIKES_THREE_SOUND_ROW, SPIKES_THREE_SOUND_COL],plSpikeStates);
-      plSpikeStates = Cons([SPIKES_FOUR_PAIN_SECTOR,SPIKES_FOUR_DOWN_WALL_ID,SPIKES_FOUR_UP_WALL_ID,$,SPIKES_DORMANT,SPIKES_FOUR_BEHAVIOR,SPIKES_FOUR_SOUND_ROW, SPIKES_FOUR_SOUND_COL],plSpikeStates);
-      plSpikeStates = Cons([SPIKES_FIVE_PAIN_SECTOR,SPIKES_FIVE_DOWN_WALL_ID,SPIKES_FIVE_UP_WALL_ID,$,SPIKES_DORMANT,SPIKES_FIVE_BEHAVIOR,SPIKES_FIVE_SOUND_ROW, SPIKES_FIVE_SOUND_COL],plSpikeStates);
-      plSpikeStates = Cons([SPIKES_SIX_PAIN_SECTOR,SPIKES_SIX_DOWN_WALL_ID,SPIKES_SIX_UP_WALL_ID,$,SPIKES_DORMANT,SPIKES_SIX_BEHAVIOR,SPIKES_SIX_SOUND_ROW, SPIKES_SIX_SOUND_COL],plSpikeStates);
-      plSpikeStates = Cons([SPIKES_SEVEN_PAIN_SECTOR,SPIKES_SEVEN_DOWN_WALL_ID,SPIKES_SEVEN_UP_WALL_ID,$,SPIKES_DORMANT,SPIKES_SEVEN_BEHAVIOR,SPIKES_SEVEN_SOUND_ROW, SPIKES_SEVEN_SOUND_COL],plSpikeStates);
-      plSpikeStates = Cons([SPIKES_EIGHT_PAIN_SECTOR,SPIKES_EIGHT_DOWN_WALL_ID,SPIKES_EIGHT_UP_WALL_ID,$,SPIKES_DORMANT,SPIKES_EIGHT_BEHAVIOR,SPIKES_EIGHT_SOUND_ROW, SPIKES_EIGHT_SOUND_COL],plSpikeStates);
-      plSpikeStates = Cons([SPIKES_NINE_PAIN_SECTOR,SPIKES_NINE_DOWN_WALL_ID,SPIKES_NINE_UP_WALL_ID,$,SPIKES_DORMANT,SPIKES_NINE_BEHAVIOR,SPIKES_NINE_SOUND_ROW, SPIKES_NINE_SOUND_COL],plSpikeStates);
-      plSpikeStates = Cons([SPIKES_TEN_PAIN_SECTOR,SPIKES_TEN_DOWN_WALL_ID,SPIKES_TEN_UP_WALL_ID,$,SPIKES_DORMANT,SPIKES_TEN_BEHAVIOR,SPIKES_TEN_SOUND_ROW, SPIKES_TEN_SOUND_COL],plSpikeStates);
-
-      foreach i in plSpikeStates
-      {
-         if Nth(i,1) = -1
-         {
-            plSpikeStates = DelListElem(plSpikeStates,i);
-         }
-      }
-
-      plTotems = Cons([TOTEM_ONE_SPELL_ID,
-                           $,
-                           $,
-                           TOTEM_ONE_ROW,
-                           TOTEM_ONE_COL,
-                           TOTEM_ONE_FINE_ROW,
-                           TOTEM_ONE_FINE_COL],plTotems);
-      plTotems = Cons([TOTEM_TWO_SPELL_ID,
-                           $,
-                           $,
-                           TOTEM_TWO_ROW,
-                           TOTEM_TWO_COL,
-                           TOTEM_TWO_FINE_ROW,
-                           TOTEM_TWO_FINE_COL],plTotems);
-      plTotems = Cons([TOTEM_THREE_SPELL_ID,
-                           $,
-                           $,
-                           TOTEM_THREE_ROW,
-                           TOTEM_THREE_COL,
-                           TOTEM_THREE_FINE_ROW,
-                           TOTEM_THREE_FINE_COL],plTotems);
-
-      foreach i in plTotems
-      {
-         if Nth(i,1) = -1
-         {
-            plTotems = DelListElem(plTotems,i);
-         }
-      }
-
-      plLavaSectors = Cons([LAVA_SECTOR_ONE,$],plLavaSectors);
-      plLavaSectors = Cons([LAVA_SECTOR_TWO,$],plLavaSectors);
-      plLavaSectors = Cons([LAVA_SECTOR_THREE,$],plLavaSectors);
-      plLavaSectors = Cons([LAVA_SECTOR_FOUR,$],plLavaSectors);
-      plLavaSectors = Cons([LAVA_SECTOR_FIVE,$],plLavaSectors);
-
-      foreach i in plLavaSectors
-      {
-         if Nth(i,1) = -1
-         {
-            plLavaSectors = DelListElem(plLavaSectors,i);
-         }
-      }
-
-      plSawbladeStates = Cons([SAWBLADE_ONE_TRIGGER_SECTOR,
-                               SAWBLADE_ONE_DAMAGE_SECTOR,
-                               SAWBLADE_ONE_WALL_ID,
+      plSawbladeStates = Cons([[68],                              % Trigger sectors
+                               [69],                              % Damage sectors
+                               70,                                % Sawblade walls ID
+                               71,                                % Sawblade no pass ID
                                $,
                                $,
-                               SAWBLADE_ONE_SOUND_ROW,
-                               SAWBLADE_ONE_SOUND_COL],plSawbladeStates);
+                               8,                                 % Sound row
+                               32                                 % Sound col
+                               ],plSawbladeStates);
 
-      plSawbladeStates = Cons([SAWBLADE_TWO_TRIGGER_SECTOR,
-                               SAWBLADE_TWO_DAMAGE_SECTOR,
-                               SAWBLADE_TWO_WALL_ID,
-                               $,
-                               $,
-                               SAWBLADE_TWO_SOUND_ROW,
-                               SAWBLADE_TWO_SOUND_COL],plSawbladeStates);
+      plTotems = Cons([SID_LIGHTNING_BOLT,                   % Spell ID
+                       $,
+                       $,
+                       12,                                   % Row
+                       34,                                   % Col
+                       8,                                    % Fine Row
+                       15                                    % Fine Col
+                       ],plTotems);
 
-      plSawbladeStates = Cons([SAWBLADE_THREE_TRIGGER_SECTOR,
-                               SAWBLADE_THREE_DAMAGE_SECTOR,
-                               SAWBLADE_THREE_WALL_ID,
-                               $,
-                               $,
-                               SAWBLADE_THREE_SOUND_ROW,
-                               SAWBLADE_THREE_SOUND_COL],plSawbladeStates);
-
-      foreach i in plSawbladeStates
-      {
-         if Nth(i,1) = -1
-         {
-            plSawbladeStates = DelListElem(plSawbladeStates,i);
-         }
-      }
-      propagate;
+      return;
    }
 
    Delete()
    {
       local i;
       
-      foreach i in plTrapStates
+      foreach i in plCrusherStates
       {
          if Nth(i,3) <> $
             AND IsTimer(Nth(i,3))
@@ -573,10 +233,25 @@ messages:
             DeleteTimer(Nth(i,3));
          }
          SetNth(i,3,$);
-         plTrapStates = DelListElem(plTrapStates,i);
+         plCrusherStates = DelListElem(plCrusherStates,i);
       }
 
-      Send(self,@RemoveTotems);
+      foreach i in plSawbladeStates
+      {
+         if Nth(i,5) <> $
+            AND IsTimer(Nth(i,5))
+         {
+            DeleteTimer(Nth(i,5));
+         }
+         SetNth(i,5,$);
+
+         if Nth(i,6) <> $
+            AND IsTimer(Nth(i,6))
+         {
+            DeleteTimer(Nth(i,6));
+         }
+         SetNth(i,6,$);
+      }
 
       propagate;
    }
@@ -627,10 +302,16 @@ messages:
       return;
    }
    
-   PlaySpikeSound(row=$,col=$,cutoff_radius=10)
+   PlaySpikeSound(row=-1,col=-1,cutoff_radius=10)
    {
       if row = $
          OR col = $
+      {
+         return;
+      }
+
+      if row = -1
+         OR col = -1
       {
          Send(self,@SomethingWaveRoom,#wave_rsc=maze_spike_rise);
       }
@@ -641,10 +322,10 @@ messages:
       return;
    }
 
-   PlaySawbladeSound(row=$,col=$,cutoff_radius=10)
+   PlaySawbladeSound(row=-1,col=-1,cutoff_radius=10)
    {
-      if row = $
-         OR col = $
+      if row = -1
+         OR col = -1
       {
          Send(self,@SomethingWaveRoom,#wave_rsc=maze_sawblade_rise);
       }
@@ -695,29 +376,28 @@ messages:
 
       foreach i in plSawbladeStates
       {
-         if section = Nth(i,1)
+         if FindListElem(Nth(i,1),section) <> 0
          {
-            Send(self,@EvaluateSawblade,#trap_trigger_sector=section);
+            Send(self,@TriggerSawblade,#trap_data=i);
          }
       }
       
-      foreach i in plTrapStates
+      foreach i in plCrusherStates
       {
-         if section = Nth(i,1)
+         if FindListElem(Nth(i,1),section) <> 0
+            AND Nth(i,4) = TRAP_READY
          {
-            Send(self,@EvaluateTrap,#trap_trigger_sector=section);
+            SetNth(i,4,TRAP_TRIGGERED);
+            Send(self,@PlayClickSound);
+            SetNth(i,3,CreateTimer(self,@TriggerCrusher,TRAP_TRIGGERED_DELAY));
          }
       }
       
       foreach i in plSecretDoors
       {
-         if section = Nth(i,1)
+         if FindListElem(Nth(i,1),section) <> 0
          {
-            Send(self,@LowerSecretDoor,#trigger_id=Nth(i,1),
-                                       #open_id=Nth(i,2),
-                                       #sd_type=Nth(i,3),
-                                       #sd_height=Nth(i,4),
-                                       #sd_speed=Nth(i,5));
+            Send(self,@LowerSecretDoor,#trap_data=i);
             
             if Nth(i,6) = SECRET_DOOR_ONLY_ONCE
             {
@@ -853,82 +533,56 @@ messages:
 % ============
 % CRUSHERS
 % ============
-   
-   EvaluateTrap(trap_trigger_sector=-1)
-   {
-      local i, iTrapState;
-      
-      foreach i in plTrapStates
-      {
-         if Nth(i,1) = trap_trigger_sector
-         {
-            iTrapState = Nth(i,4);
-         }
-         switch(iTrapState)
-         {
-            case TRAP_READY:
-               SetNth(i,4,TRAP_TRIGGERED);
-               Send(self,@PlayClickSound);
-               SetNth(i,3,CreateTimer(self,@TriggerTrap,TRAP_TRIGGERED_DELAY));
-               break;
-            case TRAP_TRIGGERED:
-               break;
-            case TRAP_ACTING:
-               break;
-            case TRAP_RETREATING:
-               break;
-         }
-      }
 
-      return;
-   }
-
-   TriggerTrap(timer=$)
+   TriggerCrusher(timer=$)
    {
-      local i;
+      local i, n;
       
-      foreach i in plTrapStates
+      foreach i in plCrusherStates
       {
          if timer = Nth(i,3)
          {
             SetNth(i,3,$);
             SetNth(i,4,TRAP_ACTING);
             Send(self,@PlayTrapSlamSound);
-            SetNth(i,3,CreateTimer(self,@HitTrap,TRAP_ACTING_DELAY));
-            Send(self,@SetSector,#sector=Nth(i,2),
-                                 #animation=Nth(i,5),
-                                 #height=Nth(i,6),
-                                 #speed=Nth(i,7));
+            SetNth(i,3,CreateTimer(self,@HitCrusher,TRAP_ACTING_DELAY));
+            
+            foreach n in Nth(i,2)
+            {
+               Send(self,@SetSector,#sector=n,
+                                    #animation=Nth(i,5),
+                                    #height=Nth(i,6),
+                                    #speed=Nth(i,7));
+            }
          }
       }
       return;
    }
 
-   HitTrap(timer=$)
+   HitCrusher(timer=$)
    {
       local i, n, each_obj;
       
-      foreach i in plTrapStates
+      foreach i in plCrusherStates
       {
          if timer = Nth(i,3)
          {
             SetNth(i,3,$);
             SetNth(i,4,TRAP_HIT);
-            SetNth(i,3,CreateTimer(self,@RetreatTrap,TRAP_HIT_DELAY));
-            Send(self,@AnimateWall,#wall=Nth(i,10),#animation=ANIMATE_NONE,#first_group=2,#passable=FALSE);
+            SetNth(i,3,CreateTimer(self,@RetreatCrusher,TRAP_HIT_DELAY));
+            Send(self,@AnimateWall,#wall=Nth(i,10),#animation=ANIMATE_NONE,#first_group=1,#passable=FALSE);
       
             foreach n in Send(self,@GetHolderActive)
             {
                each_obj = Send(self,@HolderExtractObject,#data=n);
                if IsClass(each_obj,&Player)
-                  AND Send(self,@GetSection,#who=each_obj) = Nth(i,2)
+                  AND FindListElem(Nth(i,2),Send(self,@GetSection,#who=each_obj)) <> 0
                {
                   Send(each_obj,@MsgSendUser,#message_rsc=trap_damages_you);
                   Send(each_obj,@LoseHealth,#amount=TRAP_DAMAGE);
                   Send(Send(SYS,@FindSpellByNum,#num=SID_EVENT_HOLD),@DoSpell,
                         #what=self,#oTarget=each_obj,#iDuration=TRAP_HIT_DELAY,#report=FALSE);
                   Send(each_obj,@EffectSendUserDuration,#effect=EFFECT_PAIN,#duration=TRAP_HIT_DELAY);
-                  Send(each_obj,@EffectSendUserXLat,#xlat=0);
                }
             }
          }
@@ -937,29 +591,33 @@ messages:
       return;
    }
    
-   RetreatTrap(timer=$)
+   RetreatCrusher(timer=$)
    {
-      local i;
+      local i, n;
       
-      foreach i in plTrapStates
+      foreach i in plCrusherStates
       {
          if timer = Nth(i,3)
          {
             SetNth(i,3,$);
             SetNth(i,4,TRAP_RETREATING);
-            Send(self,@AnimateWall,#wall=Nth(i,10),#animation=ANIMATE_NONE,#first_group=2,#passable=TRUE);
-            Send(self,@SetSector,#sector=Nth(i,2),#animation=Nth(i,5),#height=Nth(i,8),#speed=Nth(i,9));
-            SetNth(i,3,CreateTimer(self,@ResetTrap,TRAP_RETREATING_DELAY));
+            Send(self,@AnimateWall,#wall=Nth(i,10),#animation=ANIMATE_NONE,#first_group=1,#passable=TRUE);
+            SetNth(i,3,CreateTimer(self,@ResetCrusher,TRAP_RETREATING_DELAY));
+            
+            foreach n in Nth(i,2)
+            {
+               Send(self,@SetSector,#sector=n,#animation=Nth(i,5),#height=Nth(i,8),#speed=Nth(i,9));
+            }
          }
       }
       return;
    }
    
-   ResetTrap(timer=$)
+   ResetCrusher(timer=$)
    {
       local i;
       
-      foreach i in plTrapStates
+      foreach i in plCrusherStates
       {
          if timer = Nth(i,3)
          {
@@ -974,16 +632,21 @@ messages:
 % SECRET DOORS
 % ============
    
-   LowerSecretDoor(trigger_id=0,door_id=0,sd_type=0,sd_height=0,sd_speed=0)
+   LowerSecretDoor(trap_data=$)
    {
-      if trigger_id <> 0
-         AND Send(self,@GetChangedHeightOfSector,#sector_id=door_id,#type=sd_type) <> sd_height
+      local i;
+
+      if Send(self,@GetChangedHeightOfSector,#sector_id=First(Nth(trap_data,2)),#type=Nth(trap_data,3)) <> Nth(trap_data,4)
       {
          Send(self,@PlayLiftSound);
-         Send(self,@SetSector,#sector=door_id,
-                              #animation=sd_type,
-                              #height=sd_height,
-                              #speed=sd_speed);
+         
+         foreach i in Nth(trap_data,2)
+         {
+            Send(self,@SetSector,#sector=i,
+                                 #animation=Nth(trap_data,3),
+                                 #height=Nth(trap_data,4),
+                                 #speed=Nth(trap_data,5));
+         }
       }
 
       return;
@@ -1000,6 +663,9 @@ messages:
       iSequenceDelay = 0;
       foreach i in plSpikeStates
       {
+         % Make dormant spikes visible
+         Send(self,@ChangeTexture,#id=Nth(i,2),#new_texture=spikes_texture,#flags=CTF_NORMALWALL);
+
          switch(Nth(i,6))
          {
             case SPIKES_SIMULTANEOUS:
@@ -1028,7 +694,7 @@ messages:
          SetNth(i,4,$);
          SetNth(i,5,SPIKES_DORMANT);
             
-         Send(self,@ChangeTexture,#id=Nth(i,2),#new_texture=spikes_texture,#flags=CTF_NORMALWALL);
+         Send(self,@ChangeTexture,#id=Nth(i,2),#new_texture=blank_texture,#flags=CTF_NORMALWALL);
          Send(self,@ChangeTexture,#id=Nth(i,3),#new_texture=blank_texture,#flags=CTF_NORMALWALL);
          Send(self,@AnimateWall,#wall=Nth(i,2),#animation=ANIMATE_NONE,#first_group=2,#passable=TRUE);
          Send(self,@AnimateWall,#wall=Nth(i,3),#animation=ANIMATE_NONE,#first_group=2,#passable=TRUE);
@@ -1059,13 +725,12 @@ messages:
             {
                each_obj = Send(self,@HolderExtractObject,#data=n);
                if IsClass(each_obj,&Player)
-                  AND Send(self,@GetSection,#who=each_obj) = Nth(i,1)
+                  AND FindListElem(Nth(i,1),Send(self,@GetSection,#who=each_obj)) <> 0
                {
                   Send(each_obj,@MsgSendUser,#message_rsc=spikes_damage_you);
       
                   Send(each_obj,@LoseHealth,#amount=SPIKES_DAMAGE);
                   Send(each_obj,@EffectSendUserDuration,#effect=EFFECT_PAIN,#duration=SPIKES_PAIN_TIME);
-                  Send(each_obj,@EffectSendUserXLat,#xlat=0);
                }
             }
             
@@ -1191,31 +856,38 @@ messages:
 
    StartLava()
    {
+      local i;
+
+      foreach i in plLavaSectors
+      {
+         % Set up the lava
+         Send(self,@SetSector,#sector=i,#animation=ANIMATE_FLOOR_LIFT,#height=995,#speed=0);
+         Send(self,@ChangeTexture,#id=i,#new_texture=maze_lava_texture,#flags=CTF_FLOOR);
+      }
+
       if plLavaSectors <> $
       {
          ptLavaBurnTimer = CreateTimer(self,@DoLava,LAVA_BURN_TIME);
       }
+
       return;
    }
 
    DoLava(timer=$)
    {
-      local i, n, each_obj;
+      local i, each_obj;
 
       ptLavaBurnTimer = $;
 
-      foreach i in plLavaSectors
+      foreach i in Send(self,@GetHolderActive)
       {
-         foreach n in Send(self,@GetHolderActive)
+         each_obj = Send(self,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&Player)
+            AND FindListElem(plLavaSectors,Send(self,@GetSection,#who=each_obj)) <> 0
          {
-            each_obj = Send(self,@HolderExtractObject,#data=n);
-            if IsClass(each_obj,&Player)
-               AND Send(self,@GetSection,#who=each_obj) = Nth(i,1)
-            {
-               Send(each_obj,@MsgSendUser,#message_rsc=lava_applying_burn);
-               Send(each_obj,@EffectSendUserDurationAndXlat,#effect=EFFECT_FLASHXLAT,#duration=100,#xlat=81);
-               Send(each_obj,@ApplyElementalStatusEffects,#damage=LAVA_BURN_APPLIED,#aspell=ATCK_SPELL_FIRE);
-            }
+            Send(each_obj,@MsgSendUser,#message_rsc=lava_applying_burn);
+            Send(each_obj,@EffectSendUserDurationAndXlat,#effect=EFFECT_FLASHXLAT,#duration=100,#xlat=81);
+            Send(each_obj,@ApplyElementalStatusEffects,#damage=LAVA_BURN_APPLIED,#aspell=ATCK_SPELL_FIRE);
          }
       }
 
@@ -1225,6 +897,15 @@ messages:
 
    EndLava()
    {
+      local i;
+
+      foreach i in plLavaSectors
+      {
+         % Remove the lava
+         Send(self,@SetSector,#sector=i,#animation=ANIMATE_FLOOR_LIFT,#height=1000,#speed=0);
+         Send(self,@RemoveTextureChange,#id=i);
+      }
+
       if ptLavaBurnTimer <> $
       {
          DeleteTimer(ptLavaBurnTimer);
@@ -1237,28 +918,25 @@ messages:
 % SAWBLADES
 % ============
 
-   EvaluateSawblade(trap_trigger_sector=0)
+   TriggerSawblade(trap_data=$)
    {
       local i;
-
-      foreach i in plSawbladeStates
+      
+      % Ensure we are ready aka no activated or deactivated timer
+      if Nth(trap_data,5) = $
       {
-         if trap_trigger_sector = Nth(i,1)
-            AND Nth(i,4) = $
-         {
-            Send(self,@ChangeTexture,#id=Nth(i,3),#new_texture=00003,#flags=CTF_NORMALWALL);
-            Send(self,@AnimateWall,#wall=Nth(i,3),
-                                   #animation=ANIMATE_CYCLE,
-                                   #first_group=1,
-                                   #second_group=241,
-                                   #end_group=241,
-                                   #speed=10,
-                                   #passable=TRUE);
-            Send(self,@PlaySawbladeSound,#row=Nth(i,5),#col=Nth(i,6));
+         Send(self,@ChangeTexture,#id=Nth(trap_data,3),#new_texture=sawblade_trap_texture,#flags=CTF_NORMALWALL);
+         Send(self,@AnimateWall,#wall=Nth(trap_data,3),
+                                #animation=ANIMATE_CYCLE,
+                                #first_group=1,
+                                #second_group=241,
+                                #end_group=241,
+                                #speed=SAWBLADE_SPEED);
+         Send(self,@AnimateWall,#wall=Nth(trap_data,4),#animation=ANIMATE_NONE,#first_group=1,#passable=FALSE);
+         Send(self,@PlaySawbladeSound,#row=Nth(trap_data,7),#col=Nth(trap_data,8));
 
-            SetNth(i,4,CreateTimer(self,@DeactivateSawblade,SAWBLADE_FULL_CYCLE_TIME));
-            SetNth(i,5,CreateTimer(self,@DealSawbladeDamage,SAWBLADE_DAMAGE_TIME));
-         }
+         SetNth(trap_data,5,CreateTimer(self,@DeactivateSawblade,SAWBLADE_FULL_CYCLE_TIME));
+         SetNth(trap_data,6,CreateTimer(self,@DealSawbladeDamage,SAWBLADE_DAMAGE_TIME));
       }
 
       return;
@@ -1270,21 +948,27 @@ messages:
       
       foreach i in plSawbladeStates
       {
-         if timer = Nth(i,4)
+         if timer = Nth(i,5)
          {
-            SetNth(i,4,$);
+            SetNth(i,5,$);
 
             Send(self,@ChangeTexture,#id=Nth(i,3),#new_texture=blank_texture,#flags=CTF_NORMALWALL);
             Send(self,@AnimateWall,#wall=Nth(i,3),
                                    #animation=ANIMATE_NONE,
                                    #first_group=1,
-                                   #second_group=241,
-                                   #end_group=241,
-                                   #speed=10,
-                                   #passable=TRUE);
-
-            DeleteTimer(Nth(i,5));
-            SetNth(i,5,$);
+                                   #second_group=1,
+                                   #end_group=1);
+            Send(self,@AnimateWall,#wall=Nth(i,4),#animation=ANIMATE_NONE,#first_group=1,#passable=TRUE);
+            
+            % Turn off damage timer
+            if Nth(i,6) <> $
+               AND IsTimer(Nth(i,6))
+            {
+               DeleteTimer(Nth(i,6));
+            }
+            SetNth(i,6,$);
+            
+            SetNth(i,5,CreateTimer(self,@ReactivateSawblade,SAWBLADE_DORMANT_TIME));
          }
       }
 
@@ -1297,22 +981,37 @@ messages:
 
       foreach i in plSawbladeStates
       {
-         if timer = Nth(i,5)
+         if timer = Nth(i,6)
          {
-            SetNth(i,5,$);
+            SetNth(i,6,$);
             foreach n in Send(self,@GetHolderActive)
             {
                each_obj = Send(self,@HolderExtractObject,#data=n);
                if IsClass(each_obj,&Player)
-                  AND Send(self,@GetSection,#who=each_obj) = Nth(i,2)
+                  AND FindListElem(Nth(i,2), Send(self,@GetSection,#who=each_obj)) <> 0
                {
-                  Send(each_obj,@EffectSendUserDuration,#effect=EFFECT_PAIN,#duration=SAWBLADE_DAMAGE_TIME);
+                  Send(each_obj,@EffectSendUserDuration,#effect=EFFECT_PAIN,#duration=1000);
                   Send(each_obj,@LoseHealth,#amount=SAWBLADE_DAMAGE);
                }
             }
-            SetNth(i,5,CreateTimer(self,@DealSawbladeDamage,SAWBLADE_DAMAGE_TIME));
+            SetNth(i,6,CreateTimer(self,@DealSawbladeDamage,SAWBLADE_DAMAGE_TIME));
          }
       }
+      return;
+   }
+   
+   ReactivateSawblade(timer=$)
+   {
+      local i;
+      
+      foreach i in plSawbladeStates
+      {
+         if timer = Nth(i,5)
+         {
+            SetNth(i,5,$);
+         }
+      }
+
       return;
    }
 
