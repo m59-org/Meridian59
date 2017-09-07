@@ -1106,7 +1106,8 @@ messages:
    {
       if poTarget <> target AND vrSound_aware <> $
       {
-         if NOT (IsClass(target,&Player)
+         if target <> $
+            AND NOT (IsClass(target,&Player)
                AND Send(target,@GetSkillAbility,#skill_num=SKID_HIDE) >= viLevel/2
                AND Send(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@IsHiding,#who=target))
          {
