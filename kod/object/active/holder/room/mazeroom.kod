@@ -30,6 +30,11 @@ MinotaurMazeRoom is Room
 constants:
 
    include blakston.khd
+   
+   NORTH_EXIT_SECTOR = 996
+   EAST_EXIT_SECTOR = 997
+   SOUTH_EXIT_SECTOR = 998
+   WEST_EXIT_SECTOR = 999
 
 resources:
 
@@ -54,13 +59,40 @@ resources:
 
    lava_applying_burn = \
       "You are being set on fire!"
+   maze_lava_wading_sound = frying.wav
+   maze_water_wading_sound = splash.wav
+
+   cannot_blink_in_this_room = \
+      "Ancient mechanisms seem to be interfering with your attempt to blink!"
 
 classvars:
 
    vrName = room_name_minotaurmazeroom
 
+   vbCannotBlinkHere = FALSE
+
    viTeleport_row = 5
-   viTeleport_col = 3
+   viTeleport_col = 6
+   
+   viSouthEntranceRow = 24
+   viSouthEntranceCol = 33
+   viSouthEntranceFineRow = 23
+   viSouthEntranceFineCol = 53
+
+   viNorthEntranceRow = 24
+   viNorthEntranceCol = 33
+   viNorthEntranceFineRow = 23
+   viNorthEntranceFineCol = 53
+
+   viWestEntranceRow = 24
+   viWestEntranceCol = 33
+   viWestEntranceFineRow = 23
+   viWestEntranceFineCol = 53
+
+   viEastEntranceRow = 24
+   viEastEntranceCol = 33
+   viEastEntranceFineRow = 23
+   viEastEntranceFineCol = 53
 
    %%%%%%%%%%%%%%%%%%%% CRUSHERS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
    
@@ -84,7 +116,7 @@ classvars:
    LEVER_TWO_ROW = 25
    LEVER_TWO_TYPE = ANIMATE_FLOOR_LIFT
    LEVER_TWO_ACTIVATES_SECTOR = 6
-   LEVER_TWO_DOWN_HEIGHT = 0
+   LEVER_TWO_DOWN_HEIGHT = 200
    LEVER_TWO_DOWN_SPEED = 50
    LEVER_TWO_UP_HEIGHT = 1000
    LEVER_TWO_UP_SPEED = 0
@@ -127,7 +159,12 @@ properties:
    piOutside_factor = OUTDOORS_NONE 
 
    prRoom = room_minotaurmazeroom
-   piRoom_num = RID_MINOTAURMAZEROOM
+   piRoom_num = $
+   
+   poNorthExit = $
+   poEastExit = $
+   poSouthExit = $
+   poWestExit = $
    
    % of the format [[trigger sectors], [crusher sectors], timer, state, type, down height, down speed, up height, up speed, wall ID]
    plCrusherStates = $
@@ -156,7 +193,50 @@ properties:
 
    piOverridesDeathFunction = TRUE
 
+   vrWading_Sound = maze_water_wading_sound
+   
+   piXCoord = 0
+   piYCoord = 0
+
 messages:
+
+   Constructor(iRID=RID_MAZE_ENTRANCE)
+   {
+      piRoom_num = iRID;
+      
+      propagate;
+   }
+   
+   GetXCoord()
+   {
+      return piXCoord;
+   }
+   
+   GetYCoord()
+   {
+      return piYCoord;
+   }
+
+   SetWadingSound(type=MAZE_WATER_WADING)
+   {
+      switch(type)
+      {
+         case 0:
+            vrWading_Sound = maze_water_wading_sound;
+            break;
+         case 1:
+            vrWading_Sound = maze_lava_wading_sound;
+            break;
+      }
+      return;
+   }
+
+   RecalcBackgroundSkyGraphic(iSkyBox=0)
+   {
+      prBackground = background_chaos_night;
+
+      return;
+   }
 
    CreateStandardObjects()
    {
@@ -231,7 +311,18 @@ messages:
 
    Delete()
    {
-      local i, oThing;
+      local i, oThing, oPlayer;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&LogoffGhost)
+         {
+            Send(Send(First(i),@GetGhostedPlayer),@AdminGoToDesertShore2WhileOffline);
+            Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTSHORE2),@Teleport,#what=First(i));
+         }
+      }
+      
+      Send(Send(SYS,@GetMazeRoomMaintenance),@RoomDeleted,#what=self);
 
       foreach i in Send(self,@GetHolderPassive)
       {
@@ -273,6 +364,20 @@ messages:
       }
 
       propagate;
+   }
+
+% ============
+% TIME
+% ============
+   
+   NewDay()
+   {
+      return;
+   }
+   
+   NewGameHour()
+   {
+      return;
    }
 
 % ============
@@ -412,9 +517,23 @@ messages:
          propagate;
       }
 
+      Send(self,@CheckMoveBorders,#what=what,#new_row=new_row,#new_col=new_col);
+
       Send(self,@EvaluateMovement,#who=what,#section=Send(self,@GetSection,#who=what));
 
       propagate;
+   }
+   
+   CheckMoveBorders(what=$, new_row=$, new_col=$)
+   {
+      if new_row > Send(self,@GetRoomRows)-2
+      {
+         Send(SYS,@UtilGoNearSquare,#what=what,
+              #where=Send(SYS,@FindRoomByNum,#num=RID_MAZE_SEWER),
+              #new_row=2,#new_col=24,#new_angle=Send(what,@GetAngle));
+         return;
+      }
+      return;
    }
    
    EvaluateMovement(who=$,section=0)
@@ -908,8 +1027,10 @@ messages:
       foreach i in plLavaSectors
       {
          % Set up the lava
+         %Send(self,@RemoveSectorFlagChange,#id=i);
          Send(self,@SetSector,#sector=i,#animation=ANIMATE_FLOOR_LIFT,#height=995,#speed=0);
          Send(self,@ChangeTexture,#id=i,#new_texture=maze_lava_texture,#flags=CTF_FLOOR);
+         %Send(self,@SetSectorLight,#sector=i,#light_effect=FLICKER_ON);
       }
 
       if plLavaSectors <> $
@@ -1063,8 +1184,183 @@ messages:
    }
 
 % ============
+% ROOMS
+% ============
+
+   SomethingTryGo(what = $,row = $,col = $)
+   {
+      if what <> $
+         AND IsClass(what,&Player)
+      {
+         Send(self,@AttemptExit,#who=what,#iSection=Send(self,@GetSection,#who=what));
+      }
+
+      propagate;
+   }
+   
+   AttemptExit(who=$,iSection=0)
+   {
+      if who <> $
+         AND IsClass(who,&Player)
+      {         
+         switch(iSection)
+         {
+            case NORTH_EXIT_SECTOR:
+               Send(self,@MazeExit,#who=who,#from_direction=MAZE_DIRECTION_NORTH);
+               break;
+            case EAST_EXIT_SECTOR:
+               Send(self,@MazeExit,#who=who,#from_direction=MAZE_DIRECTION_EAST);
+               break;
+            case SOUTH_EXIT_SECTOR:
+               Send(self,@MazeExit,#who=who,#from_direction=MAZE_DIRECTION_SOUTH);
+               break;
+            case WEST_EXIT_SECTOR:
+               Send(self,@MazeExit,#who=who,#from_direction=MAZE_DIRECTION_WEST);
+               break;
+         }
+      }
+   
+      return;
+   }
+
+   MazeExit(who=$,from_direction=0)
+   {
+      switch(from_direction)
+      {
+         case MAZE_DIRECTION_NORTH:
+            if poNorthExit = $
+            {
+               poNorthExit = Send(Send(SYS,@GetMazeRoomMaintenance),@GenerateNewRoom,
+                                                                    #from_room=self,
+                                                                    #from_direction=from_direction);
+            }
+            Send(poNorthExit,@MazeEnter,#who=who,#from_direction=from_direction);
+            break;
+         case MAZE_DIRECTION_SOUTH:
+            if poSouthExit = $
+            {
+               poSouthExit = Send(Send(SYS,@GetMazeRoomMaintenance),@GenerateNewRoom,
+                                                                    #from_room=self,
+                                                                    #from_direction=from_direction);
+            }
+            Send(poSouthExit,@MazeEnter,#who=who,#from_direction=from_direction);
+            break;
+         case MAZE_DIRECTION_EAST:
+            if poEastExit = $
+            {
+               poEastExit = Send(Send(SYS,@GetMazeRoomMaintenance),@GenerateNewRoom,
+                                                                    #from_room=self,
+                                                                    #from_direction=from_direction);
+            }
+            Send(poEastExit,@MazeEnter,#who=who,#from_direction=from_direction);
+            break;
+         case MAZE_DIRECTION_WEST:
+            if poWestExit = $
+            {
+               poWestExit = Send(Send(SYS,@GetMazeRoomMaintenance),@GenerateNewRoom,
+                                                                    #from_room=self,
+                                                                    #from_direction=from_direction);
+            }
+            Send(poWestExit,@MazeEnter,#who=who,#from_direction=from_direction);
+            break;
+      }
+      
+      
+      return;
+   }
+
+   SetConnectedRoom(from_room=$,from_direction=0)
+   {
+      switch(from_direction)
+      {
+         case MAZE_DIRECTION_NORTH:
+            poSouthExit = from_room;
+            break;
+         case MAZE_DIRECTION_EAST:
+            poWestExit = from_room;
+            break;
+         case MAZE_DIRECTION_SOUTH:
+            poNorthExit = from_room;
+            break;
+         case MAZE_DIRECTION_WEST:
+            poWestExit = from_room;
+            break;
+      }
+      return;
+   }
+
+   MazeEnter(who=$,from_direction=0)
+   {
+      switch(from_direction)
+      {
+         case MAZE_DIRECTION_NORTH:
+            Post(SYS,@UtilGoNearSquare,#what=who,
+                 #where=self,
+                 #new_row=viSouthEntranceRow,
+                 #new_col=viSouthEntranceCol,
+                 #fine_row=viSouthEntranceFineRow,
+                 #fine_col=viSouthEntranceFineCol,
+                 #new_angle=Send(who,@GetAngle));
+            break;
+         case MAZE_DIRECTION_SOUTH:
+            Post(SYS,@UtilGoNearSquare,#what=who,
+                 #where=self,
+                 #new_row=viNorthEntranceRow,
+                 #new_col=viNorthEntranceCol,
+                 #fine_row=viNorthEntranceFineRow,
+                 #fine_col=viNorthEntranceFineCol,
+                 #new_angle=Send(who,@GetAngle));
+            break;
+         case MAZE_DIRECTION_EAST:
+            Post(SYS,@UtilGoNearSquare,#what=who,
+                 #where=self,
+                 #new_row=viWestEntranceRow,
+                 #new_col=viWestEntranceCol,
+                 #fine_row=viWestEntranceFineRow,
+                 #fine_col=viWestEntranceFineCol,
+                 #new_angle=Send(who,@GetAngle));
+            break;
+         case MAZE_DIRECTION_WEST:
+            Post(SYS,@UtilGoNearSquare,#what=who,
+                 #where=self,
+                 #new_row=viEastEntranceRow,
+                 #new_col=viEastEntranceCol,
+                 #fine_row=viEastEntranceFineRow,
+                 #fine_col=viEastEntranceFineCol,
+                 #new_angle=Send(who,@GetAngle));
+            break;
+      }
+      return;
+   }
+
+% ============
 % GENERAL
 % ============
+
+   ReqSpellCast(who = $, oSpell = $, lItems = $)
+   {
+      if IsClass(oSpell,&Blink)
+         AND vbCannotBlinkHere
+      {
+         Send(self,@TellUserTheyCannotBlink,#who=who);
+         return FALSE;
+      }
+
+      if IsClass(oSpell,&DeathRift)
+         OR IsClass(oSpell,&PortalOfLife)
+      {
+         Send(who,@MsgSendUser,#message_rsc=cannot_death_rift_or_pol);
+         return FALSE;
+      }
+
+      propagate;
+   }
+
+   TellUserTheyCannotBlink(who=$)
+   {
+      Send(who,@MsgSendUser,#message_rsc=cannot_blink_in_this_room);
+      return;
+   }
 
    CanHavePlayerPortal()
    {
@@ -1234,18 +1530,6 @@ messages:
       return;
    }
 
-   ReqSpellCast(who = $, oSpell = $, lItems = $)
-   {
-      if IsClass(oSpell,&DeathRift)
-         OR IsClass(oSpell,&PortalOfLife)
-      {
-         Send(who,@MsgSendUser,#message_rsc=cannot_death_rift_or_pol);
-         return FALSE;
-      }
-
-      propagate;
-   }
-
    OverridesDeathAllowPhasing()
    {
       return TRUE;
@@ -1273,7 +1557,7 @@ messages:
          if IsClass(each_obj,&Player)
             AND Send(self,@GetSection,#who=each_obj) = LEVER_TWO_ACTIVATES_SECTOR
          {
-            Send(Send(SYS,@FindRoomByNum,#num=RID_MAZE1),@Teleport,#what=each_obj);
+         %   Send(Send(SYS,@FindRoomByNum,#num=RID_MAZE1),@Teleport,#what=each_obj);
          }
       }
       Send(self,@SetSector,#sector=LEVER_TWO_ACTIVATES_SECTOR,

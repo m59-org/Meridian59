@@ -105,58 +105,14 @@ messages:
          return FALSE;
       }
 
-      target = First(lTargets);
-
-      % TODO: this is not an ideal implementation of blind/hold resistance.
-      % These should be enchantments themselves, rather than requiring
-      % multiple checks of every item in the target's inventory.
-      if IsClass(target,&Player)
-      {
-         foreach i in Send(target,@GetHolderPassive)
-         {
-            if IsClass(i,&BreakRodHold)
-               AND Send(i,@IsActive)
-            {
-               Send(who,@MsgSendUser,#message_rsc=event_hold_break_rod_active);
-
-               return FALSE;
-            }
-         }
-      }
-
-      if IsClass(who,&Player)
-      {
-         foreach i in Send(who,@GetHolderPassive)
-         {
-            if IsClass(i,&BreakRodHold)
-               AND Send(i,@IsSecondaryActive)
-            {
-               Send(who,@MsgSendUser,#message_rsc=event_hold_break_rod_active);
-
-               return FALSE;
-            }
-         }
-      }
-
       propagate;
    }
 
-   CastSpell(who=$,wielder=$,lTargets=$,iSpellpower=0,report=TRUE)
+   CastSpell(who=$,lTargets=$,iSpellpower=0,report=TRUE)
    {
       local oTarget, oRoom, i;
 
       oTarget = First(lTargets);
-      % Is this a proc from a weapon?
-      if wielder = $
-      {
-         oRoom = Send(who,@GetOwner);
-         Send(oRoom,@SomethingShot,#who=who,#target=oTarget,#projectile=self,#flags=viProjectileFlag);
-      }
-      else
-      {
-         oRoom = Send(wielder,@GetOwner);
-         Send(oRoom,@SomethingShot,#who=wielder,#target=oTarget,#projectile=self,#flags=viProjectileFlag);
-      }
 
       % Spell effects.
       Send(self,@DoSpell,#what=who,#oTarget=oTarget,#report=report,

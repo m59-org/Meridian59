@@ -1,0 +1,228 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+MazeRoomMaintenance is UtilityFunctions
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+classvars:
+
+properties:
+
+   poFirstRoom = $
+   plMazeRooms = $
+   poTreasureRoom = $
+   poShrineRoom = $
+   poArmorRoom = $
+   poBossRoom = $
+   
+   plMazeClasses = $
+
+messages:
+
+   Constructor()
+   {
+      Send(self,@Recreate);
+
+      return;
+   }
+
+   Recreate()
+   {
+      local i;
+
+      if poFirstRoom <> $
+      {
+         Send(poFirstRoom,@HustleUsersOutOfRoom);
+         Send(poFirstRoom,@Delete);
+         poFirstRoom = $;
+      }
+      if poBossRoom <> $
+      {
+         Send(poBossRoom,@HustleUsersOutOfRoom);
+         Send(poBossRoom,@Delete);
+         poBossRoom = $;
+      }
+
+      foreach i in plMazeRooms
+      {
+         Send(i,@Delete);
+         plMazeRooms = DelListElem(plMazeRooms,i);
+      }
+      plMazeRooms = $;
+      
+      plMazeClasses = [&Maze5];
+      %plMazeClasses = [&Maze4a, &Maze4b, &Maze4c];
+
+      return;
+   }
+
+   GetFirstRoom()
+   {
+      if poFirstRoom = $
+      {
+         return Send(self,@CreateFirstRoom);
+      }
+      else
+      {
+         return poFirstRoom;
+      }
+      return $;
+   }
+
+   CreateFirstRoom()
+   {
+      if poFirstRoom = $
+      {
+         Send(SYS,@CreateOneRoomIfNew,#num=RID_MAZE_ENTRANCE,#class=&MinotaurMazeRoom);
+         poFirstRoom = Send(SYS,@FindRoomByNum,#num=RID_MAZE_ENTRANCE);
+         Send(Send(SYS,@GetStatistics),@AddToRoomCount,#iNum=RID_MAZE_ENTRANCE);
+         return poFirstRoom;
+      }
+
+      return $;
+   }
+
+   GetBossRoom()
+   {
+      if poBossRoom = $
+      {
+         return Send(self,@CreateBossRoom);
+      }
+      else
+      {
+         return poBossRoom;
+      }
+      return $;
+   }
+
+   CreateBossRoom()
+   {
+      if poBossRoom = $
+      {
+         Send(SYS,@CreateOneRoomIfNew,#num=RID_MAZE_BOSS_ROOM,#class=&MazeBossRoom);
+         poBossRoom = Send(SYS,@FindRoomByNum,#num=RID_MAZE_BOSS_ROOM);
+         Send(Send(SYS,@GetStatistics),@AddToRoomCount,#iNum=RID_MAZE_BOSS_ROOM);
+         return poBossRoom;
+      }
+
+      return $;
+   }
+
+   RoomDeleted(what=$)
+   {
+      if what <> $
+      {
+         if what = poFirstRoom
+         {
+            poFirstRoom = $;
+         }
+         if what = poBossRoom
+         {
+            poBossRoom = $;
+         }
+      }
+      return;
+   }
+   
+   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+   %%%%%%%%%%%%%%%%%%% Maze Room Handling 
+   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+   NewDay()
+   {
+      local i;
+      
+      foreach i in plMazeRooms
+      {
+         Send(i,@NewDay);
+      }
+
+      return;
+   }
+
+   NewGameHour()
+   {
+      local i;
+      
+      foreach i in plMazeRooms
+      {
+         Send(i,@NewGameHour);
+      }
+
+      return;
+   }
+
+   GenerateNewRoom(from_room=$,from_direction=0)
+   {
+      local oRoom, iGeneratedNum;
+      
+      %
+      %
+      % CREATE EDGE ROOMS HERE
+      %
+      
+      iGeneratedNum = Send(self,@GetNextAvailableRID);
+      Send(SYS,@CreateOneRoomIfNew,#num=iGeneratedNum,
+                                   #class=Nth(plMazeClasses,Random(1,Length(plMazeClasses))));
+      Send(Send(SYS,@GetStatistics),@AddToRoomCount,#iNum=iGeneratedNum);
+      
+      oRoom = Send(SYS,@FindRoomByNum,#num=iGeneratedNum);
+      Send(oRoom,@SetConnectedRoom,#from_room=from_room,#from_direction=from_direction);
+      
+      plMazeRooms = Cons(oRoom,plMazeRooms);
+      
+      return oRoom;
+   }
+
+   GetNextAvailableRID()
+   {
+      local iRID, i, bExists;
+
+      iRID = RID_MAZE_ROOM_START;
+
+      if plMazeRooms = $
+      {
+         return iRID;
+      }
+
+      while iRID <= RID_MAZE_ROOM_END
+      {
+         bExists = FALSE;
+         foreach i in plMazeRooms
+         {
+            if Send(i,@GetRoomNum) = iRID
+            {
+               bExists = TRUE;
+            }
+         }
+
+         if NOT bExists
+         {
+            return iRID;
+         }
+
+         iRID = iRID + 1;
+      }
+
+      return 0;
+   }
+
+   GetExit()
+   {
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

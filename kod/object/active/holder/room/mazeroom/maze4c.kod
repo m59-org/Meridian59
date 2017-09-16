@@ -8,9 +8,9 @@
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Maze4a is MinotaurMazeRoom
+Maze4c is MinotaurMazeRoom
 
-% Randomized Hallways with special trap functions
+% Predominantly lava hallways with Te'xeo spawn
 %
 %
 %
@@ -54,7 +54,7 @@ constants:
 
 resources:
 
-   room_maze4a = maze4b.roo
+   room_maze4c = maze4c.roo
 
 classvars:
 
@@ -81,7 +81,7 @@ classvars:
    viEastEntranceRow = 12
    viEastEntranceCol = 35
    viEastEntranceFineRow = 44
-   viEastEntranceFineCol = 0
+   viEastEntranceFineCol = 39
    
    % Sawblade settings
    % Sawblades are twice as slow to animate in this room... for no discernible reason.
@@ -97,10 +97,12 @@ classvars:
    % 
    % Interconnected rooms
    % 
+   % Lava scrolling
+   %
 
 properties:
 
-   prRoom = room_maze4a
+   prRoom = room_maze4c
 
 messages:
    
@@ -143,27 +145,20 @@ messages:
       Send(self,@SetSector,#sector=509,#animation=ANIMATE_FLOOR_LIFT,#height=1000,#speed=0);
       Send(self,@SetSector,#sector=499,#animation=ANIMATE_FLOOR_LIFT,#height=1000,#speed=0);
 
-      % Spikes in all hallways
-      iRT = 100;
-      bSoundInfo = -1;     % -1 means room sound, all subsequent spikes go to $ to play nothing
-      while iRT <= 730
+      % Lava in all hallways
+
+      iR = 100;
+      while iR <= 730
       {
-         plSpikeStates = Cons([[iRT,iRT+1,iRT+2,iRT+3],        % Pain sectors
-                               iRT+7,                          % down wall ID
-                               iRT+8,                          % Up wall ID
-                               $,
-                               SPIKES_DORMANT,
-                               SPIKES_SIMULTANEOUS,            % Spike behavior
-                               bSoundInfo,                     % sound row
-                               bSoundInfo                      % sound col
-                               ],plSpikeStates);
-            iR--;
-            
-            if bSoundInfo = -1
-            {
-               bSoundInfo = $;
-            }
-         iRT = iRT + 10;
+         plLavaSectors = Cons(iR,plLavaSectors);                  % Lava pain sectors
+         Send(self,@RemoveSectorFlagChange,#id=iR);
+         plLavaSectors = Cons(iR+1,plLavaSectors);                % Lava pain sectors
+         Send(self,@RemoveSectorFlagChange,#id=iR+1);
+         plLavaSectors = Cons(iR+2,plLavaSectors);                % Lava pain sectors
+         Send(self,@RemoveSectorFlagChange,#id=iR+2);
+         plLavaSectors = Cons(iR+3,plLavaSectors);                % Lava pain sectors
+         Send(self,@RemoveSectorFlagChange,#id=iR+3);
+         iR = iR + 10;
       }
 
       return;
@@ -174,11 +169,6 @@ messages:
 % SPECIFIC FUNCTIONS
 % ==================================================================================================================
 % ==================================================================================================================
-
-% ============
-% OTHER
-% ============
-
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

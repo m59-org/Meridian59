@@ -426,6 +426,7 @@ properties:
    poRentableRoomMaintenance = $
    poSurvivalRoomMaintenance = $
    poDesertRoomMaintenance = $
+   poMazeRoomMaintenance = $
 
    % Singleton object that keeps track of various game statistics
    poStatistics = $
@@ -591,6 +592,7 @@ messages:
       Send(self,@RecreateRentableRoomMaintenance);
       Send(self,@RecreateSurvivalRoomMaintenance);
       Send(self,@RecreateDesertRoomMaintenance);
+      Send(self,@RecreateMazeRoomMaintenance);
 
       Send(self,@RecreateAllSpells,#figure_totals=FALSE);
       Send(self,@RecreateAllSkills,#figure_totals=FALSE);
@@ -703,6 +705,7 @@ messages:
       Send(self,@RecreateRentableRoomMaintenance);
       Send(self,@RecreateSurvivalRoomMaintenance);
       Send(self,@RecreateDesertRoomMaintenance);
+      Send(self,@RecreateMazeRoomMaintenance);
       Send(self,@RecreateWarEvent);
 
       % These don't need to be done here.
@@ -1478,6 +1481,7 @@ messages:
       Send(poNodeAttack,@NewDay);
       Send(poRentableRoomMaintenance,@NewDay);
       Send(poDesertRoomMaintenance,@NewDay);
+      Send(poMazeRoomMaintenance,@NewDay);
       Send(&SoldierShield,@NewDay);
 
       Send(Send(self,@FindSpellByNum,#num=SID_NODEBURST),@NewDay);
@@ -2758,10 +2762,7 @@ messages:
       Send(self,@CreateOneRoomIfNew,#num=RID_DESERTCITY1,#class=&DesertCity1);
       Send(self,@CreateOneRoomIfNew,#num=RID_DESERTCITY2,#class=&DesertCity2);
       Send(self,@CreateOneRoomIfNew,#num=RID_DESERTCANAL,#class=&DesertCanal);
-      Send(self,@CreateOneRoomIfNew,#num=RID_MINOTAURMAZEROOM,#class=&MinotaurMazeRoom);
-      Send(self,@CreateOneRoomIfNew,#num=RID_MAZE1,#class=&Maze1);
-      Send(self,@CreateOneRoomIfNew,#num=RID_MAZE2,#class=&Maze2);
-      Send(self,@CreateOneRoomIfNew,#num=RID_MAZE4A,#class=&Maze4a);
+      Send(self,@CreateOneRoomIfNew,#num=RID_MAZE_SEWER,#class=&MazeSewer);
       
       Send(self,@CreateOneRoomIfNew,#num=RID_ACIDPATH,#class=&AcidPath);
       
@@ -4346,6 +4347,11 @@ messages:
          Send(poDesertRoomMaintenance,@NewGameHour);
       }
 
+      if poMazeRoomMaintenance <> $
+      {
+         Send(poMazeRoomMaintenance,@NewGameHour);
+      }
+
       return;
    }
 
@@ -5262,6 +5268,11 @@ messages:
    {
       return poDesertRoomMaintenance;
    }
+   
+   GetMazeRoomMaintenance()
+   {
+      return poMazeRoomMaintenance;
+   }
 
    GetSurvivalReport()
    {
@@ -5356,6 +5367,20 @@ messages:
       else
       {
          poDesertRoomMaintenance = Create(&DesertRoomMaintenance);
+      }
+
+      return TRUE;
+   }
+
+   RecreateMazeRoomMaintenance()
+   {
+      if poMazeRoomMaintenance <> $
+      {
+         Send(poMazeRoomMaintenance,@Recreate);
+      }
+      else
+      {
+         poMazeRoomMaintenance = Create(&MazeRoomMaintenance);
       }
 
       return TRUE;
