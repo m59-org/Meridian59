@@ -63,7 +63,13 @@ resources:
    maze_water_wading_sound = splash.wav
 
    cannot_blink_in_this_room = \
-      "Ancient mechanisms seem to be interfering with your attempt to blink!"
+      "Ancient mechanisms seem to be interfering with your attempt to blink "
+      "in this particular room!"
+
+   maze_clinging_darkness = \
+      "~BStrange clinging darkness drains the mana "
+      "powering your unnatural sources of light! It seems that only a natural "
+      "source of light such as a torch will function here."
 
 classvars:
 
@@ -1353,12 +1359,68 @@ messages:
 % GENERAL
 % ============
 
+   NewHoldObject(what = $,new_pos = $)
+   {
+      if IsClass(what,&Player)
+      {
+         Send(self,@RemoveLightSources,#who=what);
+      }
+      propagate;
+   }
+
+   RemoveLightSources(who=$)
+   {
+      local i, each_obj, oGlow, iCurrentGlow, bInform;
+
+      bInform = FALSE;
+
+      if Send(who,@IsEnchanted,#byClass=&NightVision)
+      {
+         Post(who,@RemoveEnchantmentClass,#class=&NightVision);
+         bInform = TRUE;
+      }
+      
+      oGlow = Send(SYS,@FindItemAttByNum,#num=WA_GLOWING);
+
+      foreach i in Send(who,@GetHolderPassive)
+      {
+         each_obj = Send(who,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&Weapon)
+         {
+            iCurrentGlow = Send(each_obj,@GetAttributeData,#ItemAtt=WA_GLOWING);
+            if iCurrentGlow <> $
+            {
+               Send(oGlow,@RemoveFromItem,#oItem=each_obj);
+               bInform = TRUE;
+            }
+         }
+      }
+      
+      if bInform
+      {
+         Post(who,@MsgSendUser,#message_rsc=maze_clinging_darkness);
+      }
+      
+      return;
+   }
+
    ReqSpellCast(who = $, oSpell = $, lItems = $)
    {
       if IsClass(oSpell,&Blink)
          AND vbCannotBlinkHere
       {
          Send(self,@TellUserTheyCannotBlink,#who=who);
+         return FALSE;
+      }
+
+      if IsClass(oSpell,&Firewall)
+         OR IsClass(oSpell,&LightningWall)
+         OR IsClass(oSpell,&RingOfFlames)
+         OR IsClass(oSpell,&NightVision)
+         OR IsClass(oSpell,&GlowWeapon)
+         OR IsClass(oSpell,&Light)
+      {
+         Post(who,@MsgSendUser,#message_rsc=maze_clinging_darkness);
          return FALSE;
       }
 
