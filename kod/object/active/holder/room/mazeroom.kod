@@ -1623,28 +1623,5 @@ messages:
 % OTHER
 % ============
 
-   SendPlayersToNextRoom()
-   {
-      local i, each_obj;
-
-%      ptNextRoomTimer = $;
-      
-      foreach i in Send(self,@GetHolderActive)
-      {
-         each_obj = Send(self,@HolderExtractObject,#data=i);
-         if IsClass(each_obj,&Player)
-            AND Send(self,@GetSection,#who=each_obj) = LEVER_TWO_ACTIVATES_SECTOR
-         {
-         %   Send(Send(SYS,@FindRoomByNum,#num=RID_MAZE1),@Teleport,#what=each_obj);
-         }
-      }
-      Send(self,@SetSector,#sector=LEVER_TWO_ACTIVATES_SECTOR,
-                           #animation=LEVER_TWO_TYPE,
-                           #height=LEVER_TWO_UP_HEIGHT,
-                           #speed=LEVER_TWO_UP_SPEED);
-      
-      return;
-   }
-
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

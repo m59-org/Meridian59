@@ -166,7 +166,7 @@ messages:
 
    GenerateNewRoom(from_room=$,from_direction=0)
    {
-      local oRoom, iGeneratedNum, lMazeClasses, iTargetXCoord, iTargetYCoord;
+      local oRoom, iGeneratedNum, lMazeClasses, iTargetXCoord, iTargetYCoord, oExistingRoom;
       
       %
       %
@@ -203,11 +203,35 @@ messages:
             break;
       }
 
+%      if iTargetYCoord < 1
+%         OR iTargetYCoord > 10
+%         OR iTargetXCoord < 1
+%         OR iTargetXCoord > 10
+%      {
+%         Debug("Player somehow attempted to enter out of bounds maze room!");
+%         return $;
+%      }
+
       lMazeClasses = $;
+      
+      if iTargetXCoord = 1
+      {
+         lMazeClasses = [&MazeWestBorder];
+      }
+      
+      if iTargetXCoord = 10
+      {
+         lMazeClasses = [&MazeEastBorder];
+      }
       
       if iTargetYCoord = 1
       {
          lMazeClasses = [&MazeSouthBorder];
+      }
+      
+      if iTargetYCoord = 10
+      {
+         lMazeClasses = [&MazeNorthBorder];
       }
       
       if Send(from_room,@GetXCoord) = -1
@@ -243,20 +267,73 @@ messages:
          lMazeClasses = [&MazeNorthEastCorner];
       }
 
-      iGeneratedNum = Send(self,@GetNextAvailableRID);
-      Send(SYS,@CreateOneRoomIfNew,#num=iGeneratedNum,
-                                   #class=Nth(lMazeClasses,Random(1,Length(lMazeClasses))));
-      Send(Send(SYS,@GetStatistics),@AddToRoomCount,#iNum=iGeneratedNum);
+      oExistingRoom = Send(self,@CheckForExistingRoom,#x_coord=iTargetXCoord,#y_coord=iTargetYCoord);
+      if oExistingRoom <> $
+      {
+         % Link the two rooms together
+         Send(from_room,@SetConnectedRoom,#from_room=oExistingRoom,#from_direction=Send(self,@ReverseDirection,#direction=from_direction));
+         Send(oExistingRoom,@SetConnectedRoom,#from_room=from_room,#from_direction=from_direction);
+
+         return oExistingRoom;
+      }
+      else
+      {
+         iGeneratedNum = Send(self,@GetNextAvailableRID);
+         Send(SYS,@CreateOneRoomIfNew,#num=iGeneratedNum,
+                                      #class=Nth(lMazeClasses,Random(1,Length(lMazeClasses))));
+         Send(Send(SYS,@GetStatistics),@AddToRoomCount,#iNum=iGeneratedNum);
       
-      oRoom = Send(SYS,@FindRoomByNum,#num=iGeneratedNum);
+         oRoom = Send(SYS,@FindRoomByNum,#num=iGeneratedNum);
       
-      Send(oRoom,@SetConnectedRoom,#from_room=from_room,#from_direction=from_direction);
-      Send(oRoom,@SetXCoord,#coord_value=iTargetXCoord);
-      Send(oRoom,@SetYCoord,#coord_value=iTargetYCoord);
+         % Link the two rooms together
+         Send(from_room,@SetConnectedRoom,#from_room=oRoom,#from_direction=Send(self,@ReverseDirection,#direction=from_direction));
+         Send(oRoom,@SetConnectedRoom,#from_room=from_room,#from_direction=from_direction);
+         
+         % Set your grid coordinates
+         Send(oRoom,@SetXCoord,#coord_value=iTargetXCoord);
+         Send(oRoom,@SetYCoord,#coord_value=iTargetYCoord);
       
-      plMazeRooms = Cons(oRoom,plMazeRooms);
+         plMazeRooms = Cons(oRoom,plMazeRooms);
+
+         return oRoom;
+      }
+         
+      Debug("GenerateNewRoom failed spectacularly");
       
-      return oRoom;
+      return $;
+   }
+
+   CheckForExistingRoom(x_coord=0,y_coord=0)
+   {
+      local i;
+      
+      foreach i in plMazeRooms
+      {
+         if Send(i,@GetXCoord) = x_coord
+            AND Send(i,@GetYCoord) = y_coord
+         {
+            return i;
+         }
+      }
+
+      return $;
+   }
+
+   ReverseDirection(direction=0)
+   {
+      switch(direction)
+      {
+         case MAZE_DIRECTION_NORTH:
+            return MAZE_DIRECTION_SOUTH;
+         case MAZE_DIRECTION_EAST:
+            return MAZE_DIRECTION_WEST;
+         case MAZE_DIRECTION_SOUTH:
+            return MAZE_DIRECTION_NORTH;
+         case MAZE_DIRECTION_WEST:
+            return MAZE_DIRECTION_EAST;
+      }
+      Debug("ReverseDirection returned 0!");
+      return 0;
    }
 
    GetNextAvailableRID()
