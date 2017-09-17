@@ -194,7 +194,7 @@ properties:
    piOverridesDeathFunction = TRUE
 
    vrWading_Sound = maze_water_wading_sound
-   
+
    piXCoord = 0
    piYCoord = 0
 
@@ -207,6 +207,18 @@ messages:
       propagate;
    }
    
+   SetXCoord(coord_value=0)
+   {
+      piXCoord = coord_value;
+      return;
+   }
+   
+   SetYCoord(coord_value=0)
+   {
+      piYCoord = coord_value;
+      return;
+   }
+
    GetXCoord()
    {
       return piXCoord;
@@ -248,6 +260,10 @@ messages:
    CreateMazeRoomObjects()
    {
       local i;
+      
+      % This room is not actually in the maze and is precreated
+      Send(self,@SetXCoord,#coord_value=-1);
+      Send(self,@SetYCoord,#coord_value=-1);
 
       Send(self,@NewHold,#what=Create(&Lever),
             #new_row=3,#new_col=12,#fine_row=35,#fine_col=46);
@@ -1283,7 +1299,7 @@ messages:
             poNorthExit = from_room;
             break;
          case MAZE_DIRECTION_WEST:
-            poWestExit = from_room;
+            poEastExit = from_room;
             break;
       }
       return;
