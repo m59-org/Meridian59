@@ -31,24 +31,34 @@ classvars:
 
 properties:
 
+   piNumerator = 1
+   piDivisor = 3
 
 messages:
 
    ModifyHitRoll(who = $,what = $,hit_roll = $,iState=0)
    {
-      local oWeapon;
+      local oWeapon, iNumerator, iDivisor;
+      
+      iNumerator = piNumerator;
+      iDivisor = piDivisor;
+      
+      if iDivisor = 0
+      {
+         iDivisor = 1;
+      }
       
       if who = $
       {
          % no who, just add bonus
-         return hit_roll + iState;
+         return hit_roll + ((iState*iNumerator)/iDivisor);
       }
 
       oWeapon = Send(who,@GetWeapon);
       if (oWeapon = $)
          or (not IsClass(oWeapon,&RangedWeapon))
       {
-         return hit_roll + iState;
+         return hit_roll + ((iState*iNumerator)/iDivisor);
       }
 
       return hit_roll;
