@@ -1,0 +1,160 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Reliquary is StorageBox
+
+constants:
+
+   CHEST_ITEMS_MAX = 1
+
+   include blakston.khd
+
+resources:
+
+   Reliquary_name_rsc = "reliquary"
+   Reliquary_icon_rsc = reliquarypillar.bgf
+
+   Reliquary_desc_rsc = \
+      "This ancient reliquary can enshrine objects of particular reverence, "
+      "thereby sharing magical power with all those connected to this "
+      "guild hall's aura. "
+      
+   Reliquary_bonus_header = \
+      "\n\nAll members of the owning guild will receive the bonus: "
+
+classvars:
+
+   vrName = Reliquary_name_rsc
+   vrIcon = Reliquary_icon_rsc
+   vrDesc = Reliquary_desc_rsc
+
+   viBulk_hold_max = $
+   viWeight_hold_max = $
+
+properties:
+
+   pbActive = FALSE
+
+messages:
+
+   IsRelic(what=$)
+   {
+      local cClass;
+      
+      if what <> $
+      {
+         cClass = GetClass(what);
+         
+         if cClass = &FarenCharm
+            OR cClass = &ShalilleCharm
+            OR cClass = &KraananCharm
+            OR cClass = &RiijaCharm
+            OR cClass = &QorCharm
+            OR cClass = &GoldSword
+            OR cClass = &NeruditeBow
+            OR cClass = &MagicBow
+            OR cClass = &Helm
+            OR cClass = &MajorBlueHeartStone
+            OR cClass = &MajorRedHeartStone
+            OR cClass = &MajorSkyHeartStone
+            OR cClass = &MajorGreenHeartStone
+            OR cClass = &MajorWhiteHeartStone
+            OR cClass = &MajorBlackHeartStone
+            OR cClass = &MajorBrownHeartStone
+            OR cClass = &MajorDarkGreenHeartStone
+            OR cClass = &MajorPurpleHeartStone
+            OR cClass = &AntMask
+            OR cClass = &MummyMask
+            OR cClass = &RatMask
+            OR cClass = &CowMask
+            OR cClass = &DaemonMask
+            OR cClass = &DuskRatMask
+            OR cClass = &KriipaMask
+            OR cClass = &FeyMask
+            OR cClass = &StoneTrollMask
+            OR cClass = &TrollMask
+            OR cClass = &ShrunkenHeadMask
+            OR cClass = &XeoMask
+            OR cClass = &SkullMask
+            OR cClass = &ArmorRelic
+         {
+            return TRUE;
+         }
+      }
+
+      return FALSE;
+   }
+
+   ReqNewHold(what = $, who = $)
+   {
+      if NOT Send(self,@CanDepositItems,#lItems=[what])
+      {
+         return FALSE;
+      }
+
+      propagate;
+   }
+
+   CanDepositItems(lItems = $)
+   {
+      local plItemsStored;
+
+      if lItems = $
+      {
+         return FALSE;
+      }
+
+      plItemsStored = Send(self,@GetHolderPassive);
+      if plItemsStored <> $
+         AND (Length(plItemsStored) + Length(lItems)) > CHEST_ITEMS_MAX
+         AND NOT (Length(lItems) = 1
+            AND IsClass(First(lItems),&NumberItem))
+      {
+         return FALSE;
+      }
+
+      return TRUE;
+   }
+
+   NewHold(what=$)
+   {
+      if Send(self,@IsRelic,#what=what)
+      {
+         pbActive = TRUE;
+         Post(poOwner,@SomethingChanged,#what=self);
+      }
+      propagate;
+   }
+
+   LeaveHold(what=$)
+   {
+      pbActive = FALSE;
+      Post(poOwner,@SomethingChanged,#what=self);
+      propagate;
+   }
+
+   % Give reliquaries a glow when active.
+   SendLightingInformation()
+   {
+      if pbActive
+      {
+         AddPacket(2,LIGHT_FLAG_ON);
+         % Intensity (out of 255)
+         AddPacket(1,1);
+         % Color
+         AddPacket(2,LIGHT_BYELLOW);
+         return;
+      }
+
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
