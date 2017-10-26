@@ -6,6 +6,6 @@
 
 DEPEND = ..\storebox.bof
 BOFS = woodbox.bof chest.bof smallbox.bof oldbox.bof nomadchest.bof \
-       reliquary.bof
+       reliquary.bof shardfusingdevice.bof shardshatteringdevice.bof
 
 !include $(KODDIR)\kod.mak
