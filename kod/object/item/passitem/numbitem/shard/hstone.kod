@@ -47,7 +47,6 @@ classvars:
 properties:
 
    ptRespawn = $           % Time until dropped stone respawns.
-
 messages:
 
    Constructor()
@@ -177,8 +176,8 @@ messages:
             OR IsClass(apply_on,&DefenseModifier)
             OR IsClass(apply_on,&Ring)
             OR IsClass(apply_on,&Gauntlet))
-         if Send(apply_on,@GetMagicModsNumber) >= 0
-            AND Send(apply_on,@GetMagicModsNumber) <= 2
+            AND (Send(apply_on,@GetMagicModsNumber) >= 0
+            AND Send(apply_on,@GetMagicModsNumber) <= 2)
       {
          % This shard only applies to non-enchanted gear and weakly magical gear
          return TRUE;
