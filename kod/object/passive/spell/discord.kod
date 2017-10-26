@@ -74,12 +74,28 @@ messages:
 
    CanPayCosts(who=$)
    {
-      if send(send(who,@GetOwner),@GetEnchantmentList) = $
-         AND send(who,@GetRadiusEnchantments) = $
+      local i, bRemovableRadiusEnch;
+
+      if Send(Send(who,@GetOwner),@GetEnchantmentList) = $
       {
-         Send(who, @MsgSendUser, #message_rsc=spell_bad_location, #parm1=vrName);
-         return FALSE;
+         bRemovableRadiusEnch = FALSE;
+         
+         foreach i in Send(who,@GetRadiusEnchantments)
+         {
+            if Nth(i,3) <> $
+               AND IsClass(Nth(i,3),&Battler)
+            {
+               bRemovableRadiusEnch = TRUE;
+            }
+         }
+         
+         if NOT bRemovableRadiusEnch
+         {
+            Send(who, @MsgSendUser, #message_rsc=spell_bad_location, #parm1=vrName);
+            return FALSE;
+         }
       }
+
       propagate;
    }
 
@@ -117,9 +133,11 @@ messages:
 
       foreach i in Send(who,@GetRadiusEnchantments)
       {
-         if iSpellPower = $
-            OR Random(1,100) < iSpellPower
+         if (iSpellPower = $
+            OR Random(1,100) < iSpellPower)
             AND Send(Nth(i,1),@GetDiscordable)
+            AND (Nth(i,3) <> $
+               AND IsClass(Nth(i,3),&Battler))
          {
             Send(Nth(i,1),@CancelRadiusEnchantment,#source=Nth(i,3),#event=EVENT_STEER);
          }

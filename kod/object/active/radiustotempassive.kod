@@ -16,7 +16,7 @@ constants:
 
 resources:
 
-   re_totem_name_rsc = "foci"
+   re_totem_name_rsc = "Foci"
    re_totem_icon_rsc = totem.bgf
    re_totem_desc_rsc = \
       "This mystical object centers a radius enchantment."
@@ -48,10 +48,18 @@ messages:
       iLightColor = LIGHT_GREEN;
       
       if poOwner <> $
-         AND IsClass(poOwner,&BattleArena)
       {
-         iLightIntensity = Send(poOwner,@GetTotemLightIntensity,#what=self);
-         iLightColor = Send(poOwner,@GetTotemLightColor,#what=self);
+         if IsClass(poOwner,&BattleArena)
+         {
+            iLightIntensity = Send(poOwner,@GetTotemLightIntensity,#what=self);
+            iLightColor = Send(poOwner,@GetTotemLightColor,#what=self);
+         }
+         
+         if IsClass(poOwner,&GuildHall)
+         {
+            iLightIntensity = Send(poOwner,@GetTotemLightIntensity,#what=self);
+            iLightColor = Send(poOwner,@GetTotemLightColor,#what=self);
+         }
       }
 
       AddPacket(2,piLightFlags);

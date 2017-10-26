@@ -38,6 +38,15 @@ resources:
    Major_HeartStone_applied_rsc = \
       "The %s momentarily glows with the same color as the heartstone."
 
+   major_invalid_item_msg = \
+      "You need to apply the shard to an item!"
+   major_no_mods_found_msg = \
+      "There are no available modifications remaining to apply to this item."
+   major_no_space_for_mods_msg = \
+      "This item has no more capacity for magical modifications!"
+   major_weight_test_failed_msg = "The shard didn't do its math correctly!"
+
+   
 classvars:
 
    vrName = Major_HeartStone_name_rsc
@@ -255,7 +264,7 @@ messages:
 
       if oItem = $
       {
-         Post(who,@MsgSendUser,#message_rsc=invalid_item_msg);
+         Post(who,@MsgSendUser,#message_rsc=major_invalid_item_msg);
          return NO_ITEM;
       }
       
@@ -281,7 +290,7 @@ messages:
       if lPrefixes = $
          AND lSuffixes = $
       {
-         Post(who,@MsgSendUser,#message_rsc=no_mods_found_msg);
+         Post(who,@MsgSendUser,#message_rsc=major_no_mods_found_msg);
          return NO_MODS_FOUND;
       }
 
@@ -297,7 +306,7 @@ messages:
       if lPrefixes = $
          AND lSuffixes = $
       {
-         Post(who,@MsgSendUser,#message_rsc=no_space_for_mods_msg);
+         Post(who,@MsgSendUser,#message_rsc=major_no_space_for_mods_msg);
          return NO_SPACE_FOR_MODS;
       }
 
@@ -366,7 +375,7 @@ messages:
       if iChosenWeight > 0
       {
          % We never found a mod?
-         Post(who,@MsgSendUser,#message_rsc=weight_test_failed_msg);
+         Post(who,@MsgSendUser,#message_rsc=major_weight_test_failed_msg);
          return WEIGHT_TEST_FAILED;
       }
 
