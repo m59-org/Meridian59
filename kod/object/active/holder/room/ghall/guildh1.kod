@@ -10,12 +10,16 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 GuildHall1 is GuildHall
 
+% Mercenary Alley is the 
+
 constants:
 
    OUT1 = 1
    OUT2 = 2
 
    ENTRANCE = 3
+   
+   SUPER_SECRET_DOOR = 9
 
    LIFT_DELAY = 10000
 
@@ -56,6 +60,40 @@ classvars:
    viQuality = 4
 
    viSeconds_til_close = 16
+   
+   viPortalRow = 1
+   viPortalCol = 3
+   viPortalFineRow = 52
+   viPortalFineCol = 26
+   viPortalDestRID = RID_COR_NOTH
+   viPortalDestRow = 0
+   viPortalDestCol = 0
+   viPortalDestFineRow = 0
+   viPortalDestFineCol = 0
+   viPortalDestAngle = 0
+   
+   viReliquaryRow = 5
+   viReliquaryCol = 15
+   viReliquaryFineRow = 48
+   viReliquaryFineCol = 58
+   
+   viShardFusingDeviceRow = 17
+   viShardFusingDeviceCol = 2
+   viShardFusingDeviceFineRow = 48
+   viShardFusingDeviceFineCol = 47
+   viShardFusingDeviceRate = 8
+   
+   viShardShatteringDeviceRow = 16
+   viShardShatteringDeviceCol = 2
+   viShardShatteringDeviceFineRow = 31
+   viShardShatteringDeviceFineCol = 47
+   viShardShatteringDeviceRate = 2
+   
+   viFociRow = 7
+   viFociCol = 5
+   viFociFineRow = 33
+   viFociFineCol = 3
+   viFociPower = 99
 
 properties:
 
@@ -154,6 +192,9 @@ messages:
               #height=16,#speed=16);
          ptSecret = CreateTimer(self,@CloseSecretDoor,LIFT_DELAY);
          Send(self,@OpenSecretDoorSound);
+         
+         Send(self,@SetSector,#sector=SUPER_SECRET_DOOR,#animation=ANIMATE_CEILING_LIFT,
+              #height=76,#speed=16);
       }
 
       return;
@@ -167,6 +208,9 @@ messages:
       Send(self,@SetSector,#sector=OUT2,#animation=ANIMATE_FLOOR_LIFT,
            #height=80,#speed=16);
       Send(self,@CloseSecretDoorSound);
+         
+      Send(self,@SetSector,#sector=SUPER_SECRET_DOOR,#animation=ANIMATE_CEILING_LIFT,
+           #height=0,#speed=16);
 
       return;
    }
