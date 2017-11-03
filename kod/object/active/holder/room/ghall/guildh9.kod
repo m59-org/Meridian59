@@ -61,8 +61,46 @@ classvars:
 
    viQuality = 1
    viTerrain_type = TERRAIN_CITY | TERRAIN_GUILDHALL
-
    viSeconds_til_close = 7
+   
+   viPortalOneRow = 25
+   viPortalOneCol = 19
+   viPortalOneFineRow = 32
+   viPortalOneFineCol = 32
+   viPortalOneAngle = ANGLE_NORTH
+   viPortalOneDestRID = RID_JAS_VAULT
+   viPortalOneDestRow = 3
+   viPortalOneDestCol = 9
+   viPortalOneDestFineRow = 38
+   viPortalOneDestFineCol = 17
+   viPortalOneDestAngle = ANGLE_SOUTH_WEST
+   vsPortalOneDesc = room_guildh9_portal_desc
+   
+   viReliquaryOneRow = 25
+   viReliquaryOneCol = 5
+   viReliquaryOneFineRow = 47
+   viReliquaryOneFineCol = 15
+   
+   % Fusing device rates go from 8 (worst) to 4 (best) 
+   viShardFusingDeviceRow = 12
+   viShardFusingDeviceCol = 24
+   viShardFusingDeviceFineRow = 32
+   viShardFusingDeviceFineCol = 47
+   viShardFusingDeviceRate = 8
+   
+   % Fusing device rates go from 2 (worst) to 4 (best) 
+   viShardShatteringDeviceRow = 15
+   viShardShatteringDeviceCol = 24
+   viShardShatteringDeviceFineRow = 32
+   viShardShatteringDeviceFineCol = 47
+   viShardShatteringDeviceRate = 2
+   
+   viFociOneRow = 12
+   viFociOneCol = 5
+   viFociOneFineRow = 23
+   viFociOneFineCol = 15
+   viFociOnePower = 99
+   viFociOneSID = SID_REJUVENATE
 
 properties:
 
@@ -116,33 +154,6 @@ messages:
       {
          DeleteTimer(ptEntrance);
          ptEntrance = $;
-      }
-
-      propagate;
-   }
-   
-   FirstUserEntered()
-   {
-      poTotemOne = Create(&RadiusEnchantmentTotemPassive);
-      Send(self,@NewHold,#what=poTotemOne,
-                         #new_row=12,
-                         #new_col=5,
-                         #fine_row=23,
-                         #fine_col=15);
-      Send(Send(SYS,@FindSpellByNum,#num=piTotemSpellNum),@InitiateNewRadiusEnchantment,
-                          #source=poTotemOne,
-                          #iSpellPower=99,
-                          #iRange=2);
-      propagate;
-   }
-
-   LastUserLeft()
-   {
-      if poTotemOne <> $
-      {
-         Post(Send(SYS,@FindSpellByNum,#num=piTotemSpellNum),@CancelRadiusEnchantment,#source=poTotemOne);
-         Post(poTotemOne,@Delete);
-         poTotemOne = $;
       }
 
       propagate;
@@ -212,20 +223,6 @@ messages:
    {
       Send(self,@NewHold,#what=Create(&WoodenBox),
             #new_row=6,#new_col=5,#fine_col=24,#new_angle=ANGLE_SOUTH_EAST);
-      Send(self,@NewHold,#what=Create(&Reliquary),
-            #new_row=25,#new_col=5,#fine_row=47,#fine_col=15,#new_angle=ANGLE_SOUTH_EAST);
-      Send(self,@NewHold,#what=Create(&ShardFusingDevice),
-            #new_row=12,#new_col=24,#fine_row=32,#fine_col=47,#new_angle=ANGLE_SOUTH_EAST);
-      Send(self,@NewHold,#what=Create(&ShardShatteringDevice),
-            #new_row=15,#new_col=24,#fine_row=32,#fine_col=47,#new_angle=ANGLE_SOUTH_EAST);
-      Send(self,@NewHold,#what=Create(&Portal,#dest_room_num=RID_JAS_VAULT,
-                                              #dest_row=3,
-                                              #dest_col=9,
-                                              #dest_angle=ANGLE_SOUTH_WEST,
-                                              #dest_fine_row=38,
-                                              #dest_fine_col=17,
-                                              #desc=room_guildh9_portal_desc),
-            #new_row=25,#new_col=19,#new_angle=ANGLE_NORTH);
 
       propagate;
    }

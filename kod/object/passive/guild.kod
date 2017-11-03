@@ -505,6 +505,36 @@ properties:
    % [enemy guild obj, kills, deaths]
    plWarRecord = $
    piVictories = 0
+   
+   % What kind of upgrades has this guild purchased for their hall?
+
+   pbPortalOnePurchased = FALSE
+   pbPortalTwoPurchased = FALSE
+   pbPortalThreePurchased = FALSE
+   pbPortalFourPurchased = FALSE
+   pbPortalFivePurchased = FALSE
+   pbPortalSixPurchased = FALSE
+   
+   pbReliquaryOnePurchased = FALSE
+   pbReliquaryTwoPurchased = FALSE
+   pbReliquaryThreePurchased = FALSE
+   pbReliquaryFourPurchased = FALSE
+   pbReliquaryFivePurchased = FALSE
+   pbReliquarySixPurchased = FALSE
+   
+   pbShardFusingDevicePurchased = FALSE
+   
+   pbShardShatteringDevicePurchased = FALSE
+   
+   pbFociOnePurchased = FALSE
+   pbFociTwoPurchased = FALSE
+   pbFociThreePurchased = FALSE
+   
+   % Guilds can purchase boosted experience rates for members.
+   piExperienceRatio = 100
+   
+   % Guilds can purchase more effective meditation rates inside their guild hall.
+   piMeditatioRatio = 100
 
 messages:
 
@@ -2938,6 +2968,95 @@ messages:
                #parm2=prSetMOTDname,#parm3=psGuildMOTDstring);
       }
 
+      return;
+   }
+
+   GetPortalPurchased(number=0)
+   {
+      switch(number)
+      {
+         case 1:
+            return pbPortalOnePurchased;
+         case 2:
+            return pbPortalTwoPurchased;
+         case 3:
+            return pbPortalThreePurchased;
+         case 4:
+            return pbPortalFourPurchased;
+         case 5:
+            return pbPortalFivePurchased;
+         case 6:
+            return pbPortalSixPurchased;
+      }
+      return FALSE;
+   }
+
+   SetPortalPurchased(number=0,value=FALSE)
+   {
+      switch(number)
+      {
+         case 1:
+            pbPortalOnePurchased = value;
+            return;
+         case 2:
+            pbPortalTwoPurchased = value;
+            return;
+         case 3:
+            pbPortalThreePurchased = value;
+            return;
+         case 4:
+            pbPortalFourPurchased = value;
+            return;
+         case 5:
+            pbPortalFivePurchased = value;
+            return;
+         case 6:
+            pbPortalSixPurchased = value;
+            return;
+      }
+            
+      return;
+   }
+   
+   GetFociPurchased(number=0)
+   {
+      switch(number)
+      {
+         case 1:
+            return pbFociOnePurchased;
+         case 2:
+            return pbFociTwoPurchased;
+         case 3:
+            return pbFociThreePurchased;
+      }
+      return FALSE;
+   }
+   
+   SetFociPurchased(number=0,value=FALSE)
+   {
+      switch(number)
+      {
+         case 1:
+            pbFociOnePurchased = value;
+            return;
+         case 2:
+            pbFociTwoPurchased = value;
+            return;
+         case 3:
+            pbFociThreePurchased = value;
+            return;
+      }
+      return FALSE;
+   }
+   
+   GetExperienceRatio()
+   {
+      return piExperienceRatio;
+   }
+
+   SetExperienceRatio(value=100)
+   {
+      piExperienceRatio = value;
       return;
    }
 
