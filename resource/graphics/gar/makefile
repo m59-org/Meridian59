@@ -34,7 +34,8 @@ BGFS = igreyinvis.bgf isitting.bgf itransferitem.bgf iexplosion.bgf irift.bgf \
        grd00001.bgf mazetotem.bgf grd00002.bgf grd00003.bgf \
        grd00005.bgf dragonbornhead.bgf reliquarypillar.bgf \
        ancientgreaves.bgf ancientarmor.bgf \
-       shardfusingpillar.bgf shardshatteringpillar.bgf
+       shardfusingpillar.bgf shardshatteringpillar.bgf \
+       invistotem.bgf
 
 DIRS = 
 
