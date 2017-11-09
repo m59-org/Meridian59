@@ -432,110 +432,169 @@ messages:
    
    PlaceUpgradeObjects()
    {
-      % Here we recreate purchased upgrade objects that don't already reconnect themselves.
-      % All storebox type objects reconnect themselves (reliquary, fuser, shatterer)
-      % So we only need to take care of portals.
-      % Foci create themselves on FirstUserEntered.
-      
-      if poGuild_owner <> $
+      if viBartenderRow > 0
       {
-         % Check if this guild hall has a portal in this slot and then check if the owning guild has bought it
-         if viPortalOneRow > 0
-            AND Send(poGuild_owner,@GetPortalPurchased,#number=1)
-         {
-            Send(self,@NewHold,#what=Create(&Portal,#dest_room_num=viPortalOneDestRID,
-                                                    #dest_row=viPortalOneDestRow,
-                                                    #dest_col=viPortalOneDestCol,
-                                                    #dest_angle=viPortalOneDestAngle,
-                                                    #dest_fine_row=viPortalOneDestFineRow,
-                                                    #dest_fine_col=viPortalOneDestFineCol,
-                                                    #desc=vsPortalOneDesc),
-                              #new_row=viPortalOneRow,
-                              #new_col=viPortalOneCol,
-                              #fine_row=viPortalOneFineRow,
-                              #fine_col=viPortalOneFineCol,
-                              #new_angle=viPortalOneAngle);
-         }
-         if viPortalTwoRow > 0
-            AND Send(poGuild_owner,@GetPortalPurchased,#number=2)
-         {
-            Send(self,@NewHold,#what=Create(&Portal,#dest_room_num=viPortalTwoDestRID,
-                                                    #dest_row=viPortalTwoDestRow,
-                                                    #dest_col=viPortalTwoDestCol,
-                                                    #dest_angle=viPortalTwoDestAngle,
-                                                    #dest_fine_row=viPortalTwoDestFineRow,
-                                                    #dest_fine_col=viPortalTwoDestFineCol,
-                                                    #desc=vsPortalTwoDesc),
-                              #new_row=viPortalTwoRow,
-                              #new_col=viPortalTwoCol,
-                              #fine_row=viPortalTwoFineRow,
-                              #fine_col=viPortalTwoFineCol,
-                              #new_angle=viPortalTwoAngle);
-         }
-         if viPortalThreeRow > 0
-            AND Send(poGuild_owner,@GetPortalPurchased,#number=3)
-         {
-            Send(self,@NewHold,#what=Create(&Portal,#dest_room_num=viPortalThreeDestRID,
-                                                    #dest_row=viPortalThreeDestRow,
-                                                    #dest_col=viPortalThreeDestCol,
-                                                    #dest_angle=viPortalThreeDestAngle,
-                                                    #dest_fine_row=viPortalThreeDestFineRow,
-                                                    #dest_fine_col=viPortalThreeDestFineCol,
-                                                    #desc=vsPortalThreeDesc),
-                              #new_row=viPortalThreeRow,
-                              #new_col=viPortalThreeCol,
-                              #fine_row=viPortalThreeFineRow,
-                              #fine_col=viPortalThreeFineCol,
-                              #new_angle=viPortalThreeAngle);
-         }
-         if viPortalFourRow > 0
-            AND Send(poGuild_owner,@GetPortalPurchased,#number=4)
-         {
-            Send(self,@NewHold,#what=Create(&Portal,#dest_room_num=viPortalFourDestRID,
-                                                    #dest_row=viPortalFourDestRow,
-                                                    #dest_col=viPortalFourDestCol,
-                                                    #dest_angle=viPortalFourDestAngle,
-                                                    #dest_fine_row=viPortalFourDestFineRow,
-                                                    #dest_fine_col=viPortalFourDestFineCol,
-                                                    #desc=vsPortalFourDesc),
-                              #new_row=viPortalFourRow,
-                              #new_col=viPortalFourCol,
-                              #fine_row=viPortalFourFineRow,
-                              #fine_col=viPortalFourFineCol,
-                              #new_angle=viPortalFourAngle);
-         }
-         if viPortalFiveRow > 0
-            AND Send(poGuild_owner,@GetPortalPurchased,#number=5)
-         {
-            Send(self,@NewHold,#what=Create(&Portal,#dest_room_num=viPortalFiveDestRID,
-                                                    #dest_row=viPortalFiveDestRow,
-                                                    #dest_col=viPortalFiveDestCol,
-                                                    #dest_angle=viPortalFiveDestAngle,
-                                                    #dest_fine_row=viPortalFiveDestFineRow,
-                                                    #dest_fine_col=viPortalFiveDestFineCol,
-                                                    #desc=vsPortalFiveDesc),
-                              #new_row=viPortalFiveRow,
-                              #new_col=viPortalFiveCol,
-                              #fine_row=viPortalFiveFineRow,
-                              #fine_col=viPortalFiveFineCol,
-                              #new_angle=viPortalFiveAngle);
-         }
-         if viPortalSixRow > 0
-            AND Send(poGuild_owner,@GetPortalPurchased,#number=6)
-         {
-            Send(self,@NewHold,#what=Create(&Portal,#dest_room_num=viPortalSixDestRID,
-                                                    #dest_row=viPortalSixDestRow,
-                                                    #dest_col=viPortalSixDestCol,
-                                                    #dest_angle=viPortalSixDestAngle,
-                                                    #dest_fine_row=viPortalSixDestFineRow,
-                                                    #dest_fine_col=viPortalSixDestFineCol,
-                                                    #desc=vsPortalSixDesc),
-                              #new_row=viPortalSixRow,
-                              #new_col=viPortalSixCol,
-                              #fine_row=viPortalSixFineRow,
-                              #fine_col=viPortalSixFineCol,
-                              #new_angle=viPortalSixAngle);
-         }
+         Send(self,@NewHold,#what=Create(&GuildHallBartender),#new_row=viBartenderRow,
+                                                     #new_col=viBartenderCol,
+                                                     #fine_row=viBartenderFineRow,
+                                                     #fine_col=viBartenderFineCol);
+      }
+      if viMarketRow > 0
+      {
+         Send(self,@NewHold,#what=Create(&GuildHallMarket),#new_row=viMarketRow,
+                                                     #new_col=viMarketCol,
+                                                     #fine_row=viMarketFineRow,
+                                                     #fine_col=viMarketFineCol);
+      }
+
+      if viReliquaryOneRow > 0
+      {
+         Send(self,@NewHold,#what=Create(&Reliquary),#new_row=viReliquaryOneRow,
+                                                     #new_col=viReliquaryOneCol,
+                                                     #fine_row=viReliquaryOneFineRow,
+                                                     #fine_col=viReliquaryOneFineCol);
+      }
+      if viReliquaryTwoRow > 0
+      {
+         Send(self,@NewHold,#what=Create(&Reliquary),#new_row=viReliquaryTwoRow,
+                                                    #new_col=viReliquaryTwoCol,
+                                                    #fine_row=viReliquaryTwoFineRow,
+                                                    #fine_col=viReliquaryTwoFineCol);
+      }
+      if viReliquaryThreeRow > 0
+      {
+         Send(self,@NewHold,#what=Create(&Reliquary),#new_row=viReliquaryThreeRow,
+                                                    #new_col=viReliquaryThreeCol,
+                                                    #fine_row=viReliquaryThreeFineRow,
+                                                    #fine_col=viReliquaryThreeFineCol);
+      }
+      if viReliquaryFourRow > 0
+      {
+         Send(self,@NewHold,#what=Create(&Reliquary),#new_row=viReliquaryFourRow,
+                                                    #new_col=viReliquaryFourCol,
+                                                    #fine_row=viReliquaryFourFineRow,
+                                                    #fine_col=viReliquaryFourFineCol);
+      }
+      if viReliquaryFiveRow > 0
+      {
+         Send(self,@NewHold,#what=Create(&Reliquary),#new_row=viReliquaryFiveRow,
+                                                    #new_col=viReliquaryFiveCol,
+                                                    #fine_row=viReliquaryFiveFineRow,
+                                                    #fine_col=viReliquaryFiveFineCol);
+      }
+      if viReliquarySixRow > 0
+      {
+         Send(self,@NewHold,#what=Create(&Reliquary),#new_row=viReliquarySixRow,
+                                                    #new_col=viReliquarySixCol,
+                                                    #fine_row=viReliquarySixFineRow,
+                                                    #fine_col=viReliquarySixFineCol);
+      }
+      if viShardFusingDeviceRow > 0
+      {
+         Send(self,@NewHold,#what=Create(&ShardFusingDevice,#iInputRequired=viShardFusingDeviceRate),
+                                                            #new_row=viShardFusingDeviceRow,
+                                                            #new_col=viShardFusingDeviceCol,
+                                                            #fine_row=viShardFusingDeviceFineRow,
+                                                            #fine_col=viShardFusingDeviceFineCol);
+      }
+      if viShardShatteringDeviceRow > 0
+      {
+         Send(self,@NewHold,#what=Create(&ShardShatteringDevice,#iOutputCreated=viShardShatteringDeviceRate),
+                                                            #new_row=viShardShatteringDeviceRow,
+                                                            #new_col=viShardShatteringDeviceCol,
+                                                            #fine_row=viShardShatteringDeviceFineRow,
+                                                            #fine_col=viShardShatteringDeviceFineCol);
+      }
+
+      if viPortalOneRow > 0
+      {
+         Send(self,@NewHold,#what=Create(&Portal,#dest_room_num=viPortalOneDestRID,
+                                                 #dest_row=viPortalOneDestRow,
+                                                 #dest_col=viPortalOneDestCol,
+                                                 #dest_angle=viPortalOneDestAngle,
+                                                 #dest_fine_row=viPortalOneDestFineRow,
+                                                 #dest_fine_col=viPortalOneDestFineCol,
+                                                 #desc=vsPortalOneDesc),
+                                                 #new_row=viPortalOneRow,
+                                                 #new_col=viPortalOneCol,
+                                                 #fine_row=viPortalOneFineRow,
+                                                 #fine_col=viPortalOneFineCol,
+                                                 #new_angle=viPortalOneAngle);
+      }
+      if viPortalTwoRow > 0
+      {
+         Send(self,@NewHold,#what=Create(&Portal,#dest_room_num=viPortalTwoDestRID,
+                                                 #dest_row=viPortalTwoDestRow,
+                                                 #dest_col=viPortalTwoDestCol,
+                                                 #dest_angle=viPortalTwoDestAngle,
+                                                 #dest_fine_row=viPortalTwoDestFineRow,
+                                                 #dest_fine_col=viPortalTwoDestFineCol,
+                                                 #desc=vsPortalTwoDesc),
+                                                 #new_row=viPortalTwoRow,
+                                                 #new_col=viPortalTwoCol,
+                                                 #fine_row=viPortalTwoFineRow,
+                                                 #fine_col=viPortalTwoFineCol,
+                                                 #new_angle=viPortalTwoAngle);
+      }
+      if viPortalThreeRow > 0
+      {
+         Send(self,@NewHold,#what=Create(&Portal,#dest_room_num=viPortalThreeDestRID,
+                                                 #dest_row=viPortalThreeDestRow,
+                                                 #dest_col=viPortalThreeDestCol,
+                                                 #dest_angle=viPortalThreeDestAngle,
+                                                 #dest_fine_row=viPortalThreeDestFineRow,
+                                                 #dest_fine_col=viPortalThreeDestFineCol,
+                                                 #desc=vsPortalThreeDesc),
+                                                 #new_row=viPortalThreeRow,
+                                                 #new_col=viPortalThreeCol,
+                                                 #fine_row=viPortalThreeFineRow,
+                                                 #fine_col=viPortalThreeFineCol,
+                                                 #new_angle=viPortalThreeAngle);
+      }
+      if viPortalFourRow > 0
+      {
+         Send(self,@NewHold,#what=Create(&Portal,#dest_room_num=viPortalFourDestRID,
+                                                 #dest_row=viPortalFourDestRow,
+                                                 #dest_col=viPortalFourDestCol,
+                                                 #dest_angle=viPortalFourDestAngle,
+                                                 #dest_fine_row=viPortalFourDestFineRow,
+                                                 #dest_fine_col=viPortalFourDestFineCol,
+                                                 #desc=vsPortalFourDesc),
+                                                 #new_row=viPortalFourRow,
+                                                 #new_col=viPortalFourCol,
+                                                 #fine_row=viPortalFourFineRow,
+                                                 #fine_col=viPortalFourFineCol,
+                                                 #new_angle=viPortalFourAngle);
+      }
+      if viPortalFiveRow > 0
+      {
+         Send(self,@NewHold,#what=Create(&Portal,#dest_room_num=viPortalFiveDestRID,
+                                                 #dest_row=viPortalFiveDestRow,
+                                                 #dest_col=viPortalFiveDestCol,
+                                                 #dest_angle=viPortalFiveDestAngle,
+                                                 #dest_fine_row=viPortalFiveDestFineRow,
+                                                 #dest_fine_col=viPortalFiveDestFineCol,
+                                                 #desc=vsPortalFiveDesc),
+                                                 #new_row=viPortalFiveRow,
+                                                 #new_col=viPortalFiveCol,
+                                                 #fine_row=viPortalFiveFineRow,
+                                                 #fine_col=viPortalFiveFineCol,
+                                                 #new_angle=viPortalFiveAngle);
+      }
+      if viPortalSixRow > 0
+      {
+         Send(self,@NewHold,#what=Create(&Portal,#dest_room_num=viPortalSixDestRID,
+                                                 #dest_row=viPortalSixDestRow,
+                                                 #dest_col=viPortalSixDestCol,
+                                                 #dest_angle=viPortalSixDestAngle,
+                                                 #dest_fine_row=viPortalSixDestFineRow,
+                                                 #dest_fine_col=viPortalSixDestFineCol,
+                                                 #desc=vsPortalSixDesc),
+                                                 #new_row=viPortalSixRow,
+                                                 #new_col=viPortalSixCol,
+                                                 #fine_row=viPortalSixFineRow,
+                                                 #fine_col=viPortalSixFineCol,
+                                                 #new_angle=viPortalSixAngle);
       }
 
       return;
@@ -1632,8 +1691,9 @@ messages:
    {
       if poGuild_owner <> $
       {
+         SendListByClass(plActive,1,&Portal,@SetAnimation,#what=TRUE);
+
          if viFociOneRow > 0
-            AND Send(poGuild_Owner,@GetFociPurchased,#number=1)
          {
             poTotemOne = Create(&RadiusEnchantmentTotemGuildHall);
             Send(self,@NewHold,#what=poTotemOne,
@@ -1647,7 +1707,6 @@ messages:
                                #iRange=viFociOneRange);
          }
          if viFociTwoRow > 0
-            AND Send(poGuild_Owner,@GetFociPurchased,#number=2)
          {
             poTotemTwo = Create(&RadiusEnchantmentTotemGuildHall);
             Send(self,@NewHold,#what=poTotemTwo,
@@ -1661,7 +1720,6 @@ messages:
                                #iRange=viFociTwoRange);
          }
          if viFociThreeRow > 0
-            AND Send(poGuild_Owner,@GetFociPurchased,#number=3)
          {
             poTotemThree = Create(&RadiusEnchantmentTotemGuildHall);
             Send(self,@NewHold,#what=poTotemThree,
@@ -1675,6 +1733,12 @@ messages:
                                #iRange=viFociThreeRange);
          }
       }
+      else
+      {
+         % Portals don't work in inactive guild halls.
+         SendListByClass(plActive,1,&Portal,@SetAnimation,#what=FALSE);
+      }
+
       propagate;
    }
 
