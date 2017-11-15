@@ -39,6 +39,11 @@ resources:
    fusing_device_glows = \
       "The shard fusing device glows brightly for a moment as its magics operate."
 
+   no_guild_owner_cannot_fuse = \
+      "The shard fusing device cannot do anything while unpowered. You must purchase "
+      "this guild hall to use its magics."
+
+
 classvars:
 
    vrName = ShardFusingDevice_name_rsc
@@ -81,6 +86,13 @@ messages:
    {
       if NOT Send(self,@CanDepositItems,#lItems=[what])
       {
+         return FALSE;
+      }
+      
+      if poOwner = $
+         OR Send(poOwner,@GetGuildOwner) = $
+      {
+         Send(who,@MsgSendUser,#message_rsc=no_guild_owner_cannot_fuse);
          return FALSE;
       }
       

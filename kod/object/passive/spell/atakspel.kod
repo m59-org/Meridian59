@@ -161,7 +161,7 @@ messages:
 
    CastSpell(who=$,lTargets=$,iSpellPower=0,bItemCast=FALSE)
    {
-      local i, iDamage, iManaFocus, iTemp, oRoom;
+      local i, iDamage, iManaFocus, iTemp, oRoom, oGuild, oGuildHall;
 
       iTemp = $;
 
@@ -185,6 +185,23 @@ messages:
          {
             % Myst and Int boost base damage
             iDamage = Send(self,@DamageFactors,#damage=iDamage,#who=who);
+
+            % Check for relics - this is high precision so * 100
+            if who <> $
+            {
+               oGuild = Send(who,@GetGuild);
+               if oGuild <> $
+               {
+                  oGuildHall = Send(oGuild,@GetGuildHall);
+                  if oGuildHall <> $
+                  {
+                     foreach i in Send(oGuildHall,@GetRelicList)
+                     {
+                        iDamage = Send(i,@ModifyDamage,#who=self,#damage=iDamage,#stroke_obj=self);
+                     }
+                  }
+               }
+            }
 
             % Reduce damage based on spell power.
             iDamage = (iDamage * (50 + (iSpellPower / 2))) / SPELLPOWER_MAXIMUM;

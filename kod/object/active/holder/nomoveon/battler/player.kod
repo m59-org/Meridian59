@@ -6184,6 +6184,16 @@ messages:
          iOffense = Send(Nth(lRadiusState,1),@ModifyHitRoll,#who=self,#what=what,
                         #hit_roll=iOffense,#lRadiusState=lRadiusState);
       }
+      
+      % Check for relics
+      if poGuild <> $
+         AND Send(poGuild,@GetGuildHall) <> $
+      {
+         foreach i in Send(Send(poGuild,@GetGuildHall),@GetRelicList)
+         {
+            iOffense = Send(i,@ModifyHitRoll,#who=self,#what=what,#hit_roll=iOffense);
+         }
+      }
 
       iOffense = iOffense + Send(Send(SYS,@GetParliament),
                                  @GetFactionHitrollBonus,#who=self);
@@ -6275,6 +6285,16 @@ messages:
       {
          iDefense = Send(Nth(i,1),@ModifyDefensePower,#attacker=what,
                      #iPower=Nth(i,2),#caster=Nth(i,3),#defense_power=iDefense);
+      }
+      
+      % Check for relics
+      if poGuild <> $
+         AND Send(poGuild,@GetGuildHall) <> $
+      {
+         foreach i in Send(Send(poGuild,@GetGuildHall),@GetRelicList)
+         {
+            iDefense = Send(i,@ModifyDefensePower,#attacker=what,#defense_power=iDefense);
+         }
       }
 
       iDefense = iDefense + Send(Send(SYS,@GetParliament),
@@ -6455,6 +6475,16 @@ messages:
 
       % Convert to high precision. Super dirty, will be cleaned up shortly.
       iDamageBonus = iDamageBonus*100;
+      
+      % Check for relics - this is high precision so * 100
+      if poGuild <> $
+         AND Send(poGuild,@GetGuildHall) <> $
+      {
+         foreach i in Send(Send(poGuild,@GetGuildHall),@GetRelicList)
+         {
+            iDamageBonus = Send(i,@ModifyDamage,#who=self,#what=what,#damage=iDamageBonus,#stroke_obj=oStroke);
+         }
+      }
 
       if poStance <> $
          AND IsClass(poStance,&Cleave)

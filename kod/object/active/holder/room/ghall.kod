@@ -1691,8 +1691,10 @@ messages:
    {
       if poGuild_owner <> $
       {
+         % Turn on portals
          SendListByClass(plActive,1,&Portal,@SetAnimation,#what=TRUE);
 
+         % Songs only work in owned halls
          if viFociOneRow > 0
          {
             poTotemOne = Create(&RadiusEnchantmentTotemGuildHall);
@@ -1987,6 +1989,30 @@ messages:
          }
    
       return;
+   }
+
+   GetRelicList()
+   {
+      local i, n, each_n, each_obj, lRelicList;
+      
+      lRelicList = $;
+      foreach i in Send(self,@GetHolderActive)
+      {
+         each_obj = Send(self,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&Reliquary)
+         {
+            foreach n in Send(each_obj,@GetHolderPassive)
+            {
+               each_n = Send(each_obj,@HolderExtractObject,#data=n);
+               if IsClass(each_n,&Relic)
+               {
+                  lRelicList = Cons(each_n,lRelicList);
+               }
+            }
+         }
+      }
+      
+      return lRelicList;
    }
 
 end

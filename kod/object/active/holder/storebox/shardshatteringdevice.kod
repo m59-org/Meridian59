@@ -39,6 +39,10 @@ resources:
    shattering_device_glows = \
       "The shard shattering device glows brightly for a moment as its magics operate."
 
+   no_guild_owner_cannot_shatter = \
+      "The shard shattering device cannot do anything while unpowered. You must purchase "
+      "this guild hall to use its magics."
+
 classvars:
 
    vrName = ShardShatteringDevice_name_rsc
@@ -81,6 +85,13 @@ messages:
    {
       if NOT Send(self,@CanDepositItems,#lItems=[what])
       {
+         return FALSE;
+      }
+      
+      if poOwner = $
+         OR Send(poOwner,@GetGuildOwner) = $
+      {
+         Send(who,@MsgSendUser,#message_rsc=no_guild_owner_cannot_shatter);
          return FALSE;
       }
       

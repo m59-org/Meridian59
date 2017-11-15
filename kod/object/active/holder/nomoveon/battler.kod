@@ -342,7 +342,8 @@ messages:
    "Spells and items can change resistances temporarily."
    {
       local oObjectAttribute, lCurResist, oEquipment, oEnchantment,
-            iHumbled, iHumbledDivisor, i, iCorrode, iCorrodeDivisor;
+            iHumbled, iHumbledDivisor, i, iCorrode, iCorrodeDivisor,
+            oGuild, oGuildHall, oRelic;
 
       lCurResist = ListCopy(Send(self,@GetBaseResistances));
 
@@ -378,6 +379,22 @@ messages:
          foreach oEnchantment in Send(self,@GetReservedSpells)
          {
             lCurResist = Send(Nth(oEnchantment,1),@ModifyResistance,#resistance_list=lCurResist,#iState=Nth(oEnchantment,3));
+         }
+      }
+
+      if IsClass(self,&Player)
+      {
+         oGuild = Send(self,@GetGuild);
+         if oGuild <> $
+         {
+            oGuildHall = Send(oGuild,@GetGuildHall);
+            if oGuildHall <> $
+            {
+               foreach oRelic in Send(oGuildHall,@GetRelicList)
+               {
+                  lCurResist = Send(oRelic,@ModifyResistance,#resistance_list=lCurResist);
+               }
+            }
          }
       }
 
