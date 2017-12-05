@@ -39,11 +39,7 @@ classvars:
    
    viSecondaryResistanceType = 0
    viSecondaryResistanceBonus = 0
-   
-   viSpellpowerSchool = 0
-   viSpellpowerBonus = 0
-   
-   
+
    viHealthRegenBonus = 0
    viManaRegenBonus = 0
    viVigorRegenBonus = 0
@@ -56,7 +52,7 @@ properties:
 
 messages:   
 
-   %%%%% Effect Functions
+   %%%%% Relic Functions
 
    ModifyDefensePower(attacker=$,defense_power=0)
    {
@@ -112,17 +108,6 @@ messages:
                                  #value=viSecondaryResistanceBonus,#resistance_list=resistance_list);
       }
       return resistance_list;
-   }
-
-   ModifySpellPower(who=$,oSpell=$,iSpellPower=0)
-   {
-      if viSpellpowerSchool <> 0
-         AND Send(oSpell,@GetSchool) = viSpellpowerSchool
-      {
-         return Bound(iSpellPower+viSpellpowerBonus,0,99);
-      }
-         
-      return iSpellPower;
    }
 
    AdjustHealthTime(time=0, lRadiusState=0)

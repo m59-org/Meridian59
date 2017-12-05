@@ -5,6 +5,6 @@
 !include $(TOPDIR)\common.mak
 
 DEPEND = ..\relic.bof
-BOFS = armorrelic.bof
+BOFS = armorrelic.bof experiencerelic.bof
 
 !include $(KODDIR)\kod.mak
