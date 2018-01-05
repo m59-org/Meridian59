@@ -31,6 +31,17 @@ constants:
 
    include blakston.khd
    
+   TOTEM_ONE_SECTOR = 980
+   TOTEM_TWO_SECTOR = 981
+   TOTEM_THREE_SECTOR = 982
+   
+   NORTH_ENTRANCE_SECTOR = 990
+   EAST_ENTRANCE_SECTOR = 991
+   SOUTH_ENTRANCE_SECTOR = 992
+   WEST_ENTRANCE_SECTOR = 993
+   
+   BLINK_SECTOR = 994
+   
    NORTH_EXIT_SECTOR = 996
    EAST_EXIT_SECTOR = 997
    SOUTH_EXIT_SECTOR = 998
@@ -202,8 +213,35 @@ properties:
 
    vrWading_Sound = maze_water_wading_sound
 
+   % These are the location of the room in the maze
    piXCoord = 0
    piYCoord = 0
+   
+   % For generated rooms, where are our entrances?
+   piSouthEntranceRow = 0
+   piSouthEntranceCol = 0
+   piSouthEntranceFineRow = 0
+   piSouthEntranceFineCol = 0
+
+   piNorthEntranceRow = 0
+   piNorthEntranceCol = 0
+   piNorthEntranceFineRow = 0
+   piNorthEntranceFineCol = 0
+
+   piWestEntranceRow = 0
+   piWestEntranceCol = 0
+   piWestEntranceFineRow = 0
+   piWestEntranceFineCol = 0
+
+   piEastEntranceRow = 0
+   piEastEntranceCol = 0
+   piEastEntranceFineRow = 0
+   piEastEntranceFineCol = 0
+   
+   
+   % For generated rooms, where is our blink spot?
+   piCustomTeleportRow = 0
+   piCustomTeleportCol = 0
 
 messages:
 
@@ -260,6 +298,7 @@ messages:
    CreateStandardObjects()
    {
       Send(self,@CreateMazeRoomObjects);
+      Send(self,@SetEntrances);
 
       propagate;
    }
@@ -1359,6 +1398,122 @@ messages:
 % ============
 % GENERAL
 % ============
+
+   SetEntrances()
+   {
+      local i, iCurRow, iCurCol, iMaxRows, iMaxCols, iSectionResult;
+      
+      iCurRow = 0;
+      iCurCol = 0;
+      iMaxRows = Send(self,@GetRoomRows);
+      iMaxCols = Send(self,@GetRoomCols);
+
+      while iCurRow <= iMaxRows
+      {
+         while iCurCol <= iMaxCols
+         {
+            iSectionResult = Send(self,@GetSection,#iRow=iCurRow,#iCol=iCurCol,#iFineRow=0,#iFineCol=0);
+            
+            if iSectionResult = NORTH_ENTRANCE_SECTOR
+            {
+               % Entrance hasn't been set, so let's set it now
+               if piNorthEntranceRow = 0
+               {
+                  piNorthEntranceRow = iCurRow;
+                  piNorthEntranceCol = iCurCol;
+                  piNorthEntranceFineRow = 0;
+                  piNorthEntranceFineCol = 0;
+               }
+            }
+            if iSectionResult = EAST_ENTRANCE_SECTOR
+            {
+               if piEastEntranceRow = 0
+               {
+                  piEastEntranceRow = iCurRow;
+                  piEastEntranceCol = iCurCol;
+                  piEastEntranceFineRow = 0;
+                  piEastEntranceFineCol = 0;
+               }
+            }
+            if iSectionResult = SOUTH_ENTRANCE_SECTOR
+            {
+               if piSouthEntranceRow = 0
+               {
+                  piSouthEntranceRow = iCurRow;
+                  piSouthEntranceCol = iCurCol;
+                  piSouthEntranceFineRow = 0;
+                  piSouthEntranceFineCol = 0;
+               }
+            }
+            if iSectionResult = WEST_ENTRANCE_SECTOR
+            {
+               if piWestEntranceRow = 0
+               {
+                  piWestEntranceRow = iCurRow;
+                  piWestEntranceCol = iCurCol;
+                  piWestEntranceFineRow = 0;
+                  piWestEntranceFineCol = 0;
+               }
+            }
+            if iSectionResult = BLINK_SECTOR
+            {
+               if piCustomTeleportRow = 0
+               {
+                  piCustomTeleportRow = iCurRow;
+                  piCustomTeleportCol = iCurCol;
+               }
+            }
+            iCurCol++;
+         }
+         iCurCol = 0;
+         iCurRow++;
+      }
+      
+      if piNorthEntranceRow = 0
+         AND piNorthEntranceCol = 0
+      {
+         piNorthEntranceRow = viNorthEntranceRow;
+         piNorthEntranceCol = viNorthEntranceCol;
+         piNorthEntranceFineRow = viNorthEntranceFineRow;
+         piNorthEntranceFineCol = viNorthEntranceFineCol;
+      }
+      
+      if piEastEntranceRow = 0
+         AND piEastEntranceCol = 0
+      {
+         piEastEntranceRow = viEastEntranceRow;
+         piEastEntranceCol = viEastEntranceCol;
+         piEastEntranceFineRow = viEastEntranceFineRow;
+         piEastEntranceFineCol = viEastEntranceFineCol;
+      }
+      
+      if piSouthEntranceRow = 0
+         AND piSouthEntranceCol = 0
+      {
+         piSouthEntranceRow = viSouthEntranceRow;
+         piSouthEntranceCol = viSouthEntranceCol;
+         piSouthEntranceFineRow = viSouthEntranceFineRow;
+         piSouthEntranceFineCol = viSouthEntranceFineCol;
+      }
+      
+      if piWestEntranceRow = 0
+         AND piWestEntranceCol = 0
+      {
+         piWestEntranceRow = viWestEntranceRow;
+         piWestEntranceCol = viWestEntranceCol;
+         piWestEntranceFineRow = viWestEntranceFineRow;
+         piWestEntranceFineCol = viWestEntranceFineCol;
+      }
+      
+      if piCustomTeleportRow = 0
+         AND piCustomTeleportCol = 0
+      {
+         piCustomTeleportRow = viTeleport_row;
+         piCustomTeleportCol = viTeleport_col;
+      }
+
+      return;
+   }
 
    NewHoldObject(what = $,new_pos = $)
    {
