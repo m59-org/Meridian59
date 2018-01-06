@@ -158,6 +158,10 @@ properties:
 
    ptSecret = $
    ptEntrance = $
+   
+   piGuildHallMeditateEffiency = 100
+   % West Tower Guild Hall boosts Kraanan by 25%
+   piSpecialGuildHallMeditateEfficiency = 125
 
 messages:
 
@@ -501,6 +505,16 @@ messages:
    GetRegion()
    {
       return RID_KOCATAN;
+   }
+   
+   DoesPlayerQualifyForSpecialMeditateRatio(who=$,oSpell=$,oSkill=$)
+   {
+      if oSpell <> $
+         AND Send(oSpell,@GetSchool) = SS_KRAANAN
+      {
+         return TRUE;
+      }
+      return FALSE;
    }
 
 end

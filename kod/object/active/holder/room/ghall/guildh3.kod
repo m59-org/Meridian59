@@ -177,6 +177,10 @@ properties:
 
    ptEntrance = $
    ptBridge = $
+   
+   piGuildHallMeditateEffiency = 100
+   % The Den of Shadows gives a small boost to Jala, Qor, and Banditry
+   piSpecialGuildHallMeditateEfficiency = 120
 
 messages:
 
@@ -323,6 +327,20 @@ messages:
             #new_angle=ANGLE_SOUTH_EAST);
 
       propagate;
+   }
+   
+   DoesPlayerQualifyForSpecialMeditateRatio(who=$,oSpell=$,oSkill=$)
+   {
+      if (oSpell <> $
+         AND Send(oSpell,@GetSchool) = SS_QOR)
+         OR (oSpell <> $
+         AND Send(oSpell,@GetSchool) = SS_JALA)
+         OR (oSkill <> $
+            AND Send(oSkill,@GetSchool) = SKS_BANDITRY)
+      {
+         return TRUE;
+      }
+      return FALSE;
    }
 
 end

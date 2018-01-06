@@ -101,6 +101,10 @@ properties:
 
    ptSecret = $
    ptEntrance = $
+   
+   piGuildHallMeditateEffiency = 100
+   % Mercenary Alley boosts meditating Weaponcraft and Banditry highly
+   piSpecialGuildHallMeditateEfficiency = 120
 
 messages:
 
@@ -232,6 +236,17 @@ messages:
            #new_row=2,#new_col=12,#fine_col=10,#new_angle=ANGLE_SOUTH);
 
       propagate;
+   }
+   
+   DoesPlayerQualifyForSpecialMeditateRatio(who=$,oSpell=$,oSkill=$)
+   {
+      if oSkill <> $
+         AND (Send(oSkill,@GetSchool) = SKS_FENCING
+            OR Send(oSkill,@GetSchool) = SKS_BANDITRY)
+      {
+         return TRUE;
+      }
+      return FALSE;
    }
 
 end

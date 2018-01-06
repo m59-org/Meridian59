@@ -140,6 +140,10 @@ properties:
 
    piSecret_door_state = CLOSED
    ptSecret_door
+   
+   piGuildHallMeditateEffiency = 100
+   % The Sewer Hideout boosts Qor and Banditry by a smaller amount than the Den of Shadows.
+   piSpecialGuildHallMeditateEfficiency = 110
 
 messages:
 
@@ -390,6 +394,18 @@ messages:
    GetTotemLightColor(what=$)
    {
       return LIGHT_RED;
+   }
+   
+   DoesPlayerQualifyForSpecialMeditateRatio(who=$,oSpell=$,oSkill=$)
+   {
+      if (oSpell <> $
+         AND Send(oSpell,@GetSchool) = SS_QOR)
+         OR (oSkill <> $
+            AND Send(oSkill,@GetSchool) = SKS_BANDITRY)
+      {
+         return TRUE;
+      }
+      return FALSE;
    }
 
 end

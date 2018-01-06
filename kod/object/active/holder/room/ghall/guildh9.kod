@@ -116,6 +116,11 @@ properties:
    
    piTotemSpellNum = SID_REJUVENATE
    poTotemOne = $
+   
+   % The Abandoned Warehouse boosts all skill and spell meditation by a tiny amount.
+   piGuildHallMeditateEffiency = 105
+   % This hall also boosts meditation of the spell Seduce by 4x for reasons beyond anyone's understanding.
+   piSpecialGuildHallMeditateEfficiency = 400
 
 messages:
 
@@ -247,6 +252,16 @@ messages:
          return LIGHT_BLUE;
       }
       return LIGHT_GREEN;
+   }
+   
+   DoesPlayerQualifyForSpecialMeditateRatio(who=$,oSpell=$,oSkill=$)
+   {
+      if oSpell <> $
+         AND Send(oSpell,@GetSpellNum) = SID_SEDUCE
+      {
+         return TRUE;
+      }
+      return FALSE;
    }
 
 end

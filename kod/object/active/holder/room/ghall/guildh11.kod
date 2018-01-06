@@ -158,6 +158,10 @@ properties:
 
    ptSecret = $
    ptEntrance = $
+   
+   piGuildHallMeditateEffiency = 100
+   % FoF boosts Faren, Shal, and Jala by 15%
+   piSpecialGuildHallMeditateEfficiency = 115
 
 messages:
 
@@ -304,6 +308,20 @@ messages:
    GetTotemLightColor(what=$)
    {
       return LIGHT_ORANGE;
+   }
+   
+   DoesPlayerQualifyForSpecialMeditateRatio(who=$,oSpell=$,oSkill=$)
+   {
+      if (oSpell <> $
+         AND Send(oSpell,@GetSchool) = SS_FAREN)
+         OR (oSpell <> $
+         AND Send(oSpell,@GetSchool) = SS_SHALILLE)
+         OR (oSpell <> $
+         AND Send(oSpell,@GetSchool) = SS_JALA)
+      {
+         return TRUE;
+      }
+      return FALSE;
    }
 
 end

@@ -347,6 +347,10 @@ properties:
    poTotemOne = $
    poTotemTwo = $
    poTotemThree = $
+   
+   piGuildHallMeditateEffiency = 100
+   % Some halls only help certain skills, spells, or schools
+   piSpecialGuildHallMeditateEfficiency = 100
 
 messages:
 
@@ -2010,6 +2014,29 @@ messages:
       }
       
       return lRelicList;
+   }
+   
+   GetRoomMeditateEfficiency(who=$,oSpell=$,oSkill=$)
+   {
+      % If the player is inside the foyer and a member of the owning guild,
+      % they get the improved Meditate efficiency.
+      if who <> $
+         AND poGuild_owner <> $
+         AND NOT Send(self,@InFoyer,#who=who)
+         AND Send(who,@GetGuild) = poGuild_owner
+      {
+         if Send(self,@DoesPlayerQualifyForSpecialMeditateRatio,#who=who,#oSpell=oSpell,#oSkill=oSkill)
+         {
+            return piSpecialGuildHallMeditateEfficiency;
+         }
+         return piGuildHallMeditateEffiency;
+      }
+      return piRoomMeditateEfficiency;
+   }
+   
+   DoesPlayerQualifyForSpecialMeditateRatio(who=$,oSpell=$,oSkill=$)
+   {
+      return FALSE;
    }
 
 end

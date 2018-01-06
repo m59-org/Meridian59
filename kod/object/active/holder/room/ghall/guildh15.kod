@@ -105,6 +105,10 @@ properties:
    % It can only be used by the Necromancer Guild.
    % Coordinates same as Ao3: 13,14,29,22
    poSphericalPrism = $
+   
+   piGuildHallMeditateEffiency = 10
+   % Boosts Qor, Riija, and Faren by 100%
+   piSpecialGuildHallMeditateEfficiency = 200
 
 messages:
 
@@ -573,6 +577,20 @@ messages:
       }
 
       return $;
+   }
+   
+   DoesPlayerQualifyForSpecialMeditateRatio(who=$,oSpell=$,oSkill=$)
+   {
+      if (oSpell <> $
+         AND Send(oSpell,@GetSchool) = SS_RIIJA)
+         OR (oSpell <> $
+         AND Send(oSpell,@GetSchool) = SS_QOR)
+         OR (oSpell <> $
+         AND Send(oSpell,@GetSchool) = SS_FAREN)
+      {
+         return TRUE;
+      }
+      return FALSE;
    }
 
 end

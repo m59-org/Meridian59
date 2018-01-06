@@ -203,6 +203,10 @@ properties:
    ptSecret = $
    ptEntrance = $
 
+   piGuildHallMeditateEffiency = 100
+   % The Hall of the Slaughtered Command boosts meditation of all spells and skills level 4 and above by 40%.
+   piSpecialGuildHallMeditateEfficiency = 140
+
 messages:
 
    Constructor()
@@ -522,6 +526,18 @@ messages:
       }
 
       return;
+   }
+   
+   DoesPlayerQualifyForSpecialMeditateRatio(who=$,oSpell=$,oSkill=$)
+   {
+      if (oSpell <> $
+         AND Send(oSpell,@GetLevel) >= 4)
+         OR (oSkill <> $
+         AND Send(oSkill,@GetLevel) >= 4)
+      {
+         return TRUE;
+      }
+      return FALSE;
    }
 
 end

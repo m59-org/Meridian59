@@ -307,6 +307,10 @@ properties:
    pbPrismOpen = TRUE
 
    piOverridesDeathFunction = TRUE
+   
+   piGuildHallMeditateEffiency = 100
+   % Boosts Faren, Banditry, Sorcery, Witchery by 20%
+   piSpecialGuildHallMeditateEfficiency = 120
 
 messages:
 
@@ -1426,6 +1430,24 @@ messages:
       }
 
       propagate;
+   }
+   
+   DoesPlayerQualifyForSpecialMeditateRatio(who=$,oSpell=$,oSkill=$)
+   {
+      if (oSpell <> $
+         AND Send(oSpell,@GetSchool) = SS_FAREN)
+         OR (oSpell <> $
+         AND Send(oSpell,@GetSchool) = SS_WITCHERY)
+         OR (oSkill <> $
+         AND Send(oSkill,@GetSchool) = SKS_SORCERY)
+         OR (oSkill <> $
+         AND Send(oSkill,@GetSchool) = SS_WITCHERY)
+         OR (oSkill <> $
+         AND Send(oSkill,@GetSchool) = SKS_BANDITRY)
+      {
+         return TRUE;
+      }
+      return FALSE;
    }
 
 end

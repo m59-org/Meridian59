@@ -183,6 +183,10 @@ properties:
    ptSouthDoor = $
    ptWestDoor = $
    ptOutDoor = $
+   
+   piGuildHallMeditateEffiency = 100
+   % The Hall of Explorers boosts meditation of spells and skills level 3 and below.
+   piSpecialGuildHallMeditateEfficiency = 130
 
 messages:
 
@@ -536,6 +540,18 @@ messages:
       }
 
       propagate;
+   }
+   
+   DoesPlayerQualifyForSpecialMeditateRatio(who=$,oSpell=$,oSkill=$)
+   {
+      if (oSpell <> $
+         AND Send(oSpell,@GetLevel) <= 3)
+         OR (oSkill <> $
+         AND Send(oSkill,@GetLevel) <= 3)
+      {
+         return TRUE;
+      }
+      return FALSE;
    }
 
 end

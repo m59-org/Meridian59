@@ -137,6 +137,10 @@ properties:
    plSouthDoor = $
    plEastDoor = $
    plWestDoor = $
+   
+   piGuildHallMeditateEffiency = 100
+   % The Old Dwarven Hall boosts all spells and skills with the primary stats Might or Stamina by 20%.
+   piSpecialGuildHallMeditateEfficiency = 120
 
 messages:
 
@@ -507,6 +511,23 @@ messages:
 
       propagate;
    }
+   
+   DoesPlayerQualifyForSpecialMeditateRatio(who=$,oSpell=$,oSkill=$)
+   {
+      if (oSpell <> $
+         AND Send(oSpell,@GetPrimaryStat) = STAT_ID_STAMINA)
+         OR (oSpell <> $
+         AND Send(oSpell,@GetPrimaryStat) = STAT_ID_MIGHT)
+         OR (oSkill <> $
+         AND Send(oSkill,@GetPrimaryStat) = STAT_ID_STAMINA)
+         OR (oSkill <> $
+         AND Send(oSkill,@GetPrimaryStat) = STAT_ID_MIGHT)
+      {
+         return TRUE;
+      }
+      return FALSE;
+   }
+
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

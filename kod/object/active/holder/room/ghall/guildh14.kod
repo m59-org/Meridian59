@@ -253,6 +253,10 @@ properties:
 
    % This hall is a special case - it gets music.
    prMusic = guildh14_music
+   
+   piGuildHallMeditateEffiency = 100
+   % Bookmaker's boosts Riija by 25%
+   piSpecialGuildHallMeditateEfficiency = 125
 
 messages:
 
@@ -712,6 +716,16 @@ messages:
       }
 
       return GUILDH14_ZONE_MAIN;
+   }
+   
+   DoesPlayerQualifyForSpecialMeditateRatio(who=$,oSpell=$,oSkill=$)
+   {
+      if oSpell <> $
+         AND Send(oSpell,@GetSchool) = SS_RIIJA
+      {
+         return TRUE;
+      }
+      return FALSE;
    }
 
 end

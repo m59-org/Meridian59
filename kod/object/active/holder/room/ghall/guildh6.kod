@@ -113,6 +113,10 @@ properties:
 
    ptSecret = $
    ptEntrance = $
+   
+   piGuildHallMeditateEffiency = 100
+   % The Ivory Chapel boosts Shal'ille learning.
+   piSpecialGuildHallMeditateEfficiency = 125
 
 messages:
 
@@ -224,6 +228,16 @@ messages:
       Send(self,@NewHold,#what=Create(&Brazier),#new_row=4,#new_col=10);
 
       propagate;
+   }
+   
+   DoesPlayerQualifyForSpecialMeditateRatio(who=$,oSpell=$,oSkill=$)
+   {
+      if (oSpell <> $
+         AND Send(oSpell,@GetSchool) = SS_SHALILLE)
+      {
+         return TRUE;
+      }
+      return FALSE;
    }
 
 end
