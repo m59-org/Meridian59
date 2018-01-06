@@ -50,6 +50,9 @@ resources:
    guildh15_guildwarning = \
       "Your amulet vibrates vigorously for a moment.  Something is amiss."
 
+   the_world_is_not_ready = \
+      "The world is not ready for the horrors that lie beyond this gate; be patient, for the time of the Necromancers shall come again."
+
 classvars:
 
    vrName = room_name_guildh15
@@ -216,6 +219,23 @@ messages:
 
    SomethingTryGo(what=$, row=$,  col = $)
    {
+      local i;
+
+      % Delete this entire section once the Necromancer guild crash bug is fixed.
+      % Delete this entire section once the Necromancer guild crash bug is fixed.
+      % Delete this entire section once the Necromancer guild crash bug is fixed.
+      foreach i in plGuild_doors
+      {
+         if row = First(i) AND col = Nth(i,2)
+         {
+            Send(what,@MsgSendUser,#message_rsc=the_world_is_not_ready);
+            return TRUE;
+         }
+      }
+      % Delete this entire section once the Necromancer guild crash bug is fixed.
+      % Delete this entire section once the Necromancer guild crash bug is fixed.
+      % Delete this entire section once the Necromancer guild crash bug is fixed.
+
       if ((row = 12) OR (row = 13) OR (row = 14) )
          AND ((col = 31) OR (col = 32) OR (col = 33))
       {

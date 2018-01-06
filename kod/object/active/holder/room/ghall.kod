@@ -2008,7 +2008,10 @@ messages:
             foreach n in Send(each_obj,@GetHolderPassive)
             {
                each_n = Send(each_obj,@HolderExtractObject,#data=n);
-               lRelicList = Cons(each_n,lRelicList);
+               if IsClass(each_n,&ArmorRelic)
+               {
+                  lRelicList = Cons(each_n,lRelicList);
+               }
             }
          }
       }
