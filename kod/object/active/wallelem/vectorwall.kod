@@ -130,11 +130,15 @@ messages:
                                 iNewRow,iNewCol,iNewFineRow,iNewFineCol,
                                 self,FALSE)
             {
-               Send(SYS,@UtilGoNearSquare,#what=self,#where=poOwner,
-                     #new_row=iNewRow,
-                     #new_col=iNewCol,
-                     #fine_row=iNewFineRow,
-                     #fine_col=iNewFineCol);
+               if NOT Send(SYS,@UtilGoNearSquare,#what=self,#where=poOwner,
+                        #new_row=iNewRow,
+                        #new_col=iNewCol,
+                        #fine_row=iNewFineRow,
+                        #fine_col=iNewFineCol)
+               {
+                  Send(self,@Explode);
+                  return;
+               }
 
                ptExpire = CreateTimer(self,@Expire,Send(self,@GetDuration));
                return;
@@ -175,6 +179,7 @@ messages:
       if poOwner = $
          OR NOT IsClass(poOwner,&Room)
       {
+         Send(self,@Delete);
          return;
       }
       
@@ -195,7 +200,7 @@ messages:
          }
       }
 
-      Send(poOwner,@SomethingWaveRoom,#what=self,#wave_rsc=freezing_winds_hit_sound);
+      %Send(poOwner,@SomethingWaveRoom,#what=self,#wave_rsc=freezing_winds_hit_sound);
 
       Send(self,@Delete);
       return;

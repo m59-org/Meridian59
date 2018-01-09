@@ -24,7 +24,7 @@ resources:
    FrostBreath_cast_rsc = "You release the breath of the Ice Dragon!"
    FrostBreath_failed_rsc = \
       "There is too much summoning magic focused here to release frost breath." 
-   FrostBreath_sound = ficefing.wav
+   FrostBreath_sound = icedragonroar6.wav
 
 classvars:
 
@@ -44,7 +44,7 @@ classvars:
 
    viHarmful = TRUE
 
-   viNumElements = 9
+   viNumElements = 0
 
    vrSummonLimitMsg = FrostBreath_failed_rsc
 
@@ -71,13 +71,21 @@ messages:
    {
       local oRoom, iRow, iCol, iFine_Row, iFine_Col, iXStep, iYStep,
             iAngle, iMaxDamage, iDuration, iHalfrow, iHalfCol, iHalfFine_Row,
-            iHalfFine_Col, oElement;
+            iHalfFine_Col, oElement, iWaveOneFineRowChange, iWaveOneFineColChange,
+            iWaveTwoFineRowChange, iWaveTwoFineColChange, iWaveThreeFineRowChange, iWaveThreeFineColChange;
 
       iAngle = Send(who,@GetAngle);
       iMaxDamage = iSpellPower / 6;
       iMaxDamage = Bound(iMaxDamage,1,16);
       iDuration = (iSpellPower * 2) + 30 + Random(-20,20);
       iDuration = Bound(iDuration,30,180);
+         
+      iWaveOneFineRowChange = 8;
+      iWaveOneFineColChange = 16;
+      iWaveTwoFineRowChange = 16;
+      iWaveTwoFineColChange = 16;
+      iWaveThreeFineRowChange = 24;
+      iWaveThreeFineColChange = 16;
 
       % Facing East
       if iAngle >= ANGLE_ENE OR iAngle < ANGLE_ESE
@@ -86,6 +94,13 @@ messages:
          iCol = Send(who,@GetCol) + 1;
          iXStep = 0;
          iyStep = 1;
+         
+         iWaveOneFineRowChange = -8;
+         iWaveOneFineColChange = 16;
+         iWaveTwoFineRowChange = 0;
+         iWaveTwoFineColChange = 16;
+         iWaveThreeFineRowChange = 8;
+         iWaveThreeFineColChange = 16;
       }
 
       % Facing SouthEast
@@ -95,6 +110,13 @@ messages:
          iCol = Send(who,@GetCol) + 3;
          iXStep = -1;
          iyStep = 1;
+         
+         iWaveOneFineRowChange = 8;
+         iWaveOneFineColChange = 16;
+         iWaveTwoFineRowChange = 16;
+         iWaveTwoFineColChange = 16;
+         iWaveThreeFineRowChange = 24;
+         iWaveThreeFineColChange = 16;
       }
 
       % Facing South
@@ -104,6 +126,13 @@ messages:
          iCol = Send(who,@GetCol) - 2;
          iXStep = 1;
          iyStep = 0;
+         
+         iWaveOneFineRowChange = 16;
+         iWaveOneFineColChange = -8;
+         iWaveTwoFineRowChange = 16;
+         iWaveTwoFineColChange = 0;
+         iWaveThreeFineRowChange = 16;
+         iWaveThreeFineColChange = 8;
       }
 
       % Facing SouthWest
@@ -113,6 +142,13 @@ messages:
          iCol = Send(who,@GetCol) + 1;
          iXStep = -1;
          iyStep = -1;
+         
+         iWaveOneFineRowChange = 16;
+         iWaveOneFineColChange = -8;
+         iWaveTwoFineRowChange = 16;
+         iWaveTwoFineColChange = -16;
+         iWaveThreeFineRowChange = 16;
+         iWaveThreeFineColChange = -24;
       }
 
       % Facing West
@@ -122,6 +158,13 @@ messages:
          iCol = Send(who,@GetCol) - 1;
          iXStep = 0;
          iYStep = 1;
+         
+         iWaveOneFineRowChange = -8;
+         iWaveOneFineColChange = -16;
+         iWaveTwoFineRowChange = 0;
+         iWaveTwoFineColChange = -16;
+         iWaveThreeFineRowChange = 8;
+         iWaveThreeFineColChange = -16;
       }
 
       % Facing NorthWest
@@ -131,6 +174,13 @@ messages:
          iCol = Send(who,@GetCol) - 3;
          iXStep = 1;
          iyStep = -1;
+         
+         iWaveOneFineRowChange = -8;
+         iWaveOneFineColChange = -16;
+         iWaveTwoFineRowChange = -16;
+         iWaveTwoFineColChange = -16;
+         iWaveThreeFineRowChange = -24;
+         iWaveThreeFineColChange = -16;
       }
 
       % Facing North
@@ -140,6 +190,13 @@ messages:
          iCol = Send(who,@GetCol) - 2;
          iXStep = 1;
          iyStep = 0;
+         
+         iWaveOneFineRowChange = -16;
+         iWaveOneFineColChange = 8;
+         iWaveTwoFineRowChange = -16;
+         iWaveTwoFineColChange = 0;
+         iWaveThreeFineRowChange = -16;
+         iWaveThreeFineColChange = -8;
       }
 
       % Facing NorthEast
@@ -149,6 +206,13 @@ messages:
          iCol = Send(who,@GetCol) - 1;
          iXStep = 1;
          iyStep = 1;
+         
+         iWaveOneFineRowChange = -16;
+         iWaveOneFineColChange = 8;
+         iWaveTwoFineRowChange = -16;
+         iWaveTwoFineColChange = 16;
+         iWaveThreeFineRowChange = -16;
+         iWaveThreeFineColChange = 24;
       }
 
       oRoom = Send(who,@GetOwner);
@@ -213,55 +277,91 @@ messages:
       }
 
       oElement = Create(&VectorWall,#MaxDamage=iMaxDamage,#Caster=who,
-                        #Duration=iDuration,#Illusionary=FALSE);
+                        #Duration=iDuration,#Illusionary=FALSE,
+                        #row_change=0,
+                        #col_change=0,
+                        #fine_row_change=iWaveOneFineRowChange,
+                        #fine_col_change=iWaveOneFineColChange);
       Send(oRoom,@NewHold,#what=oElement,
            #new_row=iRow,#new_col=iCol,
            #fine_row=iFine_Row,#fine_col=iFine_Col);
 
       oElement = Create(&VectorWall,#MaxDamage=iMaxDamage,#Caster=who,
-                        #Duration=iDuration,#Illusionary=FALSE);
+                        #Duration=iDuration,#Illusionary=FALSE,
+                        #row_change=0,
+                        #col_change=0,
+                        #fine_row_change=iWaveOneFineRowChange,
+                        #fine_col_change=iWaveOneFineColChange);
       Send(oRoom,@NewHold,#what=oElement,
            #new_row=iRow+iHalfRow,#new_col=iCol+iHalfCol,
            #fine_row=iHalfFine_Row,#fine_col=iHalfFine_Col);
 
       oElement = Create(&VectorWall,#MaxDamage=iMaxDamage,#Caster=who,
-                        #Duration=iDuration,#Illusionary=FALSE);
+                        #Duration=iDuration,#Illusionary=FALSE,
+                        #row_change=0,
+                        #col_change=0,
+                        #fine_row_change=iWaveOneFineRowChange,
+                        #fine_col_change=iWaveOneFineColChange);
       Send(oRoom,@NewHold,#what=oElement,
            #new_row=iRow+iYStep,#new_col=iCol+iXStep,
            #fine_row=iFine_Row,#fine_col=iFine_Col);
 
       oElement = Create(&VectorWall,#MaxDamage=iMaxDamage,#Caster=who,
-                        #Duration=iDuration,#Illusionary=FALSE);
+                        #Duration=iDuration,#Illusionary=FALSE,
+                        #row_change=0,
+                        #col_change=0,
+                        #fine_row_change=iWaveOneFineRowChange,
+                        #fine_col_change=iWaveOneFineColChange);
       Send(oRoom,@NewHold,#what=oElement,
            #new_row=iRow+iYStep+iHalfRow,#new_col=iCol+iXStep+iHalfCol,
            #fine_row=iHalfFine_Row,#fine_col=iHalfFine_Col);
 
       oElement = Create(&VectorWall,#MaxDamage=iMaxDamage,#Caster=who,
-                        #Duration=iDuration,#Illusionary=FALSE);
+                        #Duration=iDuration,#Illusionary=FALSE,
+                        #row_change=0,
+                        #col_change=0,
+                        #fine_row_change=iWaveOneFineRowChange,
+                        #fine_col_change=iWaveOneFineColChange);
       Send(oRoom,@NewHold,#what=oElement,
            #new_row=iRow+2*iYStep,#new_col=iCol+2*iXStep,
            #fine_row=iFine_Row,#fine_col=iFine_Col);
 
       oElement = Create(&VectorWall,#MaxDamage=iMaxDamage,#Caster=who,
-                        #Duration=iDuration,#Illusionary=FALSE);
+                        #Duration=iDuration,#Illusionary=FALSE,
+                        #row_change=0,
+                        #col_change=0,
+                        #fine_row_change=iWaveOneFineRowChange,
+                        #fine_col_change=iWaveOneFineColChange);
       Send(oRoom,@NewHold,#what=oElement,
            #new_row=iRow+(2*iYStep)+iHalfRow,#new_col=iCol+(2*iXStep)+iHalfCol,
            #fine_row=iHalfFine_Row,#fine_col=iHalfFine_Col);
 
       oElement = Create(&VectorWall,#MaxDamage=iMaxDamage,#Caster=who,
-                        #Duration=iDuration,#Illusionary=FALSE);
+                        #Duration=iDuration,#Illusionary=FALSE,
+                        #row_change=0,
+                        #col_change=0,
+                        #fine_row_change=iWaveOneFineRowChange,
+                        #fine_col_change=iWaveOneFineColChange);
       Send(oRoom,@NewHold,#what=oElement,
            #new_row=iRow+3*iYStep,#new_col=iCol+3*iXStep,
            #fine_row=iFine_Row,#fine_col=iFine_Col);
 
       oElement = Create(&VectorWall,#MaxDamage=iMaxDamage,#Caster=who,
-                        #Duration=iDuration,#Illusionary=FALSE);
+                        #Duration=iDuration,#Illusionary=FALSE,
+                        #row_change=0,
+                        #col_change=0,
+                        #fine_row_change=iWaveOneFineRowChange,
+                        #fine_col_change=iWaveOneFineColChange);
       Send(oRoom,@NewHold,#what=oElement,
            #new_row=iRow+(3*iYStep)+iHalfRow,#new_col=iCol+(3*iXStep)+iHalfCol,
            #fine_row=iHalfFine_Row,#fine_col=iHalfFine_Col);
 
       oElement = Create(&VectorWall,#MaxDamage=iMaxDamage,#Caster=who,
-                        #Duration=iDuration,#Illusionary=FALSE);
+                        #Duration=iDuration,#Illusionary=FALSE,
+                        #row_change=0,
+                        #col_change=0,
+                        #fine_row_change=iWaveOneFineRowChange,
+                        #fine_col_change=iWaveOneFineColChange);
       Send(oRoom,@NewHold,#what=oElement,
            #new_row=iRow+4*iYStep,#new_col=iCol+4*iXStep,
            #fine_row=iFine_Row,#fine_col=iFine_Col);
@@ -274,8 +374,8 @@ messages:
                         #Duration=iDuration,#Illusionary=FALSE,
                         #row_change=0,
                         #col_change=0,
-                        #fine_row_change=24,
-                        #fine_row_change=24);
+                        #fine_row_change=iWaveTwoFineRowChange,
+                        #fine_col_change=iWaveTwoFineColChange);
       Send(oRoom,@NewHold,#what=oElement,
            #new_row=iRow,#new_col=iCol,
            #fine_row=iFine_Row,#fine_col=iFine_Col);
@@ -284,8 +384,8 @@ messages:
                         #Duration=iDuration,#Illusionary=FALSE,
                         #row_change=0,
                         #col_change=0,
-                        #fine_row_change=24,
-                        #fine_row_change=24);
+                        #fine_row_change=iWaveTwoFineRowChange,
+                        #fine_col_change=iWaveTwoFineColChange);
       Send(oRoom,@NewHold,#what=oElement,
            #new_row=iRow+iHalfRow,#new_col=iCol+iHalfCol,
            #fine_row=iHalfFine_Row,#fine_col=iHalfFine_Col);
@@ -294,8 +394,8 @@ messages:
                         #Duration=iDuration,#Illusionary=FALSE,
                         #row_change=0,
                         #col_change=0,
-                        #fine_row_change=24,
-                        #fine_row_change=24);
+                        #fine_row_change=iWaveTwoFineRowChange,
+                        #fine_col_change=iWaveTwoFineColChange);
       Send(oRoom,@NewHold,#what=oElement,
            #new_row=iRow+iYStep,#new_col=iCol+iXStep,
            #fine_row=iFine_Row,#fine_col=iFine_Col);
@@ -304,8 +404,8 @@ messages:
                         #Duration=iDuration,#Illusionary=FALSE,
                         #row_change=0,
                         #col_change=0,
-                        #fine_row_change=24,
-                        #fine_row_change=24);
+                        #fine_row_change=iWaveTwoFineRowChange,
+                        #fine_col_change=iWaveTwoFineColChange);
       Send(oRoom,@NewHold,#what=oElement,
            #new_row=iRow+iYStep+iHalfRow,#new_col=iCol+iXStep+iHalfCol,
            #fine_row=iHalfFine_Row,#fine_col=iHalfFine_Col);
@@ -314,8 +414,8 @@ messages:
                         #Duration=iDuration,#Illusionary=FALSE,
                         #row_change=0,
                         #col_change=0,
-                        #fine_row_change=24,
-                        #fine_row_change=24);
+                        #fine_row_change=iWaveTwoFineRowChange,
+                        #fine_col_change=iWaveTwoFineColChange);
       Send(oRoom,@NewHold,#what=oElement,
            #new_row=iRow+2*iYStep,#new_col=iCol+2*iXStep,
            #fine_row=iFine_Row,#fine_col=iFine_Col);
@@ -324,8 +424,8 @@ messages:
                         #Duration=iDuration,#Illusionary=FALSE,
                         #row_change=0,
                         #col_change=0,
-                        #fine_row_change=24,
-                        #fine_row_change=24);
+                        #fine_row_change=iWaveTwoFineRowChange,
+                        #fine_col_change=iWaveTwoFineColChange);
       Send(oRoom,@NewHold,#what=oElement,
            #new_row=iRow+(2*iYStep)+iHalfRow,#new_col=iCol+(2*iXStep)+iHalfCol,
            #fine_row=iHalfFine_Row,#fine_col=iHalfFine_Col);
@@ -334,8 +434,8 @@ messages:
                         #Duration=iDuration,#Illusionary=FALSE,
                         #row_change=0,
                         #col_change=0,
-                        #fine_row_change=24,
-                        #fine_row_change=24);
+                        #fine_row_change=iWaveTwoFineRowChange,
+                        #fine_col_change=iWaveTwoFineColChange);
       Send(oRoom,@NewHold,#what=oElement,
            #new_row=iRow+3*iYStep,#new_col=iCol+3*iXStep,
            #fine_row=iFine_Row,#fine_col=iFine_Col);
@@ -344,8 +444,8 @@ messages:
                         #Duration=iDuration,#Illusionary=FALSE,
                         #row_change=0,
                         #col_change=0,
-                        #fine_row_change=24,
-                        #fine_row_change=24);
+                        #fine_row_change=iWaveTwoFineRowChange,
+                        #fine_col_change=iWaveTwoFineColChange);
       Send(oRoom,@NewHold,#what=oElement,
            #new_row=iRow+(3*iYStep)+iHalfRow,#new_col=iCol+(3*iXStep)+iHalfCol,
            #fine_row=iHalfFine_Row,#fine_col=iHalfFine_Col);
@@ -354,8 +454,8 @@ messages:
                         #Duration=iDuration,#Illusionary=FALSE,
                         #row_change=0,
                         #col_change=0,
-                        #fine_row_change=24,
-                        #fine_row_change=24);
+                        #fine_row_change=iWaveTwoFineRowChange,
+                        #fine_col_change=iWaveTwoFineColChange);
       Send(oRoom,@NewHold,#what=oElement,
            #new_row=iRow+4*iYStep,#new_col=iCol+4*iXStep,
            #fine_row=iFine_Row,#fine_col=iFine_Col);
@@ -368,8 +468,8 @@ messages:
                         #Duration=iDuration,#Illusionary=FALSE,
                         #row_change=0,
                         #col_change=0,
-                        #fine_row_change=8,
-                        #fine_row_change=8);
+                        #fine_row_change=iWaveThreeFineRowChange,
+                        #fine_col_change=iWaveThreeFineColChange);
       Send(oRoom,@NewHold,#what=oElement,
            #new_row=iRow,#new_col=iCol,
            #fine_row=iFine_Row,#fine_col=iFine_Col);
@@ -378,8 +478,8 @@ messages:
                         #Duration=iDuration,#Illusionary=FALSE,
                         #row_change=0,
                         #col_change=0,
-                        #fine_row_change=8,
-                        #fine_row_change=8);
+                        #fine_row_change=iWaveThreeFineRowChange,
+                        #fine_col_change=iWaveThreeFineColChange);
       Send(oRoom,@NewHold,#what=oElement,
            #new_row=iRow+iHalfRow,#new_col=iCol+iHalfCol,
            #fine_row=iHalfFine_Row,#fine_col=iHalfFine_Col);
@@ -388,8 +488,8 @@ messages:
                         #Duration=iDuration,#Illusionary=FALSE,
                         #row_change=0,
                         #col_change=0,
-                        #fine_row_change=8,
-                        #fine_row_change=8);
+                        #fine_row_change=iWaveThreeFineRowChange,
+                        #fine_col_change=iWaveThreeFineColChange);
       Send(oRoom,@NewHold,#what=oElement,
            #new_row=iRow+iYStep,#new_col=iCol+iXStep,
            #fine_row=iFine_Row,#fine_col=iFine_Col);
@@ -398,8 +498,8 @@ messages:
                         #Duration=iDuration,#Illusionary=FALSE,
                         #row_change=0,
                         #col_change=0,
-                        #fine_row_change=8,
-                        #fine_row_change=8);
+                        #fine_row_change=iWaveThreeFineRowChange,
+                        #fine_col_change=iWaveThreeFineColChange);
       Send(oRoom,@NewHold,#what=oElement,
            #new_row=iRow+iYStep+iHalfRow,#new_col=iCol+iXStep+iHalfCol,
            #fine_row=iHalfFine_Row,#fine_col=iHalfFine_Col);
@@ -408,8 +508,8 @@ messages:
                         #Duration=iDuration,#Illusionary=FALSE,
                         #row_change=0,
                         #col_change=0,
-                        #fine_row_change=8,
-                        #fine_row_change=8);
+                        #fine_row_change=iWaveThreeFineRowChange,
+                        #fine_col_change=iWaveThreeFineColChange);
       Send(oRoom,@NewHold,#what=oElement,
            #new_row=iRow+2*iYStep,#new_col=iCol+2*iXStep,
            #fine_row=iFine_Row,#fine_col=iFine_Col);
@@ -418,8 +518,8 @@ messages:
                         #Duration=iDuration,#Illusionary=FALSE,
                         #row_change=0,
                         #col_change=0,
-                        #fine_row_change=8,
-                        #fine_row_change=8);
+                        #fine_row_change=iWaveThreeFineRowChange,
+                        #fine_col_change=iWaveThreeFineColChange);
       Send(oRoom,@NewHold,#what=oElement,
            #new_row=iRow+(2*iYStep)+iHalfRow,#new_col=iCol+(2*iXStep)+iHalfCol,
            #fine_row=iHalfFine_Row,#fine_col=iHalfFine_Col);
@@ -428,8 +528,8 @@ messages:
                         #Duration=iDuration,#Illusionary=FALSE,
                         #row_change=0,
                         #col_change=0,
-                        #fine_row_change=8,
-                        #fine_row_change=8);
+                        #fine_row_change=iWaveThreeFineRowChange,
+                        #fine_col_change=iWaveThreeFineColChange);
       Send(oRoom,@NewHold,#what=oElement,
            #new_row=iRow+3*iYStep,#new_col=iCol+3*iXStep,
            #fine_row=iFine_Row,#fine_col=iFine_Col);
@@ -438,8 +538,8 @@ messages:
                         #Duration=iDuration,#Illusionary=FALSE,
                         #row_change=0,
                         #col_change=0,
-                        #fine_row_change=8,
-                        #fine_row_change=8);
+                        #fine_row_change=iWaveThreeFineRowChange,
+                        #fine_col_change=iWaveThreeFineColChange);
       Send(oRoom,@NewHold,#what=oElement,
            #new_row=iRow+(3*iYStep)+iHalfRow,#new_col=iCol+(3*iXStep)+iHalfCol,
            #fine_row=iHalfFine_Row,#fine_col=iHalfFine_Col);
@@ -448,8 +548,8 @@ messages:
                         #Duration=iDuration,#Illusionary=FALSE,
                         #row_change=0,
                         #col_change=0,
-                        #fine_row_change=8,
-                        #fine_row_change=8);
+                        #fine_row_change=iWaveThreeFineRowChange,
+                        #fine_col_change=iWaveThreeFineColChange);
       Send(oRoom,@NewHold,#what=oElement,
            #new_row=iRow+4*iYStep,#new_col=iCol+4*iXStep,
            #fine_row=iFine_Row,#fine_col=iFine_Col);
