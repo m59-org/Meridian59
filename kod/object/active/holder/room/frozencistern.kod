@@ -16,6 +16,8 @@ constants:
    
    MAIN_CEILING_SECTOR = 1
    
+   DOOR_SECTOR = 2
+   
    NORTH_BARRIER_BORDER = 100
    NORTH_BARRIER_SECTOR = 101
    DEFAULT_NORTH_BARRIER_HEIGHT = 100
@@ -40,8 +42,8 @@ classvars:
 
    vrName = room_name_FrozenCistern
 
-   viTeleport_row = 15
-   viTeleport_col = 15
+   viTeleport_row = 64
+   viTeleport_col = 18
 
    viTerrain_Type = TERRAIN_CITY | TERRAIN_SHOP
 
@@ -76,6 +78,38 @@ messages:
       propagate;
    }
 
+   SomethingTryGo(what = $,row = $,col = $)
+   {
+      if what <> $
+         AND IsClass(what,&Player)
+      {
+         Send(self,@AttemptExit,#who=what,#iSection=Send(self,@GetSection,#who=what));
+      }
+
+      propagate;
+   }
+   
+   AttemptExit(who=$,iSection=0)
+   {
+      if who <> $
+         AND IsClass(who,&Player)
+      {         
+         switch(iSection)
+         {
+            case DOOR_SECTOR:
+               Send(self,@ExitCistern,#who=who);
+               break;
+         }
+      }
+   
+      return;
+   }
+   
+   ExitCistern(who=$)
+   {
+      return;
+   }
+
    CreateStandardObjects()
    {
       propagate;
@@ -92,12 +126,19 @@ messages:
       Send(self,@SetSector,#sector=NORTH_BARRIER_SECTOR,#animation=ANIMATE_FLOOR_LIFT,#height=DEFAULT_NORTH_BARRIER_HEIGHT,#speed=0);
       Send(self,@SetSector,#sector=EAST_BARRIER_SECTOR,#animation=ANIMATE_FLOOR_LIFT,#height=DEFAULT_EAST_BARRIER_HEIGHT,#speed=0);
       Send(self,@SetSector,#sector=SOUTH_BARRIER_SECTOR,#animation=ANIMATE_FLOOR_LIFT,#height=DEFAULT_SOUTH_BARRIER_HEIGHT,#speed=0);
+      
+      Send(self,@SetSector,#sector=NORTH_BARRIER_SECTOR,#animation=ANIMATE_CEILING_LIFT,#height=300,#speed=0);
+      Send(self,@SetSector,#sector=EAST_BARRIER_SECTOR,#animation=ANIMATE_CEILING_LIFT,#height=300,#speed=0);
+      Send(self,@SetSector,#sector=SOUTH_BARRIER_SECTOR,#animation=ANIMATE_CEILING_LIFT,#height=300,#speed=0);
+      Send(self,@SetSector,#sector=MAIN_CEILING_SECTOR,#animation=ANIMATE_CEILING_LIFT,#height=300,#speed=0);
+      Send(self,@SetSector,#sector=DOOR_SECTOR,#animation=ANIMATE_CEILING_LIFT,#height=300,#speed=0);
       return;
    }
    
    AdjustHeight(new_height=600)
    {
       Send(self,@SetSector,#sector=MAIN_CEILING_SECTOR,#animation=ANIMATE_CEILING_LIFT,#height=new_height,#speed=100);
+      Send(self,@SetSector,#sector=DOOR_SECTOR,#animation=ANIMATE_CEILING_LIFT,#height=new_height,#speed=100);
       
       Send(self,@SetSector,#sector=NORTH_BARRIER_BORDER,#animation=ANIMATE_CEILING_LIFT,#height=new_height,#speed=100);
       Send(self,@SetSector,#sector=NORTH_BARRIER_SECTOR,#animation=ANIMATE_CEILING_LIFT,#height=new_height,#speed=100);
@@ -212,6 +253,13 @@ messages:
       }
 
       return 0;
+   }
+
+   RecalcBackgroundSkyGraphic(iSkyBox=0)
+   {
+      prBackground = background_chaos_night;
+
+      return;
    }
 
 end

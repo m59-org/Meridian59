@@ -1265,7 +1265,7 @@ messages:
       if what <> $
          AND IsClass(what,&Player)
       {
-         Send(self,@AttemptExit,#who=what,#iSection=Send(self,@GetSection,#who=what));
+         return Send(self,@AttemptExit,#who=what,#iSection=Send(self,@GetSection,#who=what));
       }
 
       propagate;
@@ -1280,20 +1280,20 @@ messages:
          {
             case NORTH_EXIT_SECTOR:
                Send(self,@MazeExit,#who=who,#from_direction=MAZE_DIRECTION_NORTH);
-               break;
+               return TRUE;
             case EAST_EXIT_SECTOR:
                Send(self,@MazeExit,#who=who,#from_direction=MAZE_DIRECTION_EAST);
-               break;
+               return TRUE;
             case SOUTH_EXIT_SECTOR:
                Send(self,@MazeExit,#who=who,#from_direction=MAZE_DIRECTION_SOUTH);
-               break;
+               return TRUE;
             case WEST_EXIT_SECTOR:
                Send(self,@MazeExit,#who=who,#from_direction=MAZE_DIRECTION_WEST);
-               break;
+               return TRUE;
          }
       }
    
-      return;
+      return FALSE;
    }
 
    MazeExit(who=$,from_direction=0)
