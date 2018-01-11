@@ -1,0 +1,75 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+FrozenCistern is Room
+
+constants:
+
+   include blakston.khd
+
+resources:
+  
+   room_name_FrozenCistern = "Frozen Cistern"
+   room_FrozenCistern = frozencistern.roo
+   FrozenCistern_music = avarwar.mp3
+
+   fire_sound_FrozenCistern = wind-strong-01.wav
+
+classvars:
+
+   vrName = room_name_FrozenCistern
+
+   viTeleport_row = 15
+   viTeleport_col = 15
+
+   viTerrain_Type = TERRAIN_CITY | TERRAIN_SHOP
+
+properties:
+
+   prRoom = room_FrozenCistern
+   piRoom_num = RID_FROZEN_CISTERN
+
+   piBaseLight = LIGHT_NICE
+   piOutside_factor = 3
+
+   prMusic = FrozenCistern_music
+
+messages:
+
+   Constructed()
+   {
+      %  each sound is [wave_file, row, col, cutoff radius, maximum volume]
+      plLooping_sounds = [[ fire_sound_FrozenCistern, 15, 15, 10, 100 ]];
+
+      propagate;
+   }
+
+   CreateStandardExits()
+   {
+      plExits = $;
+  
+      propagate;
+   }
+
+   CreateStandardObjects()
+   {
+
+      propagate;
+   }
+   
+   AdjustHeight(new_height=500)
+   {
+      Send(self,@SetSector,#sector=1,#animation=ANIMATE_CEILING_LIFT,#height=new_height,#speed=100);
+      return;
+   }
+
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

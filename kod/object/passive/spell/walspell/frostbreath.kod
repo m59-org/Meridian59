@@ -44,7 +44,7 @@ classvars:
 
    viHarmful = TRUE
 
-   viNumElements = 0
+   viNumElements = 9
 
    vrSummonLimitMsg = FrostBreath_failed_rsc
 
@@ -65,6 +65,12 @@ messages:
       Send(who,@MsgSendUser,#message_rsc=FrostBreath_cast_rsc);
 
       propagate;
+   }
+
+   CheckForSummoningLimit(who = $)
+   {
+      % No restrictions so players can't cast walls to block it
+      return TRUE;
    }
 
    PlaceWallElements(who = $, iSpellPower = 0)

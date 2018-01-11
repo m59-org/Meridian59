@@ -278,6 +278,10 @@ messages:
 
          if NOT IsClass(each_obj,&User)
          {
+            if IsClass(each_obj,&Monster)
+            {
+               Send(each_obj,@PlayerPhasedOut,#who=who);
+            }
             continue;
          }
 
@@ -336,6 +340,13 @@ messages:
             {
                Send(each_obj,@MsgSendUser,#message_rsc=Phase_in,
                      #parm1=Send(who,@GetName));
+            }
+         }
+         else
+         {
+            if IsClass(each_obj,&Monster)
+            {
+               Send(each_obj,@PlayerPhasedIn,#who=who);
             }
          }
       }

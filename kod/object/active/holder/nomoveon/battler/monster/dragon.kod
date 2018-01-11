@@ -13,6 +13,21 @@ Dragon is Monster
 constants:
 
    include blakston.khd
+   
+   ON_THE_GROUND = 1
+   IN_THE_AIR = 2
+   FLYING_TOO_HIGH = 3
+   DEAD = 4
+   CHANGING_HEIGHTS = 10
+   
+   UPDATE_HEIGHT_TIME = 200
+   
+   % Ice Dragon changes the height of its invisible ceiling in the Frozen Cistern to simulate altitudes
+   % We can watch it 'lift off' by having the sky-ceiling slowly rise while dragon is OF_HANGING
+   % However, dragon's height won't change without specially animated SomethingChanged ticks
+   ARENA_HEIGHT_ON_THE_GROUND = 300
+   ARENA_HEIGHT_IN_THE_AIR = 600
+   ARENA_HEIGHT_FLYING_TOO_HIGH = 900
 
 resources:
 
@@ -24,11 +39,27 @@ resources:
 
    dragon_dead_icon_rsc = dicedrag.bgf
    dragon_dead_name_rsc = "dead ice dragon"
+   
+   dragon_cant_attack = \
+      "The dragon is too high to reach without a ranged weapon!"
+   
+   dragon_breathes_frost_msg = \
+      "~B~bThe dragon releases a tremendous arc of freezing breath!"
+   
+   dragon_rising_first = \
+      "~BEnraged, the dragon takes flight!"
+   dragon_rising_second = \
+      "~BDriven to furious action by your attacks, the dragon ascends to begin a greater assault!"
+
+   dragon_resets_msg = \
+      "~BWith all its enemies defeated, the dragon returns to the ground and recuperates."
 
    dragon_sound_hit = icedragonroar2.wav
    dragon_sound_miss = icedragonroar3.wav
    dragon_sound_death = icedragonroar1.wav
    dragon_sound_aware = icedragonroar4.wav
+   
+   dragon_fly_new_height = icedragonwing1.wav
 
 classvars:
 
@@ -41,15 +72,16 @@ classvars:
 
    viTreasure_type = TID_RAT
    viIndefinite = ARTICLE_AN
+   viDefault_behavior = AI_FIGHT_AGGRESSIVE | AI_FIGHT_SWITCHALOT
+   viAttackRange = 128
 
-   viSpeed = SPEED_FAST
    viAttack_type = ATCK_WEAP_CLAW
+   viAttack_spell = ATCK_SPELL_COLD
    viAttributes = 0
    viLevel = 250
    viDifficulty = 10
-   viVisionDistance = 18
+   viVisionDistance = 40
    viKarma = 0
-   viDefault_behavior = AI_FIGHT_AGGRESSIVE | AI_FIGHT_SWITCHALOT
    viCashmin = 150000
    viCashmax = 750000
 
@@ -58,6 +90,11 @@ classvars:
    vrSound_aware = dragon_sound_aware
    vrSound_death = dragon_sound_death
 
+   % 1 in x chance to cast a spell.
+   % This changes based on dragon's height
+   % Less likely on the ground, very likely in the air
+   viSpellChance = 20
+
 properties:
 
    piAnimation = ANIM_NONE
@@ -65,17 +102,208 @@ properties:
 
    piMax_mana = 20
    piSpellPower = 99
+   
+   % Speed varies based on travel mode
+   viSpeed = SPEED_FAST
+   piTravelState = ON_THE_GROUND
+   
+   ptUpdateHeightTimer = $
+   
+   % Height updates at 20 per 200 ms since ceiling moves at 100 per second
+   piCurrentHeight = 300
+   piGoingToHeight = 300
+   
+   piCurrentChangingHeightsFrame = 1
 
 messages:
 
    Constructed()
    {
-      plSpellBook = [ [SID_FROST_BREATH,10,100] ];
+      plSpellBook = [ [SID_ICICLE_VOLLEY,4,90], [SID_FROST_BREATH,10,100] ];
 
       plResistances = [ [-ATCK_SPELL_FIRE, -20],
+                        [-ATCK_SPELL_SHOCK, 40],
+                        [-ATCK_SPELL_ACID, 40],
+                        [-ATCK_SPELL_COLD, 90],
+                        [-ATCK_SPELL_UNHOLY, 90],
+                        [-ATCK_SPELL_HOLY, 90],
                         [ATCK_WEAP_BLUDGEON, -10],
                         [ATCK_WEAP_SLASH, 20] ];
+
+      Send(self,@ChangeTravelMode,#new_mode=ON_THE_GROUND);
       propagate;
+   }
+   
+   GoToHeight(new_height=ARENA_HEIGHT_ON_THE_GROUND)
+   {
+      if new_height <> ARENA_HEIGHT_ON_THE_GROUND
+         AND new_height <> ARENA_HEIGHT_IN_THE_AIR
+         AND new_height <> ARENA_HEIGHT_FLYING_TOO_HIGH
+      {
+         return 0;
+      }
+
+      % Make sure we're not already at or heading to the intended height
+      if new_height <> piGoingToHeight
+         AND new_height <> piCurrentHeight
+      {
+         Send(self,@ChangeTravelMode,#new_mode=CHANGING_HEIGHTS,#new_height=new_height);
+         return 1;
+      }
+      return 0;
+   }
+
+   ChangeTravelMode(new_mode=ON_THE_GROUND, new_height=-1)
+   {
+      piTravelState = new_mode;
+      
+      if new_height <> -1
+      {
+         piGoingToHeight = new_height;
+         
+         % Are we in our special arena?
+         if poOwner <> $
+            AND Send(poOwner,@GetRoomNum) = RID_FROZEN_CISTERN
+         {
+            % Adjust the invisible ceiling
+            Send(poOwner,@AdjustHeight,#new_height=piGoingToHeight);
+         }
+      }
+
+      Switch(piTravelState)
+      {
+         case CHANGING_HEIGHTS:
+            piSpeed = SPEED_NONE;
+            piBehavior = AI_NOMOVE | AI_NOFIGHT;
+
+            % Dragon cannot be hurt during height changes
+            plResistances = [ [-ATCK_SPELL_ALL, 160],
+                              [ATCK_WEAP_ALL, 160]  ];
+
+            piSpellChance = 100;
+            piAttackRange = 0;
+            ptUpdateHeightTimer = CreateTimer(self,@UpdateHeight,UPDATE_HEIGHT_TIME);
+            Send(poOwner,@SomethingWaveRoom,#what=self,#wave_rsc=dragon_fly_new_height);
+            break;
+         case ON_THE_GROUND:
+            piSpeed = SPEED_FAST;
+            piBehavior = AI_FIGHT_AGGRESSIVE | AI_FIGHT_SWITCHALOT;
+            piSpellChance = 20;
+            piAttackRange = viAttackRange*2;
+
+            plResistances = [ [-ATCK_SPELL_FIRE, -20],
+                              [-ATCK_SPELL_SHOCK, 40],
+                              [-ATCK_SPELL_ACID, 40],
+                              [-ATCK_SPELL_COLD, 90],
+                              [-ATCK_SPELL_UNHOLY, 90],
+                              [-ATCK_SPELL_HOLY, 90],
+                              [ATCK_WEAP_BLUDGEON, 40],
+                              [ATCK_WEAP_SLASH, 40],
+                              [ATCK_WEAP_THRUST, 40],
+                              [ATCK_WEAP_NERUDITE, 40]  ];
+            
+            % The dragon relies heavily on attacks and single target spells on the ground
+            plSpellBook = [ [SID_ICICLE_VOLLEY,4,90], [SID_FROST_BREATH,10,100] ];
+            break;
+         case IN_THE_AIR:
+            piSpeed = SPEED_FASTER;
+            piBehavior = AI_MOVE_OPTIMAL_RANGE | AI_FIGHT_AGGRESSIVE;
+            piSpellChance = 4;
+
+            plResistances = [ [-ATCK_SPELL_FIRE, 40],
+                              [-ATCK_SPELL_SHOCK, 75],
+                              [-ATCK_SPELL_ACID, 95],
+                              [-ATCK_SPELL_COLD, 160],
+                              [-ATCK_SPELL_UNHOLY, 95],
+                              [-ATCK_SPELL_HOLY, 95],
+                              [ATCK_WEAP_BLUDGEON, 70],
+                              [ATCK_WEAP_SLASH, 80],
+                              [ATCK_WEAP_THRUST, 80],
+                              [ATCK_WEAP_NERUDITE, 80]  ];
+            
+            % The dragon shifts more towards breath spell while in the air
+            plSpellBook = [ [SID_ICICLE_VOLLEY,4,50], [SID_FROST_BREATH,10,100] ];
+            piAttackRange = viAttackRange;
+            break;
+         case FLYING_TOO_HIGH:
+            piSpeed = SPEED_VERY_FAST;
+            piBehavior = AI_MOVE_OPTIMAL_RANGE | AI_FIGHT_AGGRESSIVE;
+            piSpellChance = 1;
+
+            plResistances = [ [-ATCK_SPELL_FIRE, 80],
+                              [-ATCK_SPELL_SHOCK, 95],
+                              [-ATCK_SPELL_ACID, 95],
+                              [-ATCK_SPELL_COLD, 160],
+                              [-ATCK_SPELL_UNHOLY, 95],
+                              [-ATCK_SPELL_HOLY, 95],
+                              [ATCK_WEAP_BLUDGEON, 70],
+                              [ATCK_WEAP_SLASH, 80],
+                              [ATCK_WEAP_THRUST, 80],
+                              [ATCK_WEAP_NERUDITE, 80]  ];
+            
+            % The dragon goes all out once flying high
+            plSpellBook = [ [SID_FROST_BREATH,2,95], [SID_WINDS,0,100] ];
+            piAttackRange = 0;
+            break;
+      }
+      
+      if poOwner <> $
+      {
+         Send(poOwner,@SomethingChanged,#what=self);
+      }
+      return;
+   }
+
+   GetOptimalRange()
+   {
+      Switch(piTravelState)
+      {
+         case FLYING_TOO_HIGH:
+            return random(1200,1700);
+      }
+      % Random range between 8-15 row/col units.
+      return random(512,960);
+   }
+   
+   UpdateHeight(timer=$)
+   {
+      ptUpdateHeightTimer = $;
+      
+      Send(poOwner,@SomethingChanged,#what=self);
+      
+      if piCurrentHeight = piGoingToHeight
+      {
+         % On the last update, change our travel mode
+         Switch(piGoingToHeight)
+         {
+            case ARENA_HEIGHT_ON_THE_GROUND:
+               Send(self,@ChangeTravelMode,#new_mode=ON_THE_GROUND);
+               break;
+            case ARENA_HEIGHT_IN_THE_AIR:
+               Send(self,@ChangeTravelMode,#new_mode=IN_THE_AIR);
+               break;
+            case ARENA_HEIGHT_FLYING_TOO_HIGH:
+               Send(self,@ChangeTravelMode,#new_mode=FLYING_TOO_HIGH);
+               break;
+         }
+      }
+      else
+      {
+         ptUpdateHeightTimer = CreateTimer(self,@UpdateHeight,UPDATE_HEIGHT_TIME);
+
+         if piCurrentHeight < piGoingToHeight
+         {
+            % We're traveling up
+            piCurrentHeight = piCurrentHeight + 20;
+         }
+         else
+         {
+            % We're traveling down
+            piCurrentHeight = piCurrentHeight - 20;
+         }
+      }
+      
+      return;
    }
 
    MonsterAttack(what = $)
@@ -84,6 +312,55 @@ messages:
       Send(self,@DoSlash);
 
       return;
+   }
+
+   GetObjectFlags()
+   {
+      Switch(piTravelState)
+      {
+         case CHANGING_HEIGHTS:
+            return OF_HANGING | OF_ATTACKABLE;
+         case ON_THE_GROUND:
+            return OF_ATTACKABLE;
+         case IN_THE_AIR:
+            return OF_HANGING | OF_ATTACKABLE;
+         case FLYING_TOO_HIGH:
+            return OF_HANGING | OF_ATTACKABLE;
+      }
+
+      propagate;
+   }
+
+   GetMoveOnType()
+   {
+      Switch(piTravelState)
+      {
+         case CHANGING_HEIGHTS:
+            return MOVEON_YES;
+         case IN_THE_AIR:
+            return MOVEON_YES;
+         case FLYING_TOO_HIGH:
+            return MOVEON_YES;
+      }
+
+      propagate;
+   }
+
+   MonsterCastAnimation(iSpellNum=$)
+   {
+      local i, each_obj;
+      if iSpellNum = SID_FROST_BREATH
+      {
+         foreach i in Send(poOwner,@GetHolderActive)
+         {
+            each_obj = Send(poOwner,@HolderExtractObject,#data=i);
+            if IsClass(each_obj,&Player)
+            {
+               Send(each_obj,@MsgSendUser,#message_rsc=dragon_breathes_frost_msg);
+            }
+         }
+      }
+      propagate;
    }
 
    DoSlash()
@@ -111,14 +388,28 @@ messages:
 
    SendAnimation()
    {
+      if piTravelState = CHANGING_HEIGHTS
+      {
+         AddPacket(1,ANIMATE_NONE,2,piCurrentChangingHeightsFrame);
+         
+         if piCurrentChangingHeightsFrame = 4
+         {
+            piCurrentChangingHeightsFrame = 1;
+         }
+         else
+         {
+            piCurrentChangingHeightsFrame++;
+         }
+         
+         return;
+      }
+
       if piAnimation = ANIM_ATTACK
       {
          AddPacket(1,ANIMATE_ONCE,4,125,2,5,2,8,2,1);
 
          return;
       }
-
-      % if no body animation
 
       propagate;
    }
@@ -143,11 +434,243 @@ messages:
       }
 
       % Shake the ground when I take a step.
-      % Small chance each person might lose any active trance.
+      % Half chance each person might lose any active trance.
 
-      Send(poOwner,@Rumble,#duration=250,#disruption=50);
+      if piTravelState = ON_THE_GROUND
+      {
+         Send(poOwner,@Rumble,#duration=250,#disruption=50);
+      }
       
       propagate;
+   }
+   
+   Delete()
+   {
+      if ptUpdateHeightTimer <> $
+      {
+         DeleteTimer(ptUpdateHeightTimer);
+         ptUpdateHeightTimer = $;
+      }
+      propagate;
+   }
+
+   %
+   % MonsterCastSpell is defined here because we need the dragon to face 
+   %    players when he casts Frost Breath. Otherwise, he may be casting
+   %    in the opposite direction because of his optimal range movement
+   %
+   MonsterCastSpell()
+   {
+      local i, iDistance, oSpell, iRandom, lTargets, iSpellNum, iManaCost;
+
+      % If monster knows no spells, or has no target, return.
+      if plSpellBook = $
+         OR poTarget = $
+      {
+         return FALSE;
+      }
+
+      % Get the adjusted chance to cast, based on whether we're demented
+      % or if AmA is up. Multiply this by 6 because we've decreased the
+      % time between chase behavior checks by a factor of 4-7x.
+      iRandom = Send(self,@AdjustedChanceBase,#base=(piSpellChance*6));
+
+      % Do the random check now, so we don't go any further
+      % if we don't have to.
+      if Random(1,iRandom) <> 1
+      {
+         return FALSE;
+      }
+
+      % Get distance to target.
+      iDistance = Send(self,@SquaredFineDistanceTo3D,#what=poTarget);
+
+      % Check LoS to target here so we don't waste mana casting
+      % when we can't get our target. Instead, we use that time
+      % walking to the target.
+
+      if iDistance <= piSpellRange * piSpellRange
+         AND Send(poOwner,@LineOfSight,#obj1=self,#obj2=poTarget)
+         AND Send(poOwner,@ReqSomethingAttack,#what=self,#victim=poTarget,
+                  #use_weapon=self)
+      {
+         % We go through the monster's spellbook and pick the spell
+         % that corresponds to the random number picked. This is used
+         % to give a % chance for each spell to be picked.
+         iRandom = Random(1,100);
+         foreach i in plSpellBook
+         {
+            if iRandom <= Nth(i,3)
+            {
+               iSpellNum = Nth(i,1);
+               iManaCost = Nth(i,2);
+
+               break;
+            }
+         }
+
+         % If no spell returned or cannot pay mana costs, spell fails.
+         if iSpellNum = $
+            OR piMana < iManaCost
+         {
+            return FALSE;
+         }
+
+         % Take mana from monster.
+         piMana = piMana - iManaCost;
+         Send(self,@NewMana);
+
+         % Get the spell object.
+         oSpell = Send(SYS,@FindSpellByNum,#num=iSpellNum);
+         
+         % Find the valid targets, defaulting to poTarget.
+         lTargets = [poTarget];
+         lTargets = Send(oSpell,@GetTargets,#who=self,#lTargets=lTargets);
+
+         % See if we can cast the spell here.
+         if Send(oSpell,@CanPayMonsterCosts,#who=self,#lTargets=lTargets,
+                  #iSpellPower=piSpellPower)
+            AND Send(poOwner,@ReqSpellCast,#who=self,#oSpell=oSpell,
+                     #lItems=lTargets)
+         {
+            % We are definitely casting now.
+            % Face the dragon toward his target.
+            Send(self,@MonsterOrient,#face_target=TRUE);
+
+            % Do any special cast animations; send spell for specific ones.
+            Send(self,@MonsterCastAnimation,#iSpellNum=iSpellNum);
+            
+            % Cast the spell.
+            Send(oSpell,@CastSpell,#who=self,#lTargets=lTargets,
+                  #iSpellPower=piSpellPower);
+         }
+
+         return TRUE;
+      }
+
+      return FALSE;
+   }
+
+   CanMonsterFight(who=$,oStroke=$)
+   {
+      if piTravelState = FLYING_TOO_HIGH
+      {
+         if oStroke = $
+            OR NOT Send(oStroke,@IsRangedAttack)
+         {
+            if IsClass(who,&User)
+            {
+               Send(who,@MsgSendUser,#message_rsc=dragon_cant_attack);
+            }
+
+            return FALSE;
+         }
+      }
+
+      return TRUE;
+   }
+
+   CanMorphTo()
+   {
+      return FALSE;
+   }
+
+   GetMaxHitPoints()
+   {
+      return 20000;
+   }
+
+   GetBossStatus()
+   {
+      return TRUE;
+   }
+
+   HitPointThresholdDamage()
+   {
+      local iThreshold, i, each_obj;
+
+      iThreshold = piHit_points / (piMax_hit_points * 20);
+
+      if iThreshold >= 4
+      {
+         propagate;
+      }
+      else if iThreshold = 3
+      {
+         foreach i in Send(poOwner,@GetHolderActive)
+         {
+            each_obj = Send(poOwner,@HolderExtractObject,#data=i);
+            if IsClass(each_obj,&Player)
+            {
+               Send(each_obj,@MsgSendUser,#message_rsc=dragon_rising_first);
+            }
+         }
+         Send(self,@GoToHeight,#new_height=ARENA_HEIGHT_IN_THE_AIR);
+         propagate;
+      }
+      else if iThreshold = 2
+      {
+         propagate;
+      }
+      else if iThreshold = 1
+      {
+         propagate;
+      }
+      else
+      {
+         foreach i in Send(poOwner,@GetHolderActive)
+         {
+            each_obj = Send(poOwner,@HolderExtractObject,#data=i);
+            if IsClass(each_obj,&Player)
+            {
+               Send(each_obj,@MsgSendUser,#message_rsc=dragon_rising_second);
+            }
+         }
+         Send(self,@GoToHeight,#new_height=ARENA_HEIGHT_FLYING_TOO_HIGH);
+         propagate;
+      }
+
+      propagate;
+   }
+
+   PlayerPhasedOut(who=$)
+   {
+      local i, each_obj, bUnphasedPlayersRemain;
+      
+      if piTravelState = ON_THE_GROUND
+      {
+         return;
+      }
+      
+      bUnphasedPlayersRemain = FALSE;
+      foreach i in Send(poOwner,@GetHolderActive)
+      {
+         each_obj = Send(poOwner,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&Player)
+            AND NOT Send(each_obj,@IsInCannotInteractMode)
+         {
+            % Even a single unphased player will keep the dragon active
+            bUnphasedPlayersRemain = TRUE;
+         }
+      }
+      
+      % If there are no unphased players, reset the dragon
+      if NOT bUnphasedPlayersRemain
+      {
+         piHit_points = piMax_Hit_points * 100;
+
+         foreach i in Send(poOwner,@GetHolderActive)
+         {
+            each_obj = Send(poOwner,@HolderExtractObject,#data=i);
+            if IsClass(each_obj,&Player)
+            {
+               Send(each_obj,@MsgSendUser,#message_rsc=dragon_resets_msg);
+            }
+         }
+         Send(self,@GoToHeight,#new_height=ARENA_HEIGHT_ON_THE_GROUND);
+      }
+      
+      return;
    }
 
 end

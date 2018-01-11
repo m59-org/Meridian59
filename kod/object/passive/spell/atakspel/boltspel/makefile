@@ -11,6 +11,7 @@ BOFS = lightnin.bof fireball.bof smite.bof slitherb.bof \
        splsacid.bof \
        vampdrn.bof \
        blasfire.bof \
-       exfrost.bof
+       exfrost.bof \
+       iciclevolley.bof
 
 !include $(KODDIR)\kod.mak
