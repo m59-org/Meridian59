@@ -243,6 +243,7 @@ resources:
       "You have received your daily training bonus of ~B%i~B points!  "
       "Come back tomorrow for more!"
    player_experience_gained = "You have gained ~B%i~B experience points!"
+   player_experience_bonus = "Your guild powers grant you an additional ~B%i~B bonus experience points!"
    player_experience_lost = "You have lost ~B~r%i~B experience points!"
 
    player_unbound_energy_wiped = "The volatile energy surrounding you "
@@ -10925,7 +10926,7 @@ messages:
 
    AddExperience(iAmount=$)
    {
-      local oShrunken;
+      local oShrunken, iBonusPercentage, iBonusAmount, i;
 
       if iAmount <> $
          AND iAmount <> 0
@@ -10935,8 +10936,23 @@ messages:
          {
             return FALSE;
          }
+      
+         iBonusPercentage = 0;
+         % Check for relics
+         if poGuild <> $
+            AND Send(poGuild,@GetGuildHall) <> $
+         {
+            foreach i in Send(Send(poGuild,@GetGuildHall),@GetRelicList)
+            {
+               iBonusPercentage = iBonusPercentage + Send(i,@GetExperienceBonus);
+               Debug(iBonusPercentage);
+            }
+         }
          
-         piExperience = piExperience + iAmount;
+         % Does this player get any bonus experience from guild hall reliquaries?
+         iBonusAmount = Bound((iAmount * (100+iBonusPercentage))/100 - iAmount,0,$);
+         
+         piExperience = piExperience + iAmount + iBonusAmount;
 
          if pbLogged_on
          {
@@ -10944,6 +10960,12 @@ messages:
             {
                Send(self,@MsgSendUser,#message_rsc=player_experience_gained,
                   #parm1=iAmount);
+                  
+               if iBonusAmount > 0
+               {
+                  Send(self,@MsgSendUser,#message_rsc=player_experience_bonus,
+                     #parm1=iBonusAmount);
+               }
             }
             else
             {
