@@ -34,12 +34,14 @@ constants:
    %% Some areas of the maze may be open to the desert weather.
    %%    Use these sectors for simulated weather (we are not part of the desert subclass)
    %%    Set vbDesertThreatsHere to TRUE in ClassVars
+   %% If these sectors exist, desert threats will be activated.
+   %%    These represent places where the ceiling has caved in, exposing the maze to the desert.
    
    SNOW_SECTOR = 700
    ICE_SECTOR = 710
    FROZEN_WATERFALL_SECTOR = 711
    
-   %% If these sectors exist, desert monsters will be placed and desert threats activated.
+   %% If these sectors exist, desert monsters will be placed.
    %%    These represent places where the ceiling has caved in, exposing the maze to the desert.
    DESERT_SPAWN_ONE = 750
    DESERT_SPAWN_TWO = 751
@@ -1612,7 +1614,7 @@ messages:
    {
       local i, iCurRow, iCurCol, iMaxRows, iMaxCols, iSectionResult, lAlreadySelectedSectors,
             lSawbladesTriggerSectors, lCrusherTriggerSectors, lSpikeDamageSectors, lSecretDoorTriggerSectors,
-            lLavaSectors, lTotemSectors, lDesertSpawnSectors, lStatueSpawnSectors;
+            lLavaSectors, lTotemSectors, lDesertSpawnSectors, lStatueSpawnSectors, lDesertThreatSectors;
 
       % Let's start this with an element of zero so it's never nil
       lAlreadySelectedSectors = [0];
@@ -1696,6 +1698,8 @@ messages:
                              STATUE_SPAWN_EIGHT,
                              STATUE_SPAWN_NINE,
                              STATUE_SPAWN_TEN];
+      lDesertThreatSectors = [SNOW_SECTOR,
+                              ICE_SECTOR];
 
       iCurRow = 0;
       iCurCol = 0;
@@ -1802,9 +1806,15 @@ messages:
             {
                % We do spawn monsters now.
                vbSpawnMonsters = TRUE;
-               % We also create desert threats.
-               vbDesertThreatsHere = TRUE;
                plDesertSpawnPoints = Cons([iCurRow,iCurCol],plDesertSpawnPoints);
+               lAlreadySelectedSectors = Cons(iSectionResult,lAlreadySelectedSectors);
+            }
+            
+            if FindListElem(lDesertThreatSectors,iSectionResult)
+               AND NOT FindListElem(lAlreadySelectedSectors,iSectionResult)
+            {
+               % This area is open to the sky and has desert threats.
+               vbDesertThreatsHere = TRUE;
                lAlreadySelectedSectors = Cons(iSectionResult,lAlreadySelectedSectors);
             }
 
@@ -1905,12 +1915,26 @@ messages:
          piCustomTeleportCol = viTeleport_col;
       }
 
+      if vbDesertThreatsHere
+      {
+         prMusic = Send(self,@GetPhaseMusic);
+      }
+
       return;
    }
 
    GetTotemSpellNum()
    {
-      return SID_LIGHTNING_BOLT;
+      local lPossibleSpells;
+      
+      lPossibleSpells = [SID_LIGHTNING_BOLT,
+                         SID_FIREBALL,
+                         SID_HEX_EXHAUSTION,
+                         SID_HEX_FESTER,
+                         SID_HEX_SEVER];
+                         
+      
+      return Nth(lPossibleSpells,Random(1,Length(lPossibleSpells)));
    }
 
    NewHoldObject(what = $,new_pos = $)
@@ -2199,19 +2223,14 @@ messages:
 
    StartSnow(bOnGround=TRUE)
    {
-      if bOnGround
-      {
-         if pbSnowGroundTexture
-         {
-            Send(self,@ChangeTexture,#id=ICE_SECTOR,#new_texture=61017,#flags=CTF_FLOOR);
-            Send(self,@AnimateWall,#wall=FROZEN_WATERFALL_SECTOR,#animation=ANIMATE_NONE,#first_group=1,#second_group=1,#end_group=1);
-            Send(self,@ChangeTexture,#id=FROZEN_WATERFALL_SECTOR,#new_texture=61017,#flags=CTF_BELOWWALL);
-            Send(self,@SetSectorFlags,#sector=ICE_SECTOR,#depth=SF_DEPTH0,#scrollSpeed=SCROLL_NONE);
+      Send(self,@ChangeTexture,#id=SNOW_SECTOR,#new_texture=61015,#flags=CTF_FLOOR);
+      Send(self,@ChangeTexture,#id=ICE_SECTOR,#new_texture=61017,#flags=CTF_FLOOR);
+      Send(self,@AnimateWall,#wall=FROZEN_WATERFALL_SECTOR,#animation=ANIMATE_NONE,#first_group=1,#second_group=1,#end_group=1);
+      Send(self,@ChangeTexture,#id=FROZEN_WATERFALL_SECTOR,#new_texture=61017,#flags=CTF_BELOWWALL);
+      Send(self,@SetSectorFlags,#sector=ICE_SECTOR,#depth=SF_DEPTH0,#scrollSpeed=SCROLL_NONE);
 
-            Send(self,@SetSectorFlags,#sector=SNOW_SECTOR,#depth=SF_DEPTH1,#scrollSpeed=SCROLL_NONE);
-            vrWading_Sound = snow_walk_sound;
-         }
-      }
+      Send(self,@SetSectorFlags,#sector=SNOW_SECTOR,#depth=SF_DEPTH1,#scrollSpeed=SCROLL_NONE);
+      vrWading_Sound = snow_walk_sound;
 
       propagate;
    }
@@ -2219,17 +2238,14 @@ messages:
    EndSnow(override=FALSE)
    "Use override if rooms have manually placed textures."
    {
-      if pbSnowGroundTexture
-         OR override
-      {
-         Send(self,@RemoveTextureChange,#id=ICE_SECTOR);
-         Send(self,@RemoveTextureChange,#id=FROZEN_WATERFALL_SECTOR);
-         Send(self,@RemoveAnimateWallChange,#wall=FROZEN_WATERFALL_SECTOR);
-         Send(self,@RemoveSectorFlagChange,#id=ICE_SECTOR);
+      Send(self,@RemoveTextureChange,#id=SNOW_SECTOR);
+      Send(self,@RemoveTextureChange,#id=ICE_SECTOR);
+      Send(self,@RemoveTextureChange,#id=FROZEN_WATERFALL_SECTOR);
+      Send(self,@RemoveAnimateWallChange,#wall=FROZEN_WATERFALL_SECTOR);
+      Send(self,@RemoveSectorFlagChange,#id=ICE_SECTOR);
 
-         Send(self,@RemoveSectorFlagChange,#id=SNOW_SECTOR);
-         vrWading_Sound = water_wading_sound;
-      }
+      Send(self,@RemoveSectorFlagChange,#id=SNOW_SECTOR);
+      vrWading_Sound = water_wading_sound;
 
       propagate;
    }
