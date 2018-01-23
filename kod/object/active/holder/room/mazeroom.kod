@@ -1021,9 +1021,16 @@ messages:
                {
                   Send(each_obj,@MsgSendUser,#message_rsc=trap_damages_you);
                   Send(each_obj,@LoseHealth,#amount=TRAP_DAMAGE);
-                  Send(Send(SYS,@FindSpellByNum,#num=SID_EVENT_HOLD),@DoSpell,
-                        #what=self,#oTarget=each_obj,#iDuration=TRAP_HIT_DELAY,#report=FALSE);
-                  Send(each_obj,@EffectSendUserDuration,#effect=EFFECT_PAIN,#duration=TRAP_HIT_DELAY);
+                  if Send(each_obj,@GetExactHealth) <= 0
+                  {
+                     Send(self,@TrapsKilledPlayer,#who=each_obj);
+                  }
+                  else
+                  {
+                     Send(Send(SYS,@FindSpellByNum,#num=SID_EVENT_HOLD),@DoSpell,
+                           #what=self,#oTarget=each_obj,#iDuration=TRAP_HIT_DELAY,#report=FALSE);
+                     Send(each_obj,@EffectSendUserDuration,#effect=EFFECT_PAIN,#duration=TRAP_HIT_DELAY);
+                  }
                }
             }
          }
@@ -1172,6 +1179,10 @@ messages:
       
                   Send(each_obj,@LoseHealth,#amount=SPIKES_DAMAGE);
                   Send(each_obj,@EffectSendUserDuration,#effect=EFFECT_PAIN,#duration=SPIKES_PAIN_TIME);
+                  if Send(each_obj,@GetExactHealth) <= 0
+                  {
+                     Send(self,@TrapsKilledPlayer,#who=each_obj);
+                  }
                }
             }
             
@@ -1435,6 +1446,10 @@ messages:
                {
                   Send(each_obj,@EffectSendUserDuration,#effect=EFFECT_PAIN,#duration=1000);
                   Send(each_obj,@LoseHealth,#amount=SAWBLADE_DAMAGE);
+                  if Send(each_obj,@GetExactHealth) <= 0
+                  {
+                     Send(self,@TrapsKilledPlayer,#who=each_obj);
+                  }
                }
             }
             SetNth(i,6,CreateTimer(self,@DealSawbladeDamage,SAWBLADE_DAMAGE_TIME));
@@ -1611,6 +1626,16 @@ messages:
 % ============
 % GENERAL
 % ============
+
+   TrapsKilledPlayer(who=$)
+   {
+      if who <> $
+         AND IsClass(who,&Player)
+      {
+         Send(who,@Killed,#what=self);
+      }
+      return;
+   }
 
    SetCustomSectors()
    {
@@ -2030,6 +2055,36 @@ messages:
       return FALSE;
    }
 
+   GetTeleportRow()
+   {
+      if piCustomTeleportRow > 0
+         AND piCustomTeleportRow < Send(self,@GetRoomRows)
+      {
+         return piCustomTeleportRow;
+      }
+      return viTeleport_row;
+   }
+
+   GetTeleportCol()
+   {
+      if piCustomTeleportCol > 0
+         AND piCustomTeleportCol < Send(self,@GetRoomCols)
+      {
+         return piCustomTeleportCol;
+      }
+      return viTeleport_col;
+   }
+
+% ==================================================================================================================
+% ==================================================================================================================
+% SPECIFIC FUNCTIONS
+% ==================================================================================================================
+% ==================================================================================================================
+
+% ============
+% DESERT
+% ============
+
    GetRegion()
    {
       return RID_DESERT;
@@ -2192,36 +2247,6 @@ messages:
    {
       return TRUE;
    }
-
-   GetTeleportRow()
-   {
-      if piCustomTeleportRow > 0
-         AND piCustomTeleportRow < Send(self,@GetRoomRows)
-      {
-         return piCustomTeleportRow;
-      }
-      return viTeleport_row;
-   }
-
-   GetTeleportCol()
-   {
-      if piCustomTeleportCol > 0
-         AND piCustomTeleportCol < Send(self,@GetRoomCols)
-      {
-         return piCustomTeleportCol;
-      }
-      return viTeleport_col;
-   }
-
-% ==================================================================================================================
-% ==================================================================================================================
-% SPECIFIC FUNCTIONS
-% ==================================================================================================================
-% ==================================================================================================================
-
-% ============
-% DESERT
-% ============
 
    StartSnow(bOnGround=TRUE)
    {
