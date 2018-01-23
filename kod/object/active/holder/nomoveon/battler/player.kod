@@ -6680,7 +6680,10 @@ messages:
       % Check for stat steals
       foreach i in Send(self,@GetEnchantmentsByClass,#enchClass=&DrainHex)
       {
-         Send(Nth(i,2),@StealStat,#who=what,#what=self,#state=Nth(i,3));
+         if what <> self
+         {
+            Send(Nth(i,2),@StealStat,#who=what,#what=self,#state=Nth(i,3));
+         }
       }
 
       if NOT precision
