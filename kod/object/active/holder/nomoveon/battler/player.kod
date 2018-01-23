@@ -7017,8 +7017,10 @@ messages:
       Send(self,@AddHurtMeRecently,#who=what,#amount=damage);
 
       if what = self
+         AND NOT bSecondary
       {
-         % Don't apply status effects or reflect damage on ourselves.
+         % Don't apply status effects or reflect damage on ourselves
+         %    unless this is secondary damage, such as burning.
          return damage;
       }
 
