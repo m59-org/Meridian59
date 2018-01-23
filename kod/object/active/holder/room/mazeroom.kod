@@ -40,6 +40,8 @@ constants:
    SNOW_SECTOR = 700
    ICE_SECTOR = 710
    FROZEN_WATERFALL_SECTOR = 711
+   FROZEN_LOWER_WATERFALL_SECTOR = 712
+   WATER_SECTOR_NO_DEPTH_CHANGE = 713
    
    %% If these sectors exist, desert monsters will be placed.
    %%    These represent places where the ceiling has caved in, exposing the maze to the desert.
@@ -2225,9 +2227,13 @@ messages:
    {
       Send(self,@ChangeTexture,#id=SNOW_SECTOR,#new_texture=61015,#flags=CTF_FLOOR);
       Send(self,@ChangeTexture,#id=ICE_SECTOR,#new_texture=61017,#flags=CTF_FLOOR);
+      Send(self,@ChangeTexture,#id=WATER_SECTOR_NO_DEPTH_CHANGE,#new_texture=61017,#flags=CTF_FLOOR);
       Send(self,@AnimateWall,#wall=FROZEN_WATERFALL_SECTOR,#animation=ANIMATE_NONE,#first_group=1,#second_group=1,#end_group=1);
-      Send(self,@ChangeTexture,#id=FROZEN_WATERFALL_SECTOR,#new_texture=61017,#flags=CTF_BELOWWALL);
+      Send(self,@ChangeTexture,#id=FROZEN_WATERFALL_SECTOR,#new_texture=61017,#flags=CTF_NORMALWALL);
+      Send(self,@AnimateWall,#wall=FROZEN_LOWER_WATERFALL_SECTOR,#animation=ANIMATE_NONE,#first_group=1,#second_group=1,#end_group=1);
+      Send(self,@ChangeTexture,#id=FROZEN_LOWER_WATERFALL_SECTOR,#new_texture=61017,#flags=CTF_BELOWWALL);
       Send(self,@SetSectorFlags,#sector=ICE_SECTOR,#depth=SF_DEPTH0,#scrollSpeed=SCROLL_NONE);
+      Send(self,@SetSectorFlags,#sector=WATER_SECTOR_NO_DEPTH_CHANGE,#depth=SF_DEPTH0,#scrollSpeed=SCROLL_NONE);
 
       Send(self,@SetSectorFlags,#sector=SNOW_SECTOR,#depth=SF_DEPTH1,#scrollSpeed=SCROLL_NONE);
       vrWading_Sound = snow_walk_sound;
@@ -2240,9 +2246,13 @@ messages:
    {
       Send(self,@RemoveTextureChange,#id=SNOW_SECTOR);
       Send(self,@RemoveTextureChange,#id=ICE_SECTOR);
+      Send(self,@RemoveTextureChange,#id=WATER_SECTOR_NO_DEPTH_CHANGE);
       Send(self,@RemoveTextureChange,#id=FROZEN_WATERFALL_SECTOR);
       Send(self,@RemoveAnimateWallChange,#wall=FROZEN_WATERFALL_SECTOR);
+      Send(self,@RemoveTextureChange,#id=FROZEN_LOWER_WATERFALL_SECTOR);
+      Send(self,@RemoveAnimateWallChange,#wall=FROZEN_LOWER_WATERFALL_SECTOR);
       Send(self,@RemoveSectorFlagChange,#id=ICE_SECTOR);
+      Send(self,@RemoveSectorFlagChange,#id=WATER_SECTOR_NO_DEPTH_CHANGE);
 
       Send(self,@RemoveSectorFlagChange,#id=SNOW_SECTOR);
       vrWading_Sound = water_wading_sound;
@@ -2256,8 +2266,11 @@ messages:
       Send(self,@ChangeTexture,#id=SNOW_SECTOR,#new_texture=09080,#flags=CTF_FLOOR);
       % Acid rain makes the water gross.
       Send(self,@ChangeTexture,#id=ICE_SECTOR,#new_texture=09363,#flags=CTF_FLOOR);
+      Send(self,@ChangeTexture,#id=WATER_SECTOR_NO_DEPTH_CHANGE,#new_texture=09363,#flags=CTF_FLOOR);
       Send(self,@ChangeTexture,#id=FROZEN_WATERFALL_SECTOR,#new_texture=09363,#flags=CTF_NORMALWALL);
+      Send(self,@ChangeTexture,#id=FROZEN_LOWER_WATERFALL_SECTOR,#new_texture=09363,#flags=CTF_BELOWWALL);
       Send(self,@SetSectorFlags,#sector=ICE_SECTOR,#depth=SF_DEPTH1,#scrollSpeed=SCROLL_SLOW);
+      Send(self,@SetSectorFlags,#sector=WATER_SECTOR_NO_DEPTH_CHANGE,#scrollSpeed=SCROLL_SLOW);
 
       propagate;
    }
@@ -2268,10 +2281,13 @@ messages:
       Send(self,@RemoveTextureChange,#id=SNOW_SECTOR);
       % Remove sludge water textures.
       Send(self,@RemoveTextureChange,#id=ICE_SECTOR);
+      Send(self,@RemoveTextureChange,#id=WATER_SECTOR_NO_DEPTH_CHANGE);
       % Remove sludge water sides.
       Send(self,@RemoveTextureChange,#id=FROZEN_WATERFALL_SECTOR);
+      Send(self,@RemoveTextureChange,#id=FROZEN_LOWER_WATERFALL_SECTOR);
       % Reset sector flag changes to sludge water.
       Send(self,@RemoveSectorFlagChange,#id=ICE_SECTOR);
+      Send(self,@RemoveSectorFlagChange,#id=WATER_SECTOR_NO_DEPTH_CHANGE);
 
       propagate;
    }
