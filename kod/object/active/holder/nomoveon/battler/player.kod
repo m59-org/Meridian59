@@ -342,7 +342,7 @@ resources:
    player_dot = "."
 
    % Master fixed info resource.
-   player_fixed_info = "%r%r%r%r%s%r%r%s%q%r"
+   player_fixed_info = "%r%r%r%r%s%r%r%s%q%r%r%r"
 
    % Hometown strings.
    player_hometown_rsc = "%s%s%s%q%s\n"
@@ -387,15 +387,15 @@ resources:
    %  Archery: 
    %
    %  Fireball: Player's fireballs deal splash damage in a radius around the target.
-   %  Lightning bolt: Player's lightning bolt chains to also hit the closest additional enemy to the target.
+   %  Lightning bolt: Player's lightning bolt chains to also hit the closest additional enemy to the target. Prioritizes player enemies over monster enemies.
    %  Earthquake: Player's earthquake has tripled radius.
    %  Lightning wall: Player's lightning wall becomes a traveling wave of lightning.
    %  Flame dash: Player's flame dash range is tripled.
    %
    player_mastered_skill_num = \
-      "%s is a notable %s master."
+      "%s is a notable %s master.\n"
    player_mastered_spell_num = \
-      "%s is a renowned %s adept."
+      "%s is a renowned %s adept.\n"
 
    % Here's the new extended resources....
    player_desc_guild_faction_neutral = \
@@ -3055,6 +3055,24 @@ messages:
             ++i;
          }
          AddPacket(4,player_donation_title,4,GetTempString());
+      }
+      else
+      {
+         AddPacket(4,system_blank_resource);
+      }
+      
+      if piMasteredSkill > 0
+      {
+         AddPacket(4,player_mastered_skill_num, 4,Send(self,@GetHeShe,#cap=True),4,Send(Send(SYS,@FindSkillByNum,#num=piMasteredSkill),@GetName));
+      }
+      else
+      {
+         AddPacket(4,system_blank_resource);
+      }
+      
+      if piMasteredSpell > 0
+      {
+         AddPacket(4,player_mastered_spell_num, 4,Send(self,@GetHeShe,#cap=True),4,Send(Send(SYS,@FindSpellByNum,#num=piMasteredSpell),@GetName));
       }
       else
       {
