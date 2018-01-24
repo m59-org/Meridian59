@@ -254,6 +254,13 @@ messages:
 
       iMax_distance_squared = viMax_damage_distance * viMax_damage_distance;
       iZero_distance_squared = viZero_damage_distance * viZero_damage_distance;
+      
+      if Send(who,@HasMasteredThisSpell,#num=viSpell_num)
+      {
+         iMax_distance_squared = iMax_distance_squared * 3;
+         iZero_distance_squared = iZero_distance_squared * 3;
+      }
+
       if iDistance_squared > iMax_distance_squared
       {
          if iDistance_squared > iZero_distance_squared
@@ -263,7 +270,7 @@ messages:
          else
          {
          iPercent = 100 * (iZero_distance_squared - iDistance_squared) /
-                              (iZero_Distance_squared - iMax_distance_squared);
+                              (iZero_distance_squared - iMax_distance_squared);
          }
       }
       %Debug("percent = ", iPercent, " and iDamage is ", iDamage);

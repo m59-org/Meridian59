@@ -115,6 +115,12 @@ messages:
       % Can go up to 10 rows/cols (expressed in *64 fine)
       iDist = ((iSpellPower+1)*64)/10;
       
+      if Send(who,@HasMasteredThisSpell,#num=viSpell_num)
+      {
+         % Adepts of flame dash triple the distance traveled.
+         iDist = iDist * 3;
+      }
+      
       if iDist < 64
       {
          Send(who,@MsgSendUser,#message_rsc=flame_dash_too_short);

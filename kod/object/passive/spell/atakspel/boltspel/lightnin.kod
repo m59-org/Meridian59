@@ -25,6 +25,9 @@ resources:
       "Hurls a bolt of lightning at the target.  "
       "Requires blue mushrooms and orc teeth to cast."
 
+   your_bolt_chains = \
+      "Your mastered lightning bolt chains to another enemy!"
+
    lightning_sound = fbolt.wav
 
 classvars:
@@ -73,6 +76,81 @@ messages:
       plReagents = Cons([&OrcTooth,1],plReagents);
 
       return;
+   }
+
+   CastSpell(who=$,lTargets=$,iSpellPower=0,bChainCast=FALSE)
+   {
+      local oOwner, i, each_obj, oChainTarget, lBattlers, iClosestDist, iCurDist;
+
+      if Send(who,@HasMasteredThisSpell,#num=viSpell_num)
+         AND NOT bChainCast
+      {
+         oOwner = Send(who,@GetOwner);
+         lBattlers = $;
+
+         % For our chain target, we attempt to find a closest enemy player first.
+         %    This enemy player must be in line of sight from the enemy target,
+         %    not the caster. In other words, this can chain around corners.
+         % If there are no enemy players, then we look at monsters the same way.
+         
+         foreach i in Send(oOwner,@GetHolderActive)
+         {
+            each_obj = Send(oOwner,@HolderExtractObject,#data=i);
+            if IsClass(each_obj,&Player)
+               AND each_obj <> who
+               AND Send(oOwner,@LineOfSight,#obj1=First(lTargets),#obj2=each_obj)
+               AND Send(who,@AllowPlayerAttack,#victim=each_obj,#report=FALSE,#actual=FALSE)
+            {
+               lBattlers = Cons(each_obj,lBattlers);
+            }
+         }
+         
+         if lBattlers = $
+         {
+            foreach i in Send(oOwner,@GetHolderActive)
+            {
+               each_obj = Send(oOwner,@HolderExtractObject,#data=i);
+               if IsClass(each_obj,&Monster)
+                  AND each_obj <> First(lTargets)
+                  AND Send(oOwner,@LineOfSight,#obj1=First(lTargets),#obj2=each_obj)
+                  AND Send(who,@AllowPlayerAttack,#victim=each_obj,#report=FALSE,#actual=FALSE)
+               {
+                  lBattlers = Cons(each_obj,lBattlers);
+               }
+            }
+         }
+         
+         if lBattlers = $
+         {
+            % No suitable enemy players or monsters in line of sight from target
+            propagate;
+         }
+
+         oChainTarget = $;
+         iClosestDist = 999999;
+         iCurDist = 1000000;
+         foreach i in lBattlers
+         {
+            iCurDist = Send(First(lTargets),@SquaredFineDistanceTo3D,#what=i);
+            if iCurDist < iClosestDist
+            {
+               oChainTarget = i;
+               iClosestDist = iCurDist;
+            }
+         }
+         
+         % Show bolt from target to new target
+         % This doesn't show a lightning bolt chaining to a monster. Why???
+         % It works when chaining to a player!
+         if oChainTarget <> $
+         {
+            Send(oOwner,@SomethingShot,#who=First(lTargets),#target=oChainTarget,#projectile=self,#flags=viProjectileFlag);
+            Post(who,@MsgSendUser,#message_rsc=your_bolt_chains);
+            Post(self,@CastSpell,#who=who,#lTargets=[oChainTarget],#iSpellPower=iSpellPower,#bChainCast=TRUE);
+         }
+      }
+
+      propagate;
    }
 
    GetProjectileSpeed()

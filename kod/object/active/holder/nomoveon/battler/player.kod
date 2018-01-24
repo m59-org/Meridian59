@@ -372,6 +372,30 @@ resources:
    player_and = " and "
    player_magics = " magics"
    player_skills = "weaponcraft skills"
+   
+   %
+   %  Players may master one skill or spell above all others,
+   %     gaining exceptional abilities. These are generally
+   %     improvements to usability or against multiple targets.
+   %     They are not simply damage boosts.
+   %
+   %  Mace fighting: Player has a might-based chance to stun with mace attacks.
+   %  Hammer wielding: Player can perform a short 'leap attack', jumping forward to strike an opponent that would otherwise be out of range.
+   %  Short sword: Player's chance to parry rises as their health gets lower, reaching double at 1 hp remaining.
+   %  Fencing: Player has a chance to counterattack upon a successful parry.
+   %  Scimitar wielding: Player has a chance to deflect arrows.
+   %  Archery: 
+   %
+   %  Fireball: Player's fireballs deal splash damage in a radius around the target.
+   %  Lightning bolt: Player's lightning bolt chains to also hit the closest additional enemy to the target.
+   %  Earthquake: Player's earthquake has tripled radius.
+   %  Lightning wall: Player's lightning wall becomes a traveling wave of lightning.
+   %  Flame dash: Player's flame dash range is tripled.
+   %
+   player_mastered_skill_num = \
+      "%s is a notable %s master."
+   player_mastered_spell_num = \
+      "%s is a renowned %s adept."
 
    % Here's the new extended resources....
    player_desc_guild_faction_neutral = \
@@ -1233,6 +1257,10 @@ properties:
    
    % If this is TRUE, player cannot improve spellcasts.
    pbUsedBloodMagic = FALSE
+   
+   % Which skill has this player mastered?
+   piMasteredSkill = 0
+   piMasteredSpell = 0
 
 messages:
 
@@ -18156,6 +18184,46 @@ messages:
          {
             return TRUE;
          }         
+      }
+      return FALSE;
+   }
+   
+   SetMasteredSkill(num=0)
+   {
+      piMasteredSkill=num;
+      return;
+   }
+   
+   SetMasteredSpell(num=0)
+   {
+      piMasteredSpell=num;
+      return;
+   }
+   
+   GetMasteredSkill()
+   {
+      return piMasteredSkill;
+   }
+   
+   GetMasteredSpell()
+   {
+      return piMasteredSpell;
+   }
+   
+   HasMasteredThisSkill(num=0)
+   {
+      if piMasteredSkill = num
+      {
+         return TRUE;
+      }
+      return FALSE;
+   }
+   
+   HasMasteredThisSpell(num=0)
+   {
+      if piMasteredSpell = num
+      {
+         return TRUE;
       }
       return FALSE;
    }
