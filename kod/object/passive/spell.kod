@@ -1676,6 +1676,7 @@ messages:
                if (Send(SETTINGS_OBJECT,@DisplaySpellData)
                      OR IsClass(oTarget,&DM))
                   AND oTarget <> who
+                  AND NOT bSecondaryCast
                {
                   Send(oTarget,@MsgSendUser,#message_rsc=spell_display_spellpower,
                      #parm1=Send(self,@GetName),#parm2=iSpellPower);
@@ -1689,6 +1690,7 @@ messages:
       if who <> $
          AND IsClass(who,&Player)
          AND Send(who,@CheckPlayerPreference,#flag=CF_SPELLPOWER)
+         AND NOT bSecondaryCast
       {
          Send(who,@MsgSendUser,#message_rsc=spell_display_spellpower,
                #parm1=Send(self,@GetName),#parm2=iSpellPower);
