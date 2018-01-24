@@ -1,0 +1,62 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+MazeTreasureRoomSpear is MinotaurMazeRoom
+
+% First treasure room.
+
+constants:
+
+   include blakston.khd
+   
+   PLATFORM_ONE_ID = 200
+
+resources:
+
+   room_mazetreasureroomspear = mazetreasureroomspear.roo
+
+classvars:
+
+properties:
+
+   prRoom = room_mazetreasureroomspear
+   piRoom_num = RID_MAZE_TREASURE_ROOM_SPEAR
+
+messages:
+
+   CreateMazeRoomObjects()
+   {
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_DPURPLE,#iIntensity=255),#new_row=19,#new_col=21,#fine_row=20,#fine_col=23);
+      return;
+   }
+   
+   CheckMoveBorders(what=$, new_row=$, new_col=$)
+   {
+      return;
+   }
+   
+   EvaluateMovement(who=$,section=0)
+   {
+      local i, lRandomSectors;
+      % Any time someone moves, randomize south platforms.
+      % ID 250 to 266
+      
+      lRandomSectors = [250,251,252,253,254,255,256,257,258,259,260,261,262,263,264,265,266];
+      
+      foreach i in lRandomSectors
+      {
+         Send(self,@SetSector,#sector=i,#animation=ANIMATE_FLOOR_LIFT,#height=Random(1040,1260),#speed=50);
+      }
+      
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
