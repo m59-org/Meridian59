@@ -1807,7 +1807,10 @@ messages:
       }
 
       % Count that this spell was cast successfully
-      Send(Send(SYS,@GetStatistics),@SpellCast,#oSpell=self,#who=who);
+      if NOT bSecondaryCast
+      {
+         Send(Send(SYS,@GetStatistics),@SpellCast,#oSpell=self,#who=who);
+      }
 
       return;
    }
