@@ -19,6 +19,7 @@ resources:
 
    fireball_name_rsc = "fireball"
    fireball_icon_rsc = fireball.bgf
+   fireball_splash_icon_rsc = woflame.bgf
    fireball_look_icon = ifirebal.bgf
    fireball_desc_rsc = \
       "Sends a ball of flames at the target.  "
@@ -26,6 +27,8 @@ resources:
 
    fireball_hit_rsc = "A ball of fire strikes %s%s!"
 
+   fireball_explode_rsc = "Your fireball explodes on impact!"
+   
    fireball_sound = ffirebal.wav
 
 classvars:
@@ -53,12 +56,21 @@ classvars:
    viProjectileLightIntensity = 100
    % Color is orange.
    viProjectileLightColor = LIGHT_BORANGE
+   
+   % Splash characteristics are different
+   viAlternateProjectile_icon = fireball_splash_icon_rsc
+   viAlternateProjectileSpeed = 4
+   viAlternateProjectileLightFlags = LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC
+   viAlternateProjectileLightIntensity = 100
+   viAlternateProjectileLightColor = LIGHT_RED
 
 properties:
    
    piDamageMin = 8
    piDamageMax = 12
    prSpellHit = fireball_hit_rsc
+   
+   pbSplashRange = 4*64
 
 messages:
 
@@ -71,6 +83,48 @@ messages:
       plReagents = Cons([&OrcTooth,1],plReagents);
 
       return;
+   }
+
+   CastSpell(who=$,lTargets=$,iSpellPower=0,bSecondaryCast=FALSE)
+   {
+      local oOwner, i, each_obj, lSplashTargets, lBattlers;
+
+      if Send(who,@HasMasteredThisSpell,#num=viSpell_num)
+         AND NOT bSecondaryCast
+      {
+         oOwner = Send(who,@GetOwner);
+         lBattlers = $;
+
+         % For our splash targets, we find all battlers in range of the target
+         %    that aren't the caster or target and which the caster can attack
+
+         foreach i in Send(oOwner,@GetHolderActive)
+         {
+            each_obj = Send(oOwner,@HolderExtractObject,#data=i);
+            if IsClass(each_obj,&Battler)
+               AND each_obj <> who
+               AND each_obj <> First(lTargets)
+               AND Send(oOwner,@LineOfSight,#obj1=First(lTargets),#obj2=each_obj)
+               AND Send(who,@AllowPlayerAttack,#victim=each_obj,#report=FALSE,#actual=FALSE)
+               AND Send(First(lTargets),@SquaredFineDistanceTo3D,#what=each_obj) <= pbSplashRange*pbSplashRange
+            {
+               lBattlers = Cons(each_obj,lBattlers);
+            }
+         }
+         
+         % Show bolt from target to new targets
+         if lBattlers <> $
+         {
+            Post(who,@MsgSendUser,#message_rsc=fireball_explode_rsc);
+            foreach i in lBattlers
+            {
+               Send(oOwner,@SomethingShot,#who=First(lTargets),#target=i,#projectile=self,#flags=viProjectileFlag,#bUseAlternates=TRUE);
+               Post(self,@CastSpell,#who=who,#lTargets=[i],#iSpellPower=iSpellPower,#bSecondaryCast=TRUE);
+            }
+         }
+      }
+
+      propagate;
    }
 
    GetProjectileSpeed()
@@ -93,6 +147,39 @@ messages:
       return;
    }
 
+   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+   % The splash characteristics are different to avoid looking like chain
+
+   GetAlternateProjectileLightColor()
+   {
+      return viAlternateProjectileLightColor;
+   }
+   
+   GetAlternateProjectileIcon()
+   {
+      return viAlternateProjectile_icon;
+   }
+   
+   SendAlternateProjectileAnimation()
+   {
+      AddPacket(1,ANIMATE_CYCLE, 4,random(100,140), 2,1, 2,5);
+      return;
+   }
+   
+   GetAlternateProjectileSpeed()
+   {
+      return viAlternateProjectileSpeed;
+   }
+   
+   GetAlternateProjectileLightFlags()
+   {
+      return viAlternateProjectileLightFlags;
+   }
+   
+   GetAlternateProjectileLightIntensity()
+   {
+      return viAlternateProjectileLightIntensity;
+   }
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

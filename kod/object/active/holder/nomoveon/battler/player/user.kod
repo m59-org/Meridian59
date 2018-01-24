@@ -8174,7 +8174,7 @@ messages:
    }
 
    SomethingShot(who=$, target=$, projectile=$, flags=PROJ_FLAG_NONE,
-                 iLightIntensity=0, iLightColor=0)
+                 iLightIntensity=0, iLightColor=0, bUseAlternates=FALSE)
    {
       local iValue, iProjectileLightColor;
 
@@ -8192,29 +8192,71 @@ messages:
       }
       else
       {
-         iProjectileLightColor = Send(projectile,@GetProjectileLightColor);
+         if bUseAlternates
+         {
+            iProjectileLightColor = Send(projectile,@GetAlternateProjectileLightColor);
+         }
+         else
+         {
+            iProjectileLightColor = Send(projectile,@GetProjectileLightColor);
+         }
       }
 
-      AddPacket(1,BP_SHOOT,4,Send(projectile,@GetProjectileIcon));
-      Send(projectile,@SendProjectileAnimation);
+      if bUseAlternates
+      {
+         AddPacket(1,BP_SHOOT,4,Send(projectile,@GetAlternateProjectileIcon));
+         Send(projectile,@SendAlternateProjectileAnimation);
+      }
+      else
+      {
+         AddPacket(1,BP_SHOOT,4,Send(projectile,@GetProjectileIcon));
+         Send(projectile,@SendProjectileAnimation);
+      }
 
-      % Send shooter and target.
-      AddPacket(4,who, 4,target, 1,Send(projectile,@GetProjectileSpeed),
-                2,(flags & 0x000F));
+      if bUseAlternates
+      {
+         % Send shooter and target.
+         AddPacket(4,who, 4,target, 1,Send(projectile,@GetAlternateProjectileSpeed),
+                   2,(flags & 0x000F));
+      }
+      else
+      {
+         % Send shooter and target.
+         AddPacket(4,who, 4,target, 1,Send(projectile,@GetProjectileSpeed),
+                   2,(flags & 0x000F));
+      }
 
       if (flags & PROJ_FLAG_LIGHT_SOURCE)
       {
          % Lighting flags
-         iValue = Send(projectile,@GetProjectileLightFlags);
+         if bUseAlternates
+         {
+            iValue = Send(projectile,@GetAlternateProjectileLightFlags);
+         }
+         else
+         {
+            iValue = Send(projectile,@GetProjectileLightFlags);
+         }
          % Double-check for sanity
          if iValue <> LIGHT_FLAG_NONE
          {
             % Make sure projectiles are on and have the dynamic flag set.
             iValue = iValue | LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC;
-            % Flags, Intensity, color
-            AddPacket(2,iValue,
-                      1,Send(projectile,@GetProjectileLightIntensity),
-                      2,iProjectileLightColor);
+            
+            if bUseAlternates
+            {
+               % Flags, Intensity, color
+               AddPacket(2,iValue,
+                         1,Send(projectile,@GetAlternateProjectileLightIntensity),
+                         2,iProjectileLightColor);
+            }
+            else
+            {
+               % Flags, Intensity, color
+               AddPacket(2,iValue,
+                         1,Send(projectile,@GetProjectileLightIntensity),
+                         2,iProjectileLightColor);
+            }
          }
          else
          {

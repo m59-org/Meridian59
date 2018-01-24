@@ -45,7 +45,7 @@ properties:
 
 messages:
 
-   CastSpell(who=$,lTargets=$,bChainCast=FALSE)
+   CastSpell(who=$,lTargets=$,bChainCast=FALSE,bSecondaryCast=FALSE)
    {
       local oOwner, i;
 
@@ -54,7 +54,7 @@ messages:
       % Show bolt flying through the air.
       foreach i in lTargets
       {
-         if NOT bChainCast
+         if NOT bSecondaryCast
          {
             Send(oOwner,@SomethingShot,#who=who,#target=i,#projectile=self,
                   #flags=viProjectileFlag);
@@ -97,6 +97,39 @@ messages:
    GetProjectileLightColor()
    {
       return viProjectileLightColor;
+   }
+
+   % For secondary effects such as splash or chain
+   
+   GetAlternateProjectileLightColor()
+   {
+      return viProjectileLightColor;
+   }
+   
+   GetAlternateProjectileIcon()
+   {
+      return vrProjectile_Icon;
+   }
+   
+   SendAlternateProjectileAnimation()
+   {
+      Send(self,@SendProjectileAnimation);
+      return;
+   }
+   
+   GetAlternateProjectileSpeed()
+   {
+      return Send(self,@GetProjectileSpeed);
+   }
+   
+   GetAlternateProjectileLightFlags()
+   {
+      return viProjectileLightFlags;
+   }
+   
+   GetAlternateProjectileLightIntensity()
+   {
+      return viProjectileLightIntensity;
    }
 
 end

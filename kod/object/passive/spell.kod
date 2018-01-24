@@ -1601,7 +1601,7 @@ messages:
       return TRUE;
    }
 
-   CastSpell(who = $, lTargets = $, iSpellPower = 0, bItemCast=FALSE)
+   CastSpell(who = $, lTargets = $, iSpellPower = 0, bItemCast=FALSE, bSecondaryCast = FALSE)
    {
       local oTarget, oRoom;
 
@@ -1737,10 +1737,13 @@ messages:
 
             return;
          }
-      
-         Send(self,@PlaySpellSound,#room_obj=oRoom,#what=who);
-         Send(oRoom,@SpellCast,#who=who,#oSpell=self,#lItems=lTargets,
-               #bItemCast=bItemCast);
+
+         if NOT bSecondaryCast
+         {
+            Send(self,@PlaySpellSound,#room_obj=oRoom,#what=who);
+            Send(oRoom,@SpellCast,#who=who,#oSpell=self,#lItems=lTargets,
+                  #bItemCast=bItemCast);
+         }
       }
 
       if Send(self,@AffectsSpellPower)
