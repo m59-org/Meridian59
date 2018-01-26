@@ -376,12 +376,10 @@ resources:
    %
    %  Players may master one skill or spell above all others,
    %     gaining exceptional abilities. These are generally
-   %     improvements to usability or against multiple targets.
+   %     improvements to usability or effectiveness against multiple targets.
    %     They are not simply damage boosts.
    %
    %  Mace fighting: Player has a might-based chance to stun with mace attacks.
-   %  Hammer wielding: Player can perform a short 'leap attack', jumping forward to strike an opponent that would otherwise be out of range.
-   %  Short sword: Player's chance to parry rises as their health gets lower, reaching double at 1 hp remaining.
    %  Fencing: Player has a chance to counterattack upon a successful parry.
    %  Scimitar wielding: Player has a chance to deflect arrows.
    %  Archery: 
@@ -396,10 +394,14 @@ resources:
    %  Tight Grip: You counter enemy disarm attempts with a disarm attempt of your own (whether or not you have the disarm skill).
    %  Track: Your Track range increases to 5 rooms distant.
    %
+   %  COMPLETE:
+   %  Hammer wielding: Player can perform a short 'leap attack', jumping forward to strike an opponent that would otherwise be out of range (range 2-4).
+   %
+   %  Dagger Wielding: Player's parry defense rises as their health drops, up to double.
+   %
    %  Fireball: Player's fireballs deal splash damage in a radius around the target.
    %  Lightning bolt: Player's lightning bolt chains to also hit the closest additional enemy to the target. Prioritizes player enemies over monster enemies.
    %  Earthquake: Player's earthquake has tripled radius.
-   %  Lightning wall: Player's lightning wall becomes a traveling wave of lightning.
    %  Flame dash: Player's flame dash range is tripled.
    %
    player_mastered_skill_num = \
@@ -6068,7 +6070,7 @@ messages:
    TargetWithinSightAndRange(oTarget=$,iRange=$,use_weapon=$,stroke_obj=$)
    {
       local iSquareRange, iDist, oTargetOwner, oFinalTarget, iAngle,
-            iRow, iCol, iTargetRow, iTargetCol;
+            iRow, iCol, iTargetRow, iTargetCol, oHammerWielding;
 
       oTargetOwner = Send(oTarget,@GetOwner);
 
@@ -6106,6 +6108,22 @@ messages:
 
          if iDist > iSquareRange
          {
+            % Check whether we can leap attack with a hammer between range 2 and 4
+            if iDist <= (4 * FINENESS) * (4 * FINENESS)
+               AND IsClass(stroke_obj,&Slash)
+               AND Send(self,@GetSkillAbility,#skill_num=SKID_PROFICIENCY_HAMMER) > 0
+               AND Send(self,@HasMasteredThisSkill,#num=SKID_PROFICIENCY_HAMMER)
+            {
+               oHammerWielding = Send(SYS,@FindSkillByNum,#num=SKID_PROFICIENCY_HAMMER);
+               
+               if Send(oHammerWielding,@CanPayLeapCost,#who=self,#oTarget=oFinalTarget)
+               {
+                  if Send(oHammerWielding,@DoLeap,#who=self,#oTarget=oFinalTarget)
+                  {
+                     return TRUE;
+                  }
+               }
+            }
             if NOT IsClass(stroke_obj,&Throw)
                AND Send(self,@GetSkillAbility,#skill_num=SKID_THROW) > 0
             {
