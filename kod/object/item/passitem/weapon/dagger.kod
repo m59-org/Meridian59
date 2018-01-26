@@ -58,7 +58,14 @@ messages:
 
    GetParryAbility(who=$)
    {
-      return send(who,@GetSkillAbility,#skill_num=SKID_PARRY) * 2;
+      local iInverseHealthPercentage;
+      if Send(who,@HasMasteredThisSkill,#num=viProficiency_Needed)
+      {
+         % Up to double the parry defense as health gets lower
+         iInverseHealthPercentage = 100 - ((Send(who,@GetHealth)*100)/(Send(who,@GetMaxHealth)));
+         return (Send(who,@GetSkillAbility,#skill_num=SKID_PARRY) * 2) + (Send(who,@GetSkillAbility,#skill_num=SKID_PARRY)*2*iInverseHealthPercentage)/100;
+      }
+      return Send(who,@GetSkillAbility,#skill_num=SKID_PARRY) * 2;
    }
 
    GetAmmoType()

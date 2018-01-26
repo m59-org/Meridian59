@@ -8701,11 +8701,24 @@ messages:
 
    DrawHealth()
    {
+      local oWeapon;
+
       if pbLogged_on
       {
          AddPacket(1,BP_STAT,1,1);
          Send(self,@SendStatHealth);
          SendPacket(poSession);
+         
+         if Send(self,@HasMasteredThisSkill,#num=SKID_PROFICIENCY_DAGGER)
+         {
+            oWeapon = Send(self,@GetWeapon);
+            if oWeapon <> $
+               AND IsClass(oWeapon,&Dagger)
+            {
+               % User gains parry defense as health drops.
+               Post(self,@DrawDefense);
+            }
+         }
       }
       
       return;
