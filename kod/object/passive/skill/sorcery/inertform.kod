@@ -54,15 +54,21 @@ messages:
 
    GetInertFormPercentage(who=$)
    {
-      local iAbility, iStat;
+      local iAbility, iStat, bMasteryBonus;
 
       iAbility = Send(who,@GetSkillAbility,#Skill_num=viSkill_num);
       iStat = Send(self,@GetRequisiteStat,#who=who);
 
       Send(self,@DoSkill,#who=who);
+      
+      bMasteryBonus = 1;
+      if Send(who,@HasMasteredThisSkill,#num=viSkill_num)
+      {
+         bMasteryBonus = 3;
+      }
 
       % 10 + up to 20 from skill + up to 7ish from stamina
-      return ((piInertFormPercentage+((iAbility+1)/5)+(iStat/10))*100)/100;
+      return Bound((((piInertFormPercentage+((iAbility+1)/5)+(iStat/10))*100)*bMasteryBonus)/100,0,100);
    }
 
    DoSkill(who=$)
