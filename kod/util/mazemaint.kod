@@ -16,6 +16,20 @@ constants:
 
 resources:
 
+   maze_maint_interior1 = mazeinterior1.roo
+   maze_maint_interior2 = mazeinterior2.roo
+   maze_maint_interior3 = mazeinterior3.roo
+   maze_maint_interior4 = mazeinterior4.roo
+   maze_maint_interior5 = mazeinterior5.roo
+   maze_maint_interior6 = mazeinterior6.roo
+   maze_maint_interior7 = mazeinterior7.roo
+   maze_maint_interior8 = mazeinterior8.roo
+   maze_maint_interior9 = mazeinterior9.roo
+   maze_maint_interior10 = mazeinterior10.roo
+   maze_maint_interior11 = mazeinterior11.roo
+   maze_maint_interior12 = mazeinterior12.roo
+   maze_maint_interior13 = mazeinterior13.roo
+
 classvars:
 
 properties:
@@ -28,6 +42,7 @@ properties:
    poBossRoom = $
    
    plMazeClasses = $
+   plMazeRooFiles = $
 
 messages:
 
@@ -61,8 +76,22 @@ messages:
          plMazeRooms = DelListElem(plMazeRooms,i);
       }
       plMazeRooms = $;
+      plMazeRooFiles = $;
       
       plMazeClasses = [&Maze5];
+      plMazeRooFiles = [maze_maint_interior1,
+                        maze_maint_interior2,
+                        maze_maint_interior3,
+                        maze_maint_interior4,
+                        maze_maint_interior5,
+                        maze_maint_interior6,
+                        maze_maint_interior7,
+                        maze_maint_interior8,
+                        maze_maint_interior9,
+                        maze_maint_interior10,
+                        maze_maint_interior11,
+                        maze_maint_interior12,
+                        maze_maint_interior13];
       %plMazeClasses = [&Maze4a, &Maze4b, &Maze4c];
 
       return;
@@ -166,7 +195,7 @@ messages:
 
    GenerateNewRoom(from_room=$,from_direction=0)
    {
-      local oRoom, iGeneratedNum, lMazeClasses, iTargetXCoord, iTargetYCoord, oExistingRoom;
+      local oRoom, iGeneratedNum, lMazeClasses, iTargetXCoord, iTargetYCoord, oExistingRoom, bInterior;
       
       %
       %
@@ -213,6 +242,7 @@ messages:
 %      }
 
       lMazeClasses = $;
+      bInterior = TRUE;
       
       if iTargetXCoord = 1
       {
@@ -266,6 +296,11 @@ messages:
       {
          lMazeClasses = [&MazeNorthEastCorner];
       }
+      
+      if lMazeClasses <> $
+      {
+         bInterior = FALSE;
+      }
 
       oExistingRoom = Send(self,@CheckForExistingRoom,#x_coord=iTargetXCoord,#y_coord=iTargetYCoord);
       if oExistingRoom <> $
@@ -279,8 +314,16 @@ messages:
       else
       {
          iGeneratedNum = Send(self,@GetNextAvailableRID);
-         Send(SYS,@CreateOneRoomIfNew,#num=iGeneratedNum,
-                                      #class=Nth(lMazeClasses,Random(1,Length(lMazeClasses))));
+         
+         if NOT bInterior
+         {
+            Send(SYS,@CreateOneRoomIfNew,#num=iGeneratedNum,
+                                         #class=Nth(lMazeClasses,Random(1,Length(lMazeClasses))));
+         }
+         else
+         {
+            Send(SYS,@CreateOneRoomIfNew,#num=iGeneratedNum,#class=&MazeInteriorRoom,#base_room=Nth(plMazeRooFiles,Random(1,Length(plMazeRooFiles))));
+         }
          Send(Send(SYS,@GetStatistics),@AddToRoomCount,#iNum=iGeneratedNum);
       
          oRoom = Send(SYS,@FindRoomByNum,#num=iGeneratedNum);

@@ -9,6 +9,14 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 MinotaurMazeRoom is Room
+%
+% Vecka tells you, "The maze was originally constructed to be the ultimate
+%    in opulence, a final resting place for the High Sorcerers. You may have
+%    encountered smaller tombs of lesser known sorcerers already. When the
+%    High Sorcerers found immortality, they knew they would never rest in the maze,
+%    so they sealed it off and set a monster to guard the wealth within."
+%
+%
 
 % The Maze of the Minotaur changes each day.
 % You have until your Elemental Torch runs out.
@@ -439,9 +447,14 @@ properties:
 
 messages:
 
-   Constructor(iRID=RID_MAZE_ENTRANCE)
+   Constructor(iRID=RID_MAZE_ENTRANCE, base_room=$)
    {
       piRoom_num = iRID;
+      
+      if base_room <> $
+      {
+         prRoom = base_room;
+      }
       
       propagate;
    }
