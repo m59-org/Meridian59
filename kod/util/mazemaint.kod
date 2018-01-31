@@ -44,6 +44,10 @@ properties:
    plMazeClasses = $
    plMazeRooFiles = $
 
+   % We only recreate the maze if players have seen it.
+   % Otherwise, no need to change the configuration all the time.
+   piMazeHasBeenEnteredByPlayers = FALSE
+
 messages:
 
    Constructor()
@@ -54,6 +58,12 @@ messages:
    }
 
    Recreate()
+   {
+      Send(self,@RecreateMap);
+      return;
+   }
+   
+   ClearMap()
    {
       local i;
 
@@ -68,6 +78,12 @@ messages:
          Send(poBossRoom,@HustleUsersOutOfRoom);
          Send(poBossRoom,@Delete);
          poBossRoom = $;
+      }
+      if poTreasureRoom <> $
+      {
+         Send(poTreasureRoom,@HustleUsersOutOfRoom);
+         Send(poTreasureRoom,@Delete);
+         poTreasureRoom = $;
       }
 
       foreach i in plMazeRooms
@@ -93,8 +109,116 @@ messages:
                         maze_maint_interior12,
                         maze_maint_interior13];
       %plMazeClasses = [&Maze4a, &Maze4b, &Maze4c];
-
+      
+      piMazeHasBeenEnteredByPlayers = FALSE;
       return;
+   }
+
+   RecreateMap()
+   {
+      local iTreasureXCoord, iTreasureYCoord, iBossXCoord, iBossYCoord, i, iX, iY;
+
+      % Make sure the maze is deleted
+      Send(self,@ClearMap);
+      
+      % We create special rooms first at random locations, then fill in the missing areas with random interiors.
+      poFirstRoom = Send(self,@GenerateSpecificRoom,#bFirstRoom=TRUE);
+      
+      iTreasureXCoord = Random(2,9);
+      iTreasureYCoord = Random(2,9);
+      
+      iBossXCoord = Random(2,9);
+      iBossYCoord = Random(2,9);
+      
+      % Same coordinates!!
+      if iBossXCoord = iTreasureXCoord
+         AND iBossYCoord = iTreasureYCoord
+      {
+         iBossXCoord++;
+         if iBossXCoord > 9
+         {
+            iBossXCoord = 2;
+         }
+      }
+
+      poTreasureRoom = Send(self,@GenerateSpecificRoom,#bTreasureRoom=TRUE,#x_coord=iTreasureXCoord,#y_coord=iTreasureYCoord);
+      poBossRoom = Send(self,@GenerateSpecificRoom,#bBossRoom=TRUE,#x_coord=iBossXCoord,#y_coord=iBossYCoord);
+      
+      % CHANGE THIS TO 2 to 9 AND ADD EDGES
+      iX = 4;
+      while iX <= 6
+      {
+         iY = 1;
+         while iY <= 3
+         {
+            if poTreasureRoom <> $
+            {
+               if Send(poTreasureRoom,@GetXCoord) = iX
+                  AND Send(poTreasureRoom,@GetYCoord) = iY
+               {
+                  continue;
+               }
+            }
+            if poBossRoom <> $
+            {
+               if Send(poBossRoom,@GetXCoord) = iX
+                  AND Send(poBossRoom,@GetYCoord) = iY
+               {
+                  continue;
+               }
+            }
+            Send(self,@GenerateSpecificRoom,#x_coord=iX,#y_coord=iY);
+            iY++;
+         }
+         iX++;
+      }
+      return;
+   }
+
+   FindNextOpenCoordinate()
+   {
+      local iX, iY, i, bOpen;
+      
+      iX = 2;
+      iY = 2;
+      while iX < 10
+      {
+         while iY < 10
+         {
+            bOpen = TRUE;
+            if poTreasureRoom <> $
+            {
+               if Send(poTreasureRoom,@GetXCoord) = iX
+                  AND Send(poTreasureRoom,@GetYCoord) = iY
+               {
+                  bOpen = FALSE;
+               }
+            }
+            if poBossRoom <> $
+            {
+               if Send(poBossRoom,@GetXCoord) = iX
+                  AND Send(poBossRoom,@GetYCoord) = iY
+               {
+                  bOpen = FALSE;
+               }
+            }
+            foreach i in plMazeRooms
+            {
+               if Send(i,@GetXCoord) = iX
+                  AND Send(i,@GetYCoord) = iY
+               {
+                  bOpen = FALSE;
+               }
+            }
+            if bOpen = TRUE
+            {
+               return [iX, iY];
+            }
+            iY++;
+         }
+         iX++;
+      }
+      return $;
    }
 
    GetFirstRoom()
@@ -165,6 +289,40 @@ messages:
       return;
    }
    
+   GetRoomAtCoords(x_coord=-1,y_coord=-1)
+   {
+      local i;
+      
+      if Send(poFirstRoom,@GetXCoord) = x_coord
+         AND Send(poFirstRoom,@GetYCoord) = y_coord
+      {
+         return poFirstRoom;
+      }
+      
+      if Send(poTreasureRoom,@GetXCoord) = x_coord
+         AND Send(poTreasureRoom,@GetYCoord) = y_coord
+      {
+         return poTreasureRoom;
+      }
+      
+      if Send(poBossRoom,@GetXCoord) = x_coord
+         AND Send(poBossRoom,@GetYCoord) = y_coord
+      {
+         return poBossRoom;
+      }
+      
+      foreach i in plMazeRooms
+      {
+         if Send(i,@GetXCoord) = x_coord
+            AND Send(i,@GetYCoord) = y_coord
+         {
+            return i;
+         }      
+      }
+
+      return $;
+   }
+
    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
    %%%%%%%%%%%%%%%%%%% Maze Room Handling 
    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -193,6 +351,70 @@ messages:
       return;
    }
 
+   GenerateSpecificRoom(x_coord=-1, y_coord=-1, bFirstRoom=FALSE, bTreasureRoom=FALSE, bBossRoom=FALSE)
+   {
+      local iGeneratedNum, bInterior, oRoom;
+
+      % We use this function to create rooms where we want them.
+
+      if Send(self,@CheckForExistingRoom,#x_coord=x_coord,#y_coord=y_coord) <> $
+      {
+         return $;
+      }
+
+      if bFirstRoom
+      {
+         if poFirstRoom = $
+         {
+            Send(SYS,@CreateOneRoomIfNew,#num=RID_MAZE_ENTRANCE,#class=&MinotaurMazeRoom);
+            poFirstRoom = Send(SYS,@FindRoomByNum,#num=RID_MAZE_ENTRANCE);
+            Send(Send(SYS,@GetStatistics),@AddToRoomCount,#iNum=RID_MAZE_ENTRANCE);
+            Send(poFirstRoom,@SetXCoord,#coord_value=5);
+            Send(poFirstRoom,@SetYCoord,#coord_value=0);
+            return poFirstRoom;
+         }
+      }
+      
+      if bTreasureRoom
+      {
+         if poTreasureRoom = $
+         {
+            Send(SYS,@CreateOneRoomIfNew,#num=RID_MAZE_TREASURE_ROOM_SPEAR,#class=&MazeTreasureRoomSpear);
+            poTreasureRoom = Send(SYS,@FindRoomByNum,#num=RID_MAZE_TREASURE_ROOM_SPEAR);
+            Send(Send(SYS,@GetStatistics),@AddToRoomCount,#iNum=RID_MAZE_TREASURE_ROOM_SPEAR);
+            Send(poTreasureRoom,@SetXCoord,#coord_value=x_coord);
+            Send(poTreasureRoom,@SetYCoord,#coord_value=y_coord);
+            return poTreasureRoom;
+         }
+      }
+      
+      if bBossRoom
+      {
+         if poBossRoom = $
+         {
+            Send(SYS,@CreateOneRoomIfNew,#num=RID_MAZE_BOSS_ROOM,#class=&MazeBossRoom);
+            poBossRoom = Send(SYS,@FindRoomByNum,#num=RID_MAZE_BOSS_ROOM);
+            Send(Send(SYS,@GetStatistics),@AddToRoomCount,#iNum=RID_MAZE_BOSS_ROOM);
+            Send(poBossRoom,@SetXCoord,#coord_value=x_coord);
+            Send(poBossRoom,@SetYCoord,#coord_value=y_coord);
+            return poBossRoom;
+         }
+      }
+      
+      % Ok, we're not making a specific room. Let's randomize!
+      
+      iGeneratedNum = Send(self,@GetNextAvailableRID);
+      Send(SYS,@CreateOneRoomIfNew,#num=iGeneratedNum,#class=&MazeInteriorRoom,#base_room=Nth(plMazeRooFiles,Random(1,Length(plMazeRooFiles))));
+      Send(Send(SYS,@GetStatistics),@AddToRoomCount,#iNum=iGeneratedNum);
+      oRoom = Send(SYS,@FindRoomByNum,#num=iGeneratedNum);
+      Send(oRoom,@SetXCoord,#coord_value=x_coord);
+      Send(oRoom,@SetYCoord,#coord_value=y_coord);
+      
+      plMazeRooms = Cons(oRoom,plMazeRooms);
+
+      return $;
+   }
+   
    GenerateNewRoom(from_room=$,from_direction=0)
    {
       local oRoom, iGeneratedNum, lMazeClasses, iTargetXCoord, iTargetYCoord, oExistingRoom, bInterior;
@@ -264,8 +486,8 @@ messages:
          lMazeClasses = [&MazeNorthBorder];
       }
       
-      if Send(from_room,@GetXCoord) = -1
-         AND Send(from_room,@GetYCoord) = -1
+      if Send(from_room,@GetXCoord) = 5
+         AND Send(from_room,@GetYCoord) = 0
       {
          % We are entering the maze.
          lMazeClasses = [&Maze4a, &Maze4b, &Maze4c, &Maze5];

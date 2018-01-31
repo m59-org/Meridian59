@@ -275,6 +275,17 @@ resources:
       "powering your unnatural sources of light! It seems that only a natural "
       "source of light such as a torch will function here."
 
+   maze_exit_blocked1 = \
+      "This door seems to have been blocked by a cave-in."
+   maze_exit_blocked2 = \
+      "The handle of this door glows red hot. It is likely that lava has filled the room beyond."
+   maze_exit_blocked3 = \
+      "The door refuses to budge."
+   maze_exit_blocked4 = \
+      "This door bears a rare pristine symbol of a High Sorcerer. Its magics still function, so it will not open for you."
+   maze_exit_blocked5 = \
+      "Trace amounts of water leak from around the edges of this door. The next area seems to have been flooded, thus opening it would be not be wise."
+
 classvars:
 
    vrName = room_name_minotaurmazeroom
@@ -581,6 +592,11 @@ messages:
    Delete()
    {
       local i, oThing, oPlayer;
+      
+      poNorthExit = $;
+      poEastExit = $;
+      poSouthExit = $;
+      poWestExit = $;
       
       foreach i in Send(self,@GetHolderActive)
       {
@@ -1533,36 +1549,36 @@ messages:
          case MAZE_DIRECTION_NORTH:
             if poNorthExit = $
             {
-               poNorthExit = Send(Send(SYS,@GetMazeRoomMaintenance),@GenerateNewRoom,
-                                                                    #from_room=self,
-                                                                    #from_direction=from_direction);
+               poNorthExit = Send(Send(SYS,@GetMazeRoomMaintenance),@GetRoomAtCoords,
+                                                                    #x_coord=piXCoord,
+                                                                    #y_coord=piYCoord+1);
             }
             Send(poNorthExit,@MazeEnter,#who=who,#from_direction=from_direction);
             break;
          case MAZE_DIRECTION_SOUTH:
             if poSouthExit = $
             {
-               poSouthExit = Send(Send(SYS,@GetMazeRoomMaintenance),@GenerateNewRoom,
-                                                                    #from_room=self,
-                                                                    #from_direction=from_direction);
+               poSouthExit = Send(Send(SYS,@GetMazeRoomMaintenance),@GetRoomAtCoords,
+                                                                    #x_coord=piXCoord,
+                                                                    #y_coord=piYCoord-1);
             }
             Send(poSouthExit,@MazeEnter,#who=who,#from_direction=from_direction);
             break;
          case MAZE_DIRECTION_EAST:
             if poEastExit = $
             {
-               poEastExit = Send(Send(SYS,@GetMazeRoomMaintenance),@GenerateNewRoom,
-                                                                    #from_room=self,
-                                                                    #from_direction=from_direction);
+               poEastExit = Send(Send(SYS,@GetMazeRoomMaintenance),@GetRoomAtCoords,
+                                                                    #x_coord=piXCoord+1,
+                                                                    #y_coord=piYCoord);
             }
             Send(poEastExit,@MazeEnter,#who=who,#from_direction=from_direction);
             break;
          case MAZE_DIRECTION_WEST:
             if poWestExit = $
             {
-               poWestExit = Send(Send(SYS,@GetMazeRoomMaintenance),@GenerateNewRoom,
-                                                                    #from_room=self,
-                                                                    #from_direction=from_direction);
+               poWestExit = Send(Send(SYS,@GetMazeRoomMaintenance),@GetRoomAtCoords,
+                                                                    #x_coord=piXCoord-1,
+                                                                    #y_coord=piYCoord);
             }
             Send(poWestExit,@MazeEnter,#who=who,#from_direction=from_direction);
             break;
@@ -1599,37 +1615,37 @@ messages:
          case MAZE_DIRECTION_NORTH:
             Post(SYS,@UtilGoNearSquare,#what=who,
                  #where=self,
-                 #new_row=viSouthEntranceRow,
-                 #new_col=viSouthEntranceCol,
-                 #fine_row=viSouthEntranceFineRow,
-                 #fine_col=viSouthEntranceFineCol,
+                 #new_row=piSouthEntranceRow,
+                 #new_col=piSouthEntranceCol,
+                 #fine_row=piSouthEntranceFineRow,
+                 #fine_col=piSouthEntranceFineCol,
                  #new_angle=Send(who,@GetAngle));
             break;
          case MAZE_DIRECTION_SOUTH:
             Post(SYS,@UtilGoNearSquare,#what=who,
                  #where=self,
-                 #new_row=viNorthEntranceRow,
-                 #new_col=viNorthEntranceCol,
-                 #fine_row=viNorthEntranceFineRow,
-                 #fine_col=viNorthEntranceFineCol,
+                 #new_row=piNorthEntranceRow,
+                 #new_col=piNorthEntranceCol,
+                 #fine_row=piNorthEntranceFineRow,
+                 #fine_col=piNorthEntranceFineCol,
                  #new_angle=Send(who,@GetAngle));
             break;
          case MAZE_DIRECTION_EAST:
             Post(SYS,@UtilGoNearSquare,#what=who,
                  #where=self,
-                 #new_row=viWestEntranceRow,
-                 #new_col=viWestEntranceCol,
-                 #fine_row=viWestEntranceFineRow,
-                 #fine_col=viWestEntranceFineCol,
+                 #new_row=piWestEntranceRow,
+                 #new_col=piWestEntranceCol,
+                 #fine_row=piWestEntranceFineRow,
+                 #fine_col=piWestEntranceFineCol,
                  #new_angle=Send(who,@GetAngle));
             break;
          case MAZE_DIRECTION_WEST:
             Post(SYS,@UtilGoNearSquare,#what=who,
                  #where=self,
-                 #new_row=viEastEntranceRow,
-                 #new_col=viEastEntranceCol,
-                 #fine_row=viEastEntranceFineRow,
-                 #fine_col=viEastEntranceFineCol,
+                 #new_row=piEastEntranceRow,
+                 #new_col=piEastEntranceCol,
+                 #fine_row=piEastEntranceFineRow,
+                 #fine_col=piEastEntranceFineCol,
                  #new_angle=Send(who,@GetAngle));
             break;
       }
