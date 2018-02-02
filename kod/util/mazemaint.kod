@@ -88,8 +88,8 @@ messages:
 
       foreach i in plMazeRooms
       {
+         % Deleted rooms bounce back to RoomDeleted and remove themselves from plMazeRooms
          Send(i,@Delete);
-         plMazeRooms = DelListElem(plMazeRooms,i);
       }
       plMazeRooms = $;
       plMazeRooFiles = $;
@@ -284,6 +284,15 @@ messages:
          if what = poBossRoom
          {
             poBossRoom = $;
+         }
+         if what = poTreasureRoom
+         {
+            poTreasureRoom = $;
+         }
+         
+         if FindListElem(plMazeRooms,what)
+         {
+            plMazeRooms = DelListElem(plMazeRooms,what);
          }
       }
       return;
