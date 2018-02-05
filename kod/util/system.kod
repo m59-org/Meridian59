@@ -8703,6 +8703,34 @@ messages:
       return iHighestHolder;
    }
 
+   FindSkillNumByString(string=$)
+   {
+      local i;
+      
+      foreach i in plSkills
+      {
+         if StringEqual(string,Send(i,@GetName))
+         {
+            return Send(i,@GetSkillNum);
+         }
+      }
+      return 0;
+   }
+
+   FindSpellNumByString(string=$)
+   {
+      local i;
+
+      foreach i in plSpells
+      {
+         if StringEqual(string,Send(i,@GetName))
+         {
+            return Send(i,@GetSpellNum);
+         }
+      }
+      return 0;
+   }
+   
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

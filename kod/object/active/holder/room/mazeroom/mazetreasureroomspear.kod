@@ -17,10 +17,33 @@ constants:
    include blakston.khd
    
    PLATFORM_ONE_ID = 200
+   
+   VICTORY_PLATFORM = 300
+   CHOICE_CIRCLE = 301
+
+   VICTORY_MESSAGE_DELAY = 40000
+   LIGHT_MESSAGE_DELAY = 10000
 
 resources:
 
    room_mazetreasureroomspear = mazetreasureroomspear.roo
+
+   treasure_room_challenge_msg = \
+      "~kThe spirit of Vecka tells you, \"Before the Order became corrupt, this was the Test of Mind and Body, where "
+      "acolyte Sorcerers attempted to prove themselves. If you ascend to the peak of the underground pyramid, those magics may "
+      "still linger.\""
+   treasure_room_spear_victory_msg = \
+      "~kA magically created voice says, \"Congratulations, acolyte. You have shown yourself to be swift of Mind and Body. "
+      "Step into the light, then "
+      "state the skill or spell you wish to know more about, and the ancient knowledge of the Order shall be yours. "
+      "Be warned: as you are a mere acolyte, our Eternal Archive will only allow you to possess the sacred knowledge of one skill or spell at a time. "
+      "If you choose a new mastery, the Archive will remove the old mastery from your mind.\""
+   treasure_room_light_entered_msg = \
+      "Power surrounds your body as you step into the light."
+   treasure_room_light_left_msg = \
+      "You step out of the light."
+   treasure_room_skill_spell_chosen_msg = \
+      "~BKnowledge flares in your mind!"
 
 classvars:
 
@@ -28,6 +51,9 @@ properties:
 
    prRoom = room_mazetreasureroomspear
    piRoom_num = RID_MAZE_TREASURE_ROOM_SPEAR
+   
+   ptVictoryMsgTimer = $
+   ptLightMsgTimer = $
 
 messages:
 
@@ -55,7 +81,92 @@ messages:
          Send(self,@SetSector,#sector=i,#animation=ANIMATE_FLOOR_LIFT,#height=Random(1040,1260),#speed=50);
       }
       
+      Switch(section)
+      {
+         case VICTORY_PLATFORM:
+            if ptVictoryMsgTimer = $
+            {
+               Send(who,@MsgSendUser,#message_rsc=treasure_room_spear_victory_msg);
+               ptVictoryMsgTimer = CreateTimer(self,@ClearVictoryMsgTimer,VICTORY_MESSAGE_DELAY);
+            }
+            break;
+         case CHOICE_CIRCLE:
+            if ptLightMsgTimer = $
+            {
+               Send(who,@MsgSendUser,#message_rsc=treasure_room_light_entered_msg);
+               ptLightMsgTimer = CreateTimer(self,@ClearLightMsgTimer,LIGHT_MESSAGE_DELAY);
+            }
+            break;
+      }
+      
       return;
+   }
+   
+   SomeoneSaid(what=$, string=$)
+   {
+      local oSkill, oSpell, iReturnedNum;
+
+      if what <> $
+         AND IsClass(what,&User)
+         AND Send(self,@GetSection,#who=what) = CHOICE_CIRCLE
+      {
+         iReturnedNum = Send(SYS,@FindSpellNumByString,#string=string);
+         if iReturnedNum <> 0
+         {
+            Post(what,@MsgSendUser,#message_rsc=treasure_room_skill_spell_chosen_msg);
+            Send(what,@SetMasteredSkill,#num=0);
+            Send(what,@SetMasteredSpell,#num=iReturnedNum);
+            propagate;
+         }
+         iReturnedNum = Send(SYS,@FindSkillNumByString,#string=string);
+         if iReturnedNum <> 0
+         {
+            Post(what,@MsgSendUser,#message_rsc=treasure_room_skill_spell_chosen_msg);
+            Send(what,@SetMasteredSkill,#num=iReturnedNum);
+            Send(what,@SetMasteredSpell,#num=0);
+            propagate;
+         }
+      }
+      propagate;
+   }
+
+   ClearVictoryMsgTimer()
+   {
+      ptVictoryMsgTimer = $;
+      return;
+   }
+
+   ClearLightMsgTimer()
+   {
+      ptLightMsgTimer = $;
+      return;
+   }
+
+   NewHold(what=$)
+   {
+      if what <> $
+         AND IsClass(what,&User)
+         AND Send(what,@GetMasteredSkill) = 0
+         AND Send(what,@GetMasteredSpell) = 0
+      {
+         Send(what,@MsgSendUser,#message_rsc=treasure_room_challenge_msg);
+      }
+      propagate;
+   }
+   
+   Delete()
+   {
+      if ptVictoryMsgTimer <> $
+      {
+         DeleteTimer(ptVictoryMsgTimer);
+         ptVictoryMsgTimer = $;
+      }
+      if ptLightMsgTimer <> $
+      {
+         DeleteTimer(ptLightMsgTimer);
+         ptLightMsgTimer = $;
+      }
+      propagate;
    }
 
 end

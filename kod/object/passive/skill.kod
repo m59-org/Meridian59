@@ -57,6 +57,7 @@ classvars:
    vrIcon = skill_icon_rsc
    vrDesc = skill_desc_text_rsc
    vrSkill_intro = skill_intro_rsc
+   vrMasteredDesc = skill_nothing
 
    vrFailed = skill_failed_by_chance
 
@@ -276,8 +277,14 @@ messages:
       return;
    }
 
-   SendExtraDesc()
+   SendExtraDesc(who=$)
    {
+      if who <> $
+         AND Send(who,@HasMasteredThisSkill,#num=viSkill_num)
+      {
+         AddPacket(4,vrMasteredDesc);
+         return;
+      }
       AddPacket(4,skill_nothing);
       return;
    }

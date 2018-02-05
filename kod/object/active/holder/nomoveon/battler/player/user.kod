@@ -3951,6 +3951,7 @@ messages:
          if ptSneakTimer = $
             AND Send(self,@GetSkillAbility,#skill_num=SKID_SNEAK) > 0
             AND NOT Send(Send(SYS,@FindSkillByNum,#num=SKID_SNEAK),@IsSneaking,#who=self)
+            AND Send(poOwner,@GetCanSneakHere)
          {
             ptSneakTimer = CreateTimer(self,@AttemptSneak,1000);
          }
@@ -3965,6 +3966,7 @@ messages:
             AND Send(Send(SYS,@FindSkillByNum,#num=SKID_SNEAK),@IsSneaking,#who=self)
             AND Send(self,@GetSkillAbility,#skill_num=SKID_HIDE) > 0
             AND NOT Send(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@IsHiding,#who=self)
+            AND Send(poOwner,@GetCanHideHere)
          {
             ptHideTimer = CreateTimer(self,@AttemptHide,1000);
          }

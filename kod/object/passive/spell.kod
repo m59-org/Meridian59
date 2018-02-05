@@ -151,12 +151,17 @@ resources:
    unable_to_improve_blood_magic = \
       "The pain involved in using blood magic makes it impossible for you to improve this spell."
 
+   spell_mastered_desc_rsc = \
+      "You've mastered this spell to an exceptional degree."
+
 classvars:
 
    vrName = spell_name_rsc
    vrIcon = spell_icon_rsc
    vrDesc = spell_desc_text_rsc
    vrSpell_intro = spell_intro_rsc
+   
+   vrMasteredDesc = spell_mastered_desc_rsc
 
    viIndefinite = ARTICLE_NONE
    viDefinite = ARTICLE_NONE
@@ -362,7 +367,7 @@ messages:
             rOutlaw = spell_outlaw;
          }
 
-         rExtra = Send(self,@GetExtraDesc);
+         rExtra = Send(self,@GetExtraDesc,#who=who);
 
          AddPacket(4,spell_desc_rsc, 4,rSchool, 4,viSpell_Level, 4,vrDesc,
                    4,rOutlaw, 4,rExtra);
@@ -399,8 +404,13 @@ messages:
       return spell_nothing;
    }
 
-   GetExtraDesc()
+   GetExtraDesc(who=$)
    {
+      if who <> $
+         AND Send(who,@HasMasteredThisSpell,#num=viSpell_num)
+      {
+         return vrMasteredDesc;
+      }
       return spell_nothing;
    }
 
