@@ -131,9 +131,10 @@ messages:
       % Make sure the maze is deleted
       Send(self,@ClearMap);
       
-      % We create special rooms first at random locations, then fill in the missing areas with random interiors.
+      % Create first room.
       poFirstRoom = Send(self,@GenerateSpecificRoom,#bFirstRoom=TRUE);
       
+      % Create special rooms at random coordinates.
       iTreasureXCoord = Random(2,9);
       iTreasureYCoord = Random(2,9);
       
@@ -154,34 +155,39 @@ messages:
       poTreasureRoom = Send(self,@GenerateSpecificRoom,#bTreasureRoom=TRUE,#x_coord=iTreasureXCoord,#y_coord=iTreasureYCoord);
       poBossRoom = Send(self,@GenerateSpecificRoom,#bBossRoom=TRUE,#x_coord=iBossXCoord,#y_coord=iBossYCoord);
       
-      % CHANGE THIS TO 2 to 9 AND ADD EDGES
-      iX = 4;
-      while iX <= 6
+      % The rest of the rooms we'll only fill in as players enter the maze.
+      
+      return;
+   }
+   
+   PingMaze(x_coord=-1, y_coord=-1)
+   {
+      local i, lCheckTheseCoords;
+
+      lCheckTheseCoords = $;
+      if x_coord = 5
+         AND y_coord = 0
       {
-         iY = 1;
-         while iY <= 3
-         {
-            if poTreasureRoom <> $
-            {
-               if Send(poTreasureRoom,@GetXCoord) = iX
-                  AND Send(poTreasureRoom,@GetYCoord) = iY
-               {
-                  continue;
-               }
-            }
-            if poBossRoom <> $
-            {
-               if Send(poBossRoom,@GetXCoord) = iX
-                  AND Send(poBossRoom,@GetYCoord) = iY
-               {
-                  continue;
-               }
-            }
-            Send(self,@GenerateSpecificRoom,#x_coord=iX,#y_coord=iY);
-            iY++;
-         }
-         iX++;
+         % This is the first room. Ping only x = 5, y = 1
+         lCheckTheseCoords = [[5,1]];
       }
+      else
+      {
+         lCheckTheseCoords = Cons([x_coord+1, y_coord],lCheckTheseCoords);
+         lCheckTheseCoords = Cons([x_coord-1, y_coord],lCheckTheseCoords);
+         lCheckTheseCoords = Cons([x_coord, y_coord+1],lCheckTheseCoords);
+         lCheckTheseCoords = Cons([x_coord, y_coord-1],lCheckTheseCoords);
+      }
+      
+      foreach i in lCheckTheseCoords
+      {
+         if Send(self,@GetRoomAtCoords,#x_coord=Nth(i,1),#y_coord=Nth(i,2)) = $
+         {
+            % This room doesn't exist! Let's make it.
+            Send(self,@GenerateSpecificRoom,#x_coord=Nth(i,1),#y_coord=Nth(i,2));
+         }
+      }
+
       return;
    }
 
