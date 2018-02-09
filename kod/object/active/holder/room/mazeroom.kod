@@ -113,6 +113,10 @@ constants:
    CRUSHER_TEN_WALL_ID = 829
    
    CRUSHER_UP_HEIGHTS_HERE = 1160
+   
+   THIS_AREA_HAS_FALL_THREAT = 830
+   THIS_AREA_HAS_ICEWATER_THREAT = 831
+   THIS_AREA_HAS_PHASE_THREAT = 832
 
    SECRET_DOOR_ONE_TRIGGER_SECTOR = 850
    SECRET_DOOR_ONE_OPEN_SECTOR = 851
@@ -459,6 +463,9 @@ properties:
    % Where do we spawn mobs?
    plDesertSpawnPoints = $
    plStatueSpawnPoints = $
+   
+   % Does this room have lethal fall threat? Height 0 or below = death
+   pbFallThreatHere = FALSE
 
 messages:
 
@@ -797,6 +804,11 @@ messages:
       if vbDesertThreatsHere
       {
          Post(self,@StartThreat,#cClasses=Send(self,@GetPhaseThreats),#report=FALSE);
+      }
+      
+      if pbFallThreatHere
+      {
+         Post(self,@StartThreat,#cClasses=[&FallThreat],#report=TRUE);
       }
       
       Post(Send(SYS,@GetMazeRoomMaintenance),@PingMaze,#x_coord=piXCoord,#y_coord=piYCoord);
@@ -1882,6 +1894,10 @@ messages:
 
             Switch(iSectionResult)
             {
+               case THIS_AREA_HAS_FALL_THREAT:
+                  pbFallThreatHere = TRUE;
+                  Send(self,@SetWadingSound,#type=MAZE_LAVA_WALKING);
+                  break;
                case NORTH_ENTRANCE_SECTOR:
                   % Entrance hasn't been set, so let's set it now
                   if piNorthEntranceRow = 0
@@ -2409,6 +2425,12 @@ messages:
          Send(self,@EndAllThreats);
          Send(self,@StartThreat,#cClasses=Send(self,@GetPhaseThreats));
          
+         % Don't accidentally lose this on the change-over
+         if pbFallThreatHere
+         {
+            Post(self,@StartThreat,#cClasses=[&FallThreat],#report=FALSE);
+         }
+
          prMusic = Send(self,@GetPhaseMusic);
          foreach i in plActive
          {
@@ -2637,6 +2659,11 @@ messages:
       }
       
       return;
+   }
+   
+   SpecialPhaseConditionsSatisfied()
+   {
+      return FALSE;
    }
 
 end
