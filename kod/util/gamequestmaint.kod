@@ -52,7 +52,7 @@ messages:
       local i, iPlayerHP, oRoom, lPassiveQuests;
       
       % if vbTriggered is TRUE, we're evaluating a player
-      %    because a room wanted to add a new quest chain
+      %    because something wanted to add a new quest chain
 
       if who = $
          OR NOT IsClass(who,&Player)
@@ -63,7 +63,7 @@ messages:
 
       lPassiveQuests = Send(who,@GetPassiveQuests);
       
-      % Don't reinform if a room triggered this check
+      % Don't reinform if this is a triggered check
       if lPassiveQuests <> $
          AND NOT vbTriggered
       {
@@ -97,6 +97,15 @@ messages:
          AND NOT Send(who,@HasQuestChain,#chain_num=HP30_NEWBIE_CHAIN)
       {
          Create(&hp30pq1,#quester=who);
+      }
+      
+      % It's faction time. Generally at 50 hp.
+      if Send(who,@CheckPlayerFlag,#flag=PFLAG_PKILL_ENABLE)
+         AND (Send(who,@PlayerIsHPIntrigue)
+              OR Send(who,@PlayerIsAdept))
+         AND NOT Send(who,@HasQuestChain,#chain_num=HP50_JOIN_FACTION_CHAIN)
+      {
+         Create(&hp50pq1,#quester=who);
       }
       
       return;
