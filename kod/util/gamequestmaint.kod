@@ -1,0 +1,106 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+GameQuestMaintenance is UtilityFunctions
+
+% This utility tracks and applies appropriate quests
+%    for characters from starting 20 hp to fully built
+%
+% Leads characters through the world, teaching them.
+%
+% First quest: Clear the Mausoleum by killing the Shadow Mummy
+%
+%
+%
+%
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+
+classvars:
+
+properties:
+
+
+messages:
+
+   Constructor()
+   {
+      Send(self,@Recreate);
+
+      return;
+   }
+
+   Recreate()
+   {
+      return;
+   }
+   
+   EvaluatePlayer(who=$, vbTriggered = FALSE)
+   {
+      local i, iPlayerHP, oRoom, lPassiveQuests;
+      
+      % if vbTriggered is TRUE, we're evaluating a player
+      %    because a room wanted to add a new quest chain
+
+      if who = $
+         OR NOT IsClass(who,&Player)
+         OR Send(who,@GetOwner) = $
+      {
+         return $;
+      }
+
+      lPassiveQuests = Send(who,@GetPassiveQuests);
+      
+      % Don't reinform if a room triggered this check
+      if lPassiveQuests <> $
+         AND NOT vbTriggered
+      {
+         foreach i in lPassiveQuests
+         {
+            Send(i,@Reinform);
+         }
+      }
+      
+      % Where is the player at in the process of building their character?
+      % Let's take some metrics and determine where best to start them in the quest chains.
+      
+      iPlayerHP = Send(who,@GetBaseMaxHealth);
+      oRoom = Send(who,@GetOwner);
+      
+      if iPlayerHP = 20
+      {
+         % We're completely new. Are we in Raza?
+         if Send(oRoom,@GetRegion) = RID_NEWB_BASE
+            AND NOT Send(who,@HasQuestChain,#chain_num=HP20_RAZA_CHAIN)
+         {
+            Create(&hp20pq1,#quester=who);
+         }
+      }
+      
+      % Newbies next find themselves here.
+      % Initiate first recorded quest chain.
+      % We don't do this for built players, since they won't need this.
+      if iPlayerHP < 50
+         AND Send(oRoom,@GetRegion) <> RID_NEWB_BASE
+         AND NOT Send(who,@HasQuestChain,#chain_num=HP30_NEWBIE_CHAIN)
+      {
+         Create(&hp30pq1,#quester=who);
+      }
+      
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

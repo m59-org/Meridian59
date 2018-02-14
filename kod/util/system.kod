@@ -419,6 +419,8 @@ properties:
    poLore = $
    poAssassin_game = $
    poQuestEngine = $
+   poGameQuestMaintenance = $
+   poDailyQuestMaintenance = $
    poNecromancerBalance = $
    poTokenGame = $
    poTerritoryGame = $
@@ -588,6 +590,8 @@ messages:
 
       Send(self,@RecreateAssassinGame);
       Send(self,@RecreateQuestEngine);
+      Send(self,@RecreateGameQuestMaintenance);
+      Send(self,@RecreateDailyQuestMaintenance);
       Send(self,@RecreateNodeAttack);
       Send(self,@RecreateRentableRoomMaintenance);
       Send(self,@RecreateSurvivalRoomMaintenance);
@@ -753,6 +757,8 @@ messages:
       piRecreate_State = RECREATE_PHASE_TWO;
 
       Send(self,@RecreateQuestEngine);
+      Send(self,@RecreateGameQuestMaintenance);
+      Send(self,@RecreateDailyQuestMaintenance);
       Send(self,@RecreateAllItemAttributes);
       Send(self,@RecreateAllGuildCommands);
       Send(self,@RecreateAllTreasureTypes);
@@ -5108,6 +5114,44 @@ messages:
       }
 
       return TRUE;
+   }
+
+   RecreateGameQuestMaintenance() 
+   {
+      if poGameQuestMaintenance <> $
+      {
+         Send(poGameQuestMaintenance,@Recreate);
+      }
+      else
+      {
+         poGameQuestMaintenance = Create(&GameQuestMaintenance);
+      }
+
+      return TRUE;
+   }
+
+   RecreateDailyQuestMaintenance()
+   {
+      if poDailyQuestMaintenance <> $
+      {
+         Send(poDailyQuestMaintenance,@Recreate);
+      }
+      else
+      {
+         poDailyQuestMaintenance = Create(&DailyQuestMaintenance);
+      }
+
+      return TRUE;
+   }
+   
+   GetGameQuestMaintenance()
+   {
+      return poGameQuestMaintenance;
+   }
+   
+   GetDailyQuestMaintenance()
+   {
+      return poDailyQuestMaintenance;
    }
 
    GetQuestEngine()                     % -AJM

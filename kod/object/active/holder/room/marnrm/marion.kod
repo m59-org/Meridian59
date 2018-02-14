@@ -119,6 +119,12 @@ messages:
       {
          send(self,@OfferingDroppedOnTree,#what=what,#who=who);
       }
+      
+      if IsClass(what,&Player)
+         AND Send(what,@GetBaseMaxHealth) < 50
+      {
+         Send(Send(SYS,@GetGameQuestMaintenance),@EvaluatePlayer,#who=what,#vbTriggered=TRUE);
+      }
 
       propagate;
    }

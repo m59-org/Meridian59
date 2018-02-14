@@ -931,6 +931,9 @@ resources:
       "~oThere are no enemies in range for a cleaving attack."
 
    hold_rings_rsc = holdrings.bgf
+   
+   rewarded_money_msg = \
+      "~BYou have been rewarded with %i shillings!"
 
 classvars:
 
@@ -1247,6 +1250,8 @@ properties:
    piReincarnations = 0
    % Do we have a free stat reset for reincarnation?
    pbReincarnationStatsReset = FALSE
+   % Let's not spam newbies with this until they have a clue what it is.
+   pbInformReincarnationProgress = TRUE
 
    % Banditry stance object
    poStance = $
@@ -1284,6 +1289,10 @@ messages:
       piReward_timestamp = GetTime();
 
       Send(self,@ClearPrismsDefeated);
+      
+      % Don't confuse newbies with reincarnation progress.
+      % A quest chain is required before this becomes relevant.
+      pbInformReincarnationProgress = FALSE;
 
       propagate;
    }
@@ -1452,6 +1461,7 @@ messages:
       if Send(self,@IsLoggedOn)
          AND Send(SETTINGS_OBJECT,@GetReincarnationEnabled)
          AND piReincarnations < 10
+         AND pbInformReincarnationProgress
       {
          iReincarnationSum = Send(self,@GetReincarnationSum);
          if iReincarnationSum >= Send(self,@GetNextReincarnationSum)
@@ -2471,7 +2481,7 @@ messages:
 
    NewOwner(what = $)
    {
-      local iBasePhaseTime;
+      local iBasePhaseTime, i;
 
       Send(self,@ResetGainFlags);
 
@@ -2510,6 +2520,11 @@ messages:
             Send(self,@MsgSendUser,#message_rsc=phase_fatigue_cleared);
             Send(self,@RefreshPhaseTimeToBase);
          }
+      }
+      
+      foreach i in Send(self,@GetPassiveQuests)
+      {
+         Send(i,@EnteredRoom,#what=what);
       }
 
       % Stop any rescue attempts if the user changes rooms.
@@ -7323,6 +7338,12 @@ messages:
          {
             Send(self,@JoinBuilderGroup);
          }
+  
+
+         foreach i in Send(self,@GetPassiveQuests)
+         {
+            Send(i,@KilledSomething,#what=what);
+         }
 
          Send(poOwner,@SomethingKilled,#what=self,#victim=what);
       }
@@ -11186,6 +11207,42 @@ messages:
          }
       }
 
+      return;
+   }
+
+   RewardMoney(amount=0, report=TRUE)
+   "This function is used by quests to avoid code duplication."
+   {
+      local oMoney, iPlayerAmt;
+ 
+      oMoney = Send(self,@GetMoneyObject);
+      if oMoney = $
+      {
+         oMoney = Create(&Money,#number=amount);
+         Send(self,@NewHold,#what=oMoney);
+      }
+      else if (Send(oMoney,@GetNumber) + amount) <= 0
+      {
+         iPlayerAmt = Send(oMoney,@GetNumber);
+         if iPlayerAmt = MAX_KOD_INT
+         {
+            return;
+         }
+         else if (iPlayerAmt + amount) <= 0
+         {
+            amount = MAX_KOD_INT - iPlayerAmt;
+            Send(oMoney,@AddNumber,#number=amount);
+         }
+      }
+      else
+      {
+         Send(oMoney,@AddNumber,#number=amount);
+      }
+      
+      if report
+      {
+         Send(self,@MsgSendUser,#message_rsc=rewarded_money_msg,#parm1=amount);
+      }
       return;
    }
 
@@ -18273,6 +18330,23 @@ messages:
          return TRUE;
       }
       return FALSE;
+   }
+   
+   UsedPortal(what=$)
+   {
+      local i;
+      
+      foreach i in Send(self,@GetPassiveQuests)
+      {
+         Send(i,@UsedPortal,#what=what);
+      }
+      return;
+   }
+
+   SetInformReincarnationProgress(value=TRUE)
+   {
+      pbInformReincarnationProgress = value;
+      return;
    }
 
 end

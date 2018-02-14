@@ -3478,6 +3478,9 @@ messages:
             propagate;
          }
       }
+      
+      % Let the user's passive quests know he/she said something to this npc.
+      Send(what,@PassiveQuestUserSaidToMe,#what=self,#type=type,#string=string);
 
       oLibrary = Send(SYS,@GetLibrary);
 
@@ -4407,6 +4410,8 @@ messages:
          return FALSE;            
       }
 
+      Send(who,@MadeItemDeposit,#with=self,#lItems=lItems);
+      
       % passed all checks.  put the stuff in.      
       Send(oVault,@DepositItems,#lItems=lItems,#who=who);
 
@@ -4757,6 +4762,8 @@ messages:
       Post(who,@SomeoneSaid,#what=self,#type=SAY_RESOURCE,
            #string=Lm_bnkr_did_deposit,
            #parm1=Send(oBank,@GetAccount,#what=who));
+      
+      Post(who,@MadeMoneyDeposit,#with=self,#amount=amount);
 
       Send(self,@AffectMood,#why=MOODMOD_BANK_DEPOSIT);
 
@@ -5036,6 +5043,7 @@ messages:
 
                % Add item to buyer's inventory
                Send(what,@NewHold,#what=oBuy);
+               Send(what,@BoughtAnItem,#bought_from=self,#what=oBuy);
                Send(oMoney,@SubtractNumber,#number=iPrice);
                Send(self,@RemoveFromConditionalList,
                      #obj=Send(self,@GetObjectOnConditionalList,
@@ -5067,6 +5075,7 @@ messages:
                               #number=iPriceOne * Send(oSplit,@GetNumber));
                         Send(i,@SubtractNumber,#Number=Send(oSplit,@GetNumber));
                         Send(what,@NewHold,#what=oSplit);
+                        Send(what,@BoughtAnItem,#bought_from=self,#what=oSplit);
                         Post(poOwner,@SomeoneSaid,#what=self,
                               #string=Lm_mrcnt_can_give_some,
                               #type=SAY_RESOURCE,#parm1=Send(oBuy,@GetDef),
