@@ -72,6 +72,12 @@ messages:
             Send(i,@Reinform);
          }
       }
+
+      % See if we've completed any state based quests
+      foreach i in lPassiveQuests
+      {
+         Send(i,@CheckAllStateBasedConditions);
+      }
       
       % Where is the player at in the process of building their character?
       % Let's take some metrics and determine where best to start them in the quest chains.
@@ -99,15 +105,79 @@ messages:
          Create(&hp30pq1,#quester=who);
       }
       
+      if iPlayerHP >= 40
+         AND iPlayerHP < 100
+         AND NOT Send(who,@HasQuestChain,#chain_num=HP40_INVESTIGATE_CASTLE_VICTORIA_CHAIN)
+      {
+         Create(&hp40pq1,#quester=who);
+      }
+      
       % It's faction time. Generally at 50 hp.
       if Send(who,@CheckPlayerFlag,#flag=PFLAG_PKILL_ENABLE)
          AND (Send(who,@PlayerIsHPIntrigue)
               OR Send(who,@PlayerIsAdept))
          AND NOT Send(who,@HasQuestChain,#chain_num=HP50_JOIN_FACTION_CHAIN)
+         AND Send(who,@GetFaction) = FACTION_NEUTRAL
       {
          Create(&hp50pq1,#quester=who);
       }
       
+      if iPlayerHP >= 100
+         AND NOT Send(who,@HasQuestChain,#chain_num=HP100_INVESTIGATE_BRAX_CHAIN)
+      {
+         Create(&hp100pq1,#quester=who);
+      }
+      
+      if iPlayerHP >= 60
+         AND NOT Send(who,@HasQuestChain,#chain_num=HP60_MANA_NODES_CHAIN)
+      {
+         return;
+      }
+      
+      if iPlayerHP >= 80
+         AND NOT Send(who,@HasQuestChain,#chain_num=HP80_SOLDIER_SHIELD_CHAIN)
+      {
+         return;
+      }
+      
+      if iPlayerHP >= 90
+         AND NOT Send(who,@HasQuestChain,#chain_num=HP90_INVESTIGATE_ISLAND_CHAIN)
+      {
+         return;
+      }
+      
+      % 20 HP below player's max
+      if iPlayerHP >= 100+Send(who,@GetRawStamina)-20
+         AND NOT Send(who,@HasQuestChain,#chain_num=MAX_HP_MINUS_20_INVESTIGATE_THRASHERS_CHAIN)
+      {
+         return;
+      }
+      
+      % 10 HP below player's max
+      if iPlayerHP >= 100+Send(who,@GetRawStamina)-10
+         AND NOT Send(who,@HasQuestChain,#chain_num=MAX_HP_MINUS_10_INVESTIGATE_DESERT_CHAIN)
+      {
+         return;
+      }
+
+      if IsClass(oRoom,&MazeSewer)
+         AND NOT Send(who,@HasQuestChain,#chain_num=ANY_HP_SOLVE_MAZE_CHAIN)
+      {
+         return;
+      }
+
+      if IsClass(oRoom,&FeyForest)
+         AND NOT Send(who,@HasQuestChain,#chain_num=ANY_HP_VALE_OF_SORROWS_CHAIN)
+      {
+         return;
+      }
+
+      if IsClass(oRoom,&DesertRoom)
+         AND NOT Send(who,@HasQuestChain,#chain_num=ANY_HP_REINCARNATION_CHAIN)
+      {
+         return;
+      }
+
       return;
    }
 

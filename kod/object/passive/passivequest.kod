@@ -44,6 +44,9 @@ classvars:
    
    vbChooseHometown = FALSE
    
+   vbReachHP = FALSE
+   viReachThisHP = 999
+   
    vbSaySomething = FALSE
    vsSayTrigger = $
    vcSayTargetClass = $
@@ -117,6 +120,9 @@ messages:
       {
          Send(poQuester,@MsgSendUser,#message_rsc=vrNewPassiveQuestMsg);
          Send(poQuester,@MsgSendUser,#message_rsc=vrNewThisQuestMsg);
+         
+         % If it's a state, like having a minimum HP, autocomplete
+         Send(self,@CheckAllStateBasedConditions);
       }
       else
       {
@@ -124,7 +130,25 @@ messages:
       }
       return;
    }
-   
+
+   CheckAllStateBasedConditions()
+   {
+      Send(self,@CheckBaseMaxHealth);
+      return;
+   }
+
+   CheckBaseMaxHealth()
+   {
+      if vbReachHP
+      {
+         if Send(poQuester,@GetBaseMaxHealth) >= viReachThisHP
+         {
+            Send(self,@Completed);
+         }
+      }
+      return;
+   }
+
    ChoseAHometown()
    {
       if vbChooseHometown

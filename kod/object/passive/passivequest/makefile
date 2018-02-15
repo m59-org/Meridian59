@@ -10,6 +10,7 @@ BOFS = hp20pq1.bof \
        hp20pq3.bof \
        hp20pq4.bof \
        hp30pq1.bof \
+       hp30pq1a.bof \
        hp30pq2.bof \
        hp30pq3.bof \
        hp30pq4.bof \
@@ -24,9 +25,14 @@ BOFS = hp20pq1.bof \
        hp30pq13.bof \
        hp30pq14.bof \
        hp30pq15.bof \
+       hp40pq1.bof \
+       hp40pq2.bof \
+       hp40pq3.bof \
+       hp40pq4.bof \
        hp50pq1.bof \
        hp50pq2.bof \
-       hp50pq3.bof
+       hp50pq3.bof \
+       hp100pq1.bof
       
 
 !include $(KODDIR)\kod.mak
