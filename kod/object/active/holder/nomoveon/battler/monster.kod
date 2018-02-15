@@ -2414,6 +2414,17 @@ messages:
 
       % Attacks against a minion master will cause minions to defend the master
       Send(self,@CommandMinionAttack,#oMaster=self,#oTarget=what);
+      
+      if poOwner <> $
+      {
+         foreach i in Send(poOwner,@GetObjectAttributes)
+         {
+            if IsClass(i,&RoomThreat)
+            {
+               damage = Send(i,@ThreatModifyDamage,#damage=damage,#atype=atype,#aspell=aspell);
+            }
+         }
+      }
 
       if IsClass(what,&Battler)
          AND Send(SETTINGS_OBJECT,@GetEmpowermentsEnabled)

@@ -6795,6 +6795,17 @@ messages:
       {
          color_rsc = player_hit_color_blue;
       }
+      
+      if poOwner <> $
+      {
+         foreach i in Send(poOwner,@GetObjectAttributes)
+         {
+            if IsClass(i,&RoomThreat)
+            {
+               damage = Send(i,@ThreatModifyDamage,#damage=damage,#atype=atype,#aspell=aspell);
+            }
+         }
+      }
 
       if IsClass(what,&Battler)
          AND Send(SETTINGS_OBJECT,@GetEmpowermentsEnabled)

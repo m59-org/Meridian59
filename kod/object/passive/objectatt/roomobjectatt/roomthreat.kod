@@ -45,6 +45,14 @@ classvars:
    viGoodSpellUseMsg = default_good_spell_use_msg
 
    viDeathMsg = default_death_msg
+   
+   vbDampenElement = FALSE
+   viDampenElement = 0
+   viDampenPercentage = 0
+   
+   vbBoostElement = FALSE
+   viBoostElement = 0
+   viBoostPercentage = 0
 
 properties:
 
@@ -275,6 +283,23 @@ messages:
    KilledSomething()
    {
       return;
+   }
+   
+   ThreatModifyDamage(damage=0, atype=0, aspell=0)
+   {
+      if vbDampenElement
+         AND (aspell & viDampenElement) <> 0
+      {
+         damage = (damage * (100 - viDampenPercentage))/100;
+      }
+      
+      if vbBoostElement
+         AND (aspell & viBoostElement) <> 0
+      {
+         damage = (damage * (100 + viBoostPercentage))/100;
+      }
+
+      return damage;
    }
 
 end

@@ -3307,6 +3307,8 @@ messages:
          ptPeriodic_sounds = CreateTimer(self,@PeriodicSoundTimer,iTime);
       }
 
+      Post(self,@StartThreat,#cClasses=Send(self,@GetPhaseThreats),#report=FALSE);
+
       propagate;
    }
 
@@ -3319,6 +3321,8 @@ messages:
          deleteTimer(ptPeriodic_sounds);
          ptPeriodic_sounds = $;
       }
+
+      Post(self,@EndAllThreats);
 
       propagate;
    }
@@ -4452,6 +4456,9 @@ messages:
 
       Send(self,@SetRoomFlag,#flag=ROOM_SNOWING,#value=TRUE);
       Send(self,@WeatherChanged);
+      
+      % Give us a snow threat.
+      Send(self,@StartThreat,#cClasses=[&SnowThreat]);
 
       return;
    }
@@ -4463,7 +4470,7 @@ messages:
       {
          Send(self,@SetRoomFlag,#flag=ROOM_SNOWING,#value=FALSE);
          Send(self,@WeatherChanged);
-
+         Send(self,@EndThreat,#cClass=&SnowThreat);
       }
 
       if pbSnowGroundTexture
@@ -4509,6 +4516,9 @@ messages:
 
       Send(self,@SetRoomFlag,#flag=ROOM_RAINING,#value=TRUE);
       Send(self,@WeatherChanged);
+      
+      % Give us a rain threat.
+      Send(self,@StartThreat,#cClasses=[&RainThreat]);
 
       return;
    }
@@ -4523,6 +4533,66 @@ messages:
             Send(self,@RemoveLoopingSound,#sound_rsc=room_rain_sound);
          }
          Send(self,@WeatherChanged);
+         Send(self,@EndThreat,#cClass=&RainThreat);
+      }
+
+      return;
+   }
+   
+   GetPhaseThreats()
+   {
+      if Send(self,@CheckRoomFlag,#flag=ROOM_RAINING)
+      {
+         return [&RainThreat];
+      }
+      if Send(self,@CheckRoomFlag,#flag=ROOM_SNOWING)
+      {
+         return [&SnowThreat];
+      }
+      return $;
+   }
+
+   StartThreat(cClasses=$,report=TRUE)
+   {
+      local i;
+
+      % Don't start same threat if one already exists.
+      % Don't start threats with no players present.
+      if pbUser_in_room
+         AND cClasses <> $
+      {
+         foreach i in cClasses
+         {
+            if NOT Send(self,@HasObjectAttribute,#cClass=i)
+            {
+               Create(i,#host_object=self,#iDuration=$,#report=report);
+            }
+         }
+      }
+
+      return;
+   }
+
+   EndThreat(cClass=&ShockStorm)
+   {
+      if Send(self,@HasObjectAttribute,#cClass=cClass)
+      {
+         Send(Send(self,@GetObjectAttribute,#cClass=cClass),@Delete);
+      }
+      return;
+   }
+   
+   EndAllThreats()
+   {
+      local i;
+      
+      foreach i in plObject_attributes
+      {
+         if IsClass(i,&RoomThreat)
+            OR IsClass(i,&RoomStorm)
+         {
+            Send(i,@Delete);
+         }
       }
 
       return;
