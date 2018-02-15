@@ -122,7 +122,15 @@ messages:
          Create(&hp50pq1,#quester=who);
       }
       
+      if iPlayerHP >= 90
+         %AND iPlayerHP <= 120
+         AND NOT Send(who,@HasQuestChain,#chain_num=HP90_INVESTIGATE_ISLAND_CHAIN)
+      {
+         Create(&hp90pq1,#quester=who);
+      }
+      
       if iPlayerHP >= 100
+         AND iPlayerHP <= 130
          AND NOT Send(who,@HasQuestChain,#chain_num=HP100_INVESTIGATE_BRAX_CHAIN)
       {
          Create(&hp100pq1,#quester=who);
@@ -136,12 +144,6 @@ messages:
       
       if iPlayerHP >= 80
          AND NOT Send(who,@HasQuestChain,#chain_num=HP80_SOLDIER_SHIELD_CHAIN)
-      {
-         return;
-      }
-      
-      if iPlayerHP >= 90
-         AND NOT Send(who,@HasQuestChain,#chain_num=HP90_INVESTIGATE_ISLAND_CHAIN)
       {
          return;
       }

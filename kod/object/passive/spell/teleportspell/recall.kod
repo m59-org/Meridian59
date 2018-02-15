@@ -123,9 +123,9 @@ messages:
             propagate;
          }
 
-         % Teleport to Ko'catan Inn if we're in Kocatan, or at Vigor Pool.
+         % Teleport to Ko'catan Inn if we're in Kocatan, or (disabled) at Vigor Pool
          if Send(oCurrentRoom,@GetRegion) = RID_KOCATAN
-            OR Send(oCurrentRoom,@GetRoomNum) = RID_ORC_CAVE5_EXT
+            %OR Send(oCurrentRoom,@GetRoomNum) = RID_ORC_CAVE5_EXT
          {
             oTargetRoom = Send(SYS,@FindRoomByNum,#num=RID_KOC_INN);
             Post(oTargetRoom,@Teleport,#what=who);
@@ -133,11 +133,10 @@ messages:
             propagate;
          }
 
-         % If we're in the orc caves, teleport to the Pool of Vigor.
-         % Except: actually being in the Pool of Vigor is handled above.
+         % If we're in the orc caves, teleport back to Icky Cave.
          if Send(oCurrentRoom,@GetRegion) = RID_ORC_CAVE1
          {
-            oTargetRoom = Send(SYS,@FindRoomByNum,#num=RID_ORC_CAVE5_EXT);
+            oTargetRoom = Send(SYS,@FindRoomByNum,#num=RID_CAVE2);
             Post(oTargetRoom,@Teleport,#what=who);
 
             propagate;
