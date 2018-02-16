@@ -119,7 +119,7 @@ properties:
    % This indicates if Xeochicatl can respawn from dropped heartstones.
    pbXeoRespawn = FALSE
    % This indicates if Miriana even goes to view node attacks.
-   pbMirianaAppears = TRUE
+   pbMirianaAppears = FALSE
    % This indicates if Miriana gets that possessed look during attacks.
    pbMirianaPossessed = TRUE
 
@@ -562,15 +562,15 @@ messages:
          ptAttack = $;
       }
 
-      % Fix what we stopped: Miriana's wandering, monster spawning, etc.
-      oMonsters = First(Send(Send(SYS,@GetLibrary),@GetOccupationList,
-                        #cNPC_class=&Heretic));
+%      % Fix what we stopped: Miriana's wandering, monster spawning, etc.
+%      oMonsters = First(Send(Send(SYS,@GetLibrary),@GetOccupationList,
+%                        #cNPC_class=&Heretic));
 
-      Send(oMonsters,@SetWandering,#value=TRUE);
-      Send(oMonsters,@SetPossessed,#bValue=FALSE);
+%      Send(oMonsters,@SetWandering,#value=TRUE);
+%      Send(oMonsters,@SetPossessed,#bValue=FALSE);
       oRoom = Send(poAttackedNode,@GetOwner);
-      Send(oRoom,@SomethingChanged,#what=oMonsters);
-      Send(oRoom,@SomeoneSaid,#what=oMonsters,#type=SAY_RESOURCE,#string=NodeAttack_high_sorcerers_taunt);
+%      Send(oRoom,@SomethingChanged,#what=oMonsters);
+%      Send(oRoom,@SomeoneSaid,#what=oMonsters,#type=SAY_RESOURCE,#string=NodeAttack_high_sorcerers_taunt);
 
       Send(oRoom,@SetMonsterGeneration,#bValue=TRUE);
 
