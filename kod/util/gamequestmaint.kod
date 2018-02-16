@@ -118,9 +118,16 @@ messages:
               OR Send(who,@PlayerIsAdept))
          AND NOT Send(who,@HasQuestChain,#chain_num=HP50_JOIN_FACTION_CHAIN)
          AND Send(who,@GetFaction) = FACTION_NEUTRAL
-         AND iPlayerHP <= 90
+         AND iPlayerHP <= 80
       {
          Create(&hp50pq1,#quester=who);
+      }
+      
+      if iPlayerHP > 80
+        % AND iPlayerHP <= 90
+         AND NOT Send(who,@HasQuestChain,#chain_num=HP80_SOLDIER_SHIELD_CHAIN)
+      {
+         Create(&hp80pq1,#quester=who);
       }
       
       if iPlayerHP >= 90
@@ -139,12 +146,6 @@ messages:
       
       if iPlayerHP >= 60
          AND NOT Send(who,@HasQuestChain,#chain_num=HP60_MANA_NODES_CHAIN)
-      {
-         return;
-      }
-      
-      if iPlayerHP >= 80
-         AND NOT Send(who,@HasQuestChain,#chain_num=HP80_SOLDIER_SHIELD_CHAIN)
       {
          return;
       }
