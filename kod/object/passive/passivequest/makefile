@@ -32,6 +32,7 @@ BOFS = hp20pq1.bof \
        hp50pq1.bof \
        hp50pq2.bof \
        hp50pq3.bof \
+       hp80pq1.bof \
        hp90pq1.bof \
        hp90pq2.bof \
        hp90pq3.bof \
