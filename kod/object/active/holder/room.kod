@@ -205,6 +205,8 @@ classvars:
    
    vbCanSneakHere = TRUE
    vbCanHideHere = TRUE
+   
+   vbDefaultChaosZone = FALSE
 
 properties:
 
@@ -4458,7 +4460,7 @@ messages:
       Send(self,@WeatherChanged);
       
       % Give us a snow threat.
-      Send(self,@StartThreat,#cClasses=[&SnowThreat]);
+      Send(self,@StartThreat,#cClasses=[&SnowThreat],#report=FALSE);
 
       return;
    }
@@ -4518,7 +4520,7 @@ messages:
       Send(self,@WeatherChanged);
       
       % Give us a rain threat.
-      Send(self,@StartThreat,#cClasses=[&RainThreat]);
+      Send(self,@StartThreat,#cClasses=[&RainThreat],#report=FALSE);
 
       return;
    }
@@ -5781,6 +5783,18 @@ messages:
 
    OverrideDeathFunction(who=$,what=$)
    {
+      return;
+   }
+
+   SetChaosZoneToDefault()
+   {
+      piChaosZone = vbDefaultChaosZone;
+      return;
+   }
+
+   SetChaosZone(value=FALSE)
+   {
+      piChaosZone = value;
       return;
    }
 

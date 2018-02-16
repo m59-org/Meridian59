@@ -274,13 +274,13 @@ messages:
             if Send(Send(SYS,@FindRoomByNum,#num=RID_ACIDPATH),
                      @GetPrismOfAcidDefeated)
             {
-               return [&AcidStorm];
+               return [&AcidStorm,&RainThreat];
             }
             return [&AcidThreat,&RainThreat];
          case DAY_PHASE_NIGHT:
             if Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTSANDBAR),@GetPrismOfIceDefeated)
             {
-               return [&ColdStorm];
+               return [&ColdStorm,&SnowThreat];
             }
             return [&ColdThreat,&SnowThreat];
       }
@@ -340,9 +340,6 @@ messages:
          Post(self,@PopulateArea);
       }
 
-      Post(self,@StartThreat,#cClasses=Send(self,@GetPhaseThreats),
-            #report=FALSE);
-
       propagate;
    }
    
@@ -352,8 +349,6 @@ messages:
       {
          Post(self,@DepopulateArea);
       }
-
-      Post(self,@EndAllThreats);
 
       propagate;
    }

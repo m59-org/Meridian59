@@ -53,6 +53,9 @@ classvars:
    vbBoostElement = FALSE
    viBoostElement = 0
    viBoostPercentage = 0
+   
+   % Do we report general messages as a class?
+   vbReportMessages = TRUE
 
 properties:
 
@@ -111,6 +114,7 @@ messages:
       {
          if IsClass(First(i),&User)
             AND report
+            AND vbReportMessages
          {
             Send(First(i),@MsgSendUser,#message_rsc=viThreatBeginMsg);
          }
@@ -206,6 +210,7 @@ messages:
       foreach i in Send(poHostObject,@GetHolderActive)
       {
          if IsClass(First(i),&User)
+            AND vbReportMessages
          {
             Send(First(i),@MsgSendUser,#message_rsc=viThreatEndMsg);
          }

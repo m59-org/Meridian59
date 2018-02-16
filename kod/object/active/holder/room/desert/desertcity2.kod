@@ -121,6 +121,36 @@ messages:
 
       return;
    }
+   
+   GetPhaseThreats()
+   {
+      switch(Send(SYS,@GetDayPhase))
+      {
+         case DAY_PHASE_DAWN:
+            return [&ShockStorm, &ChaosThreat];
+         case DAY_PHASE_DAY:
+            if Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTRIVER2),
+                     @GetPrismOfFireDefeated)
+            {
+               return [&HeatStorm, &ChaosThreat];
+            }
+            return [&HeatThreat, &ChaosThreat];
+         case DAY_PHASE_DUSK:
+            if Send(Send(SYS,@FindRoomByNum,#num=RID_ACIDPATH),
+                     @GetPrismOfAcidDefeated)
+            {
+               return [&AcidStorm, &RainThreat, &ChaosThreat];
+            }
+            return [&AcidThreat,&RainThreat, &ChaosThreat];
+         case DAY_PHASE_NIGHT:
+            if Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTSANDBAR),@GetPrismOfIceDefeated)
+            {
+               return [&ColdStorm, &SnowThreat, &ChaosThreat];
+            }
+            return [&ColdThreat,&SnowThreat, &ChaosThreat];
+      }
+      return [&ShockStorm, &ChaosThreat];
+   }
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

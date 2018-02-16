@@ -386,6 +386,8 @@ properties:
 
    piBaseLight = LIGHT_MIN
    piOutside_factor = OUTDOORS_NONE 
+   
+   piChaosZone = TRUE
 
    prRoom = room_minotaurmazeroom
    piRoom_num = $
@@ -801,11 +803,6 @@ messages:
          Post(self,@PopulateArea);
       }
 
-      if vbDesertThreatsHere
-      {
-         Post(self,@StartThreat,#cClasses=Send(self,@GetPhaseThreats),#report=FALSE);
-      }
-      
       if pbFallThreatHere
       {
          Post(self,@StartThreat,#cClasses=[&FallThreat],#report=TRUE);
@@ -826,8 +823,6 @@ messages:
       {
          Post(self,@DepopulateArea);
       }
-
-      Post(self,@EndAllThreats);
 
       propagate;
    }
@@ -2495,32 +2490,37 @@ messages:
    
    GetPhaseThreats()
    {
+      if NOT vbDesertThreatsHere
+      {
+         return [&ChaosThreat];
+      }
+
       switch(Send(SYS,@GetDayPhase))
       {
          case DAY_PHASE_DAWN:
-            return [&ShockStorm];
+            return [&ShockStorm, &ChaosThreat];
          case DAY_PHASE_DAY:
             if Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTRIVER2),
                      @GetPrismOfFireDefeated)
             {
-               return [&HeatStorm];
+               return [&HeatStorm, &ChaosThreat];
             }
-            return [&HeatThreat];
+            return [&HeatThreat, &ChaosThreat];
          case DAY_PHASE_DUSK:
             if Send(Send(SYS,@FindRoomByNum,#num=RID_ACIDPATH),
                      @GetPrismOfAcidDefeated)
             {
-               return [&AcidStorm];
+               return [&AcidStorm, &RainThreat, &ChaosThreat];
             }
-            return [&AcidThreat];
+            return [&AcidThreat, &RainThreat, &ChaosThreat];
          case DAY_PHASE_NIGHT:
             if Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTSANDBAR),@GetPrismOfIceDefeated)
             {
-               return [&ColdStorm];
+               return [&ColdStorm, &SnowThreat, &ChaosThreat];
             }
-            return [&ColdThreat];
+            return [&ColdThreat, &SnowThreat, &ChaosThreat];
       }
-      return [&ShockStorm];
+      return [&ShockStorm, &ChaosThreat];
    }
 
    StartThreat(cClasses=$,report=TRUE)
