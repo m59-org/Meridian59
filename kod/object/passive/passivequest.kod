@@ -44,6 +44,12 @@ classvars:
    
    vbChooseHometown = FALSE
    
+   % Multiple choice. For example, choose ao3 or soth.
+   vbEquipItemOne = FALSE
+   vbEquipItemOneClass = $
+   vbEquipItemTwo = FALSE
+   vbEquipItemTwoClass = $
+   
    vbReachHP = FALSE
    viReachThisHP = 999
    
@@ -145,6 +151,25 @@ messages:
          {
             Send(self,@Completed);
          }
+      }
+      return;
+   }
+
+   EquippedAnItem(oItem=$)
+   {
+      if vbEquipItemOne
+         AND oItem <> $
+         AND IsClass(oItem,vbEquipItemOneClass)
+      {
+         Send(self,@Completed);
+         return;
+      }
+      if vbEquipItemTwo
+         AND oItem <> $
+         AND IsClass(oItem,vbEquipItemTwoClass)
+      {
+         Send(self,@Completed);
+         return;
       }
       return;
    }

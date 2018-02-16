@@ -118,19 +118,19 @@ messages:
               OR Send(who,@PlayerIsAdept))
          AND NOT Send(who,@HasQuestChain,#chain_num=HP50_JOIN_FACTION_CHAIN)
          AND Send(who,@GetFaction) = FACTION_NEUTRAL
+         AND iPlayerHP <= 90
       {
          Create(&hp50pq1,#quester=who);
       }
       
       if iPlayerHP >= 90
-         %AND iPlayerHP <= 120
+         AND iPlayerHP <= 120
          AND NOT Send(who,@HasQuestChain,#chain_num=HP90_INVESTIGATE_ISLAND_CHAIN)
       {
          Create(&hp90pq1,#quester=who);
       }
       
       if iPlayerHP >= 100
-         AND iPlayerHP <= 130
          AND NOT Send(who,@HasQuestChain,#chain_num=HP100_INVESTIGATE_BRAX_CHAIN)
       {
          Create(&hp100pq1,#quester=who);

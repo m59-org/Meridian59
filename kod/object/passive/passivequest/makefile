@@ -37,7 +37,8 @@ BOFS = hp20pq1.bof \
        hp90pq3.bof \
        hp90pq4.bof \
        hp90pq5.bof \
-       hp100pq1.bof
+       hp100pq1.bof \
+       hp100pq2.bof
       
 
 !include $(KODDIR)\kod.mak
