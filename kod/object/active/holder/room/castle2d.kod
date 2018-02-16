@@ -285,19 +285,30 @@ messages:
 
    SomethingTryGo(what = $,row = $,col = $)
    {
-   local LockedRoom;
-
-   LockedRoom = Send(SYS,@FindRoomByNum,#num=RID_MOCKERS_ROOM);
-   
-   if row = 31 and col = 20
+      local LockedRoom, oCessBasement;
+      
+      if row >= 33
+         AND col >= 30
       {
-      if Send(LockedRoom,@CheckLock) = 1
-         { 
-	 Send(what,@MsgSendUser,#message_rsc = mockers_doorlocked); 
-	 return true;
-	 }
+         oCessBasement = Send(SYS,@FindRoomByNum,#num=RID_CASTLE2F);
+         if oCessBasement <> $
+         {
+            Send(oCessBasement,@Teleport,#what=what);
+            return TRUE;
+         }
       }
-   propagate;
+
+      LockedRoom = Send(SYS,@FindRoomByNum,#num=RID_MOCKERS_ROOM);
+   
+      if row = 31 and col = 20
+      {
+         if Send(LockedRoom,@CheckLock) = 1
+         { 
+            Send(what,@MsgSendUser,#message_rsc = mockers_doorlocked); 
+            return TRUE;
+         }
+      }
+      propagate;
    }
 
 end
