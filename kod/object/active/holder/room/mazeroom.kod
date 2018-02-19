@@ -293,9 +293,25 @@ resources:
       "This door bears a rare pristine symbol of a High Sorcerer. Its magics still function, so it will not open for you."
    maze_exit_blocked5 = \
       "Trace amounts of water leak from around the edges of this door. The next area seems to have been flooded, thus opening it would be not be wise."
+   maze_exit_blocked6 = \
+      "This door is a fake designed to confuse would-be thieves!"
+   maze_exit_blocked7 = \
+      "The door is frozen shut by primordial chill."
+   maze_exit_blocked8 = \
+      "There doesn't appear to be a way to open this door."
+   maze_exit_blocked9 = \
+      "~kA magically created voice says, \"Only apprentice sorcerers may enter the Tea Room.\""
+   maze_exit_blocked10 = \
+      "A lethal current of shocking energy runs through this door. You dare not touch it."
+   maze_exit_blocked11 = \
+      "The floor just beyond this door is covered with bones. Not a good idea."
+   maze_exit_blocked12 = \
+      "Your hand refuses to make contact with the door no matter how hard you try."
+   maze_exit_blocked13 = \
+      "This door is an illusion! A blank wall is all that really lies here."
 
    maze_intro_explanation = \
-      "~kThe spirit of Vecka tells you, \"The maze was originally constructed to be the ultimate "
+      "~kThe spirit of Vecka tells you, \"This maze was originally constructed to be the ultimate "
       "test for new sorcerers. Once corruption took hold, it became bathed "
       "in opulence, intended as a final resting place for the High Sorcerers. You may have "
       "encountered smaller tombs of lesser known sorcerers already. When the "
@@ -462,6 +478,10 @@ properties:
    piEastEntranceFineRow = 0
    piEastEntranceFineCol = 0
    
+   psSouthExitMsg = $
+   psNorthExitMsg = $
+   psWestExitMsg = $
+   psEastExitMsg = $
    
    % For generated rooms, where is our blink spot?
    piCustomTeleportRow = 0
@@ -1597,7 +1617,14 @@ messages:
                                                                     #x_coord=piXCoord,
                                                                     #y_coord=piYCoord+1);
             }
-            Send(poNorthExit,@MazeEnter,#who=who,#from_direction=from_direction);
+            if poNorthExit <> $
+            {
+               Send(poNorthExit,@MazeEnter,#who=who,#from_direction=from_direction);
+            }
+            else
+            {
+               Send(who,@MsgSendUser,#message_rsc=psNorthExitMsg);
+            }
             break;
          case MAZE_DIRECTION_SOUTH:
             if poSouthExit = $
@@ -1606,7 +1633,14 @@ messages:
                                                                     #x_coord=piXCoord,
                                                                     #y_coord=piYCoord-1);
             }
-            Send(poSouthExit,@MazeEnter,#who=who,#from_direction=from_direction);
+            if poSouthExit <> $
+            {
+               Send(poSouthExit,@MazeEnter,#who=who,#from_direction=from_direction);
+            }
+            else
+            {
+               Send(who,@MsgSendUser,#message_rsc=psSouthExitMsg);
+            }
             break;
          case MAZE_DIRECTION_EAST:
             if poEastExit = $
@@ -1615,7 +1649,14 @@ messages:
                                                                     #x_coord=piXCoord+1,
                                                                     #y_coord=piYCoord);
             }
-            Send(poEastExit,@MazeEnter,#who=who,#from_direction=from_direction);
+            if poEastExit <> $
+            {
+               Send(poEastExit,@MazeEnter,#who=who,#from_direction=from_direction);
+            }
+            else
+            {
+               Send(who,@MsgSendUser,#message_rsc=psEastExitMsg);
+            }
             break;
          case MAZE_DIRECTION_WEST:
             if poWestExit = $
@@ -1624,7 +1665,14 @@ messages:
                                                                     #x_coord=piXCoord-1,
                                                                     #y_coord=piYCoord);
             }
-            Send(poWestExit,@MazeEnter,#who=who,#from_direction=from_direction);
+            if poWestExit <> $
+            {
+               Send(poWestExit,@MazeEnter,#who=who,#from_direction=from_direction);
+            }
+            else
+            {
+               Send(who,@MsgSendUser,#message_rsc=psWestExitMsg);
+            }
             break;
       }
       
@@ -1715,7 +1763,7 @@ messages:
       local i, iCurRow, iCurCol, iMaxRows, iMaxCols, iSectionResult, lAlreadySelectedSectors,
             lSawbladesTriggerSectors, lCrusherTriggerSectors, lSpikeDamageSectors, lSecretDoorTriggerSectors,
             lLavaSectors, lTotemSectors, lDesertSpawnSectors, lStatueSpawnSectors, lDesertThreatSectors,
-            lFeretorySectors;
+            lFeretorySectors, lExitMsgs;
 
       % Let's start this with an element of zero so it's never nil
       lAlreadySelectedSectors = [0];
@@ -1802,6 +1850,19 @@ messages:
       lDesertThreatSectors = [SNOW_SECTOR,
                               ICE_SECTOR];
       lFeretorySectors = [RELIC_TREASURE_SECTOR];
+      lExitMsgs = [maze_exit_blocked1,
+                   maze_exit_blocked2,
+                   maze_exit_blocked3,
+                   maze_exit_blocked4,
+                   maze_exit_blocked5,
+                   maze_exit_blocked6,
+                   maze_exit_blocked7,
+                   maze_exit_blocked8,
+                   maze_exit_blocked9,
+                   maze_exit_blocked10,
+                   maze_exit_blocked11,
+                   maze_exit_blocked12,
+                   maze_exit_blocked13];
 
       iCurRow = 0;
       iCurCol = 0;
@@ -2039,6 +2100,26 @@ messages:
       else
       {
          prMusic = maze_music1;
+      }
+      
+      if psSouthExitMsg = $
+      {
+         psSouthExitMsg = Nth(lExitMsgs,Random(1,Length(lExitMsgs)));
+      }
+      
+      if psNorthExitMsg = $
+      {
+         psNorthExitMsg = Nth(lExitMsgs,Random(1,Length(lExitMsgs)));
+      }
+      
+      if psWestExitMsg = $
+      {
+         psWestExitMsg = Nth(lExitMsgs,Random(1,Length(lExitMsgs)));
+      }
+      
+      if psEastExitMsg = $
+      {
+         psEastExitMsg = Nth(lExitMsgs,Random(1,Length(lExitMsgs)));
       }
 
       return;
