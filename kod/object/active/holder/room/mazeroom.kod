@@ -52,6 +52,9 @@ constants:
    FROZEN_LOWER_WATERFALL_SECTOR = 712
    WATER_SECTOR_NO_DEPTH_CHANGE = 713
    
+   % This spawns a treasure strongbox.
+   RELIC_TREASURE_SECTOR = 730
+   
    %% If these sectors exist, desert monsters will be placed.
    %%    These represent places where the ceiling has caved in, exposing the maze to the desert.
    DESERT_SPAWN_ONE = 750
@@ -465,6 +468,10 @@ properties:
    % Where do we spawn mobs?
    plDesertSpawnPoints = $
    plStatueSpawnPoints = $
+
+   % Holds a relic for use in guild hall reliquaries
+   plFeretorySpawnPoints = $
+   pbCreatedFeretory = FALSE
    
    % Does this room have lethal fall threat? Height 0 or below = death
    pbFallThreatHere = FALSE
@@ -801,6 +808,11 @@ messages:
       if vbSpawnMonsters
       {
          Post(self,@PopulateArea);
+      }
+      
+      if plFeretorySpawnPoints <> $
+      {
+         Post(self,@PopulateChest);
       }
 
       if pbFallThreatHere
@@ -1683,7 +1695,8 @@ messages:
    {
       local i, iCurRow, iCurCol, iMaxRows, iMaxCols, iSectionResult, lAlreadySelectedSectors,
             lSawbladesTriggerSectors, lCrusherTriggerSectors, lSpikeDamageSectors, lSecretDoorTriggerSectors,
-            lLavaSectors, lTotemSectors, lDesertSpawnSectors, lStatueSpawnSectors, lDesertThreatSectors;
+            lLavaSectors, lTotemSectors, lDesertSpawnSectors, lStatueSpawnSectors, lDesertThreatSectors,
+            lFeretorySectors;
 
       % Let's start this with an element of zero so it's never nil
       lAlreadySelectedSectors = [0];
@@ -1769,6 +1782,7 @@ messages:
                              STATUE_SPAWN_TEN];
       lDesertThreatSectors = [SNOW_SECTOR,
                               ICE_SECTOR];
+      lFeretorySectors = [RELIC_TREASURE_SECTOR];
 
       iCurRow = 0;
       iCurCol = 0;
@@ -1858,6 +1872,13 @@ messages:
                                 0,                                    % Fine Row
                                 0                                     % Fine Col
                                 ],plTotems);
+               lAlreadySelectedSectors = Cons(iSectionResult,lAlreadySelectedSectors);
+            }
+            
+            if FindListElem(lFeretorySectors,iSectionResult)
+               AND NOT FindListElem(lAlreadySelectedSectors,iSectionResult)
+            {
+               plFeretorySpawnPoints = Cons([iCurRow,iCurCol],plFeretorySpawnPoints);
                lAlreadySelectedSectors = Cons(iSectionResult,lAlreadySelectedSectors);
             }
             
@@ -2571,7 +2592,7 @@ messages:
 
    PopulateArea()
    {
-      local i, lClasses, iChosenAngle;
+      local i, lClasses, iChosenAngle, oFeretory;
 
       switch(Send(SYS,@GetDayPhase))
       {
@@ -2640,6 +2661,78 @@ messages:
                #fine_col=0,
                #new_angle=iChosenAngle);
       }
+      
+      foreach i in plFeretorySpawnPoints
+      {
+         if NOT pbCreatedFeretory
+         {
+            oFeretory = Create(&MazeChest);
+            Send(self,@NewHold,#what=oFeretory,
+                  #new_row=Nth(i,1),
+                  #new_col=Nth(i,2),
+                  #fine_row=0,
+                  #fine_col=0,
+                  #new_angle=ANGLE_SOUTH);
+            Post(self,@FillMazeChest,#maze_chest=oFeretory);
+            pbCreatedFeretory = TRUE;
+         }
+      }
+
+      return;
+   }
+
+   PopulateChest()
+   {
+      local i, oFeretory;
+      
+      foreach i in plFeretorySpawnPoints
+      {
+         if NOT pbCreatedFeretory
+         {
+            oFeretory = Create(&MazeChest);
+            Send(self,@NewHold,#what=oFeretory,
+                  #new_row=Nth(i,1),
+                  #new_col=Nth(i,2),
+                  #fine_row=0,
+                  #fine_col=0,
+                  #new_angle=ANGLE_SOUTH);
+            Post(self,@FillMazeChest,#maze_chest=oFeretory);
+            pbCreatedFeretory = TRUE;
+         }
+      }
+
+      return;
+   }
+
+   FillMazeChest(maze_chest=$)
+   {
+      local lLootClasses, lMinorLootClasses, oWeapon;
+      if maze_chest <> $
+      {
+         lLootClasses = [&PunchArmorRelic,
+                         &OffenseArmorRelic,
+                         &DefenseArmorRelic,
+                         &MeleeArmorRelic,
+                         &RangedArmorRelic];
+         lMinorLootClasses = [&Axe,
+                              &ShortSword,
+                              &Hammer,
+                              &Dagger,
+                              &LongSword,
+                              &Mace,
+                              &Scimitar,
+                              &NeruditeSword,
+                              &MysticSword];
+         Send(maze_chest,@NewHold,#what=Create(Nth(lLootClasses,Random(1,Length(lLootClasses)))));
+         
+         % These chests also contain imbued weapons of power
+         oWeapon = Create(Nth(lMinorLootClasses,Random(1,Length(lMinorLootClasses))),#level=210);
+         Send(maze_chest,@MajorImbue,#oItem=oWeapon);
+         Send(maze_chest,@NewHold,#what=oWeapon);
+         
+         Send(maze_chest,@NewHold,#what=Create(&Money,#number=Random(5000,20000)));
+      }
+      
 
       return;
    }
