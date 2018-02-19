@@ -1997,26 +1997,20 @@ messages:
 
    GetRelicList()
    {
-      local i, n, each_n, each_obj, lRelicList;
+      local i, n, each_obj, lReliquaryList;
       
-      lRelicList = $;
+      % Modified to return reliquaries themselves instead
+
+      lReliquaryList = $;
       foreach i in Send(self,@GetHolderActive)
       {
          each_obj = Send(self,@HolderExtractObject,#data=i);
          if IsClass(each_obj,&Reliquary)
          {
-            foreach n in Send(each_obj,@GetHolderPassive)
-            {
-               each_n = Send(each_obj,@HolderExtractObject,#data=n);
-               if IsClass(each_n,&Relic)
-               {
-                  lRelicList = Cons(each_n,lRelicList);
-               }
-            }
+            lReliquaryList = Cons(each_obj,lReliquaryList);
          }
       }
-      
-      return lRelicList;
+      return lReliquaryList;
    }
    
    GetRoomMeditateEfficiency(who=$,oSpell=$,oSkill=$)

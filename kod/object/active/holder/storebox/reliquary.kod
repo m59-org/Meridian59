@@ -18,7 +18,7 @@ Reliquary is StorageBox
 % &GoldSword                   : +1 melee damage
 % &NeruditeBow                 : +1 ranged damage
 % &MagicBow                    : +1 spell damage
-% &Helm                        : +3% weapon resist, +3% magic resist
+% &Helm                        : +5% weapon resist, +5% magic resist
 % &MajorBlueHeartStone         : +3% cold resist
 % &MajorRedHeartStone          : +3% fire resist
 % &MajorSkyHeartStone          : +3% lightning resist
@@ -33,6 +33,8 @@ Reliquary is StorageBox
 % Gold find
 % Experience gain
 % various spellpowers
+
+% Moved all relic bonuses and functions here to avoid adding tons of code to a wide range of items
 
 constants:
 
@@ -57,6 +59,11 @@ resources:
    Reliquary_bonus_desc = \
       "\n\n%s%s"
 
+   new_hold_reliquary = \
+      "A reliquary in your guild hall has received a relic to enshrine. New energies flow through you."
+   leave_hold_reliquary = \
+      "Something has been removed from a reliquary in your guild hall."
+
 classvars:
 
    vrName = Reliquary_name_rsc
@@ -69,6 +76,8 @@ classvars:
 properties:
 
    pbActive = FALSE
+   
+   poHeldRelic = $
 
 messages:
 
@@ -140,18 +149,49 @@ messages:
 
    NewHold(what=$)
    {
+      local i, oGuildOwner;
       if Send(self,@IsRelic,#what=what)
       {
+         poHeldRelic = what;
          pbActive = TRUE;
          Post(poOwner,@SomethingChanged,#what=self);
+         
+         oGuildOwner = Send(poOwner,@GetGuildOwner);
+         if oGuildOwner <> $
+         {
+            foreach i in Send(oGuildOwner,@GetMemberList)
+            {
+               if Send(First(i),@IsLoggedOn)
+               {
+                  Send(First(i),@ToCliStats,#group=2);
+                  Send(First(i),@MsgSendUser,#message_rsc=new_hold_reliquary);
+               }
+            }
+         }
       }
       propagate;
    }
 
    LeaveHold(what=$)
    {
+      local i, oGuildOwner;
+      
+      poHeldRelic = $;
       pbActive = FALSE;
       Post(poOwner,@SomethingChanged,#what=self);
+
+      oGuildOwner = Send(poOwner,@GetGuildOwner);
+      if oGuildOwner <> $
+      {
+         foreach i in Send(oGuildOwner,@GetMemberList)
+         {
+            if Send(First(i),@IsLoggedOn)
+            {
+               Send(First(i),@ToCliStats,#group=2);
+               Send(First(i),@MsgSendUser,#message_rsc=leave_hold_reliquary);
+            }
+         }
+      }
       propagate;
    }
 
@@ -176,6 +216,354 @@ messages:
       AddPacket(1,ANIMATE_NONE,2,1);
 
       return;
+   }
+   
+   GetRelic()
+   {
+      return poHeldRelic;
+   }
+   
+   Delete()
+   {
+      poHeldRelic = $;
+      propagate;
+   }
+
+   %%%%% Relic Functions
+
+   ModifyDefensePower(attacker=$,defense_power=0)
+   {
+      if poHeldRelic = $
+      {
+         return defense_power;
+      }
+      if IsClass(poHeldRelic,&DefenseArmorRelic)
+      {
+         return defense_power + 20;
+      }
+      return defense_power;
+   }
+
+   ModifyHitRoll(who = $,what = $,hit_roll = $)
+   {
+      if poHeldRelic = $
+      {
+         return hit_roll;
+      }
+      if IsClass(poHeldRelic,&OffenseArmorRelic)
+      {
+         return hit_roll + 20;
+      }
+      if IsClass(poHeldRelic,&MagicBow)
+      {
+         return hit_roll + 50;
+      }
+      return hit_roll;
+   }
+
+   ModifyDamage(who = $,what = $,damage = $,stroke_obj = $)
+   {
+      if poHeldRelic = $
+      {
+         return damage;
+      }
+
+      if stroke_obj <> $
+         AND IsClass(stroke_obj,&Punch)
+         AND IsClass(poHeldRelic,&PunchArmorRelic)
+      {
+         return damage + 120;
+      }
+      if stroke_obj <> $
+         AND (IsClass(stroke_obj,&Punch)
+            OR IsClass(stroke_obj,&Slash)
+            OR IsClass(stroke_obj,&Stab))
+         AND IsClass(poHeldRelic,&MeleeArmorRelic)
+      {
+         return damage + 50;
+      }
+      if stroke_obj <> $
+         AND (IsClass(stroke_obj,&Punch)
+            OR IsClass(stroke_obj,&Slash)
+            OR IsClass(stroke_obj,&Stab))
+         AND IsClass(poHeldRelic,&GoldSword)
+      {
+         return damage + 100;
+      }
+      if stroke_obj <> $
+         AND (IsClass(stroke_obj,&Fire)
+            OR IsClass(stroke_obj,&Throw))
+         AND IsClass(poHeldRelic,&RangedArmorRelic)
+      {
+         return damage + 25;
+      }
+      if stroke_obj <> $
+         AND (IsClass(stroke_obj,&Fire)
+            OR IsClass(stroke_obj,&Throw))
+         AND IsClass(poHeldRelic,&NeruditeBow)
+      {
+         return damage + 50;
+      }
+      return damage;
+   }
+
+   ModifyResistance(resistance_list=$)
+   {
+      local iResistanceType, iResistanceAmount, iSecondaryResistanceType, iSecondaryResistanceAmount;
+      if poHeldRelic = $
+      {
+         return resistance_list;
+      }
+      
+      iResistanceType = 0;
+      iResistanceAmount = 0;
+      
+      iSecondaryResistanceType = 0;
+      iSecondaryResistanceAmount = 0;
+
+      if IsClass(poHeldRelic,&Helm)
+      {
+         iResistanceType = -ATCK_SPELL_ALL;
+         iResistanceAmount = 5;
+         iSecondaryResistanceType = ATCK_WEAP_ALL;
+         iSecondaryResistanceAmount = 5;
+      }
+      if IsClass(poHeldRelic,&MajorBlueHeartStone)
+      {
+         iResistanceType = -ATCK_SPELL_COLD;
+         iResistanceAmount = 3;
+      }
+      if IsClass(poHeldRelic,&MajorRedHeartStone)
+      {
+         iResistanceType = -ATCK_SPELL_FIRE;
+         iResistanceAmount = 3;
+      }
+      if IsClass(poHeldRelic,&MajorSkyHeartStone)
+      {
+         iResistanceType = -ATCK_SPELL_SHOCK;
+         iResistanceAmount = 3;
+      }
+      if IsClass(poHeldRelic,&MajorGreenHeartStone)
+      {
+         iResistanceType = -ATCK_SPELL_ACID;
+         iResistanceAmount = 3;
+      }
+      if IsClass(poHeldRelic,&MajorWhiteHeartStone)
+      {
+         iResistanceType = -ATCK_SPELL_HOLY;
+         iResistanceAmount = 3;
+      }
+      if IsClass(poHeldRelic,&MajorBlackHeartStone)
+      {
+         iResistanceType = -ATCK_SPELL_UNHOLY;
+         iResistanceAmount = 3;
+      }
+      if IsClass(poHeldRelic,&MajorBrownHeartStone)
+      {
+         iResistanceType = -ATCK_SPELL_QUAKE;
+         iResistanceAmount = 3;
+      }
+      if IsClass(poHeldRelic,&MajorDarkGreenHeartStone)
+      {
+         iResistanceType = ATCK_WEAP_NERUDITE;
+         iResistanceAmount = 3;
+      }
+      if IsClass(poHeldRelic,&MajorPurpleHeartStone)
+      {
+         iResistanceType = -ATCK_SPELL_ILLUSION;
+         iResistanceAmount = 3;
+      }
+      
+      if IsClass(poHeldRelic,&FarenCharm)
+      {
+         iResistanceType = -ATCK_SPELL_FIRE;
+         iResistanceAmount = 10;
+         iSecondaryResistanceType = -ATCK_SPELL_SHOCK;
+         iSecondaryResistanceAmount = 10;
+      }
+      
+      if IsClass(poHeldRelic,&KraananCharm)
+      {
+         iResistanceType = ATCK_WEAP_ALL;
+         iResistanceAmount = 3;
+         iSecondaryResistanceType = -ATCK_SPELL_ALL;
+         iSecondaryResistanceAmount = 3;
+      }
+      
+      if IsClass(poHeldRelic,&ShalilleCharm)
+      {
+         iResistanceType = -ATCK_SPELL_HOLY;
+         iResistanceAmount = 10;
+         iSecondaryResistanceType = -ATCK_SPELL_ACID;
+         iSecondaryResistanceAmount = 10;
+      }
+      
+      if IsClass(poHeldRelic,&QorCharm)
+      {
+         iResistanceType = -ATCK_SPELL_UNHOLY;
+         iResistanceAmount = 10;
+         iSecondaryResistanceType = -ATCK_SPELL_COLD;
+         iSecondaryResistanceAmount = 10;
+      }
+      
+      if IsClass(poHeldRelic,&RiijaCharm)
+      {
+         iResistanceType = -ATCK_SPELL_ILLUSION;
+         iResistanceAmount = 20;
+      }
+
+      if iResistanceType <> 0
+      {
+         resistance_list = Send(SYS,@AddResistance,#what=iResistanceType,
+                                 #value=iResistanceAmount,#resistance_list=resistance_list);
+      }
+      if iSecondaryResistanceType <> 0
+      {
+         resistance_list = Send(SYS,@AddResistance,#what=iSecondaryResistanceType,
+                                 #value=iSecondaryResistanceAmount,#resistance_list=resistance_list);
+      }
+      return resistance_list;
+   }
+
+   ModifyMight(iMight=0)
+   {
+      if poHeldRelic = $
+      {
+         return iMight;
+      }
+      
+      if IsClass(poHeldRelic,&KraananCharm)
+      {
+         return iMight + 3;
+      }
+
+      if IsClass(poHeldRelic,&QorCharm)
+      {
+         return iMight + 1;
+      }
+      return iMight;
+   }
+   
+   ModifyAgility(iAgility=0)
+   {
+      if poHeldRelic = $
+      {
+         return iAgility;
+      }
+      
+      if IsClass(poHeldRelic,&RiijaCharm)
+      {
+         return iAgility + 3;
+      }
+
+      if IsClass(poHeldRelic,&KraananCharm)
+      {
+         return iAgility + 1;
+      }
+      return iAgility;
+   }
+
+   ModifyStamina(iStamina=0)
+   {
+      if poHeldRelic = $
+      {
+         return iStamina;
+      }
+      
+      if IsClass(poHeldRelic,&FarenCharm)
+      {
+         return iStamina + 3;
+      }
+
+      if IsClass(poHeldRelic,&ShalilleCharm)
+      {
+         return iStamina + 1;
+      }
+      return iStamina;
+   }
+
+   ModifyIntellect(iIntellect=0)
+   {
+      if poHeldRelic = $
+      {
+         return iIntellect;
+      }
+      
+      if IsClass(poHeldRelic,&ShalilleCharm)
+      {
+         return iIntellect + 3;
+      }
+
+      if IsClass(poHeldRelic,&RiijaCharm)
+      {
+         return iIntellect + 1;
+      }
+      return iIntellect;
+   }
+
+   ModifyAim(iAim=0)
+   {
+      if poHeldRelic = $
+      {
+         return iAim;
+      }
+      
+      if IsClass(poHeldRelic,&QorCharm)
+      {
+         return iAim + 3;
+      }
+
+      if IsClass(poHeldRelic,&FarenCharm)
+      {
+         return iAim + 1;
+      }
+
+      return iAim;
+   }
+
+   ModifyMysticism(iMysticism=0)
+   {
+      if poHeldRelic = $
+      {
+         return iMysticism;
+      }
+
+      return iMysticism;
+   }
+
+   AdjustHealthTime(time=0, lRadiusState=0)
+   {
+      return time;
+   }
+
+   AdjustVigorTime(time=0, lRadiusState=0)
+   {
+      return time;
+   }
+
+   AdjustManaTime(time=0, lRadiusState=0)
+   {
+      return time;
+   }
+
+   AddBlindResistance(resistance=0)
+   {
+      return resistance;
+   }
+   
+   GetExperienceBonus()
+   {
+      if poHeldRelic = $
+      {
+         return 0;
+      }
+      
+      if IsClass(poHeldRelic,&ExperienceRelic)
+      {
+         return 10;
+      }
+      
+      return 0;
    }
 
 end
