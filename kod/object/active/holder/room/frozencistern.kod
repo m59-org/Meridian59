@@ -107,6 +107,13 @@ messages:
    
    ExitCistern(who=$)
    {
+      local oRoom;
+      
+      oRoom = Send(SYS,@FindRoomByNum,#num=RID_MAZE_BOSS_ROOM);
+      if oRoom <> $
+      {
+         Send(oRoom,@Teleport,#what=who);
+      }
       return;
    }
 
