@@ -294,6 +294,14 @@ resources:
    maze_exit_blocked5 = \
       "Trace amounts of water leak from around the edges of this door. The next area seems to have been flooded, thus opening it would be not be wise."
 
+   maze_intro_explanation = \
+      "~kThe spirit of Vecka tells you, \"The maze was originally constructed to be the ultimate "
+      "test for new sorcerers. Once corruption took hold, it became bathed "
+      "in opulence, intended as a final resting place for the High Sorcerers. You may have "
+      "encountered smaller tombs of lesser known sorcerers already. When the "
+      "High Sorcerers found immortality, they knew they would never rest in the maze, "
+      "so they sealed it off and set a monster to guard the wealth within.\""
+
 classvars:
 
    vrName = room_name_minotaurmazeroom
@@ -798,6 +806,17 @@ messages:
 % ============
 % MOVEMENT EVALUATION
 % ============
+
+   NewHold(what=$)
+   {
+      if what <> $
+         AND IsClass(what,&User)
+         AND piRoom_num = RID_MAZE_ENTRANCE
+      {
+         Send(what,@MsgSendUser,#message_rsc=maze_intro_explanation);
+      }
+      propagate;
+   }
 
    FirstUserEntered()
    {
