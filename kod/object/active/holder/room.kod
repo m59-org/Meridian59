@@ -1277,6 +1277,15 @@ messages:
       if lSteps <> $
          OR type = INTRA_TELEPORT_TO_DESTINATION
       {
+         % Wave elements need a smooth movement
+         if IsClass(what,&ActiveWaveElement)
+         {
+            Send(self,@SomethingMoved,#what=what,
+                  #new_row=iRowSuccess,#new_col=iColSuccess,
+                  #fine_row=iFineRowSuccess,#fine_col=iFineColSuccess,
+                  #speed=Send(what,@GetSpeed),#non_monsters_only=TRUE);
+            return lSteps;
+         }
          Send(SYS,@UtilGoNearSquare,#what=what,#where=self,
                      #new_row=iRowSuccess,#new_col=iColSuccess,
                      #fine_row=iFineRowSuccess,#fine_col=iFineColSuccess,
@@ -3040,6 +3049,50 @@ messages:
       }
 
       return TRUE;
+   }
+
+   LineOfSightBetweenLocations(lLocationOne = $, lLocationTwo = $)
+   "Returns TRUE if there is a line of sight between lLocationOne and lLocationTwo"
+   {
+      local start_row, start_col, start_finerow, start_finecol,
+            end_row, end_col, end_finerow, end_finecol, los;
+
+      % get coordinates of source (obj1) and target (obj2)
+      start_row = Nth(lLocationOne,1);
+      start_col = Nth(lLocationOne,2);
+      start_finerow = Nth(lLocationOne,3);
+      start_finecol = Nth(lLocationOne,4);
+      end_row = Nth(lLocationTwo,1);
+      end_col = Nth(lLocationTwo,2);
+      end_finerow = Nth(lLocationTwo,3);
+      end_finecol = Nth(lLocationTwo,4);
+
+      % call BSP LoS in C code  
+      return LineOfSightBSP(prmRoom,
+         start_row, start_col, start_finerow, start_finecol,
+         end_row, end_col, end_finerow, end_finecol);
+   }
+
+   LineOfSightFromLocation(lLocation = $, obj2 = $)
+   "Returns TRUE if there is a line of sight between lLocation and obj2"
+   {
+      local start_row, start_col, start_finerow, start_finecol,
+            end_row, end_col, end_finerow, end_finecol, los;
+
+      % get coordinates of source (obj1) and target (obj2)
+      start_row = Nth(lLocation,1);
+      start_col = Nth(lLocation,2);
+      start_finerow = Nth(lLocation,3);
+      start_finecol = Nth(lLocation,4);
+      end_row = Send(obj2, @GetRow);
+      end_col = Send(obj2, @GetCol);
+      end_finerow = Send(obj2, @GetFineRow);
+      end_finecol = Send(obj2, @GetFineCol);
+
+      % call BSP LoS in C code  
+      return LineOfSightBSP(prmRoom,
+         start_row, start_col, start_finerow, start_finecol,
+         end_row, end_col, end_finerow, end_finecol);
    }
 
    LineOfSight(obj1 = $, obj2 = $)

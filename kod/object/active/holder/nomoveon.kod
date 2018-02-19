@@ -452,5 +452,48 @@ messages:
       return iResult;
    }
 
+   SquaredFineDistanceBetweenLocations3D(lLocationOne=$, row = $,col = $,fine_row = FINENESS_HALF,fine_col = FINENESS_HALF)
+   {
+      local iRow, iCol, iWhatRow, iWhatCol, iRow_diff, iCol_diff, iHeight_diff,
+            iResult, iQflags, iRflags, iHeightF, iHeightFWD, iHeightC, iServerID;
+
+      % Scale to fine
+      iRow = Nth(lLocationOne,1) * FINENESS + Nth(lLocationOne,3);
+      iCol = Nth(lLocationOne,2) * FINENESS + Nth(lLocationOne,4);
+      iWhatRow = (row * FINENESS) + fine_row;
+      iWhatCol = (col * FINENESS) + fine_col;
+
+      % set query-flags, here we're only interested in the sectorinfo
+      iQflags = LIQ_GET_SECTORINFO;
+
+      % query data from bsp in c-function
+      if NOT GetLocationInfoBSP(
+                      Send(poOwner,@GetRoomData), iQflags, 
+                      Nth(lLocationOne,1), Nth(lLocationOne,2),
+                      Nth(lLocationOne,3), Nth(lLocationOne,4),
+                      *iRflags, *iHeightF, *iHeightFWD, *iHeightC, *iServerID)
+      {
+         debug("Failed to get location info in ", Send(poOwner,@GetRoomData));
+         iHeight_diff = 0;
+      }
+      else
+      {
+         iHeight_diff = Send(self,@GetHeightFloorAtObjectBSP) - iHeightFWD;
+      }
+      	
+      % Deltas.
+      iRow_diff = iRow - iWhatRow;
+      iCol_diff = iCol - iWhatCol;
+
+      iResult = iRow_diff * iRow_diff + iCol_diff * iCol_diff
+                  + iHeight_diff * iHeight_diff;
+      if iResult < 0
+      {
+         iResult = MAX_INT;
+      }
+
+      return iResult;
+   }
+
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -8,7 +8,7 @@
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-VectorWall is ActiveWallElement
+FreezingWinds is ActiveWaveElement
 
 constants:
 
@@ -20,11 +20,6 @@ constants:
    %
    % Can be sent a name, icon, and element.
    
-   % This is high to avoid triggering. Vector walls check when they move
-   VECTOR_EFFECT_INTERVAL = 300000
-   
-   VECTOR_MOVE_INTERVAL = 50
-
 resources:
 
    VectorWall_desc_rsc = \
@@ -76,100 +71,18 @@ properties:
    piDrawFx = DRAWFX_TRANSLUCENT_50
 
    viIllusion = FALSE
-   piMaxDamage = 0
-   
-   piRowChange = 1
-   piColChange = 1
-   piFineRowChange = 0
-   piFineColChange = 0
 
    % Fine units
    piExplosionRange = 96
 
 messages:
 
-   Constructor(caster = $, duration = 200, MaxDamage = 0, illusionary = FALSE,row_change=0,col_change=0,fine_row_change=16,fine_col_change=16)
+   Constructor(caster = $, MaxDamage = 0, illusionary = FALSE)
    {
       piMaxDamage = MaxDamage;
       viIllusion = illusionary;
-   
-      piRowChange = row_change;
-      piColChange = col_change;
-      piFineRowChange = fine_row_change;
-      piFineColChange = fine_col_change;
 
       propagate;
-   }
-
-   Expire()
-   {
-      local oRoomData, iRow, iCol, iFineRow, iFineCol, iNewRow, iNewCol, iNewFineRow, iNewFineCol;
-      
-      ptExpire = $;
-      
-      if poOwner <> $
-      {
-         iRow = Send(self,@GetRow);
-         iCol = Send(self,@GetCol);
-         iFineRow = Send(self,@GetFineRow);
-         iFineCol = Send(self,@GetFineCol);
-      
-         iNewRow = iRow + piRowChange;
-         iNewCol = iCol + piColChange;
-         iNewFineRow = iFineRow + piFineRowChange;
-         iNewFineCol = iFineCol + piFineColChange;
-
-         if iNewRow > 0
-            AND iNewRow < Send(poOwner,@GetRoomRows)
-            AND iNewCol > 0
-            AND iNewCol < Send(poOwner,@GetRoomCols)
-         {
-
-            oRoomData = Send(poOwner,@GetRoomData);
-            if CanMoveInRoomBSP(oRoomData,iRow,iCol,iFineRow,iFineCol,
-                                iNewRow,iNewCol,iNewFineRow,iNewFineCol,
-                                self,FALSE)
-            {
-               if NOT Send(SYS,@UtilGoNearSquare,#what=self,#where=poOwner,
-                        #new_row=iNewRow,
-                        #new_col=iNewCol,
-                        #fine_row=iNewFineRow,
-                        #fine_col=iNewFineCol)
-               {
-                  Send(self,@Explode);
-                  return;
-               }
-
-               ptExpire = CreateTimer(self,@Expire,Send(self,@GetDuration));
-               return;
-%               Send(poOwner,@NewHold,#what=Create(&VectorWall,
-%                                                   #caster=poCaster,
-%                                                   #MaxDamage=piMaxDamage,
-%                                                   #Illusionary=viIllusion,
-%                                                   #row_change=piRowChange,
-%                                                   #col_change=piColChange,
-%                                                   #fine_row_change=piFineRowChange,
-%                                                   #fine_col_change=piFineColChange),
-%                                     #new_row=iNewRow,
-%                                     #new_col=iNewCol,
-%                                     #fine_row=iNewFineRow,
-%                                     #fine_col=iNewFineCol);
-            }
-            else
-            {
-               Send(self,@Explode,
-                     #new_row=iNewRow,
-                     #new_col=iNewCol,
-                     #fine_row=iNewFineRow,
-                     #fine_col=iNewFineCol);
-               return;
-            }
-         }
-      }
-
-      Send(self,@Delete);
-
-      return;
    }
 
    Explode(new_row=0, new_col=0, fine_row=0, fine_col=0)
@@ -190,32 +103,18 @@ messages:
             AND NOT (IsClass(each_obj,&Player)
                AND Send(each_obj,@IsInCannotInteractMode))
          {
-            if Send(each_obj,@SquaredFineDistanceToLocation,#row=new_row,
-                                                            #col=new_col,
-                                                            #fine_row=fine_row,
-                                                            #fine_col=fine_col) <= piExplosionRange*piExplosionRange
+            if Send(each_obj,@SquaredFineDistanceToLocation,#row=Send(self,@GetRow),
+                                                            #col=Send(self,@GetCol),
+                                                            #fine_row=Send(self,@GetFineRow),
+                                                            #fine_col=Send(self,@GetFineCol)) <= piExplosionRange*piExplosionRange
             {
+               Debug("exploding");
                Send(self,@DoEffect,#what=each_obj);
             }
          }
       }
 
-      Send(poOwner,@SomethingExploded,#what=self);
-      %Send(poOwner,@SomethingWaveRoom,#what=self,#wave_rsc=freezing_winds_hit_sound);
-
-      Send(self,@Delete);
-      return;
-   }
-
-   GetPeriodicDuration()
-   {
-      % 90 - 110% of base interval
-      return (VECTOR_EFFECT_INTERVAL * Random(90,110))/100;
-   }
-
-   GetDuration(duration = 0, bMS = FALSE)
-   {
-      return VECTOR_MOVE_INTERVAL;
+      propagate;
    }
 
    DoEffect(what = $)
@@ -223,6 +122,12 @@ messages:
       local iDamage, iDuration, rMessage;
 
       iDamage = 0;
+      
+      Debug("doing damage compared to");
+      Debug(Send(what,@GetRow));
+      Debug(Send(what,@GetCol));
+      Debug(Send(what,@GetFineRow));
+      Debug(Send(what,@GetFineCol));
       
       if viIllusion
       {
