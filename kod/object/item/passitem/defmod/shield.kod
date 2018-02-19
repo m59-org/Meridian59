@@ -71,6 +71,17 @@ messages:
    % Shields use the defense bonus as a bonus to block instead.
    ModifyDefensePower(who = $,what = $,defense_power = 0)
    {
+      local i, oDefenseMod;
+
+      foreach i in plEnchantmentMods
+      {
+         if Nth(i,1) = &DefenseMod
+         {
+            oDefenseMod = Send(SYS,@GetMagicMod,#class=&DefenseMod);
+            defense_power = Send(oDefenseMod,@ModifyDefensePower,#defense_power=defense_power,#iState=Nth(i,2));
+         }
+      }
+
       return defense_power;
    }
 
