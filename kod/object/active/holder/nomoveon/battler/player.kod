@@ -381,7 +381,6 @@ resources:
    %
    %  Mace fighting: Player has a might-based chance to stun with mace attacks.
    %  Fencing: Player has a chance to counterattack upon a successful parry.
-   %  Scimitar wielding: Player has a chance to deflect arrows.
    %  Archery: 
    %
    %
@@ -397,6 +396,7 @@ resources:
    %  Inert Form: Your resistance to elemental status effects is tripled.
    %
    %  Hammer wielding: Player can perform a short 'leap attack', jumping forward to strike an opponent that would otherwise be out of range (range 2-4).
+   %  Scimitar wielding: Player can drain a point of vigor from other players when they deal slashing damage with a scimitar equipped.
    %
    %  Dagger Wielding: Player's parry defense rises as their health drops, up to double.
    %
@@ -6849,6 +6849,15 @@ messages:
       {
          % Spirit Shackles took all the damage.
          return 0;
+      }
+      
+      if IsClass(what,&Player)
+         AND Send(what,@HasMasteredThisSkill,#num=SKID_PROFICIENCY_SCIMITAR)
+         AND Send(what,@GetWeapon) <> $
+         AND IsClass(Send(what,@GetWeapon),&Scimitar)
+         AND (atype & ATCK_WEAP_SLASH) <> 0
+      {
+         Send(self,@AddExertion,#amount=10000);
       }
 
       % Check for Aversion.
