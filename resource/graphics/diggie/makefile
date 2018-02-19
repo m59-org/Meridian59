@@ -13,7 +13,7 @@ BGFS = neeleme.bgf neelemeX.bgf iunholyt.bgf xeoneru.bgf xeoneruX.bgf \
        grd00050.bgf povshldN1.bgf povshldN2.bgf imortalmaskm.bgf \
        redmaskm.bgf redmaskf.bgf imortalmaskf.bgf prism1.bgf \
        brc.bgf brd.bgf brj.bgf brk.bgf brl.bgf mugo.bgf povbeermug.bgf \
-       dragonborneheadtest.bgf
+       dragonborneheadtest.bgf lavafrog.bgf
 
 !include $(RESOURCEDIR)\copy.mak
 

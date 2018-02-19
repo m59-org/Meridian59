@@ -19,7 +19,7 @@ BOFS  = ant.bof centip.bof cow.bof ent.bof fairy.bof \
         xeochctl.bof dflypet.bof dangel.bof mollusk.bof specmum.bof lvstatue.bof \
         evilent.bof elephant.bof bunny.bof wolf.bof chupacabra.bof minotaur.bof \
         lostsoul.bof mimic.bof sorcstatue.bof dragon.bof airelemental.bof \
-        mazetotem.bof
+        mazetotem.bof lavafrog.bof
 
 
 
