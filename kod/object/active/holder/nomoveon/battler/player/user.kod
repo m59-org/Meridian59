@@ -567,6 +567,9 @@ properties:
    % We need to refresh the mana ankh type when they switch
    pbDisplayingUnboundInMana = FALSE
 
+   % A quest flag to get informational messages in the desert from Vecka
+   pbReceiveVeckaAdvice = FALSE
+
 messages:
 
    Constructor(name = $,icon = $)
@@ -11470,6 +11473,17 @@ messages:
          Send(i,@EquippedAnItem,#oItem=oItem);
       }
       return;
+   }
+
+   FlagForVeckaAdvice()
+   {
+      pbReceiveVeckaAdvice = TRUE;
+      return;
+   }
+   
+   GetVeckaAdvice()
+   {
+      return pbReceiveVeckaAdvice;
    }
 
 end

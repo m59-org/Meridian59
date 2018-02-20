@@ -59,6 +59,8 @@ constants:
    LEDGE_SECTORS = 23
    HALL_SECTORS_NORTH = 24
    CHEST_PASSAGE_SECTOR = 25
+   
+   WAYPOINT_SECTOR = 30
 
    CAVE_SECTORS = 9
 
@@ -74,6 +76,8 @@ constants:
    AREA_ILLEGAL = 5
 
    AREA_PRISM_OF_ACID_TUNNEL = 6
+   
+   AREA_WAYPOINT = 7
 
    OUTER_POOL = 400
    INNER_POOL = 401
@@ -133,6 +137,9 @@ resources:
       "This portal appears to be permanently on fire."
    gh_waylay_oasis_ice_prism_portal_desc = \
       "You peer through a layer of ice at an odd location beyond."
+
+   waypoint_trigger_word = \
+      "qua quazali"
 
 classvars:
 
@@ -568,6 +575,13 @@ messages:
       {
          Send(self,@OpenSecretDoor);
       }
+      
+      if iSpeakerSection = AREA_WAYPOINT
+         AND StringContain(string,waypoint_trigger_word)
+      {
+         Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTRIVER3),@Teleport,#what=what);
+         return;
+      }
 
       return;
    }
@@ -685,6 +699,11 @@ messages:
          if iServerID = PRISM_OF_ACID_TUNNEL_SECTORS
          {
             return AREA_PRISM_OF_ACID_TUNNEL;
+         }
+         
+         if iServerID = WAYPOINT_SECTOR
+         {
+            return AREA_WAYPOINT;
          }
       }
 

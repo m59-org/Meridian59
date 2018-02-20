@@ -43,7 +43,7 @@ resources:
    treasure_room_light_left_msg = \
       "You step out of the light."
    treasure_room_skill_spell_chosen_msg = \
-      "~BKnowledge flares in your mind!"
+      "~BKnowledge flares in your mind!~B Check the description of your chosen ability to learn more about your mastery."
 
 classvars:
 
@@ -148,6 +148,7 @@ messages:
          AND IsClass(what,&User)
          AND Send(what,@GetMasteredSkill) = 0
          AND Send(what,@GetMasteredSpell) = 0
+         AND Send(what,@GetVeckaAdvice)
       {
          Send(what,@MsgSendUser,#message_rsc=treasure_room_challenge_msg);
       }

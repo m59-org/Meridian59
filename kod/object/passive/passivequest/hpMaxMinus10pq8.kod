@@ -11,7 +11,7 @@
 hpMaxMinus10pq8 is PassiveQuest
 
 % The eighth quest for max minus ten players is to:
-%   Find Vecka
+%   Speak to Xaerdun
 %
 
 constants:
@@ -20,32 +20,19 @@ constants:
 
 resources:
 
-   hpMaxMinus10pq8_icon_rsc = sword.bgf
-   hpMaxMinus10pq8_name_rsc = "Find the Eternal Wastes"
+   hpMaxMinus10pq8_icon_rsc = ikarahol.bgf
+   hpMaxMinus10pq8_name_rsc = "Speak to Xaerdun"
    hpMaxMinus10pq8_desc_rsc = \
-      "The heroine Vecka died sealing the Prism of Lightning, but the witch Vrinna believes "
-      "Vecka can still help if her soul is found in the Eternal Wastes. To get there, "
-      "you can simply die anywhere in the desert, but Vrinna has also told you of a secret "
-      "path available only with the 'help' of a demon. In the Desolate Dunes, find "
-      "an ancient altar. There is no way of knowing if it is the correct altar, "
-      "and the consequences of praying at the wrong one can be terrible or wonderful, but "
-      "eventually you will find an altar to the demon of sadism, Raumlar. He will "
-      "send you to the Eternal Wastes while you still live. Be sure to bring enough money "
-      "to buy your way back from the demon Xaerdun."
+      "It couldn't hurt, right? Ask Xaerdun for the direction Vecka went."
    
    hpMaxMinus10pq8_new_quest_msg = \
-      "The heroine Vecka died sealing the Prism of Lightning, but the witch Vrinna believes "
-      "Vecka can still help if her soul is found in the Eternal Wastes. To get there, "
-      "you can simply die anywhere in the desert, but Vrinna has also told you of a secret "
-      "path available only with the 'help' of a demon. In the Desolate Dunes, find "
-      "an ancient altar. There is no way of knowing if it is the correct altar, "
-      "and the consequences of praying at the wrong one can be terrible or wonderful, but "
-      "eventually you will find an altar to the demon of sadism, Raumlar. He will "
-      "send you to the Eternal Wastes while you still live. Be sure to bring enough money "
-      "to buy your way back from the demon Xaerdun."
+      "It couldn't hurt, right? Ask Xaerdun for the ~o~Bdirection~n Vecka went."
+
+   hpMaxMinus10pq8_trigger = \
+      "direction"
 
    hpMaxMinus10pq8_complete_msg = \
-      "~kFor better or worse, you've found the Eternal Wastes!"
+      "~kXaerdun sighs and points west."
 
 classvars:
 
@@ -58,11 +45,12 @@ classvars:
    
    vbReinform = FALSE
    
-   vbEnterRoom = TRUE
-   vcEnterRoomClass = &DesertAfterlifeDunes
+   vbSaySomething = TRUE
+   vsSayTrigger = hpMaxMinus10pq8_trigger
+   vcSayTargetClass = &XaerdunAfterlife
 
    viChain = MAX_HP_MINUS_10_INVESTIGATE_DESERT_CHAIN
-   cNextQuestClass = &hpMaxMinus10pq8
+   cNextQuestClass = &hpMaxMinus10pq9
 
 properties:
 
