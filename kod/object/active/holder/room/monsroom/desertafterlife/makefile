@@ -7,6 +7,6 @@
 DEPEND = ..\desertafterlife.bof
 
 BOFS = desertaldunes.bof desertaldunes2e.bof desertaldunes3e.bof \
-       desertaldunes4e.bof
+       desertaldunes4e.bof desertaldunesvecka.bof
 
 !include $(KODDIR)\kod.mak
