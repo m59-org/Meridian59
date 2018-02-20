@@ -52,6 +52,9 @@ classvars:
    vbEquipItemThree = FALSE
    vcEquipItemThreeClass = $
    
+   vbCompletePuzzle = FALSE
+   viPuzzleRoomNum = -1
+   
    vbReachHP = FALSE
    viReachThisHP = 999
    
@@ -149,6 +152,16 @@ messages:
       return;
    }
    
+   CompletedPuzzle(iRoomNum=0)
+   {
+      if vbCompletePuzzle
+         and viPuzzleRoomNum = iRoomNum
+      {
+         Send(self,@Completed);
+      }
+      return;
+   }
+
    DefeatedPrism(iElement=0)
    {
       if vbDefeatPrism

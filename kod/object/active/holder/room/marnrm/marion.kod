@@ -107,6 +107,11 @@ messages:
       {
          propagate;
       }
+ 
+      if IsClass(what,&Player)
+      {
+         Post(Send(SYS,@GetGameQuestMaintenance),@EvaluatePlayer,#who=what,#vbTriggered=TRUE);
+      }
 
       who = send(what,@GetOwner);
       if who = $
@@ -118,12 +123,6 @@ messages:
          AND (new_col >= (TREE_COL - 1)) AND (new_col <= (TREE_COL + 1))
       {
          send(self,@OfferingDroppedOnTree,#what=what,#who=who);
-      }
-      
-      if IsClass(what,&Player)
-         AND Send(what,@GetBaseMaxHealth) < 50
-      {
-         Send(Send(SYS,@GetGameQuestMaintenance),@EvaluatePlayer,#who=what,#vbTriggered=TRUE);
       }
 
       propagate;

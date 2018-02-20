@@ -255,6 +255,23 @@ messages:
       propagate;
    }
 
+   NewHold(what = $, new_row = 1, new_col = 1)
+   {
+      local who;
+
+      if what = $
+      {
+         propagate;
+      }
+      
+      if IsClass(what,&Player)
+      {
+         Send(Send(SYS,@GetGameQuestMaintenance),@EvaluatePlayer,#who=what,#vbTriggered=TRUE);
+      }
+
+      propagate;
+   }
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                                                    %
 % Begin code for determining whether to open traps.  %
@@ -1064,8 +1081,18 @@ messages:
 
    DoEndTreasure()
    {
-      local iNumPlayers, iChance, iCumulative, i, oObject, oItemAtt;
+      local iNumPlayers, iChance, iCumulative, i, each_obj, oObject, oItemAtt;
 
+      foreach i in Send(self,@GetHolderActive)
+      {
+         each_obj = Send(self,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&Player)
+            AND Send(self,@InTrapAreaThree,#what=each_obj)
+         {
+            % Let passive quests know we beat this area
+            Send(each_obj,@CompletedPuzzle,#iRoomNum=piRoom_num);
+         }
+      }
       iNumPlayers = Send(self,@CountTrap,#trap=3,#what=COUNTTRAP_USER);
 
       if iNumPlayers > 5

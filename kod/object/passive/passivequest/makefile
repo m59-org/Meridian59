@@ -29,6 +29,9 @@ BOFS = hp20pq1.bof \
        hp40pq2.bof \
        hp40pq3.bof \
        hp40pq4.bof \
+       hp35pq1.bof \
+       hp35pq2.bof \
+       hp35pq3.bof \
        hp50pq1.bof \
        hp50pq2.bof \
        hp50pq3.bof \
@@ -40,6 +43,8 @@ BOFS = hp20pq1.bof \
        hp90pq5.bof \
        hp100pq1.bof \
        hp100pq2.bof \
+       hpMaxMinus20pq1.bof\
+       hpMaxMinus20pq2.bof\
        hpMaxMinus10pq1.bof\
        hpMaxMinus10pq2.bof\
        hpMaxMinus10pq3.bof\

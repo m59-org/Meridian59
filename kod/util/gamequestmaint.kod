@@ -105,6 +105,13 @@ messages:
          Create(&hp30pq1,#quester=who);
       }
       
+      if iPlayerHP >= 35
+         AND IsClass(oRoom,&Marion)
+         AND NOT Send(who,@HasQuestChain,#chain_num=HP35_INVESTIGATE_MARION_CRYPT_CHAIN)
+      {
+         Create(&hp35pq1,#quester=who);
+      }
+      
       if iPlayerHP >= 40
          AND iPlayerHP < 100
          AND NOT Send(who,@HasQuestChain,#chain_num=HP40_INVESTIGATE_CASTLE_VICTORIA_CHAIN)
@@ -145,6 +152,13 @@ messages:
          Create(&hp100pq1,#quester=who);
       }
       
+      % 20 HP below player's max, but they can get this early and wait
+      if IsClass(oRoom,&MarionCrypt3a)
+         AND NOT Send(who,@HasQuestChain,#chain_num=MAX_HP_MINUS_20_INVESTIGATE_THRASHERS_CHAIN)
+      {
+         Create(&hpMaxMinus20pq1,#quester=who);
+      }
+      
       % 10 HP below player's max
       if iPlayerHP >= 100+Send(who,@GetRawStamina)-10
          AND NOT Send(who,@HasQuestChain,#chain_num=MAX_HP_MINUS_10_INVESTIGATE_DESERT_CHAIN)
@@ -160,13 +174,6 @@ messages:
       
       if iPlayerHP >= 60
          AND NOT Send(who,@HasQuestChain,#chain_num=HP60_MANA_NODES_CHAIN)
-      {
-         return;
-      }
-      
-      % 20 HP below player's max
-      if iPlayerHP >= 100+Send(who,@GetRawStamina)-20
-         AND NOT Send(who,@HasQuestChain,#chain_num=MAX_HP_MINUS_20_INVESTIGATE_THRASHERS_CHAIN)
       {
          return;
       }
