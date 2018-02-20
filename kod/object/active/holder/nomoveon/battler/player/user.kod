@@ -11507,5 +11507,25 @@ messages:
       return;
    }
 
+   GavePassiveQuestItem(obj=$, the_npc=$)
+   {
+      local i;
+      foreach i in plPassiveQuests
+      {
+         Send(i,@GavePassiveQuestItem,#obj=obj,#the_npc=the_npc);
+      }
+      return;
+   }
+
+   ReincarnateCharacter()
+   {
+      local i;
+      
+      foreach i in plPassiveQuests
+      {
+         Send(i,@Reincarnated);
+      }
+      propagate;
+   }
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

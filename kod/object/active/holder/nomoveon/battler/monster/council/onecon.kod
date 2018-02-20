@@ -41,6 +41,9 @@ resources:
       "~k%s%s tells you, \"What possible use could a wizard of my stature "
       "have for that?~n~k\""
 
+   major_shard_delivered = \
+      "Thank you. This will help greatly in my research."
+
 classvars:
 
    vrName = oneCouncilor_name_rsc
@@ -90,7 +93,20 @@ messages:
 
    Constructor()
    {
-      plWantedItems = [&OneToken];
+      plWantedItems = [&OneToken, &ShardImbueMajor];
+
+      propagate;
+   }
+
+   CheckWhyWanted(obj=$,who=$)
+   {
+      if IsClass(obj,&ShardImbueMajor)
+      {
+         Send(poOwner,@SomeoneSaid,#what=self,#type=SAY_RESOURCE,
+               #string=major_shard_delivered);
+         Send(who,@GavePassiveQuestItem,#obj=obj,#the_npc=self);
+         return TRUE;
+      }
 
       propagate;
    }

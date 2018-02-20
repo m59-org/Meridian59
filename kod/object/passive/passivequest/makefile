@@ -59,7 +59,10 @@ BOFS = hp20pq1.bof \
        hpMaxMinus10pq9.bof\
        hpMaxMinus10pq10.bof\
        hpMaxMinus10pq11.bof\
-       anyhpmazepq1.bof
+       anyhpmazepq1.bof \
+       anyhpreincpq1.bof\
+       anyhpreincpq2.bof\
+       anyhpreincpq3.bof
       
 
 !include $(KODDIR)\kod.mak

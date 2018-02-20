@@ -1251,7 +1251,7 @@ properties:
    % Do we have a free stat reset for reincarnation?
    pbReincarnationStatsReset = FALSE
    % Let's not spam newbies with this until they have a clue what it is.
-   pbInformReincarnationProgress = TRUE
+   pbInformReincarnationProgress = FALSE
 
    % Banditry stance object
    poStance = $
@@ -1467,6 +1467,8 @@ messages:
          if iReincarnationSum >= Send(self,@GetNextReincarnationSum)
          {
             Send(self,@MsgSendUser,#message_rsc=ready_to_reincarnate_msg);
+            
+            Send(Send(SYS,@GetGameQuestMaintenance),@EvaluatePlayer,#who=self,#vbTriggered=TRUE);
          }
          else
          {

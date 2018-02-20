@@ -61,6 +61,12 @@ classvars:
    vbDefeatPrism = FALSE
    viPrismElement = 0
    
+   vbGiveNPCItem = FALSE
+   vbGiveItemClass = $
+   vbGiveToTheNPCofClass = $
+   
+   vbReincarnate = FALSE
+
    vbSaySomething = FALSE
    vsSayTrigger = $
    vcSayTargetClass = $
@@ -148,6 +154,26 @@ messages:
    CheckAllStateBasedConditions()
    {
       Send(self,@CheckBaseMaxHealth);
+      return;
+   }
+   
+   Reincarnated()
+   {
+      if vbReincarnate
+      {
+         Send(self,@Completed);
+      }
+      return;
+   }
+
+   GavePassiveQuestItem(obj=$, the_npc=$)
+   {
+      if vbGiveNPCItem
+         AND IsClass(obj,vbGiveItemClass)
+         AND IsClass(the_npc,vbGiveToTheNPCofClass)
+      {
+         Send(self,@Completed);
+      }
       return;
    }
    

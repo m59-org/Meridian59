@@ -171,6 +171,12 @@ messages:
       {
          Create(&anyhpmazepq1,#quester=who);
       }
+
+      if Send(who,@CanReincarnate)
+         AND NOT Send(who,@HasQuestChain,#chain_num=ANY_HP_REINCARNATION_CHAIN)
+      {
+         Create(&anyhpreincpq1,#quester=who);
+      }
       
       if iPlayerHP >= 60
          AND NOT Send(who,@HasQuestChain,#chain_num=HP60_MANA_NODES_CHAIN)
@@ -180,12 +186,6 @@ messages:
 
       if IsClass(oRoom,&FeyForest)
          AND NOT Send(who,@HasQuestChain,#chain_num=ANY_HP_VALE_OF_SORROWS_CHAIN)
-      {
-         return;
-      }
-
-      if IsClass(oRoom,&DesertRoom)
-         AND NOT Send(who,@HasQuestChain,#chain_num=ANY_HP_REINCARNATION_CHAIN)
       {
          return;
       }
