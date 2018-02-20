@@ -55,6 +55,9 @@ classvars:
    vbReachHP = FALSE
    viReachThisHP = 999
    
+   vbDefeatPrism = FALSE
+   viPrismElement = 0
+   
    vbSaySomething = FALSE
    vsSayTrigger = $
    vcSayTargetClass = $
@@ -134,6 +137,7 @@ messages:
       }
       else
       {
+         Debug("failed to attach, deleting");
          Send(self,@Delete);
       }
       return;
@@ -142,6 +146,16 @@ messages:
    CheckAllStateBasedConditions()
    {
       Send(self,@CheckBaseMaxHealth);
+      return;
+   }
+   
+   DefeatedPrism(iElement=0)
+   {
+      if vbDefeatPrism
+         AND viPrismElement = iElement
+      {
+         Send(self,@Completed);
+      }
       return;
    }
 

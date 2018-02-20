@@ -11343,7 +11343,8 @@ messages:
             return FALSE;
          }
          
-         if FindListElem(plCompletedPassiveQuestChains,Send(i,@GetChain)) <> 0
+         if plCompletedPassiveQuestChains <> $
+            AND FindListElem(plCompletedPassiveQuestChains,Send(i,@GetChain)) <> 0
          {
             return FALSE;
          }
@@ -11484,6 +11485,16 @@ messages:
    GetVeckaAdvice()
    {
       return pbReceiveVeckaAdvice;
+   }
+   
+   DefeatedPrismPassiveQuest(iElement=0)
+   {
+      local i;
+      foreach i in plPassiveQuests
+      {
+         Send(i,@DefeatedPrism,#iElement=iElement);
+      }
+      return;
    }
 
 end

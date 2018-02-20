@@ -151,6 +151,12 @@ messages:
       {
          Create(&hpMaxMinus10pq1,#quester=who);
       }
+
+      if IsClass(oRoom,&MazeSewer)
+         AND NOT Send(who,@HasQuestChain,#chain_num=ANY_HP_SOLVE_MAZE_CHAIN)
+      {
+         Create(&anyhpmazepq1,#quester=who);
+      }
       
       if iPlayerHP >= 60
          AND NOT Send(who,@HasQuestChain,#chain_num=HP60_MANA_NODES_CHAIN)
@@ -161,12 +167,6 @@ messages:
       % 20 HP below player's max
       if iPlayerHP >= 100+Send(who,@GetRawStamina)-20
          AND NOT Send(who,@HasQuestChain,#chain_num=MAX_HP_MINUS_20_INVESTIGATE_THRASHERS_CHAIN)
-      {
-         return;
-      }
-
-      if IsClass(oRoom,&MazeSewer)
-         AND NOT Send(who,@HasQuestChain,#chain_num=ANY_HP_SOLVE_MAZE_CHAIN)
       {
          return;
       }

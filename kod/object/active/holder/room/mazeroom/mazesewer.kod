@@ -59,5 +59,22 @@ messages:
       return;
    }
 
+   NewHold(what = $, new_row = 1, new_col = 1)
+   {
+      local who;
+
+      if what = $
+      {
+         propagate;
+      }
+      
+      if IsClass(what,&Player)
+      {
+         Send(Send(SYS,@GetGameQuestMaintenance),@EvaluatePlayer,#who=what,#vbTriggered=TRUE);
+      }
+
+      propagate;
+   }
+
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
