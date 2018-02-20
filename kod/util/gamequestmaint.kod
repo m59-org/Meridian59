@@ -130,6 +130,12 @@ messages:
          Create(&hp50pq1,#quester=who);
       }
       
+      if iPlayerHP >= 60
+         AND NOT Send(who,@HasQuestChain,#chain_num=HP60_MANA_NODES_CHAIN)
+      {
+         Create(&hp60pq1,#quester=who);
+      }
+      
       if iPlayerHP > 80
          AND iPlayerHP <= 90
          AND NOT Send(who,@HasQuestChain,#chain_num=HP80_SOLDIER_SHIELD_CHAIN)
@@ -176,12 +182,6 @@ messages:
          AND NOT Send(who,@HasQuestChain,#chain_num=ANY_HP_REINCARNATION_CHAIN)
       {
          Create(&anyhpreincpq1,#quester=who);
-      }
-      
-      if iPlayerHP >= 60
-         AND NOT Send(who,@HasQuestChain,#chain_num=HP60_MANA_NODES_CHAIN)
-      {
-         return;
       }
 
       if IsClass(oRoom,&FeyForest)

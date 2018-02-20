@@ -55,6 +55,8 @@ classvars:
    vbCompletePuzzle = FALSE
    viPuzzleRoomNum = -1
    
+   vbBondAllManaNodes = FALSE
+
    vbReachHP = FALSE
    viReachThisHP = 999
    
@@ -154,9 +156,22 @@ messages:
    CheckAllStateBasedConditions()
    {
       Send(self,@CheckBaseMaxHealth);
+      Send(self,@BondedWithManaNode);
       return;
    }
    
+   BondedWithManaNode()
+   {
+      if vbBondAllManaNodes
+      {
+         if Send(poQuester,@NumManaNodes) = 12
+         {
+            Send(self,@Completed);
+         }
+      }
+      return;
+   }
+
    Reincarnated()
    {
       if vbReincarnate
