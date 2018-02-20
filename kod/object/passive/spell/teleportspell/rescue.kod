@@ -137,10 +137,55 @@ messages:
 
             return;
          }
-         % Teleport to Waylay Oasis if we're in the desert.
-         if Send(oCurrentRoom,@GetRegion) = RID_DESERT
+         % Teleport to Xaerdun if we're in the Desert afterlife
+         if Send(oCurrentRoom,@GetRegion) = RID_DESERTALDUNES
+         {
+            oTargetRoom = Send(SYS,@FindRoomByNum,#num=RID_DESERTALDUNES);
+            Post(oTargetRoom,@Teleport,#what=who);
+
+            return;
+         }
+
+         % Teleport to desert drop if we're in Waylay Oasis
+         if Send(oCurrentRoom,@GetRoomNum) = RID_WAYLAYOASIS
+         {
+            oTargetRoom = Send(SYS,@FindRoomByNum,#num=RID_DESERTSHORE2);
+            Post(oTargetRoom,@Teleport,#what=who);
+            return;
+         }
+
+         % Teleport back to Cess Castle from drop
+         if Send(oCurrentRoom,@GetRoomNum) = RID_DESERTSHORE2
+         {
+            oTargetRoom = Send(SYS,@FindRoomByNum,#num=RID_CASTLE2F);
+            Post(oTargetRoom,@Teleport,#what=who);
+            return;
+         }
+
+         % Teleport to Waylay Oasis if we're past it
+         if Send(oCurrentRoom,@GetRoomNum) >= RID_DESERTRIVER1
+            AND Send(oCurrentRoom,@GetRoomNum) <= RID_DESERT_END
          {
             oTargetRoom = Send(SYS,@FindRoomByNum,#num=RID_WAYLAYOASIS);
+            Post(oTargetRoom,@Teleport,#what=who);
+
+            return;
+         }
+
+         % Teleport to Cisterns if we're in the maze
+         if Send(oCurrentRoom,@GetRoomNum) >= RID_MAZE_SEWER
+            AND Send(oCurrentRoom,@GetRoomNum) <= RID_FROZEN_CISTERN
+         {
+            oTargetRoom = Send(SYS,@FindRoomByNum,#num=RID_DESERTCANAL);
+            Post(oTargetRoom,@Teleport,#what=who);
+
+            return;
+         }
+
+         % Teleport to drop if we're in the Biskalane desert
+         if Send(oCurrentRoom,@GetRegion) = RID_DESERT
+         {
+            oTargetRoom = Send(SYS,@FindRoomByNum,#num=RID_DESERTSHORE2);
             Post(oTargetRoom,@Teleport,#what=who);
 
             return;
