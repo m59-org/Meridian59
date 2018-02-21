@@ -171,6 +171,13 @@ messages:
       {
          Create(&hpMaxMinus10pq1,#quester=who);
       }
+      
+      % Did the player go to the desert and skip the princess opener?
+      if IsClass(oRoom,&DesertShore2)
+         AND NOT Send(who,@HasQuestChain,#chain_num=MAX_HP_MINUS_10_INVESTIGATE_DESERT_CHAIN)
+      {
+         Create(&hpMaxMinus10pq3,#quester=who);
+      }
 
       if IsClass(oRoom,&MazeSewer)
          AND NOT Send(who,@HasQuestChain,#chain_num=ANY_HP_SOLVE_MAZE_CHAIN)

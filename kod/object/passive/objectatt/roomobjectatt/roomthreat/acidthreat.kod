@@ -100,6 +100,8 @@ messages:
 
    ReqDealDamage(who=$)
    {
+      local iSection;
+
       % A helmet protects players.
       % Magic spirit helms count, too.
       % But don't use &Helmet class because that includes circlets & masks.
@@ -109,6 +111,20 @@ messages:
 %         OR Send(who,@IsUsingA,#class=&AcidRing)
       {
          return FALSE;
+      }
+      
+      % We make a special exception in Desert Shore 2, the drop zone.
+      if Send(who,@GetOwner) <> $
+         AND IsClass(Send(who,@GetOwner),&DesertShore2)
+      {
+         iSection = Send(Send(who,@GetOwner),@GetSection,#who=who);
+         
+         if iSection = 100
+            OR iSection = 9999
+            OR iSection = 9998
+         {
+            return FALSE;
+         }
       }
 
       propagate;

@@ -134,6 +134,12 @@ messages:
       {
          Send(what,@MsgSendUser,#message_rsc=angeleds_are_not_allowed_here);
          Post(what,@AdminGoToSafety);
+         propagate;
+      }
+
+      if IsClass(what,&Player)
+      {
+         Post(Send(SYS,@GetGameQuestMaintenance),@EvaluatePlayer,#who=what,#vbTriggered=TRUE);
       }
       propagate;
    }
