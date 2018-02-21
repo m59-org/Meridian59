@@ -70,7 +70,7 @@ classvars:
    vrDead_icon = dragon_dead_icon_rsc
    vrDead_name = dragon_dead_name_rsc
 
-   viTreasure_type = TID_RAT
+   viTreasure_type = TID_ICE_DRAGON
    viIndefinite = ARTICLE_AN
    viDefault_behavior = AI_FIGHT_AGGRESSIVE | AI_FIGHT_SWITCHALOT
    viAttackRange = 128
@@ -78,7 +78,7 @@ classvars:
    viAttack_type = ATCK_WEAP_CLAW
    viAttack_spell = ATCK_SPELL_COLD
    viAttributes = 0
-   viLevel = 250
+   viLevel = 220
    viDifficulty = 10
    viVisionDistance = 40
    viKarma = 0
@@ -671,6 +671,43 @@ messages:
       }
       
       return;
+   }
+
+   CreateTreasure(who=$,corpse=$)
+   {
+      local oTreasure, iNumber;
+
+      oTreasure = Create(&IceDragonScale,#corpse=corpse);
+      iNumber = Random(15,80);
+      Send(oTreasure,@AddNumber,#number=iNumber);
+
+      if Send(poOwner,@ReqNewHold,#what=oTreasure,#new_row=piRow,#new_col=piCol)
+      {
+         Send(poOwner,@NewHold,#what=oTreasure,
+               #new_row=piRow,#new_col=piCol,
+               #fine_row=piFine_row,#fine_col=piFine_col);
+      }
+      else
+      {
+         Send(oTreasure,@Delete);
+      }
+
+      oTreasure = Create(&ColdFragment,#corpse=corpse);
+      iNumber = Random(10,60);
+      Send(oTreasure,@AddNumber,#number=iNumber);
+
+      if Send(poOwner,@ReqNewHold,#what=oTreasure,#new_row=piRow,#new_col=piCol)
+      {
+         Send(poOwner,@NewHold,#what=oTreasure,
+               #new_row=piRow,#new_col=piCol,
+               #fine_row=piFine_row,#fine_col=piFine_col);
+      }
+      else
+      {
+         Send(oTreasure,@Delete);
+      }
+
+      propagate;
    }
 
 end

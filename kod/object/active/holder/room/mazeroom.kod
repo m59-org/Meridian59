@@ -246,6 +246,8 @@ constants:
    SOUTH_EXIT_SECTOR = 998
    WEST_EXIT_SECTOR = 999
 
+   MAZE_WEAPON_SPELL_PROC_PROFILE = 10
+
 resources:
 
    room_minotaurmazeroom = mazepieces.roo
@@ -2834,8 +2836,10 @@ messages:
          
          % These chests also contain imbued weapons of power
          oWeapon = Create(Nth(lMinorLootClasses,Random(1,Length(lMinorLootClasses))),#level=210);
-         Send(maze_chest,@MajorImbue,#oItem=oWeapon);
          Send(maze_chest,@NewHold,#what=oWeapon);
+         Send(maze_chest,@MajorImbue,#oItem=oWeapon);
+         % And add a proc of power
+         Create(&WeaponSpellProc,#host_object=oWeapon,#use_profile=MAZE_WEAPON_SPELL_PROC_PROFILE);
          
          Send(maze_chest,@NewHold,#what=Create(&Money,#number=Random(5000,20000)));
       }

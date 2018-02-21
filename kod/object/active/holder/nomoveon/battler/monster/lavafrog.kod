@@ -39,9 +39,9 @@ classvars:
    vrDead_icon = lavafrog_dead_icon_rsc
    vrDead_name = lavafrog_dead_name_rsc
 
-   viTreasure_type = TID_NONE
+   viTreasure_type = TID_LAVA_FROG
    viSpeed = 40
-   viLevel = 300
+   viLevel = 200
    viDifficulty = 9
    viVisionDistance = 60
    % Attack range of 192, or 3 row/col.
@@ -155,6 +155,43 @@ messages:
       % Half chance each person might lose any active trance.
       Send(poOwner,@Rumble,#duration=250,#disruption=50);
       
+      propagate;
+   }
+
+   CanMorphTo()
+   {
+      return FALSE;
+   }
+
+   GetMaxHitPoints()
+   {
+      return 20000;
+   }
+
+   GetBossStatus()
+   {
+      return TRUE;
+   }
+
+   CreateTreasure(who=$,corpse=$)
+   {
+      local oTreasure, iNumber;
+
+      oTreasure = Create(&FireFragment,#corpse=corpse);
+      iNumber = Random(15,80);
+      Send(oTreasure,@AddNumber,#number=iNumber);
+
+      if Send(poOwner,@ReqNewHold,#what=oTreasure,#new_row=piRow,#new_col=piCol)
+      {
+         Send(poOwner,@NewHold,#what=oTreasure,
+               #new_row=piRow,#new_col=piCol,
+               #fine_row=piFine_row,#fine_col=piFine_col);
+      }
+      else
+      {
+         Send(oTreasure,@Delete);
+      }
+
       propagate;
    }
 

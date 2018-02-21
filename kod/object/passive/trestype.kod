@@ -35,6 +35,11 @@ classvars:
    vbDropTrinket = TRUE
    vbDropBook = TRUE
 
+   viBonusNumDrops = 0
+   vbGenerateSockets = FALSE
+   vbGenerateDefModSpellProc = FALSE
+   vbGenerateWeaponSpellProc = FALSE
+
 properties:
 
    plTreasure = $      % list of treasures
@@ -329,8 +334,8 @@ messages:
         / Send(Send(SYS,@GetSurvivalRoomMaintenance),@GetSurvivalLoot);
 
       iNumberItems = 1 + (level/55) + Random(0,difficulty/3)
-                        + iSurvivalLoot;
-      iNumberItems = Bound(iNumberItems,$,6 + iSurvivalLoot);
+                        + iSurvivalLoot + viBonusNumDrops;
+      iNumberItems = Bound(iNumberItems,$,6 + iSurvivalLoot+ viBonusNumDrops);
       iNumberItems = (Send(SETTINGS_OBJECT,@GetItemFactor)*iNumberItems)/100;
       iNumberItems = Bound(iNumberItems,1,$);
 
@@ -518,10 +523,42 @@ messages:
                OR IsClass(corpse,&OrcPitBossBody)
             {
                oObj = Create(First(lItem_info),#level=level);
+               if vbGenerateSockets
+                  AND IsClass(oObj,&DefenseModifier)
+               {
+                  Send(self,@GenerateSockets,#oDefenseModifier=oObj);
+               }
+               if vbGenerateDefModSpellProc
+                  AND IsClass(oObj,&DefenseModifier)
+               {
+                  Create(&DefModSpellProc,#host_object=oObj);
+               }
+               if vbGenerateWeaponSpellProc
+                  AND IsClass(oObj,&Weapon)
+                  AND NOT IsClass(oObj,&RangedWeapon)
+               {
+                  Create(&WeaponSpellProc,#host_object=oObj);
+               }
             }
             else
             {
                oObj = Create(First(lItem_info),#corpse=corpse,#level=level);
+               if vbGenerateSockets
+                  AND IsClass(oObj,&DefenseModifier)
+               {
+                  Send(self,@GenerateSockets,#oDefenseModifier=oObj);
+               }
+               if vbGenerateDefModSpellProc
+                  AND IsClass(oObj,&DefenseModifier)
+               {
+                  Create(&DefModSpellProc,#host_object=oObj);
+               }
+               if vbGenerateWeaponSpellProc
+                  AND IsClass(oObj,&Weapon)
+                  AND NOT IsClass(oObj,&RangedWeapon)
+               {
+                  Create(&WeaponSpellProc,#host_object=oObj);
+               }
             }
             
             if IsClass(oObj,&Money)
