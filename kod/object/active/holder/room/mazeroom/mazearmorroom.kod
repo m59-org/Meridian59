@@ -18,8 +18,8 @@ constants:
 
 resources:
 
-   room_armor_room = mazelavafrogroom.roo
-   room_maze_lava_frog_room_name = "Ancient Armory"
+   room_armor_room = mazearmorroom.roo
+   room_maze_armor_room_name = "Ancient Armory"
    
    ancient_armory_challenge_msg = \
       "~kThe spirit of Vecka tells you, \"The Sorcerers were once a highly respected organization that served the Merchant Princes. "
@@ -28,7 +28,7 @@ resources:
 
 classvars:
 
-   vrName = room_maze_lava_frog_room_name
+   vrName = room_maze_armor_room_name
 
    viTeleport_row = 5
    viTeleport_col = 5
@@ -67,6 +67,18 @@ messages:
 
       propagate;
    }
+   
+   FillVault()
+   {
+      local lLootClasses;
+
+         lLootClasses = [&PunchArmorRelic,
+                         &OffenseArmorRelic,
+                         &DefenseArmorRelic,
+                         &MeleeArmorRelic,
+                         &RangedArmorRelic];
+      return;
+   }
 
    VaultOpened()
    {
@@ -81,6 +93,7 @@ messages:
             Send(each_obj,@CompletedPuzzle,#iRoomNum=piRoom_num);
          }
       }
+      return;
    }
 
 end

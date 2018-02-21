@@ -20,7 +20,7 @@ MinotaurMazeRoom is Room
 %
 
 % The Maze of the Minotaur changes each day.
-% You have until your Elemental Torch runs out.
+% You have until your torches run out.
 % Night vision, light, firewall, glow, etc do not work. Your only light is the torch.
 
 
@@ -2815,33 +2815,39 @@ messages:
 
    FillMazeChest(maze_chest=$)
    {
-      local lLootClasses, lMinorLootClasses, oWeapon;
+      local lLootClasses, lMajorLootClasses, oWeapon, iRandomTrashNum;
       if maze_chest <> $
       {
-         lLootClasses = [&PunchArmorRelic,
-                         &OffenseArmorRelic,
-                         &DefenseArmorRelic,
-                         &MeleeArmorRelic,
-                         &RangedArmorRelic];
-         lMinorLootClasses = [&Axe,
+         lLootClasses = [&Axe,
+                         &ShortSword,
+                         &Hammer,
+                         &Dagger,
+                         &LongSword,
+                         &Mace,
+                         &Scimitar];
+         lMajorLootClasses = [&Axe,
                               &ShortSword,
                               &Hammer,
                               &Dagger,
                               &LongSword,
                               &Mace,
                               &Scimitar,
-                              &NeruditeSword,
                               &MysticSword];
-         Send(maze_chest,@NewHold,#what=Create(Nth(lLootClasses,Random(1,Length(lLootClasses)))));
+                              
+         iRandomTrashNum = Random(5,15);
          
-         % These chests also contain imbued weapons of power
-         oWeapon = Create(Nth(lMinorLootClasses,Random(1,Length(lMinorLootClasses))),#level=210);
+         while iRandomTrashNum > 0
+         {
+            Send(maze_chest,@NewHold,#what=Create(Nth(lLootClasses,Random(1,Length(lLootClasses))),#level=Random(50,150)));
+            iRandomTrashNum--;
+         }
+         
+         % These chests also contain one imbued weapon of power
+         oWeapon = Create(Nth(lMajorLootClasses,Random(1,Length(lMajorLootClasses))),#level=210);
          Send(maze_chest,@NewHold,#what=oWeapon);
          Send(maze_chest,@MajorImbue,#oItem=oWeapon);
          % And add a proc of power
          Create(&WeaponSpellProc,#host_object=oWeapon,#use_profile=MAZE_WEAPON_SPELL_PROC_PROFILE);
-         
-         Send(maze_chest,@NewHold,#what=Create(&Money,#number=Random(5000,20000)));
       }
       
 
