@@ -20,7 +20,11 @@ resources:
    lavafrog_name_rsc = "lava frog"
    lavafrog_icon_rsc = lavafrog.bgf
    lavafrog_desc_rsc = \
-      "A creature of flame and hunger stands before you."
+      "A creature of flame and hunger stands before you. According to the nomads, "
+      "this is a greater flame entity attracted here by the Shrine of the Harnessed Flame. "
+      "Ancient sorcerers fed it runed armor so that its stomach would empower the runes "
+      "with magic spells. Unfortunately, nobody has been around to feed the lava frog "
+      "in centuries, so it is in no mood to cooperate."
 
    lavafrog_dead_icon_rsc = airelementaldead.bgf
    lavafrog_dead_name_rsc = "pile of warm rock"
@@ -67,8 +71,8 @@ properties:
 
    piAnimation = ANIM_NONE
    piGroup = 1
-   piMinDamage = 20
-   piMaxDamage = 40
+   piMinDamage = 40
+   piMaxDamage = 80
    vrDesc = lavafrog_desc_rsc
 
    piSpellPower = 99
@@ -78,7 +82,8 @@ messages:
 
    Constructed()
    {
-      plResistances = [ [ATCK_WEAP_ALL, 100]
+      plResistances = [ [-ATCK_SPELL_COLD, -20],
+                        [-ATCK_SPELL_FIRE, 300]
                       ];
 
       plSpellBook = [ [ SID_FIREBALL, 3, 100 ] ];
@@ -193,6 +198,22 @@ messages:
       }
 
       propagate;
+   }
+
+   SendLightingInformation()
+   {
+      if piChampionStatus <> 0
+      {
+         propagate;
+      }
+
+      AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC));
+      % 255 out of 255 intensity of light
+      AddPacket(1,255);
+      % Red
+      AddPacket(2,LIGHT_BRED);
+
+      return;
    }
 
 end

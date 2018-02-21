@@ -2313,6 +2313,17 @@ messages:
             iExertionAdded = Send(Nth(i,2),@ModifyExertion,
                                     #state=Nth(i,3),#amount=iExertionAdded);
          }
+      
+         if poOwner <> $
+         {
+            foreach i in Send(poOwner,@GetObjectAttributes)
+            {
+               if IsClass(i,&RoomThreat)
+               {
+                  iExertionAdded = Send(i,@ModifyExertion,#amount=iExertionAdded);
+               }
+            }
+         }
 
          % Parliament adjustment for exertion reduction.  Remove a % from
          % the amount added.

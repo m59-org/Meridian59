@@ -95,6 +95,18 @@ messages:
          Send(poTreasureRoom,@Delete);
          poTreasureRoom = $;
       }
+      if poShrineRoom <> $
+      {
+         Send(poShrineRoom,@HustleUsersOutOfRoom);
+         Send(poShrineRoom,@Delete);
+         poShrineRoom = $;
+      }
+      if poArmorRoom <> $
+      {
+         Send(poArmorRoom,@HustleUsersOutOfRoom);
+         Send(poArmorRoom,@Delete);
+         poArmorRoom = $;
+      }
 
       foreach i in plMazeRooms
       {
@@ -129,34 +141,32 @@ messages:
 
    RecreateMap()
    {
-      local iTreasureXCoord, iTreasureYCoord, iBossXCoord, iBossYCoord, i, iX, iY;
+      local iTreasureXCoord, iTreasureYCoord, iBossXCoord, iBossYCoord, i, iX, iY, iShrineXCoord, iShrineYCoord, iArmorXCoord, iArmorYCoord;
 
       % Make sure the maze is deleted
       Send(self,@ClearMap);
       
       % Create first room.
       poFirstRoom = Send(self,@GenerateSpecificRoom,#bFirstRoom=TRUE);
-      
+
       % Create special rooms at random coordinates.
-      iTreasureXCoord = Random(2,9);
-      iTreasureYCoord = Random(2,9);
+      % Each room has its own quadrant to help simplify this process (and ease player frustration)
+      iTreasureXCoord = Random(1,5);
+      iTreasureYCoord = Random(1,5);
       
-      iBossXCoord = Random(2,9);
-      iBossYCoord = Random(2,9);
+      iBossXCoord = Random(6,10);
+      iBossYCoord = Random(6,10);
       
-      % Same coordinates!!
-      if iBossXCoord = iTreasureXCoord
-         AND iBossYCoord = iTreasureYCoord
-      {
-         iBossXCoord++;
-         if iBossXCoord > 9
-         {
-            iBossXCoord = 2;
-         }
-      }
+      iShrineXCoord = Random(1,5);
+      iShrineYCoord = Random(6,10);
+      
+      iArmorXCoord = Random(6,10);
+      iArmorYCoord = Random(1,5);
 
       poTreasureRoom = Send(self,@GenerateSpecificRoom,#bTreasureRoom=TRUE,#x_coord=iTreasureXCoord,#y_coord=iTreasureYCoord);
       poBossRoom = Send(self,@GenerateSpecificRoom,#bBossRoom=TRUE,#x_coord=iBossXCoord,#y_coord=iBossYCoord);
+      poShrineRoom = Send(self,@GenerateSpecificRoom,#bShrineRoom=TRUE,#x_coord=iShrineXCoord,#y_coord=iShrineYCoord);
+      poArmorRoom = Send(self,@GenerateSpecificRoom,#bArmorRoom=TRUE,#x_coord=iArmorXCoord,#y_coord=iArmorYCoord);
       
       % The rest of the rooms we'll only fill in as players enter the maze.
       
@@ -388,7 +398,7 @@ messages:
       return;
    }
 
-   GenerateSpecificRoom(x_coord=-1, y_coord=-1, bFirstRoom=FALSE, bTreasureRoom=FALSE, bBossRoom=FALSE)
+   GenerateSpecificRoom(x_coord=-1, y_coord=-1, bFirstRoom=FALSE, bTreasureRoom=FALSE, bBossRoom=FALSE, bShrineRoom=FALSE, bArmorRoom=FALSE)
    {
       local iGeneratedNum, bInterior, oRoom;
 
@@ -435,6 +445,32 @@ messages:
             Send(poBossRoom,@SetXCoord,#coord_value=x_coord);
             Send(poBossRoom,@SetYCoord,#coord_value=y_coord);
             return poBossRoom;
+         }
+      }
+      
+      if bShrineRoom
+      {
+         if poShrineRoom = $
+         {
+            Send(SYS,@CreateOneRoomIfNew,#num=RID_MAZE_LAVA_FROG_ROOM,#class=&MazeLavaFrogRoom);
+            poShrineRoom = Send(SYS,@FindRoomByNum,#num=RID_MAZE_LAVA_FROG_ROOM);
+            Send(Send(SYS,@GetStatistics),@AddToRoomCount,#iNum=RID_MAZE_LAVA_FROG_ROOM);
+            Send(poShrineRoom,@SetXCoord,#coord_value=x_coord);
+            Send(poShrineRoom,@SetYCoord,#coord_value=y_coord);
+            return poShrineRoom;
+         }
+      }
+      
+      if bArmorRoom
+      {
+         if poArmorRoom = $
+         {
+            Send(SYS,@CreateOneRoomIfNew,#num=RID_MAZE_ARMOR_ROOM,#class=&MazeArmorRoom);
+            poArmorRoom = Send(SYS,@FindRoomByNum,#num=RID_MAZE_ARMOR_ROOM);
+            Send(Send(SYS,@GetStatistics),@AddToRoomCount,#iNum=RID_MAZE_ARMOR_ROOM);
+            Send(poArmorRoom,@SetXCoord,#coord_value=x_coord);
+            Send(poArmorRoom,@SetYCoord,#coord_value=y_coord);
+            return poArmorRoom;
          }
       }
       

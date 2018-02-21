@@ -63,7 +63,9 @@ BOFS = hp20pq1.bof \
        anyhpmazepq1.bof \
        anyhpreincpq1.bof\
        anyhpreincpq2.bof\
-       anyhpreincpq3.bof
+       anyhpreincpq3.bof \
+       anyhplavafrogpq1.bof \
+       anyhparmorypq1.bof
       
 
 !include $(KODDIR)\kod.mak

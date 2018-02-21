@@ -1,0 +1,87 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+MazeArmorRoom is MinotaurMazeRoom
+
+% This room contains relics.
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   room_armor_room = mazelavafrogroom.roo
+   room_maze_lava_frog_room_name = "Ancient Armory"
+   
+   ancient_armory_challenge_msg = \
+      "~kThe spirit of Vecka tells you, \"The Sorcerers were once a highly respected organization that served the Merchant Princes. "
+      "Low-level sorcerers were often used as bodyguards or mercenaries. This is where they kept some of their equipment, "
+      "protected by a series of mechanical passcodes only true apprentices would know.\""
+
+classvars:
+
+   vrName = room_maze_lava_frog_room_name
+
+   viTeleport_row = 5
+   viTeleport_col = 5
+
+properties:
+
+   prRoom = room_armor_room
+   piRoom_num = RID_MAZE_ARMOR_ROOM
+
+messages:
+
+   CreateMazeRoomObjects()
+   {
+      
+      return;
+   }
+   
+   CheckMoveBorders(what=$, new_row=$, new_col=$)
+   {
+      return;
+   }
+
+   NewHold(what=$)
+   {
+      if what <> $
+         AND IsClass(what,&User)
+         AND Send(what,@GetVeckaAdvice)
+      {
+         Send(what,@MsgSendUser,#message_rsc=ancient_armory_challenge_msg);
+      }
+ 
+      if IsClass(what,&Player)
+      {
+         Post(Send(SYS,@GetGameQuestMaintenance),@EvaluatePlayer,#who=what,#vbTriggered=TRUE);
+      }
+
+      propagate;
+   }
+
+   VaultOpened()
+   {
+      local i, each_obj;
+
+      foreach i in Send(self,@GetHolderActive)
+      {
+         each_obj = Send(self,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&Player)
+         {
+            % Let passive quests know we beat this area
+            Send(each_obj,@CompletedPuzzle,#iRoomNum=piRoom_num);
+         }
+      }
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
