@@ -2833,8 +2833,9 @@ messages:
                               &Mace,
                               &Scimitar,
                               &MysticSword];
-                              
-         iRandomTrashNum = Random(5,15);
+
+         % We create trash before and after the item to avoid the chest looking too empty
+         iRandomTrashNum = Random(0,11);
          
          while iRandomTrashNum > 0
          {
@@ -2848,6 +2849,14 @@ messages:
          Send(maze_chest,@MajorImbue,#oItem=oWeapon);
          % And add a proc of power
          Create(&WeaponSpellProc,#host_object=oWeapon,#use_profile=MAZE_WEAPON_SPELL_PROC_PROFILE);
+                              
+         iRandomTrashNum = Random(0,7);
+         
+         while iRandomTrashNum > 0
+         {
+            Send(maze_chest,@NewHold,#what=Create(Nth(lLootClasses,Random(1,Length(lLootClasses))),#level=Random(50,150)));
+            iRandomTrashNum--;
+         }
       }
       
 
