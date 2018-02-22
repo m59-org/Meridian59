@@ -56,7 +56,7 @@ properties:
 
    % We only recreate the maze if players have seen it.
    % Otherwise, no need to change the configuration all the time.
-   piMazeHasBeenEnteredByPlayers = FALSE
+   pbMazeHasBeenEnteredByPlayers = FALSE
 
 messages:
 
@@ -135,7 +135,7 @@ messages:
 %                        maze_maint_interior15];
       %plMazeClasses = [&Maze4a, &Maze4b, &Maze4c];
       
-      piMazeHasBeenEnteredByPlayers = FALSE;
+      pbMazeHasBeenEnteredByPlayers = FALSE;
       return;
    }
 
@@ -143,6 +143,12 @@ messages:
    {
       local iTreasureXCoord, iTreasureYCoord, iBossXCoord, iBossYCoord, i, iX, iY, iShrineXCoord, iShrineYCoord, iArmorXCoord, iArmorYCoord;
 
+%      if NOT pbMazeHasBeenEnteredByPlayers
+%      {
+%         % Let's not recreate unless needed.
+%         return;
+%      }
+      
       % Make sure the maze is deleted
       Send(self,@ClearMap);
       
@@ -176,6 +182,8 @@ messages:
    PingMaze(x_coord=-1, y_coord=-1)
    {
       local i, lCheckTheseCoords;
+
+      pbMazeHasBeenEnteredByPlayers = TRUE;
 
       lCheckTheseCoords = $;
       if x_coord = 5
@@ -326,6 +334,14 @@ messages:
          if what = poTreasureRoom
          {
             poTreasureRoom = $;
+         }
+         if what = poShrineRoom
+         {
+            poShrineRoom = $;
+         }
+         if what = poArmorRoom
+         {
+            poArmorRoom = $;
          }
          
          if FindListElem(plMazeRooms,what)
