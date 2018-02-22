@@ -50,6 +50,7 @@ properties:
    poShrineRoom = $
    poArmorRoom = $
    poBossRoom = $
+   poMazeExitRoom = $
    
    plMazeClasses = $
    plMazeRooFiles = $
@@ -107,6 +108,12 @@ messages:
          Send(poArmorRoom,@Delete);
          poArmorRoom = $;
       }
+      if poMazeExitRoom <> $
+      {
+         Send(poMazeExitRoom,@HustleUsersOutOfRoom);
+         Send(poMazeExitRoom,@Delete);
+         poMazeExitRoom = $;
+      }
 
       foreach i in plMazeRooms
       {
@@ -143,17 +150,18 @@ messages:
    {
       local iTreasureXCoord, iTreasureYCoord, iBossXCoord, iBossYCoord, i, iX, iY, iShrineXCoord, iShrineYCoord, iArmorXCoord, iArmorYCoord;
 
-%      if NOT pbMazeHasBeenEnteredByPlayers
-%      {
-%         % Let's not recreate unless needed.
-%         return;
-%      }
+      if NOT pbMazeHasBeenEnteredByPlayers
+      {
+         % Let's not recreate unless needed.
+         return;
+      }
       
       % Make sure the maze is deleted
       Send(self,@ClearMap);
       
       % Create first room.
       poFirstRoom = Send(self,@GenerateSpecificRoom,#bFirstRoom=TRUE);
+      poMazeExitRoom = Send(self,@GenerateSpecificRoom,#bExitRoom=TRUE);
 
       % Create special rooms at random coordinates.
       % Each room has its own quadrant to help simplify this process (and ease player frustration)
@@ -267,58 +275,6 @@ messages:
       return $;
    }
 
-   GetFirstRoom()
-   {
-      if poFirstRoom = $
-      {
-         return Send(self,@CreateFirstRoom);
-      }
-      else
-      {
-         return poFirstRoom;
-      }
-      return $;
-   }
-
-   CreateFirstRoom()
-   {
-      if poFirstRoom = $
-      {
-         Send(SYS,@CreateOneRoomIfNew,#num=RID_MAZE_ENTRANCE,#class=&MinotaurMazeRoom);
-         poFirstRoom = Send(SYS,@FindRoomByNum,#num=RID_MAZE_ENTRANCE);
-         Send(Send(SYS,@GetStatistics),@AddToRoomCount,#iNum=RID_MAZE_ENTRANCE);
-         return poFirstRoom;
-      }
-
-      return $;
-   }
-
-   GetBossRoom()
-   {
-      if poBossRoom = $
-      {
-         return Send(self,@CreateBossRoom);
-      }
-      else
-      {
-         return poBossRoom;
-      }
-      return $;
-   }
-
-   CreateBossRoom()
-   {
-      if poBossRoom = $
-      {
-         Send(SYS,@CreateOneRoomIfNew,#num=RID_MAZE_BOSS_ROOM,#class=&MazeBossRoom);
-         poBossRoom = Send(SYS,@FindRoomByNum,#num=RID_MAZE_BOSS_ROOM);
-         Send(Send(SYS,@GetStatistics),@AddToRoomCount,#iNum=RID_MAZE_BOSS_ROOM);
-         return poBossRoom;
-      }
-
-      return $;
-   }
-
    RoomDeleted(what=$)
    {
       if what <> $
@@ -342,6 +298,10 @@ messages:
          if what = poArmorRoom
          {
             poArmorRoom = $;
+         }
+         if what = poMazeExitRoom
+         {
+            poMazeExitRoom = $;
          }
          
          if FindListElem(plMazeRooms,what)
@@ -414,7 +374,7 @@ messages:
       return;
    }
 
-   GenerateSpecificRoom(x_coord=-1, y_coord=-1, bFirstRoom=FALSE, bTreasureRoom=FALSE, bBossRoom=FALSE, bShrineRoom=FALSE, bArmorRoom=FALSE)
+   GenerateSpecificRoom(x_coord=-1, y_coord=-1, bFirstRoom=FALSE, bTreasureRoom=FALSE, bBossRoom=FALSE, bShrineRoom=FALSE, bArmorRoom=FALSE, bExitRoom=FALSE)
    {
       local iGeneratedNum, bInterior, oRoom;
 
@@ -429,12 +389,25 @@ messages:
       {
          if poFirstRoom = $
          {
-            Send(SYS,@CreateOneRoomIfNew,#num=RID_MAZE_ENTRANCE,#class=&MinotaurMazeRoom);
+            Send(SYS,@CreateOneRoomIfNew,#num=RID_MAZE_ENTRANCE,#class=&MazeEntranceRoom);
             poFirstRoom = Send(SYS,@FindRoomByNum,#num=RID_MAZE_ENTRANCE);
             Send(Send(SYS,@GetStatistics),@AddToRoomCount,#iNum=RID_MAZE_ENTRANCE);
             Send(poFirstRoom,@SetXCoord,#coord_value=5);
             Send(poFirstRoom,@SetYCoord,#coord_value=0);
             return poFirstRoom;
+         }
+      }
+      
+      if bExitRoom
+      {
+         if poMazeExitRoom = $
+         {
+            Send(SYS,@CreateOneRoomIfNew,#num=RID_MAZE_EXIT_ROOM,#class=&MazeExitRoom);
+            poMazeExitRoom = Send(SYS,@FindRoomByNum,#num=RID_MAZE_EXIT_ROOM);
+            Send(Send(SYS,@GetStatistics),@AddToRoomCount,#iNum=RID_MAZE_EXIT_ROOM);
+            Send(poMazeExitRoom,@SetXCoord,#coord_value=7);
+            Send(poMazeExitRoom,@SetYCoord,#coord_value=11);
+            return poMazeExitRoom;
          }
       }
       
@@ -501,159 +474,6 @@ messages:
       
       plMazeRooms = Cons(oRoom,plMazeRooms);
 
-      return $;
-   }
-   
-   GenerateNewRoom(from_room=$,from_direction=0)
-   {
-      local oRoom, iGeneratedNum, lMazeClasses, iTargetXCoord, iTargetYCoord, oExistingRoom, bInterior;
-      
-      %
-      %
-      % CREATE EDGE ROOMS HERE
-      %
-      
-      iTargetXCoord = Send(from_room,@GetXCoord);
-      switch(from_direction)
-      {
-         case MAZE_DIRECTION_NORTH:
-            break;
-         case MAZE_DIRECTION_SOUTH:
-            break;
-         case MAZE_DIRECTION_WEST:
-            iTargetXCoord--;
-            break;
-         case MAZE_DIRECTION_EAST:
-            iTargetXCoord++;
-            break;
-      }
-      
-      iTargetYCoord = Send(from_room,@GetYCoord);
-      switch(from_direction)
-      {
-         case MAZE_DIRECTION_NORTH:
-            iTargetYCoord++;
-            break;
-         case MAZE_DIRECTION_SOUTH:
-           iTargetYCoord--;
-            break;
-         case MAZE_DIRECTION_WEST:
-            break;
-         case MAZE_DIRECTION_EAST:
-            break;
-      }
-
-%      if iTargetYCoord < 1
-%         OR iTargetYCoord > 10
-%         OR iTargetXCoord < 1
-%         OR iTargetXCoord > 10
-%      {
-%         Debug("Player somehow attempted to enter out of bounds maze room!");
-%         return $;
-%      }
-
-      lMazeClasses = $;
-      bInterior = TRUE;
-      
-      if iTargetXCoord = 1
-      {
-         lMazeClasses = [&MazeWestBorder];
-      }
-      
-      if iTargetXCoord = 10
-      {
-         lMazeClasses = [&MazeEastBorder];
-      }
-      
-      if iTargetYCoord = 1
-      {
-         lMazeClasses = [&MazeSouthBorder];
-      }
-      
-      if iTargetYCoord = 10
-      {
-         lMazeClasses = [&MazeNorthBorder];
-      }
-      
-      if Send(from_room,@GetXCoord) = 5
-         AND Send(from_room,@GetYCoord) = 0
-      {
-         % We are entering the maze.
-         lMazeClasses = [&Maze4a, &Maze4b, &Maze4c, &Maze5];
-         iTargetXCoord = 4;
-         iTargetYCoord = 1;
-      }
-      
-      if iTargetXCoord = 1
-         AND iTargetYCoord = 1
-      {
-         lMazeClasses = [&MazeSouthWestCorner];
-      }
-      
-      if iTargetXCoord = 10
-         AND iTargetYCoord = 1
-      {
-         lMazeClasses = [&MazeSouthEastCorner];
-      }
-      
-      if iTargetXCoord = 1
-         AND iTargetYCoord = 10
-      {
-         lMazeClasses = [&MazeNorthWestCorner];
-      }
-      
-      if iTargetXCoord = 10
-         AND iTargetYCoord = 10
-      {
-         lMazeClasses = [&MazeNorthEastCorner];
-      }
-      
-      if lMazeClasses <> $
-      {
-         bInterior = FALSE;
-      }
-
-      oExistingRoom = Send(self,@CheckForExistingRoom,#x_coord=iTargetXCoord,#y_coord=iTargetYCoord);
-      if oExistingRoom <> $
-      {
-         % Link the two rooms together
-         Send(from_room,@SetConnectedRoom,#from_room=oExistingRoom,#from_direction=Send(self,@ReverseDirection,#direction=from_direction));
-         Send(oExistingRoom,@SetConnectedRoom,#from_room=from_room,#from_direction=from_direction);
-
-         return oExistingRoom;
-      }
-      else
-      {
-         iGeneratedNum = Send(self,@GetNextAvailableRID);
-         
-         if NOT bInterior
-         {
-            Send(SYS,@CreateOneRoomIfNew,#num=iGeneratedNum,
-                                         #class=Nth(lMazeClasses,Random(1,Length(lMazeClasses))));
-         }
-         else
-         {
-            Send(SYS,@CreateOneRoomIfNew,#num=iGeneratedNum,#class=&MazeInteriorRoom,#base_room=Nth(plMazeRooFiles,Random(1,Length(plMazeRooFiles))));
-         }
-         Send(Send(SYS,@GetStatistics),@AddToRoomCount,#iNum=iGeneratedNum);
-      
-         oRoom = Send(SYS,@FindRoomByNum,#num=iGeneratedNum);
-      
-         % Link the two rooms together
-         Send(from_room,@SetConnectedRoom,#from_room=oRoom,#from_direction=Send(self,@ReverseDirection,#direction=from_direction));
-         Send(oRoom,@SetConnectedRoom,#from_room=from_room,#from_direction=from_direction);
-         
-         % Set your grid coordinates
-         Send(oRoom,@SetXCoord,#coord_value=iTargetXCoord);
-         Send(oRoom,@SetYCoord,#coord_value=iTargetYCoord);
-      
-         plMazeRooms = Cons(oRoom,plMazeRooms);
-
-         return oRoom;
-      }
-         
-      Debug("GenerateNewRoom failed spectacularly");
-      
       return $;
    }
 

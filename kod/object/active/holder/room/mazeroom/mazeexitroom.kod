@@ -1,0 +1,74 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+MazeExitRoom is MinotaurMazeRoom
+
+% This room contains relics in a vault.
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   room_maze_exit_room = mazeexitroom.roo
+   room_maze_exit_room_name = "Sealed Egress"
+   
+   maze_exit_challenge_msg = \
+      "~kThe spirit of Vecka tells you, \"This is it. This is the way up! If we can just figure out "
+      "how to open this, you can climb right up into the dungeons under the Palace of High Sorcerers!\""
+
+   exit_lift_up_sound = stoneup2.wav
+   exit_lift_down_sound = stonedn2.wav
+   
+classvars:
+
+   vrName = room_maze_exit_room_name
+
+   viTeleport_row = 5
+   viTeleport_col = 5
+
+properties:
+
+   prRoom = room_maze_exit_room
+   piRoom_num = RID_MAZE_EXIT_ROOM
+   
+
+messages:
+
+   CreateMazeRoomObjects()
+   {
+      return;
+   }
+   
+   CheckMoveBorders(what=$, new_row=$, new_col=$)
+   {
+      return;
+   }
+
+   NewHold(what=$)
+   {
+      if what <> $
+         AND IsClass(what,&User)
+         AND Send(what,@GetVeckaAdvice)
+      {
+         Send(what,@MsgSendUser,#message_rsc=maze_exit_challenge_msg);
+      }
+ 
+      if IsClass(what,&Player)
+      {
+         Post(Send(SYS,@GetGameQuestMaintenance),@EvaluatePlayer,#who=what,#vbTriggered=TRUE);
+      }
+      
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -250,7 +250,6 @@ constants:
 
 resources:
 
-   room_minotaurmazeroom = mazepieces.roo
    room_name_minotaurmazeroom = "Maze of the Minotaur"
    
    maze_music1 = ferambie.mp3
@@ -317,14 +316,6 @@ resources:
       "Your hand refuses to make contact with the door no matter how hard you try."
    maze_exit_blocked13 = \
       "This door is an illusion! A blank wall is all that really lies here."
-
-   maze_intro_explanation = \
-      "~kThe spirit of Vecka tells you, \"This maze was originally constructed to be the ultimate "
-      "test for new sorcerers. Once corruption took hold, it became bathed "
-      "in opulence, intended as a final resting place for the High Sorcerers. You may have "
-      "encountered smaller tombs of lesser known sorcerers already. When the "
-      "High Sorcerers found immortality, they knew they would never rest in the maze, "
-      "so they sealed it off and set a monster to guard the wealth within.\""
 
 classvars:
 
@@ -424,7 +415,7 @@ properties:
    
    piChaosZone = TRUE
 
-   prRoom = room_minotaurmazeroom
+   prRoom = $
    piRoom_num = $
    
    poNorthExit = $
@@ -579,69 +570,6 @@ messages:
 
    CreateMazeRoomObjects()
    {
-      local i;
-      
-      % This room is not actually in the maze and is precreated
-      Send(self,@SetXCoord,#coord_value=-1);
-      Send(self,@SetYCoord,#coord_value=-1);
-
-      Send(self,@NewHold,#what=Create(&Lever),
-            #new_row=3,#new_col=12,#fine_row=35,#fine_col=46);
-
-      Send(self,@NewHold,#what=Create(&Lever),
-            #new_row=25,#new_col=30,#fine_row=7,#fine_col=43);
-
-      plCrusherStates = Cons([[2],                          % Trigger sectors
-                           [3],                             % Crusher sectors
-                           $,
-                           TRAP_READY,
-                           ANIMATE_CEILING_LIFT,
-                           1050,                            % down height
-                           220,                             % down speed
-                           1160,                            % up height
-                           11,                              % up speed
-                           4                               % nopass Wall ID for Crusher
-                           ],plCrusherStates);
-      
-      plSecretDoors = Cons([[4],                          % Trigger sectors
-                            [5],                          % Door sector
-                            ANIMATE_FLOOR_LIFT,
-                            1000,                         % Height
-                            50,                           % Speed
-                            SECRET_DOOR_ONLY_ONCE],plSecretDoors);
-      
-      plSpikeStates = Cons([[8],                            % Pain sectors
-                            9,                              % down wall ID
-                            10,                             % Up wall ID
-                            $,
-                            SPIKES_DORMANT,
-                            SPIKES_SIMULTANEOUS,
-                            8,                              % sound row
-                            52                              % sound col
-                            ],plSpikeStates);
-
-      plLavaSectors = Cons(50,plLavaSectors);               % Lava pain sectors
-                             
-
-      plSawbladeStates = Cons([[68],                              % Trigger sectors
-                               [69],                              % Damage sectors
-                               70,                                % Sawblade walls ID
-                               71,                                % Sawblade no pass ID
-                               $,
-                               $,
-                               8,                                 % Sound row
-                               32                                 % Sound col
-                               ],plSawbladeStates);
-
-      plTotems = Cons([SID_LIGHTNING_BOLT,                   % Spell ID
-                       $,
-                       $,
-                       12,                                   % Row
-                       34,                                   % Col
-                       8,                                    % Fine Row
-                       15                                    % Fine Col
-                       ],plTotems);
-
       return;
    }
 
@@ -835,18 +763,6 @@ messages:
 % MOVEMENT EVALUATION
 % ============
 
-   NewHold(what=$)
-   {
-      if what <> $
-         AND IsClass(what,&User)
-         AND piRoom_num = RID_MAZE_ENTRANCE
-         AND Send(what,@GetVeckaAdvice)
-      {
-         Send(what,@MsgSendUser,#message_rsc=maze_intro_explanation);
-      }
-      propagate;
-   }
-
    FirstUserEntered()
    {
       Send(self,@StartSpikeCycle);
@@ -903,13 +819,6 @@ messages:
    
    CheckMoveBorders(what=$, new_row=$, new_col=$)
    {
-      if new_row > Send(self,@GetRoomRows)-2
-      {
-         Send(SYS,@UtilGoNearSquare,#what=what,
-              #where=Send(SYS,@FindRoomByNum,#num=RID_MAZE_SEWER),
-              #new_row=2,#new_col=24,#new_angle=Send(what,@GetAngle));
-         return;
-      }
       return;
    }
    
