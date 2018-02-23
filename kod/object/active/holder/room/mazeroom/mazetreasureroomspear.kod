@@ -46,6 +46,16 @@ resources:
    treasure_room_skill_spell_chosen_msg = \
       "~BKnowledge flares in your mind!~B Check the description of your chosen ability to learn more about your mastery."
 
+   treasure_room_list_msg = \
+      "This archive retains knowledge of four spells and four skills: inert form, hammer wielding, scimitar wielding, dagger wielding, "
+      "fireball, lightning bolt, earthquake, and flame dash."
+
+   skill_spell_not_found = \
+      "~kA magically created voice says, \"This archive currently contains no knowledge of that ability.\""
+
+   you_dont_have_that_ability_msg= \
+      "~kA magically created voice says, \"You have no knowledge of that ability to augment.\""
+
 classvars:
 
    vrName = room_maze_treasure_room_name
@@ -97,6 +107,7 @@ messages:
             if ptLightMsgTimer = $
             {
                Send(who,@MsgSendUser,#message_rsc=treasure_room_light_entered_msg);
+               Send(who,@MsgSendUser,#message_rsc=treasure_room_list_msg);
                ptLightMsgTimer = CreateTimer(self,@ClearLightMsgTimer,LIGHT_MESSAGE_DELAY);
             }
             break;
@@ -107,25 +118,62 @@ messages:
    
    SomeoneSaid(what=$, string=$)
    {
-      local oSkill, oSpell, iReturnedNum;
+      local oSkill, oSpell, iReturnedSpellNum, iReturnedSkillNum, lAllowed, bProceed, i;
 
+      lAllowed = [SID_FIREBALL,
+                  SID_LIGHTNING_BOLT,
+                  SID_FLAME_DASH,
+                  SID_EARTHQUAKE,
+                  SKID_PROFICIENCY_SCIMITAR,
+                  SKID_PROFICIENCY_HAMMER,
+                  SKID_PROFICIENCY_DAGGER,
+                  SKID_INERT_FORM];
+      bProceed = FALSE;
       if what <> $
          AND IsClass(what,&User)
          AND Send(self,@GetSection,#who=what) = CHOICE_CIRCLE
       {
-         iReturnedNum = Send(SYS,@FindSpellNumByString,#string=string);
-         if iReturnedNum <> 0
+         iReturnedSpellNum = Send(SYS,@FindSpellNumByString,#string=string);
+         iReturnedSkillNum = Send(SYS,@FindSkillNumByString,#string=string);         
+         foreach i in lAllowed
          {
-            Post(what,@MsgSendUser,#message_rsc=treasure_room_skill_spell_chosen_msg);
-            Send(what,@SetMasteredSkill,#num=0);
-            Send(what,@SetMasteredSpell,#num=iReturnedNum);
+            if iReturnedSpellNum = i
+            {
+               bProceed = TRUE;
+            }
+            if iReturnedSkillNum = i
+            {
+               bProceed = TRUE;
+            }
+         }
+         
+         if NOT bProceed
+         {
+            Post(what,@MsgSendUser,#message_rsc=skill_spell_not_found);
             propagate;
          }
-         iReturnedNum = Send(SYS,@FindSkillNumByString,#string=string);
-         if iReturnedNum <> 0
+
+         if iReturnedSpellNum <> 0
          {
+            if NOT Send(what,@HasSpell,#num=iReturnedSpellNum)
+            {
+               Post(what,@MsgSendUser,#message_rsc=you_dont_have_that_ability_msg);
+               propagate;
+            }
             Post(what,@MsgSendUser,#message_rsc=treasure_room_skill_spell_chosen_msg);
-            Send(what,@SetMasteredSkill,#num=iReturnedNum);
+            Send(what,@SetMasteredSkill,#num=0);
+            Send(what,@SetMasteredSpell,#num=iReturnedSpellNum);
+            propagate;
+         }
+         if iReturnedSkillNum <> 0
+         {
+            if NOT Send(what,@HasSkill,#num=iReturnedSkillNum)
+            {
+               Post(what,@MsgSendUser,#message_rsc=you_dont_have_that_ability_msg);
+               propagate;
+            }
+            Post(what,@MsgSendUser,#message_rsc=treasure_room_skill_spell_chosen_msg);
+            Send(what,@SetMasteredSkill,#num=iReturnedSkillNum);
             Send(what,@SetMasteredSpell,#num=0);
             propagate;
          }
