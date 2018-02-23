@@ -54,6 +54,7 @@ properties:
    poShrineRoom = $
    poArmorRoom = $
    poBossRoom = $
+   poReincarnationRoom = $
    poMazeExitRoom = $
    
    plMazeClasses = $
@@ -118,6 +119,12 @@ messages:
          Send(poMazeExitRoom,@Delete);
          poMazeExitRoom = $;
       }
+      if poReincarnationRoom <> $
+      {
+         Send(poReincarnationRoom,@HustleUsersOutOfRoom);
+         Send(poReincarnationRoom,@Delete);
+         poReincarnationRoom = $;
+      }
 
       foreach i in plMazeRooms
       {
@@ -153,12 +160,6 @@ messages:
    RecreateMap()
    {
       local iTreasureXCoord, iTreasureYCoord, iBossXCoord, iBossYCoord, i, iX, iY, iShrineXCoord, iShrineYCoord, iArmorXCoord, iArmorYCoord;
-
-%      if NOT pbMazeHasBeenEnteredByPlayers
-%      {
-%         % Let's not recreate unless needed.
-%         return;
-%      }
       
       % Make sure the maze is deleted
       Send(self,@ClearMap);
@@ -166,6 +167,7 @@ messages:
       % Create first room.
       poFirstRoom = Send(self,@GenerateSpecificRoom,#bFirstRoom=TRUE);
       poMazeExitRoom = Send(self,@GenerateSpecificRoom,#bExitRoom=TRUE);
+      poReincarnationRoom = Send(self,@GenerateSpecificRoom,#bReincarnationRoom=TRUE);
 
       % Create special rooms at random coordinates.
       % Each room has its own quadrant to help simplify this process (and ease player frustration)
@@ -307,6 +309,10 @@ messages:
          {
             poMazeExitRoom = $;
          }
+         if what = poReincarnationRoom
+         {
+            poReincarnationRoom = $;
+         }
          
          if FindListElem(plMazeRooms,what)
          {
@@ -356,6 +362,12 @@ messages:
          return poMazeExitRoom;
       }
       
+      if Send(poReincarnationRoom,@GetXCoord) = x_coord
+         AND Send(poReincarnationRoom,@GetYCoord) = y_coord
+      {
+         return poReincarnationRoom;
+      }
+      
       foreach i in plMazeRooms
       {
          if Send(i,@GetXCoord) = x_coord
@@ -396,7 +408,7 @@ messages:
       return;
    }
 
-   GenerateSpecificRoom(x_coord=-1, y_coord=-1, bFirstRoom=FALSE, bTreasureRoom=FALSE, bBossRoom=FALSE, bShrineRoom=FALSE, bArmorRoom=FALSE, bExitRoom=FALSE)
+   GenerateSpecificRoom(x_coord=-1, y_coord=-1, bFirstRoom=FALSE, bTreasureRoom=FALSE, bBossRoom=FALSE, bShrineRoom=FALSE, bArmorRoom=FALSE, bExitRoom=FALSE, bReincarnationRoom=FALSE)
    {
       local iGeneratedNum, bInterior, oRoom;
 
@@ -430,6 +442,19 @@ messages:
             Send(poMazeExitRoom,@SetXCoord,#coord_value=7);
             Send(poMazeExitRoom,@SetYCoord,#coord_value=11);
             return poMazeExitRoom;
+         }
+      }
+      
+      if bReincarnationRoom
+      {
+         if poReincarnationRoom = $
+         {
+            Send(SYS,@CreateOneRoomIfNew,#num=RID_MAZE_REINCARNATION_ROOM,#class=&MazeReincarnationRoom);
+            poReincarnationRoom = Send(SYS,@FindRoomByNum,#num=RID_MAZE_REINCARNATION_ROOM);
+            Send(Send(SYS,@GetStatistics),@AddToRoomCount,#iNum=RID_MAZE_REINCARNATION_ROOM);
+            Send(poReincarnationRoom,@SetXCoord,#coord_value=0);
+            Send(poReincarnationRoom,@SetYCoord,#coord_value=10);
+            return poReincarnationRoom;
          }
       }
       

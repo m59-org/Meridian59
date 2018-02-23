@@ -333,6 +333,7 @@ resources:
    player_race_demon = "%s appears to be of half-demon ancestry.\n"
    player_race_elf = "%s appears to be of half-elf ancestry.\n"
    player_race_undine = "%s appears to be of half-undine ancestry.\n"
+   player_race_dragon = "%s appears to be of draconian ancestry.\n"
 
    player_opt_out_pvp = \
       "%s is a dedicated practitioner of Shal'ille's peaceful path.\n"
@@ -1565,6 +1566,9 @@ messages:
          case RACE_HALF_UNDINE:
             lBaseEmpowerments = Cons([-ATCK_SPELL_COLD, 10],lBaseEmpowerments);
             break;
+         case RACE_DRACONIAN:
+            lBaseEmpowerments = Cons([ATCK_WEAP_PUNCH, 15],lBaseEmpowerments);
+            break;
       }
 
       if Nth(plPrismsDefeated,NTH_LIGHTNING_PRISM) = 1
@@ -1651,6 +1655,14 @@ messages:
                   [ATCK_WEAP_BLUDGEON, 10 ] ];
       }
       
+      if race = RACE_DRACONIAN
+      {
+         return [ [ATCK_WEAP_SLASH, 10],
+                  [ATCK_WEAP_PIERCE, 10],
+                  [ATCK_WEAP_THRUST, 10],
+                  [ATCK_WEAP_BLUDGEON, -10]];
+      }
+      
       return $;
    }
 
@@ -1707,6 +1719,20 @@ messages:
             case -ATCK_SPELL_COLD:
                return 2;
             case ATCK_WEAP_BLUDGEON:
+               return 2;
+         }
+      }
+      if piPlayerRace = RACE_DRACONIAN
+      {
+         switch(type)
+         {
+            case ATCK_WEAP_BLUDGEON:
+               return -7;
+            case ATCK_WEAP_SLASH:
+               return 2;
+            case ATCK_WEAP_PIERCE:
+               return 2;
+            case ATCK_WEAP_THRUST:
                return 2;
          }
       }
@@ -1865,6 +1891,28 @@ messages:
 
          piRacialVigorMod = 0;
          piStomachMax = 100;
+         piVigor_rest_threshold = Send(self,@CalculateVigorThreshold);
+         piVigor = piVigor_rest_threshold;
+         Post(self,@NewVigor);
+
+         piPlayerRace = race;
+      }
+     
+      if race = RACE_DRACONIAN
+      {
+         Send(self,@SetSkinTranslation,#translation=1);
+         Send(self,@SetDefaultClothes,#shirt_color=1,#pants_color=1);
+         plResistances = Send(self,@GetRacialBaseResistances,#race=RACE_DRACONIAN);
+
+         piRacialMightMod = 0;
+         piRacialIntellectMod = -40;
+         piRacialStaminaMod = 20;
+         piRacialAgilityMod = 0;
+         piRacialMysticismMod = 0;
+         piRacialAimMod = 0;
+
+         piRacialVigorMod = 70;
+         piStomachMax = 140;
          piVigor_rest_threshold = Send(self,@CalculateVigorThreshold);
          piVigor = piVigor_rest_threshold;
          Post(self,@NewVigor);
@@ -2886,6 +2934,10 @@ messages:
       else if i = RACE_HALF_UNDINE
       {
          AddPacket(4,player_race_undine,4,Send(self,@GetHeShe,#cap=TRUE));
+      }
+      else if i = RACE_DRACONIAN
+      {
+         AddPacket(4,player_race_dragon,4,Send(self,@GetHeShe,#cap=TRUE));
       }
       else
       {
