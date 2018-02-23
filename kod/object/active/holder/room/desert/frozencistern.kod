@@ -45,6 +45,9 @@ resources:
    ice_dragon_slain = \
       "~BThe dragon falls, shattering to pieces across the ice it once called home."
 
+   hack_away_ice_msg = \
+      "You hack away the elemental ice to return to the maze."
+
 classvars:
 
    vrName = room_name_FrozenCistern
@@ -52,7 +55,7 @@ classvars:
    viTeleport_row = 64
    viTeleport_col = 18
 
-   viTerrain_Type = TERRAIN_CITY | TERRAIN_SHOP
+   viTerrain_Type = TERRAIN_LAKE | TERRAIN_LAIR | TERRAIN_TUNDRA
 
 properties:
 
@@ -127,6 +130,7 @@ messages:
          Send(SYS,@UtilGoNearSquare,#what=who,
               #where=oRoom,
               #new_row=11,#new_col=8,#new_angle=ANGLE_SOUTH);
+         Send(who,@MsgSendUser,#message_rsc=hack_away_ice_msg);
          return TRUE;
       }
       return FALSE;
