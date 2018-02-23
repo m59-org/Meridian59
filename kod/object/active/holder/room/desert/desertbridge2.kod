@@ -18,6 +18,8 @@ DesertBridge2 is DesertRoom
 constants:
 
    include blakston.khd
+   
+   DESERT_BRIDGE2_GATE_SECTOR = 400
 
 resources:
 
@@ -28,9 +30,16 @@ resources:
       "This ancient service gate was solidly built to prevent any unauthorized intrusion. "
       "You will not be able to open it from this side."
 
+   sorcerer_gate_opens_msg = \
+      "The ancient service gate suddenly grinds into motion!"
+   sorcerer_gate_closes_msg = \
+      "Failing under its own weight, the ancient gate closes."
+
    db2_cant_movement_spell_msg = \
       "Strange forces flowing through this area make the use of a movement spell dangerous."
 
+   service_gate_lift_sound = stoneup2.wav
+   
 classvars:
 
    vrName = room_name_desertbridge2
@@ -54,6 +63,8 @@ properties:
    piRoom_num = RID_DESERTBRIDGE2
 
    pbGateOpen = FALSE
+   
+   ptCloseGateTimer = $
 
 messages:
  
@@ -103,7 +114,7 @@ messages:
       {
          if pbGateOpen
          {
-            return TRUE;
+            propagate;
          }
          else
          {
@@ -127,6 +138,67 @@ messages:
          return FALSE;
       }
 
+      propagate;
+   }
+   
+   OpenGate()
+   {
+      local i;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&Player)
+         {
+            Send(First(i),@MsgSendUser,#message_rsc=sorcerer_gate_opens_msg);
+         }
+      }
+      Send(self,@SetSector,#sector=DESERT_BRIDGE2_GATE_SECTOR,#animation=ANIMATE_CEILING_LIFT,#height=565,#speed=10);
+      pbGateOpen = TRUE;
+      ptCloseGateTimer = CreateTimer(self,@CloseGate,60000);
+      Send(self,@SomethingWaveRoom,#wave_rsc=service_gate_lift_sound); 
+      return;
+   }
+   
+   CloseGate()
+   {
+      local i;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&Player)
+         {
+            Send(First(i),@MsgSendUser,#message_rsc=sorcerer_gate_closes_msg);
+         }
+      }
+      ptCloseGateTimer = $;
+      Send(self,@SetSector,#sector=DESERT_BRIDGE2_GATE_SECTOR,#animation=ANIMATE_CEILING_LIFT,#height=501,#speed=10);
+      pbGateOpen = FALSE;
+      Send(self,@SomethingWaveRoom,#wave_rsc=service_gate_lift_sound); 
+      return;
+   }
+
+   SomethingMoved(what = $,new_row = $, new_col = $)
+   {
+      if new_col > Send(self,@GetRoomCols) - 2
+         AND pbGateOpen
+      {
+         Send(SYS,@UtilGoNearSquare,#what=what,
+              #where=Send(SYS,@FindRoomByNum,#num=RID_PALACE_DUNGEON_ENTRANCE),
+              #new_row=5,#new_col=6,#new_angle=ANGLE_EAST);
+              
+         return;
+      }
+
+      propagate;
+   }
+   
+   Delete()
+   {
+      if ptCloseGateTimer <> $
+      {
+         DeleteTimer(ptCloseGateTimer);
+         ptCloseGateTimer = $;
+      }
       propagate;
    }
 
