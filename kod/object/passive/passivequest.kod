@@ -373,7 +373,18 @@ messages:
       }
       return;
    }
-   
+
+   GroupKilledSomething(cClass=$)
+   {
+      if vbKillMonster
+         AND cClass = vcKillMonsterClass
+      {
+         % We post this completed message because monster kills produce a ton of loot and XP spam
+         Post(self,@Completed);
+      }
+      return;
+   }
+
    KilledSomething(what=$)
    {
       if what <> $

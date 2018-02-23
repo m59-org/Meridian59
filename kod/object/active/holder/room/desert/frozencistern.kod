@@ -8,7 +8,7 @@
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-FrozenCistern is Room
+FrozenCistern is DesertRoom
 
 constants:
 
@@ -37,6 +37,13 @@ resources:
    FrozenCistern_music = bossfight.wav
 
    fire_sound_FrozenCistern = wind-strong-01.wav
+   
+   ice_dragon_challenge_msg = \
+      "~kThe spirit of Vecka tells you, \"This is the nest of the beast. The ice dragon has taken many of our tribe over the years. "
+      "Kill the monstrous thing and take its eggs for your own!\""
+
+   ice_dragon_slain = \
+      "~BThe dragon falls, shattering to pieces across the ice it once called home."
 
 classvars:
 
@@ -60,6 +67,10 @@ properties:
    piNorthBarrierHeight = 100
    piEastBarrierHeight = 150
    piSouthBarrierHeight = 70
+   
+   pbIceDragonDefeated = FALSE
+   
+   vbSpawnMonsters = TRUE
 
 messages:
 
@@ -115,6 +126,115 @@ messages:
          Send(oRoom,@Teleport,#what=who);
       }
       return;
+   }
+
+   SomethingKilled(what=$,victim=$)
+   {
+      local i;
+
+      if victim <> $
+         AND IsClass(victim,&Monster)
+      {
+         if IsClass(victim,&Dragon)
+         {
+            foreach i in Send(self,@GetHolderActive)
+            {
+               if IsClass(First(i),&Player)
+               {
+                  Send(First(i),@MsgSendUser,#message_rsc=ice_dragon_slain);
+                  Send(First(i),@GroupSlayedMonster,#cClass=&Dragon);
+               }
+            }
+            Send(self,@IceDragonKilled);
+            propagate;
+         }
+      }
+
+      propagate;
+   }
+   
+   IceDragonKilled()
+   {
+      local i;
+
+      pbIceDragonDefeated = TRUE;
+      prMusic = Send(self,@GetPhaseMusic);
+      foreach i in plActive
+      {
+         if IsClass(First(i),&User)
+         {
+            Send(First(i),@SendRoomMusic,#music_rsc=prMusic);
+         }
+      }
+      return;
+   }
+
+   NewHold(what=$)
+   {
+      if what <> $
+         AND IsClass(what,&User)
+         AND Send(what,@GetVeckaAdvice)
+      {
+         Send(what,@MsgSendUser,#message_rsc=ice_dragon_challenge_msg);
+      }
+ 
+      if IsClass(what,&Player)
+      {
+         Post(Send(SYS,@GetGameQuestMaintenance),@EvaluatePlayer,#who=what,#vbTriggered=TRUE);
+      }
+
+      propagate;
+   }
+
+   GetPhaseMusic()
+   {
+      if NOT pbIceDragonDefeated
+      {
+         return FrozenCistern_music;
+      }
+
+      switch(Send(SYS,@GetDayPhase))
+      {
+         case DAY_PHASE_DAWN:
+            return desert_music_static_shock;
+         case DAY_PHASE_DAY:
+            return desert_music;
+         case DAY_PHASE_DUSK:
+            return desert_music_acid_rain;
+         case DAY_PHASE_NIGHT:
+            return desert_music_snow;
+      }
+      return desert_music;
+   }
+   
+   GetPhaseThreats()
+   {
+      switch(Send(SYS,@GetDayPhase))
+      {
+         case DAY_PHASE_DAWN:
+            return [&ShockStorm, &ChaosThreat];
+         case DAY_PHASE_DAY:
+            if Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTRIVER2),
+                     @GetPrismOfFireDefeated)
+            {
+               return [&HeatStorm, &ChaosThreat];
+            }
+            return [&HeatThreat, &ChaosThreat];
+         case DAY_PHASE_DUSK:
+            if Send(Send(SYS,@FindRoomByNum,#num=RID_ACIDPATH),
+                     @GetPrismOfAcidDefeated)
+            {
+               return [&AcidStorm,&RainThreat, &ChaosThreat];
+            }
+            return [&AcidThreat,&RainThreat, &ChaosThreat];
+         case DAY_PHASE_NIGHT:
+            if Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTSANDBAR),@GetPrismOfIceDefeated)
+            {
+               return [&ColdStorm,&SnowThreat, &ChaosThreat];
+            }
+            return [&ColdThreat,&SnowThreat, &ChaosThreat];
+      }
+      return [&ShockStorm, &ChaosThreat];
    }
 
    CreateStandardObjects()
@@ -266,6 +386,20 @@ messages:
    {
       prBackground = background_chaos_night;
 
+      return;
+   }
+
+   PopulateArea()
+   {
+      if NOT pbIceDragonDefeated
+      {
+         Send(self,@NewHold,#what=Create(&Dragon),
+               #new_row=64,
+               #new_col=68,
+               #fine_row=47,
+               #fine_col=27,
+               #new_angle=ANGLE_NORTH);
+      }
       return;
    }
 

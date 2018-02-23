@@ -27,6 +27,9 @@ resources:
       "they would feed the creature rune-engraved equipment and later, ahem, collect it. The stomach of the creature somehow "
       "empowers the runes with spells.\""
 
+   lava_frog_slain = \
+      "~BThe lava frog gasps its last and begins melting into formless molten rock."
+
 classvars:
 
    vrName = room_maze_lava_frog_room_name
@@ -115,10 +118,19 @@ messages:
 
    SomethingKilled(what=$,victim=$)
    {
+      local i;
       if victim <> $
          AND IsClass(victim,&LavaFrog)
       {
          pbLavaFrogDefeated = TRUE;
+         foreach i in Send(self,@GetHolderActive)
+         {
+            if IsClass(First(i),&Player)
+            {
+               Send(First(i),@MsgSendUser,#message_rsc=lava_frog_slain);
+               Send(First(i),@GroupSlayedMonster,#cClass=&LavaFrog);
+            }
+         }
       }
 
       propagate;
