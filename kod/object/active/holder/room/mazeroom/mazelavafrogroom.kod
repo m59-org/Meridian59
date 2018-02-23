@@ -29,6 +29,10 @@ resources:
 
    lava_frog_slain = \
       "~BThe lava frog gasps its last and begins melting into formless molten rock."
+   
+   shrine_music1 = ferambie.mp3
+   
+   LavaFrog_music = walk2.mp3
 
 classvars:
 
@@ -122,7 +126,6 @@ messages:
       if victim <> $
          AND IsClass(victim,&LavaFrog)
       {
-         pbLavaFrogDefeated = TRUE;
          foreach i in Send(self,@GetHolderActive)
          {
             if IsClass(First(i),&Player)
@@ -131,9 +134,26 @@ messages:
                Send(First(i),@GroupSlayedMonster,#cClass=&LavaFrog);
             }
          }
+         Send(self,@LavaFrogKilled);
       }
 
       propagate;
+   }
+
+   LavaFrogKilled()
+   {
+      local i;
+
+      pbLavaFrogDefeated = TRUE;
+      prMusic = Send(self,@GetPhaseMusic);
+      foreach i in plActive
+      {
+         if IsClass(First(i),&User)
+         {
+            Send(First(i),@SendRoomMusic,#music_rsc=prMusic);
+         }
+      }
+      return;
    }
 
    PopulateArea()
@@ -153,6 +173,16 @@ messages:
    GetPhaseThreats()
    {
       return [&VigorThreat, &ChaosThreat];
+   }
+
+   GetPhaseMusic()
+   {
+      if NOT pbLavaFrogDefeated
+      {
+         return LavaFrog_music;
+      }
+
+      return shrine_music1;
    }
 
 end
