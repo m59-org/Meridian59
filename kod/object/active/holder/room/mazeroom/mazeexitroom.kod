@@ -42,6 +42,24 @@ resources:
    exit_lift_up_sound = stoneup2.wav
    exit_lift_down_sound = stonedn2.wav
    
+   
+   shock_wall_opens_msg = \
+      "The barrier of lightning is dim."
+   shock_wall_closes_msg = \
+      "The barrier of lightning glows brightly."
+   ice_wall_opens_msg = \
+      "The barrier of ice is dim."
+   ice_wall_closes_msg = \
+      "The barrier of ice glows brightly."
+   acid_wall_opens_msg = \
+      "The barrier of acid is dim."
+   acid_wall_closes_msg = \
+      "The barrier of acid glows brightly."
+   fire_wall_opens_msg = \
+      "The barrier of fire is dim."
+   fire_wall_closes_msg = \
+      "The barrier of fire glows brightly."
+   
 classvars:
 
    vrName = room_maze_exit_room_name
@@ -250,27 +268,148 @@ messages:
       propagate;
    }
    
+   OpenShockWall()
+   {
+      local i;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&Player)
+         {
+            Send(First(i),@MsgSendUser,#message_rsc=shock_wall_opens_msg);
+         }
+      }
+
+      Send(self,@AnimateWall,#wall=SHOCK_WALL,#animation=ANIMATE_NONE,#first_group=1,#passable=TRUE);
+      return;
+   }
+   
+   CloseShockWall()
+   {
+      local i;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&Player)
+         {
+            Send(First(i),@MsgSendUser,#message_rsc=shock_wall_closes_msg);
+         }
+      }
+      Send(self,@AnimateWall,#wall=SHOCK_WALL,#animation=ANIMATE_NONE,#first_group=1,#passable=FALSE);
+      return;
+   }
+
+   OpenIceWall()
+   {
+      local i;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&Player)
+         {
+            Send(First(i),@MsgSendUser,#message_rsc=ice_wall_opens_msg);
+         }
+      }
+      Send(self,@AnimateWall,#wall=ICE_WALL,#animation=ANIMATE_NONE,#first_group=1,#passable=TRUE);
+      return;
+   }
+   
+   CloseIceWall()
+   {
+      local i;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&Player)
+         {
+            Send(First(i),@MsgSendUser,#message_rsc=ice_wall_closes_msg);
+         }
+      }
+      Send(self,@AnimateWall,#wall=ICE_WALL,#animation=ANIMATE_NONE,#first_group=1,#passable=FALSE);
+      return;
+   }
+
+   OpenAcidWall()
+   {
+      local i;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&Player)
+         {
+            Send(First(i),@MsgSendUser,#message_rsc=acid_wall_opens_msg);
+         }
+      }
+      Send(self,@AnimateWall,#wall=ACID_WALL,#animation=ANIMATE_NONE,#first_group=1,#passable=TRUE);
+      return;
+   }
+   
+   CloseAcidWall()
+   {
+      local i;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&Player)
+         {
+            Send(First(i),@MsgSendUser,#message_rsc=acid_wall_closes_msg);
+         }
+      }
+      Send(self,@AnimateWall,#wall=ACID_WALL,#animation=ANIMATE_NONE,#first_group=1,#passable=FALSE);
+      return;
+   }
+
+   OpenFireWall()
+   {
+      local i;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&Player)
+         {
+            Send(First(i),@MsgSendUser,#message_rsc=fire_wall_opens_msg);
+         }
+      }
+      Send(self,@AnimateWall,#wall=FIRE_WALL,#animation=ANIMATE_NONE,#first_group=1,#passable=TRUE);
+      return;
+   }
+
+   CloseFireWall()
+   {
+      local i;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&Player)
+         {
+            Send(First(i),@MsgSendUser,#message_rsc=fire_wall_closes_msg);
+         }
+      }
+      Send(self,@AnimateWall,#wall=FIRE_WALL,#animation=ANIMATE_NONE,#first_group=1,#passable=FALSE);
+      return;
+   }
+
    FirstUserEntered()
    {
-      Send(self,@AnimateWall,#wall=SHOCK_WALL,#animation=ANIMATE_NONE,#first_group=1,#passable=TRUE);
+      Post(self,@OpenShockWall);
            
       if Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTSANDBAR),@GetPrismOfIceDefeated)
       {
-         Send(self,@AnimateWall,#wall=ICE_WALL,#animation=ANIMATE_NONE,#first_group=1,#passable=TRUE);
+         Post(self,@OpenIceWall);
       }
            
       if Send(Send(SYS,@FindRoomByNum,#num=RID_ACIDPATH),@GetPrismOfAcidDefeated)
       {
-         Send(self,@AnimateWall,#wall=ACID_WALL,#animation=ANIMATE_NONE,#first_group=1,#passable=TRUE);
+         Post(self,@OpenAcidWall);
       }
       
       if Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTRIVER2),@GetPrismOfFireDefeated)
       {
-         Send(self,@AnimateWall,#wall=FIRE_WALL,#animation=ANIMATE_NONE,#first_group=1,#passable=TRUE);
+         Post(self,@OpenFireWall);
       }
 
-      Send(self,@AnimateWall,#wall=HOLY_WALL,#animation=ANIMATE_NONE,#first_group=1,#passable=TRUE);
-      Send(self,@AnimateWall,#wall=UNHOLY_WALL,#animation=ANIMATE_NONE,#first_group=1,#passable=TRUE);
+%      Send(self,@AnimateWall,#wall=HOLY_WALL,#animation=ANIMATE_NONE,#first_group=1,#passable=TRUE);
+%      Send(self,@AnimateWall,#wall=UNHOLY_WALL,#animation=ANIMATE_NONE,#first_group=1,#passable=TRUE);
       propagate;
    }
 
