@@ -19,6 +19,9 @@ resources:
    room_palacedungeonentrance = palacedungeonentrance.roo
    name_palacedungeonentrance = "Under the Palace of High Sorcerers"
    palacedungeonentrance_music = walk5.mp3
+   
+   limits_of_existence = \
+      "It seems you've reached the limits of existence. The only way forward is to nag the developers to hurry up and make more rooms!"
 
 classvars:
 
@@ -67,6 +70,16 @@ messages:
          Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTBRIDGE2),@OpenGate);
       }
 
+      propagate;
+   }
+
+   SomethingTryGo(what = $,row = $,col = $)
+   {
+      if col >= 23
+      {
+         Send(what,@MsgSendUser,#message_rsc=limits_of_existence);
+         return TRUE;
+      }
       propagate;
    }
 
