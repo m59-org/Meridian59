@@ -39,7 +39,9 @@ BGFS = igreyinvis.bgf isitting.bgf itransferitem.bgf iexplosion.bgf irift.bgf \
        grd00101.bgf \
        grd00102.bgf \
        grd00103.bgf \
-       icedragonscale.bgf
+       icedragonscale.bgf \
+       dragonbornmask.bgf \
+       dragonbornmaskf.bgf
 
 DIRS = 
 
