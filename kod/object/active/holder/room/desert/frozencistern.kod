@@ -94,7 +94,7 @@ messages:
       if what <> $
          AND IsClass(what,&Player)
       {
-         Send(self,@AttemptExit,#who=what,#iSection=Send(self,@GetSection,#who=what));
+         return Send(self,@AttemptExit,#who=what,#iSection=Send(self,@GetSection,#who=what));
       }
 
       propagate;
@@ -109,11 +109,12 @@ messages:
          {
             case DOOR_SECTOR:
                Send(self,@ExitCistern,#who=who);
+               return TRUE;
                break;
          }
       }
    
-      return;
+      return FALSE;
    }
    
    ExitCistern(who=$)
@@ -123,9 +124,12 @@ messages:
       oRoom = Send(SYS,@FindRoomByNum,#num=RID_MAZE_BOSS_ROOM);
       if oRoom <> $
       {
-         Send(oRoom,@Teleport,#what=who);
+         Send(SYS,@UtilGoNearSquare,#what=who,
+              #where=oRoom,
+              #new_row=11,#new_col=8,#new_angle=ANGLE_SOUTH);
+         return TRUE;
       }
-      return;
+      return FALSE;
    }
 
    SomethingKilled(what=$,victim=$)
