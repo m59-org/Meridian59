@@ -936,6 +936,9 @@ resources:
    rewarded_money_msg = \
       "~BYou have been rewarded with %i shillings!"
 
+   vrMaleDraconianHeadIcon = dragonbornmask.bgf
+   vrFemaleDraconianHeadIcon = dragonbornmaskf.bgf
+
 classvars:
 
    viHand_space = 2
@@ -1280,6 +1283,11 @@ properties:
    % Which skill has this player mastered?
    piMasteredSkill = 0
    piMasteredSpell = 0
+
+   % Some races have custom heads. We save our info here in that case.
+   prSaveEyes = $
+   prSaveNose = $
+   prSaveMouth = $
 
 messages:
 
@@ -1787,6 +1795,13 @@ messages:
    SetPlayerRace(race=0)
    {
       local iRandomSkinColor;
+      
+      if piPlayerRace = RACE_DRACONIAN
+         and race <> RACE_DRACONIAN
+      {
+         Send(self,@RemoveDraconianHead);
+      }
+      
       if race = RACE_HUMAN
       {
          iRandomSkinColor = Random(1,4);
@@ -1903,6 +1918,11 @@ messages:
          Send(self,@SetSkinTranslation,#translation=1);
          Send(self,@SetDefaultClothes,#shirt_color=1,#pants_color=1);
          plResistances = Send(self,@GetRacialBaseResistances,#race=RACE_DRACONIAN);
+         
+         if piPlayerRace <> RACE_DRACONIAN
+         {
+            Send(self,@ApplyDraconianHead);
+         }
 
          piRacialMightMod = 0;
          piRacialIntellectMod = -40;
@@ -1924,7 +1944,68 @@ messages:
      
       return;
    }
+
+   ApplyDraconianHead()
+   {
+      % Save face info.
+      prSaveEyes = Send(self,@GetEyesRsc);
+      prSaveNose = Send(self,@GetNoseRsc);
+      prSaveMouth = Send(self,@GetMouthRsc);
+
+      % Make all the face overlays invis, and remove hair.
+      Send(self,@SetEyes,#eyes=admin_icon_blank);
+      Send(self,@SetNose,#nose=admin_icon_blank);
+      Send(self,@SetMouth,#mouth=admin_icon_blank);      
+      Send(self,@RemoveHair,#what=self);
+
+      if Send(self,@GetGender) = GENDER_FEMALE
+      {
+         Send(self,@SetHead,#head=vrFemaleDraconianHeadIcon);
+      }
+
+      if Send(self,@GetGender) = GENDER_MALE
+      {
+         Send(self,@SetHead,#head=vrMaleDraconianHeadIcon);
+      }
+      return;
+   }
+
+   RaceCanUseItemType(type=ITEM_USE_HEAD)
+   {
+      if piPlayerRace = RACE_DRACONIAN
+         AND (type & ITEM_USE_HEAD)
+      {
+         return FALSE;
+      }
+      return TRUE;
+   }
    
+   RemoveDraconianHead()
+   {
+      % Put the face back on.
+      Send(self,@SetEyes,#eyes=prSaveEyes);
+      Send(self,@SetNose,#nose=prSaveNose);
+      Send(self,@SetMouth,#mouth=prSaveMouth);
+      Send(self,@ResetHair,#what=self);
+
+      % Clear out face resources.
+      prSaveEyes = $;
+      prSaveNose = $;
+      prSaveMouth = $;
+
+      if Send(self,@GetGender) = GENDER_FEMALE
+      {
+         Send(self,@SetHead,#head=charinfo_head_kx_icon);
+      }
+
+      if Send(self,@GetGender) = GENDER_MALE
+      {
+         Send(self,@SetHead,#head=charinfo_head_ax_icon);
+      }
+
+      return;
+   }
+
    GetBlindResistance()
    {
       local i, sum;
@@ -5173,6 +5254,11 @@ messages:
       if (iUse_type & ITEM_USE_LEGS)
          AND NOT Send(self,@CheckPosition,#what=what,
                      #type=ITEM_USE_LEGS,#space=viLeg_space)
+      {
+         return FALSE;
+      }
+      
+      if NOT Send(self,@RaceCanUseItemType,#type=iUse_type)
       {
          return FALSE;
       }
