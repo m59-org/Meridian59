@@ -3490,8 +3490,11 @@ messages:
          }
       }
       
-      % Let the user's passive quests know he/she said something to this npc.
-      Send(what,@PassiveQuestUserSaidToMe,#what=self,#type=type,#string=string);
+      if IsClass(what,&Player)
+      {
+         % Let the user's passive quests know he/she said something to this npc.
+         Send(what,@PassiveQuestUserSaidToMe,#what=self,#type=type,#string=string);
+      }
 
       oLibrary = Send(SYS,@GetLibrary);
 
