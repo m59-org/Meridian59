@@ -5,6 +5,7 @@
 !include $(TOPDIR)\common.mak
 
 DEPEND = ..\bow.bof
-BOFS = longbow.bof battlbow.bof pracbow.bof magicbow.bof nerubow.bof
+BOFS = longbow.bof battlbow.bof pracbow.bof magicbow.bof nerubow.bof \
+       faeriebow.bof
 
 !include $(KODDIR)\kod.mak
