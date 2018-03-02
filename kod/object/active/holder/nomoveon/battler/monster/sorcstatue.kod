@@ -176,6 +176,7 @@ properties:
    viGender = GENDER_MALE
 
    viSpeed = SPEED_NONE
+   piSpeed = SPEED_NONE
 
    piAnimation = ANIM_NONE
 
@@ -458,7 +459,7 @@ messages:
 
       % Only care about moving stuff if we're not already moving
       % Only care about non-immortal players we can see and are "close"
-      if viSpeed = SPEED_NONE
+      if piSpeed = SPEED_NONE
          AND NOT pbLockedDormant
          AND what <> $
          AND IsClass(what,&Player)
@@ -508,7 +509,7 @@ messages:
    TweakBehavior()
    "Our default behavior it not be noticable as a monster."
    {
-      if viSpeed = SPEED_NONE
+      if piSpeed = SPEED_NONE
       {
          piBehavior = AI_NOMOVE | AI_NOFIGHT | AI_NPC;
       }
@@ -521,7 +522,7 @@ messages:
    WakeUp()
    {
       % Make ourselves mobile!
-      viSpeed = viNormalSpeed;
+      piSpeed = viNormalSpeed;
 
       piBehavior = piBehavior & ~(AI_NOMOVE | AI_NOFIGHT | AI_NPC);
       if poOwner <> $
