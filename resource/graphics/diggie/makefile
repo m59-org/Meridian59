@@ -16,7 +16,8 @@ BGFS = neeleme.bgf neelemeX.bgf iunholyt.bgf xeoneru.bgf xeoneruX.bgf \
        dragonborneheadtest.bgf lavafrog.bgf \
        fbow.bgf \
        fbowaov.bgf \
-       fbowbov.bgf
+       fbowbov.bgf \
+       fbowinhand.bgf
 
 !include $(RESOURCEDIR)\copy.mak
 
