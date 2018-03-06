@@ -2624,14 +2624,23 @@ messages:
          %  to a minute if we have less than a minute left.  This should cut
          %  down on cases of someone dropping an object and it being cleaned up
          %  immediately afterwards.
-         iTimeLeft = GetTimeRemaining(ptDispose);
-         if iTimeLeft < 60000
-            AND Send(self,@GetHolderPassive) <> $
-            AND Length(Send(self,@GetHolderPassive)) < 50
+         
+         if ptDispose = $
          {
-            DeleteTimer(ptDispose);
-            ptDispose = $;
+            % No dispose timer!
             ptDispose = CreateTimer(self,@DisposeTimer,60000);
+         }
+         else
+         {
+            iTimeLeft = GetTimeRemaining(ptDispose);
+            if iTimeLeft < 60000
+               AND Send(self,@GetHolderPassive) <> $
+               AND Length(Send(self,@GetHolderPassive)) < 50
+            {
+               DeleteTimer(ptDispose);
+               ptDispose = $;
+               ptDispose = CreateTimer(self,@DisposeTimer,60000);
+            }
          }
       }
 
