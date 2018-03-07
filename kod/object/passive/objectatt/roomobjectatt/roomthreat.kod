@@ -59,6 +59,9 @@ classvars:
    
    % What percent exertion of normal? 100 = normal
    viModifyExertionRatio = 100
+   
+   % What type of champion does this threat make all monsters if able?
+   viOverrideChampionType = 0
 
 properties:
 
@@ -120,6 +123,22 @@ messages:
             AND vbReportMessages
          {
             Send(First(i),@MsgSendUser,#message_rsc=viThreatBeginMsg);
+         }
+         
+         if IsClass(First(i),&Monster)
+            AND viOverrideChampionType <> 0
+         {
+            if NOT ((Send(First(i),@GetBehavior) & AI_NOFIGHT) OR (Send(First(i),@GetBehavior) & AI_NPC))
+               AND Send(First(i),@GetCanSpawnAsChampion)
+               AND IsClass(host_object,&Room)
+               AND Send(host_object,@GetCanSpawnChampions)
+               AND Send(SETTINGS_OBJECT,@GetChampionSpawnsEnabled)
+               AND Send(First(i),@GetMaster) = $
+               AND NOT Send(First(i),@IsIllusion)
+            {
+               Post(First(i),@LoseChampionStatus);
+               Post(First(i),@GainChampionStatus,#iType=viOverrideChampionType);
+            }
          }
       }
  
@@ -217,6 +236,21 @@ messages:
          {
             Send(First(i),@MsgSendUser,#message_rsc=viThreatEndMsg);
          }
+         
+         if IsClass(First(i),&Monster)
+            AND viOverrideChampionType <> 0
+         {
+            if NOT ((Send(First(i),@GetBehavior) & AI_NOFIGHT) OR (Send(First(i),@GetBehavior) & AI_NPC))
+               AND Send(First(i),@GetCanSpawnAsChampion)
+               AND IsClass(poHostObject,&Room)
+               AND Send(poHostObject,@GetCanSpawnChampions)
+               AND Send(SETTINGS_OBJECT,@GetChampionSpawnsEnabled)
+               AND Send(First(i),@GetMaster) = $
+               AND NOT Send(First(i),@IsIllusion)
+            {
+               Post(First(i),@LoseChampionStatus);
+            }
+         }
       }
 
       if ptThreatTimer <> $
@@ -313,6 +347,11 @@ messages:
    ModifyExertion(amount=0)
    {
       return amount = (amount * viModifyExertionRatio)/100;
+   }
+
+   GetOverrideChampion()
+   {
+      return viOverrideChampionType;
    }
 
 end

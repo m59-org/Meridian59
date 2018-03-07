@@ -24,6 +24,8 @@ properties:
 
    plItem_coords = $
    piItem_gen_counter = 0
+   
+   piPreviousPhase = 0
 
 messages:
 
@@ -36,15 +38,34 @@ messages:
    
    GetPhaseThreats()
    {
+      local lThreats;
+
+      lThreats = $;
       if Send(self,@CheckRoomFlag,#flag=ROOM_RAINING)
       {
-         return [&RainThreat,&HumidityThreat];
+         lThreats = Cons(&RainThreat,lThreats);
       }
       if Send(self,@CheckRoomFlag,#flag=ROOM_SNOWING)
       {
-         return [&SnowThreat,&HumidityThreat];
+         lThreats = Cons(&SnowThreat,lThreats);
       }
-      return [&HumidityThreat];
+
+      switch(Send(SYS,@GetDayPhase))
+      {
+         case DAY_PHASE_DAWN:
+            lThreats = Cons(&HumidityThreat,lThreats);
+            break;
+         case DAY_PHASE_DAY:
+            lThreats = Cons(&HumidityThreat,lThreats);
+            break;
+         case DAY_PHASE_DUSK:
+            lThreats = Cons(&HumidityThreat,lThreats);
+            break;
+         case DAY_PHASE_NIGHT:
+            lThreats = Cons(&JungleNightThreat,lThreats);
+            break;
+      }
+      return lThreats;
    }
 
    StartThreat(cClasses=$,report=TRUE)
@@ -117,7 +138,18 @@ messages:
 
    RecalcLightAndWeather()
    {
-      local i, bFound, oItem, lChoose;
+      local i, bFound, oItem, lChoose, SysDayPhase;
+
+      SysDayPhase = Send(SYS,@GetDayPhase);
+
+      % We're crossing over into a new quarter.
+      if piPreviousPhase <> SysDayPhase
+      {
+         Send(self,@EndAllThreats);
+         Send(self,@StartThreat,#cClasses=Send(self,@GetPhaseThreats));
+      }
+
+      piPreviousPhase = SysDayPhase;
 
       if plItem_coords = $
       {

@@ -30,14 +30,6 @@ constants:
 
    % Number of ms to lose one boosted health or mana point.
    BOOST_DECAY_TIME = 30000 
-
-   % Champion mob types
-   NORMAL_MOB = 0
-   CHAMPION_TOUGH = 1
-   CHAMPION_SWIFT = 2
-   CHAMPION_DEADLY = 3
-   CHAMPION_INDOMITABLE = 4
-   CHAMPION_LEGENDARY = 5
    
    TIER_ONE_CHAMPION_REWARD_MULTIPLIER = 3
    TIER_TWO_CHAMPION_REWARD_MULTIPLIER = 10
@@ -1137,7 +1129,7 @@ messages:
    "Monster just entered this room. Right now, thats only possible on a"
    "creation. So, lets pause for a few beats if we got users."
    {
-      local iRand;
+      local iRand, i, iOverrideChampion;
 
       if what = $
       {
@@ -1176,6 +1168,19 @@ messages:
          AND NOT pbIllusion
       {
          iRand = Random(0,9999);
+         
+         foreach i in Send(what,@GetObjectAttributes)
+         {
+            if IsClass(i,&RoomThreat)
+            {
+               iOverrideChampion = Send(i,@GetOverrideChampion);
+               if iOverrideChampion <> 0
+               {
+                  Post(self,@GainChampionStatus,#iType=iOverrideChampion);
+                  propagate;
+               }
+            }
+         }
          
          if iRand > 450 AND iRand <= 650
          {
@@ -8089,5 +8094,11 @@ messages:
    {
       return FALSE;
    }
+
+   GetCanSpawnAsChampion()
+   {
+      return viCanSpawnAsChampion;
+   }
+
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
