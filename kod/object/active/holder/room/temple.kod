@@ -78,6 +78,11 @@ messages:
             send(self,@NewHold,#what=Create(&Scepter),#new_row=23,#new_col=8);
          }
       }
+ 
+      if IsClass(what,&Player)
+      {
+         Post(Send(SYS,@GetGameQuestMaintenance),@EvaluatePlayer,#who=what,#vbTriggered=TRUE);
+      }
       
       propagate;
    }

@@ -65,6 +65,7 @@ classvars:
    
    vbGiveNPCItem = FALSE
    vbGiveItemClass = $
+   viGiveItemNumber = 0
    vbGiveToTheNPCofClass = $
    
    vbReincarnate = FALSE
@@ -187,7 +188,17 @@ messages:
          AND IsClass(obj,vbGiveItemClass)
          AND IsClass(the_npc,vbGiveToTheNPCofClass)
       {
-         Send(self,@Completed);
+         if viGiveItemNumber > 0
+         {
+            if Send(obj,@GetNumber) >= viGiveItemNumber
+            {
+               Send(self,@Completed);
+            }
+         }
+         else
+         {
+            Send(self,@Completed);
+         }
       }
       return;
    }

@@ -23,7 +23,7 @@ resources:
       "glows with the reflection of unseen spiritual light. It is far "
       "sturdier than its ethereal and thin span would seem to indicate. "
       "This shield draws its strength from the goodness of your soul, "
-      "and will be weaker or stronger based on your karma. It can also "
+      "and will be weaker or stronger based on your karma and spellpower at creation. It can also "
       "be enchanted with magical modifications. Be wary; creating another "
       "spiritual shield will replace your current spiritual shield entirely."
 
@@ -55,12 +55,14 @@ classvars:
 properties:
 
    piCreatedSpellpower = 0
+   poCaster = $
 
 messages:
 
-   Constructor(iCreatedSpellpower=0)
+   Constructor(oCaster=$, iCreatedSpellpower=0)
    {
       piCreatedSpellpower = iCreatedSpellpower;
+      poCaster = oCaster;
 
       propagate;
    }
@@ -168,8 +170,19 @@ messages:
 
    ReqNewOwner(what=$)
    {
+      if what = poCaster
+      {
+         return TRUE;
+      }
+
       % No dropping.
       return FALSE;
+   }
+
+   Delete()
+   {
+      poCaster = $;
+      propagate;
    }
 
 end

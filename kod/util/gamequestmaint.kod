@@ -215,6 +215,15 @@ messages:
          Create(&anyhpmazeexitpq1,#quester=who);
       }
 
+      if IsClass(oRoom,&Temple)
+         AND NOT Send(who,@HasQuestChain,#chain_num=SHAL6_CHAIN)
+      {
+         if Send(who,@HasSpell,#num=SID_PORTAL_OF_LIFE)
+         {
+            Create(&shal6pq1,#quester=who);
+         }
+      }
+
       if IsClass(oRoom,&FeyForest)
          AND NOT Send(who,@HasQuestChain,#chain_num=ANY_HP_VALE_OF_SORROWS_CHAIN)
       {

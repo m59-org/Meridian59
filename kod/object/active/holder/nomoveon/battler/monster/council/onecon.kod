@@ -98,16 +98,19 @@ messages:
       propagate;
    }
 
-   CheckWhyWanted(obj=$,who=$)
+   ReqGive(what = $, item_list = $)
    {
-      if IsClass(obj,&ShardImbueMajor)
+      if item_list <> $
+         AND Length(item_list) = 1
       {
-         Send(poOwner,@SomeoneSaid,#what=self,#type=SAY_RESOURCE,
-               #string=major_shard_delivered);
-         Send(who,@GavePassiveQuestItem,#obj=obj,#the_npc=self);
-         return TRUE;
+         if IsClass(First(item_list),&ShardImbueMajor)
+         {
+            Send(poOwner,@SomeoneSaid,#what=self,#type=SAY_RESOURCE,
+                  #string=major_shard_delivered);
+            Send(what,@GavePassiveQuestItem,#obj=First(item_list),#the_npc=self);
+            return TRUE;
+         }
       }
-
       propagate;
    }
 
