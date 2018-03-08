@@ -5158,6 +5158,7 @@ messages:
             else
             {
                Send(what,@AddSpell,#num=Send(i,@GetSpellNum));
+               Send(self,@TaughtPlayerSpell,#who=what,#num=Send(i,@GetSpellNum));
             }
             Send(oMoney,@SubtractNumber,#number=iPrice);
          }
@@ -8147,6 +8148,11 @@ messages:
    ResetLevel()
    {
       piLevel = viLevel;
+      return;
+   }
+
+   TaughtPlayerSpell(who=$,num=0)
+   {
       return;
    }
 

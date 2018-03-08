@@ -388,5 +388,15 @@ messages:
       propagate;
    }
 
+   TaughtPlayerSpell(who=$,num=0)
+   {
+      if num = SID_PORTAL_OF_LIFE
+         AND who <> $
+      {
+         Post(Send(SYS,@GetGameQuestMaintenance),@EvaluatePlayer,#who=who,#vbTriggered=TRUE);
+      }
+      return;
+   }
+
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
