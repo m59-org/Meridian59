@@ -66,6 +66,8 @@ properties:
    % We only recreate the maze if players have seen it.
    % Otherwise, no need to change the configuration all the time.
    pbMazeHasBeenEnteredByPlayers = FALSE
+   
+   ptMazeChangeTimer = $
 
 messages:
 
@@ -85,6 +87,12 @@ messages:
    ClearMap()
    {
       local i;
+      
+      if ptMazeChangeTimer <> $
+      {
+         DeleteTimer(ptMazeChangeTimer);
+         ptMazeChangeTimer = $;
+      }
 
       if poFirstRoom <> $
       {
@@ -132,6 +140,7 @@ messages:
       foreach i in plMazeRooms
       {
          % Deleted rooms bounce back to RoomDeleted and remove themselves from plMazeRooms
+         Send(i,@HustleUsersOutOfRoom);
          Send(i,@Delete);
       }
       plMazeRooms = $;
@@ -214,6 +223,11 @@ messages:
       local i, lCheckTheseCoords;
 
       pbMazeHasBeenEnteredByPlayers = TRUE;
+      
+      if ptMazeChangeTimer = $
+      {
+         ptMazeChangeTimer = CreateTimer(self,@CheckForMazeChange,Random(600000,1200000));
+      }
 
       lCheckTheseCoords = $;
       if x_coord = 5
@@ -608,6 +622,82 @@ messages:
 
    GetExit()
    {
+      return poMazeExitRoom;
+   }
+   
+   CheckForMazeChange(timer=$)
+   {
+      local i, bPlayerFound;
+
+      ptMazeChangeTimer = $;
+
+      bPlayerFound = FALSE;
+      foreach i in plMazeRooms
+      {
+         if Send(i,@IsUserInRoom)
+         {
+            bPlayerFound = TRUE;
+         }
+      }
+
+      if poFirstRoom <> $
+      {
+         if Send(poFirstRoom,@IsUserInRoom)
+         {
+            bPlayerFound = TRUE;
+         }
+      }
+      if poBossRoom <> $
+      {
+         if Send(poBossRoom,@IsUserInRoom)
+         {
+            bPlayerFound = TRUE;
+         }
+      }
+      if poTreasureRoom <> $
+      {
+         if Send(poTreasureRoom,@IsUserInRoom)
+         {
+            bPlayerFound = TRUE;
+         }
+      }
+      if poShrineRoom <> $
+      {
+         if Send(poShrineRoom,@IsUserInRoom)
+         {
+            bPlayerFound = TRUE;
+         }
+      }
+      if poArmorRoom <> $
+      {
+         if Send(poArmorRoom,@IsUserInRoom)
+         {
+            bPlayerFound = TRUE;
+         }
+      }
+      if poMazeExitRoom <> $
+      {
+         if Send(poMazeExitRoom,@IsUserInRoom)
+         {
+            bPlayerFound = TRUE;
+         }
+      }
+      if poReincarnationRoom <> $
+      {
+         if Send(poReincarnationRoom,@IsUserInRoom)
+         {
+            bPlayerFound = TRUE;
+         }
+      }
+
+      if bPlayerFound
+      {
+         ptMazeChangeTimer = CreateTimer(self,@CheckForMazeChange,Random(600000,1200000));
+         return;
+      }
+
+      Post(self,@Recreate);
+
       return;
    }
 
