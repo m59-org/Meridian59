@@ -1489,6 +1489,27 @@ messages:
       return;
    }
 
+   GetReincarnationTrainingPointsTotal()
+   {
+      local i, iSum, oAbility;
+      
+      iSum = 0;
+      
+      foreach i in plSkills
+      {
+         oAbility = Send(SYS,@FindSkillByNum,#num=Send(self,@DecodeSkillNum,#compound=i));
+         iSum = iSum + (Send(self,@DecodeSkillAbility,#compound=i)*Send(oAbility,@GetMeditateRatio));
+      }
+
+      foreach i in plSpells
+      {
+         oAbility = Send(SYS,@FindSpellByNum,#num=Send(self,@DecodeSpellNum,#compound=i));
+         iSum = iSum + (Send(self,@DecodeSpellAbility,#compound=i)*Send(oAbility,@GetMeditateRatio));
+      }
+
+      return iSum;
+   }
+
    GetReincarnationSum()
    {
       local iLearnPoints, iBaseMaxHealthPoints;
