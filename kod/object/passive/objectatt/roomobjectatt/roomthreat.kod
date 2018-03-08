@@ -62,6 +62,12 @@ classvars:
    
    % What type of champion does this threat make all monsters if able?
    viOverrideChampionType = 0
+   
+   % Do we add monster levels?
+   viAddMonsterLevel = 0
+   
+   % Do we block shard drops (so that we aren't mass producing shards via champions)?
+   vbBlockShardDrops = FALSE
 
 properties:
 
@@ -138,6 +144,21 @@ messages:
             {
                Post(First(i),@LoseChampionStatus);
                Post(First(i),@GainChampionStatus,#iType=viOverrideChampionType);
+            }
+         }
+         
+         if IsClass(First(i),&Monster)
+            AND viAddMonsterLevel <> 0
+         {
+            if NOT ((Send(First(i),@GetBehavior) & AI_NOFIGHT) OR (Send(First(i),@GetBehavior) & AI_NPC))
+               AND Send(First(i),@GetCanSpawnAsChampion)
+               AND IsClass(host_object,&Room)
+               AND Send(host_object,@GetCanSpawnChampions)
+               AND Send(SETTINGS_OBJECT,@GetChampionSpawnsEnabled)
+               AND Send(First(i),@GetMaster) = $
+               AND NOT Send(First(i),@IsIllusion)
+            {
+               Send(First(i),@AddLevel,#value=viAddMonsterLevel);
             }
          }
       }
@@ -251,6 +272,21 @@ messages:
                Post(First(i),@LoseChampionStatus);
             }
          }
+
+         if IsClass(First(i),&Monster)
+            AND viAddMonsterLevel <> 0
+         {
+            if NOT ((Send(First(i),@GetBehavior) & AI_NOFIGHT) OR (Send(First(i),@GetBehavior) & AI_NPC))
+               AND Send(First(i),@GetCanSpawnAsChampion)
+               AND IsClass(poHostObject,&Room)
+               AND Send(poHostObject,@GetCanSpawnChampions)
+               AND Send(SETTINGS_OBJECT,@GetChampionSpawnsEnabled)
+               AND Send(First(i),@GetMaster) = $
+               AND NOT Send(First(i),@IsIllusion)
+            {
+               Send(First(i),@AddLevel,#value=-viAddMonsterLevel);
+            }
+         }
       }
 
       if ptThreatTimer <> $
@@ -352,6 +388,16 @@ messages:
    GetOverrideChampion()
    {
       return viOverrideChampionType;
+   }
+
+   GetMonsterLevelChange()
+   {
+      return viAddMonsterLevel;
+   }
+   
+   GetBlockShardDrops()
+   {
+      return vbBlockShardDrops;
    }
 
 end

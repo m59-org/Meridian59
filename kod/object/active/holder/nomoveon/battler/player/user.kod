@@ -2913,8 +2913,10 @@ messages:
 
       if what = $
          OR poOwner <> Send(what,@GetOwner)
-         OR IsClass(what,&MazeTotem)
+         OR (poOwner <> $
+            AND IsClass(poOwner,&MinotaurMazeRoom))
       {
+         % No dots at all in the maze.
          return MM_NONE;
       }
 
@@ -3023,11 +3025,6 @@ messages:
 
       if IsClass(what,&Monster)
       {
-         if IsClass(what,&HumanClone)
-         {
-            return MM_PLAYER;
-         }
-
          if Send(what,@GetMaster) <> $
          {
             if (Send(what,@GetMaster) = self)

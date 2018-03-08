@@ -16,6 +16,14 @@ constants:
    MIN_HOUR_COUNTER = 8
    MAX_HOUR_COUNTER = 24
 
+resources:
+
+   % https://freesound.org/people/bmccoy2/sounds/260791/
+   % bmccoy2 on freesound.org
+   kcforest_night_sound = 260791bmccoy2yucatanjunglecrickets2.wav
+   
+   kcforest_night_music = silentmusic.mp3
+
 classvars:
 
    viAvar_clan = AVARCLAN_PROMAGIC   %% which avar clan controls this part of the jungle.
@@ -26,14 +34,28 @@ properties:
    piItem_gen_counter = 0
    
    piPreviousPhase = 0
+   
+   prDefaultAreaMusic = $
 
 messages:
 
    Constructor()
    {
       Send(self,@CreateJungleItemCoords);
+      
+      prDefaultAreaMusic = Send(self,@GetMusic);
 
       propagate;
+   }
+
+   GetPhaseMusic()
+   {
+      switch(Send(SYS,@GetDayPhase))
+      {
+         case DAY_PHASE_NIGHT:
+            return kcforest_night_music;
+      }
+      return prDefaultAreaMusic;
    }
    
    GetPhaseThreats()
@@ -147,6 +169,39 @@ messages:
       {
          Send(self,@EndAllThreats);
          Send(self,@StartThreat,#cClasses=Send(self,@GetPhaseThreats));
+
+         switch(SysDayPhase)
+         {
+            case DAY_PHASE_DAWN:
+               if plPeriodic_sounds = $
+               {
+                  Send(self,@CreatePeriodicSounds);
+                  Send(self,@AddLoopingSound,#lSoundData=[ room_jungle_sound, 1, 1, 300, 100 ]);
+                  Send(self,@RemoveLoopingSound,#sound_rsc=kcforest_night_sound);
+               }
+               break;
+            case DAY_PHASE_DAY:
+               break;
+            case DAY_PHASE_DUSK:
+               Send(self,@RemoveLoopingSound,#sound_rsc=room_jungle_sound);
+               break;
+            case DAY_PHASE_NIGHT:
+               if plPeriodic_sounds <> $
+               {
+                  plPeriodic_sounds = $;
+               }
+               Send(self,@AddLoopingSound,#lSoundData=[ kcforest_night_sound, 1, 1, 300, 100 ]);
+               break;
+         }
+      }
+         
+      prMusic = Send(self,@GetPhaseMusic);
+      foreach i in plActive
+      {
+         if IsClass(First(i),&User)
+         {
+            Send(First(i),@SendRoomMusic,#music_rsc=prMusic);
+         }
       }
 
       piPreviousPhase = SysDayPhase;

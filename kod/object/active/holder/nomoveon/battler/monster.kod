@@ -561,6 +561,8 @@ properties:
    % 20 seconds default for players, 60 for monsters
    piHurtMeTime = 60000
 
+   piLevel = 20
+
 messages:
 
    Constructor(template=FALSE, color=0, piSurvivalLevel=0, iBrain = 0)
@@ -577,6 +579,7 @@ messages:
       piVisionDistance = viVisionDistance + piSurvivalLevel;
       piBoostedLevel = piSurvivalLevel;
       piSpeed = viSpeed;
+      piLevel = viLevel;
 
       if Send(self,@MobIsSeller)
       {
@@ -656,8 +659,8 @@ messages:
       {
          piOffense = Send(self,@GetOffense) + piSurvivalLevel*viDifficulty;
          piDefense = Send(self,@GetDefense) + piSurvivalLevel*viDifficulty;
-         piMinDamage = viLevel/15 + piSurvivalLevel/2;
-         piMaxDamage = viLevel/10 + piSurvivalLevel/2;
+         piMinDamage = piLevel/15 + piSurvivalLevel/2;
+         piMaxDamage = piLevel/10 + piSurvivalLevel/2;
          piArmor = piSurvivalLevel/5;
       }
 
@@ -671,7 +674,7 @@ messages:
    
    Constructed()
    {
-      Post(self,@AddChampionAbility,#ability=CHAMPION_ABIL_EAGLE_EYES,#value=viLevel/4);
+      Post(self,@AddChampionAbility,#ability=CHAMPION_ABIL_EAGLE_EYES,#value=piLevel/4);
       propagate;
    }
 
@@ -1006,7 +1009,7 @@ messages:
          AND isClass(poTarget,&User)
       {
          Send(poTarget,@SubtractFromMonsterChasers,
-              #level=viLevel);
+              #level=piLevel);
       }
 
       poTarget = $;
@@ -1024,7 +1027,7 @@ messages:
          AND isClass(poTarget,&user)
       {
          Send(poTarget,@SubtractFromMonsterChasers,
-              #level=viLevel);
+              #level=piLevel);
       }
 
       poTarget = $;
@@ -1056,7 +1059,7 @@ messages:
          AND isClass(poTarget,&User)
       {
          Send(poTarget,@SubtractFromMonsterChasers,
-              #level=viLevel);
+              #level=piLevel);
       }
 
       poTarget = $;
@@ -1100,7 +1103,7 @@ messages:
       {
          if target <> $
             AND NOT (IsClass(target,&Player)
-               AND Send(target,@GetSkillAbility,#skill_num=SKID_HIDE) >= viLevel/2
+               AND Send(target,@GetSkillAbility,#skill_num=SKID_HIDE) >= piLevel/2
                AND Send(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@IsHiding,#who=target))
          {
             Send(poOwner,@SomethingWaveRoom,#what=self,#wave_rsc=vrSound_aware,
@@ -1129,7 +1132,7 @@ messages:
    "Monster just entered this room. Right now, thats only possible on a"
    "creation. So, lets pause for a few beats if we got users."
    {
-      local iRand, i, iOverrideChampion;
+      local iRand, i, iOverrideChampion, iLevelChange, bOverride;
 
       if what = $
       {
@@ -1169,17 +1172,29 @@ messages:
       {
          iRand = Random(0,9999);
          
+         iLevelChange = 0;
+         bOverride = FALSE;
          foreach i in Send(what,@GetObjectAttributes)
          {
             if IsClass(i,&RoomThreat)
             {
+               iLevelChange = iLevelChange + Send(i,@GetMonsterLevelChange);
+
                iOverrideChampion = Send(i,@GetOverrideChampion);
                if iOverrideChampion <> 0
                {
+                  Post(self,@LoseChampionStatus);
                   Post(self,@GainChampionStatus,#iType=iOverrideChampion);
-                  propagate;
+                  bOverride = TRUE;
                }
             }
+         }
+
+         Send(self,@AddLevel,#value=iLevelChange);
+
+         if bOverride
+         {
+            propagate;
          }
          
          if iRand > 450 AND iRand <= 650
@@ -1563,7 +1578,7 @@ messages:
       % Victim phased out, is now in spectator mode, or hiding, break aggro.
       if IsClass(poTarget,&User)
          AND (Send(poTarget,@IsInCannotInteractMode)
-             OR (Send(poTarget,@GetSkillAbility,#skill_num=SKID_HIDE) >= viLevel/2
+             OR (Send(poTarget,@GetSkillAbility,#skill_num=SKID_HIDE) >= piLevel/2
                AND Send(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@IsHiding,#who=poTarget)))
       {
          Send(self,@EnterStateMove);
@@ -1642,7 +1657,7 @@ messages:
       % Victim phased out, is now in spectator mode, or hiding, break aggro.
       if IsClass(oVictim,&User)
          AND (Send(oVictim,@IsInCannotInteractMode)
-             OR (Send(oVictim,@GetSkillAbility,#skill_num=SKID_HIDE) >= viLevel/2
+             OR (Send(oVictim,@GetSkillAbility,#skill_num=SKID_HIDE) >= piLevel/2
                AND Send(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@IsHiding,#who=oVictim)))
       {
          Send(self,@EnterStateMove);
@@ -2180,7 +2195,7 @@ messages:
 
       if piOffense = $
       {
-         iAttack = 4*viLevel + 8*piAim;
+         iAttack = 4*piLevel + 8*piAim;
       }
       else
       {
@@ -2230,7 +2245,7 @@ messages:
 
       if piDefense = $
       {
-         iDefense = 4*viLevel + 8*piAgility;
+         iDefense = 4*piLevel + 8*piAgility;
       }
       else
       {
@@ -2290,7 +2305,7 @@ messages:
 
       if piMinDamage = $ and piMaxDamage = $
       {
-         iDamage = Send(Self,@Fuzzy,#num=viLevel*100/Random(10,15));
+         iDamage = Send(Self,@Fuzzy,#num=piLevel*100/Random(10,15));
       }
       else
       {
@@ -5526,12 +5541,12 @@ messages:
             if piChampionStatus = 0
             {
                AddPacket(4,vrCondition_healthy, 4,vrDesc, 4,monster_desc_level,
-                         4,viLevel, 4,rChampionStatus);
+                         4,piLevel, 4,rChampionStatus);
             }
             else
             {
                AddPacket(4,vrCondition_healthy, 4,vrDesc, 4,monster_desc_level,
-                         4,viLevel, 4,rChampionStatus, 4, Send(self,@GetName));
+                         4,piLevel, 4,rChampionStatus, 4, Send(self,@GetName));
             }
          }
 
@@ -5564,13 +5579,13 @@ messages:
          if piChampionStatus = 0
          {
             AddPacket(4,rMonster_Condition, 4,vrDesc, 4,monster_desc_level,
-                      4,viLevel, 4,Send(self,@GetCapDef),
+                      4,piLevel, 4,Send(self,@GetCapDef),
                       4,Send(self,@GetName), 4,rChampionStatus);
          }
          else
          {
             AddPacket(4,rMonster_Condition, 4,vrDesc, 4,monster_desc_level,
-                      4,viLevel, 4,Send(self,@GetCapDef),
+                      4,piLevel, 4,Send(self,@GetCapDef),
                       4,Send(self,@GetName), 4,rChampionStatus, 4,Send(Self,@GetName));
          }
       }
@@ -5597,12 +5612,12 @@ messages:
          iMultiplier = 10;
       }
 
-      if viLevel < 40
+      if piLevel < 40
       {
-         return viLevel * iMultiplier;
+         return piLevel * iMultiplier;
       }
 
-      return ((120 * viLevel) / 100) * iMultiplier;
+      return ((120 * piLevel) / 100) * iMultiplier;
    }
    
    ReturnMaxHitPoints()
@@ -5652,9 +5667,14 @@ messages:
       return (viAttributes & MOB_FULL_TALK) AND TRUE;
    }
 
-   GetLevel()
+   GetBaseLevel()
    {
       return viLevel;
+   }
+
+   GetLevel()
+   {
+      return piLevel;
    }
 
    GetDifficulty()
@@ -6592,7 +6612,7 @@ messages:
       % TreasureType now handles putting together the treasure list.
       % Returns a list of items to drop, or $.
       lTreasureItems = Send(oTreasure_Type,@CreateMobTreasure,#mob=self,
-                              #who=who,#level=viLevel,#difficulty=viDifficulty,
+                              #who=who,#level=piLevel,#difficulty=viDifficulty,
                               #corpse=corpse,#attributes=viAttributes,
                               #boostedlevel=piBoostedLevel);
 
@@ -6675,6 +6695,7 @@ messages:
                      else
                      {
                         if IsClass(poOwner,&DesertRoom)
+                           OR IsClass(poOwner,&MinotaurMazeRoom)
                            OR IsClass(poOwner,&AncientTomb1)
                         {
                            iRand = Random(1,Send(SETTINGS_OBJECT,@GetInstillingShardProbability)/10);
@@ -7440,7 +7461,7 @@ messages:
          return;
       }
       if IsClass(what,&Player)
-            AND Send(what,@GetSkillAbility,#skill_num=SKID_HIDE) >= viLevel/2
+            AND Send(what,@GetSkillAbility,#skill_num=SKID_HIDE) >= piLevel/2
             AND Send(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@IsHiding,#who=what)
       {
          % Trying to switch to a hidden player
@@ -7454,13 +7475,13 @@ messages:
          AND IsClass(poTarget,&user)
       {
          Send(poTarget,@SubtractFromMonsterChasers,
-              #level=viLevel);
+              #level=piLevel);
       }
 
       poTarget = what;
       if IsClass(poTarget,&user)
       {
-         Send(poTarget,@AddToMonsterChasers,#level=viLevel);
+         Send(poTarget,@AddToMonsterChasers,#level=piLevel);
       }
 
       piState = (piState & VSTATE_VALIDITY_MASK);
@@ -8024,6 +8045,23 @@ messages:
    
    GetChampionRewardMultiplier()
    {
+      local i, bBlocked;
+      
+      bBlocked = FALSE;
+      if poOwner <> $
+      {
+         foreach i in Send(poOwner,@GetObjectAttributes)
+         {
+            if IsClass(i,&RoomThreat)
+            {
+               if Send(i,@GetBlockShardDrops)
+               {
+                  propagate;
+               }
+            }
+         }
+      }
+
       if piChampionStatus = CHAMPION_TOUGH
          OR piChampionStatus = CHAMPION_SWIFT
          OR piChampionStatus = CHAMPION_DEADLY
@@ -8098,6 +8136,18 @@ messages:
    GetCanSpawnAsChampion()
    {
       return viCanSpawnAsChampion;
+   }
+
+   AddLevel(value=10)
+   {
+      piLevel = Bound(piLevel + value,20,$);
+      return piLevel;
+   }
+
+   ResetLevel()
+   {
+      piLevel = viLevel;
+      return;
    }
 
 end

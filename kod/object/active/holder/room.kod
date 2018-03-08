@@ -165,6 +165,9 @@ resources:
    no_use_jig = \
       "You can't wield that - it would interfere with your funky moves!"
 
+   room_chaos_zone_no_truce_jig = \
+      "There is no way to prevent combat in this place of anarchy. Your spell fails."
+
 classvars:
 
    % This variable is passed down to client for render flags for room
@@ -2026,6 +2029,16 @@ messages:
    ReqSpellCast(who = $, oSpell = $, lItems = $)
    {
       local oTarget, i;
+
+      if piChaosZone
+      {
+         if IsClass(oSpell,&Truce)
+            OR IsClass(oSpell,&Jig)
+         {
+            Send(who,@MsgSendUser,#message_rsc=room_chaos_zone_no_truce_jig);
+            return FALSE;
+         }
+      }
 
       if (piRoom_flags & ROOM_NO_MAGIC)
       {
