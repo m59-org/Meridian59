@@ -941,6 +941,9 @@ resources:
 
    admin_icon_blank = blank.bgf
    
+   lose_song_due_to_mana_change_msg = \
+      "Due to the change in your maximum mana, you lose the reservation of one of your songs!"
+   
 classvars:
 
    viHand_space = 2
@@ -1264,6 +1267,9 @@ properties:
 
    % Spells reserved on mana. Format [spell, mana reserved, state, spellpower]
    plReservedSpells = $
+   % Songs reserved on mana. Format [song, mana reserved]
+   % We keep less info because radius enchants do their effects elsewhere.
+   plReservedSongs = $
    piBaseMax_mana = 0
 
    % Has the player opted out of PvP?
@@ -4529,6 +4535,7 @@ messages:
       }
 
       Send(self,@UnReserveAllSpells);
+      Send(self,@UnReserveAllSongs);
 
       plPassiveImprovement = $;
 
@@ -9040,8 +9047,23 @@ messages:
          iSumPercentReduction = iSumPercentReduction + Nth(i,2);
       }
       iSumPercentReduction = Bound(iSumPercentReduction,0,100);
-      
+
       piMax_mana = piMax_mana - (piMax_mana * iSumPercentReduction)/100;
+
+      % Here we iteratively check the player has enough max mana left after percentage reservations.
+      % Cancel any reserved song that fails.
+      foreach i in plReservedSongs
+      {
+         if Nth(i,2) > piMax_mana
+         {
+            Post(self,@MsgSendUser,#message_rsc=lose_song_due_to_mana_change_msg);
+            Post(self,@UnReserveSong,#oSpell=Nth(i,1));
+         }
+         else
+         {
+            piMax_mana = piMax_mana - Nth(i,2);
+         }
+      }
 
       Send(self,@NewMana);
 
@@ -17975,6 +17997,35 @@ messages:
       return poStance;
    }
 
+   ReserveSong(oSpell=$,iFlatManaReserved=0)
+   {
+      if oSpell <> $
+         AND NOT Send(self,@HasReservedSong,#oSpell=oSpell)
+      {
+         Send(self,@LoseMana,#amount=(Send(self,@GetMaxManaWithoutReservedPenalties)*iFlatManaReserved)/100);
+         plReservedSongs = Cons([oSpell,iFlatManaReserved],plReservedSongs);
+         Post(self,@ComputeMaxMana);
+         return TRUE;
+      }
+      return FALSE;
+   }
+
+   UnReserveSong(oSpell=$)
+   {
+      local i;
+      
+      foreach i in plReservedSongs
+      {
+         if Nth(i,1) = oSpell
+         {
+            plReservedSongs = DelListElem(plReservedSongs,i);
+            Post(self,@ComputeMaxMana);
+            return TRUE;
+         }
+      }
+      return FALSE;
+   }
+
    ReserveSpell(oSpell=$,iPercentManaReserved=0,iSpellPower=0)
    {
       local iState;
@@ -18053,6 +18104,27 @@ messages:
       return;
    }
    
+   UnReserveAllSongs()
+   {
+      local i, bRemoved;
+
+      bRemoved = FALSE;
+      foreach i in plReservedSongs
+      {
+         plReservedSongs = DelListElem(plReservedSongs,i);
+         bRemoved = TRUE;
+      }
+
+      plReservedSongs = $;
+
+      if bRemoved
+      {
+         Post(self,@ComputeMaxMana);
+      }
+
+      return;
+   }
+   
    GetPercentManaReserved(oSpell=$)
    {
       local i;
@@ -18067,7 +18139,22 @@ messages:
       
       return 0;
    }
-   
+
+   GetFlatManaReserved(oSpell=$)
+   {
+      local i;
+
+      foreach i in plReservedSongs
+      {
+         if First(i) = oSpell
+         {
+            return Nth(i,2);
+         }
+      }
+      
+      return 0;
+   }
+
    GetMaxManaWithoutReservedPenalties()
    {
       return piBaseMax_mana;
@@ -18078,7 +18165,6 @@ messages:
       local i, iPercentReservedTotal;
       
       iPercentReservedTotal = 0;
-      
       foreach i in plReservedSpells
       {
          iPercentReservedTotal = iPercentReservedTotal + Nth(i,2);
@@ -18086,7 +18172,25 @@ messages:
       
       return iPercentReservedTotal;
    }
-   
+
+   GetFlatReservedManaTotal()
+   {
+      local i, iFlatReservedTotal;
+      
+      iFlatReservedTotal = 0;
+      foreach i in plReservedSongs
+      {
+         iFlatReservedTotal = iFlatReservedTotal + Nth(i,2);
+      }
+
+      return iFlatReservedTotal;
+   }
+
+   GetReservedSongs()
+   {
+      return plReservedSongs;
+   }
+
    GetReservedSpells()
    {
       return plReservedSpells;
@@ -18118,7 +18222,20 @@ messages:
             return TRUE;
          }
       }
+      return FALSE;
+   }
 
+   HasReservedSong(oSpell=$)
+   {
+      local i;
+
+      foreach i in plReservedSongs
+      {
+         if First(i) = oSpell
+         {
+            return TRUE;
+         }
+      }
       return FALSE;
    }
 
