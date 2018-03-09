@@ -853,8 +853,11 @@ messages:
 
    SatisfyHunger(amount=0)
    {
+      % We now gain mana instead of vigor, and divide by ten, because this vigor gain is off the charts.
+      Send(poOwner,@GainMana,#amount=amount/10,#bRespectMax=TRUE);
+      
       % Gain vigor.
-      Send(poOwner,@AddExertion,#amount=-amount*10000);
+      %Send(poOwner,@AddExertion,#amount=-amount*10000);
 
       % Satsify hunger.
       piFineHunger = piFineHunger - amount;
