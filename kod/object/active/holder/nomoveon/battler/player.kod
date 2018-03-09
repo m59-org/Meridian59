@@ -4394,6 +4394,7 @@ messages:
 
             if IsClass(Nth(i,2),&Mirth)
                OR IsClass(Nth(i,2),&Melancholy)
+               OR IsClass(Nth(i,2),&Dispassion)
             {
                Send(self,@ResetPlayerFlagList,#nodraw=TRUE,#who=self);
             }
@@ -4490,6 +4491,7 @@ messages:
 
       if IsClass(what,&Mirth)
          OR IsClass(what,&Melancholy)
+         OR IsClass(what,&Dispassion)
       {
          Send(self,@ResetPlayerFlagList,#nodraw=TRUE,#who=self);
       }
@@ -4807,6 +4809,7 @@ messages:
 
             if IsClass(what,&Mirth)
                OR IsClass(what,&Melancholy)
+               OR IsClass(what,&Dispassion)
             {
                Send(self,@ResetPlayerFlagList,#nodraw=TRUE,#who=self);
             }
@@ -6436,6 +6439,14 @@ messages:
                         #hit_roll=iOffense,#stroke_obj=stroke_obj);
       }
 
+      if Send(self,@IsAffectedByRadiusEnchantment,#byClass=&Dispassion)
+      {
+         lRadiusState = Send(self,@GetMostPowerfulRadiusEnchantmentState,
+               #byClass=&Dispassion);
+         iOffense = Send(Nth(lRadiusState,1),@ModifyHitRoll,#who=self,#what=what,
+                        #hit_roll=iOffense,#lRadiusState=lRadiusState);
+      }
+
       if Send(self,@IsAffectedByRadiusEnchantment,#byClass=&Mirth)
       {
          lRadiusState = Send(self,@GetMostPowerfulRadiusEnchantmentState,
@@ -6727,14 +6738,21 @@ messages:
          lRadiusState = Send(self,@GetMostPowerfulRadiusEnchantmentState,
                               #byClass=&Melancholy);
          iDamageBonus = Send(Nth(lRadiusState,1),@ModifyDamage,#who=self,
-                              #what=what,#damage=iDamageBonus);
+                              #what=what,#damage=iDamageBonus,#lRadiusState=lRadiusState);
       }
       if Send(self,@IsAffectedByRadiusEnchantment,#byClass=&Mirth)
       {
          lRadiusState = Send(self,@GetMostPowerfulRadiusEnchantmentState,
                               #byClass=&Mirth);
          iDamageBonus = Send(Nth(lRadiusState,1),@ModifyDamage,#who=self,
-                              #what=what,#damage=iDamageBonus);
+                              #what=what,#damage=iDamageBonus,#lRadiusState=lRadiusState);
+      }
+      if Send(self,@IsAffectedByRadiusEnchantment,#byClass=&Dispassion)
+      {
+         lRadiusState = Send(self,@GetMostPowerfulRadiusEnchantmentState,
+                              #byClass=&Dispassion);
+         iDamageBonus = Send(Nth(lRadiusState,1),@ModifyDamage,#who=self,
+                              #what=what,#damage=iDamageBonus,#lRadiusState=lRadiusState);
       }
 
       iDamageBonus = iDamageBonus + Send(Send(SYS,@GetParliament),
