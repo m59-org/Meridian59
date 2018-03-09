@@ -56,6 +56,7 @@ resources:
    Xeochicatl_sound_aware = xeo1awr.wav
 
    Xeochicatl_drain_rsc = "The %s drains your mana!"
+   Xeochicatl_fail_drain_rsc = "The %s tries to drain your mana, but cannot pull from your crystalized spirit!"
 
    bigger_Xeochicatl_icon_rsc = biggerxeo.bgf
    bigger_Xeochicatl_dead_icon_rsc = biggerxeoX.bgf
@@ -137,6 +138,11 @@ messages:
       {
          if Random(1,100) < DRAIN_CHANCE
          {
+            if Send(what,@HasSpell,#num=SID_CRYSTALIZE_MANA)
+            {
+               Send(what,@MsgSendUser,#message_rsc=Xeochicatl_fail_drain_rsc,#parm1=vrName);
+               return;
+            }
             iAmount = Send(what,@GetMaxMana);
             iAmount = ((iAmount * piDrainAmount)/100) + 1;
             iAmount = Bound(iAmount,0,Send(what,@GetMana));
