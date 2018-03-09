@@ -193,14 +193,7 @@ messages:
          Send(self,@EndAllThreats);
          Send(self,@StartThreat,#cClasses=Send(self,@GetPhaseThreats));
          
-         prMusic = Send(self,@GetPhaseMusic);
-         foreach i in plActive
-         {
-            if IsClass(First(i),&User)
-            {
-               Send(First(i),@SendRoomMusic,#music_rsc=prMusic);
-            }
-         }
+         Send(self,@RecalculateRoomMusic);
 
          switch(Send(SYS,@GetDayPhase))
          {

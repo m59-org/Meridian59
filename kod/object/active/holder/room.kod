@@ -342,6 +342,9 @@ properties:
    % Some rooms have bonuses to Meditate efficiency
    piRoomMeditateEfficiency = 100
    
+   % Save the default area music for Jala / music change purposes
+   prDefaultAreaMusic = $
+
 messages:
 
    Constructor()
@@ -364,6 +367,8 @@ messages:
 
       Send(self,@RecalcSkyBox);
       Send(self,@RecalculateDirectionalLight);
+      
+      prDefaultAreaMusic = Send(self,@GetMusic);
 
       propagate;
    }
@@ -5033,6 +5038,83 @@ messages:
       }
 
       return;
+   }
+
+   GetPhaseMusic()
+   {
+      return prDefaultAreaMusic;
+   }
+
+   RecalculateRoomMusic()
+   {
+      local i, rJalaMusic;
+
+      % We must override the music but then take care to return it to default.
+      % The music shall be from the highest level song.
+      % If there are equal level songs, then the highest spellpower.
+      % If there are equal level equal power songs, then whatever was cast first stays.
+      % Calculations done in GetLoudestJalaSongMusic.
+
+      rJalaMusic = Send(self,@GetLoudestJalaSongMusic);
+      
+      if rJalaMusic = $
+      {
+         prMusic = Send(self,@GetPhaseMusic);
+      }
+      else if rJalaMusic = prMusic
+      {
+         return;
+      }
+      else
+      {
+         prMusic = rJalaMusic;
+      }
+
+      foreach i in plActive
+      {
+         if IsClass(First(i),&User)
+         {
+            Send(First(i),@SendRoomMusic,#music_rsc=prMusic);
+         }
+      }
+
+      return;
+   }
+
+   GetLoudestJalaSongMusic()
+   {
+      local i, n, rHighestMusic, iHighestLevel, iHighestPower;
+      
+      rHighestMusic = $;
+      iHighestLevel = 0;
+      iHighestPower = 0;
+
+      foreach i in plActive
+      {
+         if IsClass(First(i),&User)
+         {
+            foreach n in Send(First(i),@GetRadiusEnchantments)
+            {
+               if Send(First(n),@GetSchool) = SS_JALA
+               {
+                  if Send(First(n),@GetLevel) > iHighestLevel
+                     OR (Send(First(n),@GetLevel) = iHighestLevel
+                        AND Nth(n,2) > iHighestPower)
+                  {
+                     if Nth(n,3) <> $
+                        AND IsClass(Nth(n,3),&Battler)
+                     {
+                        iHighestLevel = Send(First(n),@GetLevel);
+                        iHighestPower = Nth(n,2);
+                        rHighestMusic = Send(First(n),@GetMusic);
+                     }
+                  }
+               }
+            }
+         }
+      }
+
+      return rHighestMusic;
    }
 
    GetJalaInfo()

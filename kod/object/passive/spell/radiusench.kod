@@ -257,6 +257,11 @@ messages:
       }
 
       plCurrentEnchantments = Cons([source,0,0,$,iPower,iRange,iDuration,oRoom],plCurrentEnchantments);
+      
+      if IsClass(self,&Jala)
+      {
+         Post(oRoom,@RecalculateRoomMusic);
+      }
 
       Send(self,@RecalculateActiveEnchantments);
 
@@ -729,6 +734,11 @@ messages:
                      }
                   
                   }
+               }
+
+               if IsClass(self,&Jala)
+               {
+                  Post(oRoom,@RecalculateRoomMusic);
                }
             }
 

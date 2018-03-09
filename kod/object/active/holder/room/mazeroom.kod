@@ -2475,15 +2475,8 @@ messages:
          {
             Post(self,@StartThreat,#cClasses=[&FallThreat],#report=FALSE);
          }
-
-         prMusic = Send(self,@GetPhaseMusic);
-         foreach i in plActive
-         {
-            if IsClass(First(i),&User)
-            {
-               Send(First(i),@SendRoomMusic,#music_rsc=prMusic);
-            }
-         }
+         
+         Send(self,@RecalculateRoomMusic);
 
          switch(Send(SYS,@GetDayPhase))
          {
@@ -2524,18 +2517,26 @@ messages:
 
    GetPhaseMusic()
    {
-      switch(Send(SYS,@GetDayPhase))
+      if vbDesertThreatsHere
       {
-         case DAY_PHASE_DAWN:
-            return maze_desert_music_static_shock;
-         case DAY_PHASE_DAY:
-            return maze_desert_music;
-         case DAY_PHASE_DUSK:
-            return maze_desert_music_acid_rain;
-         case DAY_PHASE_NIGHT:
-            return maze_desert_music_snow;
+         switch(Send(SYS,@GetDayPhase))
+         {
+            case DAY_PHASE_DAWN:
+               return maze_desert_music_static_shock;
+            case DAY_PHASE_DAY:
+               return maze_desert_music;
+            case DAY_PHASE_DUSK:
+               return maze_desert_music_acid_rain;
+            case DAY_PHASE_NIGHT:
+               return maze_desert_music_snow;
+         }
       }
-      return maze_desert_music;
+      else if vbSpawnMonsters
+      {
+         return maze_music2;
+      }
+
+      return maze_music1;
    }
    
    GetPhaseThreats()

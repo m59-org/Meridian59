@@ -34,16 +34,12 @@ properties:
    piItem_gen_counter = 0
    
    piPreviousPhase = 0
-   
-   prDefaultAreaMusic = $
 
 messages:
 
    Constructor()
    {
       Send(self,@CreateJungleItemCoords);
-      
-      prDefaultAreaMusic = Send(self,@GetMusic);
 
       propagate;
    }
@@ -55,7 +51,7 @@ messages:
          case DAY_PHASE_NIGHT:
             return kcforest_night_music;
       }
-      return prDefaultAreaMusic;
+      propagate;
    }
    
    GetPhaseThreats()
@@ -195,14 +191,7 @@ messages:
          }
       }
          
-      prMusic = Send(self,@GetPhaseMusic);
-      foreach i in plActive
-      {
-         if IsClass(First(i),&User)
-         {
-            Send(First(i),@SendRoomMusic,#music_rsc=prMusic);
-         }
-      }
+      Send(self,@RecalculateRoomMusic);
 
       piPreviousPhase = SysDayPhase;
 
