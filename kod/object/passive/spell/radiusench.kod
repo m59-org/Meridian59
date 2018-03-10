@@ -193,7 +193,10 @@ messages:
          return FALSE;
       }
 
-      if Send(who,@HasReservedSong,#oSpell=self)
+      if IsClass(self,&Jala)
+         AND who <> $
+         AND IsClass(who,&Player)
+         AND Send(who,@HasReservedSong,#oSpell=self)
       {
          % They've got the song already reserved. Cancel the song.
          Post(self,@CancelRadiusEnchantment,#source=who);
