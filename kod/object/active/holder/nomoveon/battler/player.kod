@@ -6313,6 +6313,8 @@ messages:
             % Check whether we can leap attack with a hammer between range 2 and 4
             if iDist <= (4 * FINENESS) * (4 * FINENESS)
                AND IsClass(stroke_obj,&Slash)
+               AND (Send(self,@IsUsingA,#class=&Hammer)
+                  OR Send(self,@IsUsingA,#class=&SpiritualHammer))
                AND Send(self,@GetSkillAbility,#skill_num=SKID_PROFICIENCY_HAMMER) > 0
                AND Send(self,@HasMasteredThisSkill,#num=SKID_PROFICIENCY_HAMMER)
             {
