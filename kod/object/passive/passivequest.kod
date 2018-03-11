@@ -158,6 +158,13 @@ messages:
    {
       Send(self,@CheckBaseMaxHealth);
       Send(self,@BondedWithManaNode);
+      
+      if vbChooseHometown
+         AND NOT Send(poQuester,@CanChangeHomeroom)
+      {
+         Send(self,@Completed);
+      }
+
       return;
    }
    
