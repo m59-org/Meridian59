@@ -6653,6 +6653,16 @@ messages:
       if Send(self,@GetChampStatus) > 0
       {
          iNumShards = Send(self,@GetChampionRewardMultiplier);
+         if poOwner <> $
+         {
+            foreach i in Send(poOwner,@GetObjectAttributes)
+            {
+               if IsClass(i,&RoomThreat)
+               {
+                  iNumShards = Send(i,@AlterShardDrops,#iNumShards=iNumShards);
+               }
+            }
+         }
          if Send(self,@GetLevel) < 50
          {
             --iNumShards;
@@ -8046,22 +8056,7 @@ messages:
    
    GetChampionRewardMultiplier()
    {
-      local i, bBlocked;
-      
-      bBlocked = FALSE;
-      if poOwner <> $
-      {
-         foreach i in Send(poOwner,@GetObjectAttributes)
-         {
-            if IsClass(i,&RoomThreat)
-            {
-               if Send(i,@GetBlockShardDrops)
-               {
-                  propagate;
-               }
-            }
-         }
-      }
+      local i;
 
       if piChampionStatus = CHAMPION_TOUGH
          OR piChampionStatus = CHAMPION_SWIFT
