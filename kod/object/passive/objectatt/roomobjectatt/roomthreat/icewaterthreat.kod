@@ -99,7 +99,9 @@ messages:
             Send(who,@MsgSendUser,#message_rsc=icewater_remove_shadow_form);
             return TRUE;
          }
+         % Undine are hardy against cold, never hit them.
          if Send(who,@GetHeightAtObject) >= 0
+            OR Send(who,@GetPlayerRace) = RACE_HALF_UNDINE
          {
             return FALSE;
          }
