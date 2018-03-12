@@ -143,30 +143,9 @@ messages:
       return damage;
    }
 
-   SendStatsDesc(who=$)
+   EffectDesc(who=$, lState=$)
    {
-      if who <> $
-         AND IsClass(who,&User)
-         AND Send(who,@GetMostPowerfulRadiusEnchantmentState,#byClass=&Melancholy) <> $
-      {
-         Send(self,@EffectDesc,#who=who);
-
-         return;
-      }
-
-      propagate;
-   }
-
-   EffectDesc(who=$)
-   {
-      local lState;
-      
-      lState = Send(who,@GetMostPowerfulRadiusEnchantmentState,#byClass=&Melancholy);
-
-      if lState <> $
-      {
-         AddPacket(4,melancholy_song_bonus_rsc, 4,Nth(lState,2)+1, 4, (Nth(lState,2)+1)/20);
-      }
+      AddPacket(4,melancholy_song_bonus_rsc, 4,Nth(lState,2)+1, 4, (Nth(lState,2)+1)/20);
 
       propagate;
    }

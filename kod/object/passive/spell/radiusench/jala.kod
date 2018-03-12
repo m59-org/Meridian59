@@ -18,10 +18,23 @@ resources:
 
    Jala_sound = lute_equip.wav
 
+   JalaEffectDesc = \
+      "%r%r"
+   JalaBlankDesc = \
+      ""
+
+   Jala_default_specific_effec_desc = \
+      "\n\nThe strongest %s song currectly affecting you has %i spellpower."
+   Jala_default_reservation_desc = \
+      "\n\nYour %s song is currently reserving %i mana."
+
 classvars:
 
    viSchool = SS_JALA
    viNeedInstrument = FALSE
+   
+   vrSpecificEffectDesc = Jala_default_specific_effec_desc
+   vrReservationDesc = Jala_default_reservation_desc
 
    vrSucceed_wav = Jala_sound
 
@@ -61,6 +74,35 @@ messages:
          return 0;
       }
       
+      propagate;
+   }
+
+   SendStatsDesc(who=$)
+   {
+      local lState;
+
+      lState = Send(who,@GetMostPowerfulRadiusEnchantmentState,#byClass=GetClass(self));
+      if who <> $
+         AND IsClass(who,&User)
+         AND lState <> $
+      {
+         % Two resources for effect and/or reservation.
+         AddPacket(4,JalaEffectDesc);
+
+         Send(self,@EffectDesc,#who=who,#lState=lState);
+
+         if Send(who,@HasReservedSong,#oSpell=self)
+         {
+            AddPacket(4,Jala_default_reservation_desc, 4,Send(self,@GetName), 4,viFlatManaReservation);
+         }
+         else
+         {
+            AddPacket(4,JalaBlankDesc);
+         }
+
+         return;
+      }
+
       propagate;
    }
 

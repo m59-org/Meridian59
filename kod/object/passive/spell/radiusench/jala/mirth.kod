@@ -144,30 +144,9 @@ messages:
       return damage;
    }
 
-   SendStatsDesc(who=$)
+   EffectDesc(who=$, lState=$)
    {
-      if who <> $
-         AND IsClass(who,&User)
-         AND Send(who,@GetMostPowerfulRadiusEnchantmentState,#byClass=&Mirth) <> $
-      {
-         Send(self,@EffectDesc,#who=who);
-
-         return;
-      }
-
-      propagate;
-   }
-
-   EffectDesc(who=$)
-   {
-      local lState;
-      
-      lState = Send(who,@GetMostPowerfulRadiusEnchantmentState,#byClass=&Mirth);
-
-      if lState <> $
-      {
-         AddPacket(4,mirth_song_bonus_rsc, 4,Nth(lState,2)+1, 4, (Nth(lState,2)+1)/20);
-      }
+      AddPacket(4,mirth_song_bonus_rsc, 4,Nth(lState,2)+1, 4, (Nth(lState,2)+1)/20);
 
       propagate;
    }
