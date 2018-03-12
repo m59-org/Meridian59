@@ -1906,19 +1906,7 @@ messages:
          Debug("Bad iSpellpower passed to GetManaCost");
       }
 
-      if IsClass(self,&Jala)
-         AND who <> $
-         AND IsClass(who,&Player)
-         AND Send(who,@IsUsingA,#class=&JalaNecklace)
-      {
-         % When reserving a song, the cost itself is 0.
-         % It'll be taking a huge chunk of mana elsewhere.
-         iCost = 0;
-      }
-      else
-      {
-         iCost = viMana;
-      }
+      iCost = viMana;
 
       % don't take anything below 1 unless it already is.
       if iCost = 0

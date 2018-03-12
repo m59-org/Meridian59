@@ -49,5 +49,20 @@ messages:
       return viFlatManaReservation;
    }
 
+   GetManaCost(who=$,iSpellPower=0,lTargets=$)
+   "Returns number of magic points needed to cast spell"
+   {
+      if who <> $
+         AND IsClass(who,&Player)
+         AND Send(who,@IsUsingA,#class=&JalaNecklace)
+      {
+         % When reserving a song, the cost itself is 0.
+         % It'll be taking a huge chunk of mana elsewhere.
+         return 0;
+      }
+      
+      propagate;
+   }
+
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
