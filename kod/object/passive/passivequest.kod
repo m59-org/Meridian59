@@ -159,6 +159,18 @@ messages:
       Send(self,@CheckBaseMaxHealth);
       Send(self,@BondedWithManaNode);
       
+      if vbEquipItemOne
+         OR vbEquipItemTwo
+         OR vbEquipItemThree
+      {
+         if Send(poQuester,@IsUsingA,#class=vcEquipItemOneClass)
+            OR Send(poQuester,@IsUsingA,#class=vcEquipItemTwoClass)
+            OR Send(poQuester,@IsUsingA,#class=vcEquipItemThreeClass)
+         {
+            Send(self,@Completed);
+         }
+      }
+      
       if vbChooseHometown
          AND NOT Send(poQuester,@CanChangeHomeroom)
       {
