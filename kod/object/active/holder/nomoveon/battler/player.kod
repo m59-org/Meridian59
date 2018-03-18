@@ -1296,6 +1296,9 @@ properties:
    prSaveEyes = $
    prSaveNose = $
    prSaveMouth = $
+   
+   % What was our human skin color on creation?
+   piOriginalSkinColor = PT_BLUE_TO_SKIN1
 
 messages:
 
@@ -1824,8 +1827,6 @@ messages:
 
    SetPlayerRace(race=0)
    {
-      local iRandomSkinColor;
-      
       if piPlayerRace = RACE_DRACONIAN
          and race <> RACE_DRACONIAN
       {
@@ -1834,9 +1835,8 @@ messages:
       
       if race = RACE_HUMAN
       {
-         iRandomSkinColor = Random(1,4);
-         Send(self,@SetSkinTranslation,#translation=iRandomSkinColor);
-         Send(self,@SetDefaultClothes,#shirt_color=iRandomSkinColor,#pants_color=iRandomSkinColor);
+         Send(self,@SetSkinTranslation,#translation=piOriginalSkinColor);
+         Send(self,@SetDefaultClothes,#shirt_color=Bound(piOriginalSkinColor-1,1,$),#pants_color=Bound(piOriginalSkinColor-1,1,$));
          plResistances = Send(self,@GetRacialBaseResistances,#race=RACE_HUMAN);
 
          piRacialMightMod = 0;
@@ -2017,7 +2017,7 @@ messages:
       Send(self,@SetEyes,#eyes=prSaveEyes);
       Send(self,@SetNose,#nose=prSaveNose);
       Send(self,@SetMouth,#mouth=prSaveMouth);
-      Send(self,@ResetHair,#what=self);
+      Send(self,@ResetHair);
 
       % Clear out face resources.
       prSaveEyes = $;
@@ -3584,6 +3584,8 @@ messages:
          % if they hacked char.dll...
          iSkin_translation = PT_BLUE_TO_SKIN3;
       }
+
+      piOriginalSkinColor = iSkin_translation;
 
       Send(self,@SetSkinTranslation,#translation=iSkin_translation);
       Send(self,@SetDefaultClothes,#rand=TRUE);
@@ -18689,6 +18691,111 @@ messages:
    SetInformReincarnationProgress(value=TRUE)
    {
       pbInformReincarnationProgress = value;
+      return;
+   }
+
+   BarberRandomizeSkinColor()
+   {
+      if piPlayerRace = RACE_HUMAN
+      {
+         piOriginalSkinColor = Random(1,4);
+         Send(self,@SetSkinTranslation,#translation=piOriginalSkinColor);
+         Send(self,@SetDefaultClothes,#shirt_color=Bound(piOriginalSkinColor-1,1,$),#pants_color=Bound(piOriginalSkinColor-1,1,$));
+         if poOwner <> $
+         {
+            Send(poOwner,@SomethingChanged,#what=self);
+         }
+         return;
+      }
+      return;
+   }
+
+   BarberIncrementHair()
+   {
+       local lHairStyles, i, bNext;
+       
+       if poHair_remove <> $
+       {
+          % Can't see our hair. Don't mess things up.
+          % This covers shrunken head masks, helmets, draconian race.
+          return;
+       }
+    %  prEyes = charinfo_eyes_ax_icon;
+    %  prMouth = charinfo_nose_ax_icon;
+    %  prNose = charinfo_mouth_ax_icon;
+    %  prToupee = charinfo_hair_cd_icon;
+    
+      lHairStyles = [charinfo_hair_ac_icon,
+                     charinfo_hair_ba_icon,
+                     charinfo_hair_bc_icon,
+                     charinfo_hair_cd_icon,
+                     charinfo_hair_ca_icon,
+                     charinfo_hair_db_icon,
+                     charinfo_hair_ad_icon,
+                     charinfo_hair_bb_icon,
+                     charinfo_hair_bd_icon,
+                     charinfo_hair_cb_icon,
+                     charinfo_hair_dc_icon,
+                     charinfo_hair_dr_icon,
+                     charinfo_hair_xa_icon,
+                     charinfo_hair_xb_icon,
+                     charinfo_hair_bald_icon];
+
+      % Handle end of list
+      if prToupee = Nth(lHairStyles,Length(lHairStyles))
+      {
+         prToupee = First(lHairStyles);
+         Send(poOwner,@SomethingChanged,#what=self);
+         return;
+      }
+
+      bNext = FALSE;
+      foreach i in lHairStyles
+      {
+         if bNext
+         {
+            prToupee = i;
+            Send(poOwner,@SomethingChanged,#what=self);
+            return;
+         }
+         if prToupee = i
+         {
+            bNext = TRUE;
+         }
+      }
+
+      return;
+   }
+
+   BarberRandomizeHairColor()
+   {
+       local lHairColors, iHair_translation;
+       
+       if poHair_remove <> $
+       {
+          % Can't see our hair. Don't mess things up.
+          % This covers shrunken head masks, helmets, draconian race.
+          return;
+       }
+    
+      lHairColors = [0,
+                     PT_GRAY_TO_ORANGE,
+                     PT_GRAY_TO_RED,
+                     PT_GRAY_TO_SKIN1,
+                     PT_GRAY_TO_SKIN2,
+                     PT_GRAY_TO_SKIN3,
+                     PT_GRAY_TO_SKIN4,
+                     PT_GRAY_TO_SKIN5,
+                     PT_GRAY_TO_PLATBLOND,
+                     PT_GRAY_TO_KORANGE,
+                     PT_GRAY_TO_KRED,
+                     PT_GRAY_TO_KGRAY,
+                     PT_GRAY_TO_BLACK,
+                     PT_GRAY_TO_BLOND];
+
+      Send(self,@SetHairTranslation,#translation=Nth(lHairColors,Random(1,Length(lHairColors))));
+      Send(poOwner,@SomethingChanged,#what=self);
+
       return;
    }
 

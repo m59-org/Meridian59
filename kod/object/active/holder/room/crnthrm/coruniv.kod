@@ -389,6 +389,10 @@ resources:
    genealogy_elf_name = "Arts Above All"
    genealogy_undine_name = "Spirits of the Waves"
 
+   genealogy_human_ancestry_change = "I wish to alter my human ancestry."
+   genealogy_hair_change = "I wish to alter my hair."
+   genealogy_hair_color_change = "I wish to alter my hair color."
+
    genealogy_choose_human_trigger = "I wish to reincarnate as human."
    genealogy_choose_demon_trigger = "I wish to reincarnate as half-demon."
    genealogy_choose_orc_trigger = "I wish to reincarnate as half-orc."
@@ -920,6 +924,22 @@ messages:
             send(self,@roomchangemessage,#iHomeRoom=iHomeRoom,#who=what);	
             Send(what,@ChoseAHometown);            
          }
+      }
+
+      if StringEqual(string,genealogy_human_ancestry_change)
+      {
+         Send(what,@BarberRandomizeSkinColor);
+         return;
+      }
+      if StringEqual(string,genealogy_hair_change)
+      {
+         Send(what,@BarberIncrementHair);
+         return;
+      }
+      if StringEqual(string,genealogy_hair_color_change)
+      {
+         Send(what,@BarberRandomizeHairColor);
+         return;
       }
 
       if StringEqual(string,genealogy_inform_trigger)
