@@ -65,8 +65,16 @@ resources:
 
    armor_too_big_msg = \
       "There doesn't seem to be a viable way to dye an entire armor."
+   ranged_weapon_too_big_msg = \
+      "The wood of this bow was sealed during the manufacturing process and can't be dyed."
    dye_item_msg = \
       "You apply the dye to your %s."
+      
+   cannot_dye_equipped_item = \
+      "You can't dye an item while you're wearing it! You'd get all stained!"
+
+   cannot_dye_clothing = \
+      "This clothing has already been dyed during its manufacturing process. New dye won't stick."
 
 classvars:
 
@@ -101,7 +109,12 @@ messages:
                     WEIRD_GREEN,
                     BLOOD_GEM,
                     GREEN_FIRST,
-                    PEACH];
+                    PEACH,
+                    WEIRDER_BLUE,
+                    WEIRDER_GREEN,
+                    WEIRDER_RED,
+                    CLOUDED_GEM,
+                    WHITE_RANGE];
          piBottleColor = Nth(lColors,Random(1,Length(lColors)));
       }
 
@@ -119,14 +132,37 @@ messages:
 
    ReqNewApply(what = $,apply_on = $)
    {
-      if apply_on <> $
-         AND IsClass(apply_on,&Armor)
-      {
-         Send(what,@MsgSendUser,#message_rsc=armor_too_big_msg);
-         return FALSE;
-      }
+      local i;
+
       if apply_on <> $
       {
+         if IsClass(apply_on,&Armor)
+         {
+            Send(what,@MsgSendUser,#message_rsc=armor_too_big_msg);
+            return FALSE;
+         }
+         if IsClass(apply_on,&RangedWeapon)
+         {
+            Send(what,@MsgSendUser,#message_rsc=ranged_weapon_too_big_msg);
+            return FALSE;
+         }
+
+         foreach i in Send(what,@GetPlayerUsing)
+         {
+            if i = apply_on
+            {
+               Send(what,@MsgSendUser,#message_rsc=cannot_dye_equipped_item);
+               return FALSE;
+            }
+         }
+
+         if IsClass(apply_on,&ShirtBase)
+            OR IsClass(apply_on,&Pants)
+         {
+            Send(what,@MsgSendUser,#message_rsc=cannot_dye_clothing);
+            return FALSE;
+         }
+         
          if IsClass(apply_on,&DefenseModifier)
             OR IsClass(apply_on,&Weapon)
          {
