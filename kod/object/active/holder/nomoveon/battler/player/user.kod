@@ -937,6 +937,12 @@ messages:
                   sGuild, Send(self,@GetBaseMaxHealth), piMax_mana, Send(self,@GetRawMight), 
                   Send(self,@GetRawIntellect), Send(self,@GetRawMysticism), Send(self,@GetRawStamina), Send(self,@GetRawAgility), 
                   Send(self,@GetRawAim));
+
+      % Existing characters need accumulated wisdom values.
+      if Send(self,@GetAccumulatedWisdom) = -1
+      {
+         Send(self,@UpdateAccumulatedWisdom);
+      }
       
       % Ok, we're logged in and good to go. Let's check our passive quest status.
       Send(Send(SYS,@GetGameQuestMaintenance),@EvaluatePlayer,#who=self);

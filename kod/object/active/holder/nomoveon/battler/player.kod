@@ -121,6 +121,15 @@ constants:
    % how long to wait before sending another pvp notify sound (seconds)
    PVP_NOTIFY_DECAY = 5 * 60
    
+   % Reincarnation:
+   % Every earned training point is 1 accumulated wisdom point.
+   %
+   % When you reincarnate, your hit points are converted into accumulated wisdom as the bonus for reincarnation.
+   % For example, if you have 1000 accumulated wisdom,
+   %    and you reincarnate with 20 hp, you retain 1000 wisdom - no bonus.
+   %    But reincarnating with 150 hp gives a full percentage bonus of 20%.
+   %    Giving you 200 free wisdom.
+   
 resources:
 
    include player.lkod
@@ -943,7 +952,10 @@ resources:
    
    lose_song_due_to_mana_change_msg = \
       "Due to the change in your maximum mana, you lose the reservation of one of your songs!"
-   
+
+   report_acc_wisdom_msg = \
+      "Throughout your lifetimes in this world, you have accumulated %i wisdom."
+
 classvars:
 
    viHand_space = 2
@@ -1299,6 +1311,9 @@ properties:
    
    % What was our human skin color on creation?
    piOriginalSkinColor = PT_BLUE_TO_SKIN1
+   
+   % What's our total knowledge over all reincarnations?
+   piAccumulatedWisdom = -1
 
 messages:
 
@@ -1494,6 +1509,50 @@ messages:
          {
             Send(self,@MsgSendUser,#message_rsc=reincarnation_progress_msg,#parm1=(iReincarnationSum*100)/Send(self,@GetNextReincarnationSum));
          }
+      }
+      return;
+   }
+
+   GetAccumulatedWisdom()
+   {
+      return piAccumulatedWisdom;
+   }
+
+   ReportAccumulatedWisdom()
+   {
+      Send(self,@MsgSendUser,#message_rsc=report_acc_wisdom_msg,#parm1=piAccumulatedWisdom);
+      return;
+   }
+
+   UpdateAccumulatedWisdom()
+   {
+      % Intended to happen one time only for existing characters
+      piAccumulatedWisdom = Send(self,@GetReincarnationTrainingPointsTotal) + piTraining_points;
+      return;
+   }
+
+   AddAccumulatedWisdom(amount=0)
+   {
+      if piAccumulatedWisdom + amount >= MAX_KOD_INT
+      {
+         piAccumulatedWisdom = MAX_KOD_INT;
+      }
+      else
+      {
+         piAccumulatedWisdom = piAccumulatedWisdom + amount;
+      }
+      return;
+   }
+
+   SubtractAccumulatedWisdom(amount=0)
+   {
+      if piAccumulatedWisdom - amount <= 0
+      {
+         piAccumulatedWisdom = 0;
+      }
+      else
+      {
+         piAccumulatedWisdom = piAccumulatedWisdom - amount;
       }
       return;
    }
@@ -1699,8 +1758,9 @@ messages:
       if race = RACE_DRACONIAN
       {
          return [ [ATCK_WEAP_SLASH, 10],
-                  [ATCK_WEAP_PIERCE, 10],
-                  [ATCK_WEAP_THRUST, 10],
+                  [ATCK_WEAP_PIERCE, 5],
+                  [ATCK_WEAP_THRUST, 5],
+                  [-ATCK_SPELL_ACID, 20],
                   [ATCK_WEAP_BLUDGEON, -10]];
       }
       
@@ -1772,9 +1832,11 @@ messages:
             case ATCK_WEAP_SLASH:
                return 2;
             case ATCK_WEAP_PIERCE:
-               return 2;
+               return 1;
             case ATCK_WEAP_THRUST:
-               return 2;
+               return 1;
+            case -ATCK_SPELL_ACID:
+               return 5;
          }
       }
       return 0;
@@ -1955,9 +2017,9 @@ messages:
          }
 
          piRacialMightMod = 0;
-         piRacialIntellectMod = -40;
+         piRacialIntellectMod = -20;
          piRacialStaminaMod = 20;
-         piRacialAgilityMod = 0;
+         piRacialAgilityMod = -20;
          piRacialMysticismMod = 0;
          piRacialAimMod = 0;
 
@@ -1969,6 +2031,8 @@ messages:
 
          piPlayerRace = race;
       }
+      
+      Post(self,@RecalcLight);
 
       Post(self,@DrawResistances);
      
@@ -3870,8 +3934,6 @@ messages:
 
       Send(Send(sys,@GetAssassinGame),@RemoveFromGame,#who=self);
       % Remove the guy from the Assassin's game.
-
-      piLight = 5;
 
       Send(Send(SYS,@GetLibrary),@DeleteCompletedQuest,#who=self,#id=-1);
       Send(&QuestX,@CancelQuester,#quester=self);
@@ -11553,7 +11615,7 @@ messages:
       return piTraining_points;
    }
 
-   AddTrainingPoints(points=0,report=TRUE,bCap=TRUE)
+   AddTrainingPoints(points=0,report=TRUE,bCap=TRUE,bEarned=TRUE)
    {
       if points = 0
       {
@@ -11587,6 +11649,12 @@ messages:
                #parm1=-points);
       }
 
+      if bEarned
+         AND points > 0
+      {
+         % Only add real generated training points to accumulated wisdom
+         Send(self,@AddAccumulatedWisdom,#amount=points);
+      }
       piTraining_points = piTraining_points + points;
 
       if piTraining_points < TRAINING_POINT_CAP
@@ -14157,6 +14225,26 @@ messages:
       return;
    }
 
+   GetRacialLightLevel()
+   {
+      switch(piPlayerRace)
+      {
+         case RACE_HUMAN:
+            return 5;
+         case RACE_HALF_ORC:
+            return 60;
+         case RACE_HALF_DEMON:
+            return -10;
+         case RACE_HALF_ELF:
+            return 15;
+         case RACE_HALF_UNDINE:
+            return 25;
+         case RACE_DRACONIAN:
+            return 35;
+      }
+      return 5;
+   }
+
    RecalcLight()
    {
       local i, iLight, iState, oWeapon, oItemAtt;
@@ -14164,7 +14252,7 @@ messages:
       % TODO: Make this into a general check.
 
       % Default base value
-      iLight = 5;
+      iLight = Send(self,@GetRacialLightLevel);
 
       % Torch, Amulet
       foreach i in plUsing
@@ -14200,8 +14288,6 @@ messages:
 
       if piLight <> iLight
       {
-         Debug("Player ",Send(self,@GetName)," had wrong light value ",piLight,
-               ".  Setting it to ",iLight);
          piLight = iLight;
          Send(self,@NewLight);
       }
