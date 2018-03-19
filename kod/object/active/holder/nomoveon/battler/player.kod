@@ -123,8 +123,11 @@ constants:
    
    % Reincarnation:
    % Every earned training point is 1 accumulated wisdom point.
+   % Every earned improve in a skill or spell gives accumulated wisdom points equal to the level of the skill or spell.
+   % Level 1 = 1, level 3 = 3, level 6 = 6.
+   % Meditating does NOT count for this, otherwise we'd be giving people accumulated wisdom for earning AND spending training points.
    %
-   % When you reincarnate, your hit points are converted into accumulated wisdom as the bonus for reincarnation.
+   % When you reincarnate, your hit points are converted into accumulated wisdom as the bonus percentage for reincarnation.
    % For example, if you have 1000 accumulated wisdom,
    %    and you reincarnate with 20 hp, you retain 1000 wisdom - no bonus.
    %    But reincarnating with 150 hp gives a full percentage bonus of 20%.
@@ -954,7 +957,8 @@ resources:
       "Due to the change in your maximum mana, you lose the reservation of one of your songs!"
 
    report_acc_wisdom_msg = \
-      "Throughout your lifetimes in this world, you have accumulated %i wisdom."
+      "Throughout your lifetimes in this world, you have accumulated %i wisdom. "
+      "If you were to reincarnate now, that is how many Training Points you would start your new life with."
 
 classvars:
 
@@ -1527,7 +1531,8 @@ messages:
    UpdateAccumulatedWisdom()
    {
       % Intended to happen one time only for existing characters
-      piAccumulatedWisdom = Send(self,@GetReincarnationTrainingPointsTotal) + piTraining_points;
+      piAccumulatedWisdom = Send(self,@GetReincarnationAccumulatedWisdomExisting) + piTraining_points;
+      Send(self,@ReportAccumulatedWisdom);
       return;
    }
 
@@ -1557,7 +1562,7 @@ messages:
       return;
    }
 
-   GetReincarnationTrainingPointsTotal()
+   GetReincarnationAccumulatedWisdomExisting()
    {
       local i, iSum, oAbility;
       
@@ -1566,13 +1571,13 @@ messages:
       foreach i in plSkills
       {
          oAbility = Send(SYS,@FindSkillByNum,#num=Send(self,@DecodeSkillNum,#compound=i));
-         iSum = iSum + (Send(self,@DecodeSkillAbility,#compound=i)*Send(oAbility,@GetMeditateRatio));
+         iSum = iSum + (Send(self,@DecodeSkillAbility,#compound=i)*Send(oAbility,@GetLevel));
       }
 
       foreach i in plSpells
       {
          oAbility = Send(SYS,@FindSpellByNum,#num=Send(self,@DecodeSpellNum,#compound=i));
-         iSum = iSum + (Send(self,@DecodeSpellAbility,#compound=i)*Send(oAbility,@GetMeditateRatio));
+         iSum = iSum + (Send(self,@DecodeSpellAbility,#compound=i)*Send(oAbility,@GetLevel));
       }
 
       return iSum;
@@ -3849,6 +3854,9 @@ messages:
 
       % Update stomach so it starts ticking down properly
       Send(self,@UpdateStomach);
+      
+      % New character, no wisdom.
+      piAccumulatedWisdom = 0;
 
       % Give them a new start on life, so that their newbie
       % friends can buff and heal them.
