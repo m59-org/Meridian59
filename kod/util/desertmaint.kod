@@ -44,6 +44,9 @@ properties:
    piBoostColdLevel = 20
    piBoostShockLevel = 0
 
+   piBoostUnholyLevel = 20
+   piBoostHolyLevel = 20
+
    piDeathCost = 100
 
 messages:
@@ -555,8 +558,28 @@ messages:
       return piBoostAcidLevel;
    }
 
+   GetUnholyBoost()
+   {
+      return piBoostUnholyLevel;
+   }
+
+   GetHolyBoost()
+   {
+      return piBoostHolyLevel;
+   }
+
    GetDeathCost()
    {
+      local oAfterlifeDunes4E;
+
+      oAfterlifeDunes4E = Send(SYS,@FindRoomByNum,#num=RID_DESERTALDUNES4E);
+      if oAfterlifeDunes4E <> $
+      {
+         if Send(oAfterlifeDunes4E,@GetPrismOfDeathDefeated)
+         {
+            return piDeathCost/2;
+         }
+      }
       return piDeathCost;
    }
 
