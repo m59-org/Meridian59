@@ -54,6 +54,9 @@ resources:
       "~BTendrils of pure negative energy jump out "
       "toward your light sources, annihilating them!"
 
+   cannot_teleport_in_prism_of_death = \
+      "The negative energies here absorb the energy sent along the vector of your teleportation spell."
+
 classvars:
 
    vrName = room_name_prismofdeath
@@ -891,6 +894,13 @@ messages:
       {
          return FALSE;
       }
+      if IsClass(oSpell,&Rescue)
+         OR IsClass(oSpell,&Elusion)
+         OR IsClass(oSpell,&GuildHallRecall)
+      {
+         Send(who,@MsgSendUser,#message_rsc=cannot_teleport_in_prism_of_death);
+         return FALSE;
+      }
 
       propagate;
    }
@@ -902,7 +912,7 @@ messages:
 
    GetRegion()
    {
-      return RID_DESERT;
+      return RID_DESERTALDUNES;
    }
 
    NewHoldObject(what = $,new_pos = $)
@@ -938,6 +948,11 @@ messages:
          }
       }
       propagate;
+   }
+   
+   CanHavePlayerPortal()
+   {
+      return FALSE;
    }
 
 end

@@ -47,12 +47,14 @@ properties:
    piDest_col = $
    piDest_fine_row = FINENESS_HALF
    piDest_fine_col = FINENESS_HALF
+   
+   piGlowColor = LIGHT_PURPLE
 
 messages:
 
    Constructor(dest_room_num = RID_DEFAULT, dest_row = 1, dest_col = 1,
                dest_angle = $, dest_fine_row = FINENESS_HALF,
-               dest_fine_col = FINENESS_HALF, desc = $, icon=$)
+               dest_fine_col = FINENESS_HALF, desc = $, icon=$, glow_color=LIGHT_PURPLE)
    {
       piDest_room = dest_room_num;
       piDest_row = dest_row;
@@ -60,6 +62,8 @@ messages:
       piDest_fine_row = dest_fine_row;
       piDest_fine_col = dest_fine_col;
       piDest_angle = dest_angle;
+      
+      piGlowColor = glow_color;
 
       if desc <> $
       {
@@ -192,7 +196,7 @@ messages:
       }
 
       % Color
-      AddPacket(2,LIGHT_PURPLE);
+      AddPacket(2,piGlowColor);
 
       return;
    }
