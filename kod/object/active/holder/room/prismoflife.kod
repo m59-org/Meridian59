@@ -1,0 +1,59 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+PrismOfLife is Room
+
+constants:
+
+   include blakston.khd
+   
+   EXIT_PILLAR_SECTOR = 5000
+
+resources:
+
+   room_prismoflife = prismoflife.roo
+   room_name_prismoflife = "Prism of Life"
+
+   prismoflife_music = desertafterlife.mp3
+
+   cannot_teleport_in_prism_of_life = \
+      "The overwhelming positive energies here absorb the energy sent along the vector of your teleportation spell."
+
+classvars:
+
+   vrName = room_name_prismoflife
+
+   viTeleport_row = 89
+   viTeleport_col = 211
+
+   viTerrain_type = TERRAIN_TEMPLE
+
+   vbOverridePlayerLightLevel = TRUE
+   viOverridePlayerLightLevel = 255
+
+properties:
+
+   prMusic = prismoflife_music
+
+   prRoom = room_prismoflife
+   piRoom_num = RID_PRISM_OF_LIFE
+
+   piOverridesDeathFunction = TRUE
+
+messages:
+
+   CanHavePlayerPortal()
+   {
+      return FALSE;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
