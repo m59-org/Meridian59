@@ -23,14 +23,14 @@ resources:
    room_prismofdeath = prismofdeath.roo
    room_name_prismofdeath = "Prism of Death"
 
-   prismofdeath_music = castle.mp3
+   prismofdeath_music = desertafterlife.mp3
 
    unholy_quake_sound = earthquake03.wav
    
    unholy_players_gathering_msg = \
       "This place isn't filled with death. This place ~Iis~I death. "
       "Only a small bubble of neutrality protrudes into this plane; "
-      "there is nothing between you and the primal force of unmaking but a thin membrane of wavering reality."
+      "there is nothing between you and the primal force of unmaking but a thin membrane of wavering realness."
    
    unholy_players_have_gathered_msg = \
       "Your incursion of livable reality expands further into the elemental plane of negative energy."
@@ -44,11 +44,15 @@ resources:
       "around you. Your incursion grows deeper, and pillars of red anti-life rise. Your enemy reforms, "
       "now empowered by pure void!"
    unholy_killed_third_boss_msg = \
-      "~B%s has slain %s%s! Negativity energy sizzles all around "
+      "~B%s has slain %s%s! Negative energy spirals around "
       "you. The imbalance caused by the slaying of one of its incarnations has "
       "brought catastrophic damage, and the elemental essence of oblivion convulses and "
-      "retracts. You concentrate your thoughts on home before the mortal realm becomes "
+      "retracts. You concentrate your thoughts on returning to the Eternal Wastes before the Biskalani afterlife becomes "
       "unreachable..."
+
+   prism_of_death_grasping_darkness = \
+      "~BTendrils of pure negative energy jump out "
+      "toward your light sources, annihilating them!"
 
 classvars:
 
@@ -58,6 +62,9 @@ classvars:
    viTeleport_col = 145
 
    viTerrain_type = TERRAIN_NECROPOLIS
+
+   vbOverridePlayerLightLevel = TRUE
+   viOverridePlayerLightLevel = 0
 
 properties:
 
@@ -144,7 +151,7 @@ messages:
       
       if ptPlayersGathering = $
       {
-         ptPlayersGathering = CreateTimer(self,@PlayersHaveGathered,5000);
+         ptPlayersGathering = CreateTimer(self,@PlayersHaveGathered,60000);
       }
       
       foreach i in Send(self,@GetHolderActive)
@@ -220,7 +227,7 @@ messages:
       Send(self,@PlaceFirstLights);
       Post(self,@SetSector,#sector=INITIAL_PLATFORM,#animation=ANIMATE_FLOOR_LIFT,#height=1010,#speed=100);
 
-      ptRaiseFirstAreaPlatforms = CreateTimer(self,@RaiseFirstAreaPlatforms,8000);
+      ptRaiseFirstAreaPlatforms = CreateTimer(self,@RaiseFirstAreaPlatforms,16000);
       return;
    }
 
@@ -896,6 +903,41 @@ messages:
    GetRegion()
    {
       return RID_DESERT;
+   }
+
+   NewHoldObject(what = $,new_pos = $)
+   {
+      if IsClass(what,&Player)
+      {
+         Post(what,@RecalcLight);
+      }
+      propagate;
+   }
+
+   LeaveHold(what=$)
+   {
+      if IsClass(what,&Player)
+      {
+         Post(what,@RecalcLight);
+      }
+      propagate;
+   }
+
+   SomethingMoved(what=$)
+   {
+      local i;
+
+      if IsClass(what,&User)
+      {
+         foreach i in plObject_attributes
+         {
+            if IsClass(i,&RoomThreat)
+            {
+               Send(i,@SomethingMoved,#what=what);
+            }
+         }
+      }
+      propagate;
    }
 
 end

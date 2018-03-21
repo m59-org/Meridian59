@@ -30,7 +30,8 @@ resources:
    grasping_darkness_threat_end_msg = \
       "The grasping darkness fades away."
    grasping_darkness_threat_damage_msg = \
-      "Claws of shadow scratch at you from every angle! You must find a torch immediately!"
+      "Claws of shadow scratch at you from every angle. You must keep moving. Don't stand still "
+      "or they'll close in around you!"
 
    grasping_darkness_good_item_use_msg = \
       "The shadows flee your light!"
@@ -78,31 +79,18 @@ properties:
    % This threat drains vigor.
    piVigorDrop = 10000
 
+   % Keep track of players who have moved in the last 2 seconds.
+   plMovedList = $
+
 messages:
-
-   Constructor()
-   {
-%      plSpecialItemClasses = [&AcidRing,&SimpleHelm];
-%      plSpecialExemptItemClasses = [&RingOfLethargy];
-%      plSpecialSpellClasses = [&ResistAcid];
-
-      propagate;
-   }
-   
-   Constructed()
-   {
-      propagate;
-   }
 
    ReqDealDamage(who=$)
    {
       local iSection;
 
-      % A torch keeps the grasping darkness at bay
-      if Send(who,@IsUsingA,#class=&Torch)
+      % Moving keeps the darkness at bay
+      if Send(self,@IsUserOnMovedList,#who=who)
          OR Send(who,@GetPlayerRace) = RACE_HALF_ORC
-%         OR Send(who,@IsEnchanted,#byClass=&ResistAcid)
-%         OR Send(who,@IsUsingA,#class=&AcidRing)
       {
          return FALSE;
       }
@@ -118,7 +106,80 @@ messages:
    
    Delete()
    {
+      local i;
+      
+      foreach i in plMovedList
+      {
+         DeleteTimer(Nth(i,2));
+         SetNth(i,2,$);
+         SetNth(i,1,$);
+         plMovedList = DelListElem(plMovedList,i);
+      }
+      plMovedList = $;
       propagate;
+   }
+
+   SomethingMoved(what=$)
+   {
+      if IsClass(what,&User)
+      {
+         Send(self,@AddUserToMovedList,#who=what);
+      }
+      return;
+   }
+
+   IsUserOnMovedList(who=$)
+   {
+      local i;
+      
+      foreach i in plMovedList
+      {
+         if First(i) = who
+         {
+            return TRUE;
+         }
+      }
+      return FALSE;
+   }
+
+   AddUserToMovedList(who=$)
+   {
+      local i;
+
+      foreach i in plMovedList
+      {
+         if First(i) = who
+         {
+            if Nth(i,2) <> $
+            {
+               % Already on the list. Refresh.
+               DeleteTimer(Nth(i,2));
+               SetNth(i,2,$);
+               SetNth(i,2,CreateTimer(self,@RemoveUserFromMovedList,2000));
+            }
+            return;
+         }
+      }
+      plMovedList = Cons([who,CreateTimer(self,@RemoveUserFromMovedList,2000)],plMovedList);
+      return;
+   }
+
+   RemoveUserFromMovedList(timer=$)
+   {
+      local i;
+      
+      foreach i in plMovedList
+      {
+         if Nth(i,2) = timer
+         {
+            SetNth(i,2,$);
+            SetNth(i,1,$);
+            plMovedList = DelListElem(plMovedList,i);
+            return TRUE;
+         }
+      }
+      
+      return FALSE;
    }
 
 end

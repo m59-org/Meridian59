@@ -8798,7 +8798,7 @@ messages:
       }
 
       piLight = piLight + amount;
-      Send(self,@NewLight);
+      Send(self,@RecalcLight);
 
       return amount;
    }
@@ -8812,7 +8812,7 @@ messages:
       }
 
       piLight = piLight - amount;
-      Send(self,@NewLight);
+      Send(self,@RecalcLight);
 
       return amount;
    }
@@ -14283,6 +14283,22 @@ messages:
          iLight = iLight + iState;
       }
 
+      foreach i in plReservedSpells
+      {
+         if IsClass(Nth(i,1),&TouchAttackSpell)
+         {
+            iLight = iLight + Send(Nth(i,1),@GetEnchantmentLight);
+         }
+      }
+
+      foreach i in plEnchantments
+      {
+         if IsClass(Nth(i,2),&TouchAttackSpell)
+         {
+            iLight = iLight + Send(Nth(i,1),@GetEnchantmentLight);
+         }
+      }
+
       % Glowing weapons?
       oWeapon = Send(self,@LookupPlayerWeapon);
       if oWeapon <> $
@@ -14292,6 +14308,12 @@ messages:
          {
             iLight = iLight + Nth(iState,3);
          }
+      }
+      
+      if poOwner <> $
+         AND Send(poOwner,@OverridePlayerLightLevel)
+      {
+         iLight = Send(poOwner,@GetOverridePlayerLightLevel);
       }
 
       if piLight <> iLight
