@@ -59,6 +59,14 @@ resources:
       "The barrier of fire is dim."
    fire_wall_closes_msg = \
       "The barrier of fire glows brightly."
+   unholy_wall_opens_msg = \
+      "The barrier of negative energy is dim."
+   unholy_wall_closes_msg = \
+      "The barrier of negative energy glimmers darkly."
+   holy_wall_opens_msg = \
+      "The barrier of positive energy is dim."
+   holy_wall_closes_msg = \
+      "The barrier of positive energy blazes with power."
    
 classvars:
 
@@ -391,11 +399,61 @@ messages:
 
    OpenUnholyWall()
    {
+      local i;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&Player)
+         {
+            Send(First(i),@MsgSendUser,#message_rsc=unholy_wall_opens_msg);
+         }
+      }
+      Send(self,@AnimateWall,#wall=UNHOLY_WALL,#animation=ANIMATE_NONE,#first_group=1,#passable=TRUE);
       return;
    }
 
    CloseUnholyWall()
    {
+      local i;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&Player)
+         {
+            Send(First(i),@MsgSendUser,#message_rsc=unholy_wall_closes_msg);
+         }
+      }
+      Send(self,@AnimateWall,#wall=UNHOLY_WALL,#animation=ANIMATE_NONE,#first_group=1,#passable=FALSE);
+      return;
+   }
+
+   OpenHolyWall()
+   {
+      local i;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&Player)
+         {
+            Send(First(i),@MsgSendUser,#message_rsc=holy_wall_opens_msg);
+         }
+      }
+      Send(self,@AnimateWall,#wall=HOLY_WALL,#animation=ANIMATE_NONE,#first_group=1,#passable=TRUE);
+      return;
+   }
+
+   CloseHolyWall()
+   {
+      local i;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&Player)
+         {
+            Send(First(i),@MsgSendUser,#message_rsc=holy_wall_closes_msg);
+         }
+      }
+      Send(self,@AnimateWall,#wall=HOLY_WALL,#animation=ANIMATE_NONE,#first_group=1,#passable=FALSE);
       return;
    }
 
@@ -418,8 +476,15 @@ messages:
          Post(self,@OpenFireWall);
       }
 
-%      Send(self,@AnimateWall,#wall=HOLY_WALL,#animation=ANIMATE_NONE,#first_group=1,#passable=TRUE);
-%      Send(self,@AnimateWall,#wall=UNHOLY_WALL,#animation=ANIMATE_NONE,#first_group=1,#passable=TRUE);
+      if Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTALDUNES4E),@GetPrismOfDeathDefeated)
+      {
+         Post(self,@OpenUnholyWall);
+      }
+
+      if Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTALDUNES4W),@GetPrismOfLifeDefeated)
+      {
+         Post(self,@OpenHolyWall);
+      }
       propagate;
    }
 

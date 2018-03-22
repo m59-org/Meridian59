@@ -69,6 +69,11 @@ classvars:
    vbOverridePlayerLightLevel = TRUE
    viOverridePlayerLightLevel = 0
 
+   % No pens or PKing in afterlife. Everyone's already dead!
+   viPermanent_flags = ROOM_SAFELOGOFF | ROOM_NO_PK
+
+   viCanSpawnChampions = FALSE
+
 properties:
 
    prMusic = prismofdeath_music
@@ -924,13 +929,63 @@ messages:
       propagate;
    }
 
+   CheckNewHoldObjectFullyEntered()
+   {
+      return TRUE;
+   }
+
+   NewHoldObjectFullyEntered(what = $)
+   {
+      local oGreyGhost;
+
+      if IsClass(what,&User)
+      {
+         oGreyGhost = Send(SYS,@FindSpellByNum,#num=SID_GREY_GHOST);
+         
+         Send(what,@ReserveSpell,#oSpell=oGreyGhost,#iPercentManaReserved=0,#iSpellPower=99);
+         %Post(what,@SendEnchantmentIcons);
+      }
+
+      propagate;
+   }
+
    LeaveHold(what=$)
    {
       if IsClass(what,&Player)
       {
          Post(what,@RecalcLight);
+         Post(self,@CheckToRemoveGreyGhost,#what=what);
       }
       propagate;
+   }
+
+   CheckToRemoveGreyGhost(what=$)
+   {
+      local oGreyGhost;
+
+      if Send(what,@GetOwner) = $
+         OR (NOT IsClass(Send(what,@GetOwner),&DesertAfterlife)
+            AND NOT IsClass(Send(what,@GetOwner),&PrismOfLife)
+            AND NOT IsClass(Send(what,@GetOwner),&PrismOfDeath))
+      {
+         if IsClass(what,&User)
+         {
+            oGreyGhost = Send(SYS,@FindSpellByNum,#num=SID_GREY_GHOST);
+         
+            Send(what,@UnReserveSpell,#oSpell=oGreyGhost);
+            %Post(what,@SendEnchantmentIcons);
+         }
+         else
+         {
+            Post(what,@RemoveDrawingEffects,#value=DRAWFX_SECONDTRANS);
+            if Send(what,@GetOwner) <> $
+            {
+               Post(Send(what,@GetOwner),@SomethingChanged,#what=what);
+            }
+         }
+      }
+      
+      return;
    }
 
    SomethingMoved(what=$)
@@ -953,6 +1008,16 @@ messages:
    CanHavePlayerPortal()
    {
       return FALSE;
+   }
+
+   StartRain()
+   {
+      return;
+   }
+   
+   StartSnow()
+   {
+      return;
    }
 
 end

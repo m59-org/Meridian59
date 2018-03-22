@@ -11,7 +11,8 @@ BOFS  = xeofire.bof xeowater.bof xeoearth.bof xeoair.bof \
         xeobosswater.bof xeobossacid.bof \
         xeobossunholy.bof \
         xeobossunholy2.bof \
-        xeobossunholy3.bof
+        xeobossunholy3.bof \
+        xeobossholy.bof
 
 
 !include $(KODDIR)\kod.mak

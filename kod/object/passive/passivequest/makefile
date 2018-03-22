@@ -54,6 +54,8 @@ BOFS = hp20pq1.bof \
        hpMaxMinus10pq5a.bof\
        hpMaxMinus10pq5b.bof\
        hpMaxMinus10pq5c.bof\
+       hpMaxMinus10pq5d.bof\
+       hpMaxMinus10pq5e.bof\
        hpMaxMinus10pq6.bof\
        hpMaxMinus10pq7.bof\
        hpMaxMinus10pq8.bof\
