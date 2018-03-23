@@ -31,6 +31,14 @@ resources:
       "You want %s%s?  Yes, yes, I have a few old trophies that "
       "you can buy from me."
 
+   aim_train_trigger = \
+      "I wish to train my Aim."
+
+   teach_aim_msg = \
+      "I suppose I've still got some teaching left in this old body. Approach and I shall train you."
+   gained_aim_msg = \
+      "~BYour Aim has increased by one point!"
+
 classvars:
 
    vrName = KocatanWeaponsMaster_name_rsc
@@ -88,6 +96,32 @@ messages:
             KocatanWeaponsMaster_orcteeth_sale]);
 
       return;
+   }
+
+   SomeoneSaid(what = $,type = $,string = $)
+   {
+      local iStatSum;
+
+      if what <> $
+         AND IsClass(what,&User)
+         AND StringEqual(string,aim_train_trigger)
+      {
+         iStatSum = Send(what,@GetRawMight) +
+                    Send(what,@GetRawIntellect) +
+                    Send(what,@GetRawStamina) +
+                    Send(what,@GetRawAgility) +
+                    Send(what,@GetRawMysticism) +
+                    Send(what,@GetRawAim);
+         
+         if iStatSum < 200 + Send(what,@GetNumReincarnations)
+         {
+            Send(self,@SayToOne,#target=what,#message_rsc=teach_aim_msg);
+            Send(what,@MsgSendUser,#message_rsc=gained_aim_msg);
+         }
+         return;
+      }
+      
+      propagate;
    }
 
 end

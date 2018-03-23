@@ -1590,13 +1590,15 @@ messages:
    UpdateAccumulatedWisdom()
    {
       % Intended to happen one time only for existing characters
-      piAccumulatedWisdom = Send(self,@GetReincarnationAccumulatedWisdomExisting) + piTraining_points;
+      Send(self,@AddAccumulatedWisdom,#amount=Send(self,@GetReincarnationAccumulatedWisdomExisting) + piTraining_points);
       Send(self,@ReportAccumulatedWisdom);
       return;
    }
 
    AddAccumulatedWisdom(amount=0)
    {
+      local bHumanDoubler;
+      
       if piAccumulatedWisdom = MAX_KOD_INT
       {
          return;
@@ -1612,120 +1614,129 @@ messages:
       {
          piAccumulatedWisdom = piAccumulatedWisdom + amount;
       }
+      
+      if piPlayerRace = RACE_HUMAN
+      {
+         bHumanDoubler = 2;
+      }
+      else
+      {
+         bHumanDoubler = 1;
+      }
 
       if piReincarnations = 0
          AND piAccumulatedWisdom >= 10000
       {
          piReincarnations++;
-         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations);
+         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations*bHumanDoubler);
       }
       if piReincarnations = 1
          AND piAccumulatedWisdom >= 20000
       {
          piReincarnations++;
-         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations);
+         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations*bHumanDoubler);
       }
       if piReincarnations = 2
          AND piAccumulatedWisdom >= 30000
       {
          piReincarnations++;
-         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations);
+         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations*bHumanDoubler);
       }
       if piReincarnations = 3
          AND piAccumulatedWisdom >= 45000
       {
          piReincarnations++;
-         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations);
+         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations*bHumanDoubler);
       }
       if piReincarnations = 4
          AND piAccumulatedWisdom >= 80000
       {
          piReincarnations++;
-         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations);
+         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations*bHumanDoubler);
       }
       if piReincarnations = 5
          AND piAccumulatedWisdom >= 120000
       {
          piReincarnations++;
-         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations);
+         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations*bHumanDoubler);
       }
       if piReincarnations = 6
          AND piAccumulatedWisdom >= 165000
       {
          piReincarnations++;
-         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations);
+         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations*bHumanDoubler);
       }
       if piReincarnations = 7
          AND piAccumulatedWisdom >= 205000
       {
          piReincarnations++;
-         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations);
+         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations*bHumanDoubler);
       }
       if piReincarnations = 8
          AND piAccumulatedWisdom >= 260000
       {
          piReincarnations++;
-         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations);
+         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations*bHumanDoubler);
       }
       if piReincarnations = 9
          AND piAccumulatedWisdom >= 320000
       {
          piReincarnations++;
-         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment_ten_points,#parm1=piReincarnations);
+         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment_ten_points,#parm1=piReincarnations*bHumanDoubler);
       }
       if piReincarnations = 10
          AND piAccumulatedWisdom >= 1000000
       {
          piReincarnations++;
-         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations);
+         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations*bHumanDoubler);
       }
       if piReincarnations = 11
          AND piAccumulatedWisdom >= 4000000
       {
          piReincarnations++;
-         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations);
+         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations*bHumanDoubler);
       }
       if piReincarnations = 12
          AND piAccumulatedWisdom >= 8000000
       {
          piReincarnations++;
-         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations);
+         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations*bHumanDoubler);
       }
       if piReincarnations = 13
          AND piAccumulatedWisdom >= 13000000
       {
          piReincarnations++;
-         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations);
+         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations*bHumanDoubler);
       }
       if piReincarnations = 14
          AND piAccumulatedWisdom >= 19000000
       {
          piReincarnations++;
-         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations);
+         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations*bHumanDoubler);
       }
       if piReincarnations = 15
          AND piAccumulatedWisdom >= 26000000
       {
          piReincarnations++;
-         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations);
+         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations*bHumanDoubler);
       }
       if piReincarnations = 16
          AND piAccumulatedWisdom >= 40000000
       {
          piReincarnations++;
-         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations);
+         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations*bHumanDoubler);
       }
       if piReincarnations = 17
          AND piAccumulatedWisdom >= 60000000
       {
          piReincarnations++;
-         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations);
+         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations*bHumanDoubler);
       }
       if piReincarnations = 18
          AND piAccumulatedWisdom >= 90000000
       {
          piReincarnations++;
-         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations);
+         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations*bHumanDoubler);
       }
       return;
    }
