@@ -18,6 +18,8 @@ constants:
    include protocol.khd
 
    TRAINING_POINT_CAP = 3000
+   
+   ACCUMULATED_WISDOM_TO_TRAINING_POINTS_CAP = 320000
 
    % Three minutes
    BOND_REPORT_INTERVAL = 1000 * 60 * 3
@@ -885,9 +887,9 @@ resources:
       "Your hindered line of sight makes a successful hit more difficult."
 
    reincarnated_once = \
-      "%s has reincarnated once.\n"
+      "%s has found enlightenment once.\n"
    reincarnated_times = \
-      "%s has reincarnated %d times.\n"
+      "%s has found enlightenment %d times.\n"
 
    ready_to_reincarnate_msg = \
       "You are ready to reincarnate. Perhaps you should explore the Hall of Genealogy "
@@ -956,9 +958,51 @@ resources:
    lose_song_due_to_mana_change_msg = \
       "Due to the change in your maximum mana, you lose the reservation of one of your songs!"
 
-   report_acc_wisdom_msg = \
+   report_acc_wisdom_training_points_less_cap_msg = \
       "Throughout your lifetimes in this world, you have accumulated %i wisdom. "
       "If you were to reincarnate now, that is how many Training Points you would start your new life with."
+   report_acc_wisdom_training_points_at_cap_msg = \
+      "Throughout your lifetimes in this world, you have accumulated %i wisdom. "
+      "Unfortunately, you can only take at most 320,000 Training Points with you into the next life. "
+      "That is how many Training Points you would start your new life with."
+
+   % AW goes up. When you cross thresholds, you receive stat points.
+   % Stat points 1-10 are easy to reach.
+   % 1: 10,000
+   % 2: 20,000
+   % 3: 30,000
+   % 4: 45,000
+   % 5: 80,000
+   % 6: 120,000
+   % 7: 165,000
+   % 8: 205,000
+   % 9: 260,000
+   % 10: 320,000         <------- fully built mark. 320k TP is the highest you can ever get.
+   %
+   % After that, it gets incredibly hard
+   % AW goes from 0 to 134,217,727
+   %
+   % 11: 1,000,000
+   % 12: 4,000,000
+   % 13: 8,000,000
+   % 14: 13,000,000
+   % 15: 19,000,000
+   % 16: 26,000,000
+   % 17: 40,000,000
+   % 18: 60,000,000
+   % 19: 90,000,000
+   % 20: 134,217,727
+   
+   attained_enlightenment = \
+      "~B~oYour mind and spirit surge with power as you suddenly realize a new level of enlightenment. "
+      "You now have %i extra stat points born of your newfound spiritual strength."
+   
+   attained_enlightenment_ten_points = \
+      "~B~oYou have reached your tenth level of enlightenment! You now have %i extra stat points born of pure spiritual strength. "
+      "From this point on, continued enlightenments will be extremely difficult."
+      
+   max_accumulated_wisdom_achieved = \
+      "~B~oYou have achieved total enlightenment. You can no longer accumulate wisdom. Your total spiritual strength is 20 extra stat points."
 
 classvars:
 
@@ -1272,6 +1316,7 @@ properties:
    piRacialVigorMod = 0
    
    % Tracks the number of this character's reincarnations
+   % New system: this is the number of extra stat points
    piReincarnations = 0
    % Do we have a free stat reset for reincarnation?
    pbReincarnationStatsReset = FALSE
@@ -1474,7 +1519,8 @@ messages:
          piAim = Send(self,@GetMaxAim);
       }
       
-      ++piReincarnations;
+      % No longer increment reincarnations
+      %++piReincarnations;
 
       Send(self,@SetReincarnationStatsReset,#value=TRUE);
       Post(self,@SendStatChange);
@@ -1484,6 +1530,9 @@ messages:
 
    CanReincarnate()
    {
+      % New system, can reincarnate any time
+      return TRUE;
+
       if Send(self,@GetReincarnationSum) >= Send(self,@GetNextReincarnationSum)
          AND piReincarnations < 10
       {
@@ -1496,6 +1545,9 @@ messages:
    ReportReincarnationProgress()
    {
       local iReincarnationSum;
+      
+      % New system, can reincarnate any time
+      return;
 
       if Send(self,@IsLoggedOn)
          AND Send(SETTINGS_OBJECT,@GetReincarnationEnabled)
@@ -1524,7 +1576,14 @@ messages:
 
    ReportAccumulatedWisdom()
    {
-      Send(self,@MsgSendUser,#message_rsc=report_acc_wisdom_msg,#parm1=piAccumulatedWisdom);
+      if piAccumulatedWisdom < ACCUMULATED_WISDOM_TO_TRAINING_POINTS_CAP
+      {
+         Send(self,@MsgSendUser,#message_rsc=report_acc_wisdom_training_points_less_cap_msg,#parm1=piAccumulatedWisdom);
+      }
+      else
+      {
+         Send(self,@MsgSendUser,#message_rsc=report_acc_wisdom_training_points_at_cap_msg,#parm1=piAccumulatedWisdom);
+      }
       return;
    }
 
@@ -1538,13 +1597,135 @@ messages:
 
    AddAccumulatedWisdom(amount=0)
    {
+      if piAccumulatedWisdom = MAX_KOD_INT
+      {
+         return;
+      }
+
       if piAccumulatedWisdom + amount >= MAX_KOD_INT
       {
          piAccumulatedWisdom = MAX_KOD_INT;
+         Send(self,@MsgSendUser,#message_rsc=max_accumulated_wisdom_achieved);
+         return;
       }
       else
       {
          piAccumulatedWisdom = piAccumulatedWisdom + amount;
+      }
+
+      if piReincarnations = 0
+         AND piAccumulatedWisdom >= 10000
+      {
+         piReincarnations++;
+         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations);
+      }
+      if piReincarnations = 1
+         AND piAccumulatedWisdom >= 20000
+      {
+         piReincarnations++;
+         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations);
+      }
+      if piReincarnations = 2
+         AND piAccumulatedWisdom >= 30000
+      {
+         piReincarnations++;
+         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations);
+      }
+      if piReincarnations = 3
+         AND piAccumulatedWisdom >= 45000
+      {
+         piReincarnations++;
+         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations);
+      }
+      if piReincarnations = 4
+         AND piAccumulatedWisdom >= 80000
+      {
+         piReincarnations++;
+         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations);
+      }
+      if piReincarnations = 5
+         AND piAccumulatedWisdom >= 120000
+      {
+         piReincarnations++;
+         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations);
+      }
+      if piReincarnations = 6
+         AND piAccumulatedWisdom >= 165000
+      {
+         piReincarnations++;
+         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations);
+      }
+      if piReincarnations = 7
+         AND piAccumulatedWisdom >= 205000
+      {
+         piReincarnations++;
+         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations);
+      }
+      if piReincarnations = 8
+         AND piAccumulatedWisdom >= 260000
+      {
+         piReincarnations++;
+         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations);
+      }
+      if piReincarnations = 9
+         AND piAccumulatedWisdom >= 320000
+      {
+         piReincarnations++;
+         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment_ten_points,#parm1=piReincarnations);
+      }
+      if piReincarnations = 10
+         AND piAccumulatedWisdom >= 1000000
+      {
+         piReincarnations++;
+         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations);
+      }
+      if piReincarnations = 11
+         AND piAccumulatedWisdom >= 4000000
+      {
+         piReincarnations++;
+         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations);
+      }
+      if piReincarnations = 12
+         AND piAccumulatedWisdom >= 8000000
+      {
+         piReincarnations++;
+         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations);
+      }
+      if piReincarnations = 13
+         AND piAccumulatedWisdom >= 13000000
+      {
+         piReincarnations++;
+         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations);
+      }
+      if piReincarnations = 14
+         AND piAccumulatedWisdom >= 19000000
+      {
+         piReincarnations++;
+         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations);
+      }
+      if piReincarnations = 15
+         AND piAccumulatedWisdom >= 26000000
+      {
+         piReincarnations++;
+         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations);
+      }
+      if piReincarnations = 16
+         AND piAccumulatedWisdom >= 40000000
+      {
+         piReincarnations++;
+         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations);
+      }
+      if piReincarnations = 17
+         AND piAccumulatedWisdom >= 60000000
+      {
+         piReincarnations++;
+         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations);
+      }
+      if piReincarnations = 18
+         AND piAccumulatedWisdom >= 90000000
+      {
+         piReincarnations++;
+         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations);
       }
       return;
    }
@@ -1568,16 +1749,20 @@ messages:
       
       iSum = 0;
       
+      % This uses different calculations than AW normally does.
+      % This is for conversion from old reincarnation system to new.
+      % This will give existing characters large AW pools.
+      
       foreach i in plSkills
       {
          oAbility = Send(SYS,@FindSkillByNum,#num=Send(self,@DecodeSkillNum,#compound=i));
-         iSum = iSum + (Send(self,@DecodeSkillAbility,#compound=i)*Send(oAbility,@GetLevel));
+         iSum = iSum + (Send(self,@DecodeSkillAbility,#compound=i)*Send(oAbility,@GetMeditateRatio));
       }
 
       foreach i in plSpells
       {
          oAbility = Send(SYS,@FindSpellByNum,#num=Send(self,@DecodeSpellNum,#compound=i));
-         iSum = iSum + (Send(self,@DecodeSpellAbility,#compound=i)*Send(oAbility,@GetLevel));
+         iSum = iSum + (Send(self,@DecodeSpellAbility,#compound=i)*Send(oAbility,@GetMeditateRatio));
       }
 
       return iSum;
@@ -3880,7 +4065,7 @@ messages:
    ReincarnateCharacter()
    "Conditionally altered reset"
    {
-      local i;
+      local i, iGetMaxHealth, iBonusTPPercentage;
 
       Send(self,@RemoveAllEnchantments,#report=FALSE);
       Send(self,@ClearAllStatusEffects);
@@ -3907,10 +4092,16 @@ messages:
       {
          Debug("LOG: ",vrName," reincarnated!");
       }
+      
+      % THIS IS NOW WHERE WE GIVE BONUS TP / AW BASED ON HP
+      iGetMaxHealth = piBase_Max_Health;
+      
+      iBonusTPPercentage = 100 + Bound((iGetMaxHealth-75)/5,0,25);
+      Send(self,@AddAccumulatedWisdom,#amount=(Send(self,@GetAccumulatedWisdom)*iBonusTPPercentage)/100);
 
       % Setup some stats
-      piBase_max_health = Bound(20 + ((piReincarnations+1)*10),20,100);
-      piHealth = Bound(2000 + ((piReincarnations+1)*1000),2000,10000);
+      piBase_max_health = 20;
+      piHealth = 2000;
       piMax_health = piBase_max_health;
       Post(self,@ComputeMaxMana);
 
@@ -3958,7 +4149,9 @@ messages:
       Send(self,@AddDefaultSpells);
       Send(self,@AddDefaultSkills);
       
-      Post(self,@AddTrainingPoints,#points=(piReincarnations+1)*Send(SETTINGS_OBJECT,@GetTPperReinc),#report=TRUE,#bCap=FALSE);
+      %Post(self,@AddTrainingPoints,#points=(piReincarnations+1)*Send(SETTINGS_OBJECT,@GetTPperReinc),#report=TRUE,#bCap=FALSE);
+      piTraining_points = Bound(piAccumulatedWisdom,0,ACCUMULATED_WISDOM_TO_TRAINING_POINTS_CAP);
+      Post(self,@DrawTraining);
 
       return;
    }
@@ -11630,6 +11823,13 @@ messages:
          return;
       }
 
+      if bEarned
+         AND points > 0
+      {
+         % Only add real generated training points to accumulated wisdom
+         Send(self,@AddAccumulatedWisdom,#amount=points);
+      }
+
       if bCap
       {
          if piTraining_points <= TRAINING_POINT_CAP
@@ -11657,12 +11857,6 @@ messages:
                #parm1=-points);
       }
 
-      if bEarned
-         AND points > 0
-      {
-         % Only add real generated training points to accumulated wisdom
-         Send(self,@AddAccumulatedWisdom,#amount=points);
-      }
       piTraining_points = piTraining_points + points;
 
       if piTraining_points < TRAINING_POINT_CAP
