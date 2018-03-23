@@ -400,6 +400,7 @@ resources:
    genealogy_choose_undine_trigger = "I wish to reincarnate as half-undine."
 
    genealogy_inform_trigger = "I wish to be informed of my reincarnation progress."
+   genealogy_accumulated_wisdom_trigger = "I wish to be informed of my accumulated wisdom."
 
    not_ready_reincarnate = \
       "You cannot reincarnate until you have achieved enough potential "
@@ -471,8 +472,8 @@ resources:
       "\n\nThis process will destroy all of your worn and held items, "
       "and you will forget everything you have learned in this life. "
       "You will be as a newborn, save a little wiser for your experiences. "
-      "\n\nIf you wish to be informed of your reincarnation progress, state thus: "
-      "\n\nI wish to be informed of my reincarnation progress."
+      "\n\nIf you wish to be informed of your accumulated wisdom, state thus: "
+      "\n\nI wish to be informed of my accumulated wisdom."
 
    genealogy_human = \
       "Written by Alzahakar, Councilor of Meridian\n"
@@ -532,8 +533,8 @@ resources:
       "\n\nThis process will destroy all of your worn and held items, "
       "and you will forget everything you have learned in this life. "
       "You will be as a newborn, save a little wiser for your experiences. "
-      "\n\nIf you wish to be informed of your reincarnation progress, state thus: "
-      "\n\nI wish to be informed of my reincarnation progress."
+      "\n\nIf you wish to be informed of your accumulated wisdom, state thus: "
+      "\n\nI wish to be informed of my accumulated wisdom."
 
    genealogy_demon = \
       "Written by Xaerdun, Demon of Greed"
@@ -612,8 +613,8 @@ resources:
       "\n\nThis process will destroy all of your worn and held items, "
       "and you will forget everything you have learned in this life. "
       "You will be as a newborn, save a little wiser for your experiences. "
-      "\n\nIf you wish to be informed of your reincarnation progress, state thus: "
-      "\n\nI wish to be informed of my reincarnation progress."
+      "\n\nIf you wish to be informed of your accumulated wisdom, state thus: "
+      "\n\nI wish to be informed of my accumulated wisdom."
 
    genealogy_orc = \
       "Written by Grot, Servant to Pit Boss' Second Wizard"
@@ -685,8 +686,8 @@ resources:
       "\n\nThis process will destroy all of your worn and held items, "
       "and you will forget everything you have learned in this life. "
       "You will be as a newborn, save a little wiser for your experiences. "
-      "\n\nIf you wish to be informed of your reincarnation progress, state thus: "
-      "\n\nI wish to be informed of my reincarnation progress."
+      "\n\nIf you wish to be informed of your accumulated wisdom, state thus: "
+      "\n\nI wish to be informed of my accumulated wisdom."
 
    genealogy_elf = \
       "Written by Ela'teh, Ambassador of the Woods"
@@ -769,8 +770,8 @@ resources:
       "\n\nThis process will destroy all of your worn and held items, "
       "and you will forget everything you have learned in this life. "
       "You will be as a newborn, save a little wiser for your experiences. "
-      "\n\nIf you wish to be informed of your reincarnation progress, state thus: "
-      "\n\nI wish to be informed of my reincarnation progress."
+      "\n\nIf you wish to be informed of your accumulated wisdom, state thus: "
+      "\n\nI wish to be informed of my accumulated wisdom."
 
 classvars:
 
@@ -935,7 +936,12 @@ messages:
       if StringEqual(string,genealogy_inform_trigger)
       {
          Send(what,@SetInformReincarnationProgress,#value=TRUE);
-         Send(what,@ReportReincarnationProgress);
+         Post(what,@ReportReincarnationProgress);
+      }
+      
+      if StringEqual(string,genealogy_accumulated_wisdom_trigger)
+      {
+         Post(what,@ReportAccumulatedWisdom);
       }
 
       bTryReincarnate = FALSE;

@@ -961,6 +961,8 @@ resources:
    report_acc_wisdom_training_points_less_cap_msg = \
       "Throughout your lifetimes in this world, you have accumulated %i wisdom. "
       "If you were to reincarnate now, that is how many Training Points you would start your new life with."
+   report_acc_wisdom_bonus = \
+      "You would then receive a permanent %i\% bonus on that amount for the health you have reached in this life."
    report_acc_wisdom_training_points_at_cap_msg = \
       "Throughout your lifetimes in this world, you have accumulated %i wisdom. "
       "Unfortunately, you can only take at most 320,000 Training Points with you into the next life. "
@@ -1579,6 +1581,10 @@ messages:
       if piAccumulatedWisdom < ACCUMULATED_WISDOM_TO_TRAINING_POINTS_CAP
       {
          Send(self,@MsgSendUser,#message_rsc=report_acc_wisdom_training_points_less_cap_msg,#parm1=piAccumulatedWisdom);
+         if piBase_Max_Health >= 80
+         {
+            Send(self,@MsgSendUser,#message_rsc=report_acc_wisdom_bonus,#parm1=Bound((piBase_Max_Health-75)/5,0,25));
+         }
       }
       else
       {
@@ -4076,7 +4082,7 @@ messages:
    ReincarnateCharacter()
    "Conditionally altered reset"
    {
-      local i, iGetMaxHealth, iBonusTPPercentage;
+      local i, iBonusTPPercentage, iAccumulatedWisdom;
 
       Send(self,@RemoveAllEnchantments,#report=FALSE);
       Send(self,@ClearAllStatusEffects);
@@ -4105,10 +4111,9 @@ messages:
       }
       
       % THIS IS NOW WHERE WE GIVE BONUS TP / AW BASED ON HP
-      iGetMaxHealth = piBase_Max_Health;
-      
-      iBonusTPPercentage = 100 + Bound((iGetMaxHealth-75)/5,0,25);
-      Send(self,@AddAccumulatedWisdom,#amount=(Send(self,@GetAccumulatedWisdom)*iBonusTPPercentage)/100);
+      iBonusTPPercentage = 100 + Bound((piBase_Max_Health-75)/5,0,25);
+      iAccumulatedWisdom = Send(self,@GetAccumulatedWisdom);
+      Send(self,@AddAccumulatedWisdom,#amount=Bound(((iAccumulatedWisdom*iBonusTPPercentage)/100)-iAccumulatedWisdom,0,$));
 
       % Setup some stats
       piBase_max_health = 20;
