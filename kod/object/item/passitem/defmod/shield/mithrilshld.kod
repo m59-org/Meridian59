@@ -74,15 +74,26 @@ messages:
       propagate;
    }
 
-   GetDefenseBonus()
+   % Shields use the defense bonus as a bonus to block instead.
+   ModifyDefensePower(who = $,what = $,defense_power = 0)
    {
-      local iKarma, iRating;
+      local i, oDefenseMod, iKarma, iRating;
 
       if NOT Send(poOwner,@HasSpell,#num=SID_HOLY_SHIELD)
       {
          Post(self,@Delete);
          return 0;
       }
+
+      foreach i in plEnchantmentMods
+      {
+         if Nth(i,1) = &DefenseMod
+         {
+            oDefenseMod = Send(SYS,@GetMagicMod,#class=&DefenseMod);
+            defense_power = Send(oDefenseMod,@ModifyDefensePower,#defense_power=defense_power,#iState=Nth(i,2));
+         }
+      }
+
       iKarma = 0;
       if poOwner <> $
          AND IsClass(poOwner,&Player)
@@ -95,13 +106,30 @@ messages:
          iKarma = 0;
       }
 
-      return Bound(iKarma,0,piCreatedSpellpower+1);
+      return defense_power + Bound(iKarma,0,piCreatedSpellpower+1);
    }
 
-   GetBlockAbility(who = $)
+   GetDefenseBonus()
    {
-      local iKarma, iRating;
+      local i, oDefenseMod, iKarma, iRating, defense_power;
+
+      if NOT Send(poOwner,@HasSpell,#num=SID_HOLY_SHIELD)
+      {
+         Post(self,@Delete);
+         return 0;
+      }
       
+      defense_power = 0;
+
+      foreach i in plEnchantmentMods
+      {
+         if Nth(i,1) = &DefenseMod
+         {
+            oDefenseMod = Send(SYS,@GetMagicMod,#class=&DefenseMod);
+            defense_power = Send(oDefenseMod,@ModifyDefensePower,#defense_power=defense_power,#iState=Nth(i,2));
+         }
+      }
+
       iKarma = 0;
       if poOwner <> $
          AND IsClass(poOwner,&Player)
@@ -114,7 +142,7 @@ messages:
          iKarma = 0;
       }
 
-      return Send(who,@GetSkillAbility,#skill_num=SKID_BLOCK) + Bound(iKarma,0,piCreatedSpellpower+1);
+      return defense_power + Bound(iKarma,0,piCreatedSpellpower+1);
    }
 
    GetResistanceModifiers()
@@ -146,6 +174,27 @@ messages:
       return [ [ATCK_WEAP_ALL,iRating],
                [-ATCK_SPELL_ALL,iRating]
                ];
+   }
+
+   GetHexResistance()
+   {
+      local iKarma, iRating;
+
+      iKarma = 0;
+      if poOwner <> $
+         AND IsClass(poOwner,&Player)
+      {
+         iKarma = Send(poOwner,@GetKarma);
+      }
+
+      if iKarma = $
+      {
+         iKarma = 0;
+      }
+
+      iRating = Bound((iKarma*11)/100,0,((piCreatedSpellpower+1)*11)/100);
+
+      return iRating;
    }
 
    CanBeGivenToNPC()

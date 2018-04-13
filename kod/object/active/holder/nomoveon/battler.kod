@@ -2534,15 +2534,33 @@ messages:
 
       return;
    }
-   
+
+   GetHexIncEffect(iSpellPower=0,oTarget=$)
+   {
+      local lBindingSongState, iBindingSongInc;
+
+      iBindingSongInc = 0;
+      lBindingSongState = Send(self,@GetMostPowerfulRadiusEnchantmentState,#byClass=&BindingSong);
+      if lBindingSongState <> $
+      {
+         iBindingSongInc = Send(Nth(lBindingSongState,1),@GetHexIncEffect,#iSongPower=Nth(lBindingSongState,2));
+      }
+
+      return iSpellPower + 1 + iBindingSongInc;
+   }
+
    GetHexResistance()
    {
-      return bound(piHexResistance,-200,200);
-   }
-   
-   GetHexIncEffect(iSpellPower=0)
-   {
-      return iSpellPower+1;
+      local lBindingSongState, iBindingSongRes;
+
+      iBindingSongRes = 0;
+      lBindingSongState = Send(self,@GetMostPowerfulRadiusEnchantmentState,#byClass=&BindingSong);
+      if lBindingSongState <> $
+      {
+         iBindingSongRes = Send(Nth(lBindingSongState,1),@GetHexResistance,#iSongPower=Nth(lBindingSongState,2));
+      }
+
+      return bound(piHexResistance+iBindingSongRes,-200,200);
    }
 
    GetCasterMaxHexes()

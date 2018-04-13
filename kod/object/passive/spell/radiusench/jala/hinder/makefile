@@ -6,6 +6,6 @@
 
 DEPEND = ..\hinder.bof
 BOFS = truth.bof civility.bof concil.bof sacrdres.bof profnres.bof disharm.bof \
-       spelbane.bof
+       spelbane.bof bindingsong.bof
 
 !include $(KODDIR)\kod.mak

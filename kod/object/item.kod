@@ -95,6 +95,8 @@ resources:
    item_stats_mana_add = "%i max mana\n"
    item_stats_vigor_add = "%i max vigor\n"
    item_stats_empowerment_add = "%i%% %s\n"
+   item_stats_hex_inc_effect_add = "%i%% increased hex effectiveness\n"
+   item_stats_hex_resistance_add = "%i%% hex resistance\n"
    enchanted_gear_indestructible = "\nThis enchanted %s is indestructible."
    enchanted_gear_plural_indestructible = "\nThese enchanted %s are indestructible."
 
@@ -221,7 +223,7 @@ messages:
             iMysticismChange, iAimChange, iHealthChange, iManaChange, iVigorChange;
 
       % This message 'telescopes' resources into the 5th %r of
-      % item_desc_template. There are 17 different stats we can add;
+      % item_desc_template. There are 18 different stats we can add;
       % when we first add a stat to be displayed we add a template with
       % the correct number of %r formatters to match the number of stats
       % remaining (plus one for the special_properties_header). If a stat
@@ -236,7 +238,7 @@ messages:
 
       if Send(self,@GetRange) <> 0
       {
-         AddPacket(4,system_rsc_template_19, 4,special_properties_header,
+         AddPacket(4,system_rsc_template_21, 4,special_properties_header,
                    4,item_stats_range, 4,Send(self,@GetRange)/FINENESS);
          bFoundProperties = TRUE;
       }
@@ -253,7 +255,7 @@ messages:
             else
             {
                % bFoundProperties FALSE, add headers.
-               AddPacket(4,system_rsc_template_18, 4,special_properties_header,
+               AddPacket(4,system_rsc_template_20, 4,special_properties_header,
                          4,item_stats_ranged_offense, 4,Send(self,@GetHitBonus));
                bFoundProperties = TRUE;
             }
@@ -268,7 +270,7 @@ messages:
             else
             {
                % bFoundProperties FALSE, add headers.
-               AddPacket(4,system_rsc_template_18, 4,special_properties_header,
+               AddPacket(4,system_rsc_template_20, 4,special_properties_header,
                          4,item_stats_offense, 4,Send(self,@GetHitBonus));
                bFoundProperties = TRUE;
             }
@@ -289,7 +291,7 @@ messages:
          }
          else
          {
-            AddPacket(4,system_rsc_template_17, 4,special_properties_header,
+            AddPacket(4,system_rsc_template_19, 4,special_properties_header,
                       4,item_stats_armor, 4,Send(self,@GetDamageReduction));
             bFoundProperties = TRUE;
          }
@@ -307,7 +309,7 @@ messages:
          }
          else
          {
-            AddPacket(4,system_rsc_template_16,4,special_properties_header,
+            AddPacket(4,system_rsc_template_18,4,special_properties_header,
                       4,item_stats_defense, 4,Send(self,@GetDefenseBonus));
             bFoundProperties = TRUE;
          }
@@ -325,7 +327,7 @@ messages:
          }
          else
          {
-            AddPacket(4,system_rsc_template_15, 4,special_properties_header,
+            AddPacket(4,system_rsc_template_17, 4,special_properties_header,
                       4,item_stats_melee, 4,Send(self,@GetMeleeDamageBonus));
             bFoundProperties = TRUE;
          }
@@ -340,7 +342,7 @@ messages:
       {
          if NOT bFoundProperties
          {
-            AddPacket(4,system_rsc_template_14, 4,special_properties_header);
+            AddPacket(4,system_rsc_template_16, 4,special_properties_header);
             bFoundProperties = TRUE;
          }
          if Send(self,@GetMaxDamage) <> iMinDamage
@@ -365,7 +367,7 @@ messages:
       {
          if NOT bFoundProperties
          {
-            AddPacket(4,system_rsc_template_13, 4,special_properties_header);
+            AddPacket(4,system_rsc_template_15, 4,special_properties_header);
             bFoundProperties = TRUE;
          }
          if Send(self,@GetMaxDamageWithOwnerStats)
@@ -390,7 +392,7 @@ messages:
       {
          if NOT bFoundProperties
          {
-            AddPacket(4,system_rsc_template_12, 4,special_properties_header);
+            AddPacket(4,system_rsc_template_14, 4,special_properties_header);
             bFoundProperties = TRUE;
          }
          if Send(self,@GetMaxSpecialDamage) <> Send(self,@GetMinSpecialDamage)
@@ -416,7 +418,7 @@ messages:
       {
          if NOT bFoundProperties
          {
-            AddPacket(4,system_rsc_template_11, 4,special_properties_header);
+            AddPacket(4,system_rsc_template_13, 4,special_properties_header);
             bFoundProperties = TRUE;
          }
          if Send(self,@GetMaxSpecialDamageWithOwnerStats)
@@ -445,7 +447,7 @@ messages:
          }
          else
          {
-            AddPacket(4,system_rsc_template_10, 4,special_properties_header,
+            AddPacket(4,system_rsc_template_12, 4,special_properties_header,
                       4,item_stats_dmg_bonus, 4,Send(self,@GetDamageBonus));
             bFoundProperties = TRUE;
          }
@@ -491,7 +493,7 @@ messages:
          {
             if NOT bFoundProperties
             {
-               AddPacket(4,system_rsc_template_9, 4,special_properties_header);
+               AddPacket(4,system_rsc_template_11, 4,special_properties_header);
                bFoundProperties = TRUE;
             }
             AddPacket(4,item_stats_gen_sp, 4,iFarenPower);
@@ -500,7 +502,7 @@ messages:
          {
             if NOT bFoundProperties
             {
-               AddPacket(4,system_rsc_template_9, 4,special_properties_header);
+               AddPacket(4,system_rsc_template_11, 4,special_properties_header);
                bFoundProperties = TRUE;
             }
 
@@ -573,7 +575,7 @@ messages:
       {
          if NOT bFoundProperties
          {
-            AddPacket(4,system_rsc_template_8, 4,special_properties_header);
+            AddPacket(4,system_rsc_template_10, 4,special_properties_header);
             bFoundProperties = TRUE;
          }
 
@@ -599,7 +601,7 @@ messages:
       {
          if NOT bFoundProperties
          {
-            AddPacket(4,system_rsc_template_7, 4,special_properties_header);
+            AddPacket(4,system_rsc_template_9, 4,special_properties_header);
             bFoundProperties = TRUE;
          }
 
@@ -632,7 +634,7 @@ messages:
       {
          if NOT bFoundProperties
          {
-            AddPacket(4,system_rsc_template_6, 4,special_properties_header);
+            AddPacket(4,system_rsc_template_8, 4,special_properties_header);
             bFoundProperties = TRUE;
          }
 
@@ -679,7 +681,7 @@ messages:
                {
                   if NOT bFoundProperties
                   {
-                     AddPacket(4,system_rsc_template_5,
+                     AddPacket(4,system_rsc_template_7,
                                4,special_properties_header);
                      bFoundProperties = TRUE;
                   }
@@ -689,7 +691,7 @@ messages:
                {
                   if NOT bFoundProperties
                   {
-                     AddPacket(4,system_rsc_template_5,
+                     AddPacket(4,system_rsc_template_7,
                                4,special_properties_header);
                      bFoundProperties = TRUE;
                   }
@@ -699,7 +701,7 @@ messages:
                {
                   if NOT bFoundProperties
                   {
-                     AddPacket(4,system_rsc_template_5,
+                     AddPacket(4,system_rsc_template_7,
                                4,special_properties_header);
                      bFoundProperties = TRUE;
                   }
@@ -709,7 +711,7 @@ messages:
                {
                   if NOT bFoundProperties
                   {
-                     AddPacket(4,system_rsc_template_5,
+                     AddPacket(4,system_rsc_template_7,
                                4,special_properties_header);
                      bFoundProperties = TRUE;
                   }
@@ -719,7 +721,7 @@ messages:
                {
                   if NOT bFoundProperties
                   {
-                     AddPacket(4,system_rsc_template_5,
+                     AddPacket(4,system_rsc_template_7,
                                4,special_properties_header);
                      bFoundProperties = TRUE;
                   }
@@ -729,7 +731,7 @@ messages:
                {
                   if NOT bFoundProperties
                   {
-                     AddPacket(4,system_rsc_template_5,
+                     AddPacket(4,system_rsc_template_7,
                                4,special_properties_header);
                      bFoundProperties = TRUE;
                   }
@@ -767,7 +769,7 @@ messages:
       {
          if NOT bFoundProperties
          {
-            AddPacket(4,system_rsc_template_4, 4,special_properties_header);
+            AddPacket(4,system_rsc_template_6, 4,special_properties_header);
             bFoundProperties = TRUE;
          }
          AddPacket(4,system_rsc_template_6);
@@ -841,7 +843,7 @@ messages:
       {
          if NOT bFoundProperties
          {
-            AddPacket(4,system_rsc_template_3, 4,special_properties_header);
+            AddPacket(4,system_rsc_template_5, 4,special_properties_header);
             bFoundProperties = TRUE;
          }
          AddPacket(4,system_rsc_template_3);
@@ -882,7 +884,7 @@ messages:
       {
          if NOT bFoundProperties
          {
-            AddPacket(4,system_rsc_template_2, 4,special_properties_header);
+            AddPacket(4,system_rsc_template_4, 4,special_properties_header);
             bFoundProperties = TRUE;
          }
 
@@ -897,6 +899,36 @@ messages:
             AddPacket(4,item_stats_empowerment_add, 4,Nth(i,2),
                       4,Send(SYS,@GetEmpowermentName,#type=Nth(i,1)));
          }
+      }
+      else if bFoundProperties
+      {
+         AddPacket(4,system_blank_resource);
+      }
+
+      if Send(self,@GetHexIncEffect) <> 0
+      {
+         if NOT bFoundProperties
+         {
+            AddPacket(4,system_rsc_template_3, 4,special_properties_header);
+            bFoundProperties = TRUE;
+         }
+         
+         AddPacket(4,item_stats_hex_inc_effect_add, 4,Send(self,@GetHexIncEffect));
+      }
+      else if bFoundProperties
+      {
+         AddPacket(4,system_blank_resource);
+      }
+
+      if Send(self,@GetHexResistance) <> 0
+      {
+         if NOT bFoundProperties
+         {
+            AddPacket(4,system_rsc_template_2, 4,special_properties_header);
+            bFoundProperties = TRUE;
+         }
+         
+         AddPacket(4,item_stats_hex_resistance_add, 4,Send(self,@GetHexResistance));
       }
       else if bFoundProperties
       {
@@ -3403,6 +3435,16 @@ messages:
    {
       piItem_flags = value;
       return;
+   }
+
+   GetHexResistance()
+   {
+      return 0;
+   }
+
+   GetHexIncEffect()
+   {
+      return 0;
    }
 
 end

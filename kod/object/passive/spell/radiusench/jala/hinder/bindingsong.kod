@@ -1,0 +1,127 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+BindingSong is HinderSpell
+
+   % Provides hex effect and resistance
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   Binding_Song_name_rsc = "arid aria"
+   Binding_Song_icon_rsc = iaridaria.bgf
+   Binding_Song_desc_rsc = \
+      "First performed by refugees from the destruction of the Temple of Jala "
+      "when they fled to the land of Biskalane, this song's notes carry the haunting open echoes of "
+      "the desert. It was this melody, overheard on the wind, that guided the nomads of the Ventdal tribe across the dunes to meet the Jala refugees, "
+      "and the compassionate pact made on that day still holds power. Listeners will find they are both "
+      "protected from hexes and more adept at casting them. "
+      "A ruby and a shock fragment are required to begin performing this song."
+
+   Binding_Song_resist_rsc = \
+      "\n\nThe Arid Aria currently affecting you adds %i\% hex effectiveness and resistance to hexes "
+      "cast by you and on you, respectively."
+
+   Binding_Song_song = aridaria.mp3
+
+classvars:
+
+   vrName = Binding_Song_name_rsc
+   vrIcon = Binding_Song_icon_rsc
+   vrDesc = Binding_Song_desc_rsc
+
+   viMana = 5          % Mana is amount used upon inititiation
+   viManaDrain = 3     % Drain is amount used every viDrainTime milliseconds
+   viDrainTime = 5000    % Drain some mana every viDrainTime milliseconds
+   viSpell_num = SID_BINDING_SONG
+
+   viSchool = SS_JALA
+   viSpell_level = 5
+   
+   viHinderedSchool = SS_WITCHERY
+   viBaseRange = 4
+
+properties:
+
+   prMusic = Binding_Song_song
+
+messages:
+
+   ResetReagents()
+   {
+      plReagents = $;
+      plReagents = Cons([&Ruby,1],plReagents);
+      plReagents = Cons([&ShockFragment,1],plReagents);
+
+      return;
+   }
+
+   GetAlteredChance(chance = 0, what = $, lRadiusState = 0)
+   {
+      local iAltChance, iSongSpellpower;
+
+      if what = $
+         OR Send(what,@GetSchool) <> viHinderedSchool
+      {
+         return chance;
+      }
+
+      iSongSpellpower = Nth(lRadiusState,2);
+
+      iAltChance = chance + Random(iSongSpellpower/2,(iSongSpellpower*2)/3);
+
+      % Don't worry about bounding, that's done the level above us.
+      return iAltChance;
+   }
+
+   GetHexIncEffect(iSongPower = 0)
+   {
+      return iSongPower/3;
+   }
+
+   GetHexResistance(iSongPower = 0)
+   {
+      return iSongPower/3;
+   }
+
+   SendStatsDesc(who=$)
+   {
+      if who <> $
+         AND IsClass(who,&User)
+         AND Send(who,@GetMostPowerfulRadiusEnchantmentState,#byClass=&BindingSong) <> $
+      {
+         Send(self,@EffectDesc,#who=who);
+
+         return;
+      }
+
+      propagate;
+   }
+
+   EffectDesc(who=$)
+   {
+      local lState;
+      
+      lState = Send(who,@GetMostPowerfulRadiusEnchantmentState,#byClass=&BindingSong);
+
+      if lState <> $
+      {
+         AddPacket(4,Binding_Song_resist_rsc, 4,Nth(lState,2)/3);
+      }
+
+      propagate;
+   }
+
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

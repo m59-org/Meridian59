@@ -6808,7 +6808,7 @@ messages:
    "Ranges from 1 to 2000."
    {
       local i, oWeapon, oShield, iParry, iDodge, iBlock, iAgility,
-            iDefense, iHealth, oMonster, iShocked;
+            iDefense, oMonster, iShocked;
 
       % Morphed?
       oMonster = Send(self,@GetIllusionForm);
@@ -6836,11 +6836,8 @@ messages:
 
          iAgility = Send(self,@GetAgility);
 
-         % Bind health between 20-150 for defense calculation.
-         iHealth = Bound(piBase_Max_Health,20,150);
-
          iDefense = iParry + iBlock + (iDodge*2) + (iAgility*8)
-                     + (200 * iHealth)/(100 + Send(self,@GetStamina));
+                     + (200 * piBase_Max_Health)/(100 + Send(self,@GetStamina));
       }
 
       foreach i in plDefense_modifiers
@@ -18744,7 +18741,7 @@ messages:
 
    GetHexIncEffect(iSpellPower=0,oTarget=$)
    {
-      local iRunesEff, oRunes, iNightgripEff, oNightgrip;
+      local iRunesEff, oRunes, iNightgripEff, oNightgrip, i, iGearIncEffect, lBindingSongState, iBindingSongInc;
 
       iRunesEff = 0;
       oRunes = Send(SYS,@FindSkillByNum,#num=SKID_UNHALLOWED_RUNES);
@@ -18765,13 +18762,26 @@ messages:
       {
          iNightgripEff = Send(oNightgrip,@GetIncHexEffectiveness,#who=self,#oTarget=oTarget);
       }
+
+      iBindingSongInc = 0;
+      lBindingSongState = Send(self,@GetMostPowerfulRadiusEnchantmentState,#byClass=&BindingSong);
+      if lBindingSongState <> $
+      {
+         iBindingSongInc = Send(Nth(lBindingSongState,1),@GetHexIncEffect,#iSongPower=Nth(lBindingSongState,2));
+      }
       
-      return iSpellPower + 1 + iRunesEff + iNightgripEff;
+      iGearIncEffect = 0;
+      foreach i in plUsing
+      {
+         iGearIncEffect = iGearIncEffect + Send(i,@GetHexIncEffect);
+      }
+      return iSpellPower + 1 + iRunesEff + iNightgripEff + iGearIncEffect + iBindingSongInc;
    }
 
    GetHexResistance()
    {
-      local iArcaneKnowledgeRes, iHermitageRes, oKnowledge, oHermitage;
+      local iArcaneKnowledgeRes, iHermitageRes, oKnowledge, oHermitage, i, iGearResistance,
+            lBindingSongState, iBindingSongRes;
       
       iArcaneKnowledgeRes = 0;
       oKnowledge = Send(SYS,@FindSkillByNum,#num=SKID_ARCANE_KNOWLEDGE);
@@ -18792,8 +18802,21 @@ messages:
       {
          iHermitageRes = Send(oHermitage,@GetHexResistance,#who=self);
       }
+
+      iBindingSongRes = 0;
+      lBindingSongState = Send(self,@GetMostPowerfulRadiusEnchantmentState,#byClass=&BindingSong);
+      if lBindingSongState <> $
+      {
+         iBindingSongRes = Send(Nth(lBindingSongState,1),@GetHexResistance,#iSongPower=Nth(lBindingSongState,2));
+      }
       
-      return bound(piHexResistance+iArcaneKnowledgeRes+iHermitageRes,-200,200);
+      iGearResistance = 0;
+      foreach i in plUsing
+      {
+         iGearResistance = iGearResistance + Send(i,@GetHexResistance);
+      }
+
+      return bound(piHexResistance+iArcaneKnowledgeRes+iHermitageRes+iGearResistance+iBindingSongRes,-200,200);
    }
 
    GetCasterMaxHexes()

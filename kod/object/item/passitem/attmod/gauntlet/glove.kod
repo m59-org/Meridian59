@@ -21,7 +21,7 @@ resources:
    glove_icon_rsc = gauntlet.bgf
    glove_desc_rsc = \
       "These polished chrome gloves offer engraved conduits that enhance "
-      "specific elements."
+      "specific elements and the casting of hexes."
 
    glove_condition_exc = " shine with the glint of perfection."
    glove_condition_exc_mended = \
@@ -90,6 +90,8 @@ properties:
 
    piEmpowermentType = 0
    piEmpowermentStrength = 0
+   
+   piIncHexEffectStrength = 0
 
 messages:
 
@@ -163,6 +165,8 @@ messages:
          piEmpowermentStrength = 11;
       }
 
+      piIncHexEffectStrength = Random(1,2) * 11;
+
       propagate;
    }
 
@@ -182,6 +186,11 @@ messages:
               [&ShockEmpowermentMod,100],
               [&FireEmpowermentMod,100],
               [&ColdEmpowermentMod,100]];
+   }
+
+   GetHexIncEffect()
+   {
+      return piIncHexEffectStrength;
    }
 
 end

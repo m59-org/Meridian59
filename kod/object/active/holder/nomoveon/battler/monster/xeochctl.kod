@@ -114,6 +114,8 @@ properties:
    piDrainAmount = 5
 
    piReputationGroup = REP_HERETIC
+   
+   piHexResistance = 30
 
 messages:
 
@@ -294,6 +296,11 @@ messages:
          {
             % 3 times the chance to resist.  Brings 30% up to 90%
             iResistChance = (iResistChance * 3);
+         }
+         
+         if Send(oSpell,@GetSchool) = SS_WITCHERY
+         {
+            return FALSE;
          }
 
          if iSpellPower < 40
