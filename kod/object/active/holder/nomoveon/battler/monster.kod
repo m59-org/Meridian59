@@ -423,6 +423,8 @@ classvars:
    viHasLegendaryNames = FALSE
    
    vbIgnoresAnonAndMorph = TRUE
+   
+   viBonusBaseTP = 0
 
 properties:
 
@@ -662,6 +664,12 @@ messages:
          piMinDamage = piLevel/15 + piSurvivalLevel/2;
          piMaxDamage = piLevel/10 + piSurvivalLevel/2;
          piArmor = piSurvivalLevel/5;
+      }
+      
+      if viBonusBaseTP <> 0
+      {
+         % for special bonuses, keep track up to five minutes.
+         piHurtMeTime = 60000 * 5;
       }
 
       if color <> 0
@@ -8149,6 +8157,39 @@ messages:
    TaughtPlayerSpell(who=$,num=0)
    {
       return;
+   }
+
+   GetDamageShare(who=$)
+   {
+      local i, iTotalDamageTaken, iRequesterDamage;
+
+      if who <> $
+         AND plHurtMeRecently <> $
+      {
+         iTotalDamageTaken = 0;
+         iRequesterDamage = 0;
+         foreach i in plHurtMeRecently
+         {
+            iTotalDamageTaken = iTotalDamageTaken + Nth(i,2);
+            if First(i) = who
+            {
+               iRequesterDamage = Nth(i,2);
+            }
+         }
+         
+         if iTotalDamageTaken = 0
+         {
+            return 100;
+         }
+
+         return (iRequesterDamage * 100) / iTotalDamageTaken;
+      }
+      return 100;
+   }
+
+   GetBonusBaseTP()
+   {
+      return viBonusBaseTP;
    }
 
 end

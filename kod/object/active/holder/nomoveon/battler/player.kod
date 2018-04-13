@@ -11014,7 +11014,7 @@ messages:
    {
       local i, dodgeskill, oSkill, monster_level, gain, gainmult, roll,
             oWeapon, lBuilderGroup, bGainedHP, iExperienceSystem, iUnbound,
-            iDist, iDifference, bAtMaxHp;
+            iDist, iDifference, bAtMaxHp, iEarnedTrainingPoints, iDamageShare;
 
       iExperienceSystem = Send(SETTINGS_OBJECT,@GetExperienceSystem);
       gain = 0;
@@ -11028,6 +11028,7 @@ messages:
       {
          bAtMaxHp = 0;
       }
+      iDamageShare = Send(what,@GetDamageShare,#who=self);
 
       % Some things just never allow advancement.
       % Can advance in arena if realdeath is on in an arena.
@@ -11068,12 +11069,12 @@ messages:
 
          if monster_level > piBase_Max_health
          {
-            if iExperienceSystem = EXPERIENCE_SYSTEM_MODERN
-               AND Send(SETTINGS_OBJECT,@GetCapModernExperience)
-            {
-               % Cap XP so player doesn't advance too quickly.
-               monster_level = Send(self,@GetBaseMaxHealth);
-            }
+            %if iExperienceSystem = EXPERIENCE_SYSTEM_MODERN
+            %   AND Send(SETTINGS_OBJECT,@GetCapModernExperience)
+            %{
+            %   % Cap XP so player doesn't advance too quickly.
+            %   monster_level = Send(self,@GetBaseMaxHealth);
+            %}
 
             if killing_blow
                AND ((piFlags & PFLAG_TOOK_DAMAGE)
@@ -11354,36 +11355,26 @@ messages:
          }
 
          % Here, we work out if the player deserves a training point.
-         % They qualify if they got at least one gain point from the monster,
-         % and also got the killing blow (no double points from single mobs).
+         % They qualify if they got at least one gain point from the monster.
          % Triple training points if at Max HP.
          if gain > 0
-            AND killing_blow
-            AND piTraining_points < TRAINING_POINT_CAP
          {
-            piTraining_points = piTraining_points + 1 + bAtMaxHp*2
-               + (Send(what,@GetBoostedLevel)
-               / Send(Send(SYS,@GetSurvivalRoomMaintenance),@GetSurvivalTP));
+            iEarnedTrainingPoints = 1
+                                    + monster_level/50
+                                    + (Send(what,@GetBoostedLevel) / Send(Send(SYS,@GetSurvivalRoomMaintenance),@GetSurvivalTP))
+                                    + Send(what,@GetBonusBaseTP,#who=self);
 
-            if monster_level > 75
+            if bAtMaxHp
             {
-               if monster_level <= 121
-               {
-                  piTraining_points = piTraining_points + ((1 + bAtMaxHp*2)*Send(what,@GetChampionRewardMultiplier));
-               }
-               else
-               {
-                  if monster_level <= 150
-                  {
-                     piTraining_points = piTraining_points + ((2 + bAtMaxHp*4)*Send(what,@GetChampionRewardMultiplier));
-                  }
-                  else
-                  {
-                     piTraining_points = piTraining_points + ((3 + bAtMaxHp*6)*Send(what,@GetChampionRewardMultiplier));
-
-                  }
-               }
+               iEarnedTrainingPoints = iEarnedTrainingPoints * 3;
             }
+
+            iEarnedTrainingPoints = iEarnedTrainingPoints * Send(what,@GetChampionRewardMultiplier);
+
+            % Now adjust by percent damage dealt by us to this monster.
+            iEarnedTrainingPoints = (iEarnedTrainingPoints * iDamageShare) / 100;
+
+            Send(self,@AddTrainingPoints,#points=iEarnedTrainingPoints,#report=FALSE);
          }
 
          % Let the player know how many training points they have, if they
