@@ -142,7 +142,17 @@ messages:
 
    ModifyHitRoll(who=$,what=$,hit_roll=$,stroke_obj=$)
    {
-      local iBonus, iScale;
+      local iBonus, iScale, i, oWeapon, oOffenseMod;
+
+      foreach i in plEnchantmentMods
+      {
+         if Nth(i,1) = &OffenseMod
+         {
+            oOffenseMod = Send(SYS,@GetMagicMod,#class=&OffenseMod);
+            hit_roll = Send(oOffenseMod,@ModifyHitRoll,#who=who,#what=what,
+                        #hit_roll=hit_roll,#iState=Nth(i,2));
+         }
+      }
 
       if piHits <= 0
       {

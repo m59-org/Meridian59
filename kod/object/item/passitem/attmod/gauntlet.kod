@@ -406,18 +406,7 @@ messages:
 
    GetHitBonus()
    {
-      local i, sum;
-      sum = 0;
-
-      foreach i in plEnchantmentMods
-      {
-         if Nth(i,1) = &OffenseMod
-         {
-            sum = sum + Nth(i,2);
-         }
-      }
-
-      return piAttack_bonus + sum;
+      return Send(self,@ModifyHitRoll,#who=poOwner,#hit_roll=0);
    }
 
    GetDefenseBonus()

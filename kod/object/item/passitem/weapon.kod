@@ -285,7 +285,8 @@ messages:
       {
          if Nth(i,1) = &OffenseMod
          {
-            sum = sum + Nth(i,2);
+            sum = Send(Send(SYS,@GetMagicMod,#class=&OffenseMod),@ModifyHitRoll,
+                        #hit_roll=sum,#iState=Nth(i,2));
          }
       }
 
