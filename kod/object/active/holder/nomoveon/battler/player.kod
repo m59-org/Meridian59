@@ -9064,6 +9064,8 @@ messages:
       Send(self,@PlayerIsIntriguing);
       Send(self,@GainMaxhealth,#amount=amount);
       
+      Post(self,@ComputeMaxMana);
+      
       Post(Send(SYS,@GetGameQuestMaintenance),@EvaluatePlayer,#who=self,#vbTriggered=TRUE);
 
       if piReincarnations < 10
@@ -9120,7 +9122,7 @@ messages:
 
    GetInitialMaxMana()
    {
-      return 15 + Send(self,@GetMysticism)/5;
+      return 68;
    }
 
    StripNodeList(number=$)
@@ -9270,20 +9272,25 @@ messages:
       local index, iNodeList, oNode, i, oCrystalizeMana, iCrystalizeManaAbility,
             iSumPercentReduction;
 
-      index = 1;
-      iNodelist = piNodelist;
-      piMax_mana = Send(self, @GetInitialMaxMana);
+%      index = 1;
+%      iNodelist = piNodelist;
 
-      while iNodeList > 0 AND index <= NODE_MAX_VALUE
-      {
-         if (iNodeList & index)
-         {
-            oNode = Send(SYS,@FindNodeByNum,#num=index);
-            piMax_mana = piMax_mana + Send(oNode,@GetManaAdjust,#who=self);
-            iNodelist = iNodelist & ~index;
-         }
-         index=index*2;
-      }
+%      while iNodeList > 0 AND index <= NODE_MAX_VALUE
+%      {
+%         if (iNodeList & index)
+%         {
+%            oNode = Send(SYS,@FindNodeByNum,#num=index);
+%            piMax_mana = piMax_mana + Send(oNode,@GetManaAdjust,#who=self);
+%            iNodelist = iNodelist & ~index;
+%         }
+%         index=index*2;
+%      }
+%
+%      13 nodes technically
+%      equation was: (((5 + Send(who,@GetMysticism)) / 10) + 3)
+
+      % New equation simply adds your Mysticism, unlocked as you gain health
+      piMax_mana = Send(self,@GetInitialMaxMana) + ((Send(self,@GetMysticism)*piBase_Max_Health)/(100+Send(self,@GetStamina)));
 
       % Account for any items that may affect max mana
       foreach i in plUsing
@@ -11617,8 +11624,8 @@ messages:
                      #wave_rsc=player_tougher_wav_rsc);
 
                % Boost the player to max health, and give them 200 vigor.
-               Send(self,@MsgSendUser,
-                     #message_rsc=player_improve_health_invigorate);
+               % Send(self,@MsgSendUser,
+               %      #message_rsc=player_improve_health_invigorate);
                piHealth = piMax_Health * 100;
                Send(self,@DrawHealth);
                Send(self,@EatSomething,#nutrition=200);
@@ -18861,6 +18868,8 @@ messages:
       {
          Post(self,@MsgSendUser,#message_rsc=all_six_prisms_defeated_msg);
       }
+      
+      Post(self,@DrawResistances);
 
       return;
    }
