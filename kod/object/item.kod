@@ -83,6 +83,7 @@ resources:
    item_stats_proc_blind = "15%% chance to cast Blind on hit\n"
    item_stats_proc_bonk = "8%% chance to cast Bonk on hit\n"
    item_stats_proc_purge = "15%% chance to cast Purge on hit\n"
+   item_stats_proc_corrode = "30%% chance to corrode on hit\n"
    item_stats_proc_twister = "8%% chance to disorient victim on hit\n"
    item_stats_proc_vamp = "10%% chance to gain up to 8 health on hit\n"
    item_stats_might_add = "%i Might bonus\n"
@@ -716,6 +717,16 @@ messages:
                      bFoundProperties = TRUE;
                   }
                   AddPacket(4,item_stats_proc_purge);
+               }
+               else if iNum = WA_CORRODE
+               {
+                  if NOT bFoundProperties
+                  {
+                     AddPacket(4,system_rsc_template_7,
+                               4,special_properties_header);
+                     bFoundProperties = TRUE;
+                  }
+                  AddPacket(4,item_stats_proc_corrode);
                }
                else if iNum = WA_TWISTER
                {

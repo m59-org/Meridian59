@@ -1,0 +1,117 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+WeapAttCorrode is WeaponAttribute
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  This weapon has a chance to purge positive enchantments from the 
+%     opponent every time it does damage.
+%
+%   Form is:
+%
+%      [ WA_CORRODE]
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   weapattcorrode_desc = " The weapon exudes a corrosive aura, and may lower an enemy's physical defenses upon striking."
+   corrode_fail_use = "You are not yet ready to use %s%s."
+   corrode_worked_user = "~BYour weapon corrodes %s%s's physical defenses!"
+   corrode_worked_target = "~B%s%s's weapon corrodes your physical defenses!"
+   corrode_dm = "corrode"
+
+classvars:
+
+   vrDesc = weapattcorrode_desc
+   viItem_Att_Num = WA_CORRODE
+   viDifficulty = 9
+   vrDM_trigger = corrode_dm
+   vbAppears_in_Happyland = TRUE
+
+properties:
+
+   piValue_modifier = 200   %% modify the object's price by 100%
+   piValue_power_modifier = 10
+   piEffect_percent = 30
+
+messages:
+
+   ItemReqUse(oItem=$,oPlayer=$)
+   {
+      % this person needs 50% in the weapon's proficiency to use
+      if Send(oItem,@GetProf,#who=oPlayer) < 50
+      {
+         Send(oPlayer,@MsgSendUser,#message_rsc=corrode_fail_use,
+              #parm1=Send(oItem,@GetDef),#parm2=Send(oItem,@GetName));
+
+         return FALSE;
+      }
+
+      return TRUE;
+   }
+
+   %%% Effect Functions
+
+   ModifyDamage(damage=0,target=$,wielder=$,lData=$)
+   "Wielder has a 1% chance of purging target with any hit."
+   {
+      local iCorrodePower, iGortPurgeFactor;
+
+      if target = $
+         OR wielder = $
+      {
+         return damage;
+      }
+
+      if Random(1,100) < piEffect_percent
+      {
+         % Purge with power such that two procs removes Gort, the flagship buff.
+         iGortPurgeFactor = Send(Send(SYS,@FindSpellByNum,#num=SID_ARMOR_OF_GORT),@GetPurgeFactor);
+
+         if iGortPurgeFactor = 0
+         {
+            iCorrodePower = 99;
+         }
+         else
+         {
+            iCorrodePower = (50*100) / iGortPurgeFactor;
+         }
+
+         Send(self,@DoCorrode,#who=wielder,#oTarget=target,#iSpellPower=iCorrodePower);
+      }
+
+      return damage;
+   }
+
+   DoCorrode(who=$,oTarget=$,iSpellPower=0)
+   {
+      Send(who,@MsgSendUser,#message_rsc=corrode_worked_user,#parm1=Send(oTarget,@GetDef),#parm2=Send(oTarget,@GetName));
+
+      % Tell the victim their enchantments have been reduced in power.
+      Send(oTarget,@MsgSendUser,#message_rsc=corrode_worked_target,#parm1=Send(who,@GetCapDef),#parm2=Send(who,@GetName));
+
+      Send(oTarget,@ApplyElementalStatusEffects,#what=who,#damage=iSpellPower/18,#aspell=ATCK_SPELL_ACID);
+      
+      return;
+   }
+
+   IsMagicalEffect()
+   {
+      return TRUE;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
