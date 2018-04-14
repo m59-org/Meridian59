@@ -14325,6 +14325,7 @@ messages:
       foreach i in plUsing
       {
          if IsClass(i,&Torch)
+            OR IsClass(i,&MithrilShield)
             OR (IsClass(i,&Weapon)
                AND Send(i,@HasAttribute,#ItemAtt=WA_GLOWING))
          {
@@ -17470,8 +17471,15 @@ messages:
          {
             iIntensity = 120;
             iColor = LIGHT_FIRE;
+         }
+      }
 
-            break;
+      foreach i in plUsing
+      {
+         if IsClass(i,&MithrilShield)
+         {
+            iIntensity = Send(i,@GetLightIntensity);
+            iColor = Send(i,@GetLightColor);
          }
       }
 

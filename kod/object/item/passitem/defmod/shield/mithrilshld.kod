@@ -74,6 +74,22 @@ messages:
       propagate;
    }
 
+   NewUsed(what=$)
+   {
+      Send(poOwner,@SetFlickerFlag);
+      Send(poOwner,@SomethingChanged,#what=self);
+
+      propagate;
+   }
+
+   NewUnused(what=$)
+   {
+      Send(poOwner,@RecalcFlickerFlag);
+      Send(poOwner,@SomethingChanged,#what=self);
+
+      propagate;
+   }
+
    % Shields use the defense bonus as a bonus to block instead.
    ModifyDefensePower(who = $,what = $,defense_power = 0)
    {
@@ -237,6 +253,56 @@ messages:
    {
       poCaster = $;
       propagate;
+   }
+
+   GetLightIntensity()
+   {
+      if poOwner <> $
+         AND IsClass(poOwner,&User)
+      {
+         return Bound(Send(poOwner,@GetKarma),0,100);
+      }
+      return 0;
+   }
+
+   GetLightColor()
+   {
+      return LIGHT_WHITE;
+   }
+
+   GetBaseSpellModifier(oSpell=$)
+   {
+      local iSchool;
+
+      if oSpell = $
+         OR poOwner = $
+         OR NOT IsClass(poOwner,&User)
+      {
+         return 0;
+      }
+
+      iSchool = Send(oSpell,@GetSchool);
+      
+      if iSchool = SS_SHALILLE
+      {
+         return Bound(Send(poOwner,@GetKarma),0,piCreatedSpellpower+1)/10;
+      }
+      
+      if iSchool = SS_JALA
+         OR iSchool = SS_FAREN
+         OR iSchool = SS_KRAANAN
+      {
+         return Bound(Send(poOwner,@GetKarma),0,piCreatedSpellpower+1)/20;
+      }
+
+      return 0;
+   }
+
+   SetSpellPlayerFlag(who=$)
+   {
+      Send(who,@SetFlickerFlag);
+
+      return;  
    }
 
 end
