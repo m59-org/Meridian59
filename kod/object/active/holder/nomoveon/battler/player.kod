@@ -10977,7 +10977,9 @@ messages:
       }
 
       if victim = poKill_target
-         OR Send(victim,@GetDamageShare,#who=self) > 0
+         OR (victim <> $
+            AND IsClass(victim,&Monster)
+            AND Send(victim,@GetDamageShare,#who=self) > 0)
       {
          if what = self
          {

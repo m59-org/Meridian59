@@ -273,7 +273,7 @@ messages:
       return;
    }
 
-   ModifyHitRoll(who = $,what = $,hit_roll = $)
+   ModifyHitRoll(who = $,what = $,hit_roll = 0)
    {
       local i, oWeapon, oOffenseMod;
 
@@ -285,6 +285,12 @@ messages:
             hit_roll = Send(oOffenseMod,@ModifyHitRoll,#who=who,#what=what,
                         #hit_roll=hit_roll,#iState=Nth(i,2));
          }
+      }
+      
+      if who <> $
+         AND NOT IsClass(who,&User)
+      {
+         return hit_roll + piAttack_bonus;
       }
 
       oWeapon = Send(who,@GetWeapon);
