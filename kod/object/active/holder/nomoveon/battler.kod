@@ -177,6 +177,19 @@ classvars:
 
    viBattler_level = 50
 
+   % A measure of size and mass. 5 is Baby spider, 200 is humanoid, 300 is troll, 600 is xeo, 4000 is ice dragon
+   % This number generally can't be modified except by race (see GetSize).
+   % Stun, knockback, bleed resistance can, however.
+   % Players are resistant to knockback and stun while wearing plate armor, for example.
+   viBaseSize = 200
+
+   % A measure of base knockback effect on this battler. 100 is normal. 0 is immune. Numbers higher than 100 = more vulnerable.
+   viBaseKnockbackPercentage = 100
+   % A measure of base stun effect on this battler. 100 is normal. 0 is immune. Numbers higher than 100 = more vulnerable.
+   viBaseStunPercentage = 100
+   % A measure of base bleed effect on this battler. 100 is normal. 0 is immune. etc.
+   viBaseBleedPercentage = 100
+
 properties:
 
    % Evil twin object
@@ -225,7 +238,7 @@ properties:
    % Negative values mean more vulnerable to hexes, positive values resist
    % -100 is doubled effect, 100 is total immunity
    piHexResistance = 0
-
+   
 messages:
 
    % The first lump of code here deals with resistances and immunities/etc.
@@ -2628,6 +2641,103 @@ messages:
    GetAlwaysShareXP()
    {
       return FALSE;
+   }
+
+   GetBaseSize()
+   {
+      return viBaseSize;
+   }
+
+   GetSize()
+   {
+      return Send(self,@GetBaseSize);
+   }
+
+   GetKnockbackPercentage()
+   {
+      return viBaseKnockbackPercentage;
+   }
+
+   GetStunPercentage()
+   {
+      return viBaseStunPercentage;
+   }
+   
+   GetBleedPercentage()
+   {
+      return viBaseBleedPercentage;
+   }
+
+   GetCriticalPercentage()
+   {
+      return 100;
+   }
+
+   ApplyKnockback(what=$, iRow=0, iCol=0, iFineRow=0, iFineCol=0, knockback_power=0)
+   {
+      local oRoom, iKnockbackDistance;
+      
+      % knockback_power is the attacker's GetKnockbackPower if from an attacker
+      % if from an effect like a trap, have the trap directly send knockback_power and coords
+      
+      if what <> $
+      {
+         iRow = Send(what,@GetRow);
+         iCol = Send(what,@GetCol);
+         iFineRow = Send(what,@GetFineRow);
+         iFineCol = Send(what,@GetFineCol);
+      }
+
+      oRoom = Send(self,@GetOwner);
+      if oRoom = $
+         OR NOT IsClass(oRoom,&Room)
+      {
+         return FALSE;
+      }
+      
+      % Let's calculate.
+      % Start with a standard knockback, which is default 5 units (320 fine).
+      iKnockbackDistance = Send(SETTINGS_OBJECT,@GetStandardStunDistance);
+      
+      % Modify by knockback_power vs our size.
+      iKnockbackDistance = (iKnockbackDistance*knockback_power)/Bound(Send(self,@GetSize),1,$);
+      
+      % Modify by our knockback percentage. This can make us less or more vulnerable.
+      iKnockbackDistance = (iKnockbackDistance*Send(self,@GetKnockbackPercentage))/100;
+
+      % Let's not attempt knockbacks under one square, they get inaccurate
+      % They're also useless
+      if iKnockbackDistance < 64
+      {
+         return FALSE;
+      }
+
+      Send(oRoom,@IntraTeleport,#what=self,
+                                #distance=iKnockbackDistance,
+                                #type=INTRA_TELEPORT_AWAY_FROM_DESTINATION,
+                                #new_row=iRow,
+                                #new_col=iCol,
+                                #fine_row=iFineRow,
+                                #fine_col=iFineCol,
+                                #new_angle=Send(self,@GetAngle));
+      return TRUE;
+   }
+
+   ApplyStun(stun_power = 0)
+   {
+      
+      return FALSE;
+   }
+
+   ApplyBleed(bleed_power = 0)
+   {
+      
+      return FALSE;
+   }
+
+   GetKnockbackPower()
+   {
+      return Send(self,@GetSize);
    }
 
 end

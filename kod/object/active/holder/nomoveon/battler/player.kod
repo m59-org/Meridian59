@@ -19159,5 +19159,69 @@ messages:
       return;
    }
 
+   GetBaseSize()
+   {
+      local iRacialSizeBonus;
+      
+      iRacialSizeBonus = 0;
+      switch(piPlayerRace)
+      {
+         case RACE_HALF_UNDINE:
+            iRacialSizeBonus = -100;
+         case RACE_HALF_DEMON:
+            iRacialSizeBonus = -50;
+         case RACE_HALF_ELF:
+            iRacialSizeBonus = -25;
+         case RACE_HALF_ORC:
+            iRacialSizeBonus = 50;
+         case RACE_DRACONIAN:
+            iRacialSizeBonus = 100;
+      }
+      return viBaseSize + iRacialSizeBonus;
+   }
+
+   GetKnockbackPercentage()
+   {
+      local i, iGearBonus;
+      
+      iGearBonus = 0;
+      foreach i in plUsing
+      {
+         iGearBonus = iGearBonus + Send(i,@GetKnockbackResistance);
+      }
+
+      return Bound(viBaseKnockbackPercentage + iGearBonus,0,$);
+   }
+
+   GetStunPercentage()
+   {
+      return Bound(viBaseStunPercentage - Send(self,@GetStamina)/2,0,$);
+   }
+
+   GetBleedPercentage()
+   {
+      return Bound(viBaseBleedPercentage - Send(self,@GetAgility)/2,0,$);
+   }
+
+   GetCriticalPercentage()
+   {
+      return 100;
+   }
+
+   GetCriticalHitRate()
+   {
+      % Multiplied by 100 for granularity purposes
+      % 5%  = 500
+      % 10% = 1000
+      % 15% = 1500
+      % 20% = 2000
+      return Bound(((Send(Send(self,@GetWeapon),@GetCriticalHitRate)*100) * (100 + Send(self,@GetAim)))/100,0,100);
+   }
+
+   GetKnockbackPower()
+   {
+      return (Send(self,@GetSize) * Send(self,@GetMight)/2)/100;
+   }
+
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
