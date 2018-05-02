@@ -2673,10 +2673,28 @@ messages:
       return 100;
    }
 
-   ApplyKnockback(what=$, iRow=0, iCol=0, iFineRow=0, iFineCol=0, knockback_power=0)
+   ApplyKnockback(what=$, iRow=0, iCol=0, iFineRow=0, iFineCol=0, knockback_power=0, knockback_angle=0)
    {
-      local oRoom, iKnockbackDistance;
+      local oRoom, iKnockbackDistance, lSteps, iAngle;
       
+      if knockback_angle = 0
+      {
+         if what <> $
+         {
+            % Use attacker's angle for knockback if none sent
+            iAngle = Send(what,@GetAngle);
+         }
+         else
+         {
+            % Use the reverse of our own angle otherwise.
+            iAngle = Abs(Send(self,@GetAngle)-2050);
+         }
+      }
+      else
+      {
+         iAngle = knockback_angle;
+      }
+
       % knockback_power is the attacker's GetKnockbackPower if from an attacker
       % if from an effect like a trap, have the trap directly send knockback_power and coords
       
@@ -2712,6 +2730,9 @@ messages:
          return FALSE;
       }
 
+%      lSteps = Send(oRoom,@IntraTeleport,#what=self,#distance=iKnockbackDistance,
+%                     #type=INTRA_TELEPORT_FORWARD);
+
       Send(oRoom,@IntraTeleport,#what=self,
                                 #distance=iKnockbackDistance,
                                 #type=INTRA_TELEPORT_AWAY_FROM_DESTINATION,
@@ -2719,7 +2740,7 @@ messages:
                                 #new_col=iCol,
                                 #fine_row=iFineRow,
                                 #fine_col=iFineCol,
-                                #new_angle=Send(self,@GetAngle));
+                                #new_angle=iAngle);
       return TRUE;
    }
 
