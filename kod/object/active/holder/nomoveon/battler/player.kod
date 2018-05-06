@@ -3731,6 +3731,8 @@ messages:
       }
 
       Send(self,@CancelRescue);
+      
+      Send(self,@EndBleedTimer);
 
       % Tell others that we're leaving
       if poOwner <> $ AND NOT IsClass(self,&DM)
@@ -19235,11 +19237,6 @@ messages:
    GetKnockbackPower()
    {
       return (Send(self,@GetSize) * (100+Send(self,@GetMight)/2))/100;
-   }
-   
-   GetStunPower()
-   {
-      return Send(self,@GetSize);
    }
 
 end

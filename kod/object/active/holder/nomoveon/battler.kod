@@ -22,6 +22,9 @@ constants:
    % Threshold for the "wound" and "damage" levels of feedback.
    DAMAGE_THRESHOLD_WOUND = 500
    DAMAGE_THRESHOLD_DAMAGE = 1500
+   
+   % Battlers take bleed damage periodically
+   BLEED_TIME = 5000
 
 resources:
 
@@ -252,6 +255,9 @@ properties:
    % -100 is doubled effect, 100 is total immunity
    piHexResistance = 0
    
+   % Track periodic bleed damage
+   ptBleedTimer = $
+   
 messages:
 
    % The first lump of code here deals with resistances and immunities/etc.
@@ -266,6 +272,12 @@ messages:
    Delete()
    {
       local i;
+      
+      if ptBleedTimer <> $
+      {
+         DeleteTimer(ptBleedTimer);
+      }
+      ptBleedTimer = $;
 
       % Clear minion control list. Delete each of our minions
       % unless they are reflections, which are handled separately.
@@ -2815,10 +2827,88 @@ messages:
       return TRUE;
    }
 
-   ApplyBleed(bleed_power = 0)
+   ApplyBleed(what=$, bleed_power = 0)
    {
+      local oSpell, iBleedDuration;
+
+      iBleedDuration = Send(SETTINGS_OBJECT,@GetStandardBleedDuration);
+
+      % Modify bleed duration by difference in sizes
+      iBleedDuration = (iBleedDuration*bleed_power)/Bound(Send(self,@GetSize),1,$);
+
+      % Modify by our bleed percentage. This can make us less or more vulnerable.
+      iBleedDuration = (iBleedDuration*Send(self,@GetBleedPercentage))/100;
       
-      return FALSE;
+      % No stuns under five seconds, because that's not even one damage
+      if iBleedDuration < 5000
+      {
+         return FALSE;
+      }
+
+      oSpell = Send(SYS,@FindSpellByNum,#num=SID_BLEED);
+      if oSpell <> $
+      {
+         if what <> $
+            AND IsClass(what,&Player)
+         {
+            Send(what,@MsgSendUser,#message_rsc=bleed_message,
+                                   #parm1=Send(self,@GetDef),
+                                   #parm2=Send(self,@GetName));
+         }
+         if IsClass(self,&Player)
+            AND what <> $
+         {
+            Send(self,@MsgSendUser,#message_rsc=bleeded_message,
+                                   #parm1=Send(what,@GetDef),
+                                   #parm2=Send(what,@GetName));
+         }
+         Send(oSpell,@DoSpell,#oTarget=self,#iDuration=iBleedDuration);
+      }
+
+      return TRUE;
+   }
+
+   StartBleedTimer()
+   {
+      if ptBleedTimer = $
+      {
+         ptBleedTimer = CreateTimer(self,@DoBleed,BLEED_TIME);
+      }
+      return;
+   }
+
+   EndBleedTimer()
+   {
+      if ptBleedTimer <> $
+      {
+         DeleteTimer(ptBleedTimer);
+         ptBleedTimer = $;
+      }
+      return;
+   }
+
+   DoBleed()
+   {
+      local i, iBleedCount;
+
+      ptBleedTimer = $;
+      
+      if (IsClass(self,&Player)
+         AND Send(self,@IsInCannotInteractMode))
+         OR NOT Send(self,@IsEnchanted,#byClass=&Bleed)
+      {
+         return;
+      }
+
+      iBleedCount = 0;
+      foreach i in Send(self,@GetEnchantmentsByClass,#enchClass=&Bleed)
+      {
+         iBleedCount++;
+      }
+      Send(self,@LoseHealth,#amount=iBleedCount,#decay=TRUE);
+      
+      ptBleedTimer = CreateTimer(self,@DoBleed,BLEED_TIME);
+      return;
    }
 
    GetKnockbackPower()
@@ -2827,6 +2917,11 @@ messages:
    }
    
    GetStunPower()
+   {
+      return Send(self,@GetSize);
+   }
+
+   GetBleedPower()
    {
       return Send(self,@GetSize);
    }

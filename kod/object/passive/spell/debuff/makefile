@@ -15,6 +15,7 @@ BOFS = blind.bof \
        vertigo.bof \
        hex.bof \
        eventhold.bof \
-       stun.bof
+       stun.bof \
+       bleed.bof
 
 !include $(KODDIR)\kod.mak

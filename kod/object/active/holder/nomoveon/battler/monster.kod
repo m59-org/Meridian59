@@ -5218,6 +5218,18 @@ messages:
       return 0;
    }
 
+   LoseHealth(amount = $, decay = FALSE, precision = FALSE)
+   {
+      if NOT precision
+      {
+         amount = amount*100;
+      }
+
+      piHit_points = Bound(piHit_points - amount,1,$);
+
+      return;
+   }
+
    NewMaxMana(amount=0)
    {
       local iPrev_max;
