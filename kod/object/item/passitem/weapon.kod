@@ -531,6 +531,12 @@ messages:
       }
 
       iDamage = iDamage + piDamageBonus;
+      
+      % Check for criticals
+      if iDamage > 0
+      {
+         Post(self,@CriticalHit,#target=target);
+      }
 
       % Send(Send(poOwner,@getOwner),@SomeoneSaid,#what=self,#type=SAY_RESOURCE,
       %      #string=weapon_do_damage,#parm1=iDamage,#parm2=baseDamage);
@@ -1237,6 +1243,39 @@ messages:
    GetCriticalHitRate()
    {
       return viCriticalHitRate;
+   }
+
+   CriticalHit(target=$)
+   {
+      local iRoll;
+      
+      if target = $
+         OR NOT IsClass(target,&Battler)
+         OR poOwner = $
+         OR NOT IsClass(poOwner,&Player)
+      {
+         return;
+      }
+      
+      % Multiplied by 100 for granularity pruposes
+      iRoll = Random(1,10000);
+      
+      if iRoll <= Send(poOwner,@GetCriticalHitRate)
+      {
+         % We've scored a crit.
+         
+         if vbCanKnockback
+         {
+            Send(target,@ApplyKnockback,#what=poOwner,#knockback_power=Send(poOwner,@GetKnockbackPower));
+         }
+         
+         if vbCanStun
+         {
+            Send(target,@ApplyStun,#what=poOwner,#stun_power=Send(poOwner,@GetStunPower));
+         }
+      }
+
+      return;
    }
 
 end

@@ -19168,15 +19168,21 @@ messages:
       {
          case RACE_HALF_UNDINE:
             iRacialSizeBonus = -100;
+            break;
          case RACE_HALF_DEMON:
             iRacialSizeBonus = -50;
+            break;
          case RACE_HALF_ELF:
             iRacialSizeBonus = -25;
+            break;
          case RACE_HALF_ORC:
             iRacialSizeBonus = 50;
+            break;
          case RACE_DRACONIAN:
             iRacialSizeBonus = 100;
+            break;
       }
+
       return viBaseSize + iRacialSizeBonus;
    }
 
@@ -19195,7 +19201,15 @@ messages:
 
    GetStunPercentage()
    {
-      return Bound(viBaseStunPercentage - Send(self,@GetStamina)/2,0,$);
+      local i, iGearBonus;
+      
+      iGearBonus = 0;
+      foreach i in plUsing
+      {
+         iGearBonus = iGearBonus + Send(i,@GetStunResistance);
+      }
+
+      return Bound(viBaseStunPercentage - Send(self,@GetStamina)/2 - iGearBonus,0,$);
    }
 
    GetBleedPercentage()
@@ -19215,12 +19229,17 @@ messages:
       % 10% = 1000
       % 15% = 1500
       % 20% = 2000
-      return Bound(((Send(Send(self,@GetWeapon),@GetCriticalHitRate)*100) * (100 + Send(self,@GetAim)))/100,0,100);
+      return Bound(((Send(Send(self,@GetWeapon),@GetCriticalHitRate)*100) * (100+Send(self,@GetAim)/2))/100,0,10000);
    }
 
    GetKnockbackPower()
    {
-      return (Send(self,@GetSize) * Send(self,@GetMight)/2)/100;
+      return (Send(self,@GetSize) * (100+Send(self,@GetMight)/2))/100;
+   }
+   
+   GetStunPower()
+   {
+      return Send(self,@GetSize);
    }
 
 end

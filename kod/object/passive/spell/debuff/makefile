@@ -14,6 +14,7 @@ BOFS = blind.bof \
        seduce.bof \
        vertigo.bof \
        hex.bof \
-       eventhold.bof
+       eventhold.bof \
+       stun.bof
 
 !include $(KODDIR)\kod.mak
