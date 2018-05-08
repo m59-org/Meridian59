@@ -997,7 +997,9 @@ resources:
    
    attained_enlightenment = \
       "~B~oYour mind and spirit surge with power as you suddenly realize a new level of enlightenment. "
-      "You now have %i extra stat points born of your newfound spiritual strength."
+      "You now have %i extra stat points born of your newfound spiritual strength. "
+      "You can apply these stat points with an ancient trinket, by reincarnating, or by training with "
+      "a master teacher."
    
    attained_enlightenment_ten_points = \
       "~B~oYou have reached your tenth level of enlightenment! You now have %i extra stat points born of pure spiritual strength. "
@@ -1005,6 +1007,22 @@ resources:
       
    max_accumulated_wisdom_achieved = \
       "~B~oYou have achieved total enlightenment. You can no longer accumulate wisdom. Your total spiritual strength is 20 extra stat points."
+
+   gained_might_msg = \
+      "~BYou feel stronger."
+   gained_intellect_msg = \
+      "~BThe workings of the world become more apparent to you."
+   gained_stamina_msg = \
+      "~BYou feel more solid and durable."
+   gained_agility_msg = \
+      "~BYou feel more agile."
+   gained_mysticism_msg = \
+      "~BYou feel more connected with the flow of the world's energies."
+   gained_aim_msg = \
+      "~BYou feel confident that you can strike more accurately."
+
+   unassigned_stat_points = \
+      "You have %i unassigned stat points remaining."
 
 classvars:
 
@@ -19237,6 +19255,108 @@ messages:
    GetKnockbackPower()
    {
       return (Send(self,@GetSize) * (100+Send(self,@GetMight)/2))/100;
+   }
+
+   AttemptTrainStatPoint(type=STAT_ID_AIM)
+   {
+      local iMight, iIntellect, iStamina, iAgility, iMysticism, iAim;
+
+      iMight = piMight;
+      iIntellect = piIntellect;
+      iStamina = piStamina;
+      iAgility = piAgility;
+      iMysticism = piMysticism;
+      iAim = piAim;
+
+      % Let's see what the player's situation would look like if we incremented
+      switch(type)
+      {
+         case STAT_ID_MIGHT:
+            iMight++;
+            break;
+         case STAT_ID_INTELLECT:
+            iIntellect++;
+            break;
+         case STAT_ID_STAMINA:
+            iStamina++;
+            break;
+         case STAT_ID_AGILITY:
+            iAgility++;
+            break;
+         case STAT_ID_MYSTICISM:
+            iMysticism++;
+            break;
+         case STAT_ID_AIM:
+            iAim++; 
+            break;
+      }
+
+      % Range check
+      if (iMight < 1 OR iMight > Send(self,@GetMaxMight))
+         OR (iIntellect < 1 OR iIntellect > Send(self,@GetMaxIntellect))
+         OR (iStamina < 1 OR iStamina > Send(self,@GetMaxStamina))
+         OR (iAgility < 1 OR iAgility > Send(self,@GetMaxAgility))
+         OR (iMysticism < 1 OR iMysticism > Send(self,@GetMaxMysticism))
+         OR (iAim < 1 OR iAim > Send(self,@GetMaxAim))
+      {
+         return FALSE;
+      }
+      
+      % Total stat points check
+      if ((iMight + iIntellect + iStamina + iAgility + iMysticism + iAim)
+             > Send(self,@GetTotalRawStatPoints) )
+      {
+         return FALSE;
+      }
+
+      % Now that we've checked everything would be correct, actually increment stat.
+      switch(type)
+      {
+         case STAT_ID_MIGHT:
+            piMight++;
+            Post(self,@MsgSendUser,#message_rsc=gained_might_msg);
+            Post(self,@DrawMight);
+            Post(self,@GiveUnassignedStatPointsReport);
+            return TRUE;
+         case STAT_ID_INTELLECT:
+            piIntellect++;
+            Post(self,@MsgSendUser,#message_rsc=gained_intellect_msg);
+            Post(self,@DrawIntellect);
+            Post(self,@GiveUnassignedStatPointsReport);
+            return TRUE;
+         case STAT_ID_STAMINA:
+            piStamina++;
+            Post(self,@MsgSendUser,#message_rsc=gained_stamina_msg);
+            Post(self,@DrawStamina);
+            Post(self,@GiveUnassignedStatPointsReport);
+            return TRUE;
+         case STAT_ID_AGILITY:
+            piAgility++;
+            Post(self,@MsgSendUser,#message_rsc=gained_agility_msg);
+            Post(self,@DrawAgility);
+            Post(self,@GiveUnassignedStatPointsReport);
+            return TRUE;
+         case STAT_ID_MYSTICISM:
+            piMysticism++;
+            Post(self,@MsgSendUser,#message_rsc=gained_mysticism_msg);
+            Post(self,@DrawMysticism);
+            Post(self,@GiveUnassignedStatPointsReport);
+            return TRUE;
+         case STAT_ID_AIM:
+            piAim++;
+            Post(self,@MsgSendUser,#message_rsc=gained_aim_msg);
+            Post(self,@DrawAim);
+            Post(self,@GiveUnassignedStatPointsReport);
+            return TRUE;
+      }
+
+      return FALSE;
+   }
+
+   GiveUnassignedStatPointsReport()
+   {
+      Send(self,@MsgSendUser,#message_rsc=unassigned_stat_points,#parm1=Send(self,@GetTotalRawStatPoints)-(piMight+piIntellect+piStamina+piAgility+piMysticism+piAim));
+      return;
    }
 
 end
