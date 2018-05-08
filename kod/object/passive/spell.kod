@@ -230,6 +230,9 @@ classvars:
    viDefensive = FALSE
    viOffensive = FALSE
    viResistanceType = 0
+   
+   % Some spells act as 'area checks', turn off safety reports to stop that behavior
+   vbSafetyReport = TRUE
 
 properties:
 
@@ -850,7 +853,7 @@ messages:
       return TRUE;
    }
 
-   CanPayCosts(who=$,lTargets=$,iSpellPower=0,bItemCast=FALSE,bFreeCast=FALSE)
+   CanPayCosts(who=$,lTargets=$,iSpellPower=0,bItemCast=FALSE,bFreeCast=FALSE,report=TRUE)
    {
       local i, each_obj, oRoom, iRand, oSpell, oTarget;
 
@@ -1047,7 +1050,7 @@ messages:
       if Send(self,@IsHarmful)
       {
          % Can the caster attack the target(s) with the harmful spell?
-         if NOT Send(self,@CheckPlayerAttackCast,#who=who,#lTargets=lTargets)
+         if NOT Send(self,@CheckPlayerAttackCast,#who=who,#lTargets=lTargets,#report=report)
          {
             return FALSE;
          }
@@ -1148,7 +1151,7 @@ messages:
       return lTargets;
    }
 
-   CheckPlayerAttackCast(who=$,lTargets=$)
+   CheckPlayerAttackCast(who=$,lTargets=$,report=TRUE)
    "Checks to see if player can attack said targets."
    {
       local oRoom, i, lFinalTargets, oTarget;
@@ -1183,7 +1186,7 @@ messages:
                if NOT Send(oRoom,@ReqSomethingAttack,#what=who,#victim=i,
                            #stroke_obj=self)
                   OR NOT Send(who,@AllowPlayerAttack,#victim=i,
-                              #stroke_obj=self)
+                              #stroke_obj=self,#report=report)
                {
                   return FALSE;
                }
@@ -1192,7 +1195,7 @@ messages:
          else
          {
             lFinalTargets = Send(self,@GetAttackTargets,#who=who,
-                                 #lTargets=lTargets);
+                                 #lTargets=lTargets,#report=report);
 
             % Don't cast the spell if there's no valid targets.
             if lFinalTargets = $
@@ -2169,7 +2172,7 @@ messages:
       return TRUE;
    }
 
-   DoubleCheckAfterTrance(who=$, lTargets = $, iSpellPower = 0)
+   DoubleCheckAfterTrance(who=$, lTargets = $, iSpellPower = 0, report = FALSE)
    {
       if IsClass(who,&User) AND Send(who,@IsResting)  
       {
@@ -2180,7 +2183,7 @@ messages:
 
       if (Send(self,@IsHarmful)
             AND IsClass(who,&User)
-            AND NOT Send(self,@CheckPlayerAttackCast,#who=who,#lTargets=lTargets))
+            AND NOT Send(self,@CheckPlayerAttackCast,#who=who,#lTargets=lTargets,#report=report))
          OR NOT Send(Send(who,@GetOwner),@ReqSpellCast,#who=who,#oSpell=self,
                      #lItems=lTargets)
       {
@@ -2196,7 +2199,7 @@ messages:
       return TRUE;
    }
 
-   BeginCastingTrance(who = $, lTargets = $, iSpellPower = 0)
+   BeginCastingTrance(who = $, lTargets = $, iSpellPower = 0, report = TRUE)
    {
       local oTrance, oObject, oOwner, i, oTarget, lFinalTargets, iCastTime;
 
@@ -2229,7 +2232,7 @@ messages:
       {
          % Double-check to get valid targets.
          lFinalTargets = Send(self,@GetGoodTargets,#who=who,
-                              #lTargets=lTargets);
+                              #lTargets=lTargets,#report=report);
 
          if lFinalTargets <> $ AND IsClass(First(lFinalTargets),&Battler)
             AND Send(First(lFinalTargets),@TryDeflect,#what=self,#caster=who)
@@ -2858,6 +2861,11 @@ messages:
    ModifyEmpowerment(empowerment_list=$)
    {
       return empowerment_list;
+   }
+
+   GetSafetyReport()
+   {
+      return vbSafetyReport;
    }
 
 end
