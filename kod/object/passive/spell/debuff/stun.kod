@@ -91,6 +91,7 @@ messages:
       else
       {
          Send(oTarget,@StartEnchantment,#what=self,#time=iDuration);
+         Send(oTarget,@ResetBehaviorFlags);
       }
 
       propagate;
@@ -112,9 +113,16 @@ messages:
 
    EndEnchantment(who=$,state=$,report=TRUE)
    {
-      if report
+      if IsClass(who,&Player)
       {
-         Send(who,@MsgSendUser,#message_rsc=vrEnchantment_Off);
+         if report
+         {
+            Send(who,@MsgSendUser,#message_rsc=vrEnchantment_Off);
+         }
+      }
+      else
+      {
+         Post(who,@ResetBehaviorFlags);
       }
 
       return;
