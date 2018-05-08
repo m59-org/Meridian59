@@ -93,7 +93,7 @@ messages:
 
    DoLeap(who = $, oTarget = $)
    {                   
-      local oRoom, lSteps, i, iJustShortDistance, each_obj;
+      local oRoom, iResult, i, iJustShortDistance, each_obj;
       
       if oTarget = $
       {
@@ -105,13 +105,13 @@ messages:
       {
          return FALSE;
       }
-      
+
       % We aim to teleport 64 fine short of the target
       iJustShortDistance = Send(who,@SquaredFineDistanceTo3D,#what=oTarget);
       iJustShortDistance = Sqrt(iJustShortDistance);
       iJustShortDistance = iJustShortDistance - 64;
 
-      lSteps = Send(oRoom,@IntraTeleport,#what=who,
+      iResult = Send(oRoom,@IntraTeleport,#what=who,
                                          #type=INTRA_TELEPORT_TOWARD_DESTINATION,
                                          #distance=iJustShortDistance,
                                          #new_row=Send(oTarget,@GetRow),
@@ -119,7 +119,7 @@ messages:
                                          #fine_row=Send(oTarget,@GetFineRow),
                                          #fine_col=Send(oTarget,@GetFineCol));
 
-      if lSteps <> $
+      if iResult 
       {
          foreach i in Send(oRoom,@GetHolderActive)
          {
@@ -148,8 +148,6 @@ messages:
             }
          }
          return TRUE;
-%         Post(who,@ClearAttackTimer);
-%         Post(who,@UserAttack,#what=oTarget);
       }
 
       return FALSE;
