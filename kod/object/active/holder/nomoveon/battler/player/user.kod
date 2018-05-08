@@ -153,6 +153,7 @@ resources:
    user_stat_armor = "Armor"
    user_stat_training = "Training Pts"
    user_stat_unbound_energy = "Unbound Energy"
+   user_stat_accumulated_wisdom = "Accum. Wisdom"
 
    user_stat_hpgainchance = exp.bgf
    user_resist_magic = "Magic Resist"
@@ -3374,7 +3375,7 @@ messages:
             ++i;
          }
 
-         Send(self,@SendStatUnboundEnergy);
+         Send(self,@SendStatAccumulatedWisdom);
 
          SendPacket(poSession);
 
@@ -9446,9 +9447,9 @@ messages:
    {
       if pbLogged_on
       {
-         AddPacket(1,BP_STAT,1,2);
+         %AddPacket(1,BP_STAT,1,2);
          Send(self,@SendStatUnboundEnergy);
-         SendPacket(poSession);
+         %SendPacket(poSession);
       }
 
       return;
@@ -9456,13 +9457,34 @@ messages:
 
    SendStatUnboundEnergy()
    {
-      local iPoints;
+      %local iPoints;
 
-      iPoints = Send(self,@GetUnboundEnergy);
+      %iPoints = Send(self,@GetUnboundEnergy);
 
-      AddPacket(1,27, 4,user_stat_unbound_energy, 1,STAT_VALUE, 1,STAT_INTEGER,
-                4,iPoints, 4,0, 4,Send(SETTINGS_OBJECT,@GetUnboundMax), 4,iPoints);
+      %AddPacket(1,27, 4,user_stat_unbound_energy, 1,STAT_VALUE, 1,STAT_INTEGER,
+      %          4,iPoints, 4,0, 4,Send(SETTINGS_OBJECT,@GetUnboundMax), 4,iPoints);
       Post(self,@DrawMana);
+      return;
+   }
+
+   DrawAccumulatedWisdom()
+   {
+      if pbLogged_on
+      {
+         AddPacket(1,BP_STAT,1,2);
+         Send(self,@SendStatAccumulatedWisdom);
+         SendPacket(poSession);
+      }
+      return;
+   }
+
+   SendStatAccumulatedWisdom()
+   {
+      local iWisdom;
+      
+      iWisdom = Send(self,@GetAccumulatedWisdom);
+      AddPacket(1,27, 4,user_stat_accumulated_wisdom, 1,STAT_VALUE, 1,STAT_INTEGER,
+                4,iWisdom, 4,0, 4,320000, 4,iWisdom);
       return;
    }
 
