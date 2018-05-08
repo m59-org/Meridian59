@@ -4991,7 +4991,14 @@ messages:
       % If there are equal level equal power songs, then whatever was cast first stays.
       % Calculations done in GetLoudestJalaSongMusic.
 
-      rJalaMusic = Send(self,@GetLoudestJalaSongMusic);
+      rJalaMusic = $;
+      
+      if (piRoom_flags & ROOM_NO_COMBAT)
+      {
+         % Only change room music if we're somewhere safe.
+         % Otherwise, combat zones are basically always going to be Restorate song.
+         rJalaMusic = Send(self,@GetLoudestJalaSongMusic);
+      }
       
       if rJalaMusic = $
       {
