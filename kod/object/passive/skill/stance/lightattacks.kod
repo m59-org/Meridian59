@@ -1,0 +1,93 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+LightAttackStance is Stance
+
+constants:
+
+   include blakston.khd
+   include protocol.khd   
+
+resources:
+
+   LightAttacks_name_rsc = "light attacks"
+   LightAttacks_icon_rsc = idodge.bgf
+   LightAttacks_desc_rsc = \
+      "Bandits must strike quickly and retreat."
+
+   LightAttacks_skill_intro = "Banditry Lv. 4: A stance that increases attack speed but lowers power."
+   
+   LightAttacks_begin = "You lower your shoulders and prepare to strike quickly."
+   LightAttacks_end = "You return your upper body to its normal position."
+   LightAttacks_mantra = "Your money or your life!"
+
+   LightAttacks_intro = \
+      "Banditry Lv. 4: Faster attacks, less power."
+
+classvars:
+
+   vrName = LightAttacks_name_rsc
+   vrIcon = LightAttacks_icon_rsc
+   vrDesc = LightAttacks_desc_rsc
+
+   stance_begin_msg = LightAttacks_begin
+   stance_end_msg = LightAttacks_end
+   
+   vsStanceMantra = LightAttacks_mantra
+
+   vrSkill_intro = LightAttacks_skill_intro
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+
+   viSkill_num = SKID_LIGHT_ATTACK_STANCE
+   viSchool = SKS_BANDITRY
+   viSkill_Level = 4
+   viChance_to_Increase = 5
+   viMeditate_ratio = 70
+
+   viSkillExertion = 0
+   vbCheck_exertion = FALSE
+
+   vbAutomatic = TRUE
+
+properties:
+
+messages:
+
+   GetRequisiteStat(who=$)
+   {
+      return Send(who,@GetAgility);
+   }
+
+   ModifyAttackTime(who=$, iAttackTime=0)
+   {
+      return iAttackTime/2;
+   }
+
+   ModifyAttackDamage(who=$, what=$, damage=0)
+   {
+      local iLightAttackAbility, iStat, iDamagePercentage;
+
+      iLightAttackAbility = Send(who,@GetSkillAbility,#skill_num=viSkill_num);
+      iStat = Send(self,@GetRequisiteStat,#who=who);
+
+      % Light attacks do half damage.
+
+      iDamagePercentage = (damage * (((iLightAttackAbility+1)*3/4)+(iStat/4)))/200;
+      iDamagePercentage = Bound(iDamagePercentage,1,50);
+
+      Send(self,@ImproveAbility,#who=who);
+
+      return (damage * iDamagePercentage)/100;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

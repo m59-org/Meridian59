@@ -7087,6 +7087,13 @@ messages:
          iDamage = Send(poStance,@GetCleaveDamage,#who=self,#damage=iDamage);
       }
 
+      if poStance <> $
+         AND (IsClass(poStance,&HeavyAttackStance)
+            OR IsClass(poStance,&LightAttackStance))
+      {
+         iDamage = Send(poStance,@ModifyAttackDamage,#who=self,#damage=iDamage);
+      }
+
       foreach i in Send(self,@GetEnchantmentsByClass,#enchClass=&Hex)
       {
          iDamage = Send(Nth(i,2),@ModifyDamage,
@@ -7468,7 +7475,7 @@ messages:
          AND Send(what,@GetStance) <> $
          AND NOT bSecondary
       {
-         damage = Send(Send(what,@GetStance),@LastPriorityModifyDamage,#who=what,#what=self,#damage=damage);
+         damage = Send(Send(what,@GetStance),@LastPriorityModifyDamage,#who=what,#what=self,#damage=damage,#stroke_obj=stroke_obj);
       }
       
       if Send(self,@GetStance) <> $
@@ -8428,6 +8435,11 @@ messages:
       else
       {
          i = time;
+      }
+
+      if poStance <> $
+      {
+         i = Send(poStance,@ModifyAttackTime,#iAttackTime=i);
       }
 
       foreach n in Send(self,@GetEnchantmentsByClass,#enchClass=&Hex)
@@ -14084,6 +14096,12 @@ messages:
       }
 
       Send(self,@DrawMight);
+      
+      if Send(self,@HasSkill,#num=SKID_HEAVY_ARMOR)
+      {
+         Send(self,@DrawDefense);
+      }
+
       Post(self,@DrawCapacity);
 
       return piMightMod - iOrigMight;
@@ -14804,11 +14822,11 @@ messages:
    "many competing schools, he needs to know that."
    {
       local bSkill, obj, level, school, division, iHave, prev_level,
-            iSamediv, iOtherdiv, aHigh, bHigh, cHigh, iBase, i, temp,
+            aHigh, bHigh, cHigh, iBase, i, temp,
             nObj, nSID, index, iNeed, nSchool, nLevel, msg, bKnowOne,
             iWeapon, iKraanan, iShalille, iQor, iFaren, iRiija, iJala,
-            iBanditry, iSorcery, iWitchery, iPoints;
-      % This function is at parameter limit.
+            iKnightcraft, iBanditry, iSorcery, iWitchery, iPoints;
+      % This function is close to parameter limit.
 
       % Phase one. Assert our data. Be sure we have been fed a valid spell
       % and skill num for a spell item that actually exists.
@@ -14941,6 +14959,7 @@ messages:
       aHigh = 0; bHigh = 0; cHigh = 0;
 
       iWeapon = 0;
+      iKnightcraft = 0;
       iBanditry = 0;
       iSorcery = 0;
       iWitchery = 0;
@@ -15001,6 +15020,11 @@ messages:
                AND nLevel > iWeapon
             {
                iWeapon = nLevel;
+            }
+            if nSchool = SKS_KNIGHTCRAFT
+               AND nLevel > iKnightcraft
+            {
+               iKnightcraft = nLevel;
             }
             if nSchool = SKS_BANDITRY
                AND nLevel > iBanditry
@@ -15156,6 +15180,7 @@ messages:
       % We have done all the information gathering, so now, lets compute:
 
       iPoints =  Send(SYS,@GetLevelLearnPoints,#level=iWeapon)
+               + Send(SYS,@GetLevelLearnPoints,#level=iKnightcraft)
                + Send(SYS,@GetLevelLearnPoints,#level=iBanditry)
                + Send(SYS,@GetLevelLearnPoints,#level=iSorcery)
                + Send(SYS,@GetLevelLearnPoints,#level=iWitchery)
@@ -15201,6 +15226,10 @@ messages:
             if school = SKS_FENCING
             {
                nSchool = iWeapon;
+            }
+            if school = SKS_KNIGHTCRAFT
+            {
+               nSchool = iKnightcraft;
             }
             if school = SKS_BANDITRY
             {
@@ -19245,12 +19274,29 @@ messages:
 
    GetCriticalHitRate()
    {
+      local iCritBonus;
+
+      % 100 means no change
+      iCritBonus = 100;
+      if poStance <> $
+      {
+         
+         if IsClass(poStance,&HeavyAttackStance)
+         {
+            iCritBonus = 300;
+         }
+         if IsClass(poStance,&LightAttackStance)
+         {
+            iCritBonus = 50;
+         }
+      }
+
       % Multiplied by 100 for granularity purposes
       % 5%  = 500
       % 10% = 1000
       % 15% = 1500
       % 20% = 2000
-      return Bound(((Send(Send(self,@GetWeapon),@GetCriticalHitRate)*100) * (100+Send(self,@GetAim)/2))/100,0,10000);
+      return Bound(((((Send(Send(self,@GetWeapon),@GetCriticalHitRate)*100) * (100+Send(self,@GetAim)/2))/100)*iCritBonus)/100,0,10000);
    }
 
    GetKnockbackPower()

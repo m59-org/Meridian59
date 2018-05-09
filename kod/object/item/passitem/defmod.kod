@@ -101,7 +101,7 @@ messages:
 
    ModifyDefensePower(who = $,what = $,defense_power = 0)
    {
-      local i, oDefenseMod;
+      local i, oDefenseMod, iArmorSkillBonus, oArmorSkill;
 
       foreach i in plEnchantmentMods
       {
@@ -113,14 +113,62 @@ messages:
          }
       }
 
-      return defense_power + piDefense_bonus;
+      iArmorSkillBonus = 0;
+      if (IsClass(self,&PlateArmor)
+         OR IsClass(self,&NeruditeArmor))
+         AND who <> $
+         AND IsClass(who,&Player)
+         AND Send(who,@HasSkill,#num=SKID_HEAVY_ARMOR)
+      {
+         oArmorSkill = Send(SYS,@FindSkillByNum,#num=SKID_HEAVY_ARMOR);
+         if oArmorSkill <> $
+         {
+            iArmorSkillBonus = Send(oArmorSkill,@GetArmorSkillBonus,#who=who,#iDefensePenalty=piDefense_bonus);
+         }
+      }
+      if IsClass(self,&ScaleArmor)
+         AND who <> $
+         AND IsClass(who,&Player)
+         AND Send(who,@HasSkill,#num=SKID_MEDIUM_ARMOR)
+      {
+         oArmorSkill = Send(SYS,@FindSkillByNum,#num=SKID_MEDIUM_ARMOR);
+         if oArmorSkill <> $
+         {
+            iArmorSkillBonus = Send(oArmorSkill,@GetArmorSkillBonus,#who=who,#iDefensePenalty=piDefense_bonus);
+         }
+      }
+      return defense_power + piDefense_bonus + iArmorSkillBonus;
    }
 
    ModifyDefenseDamage(who = $,what = $,damage = $,atype = 0,aspell = 0)
    "Increase or decrease damage done to defender."
    {
-      local iDamageReduce, oAttribute, i, sum, oArmorMod;
+      local iDamageReduce, oAttribute, i, sum, oArmorMod, oArmorSkill;
       sum = 0;
+
+      if (IsClass(self,&PlateArmor)
+         OR IsClass(self,&NeruditeArmor))
+         AND who <> $
+         AND IsClass(who,&Player)
+         AND Send(who,@HasSkill,#num=SKID_HEAVY_ARMOR)
+      {
+         oArmorSkill = Send(SYS,@FindSkillByNum,#num=SKID_HEAVY_ARMOR);
+         if oArmorSkill <> $
+         {
+            Send(oArmorSkill,@TookAHit,#who=who);
+         }
+      }
+      if IsClass(self,&ScaleArmor)
+         AND who <> $
+         AND IsClass(who,&Player)
+         AND Send(who,@HasSkill,#num=SKID_MEDIUM_ARMOR)
+      {
+         oArmorSkill = Send(SYS,@FindSkillByNum,#num=SKID_MEDIUM_ARMOR);
+         if oArmorSkill <> $
+         {
+            Send(oArmorSkill,@TookAHit,#who=who);
+         }
+      }
 
       foreach i in plEnchantmentMods
       {
@@ -237,7 +285,7 @@ messages:
 
    GetDefenseBonus()
    {
-      local i, sum;
+      local i, sum, iArmorSkillBonus, oArmorSkill;
       sum = 0;
 
       foreach i in plEnchantmentMods
@@ -247,8 +295,33 @@ messages:
             sum = sum + Nth(i,2);
          }
       }
+
+      iArmorSkillBonus = 0;
+      if (IsClass(self,&PlateArmor)
+         OR IsClass(self,&NeruditeArmor))
+         AND poOwner <> $
+         AND IsClass(poOwner,&Player)
+         AND Send(poOwner,@HasSkill,#num=SKID_HEAVY_ARMOR)
+      {
+         oArmorSkill = Send(SYS,@FindSkillByNum,#num=SKID_HEAVY_ARMOR);
+         if oArmorSkill <> $
+         {
+            iArmorSkillBonus = Send(oArmorSkill,@GetArmorSkillBonus,#who=poOwner,#iDefensePenalty=piDefense_bonus);
+         }
+      }
+      if IsClass(self,&ScaleArmor)
+         AND poOwner <> $
+         AND IsClass(poOwner,&Player)
+         AND Send(poOwner,@HasSkill,#num=SKID_MEDIUM_ARMOR)
+      {
+         oArmorSkill = Send(SYS,@FindSkillByNum,#num=SKID_MEDIUM_ARMOR);
+         if oArmorSkill <> $
+         {
+            iArmorSkillBonus = Send(oArmorSkill,@GetArmorSkillBonus,#who=poOwner,#iDefensePenalty=piDefense_bonus);
+         }
+      }
       
-      return piDefense_bonus + sum;
+      return piDefense_bonus + sum + iArmorSkillBonus;
    }
 
    GetHexResistance()
