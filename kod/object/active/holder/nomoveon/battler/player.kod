@@ -1383,6 +1383,8 @@ properties:
    
    % What's our total knowledge over all reincarnations?
    piAccumulatedWisdom = -1
+   
+   plDelayedAdditionalAttacks = $
 
 messages:
 
@@ -1410,6 +1412,8 @@ messages:
       {
          Send(i,@RemoveFromFormerMemberList,#who=self);
       }
+      
+      Send(self,@ClearDelayedAdditionalAttacks);
 
       if ptUnboundEnergy <> $
       {
@@ -3713,6 +3717,8 @@ messages:
          }
          plEvilTwins = $;
       }
+
+      Send(self,@ClearDelayedAdditionalAttacks);
 
       Send(self,@ClearStance);
 
@@ -6341,7 +6347,7 @@ messages:
 
       if poOwner <> $
          AND IsClass(poOwner,&Room)
-         AND Send(self,@IsOkayAttackTime)
+         AND Send(self,@IsOkayAttackTime,#stroke_obj=stroke_obj)
       {
          foreach i in Send(poOwner,@GetHolderActive)
          {
@@ -6375,7 +6381,7 @@ messages:
       return bSwungAtLeastOnce;
    }
 
-   TryAttack(what = $,use_weapon = $,stroke_obj=$,bCleaving = FALSE)
+   TryAttack(what = $,use_weapon = $,stroke_obj=$,bCleaving = FALSE,bAdditionalAttack = FALSE)
    {
       local i, iRange, lWindsState, lSandstormState;
 
@@ -6388,7 +6394,7 @@ messages:
       }
 
       % Check attack time.
-      if NOT Send(self,@IsOkayAttackTime)
+      if NOT Send(self,@IsOkayAttackTime,#stroke_obj=stroke_obj,#bAdditionalAttack=bAdditionalAttack)
          AND NOT IsClass(stroke_obj,&Throw)
       {
          return FALSE;
@@ -6565,8 +6571,56 @@ messages:
             Send(First(i),@ImproveAbility,#who=self,#target=what);
          }
       }
+         
+      if poStance <> $
+         AND IsClass(poStance,&LightAttackStance)
+         AND NOT bAdditionalAttack
+         AND stroke_obj <> $
+         AND (IsClass(stroke_obj,&Stab)
+            OR IsClass(stroke_obj,&Slash))
+      {
+         plDelayedAdditionalAttacks = Cons([CreateTimer(self,@CheckDelayedAdditionalAttacks,450),what,use_weapon,stroke_obj],plDelayedAdditionalAttacks);
+      }
 
       propagate;
+   }
+
+   CheckDelayedAdditionalAttacks(timer=$)
+   {
+      local i;
+      
+      foreach i in plDelayedAdditionalAttacks
+      {
+         if timer=First(i)
+         {
+            SetNth(i,1,$);
+            Post(self,@ClearAttackTimer);
+            Post(self,@TryAttack,#what=Nth(i,2),#use_weapon=Nth(i,3),#stroke_obj=Nth(i,4),#bAdditionalAttack=TRUE);
+            SetNth(i,2,$);
+            SetNth(i,3,$);
+            SetNth(i,4,$);
+            plDelayedAdditionalAttacks = DelListElem(plDelayedAdditionalAttacks,i);
+         }
+      }
+      return;
+   }
+
+   ClearDelayedAdditionalAttacks()
+   {
+      local i;
+      
+      foreach i in plDelayedAdditionalAttacks
+      {
+         DeleteTimer(Nth(i,1));
+         SetNth(i,1,$);
+         SetNth(i,2,$);
+         SetNth(i,3,$);
+         SetNth(i,4,$);
+      }
+
+      plDelayedAdditionalAttacks = $;
+
+      return;
    }
 
    % Determines if target is within attacking range, and within sight.
@@ -7091,7 +7145,7 @@ messages:
          AND (IsClass(poStance,&HeavyAttackStance)
             OR IsClass(poStance,&LightAttackStance))
       {
-         iDamage = Send(poStance,@ModifyAttackDamage,#who=self,#damage=iDamage);
+         iDamage = Send(poStance,@ModifyAttackDamage,#who=self,#damage=iDamage,#stroke_obj=stroke_obj);
       }
 
       foreach i in Send(self,@GetEnchantmentsByClass,#enchClass=&Hex)
@@ -8417,7 +8471,7 @@ messages:
       return TRUE;
    }
 
-   IsOkayAttackTime(time = 1000, seconds = $)
+   IsOkayAttackTime(time = 1000, seconds = $,stroke_obj = $, bAdditionalAttack = FALSE)
    "Have we waited long enough since the last attack/spell? Sets new "
    "valid attack time (time in msec, default 1 second)."
    {
@@ -8426,6 +8480,13 @@ messages:
       if ptAttackTimer <> $
       {
          return FALSE;
+      }
+
+      if bAdditionalAttack
+      {
+         % These will always be 500 ms.
+         ptAttackTimer = CreateTimer(self,@AttackTimer,500);
+         return TRUE;
       }
 
       if seconds <> $
@@ -8439,7 +8500,7 @@ messages:
 
       if poStance <> $
       {
-         i = Send(poStance,@ModifyAttackTime,#iAttackTime=i);
+         i = Send(poStance,@ModifyAttackTime,#iAttackTime=i,#stroke_obj=stroke_obj);
       }
 
       foreach n in Send(self,@GetEnchantmentsByClass,#enchClass=&Hex)
@@ -19283,12 +19344,12 @@ messages:
          
          if IsClass(poStance,&HeavyAttackStance)
          {
-            iCritBonus = 300;
+            iCritBonus = 200;
          }
-         if IsClass(poStance,&LightAttackStance)
-         {
-            iCritBonus = 50;
-         }
+         %if IsClass(poStance,&LightAttackStance)
+         %{
+         %   iCritBonus = 50;
+         %}
       }
 
       % Multiplied by 100 for granularity purposes
@@ -19301,7 +19362,42 @@ messages:
 
    GetKnockbackPower()
    {
-      return (Send(self,@GetSize) * (100+Send(self,@GetMight)/2))/100;
+      local iStanceBonus;
+      
+      iStanceBonus = 100;
+      
+      if poStance <> $
+      {
+         if IsClass(poStance,&HeavyAttackStance)
+         {
+            iStanceBonus = 150;
+         }
+         if IsClass(poStance,&LightAttackStance)
+         {
+            iStanceBonus = 50;
+         }
+      }
+      return (((Send(self,@GetSize) * (100+Send(self,@GetMight)/2))*iStanceBonus)/100)/100;
+   }
+   
+   GetStunPower()
+   {
+      local iStanceBonus;
+      
+      iStanceBonus = 100;
+      
+      if poStance <> $
+      {
+         if IsClass(poStance,&HeavyAttackStance)
+         {
+            iStanceBonus = 150;
+         }
+         if IsClass(poStance,&LightAttackStance)
+         {
+            iStanceBonus = 50;
+         }
+      }
+      return (Send(self,@GetSize)*iStanceBonus)/100;
    }
 
    AttemptTrainStatPoint(type=STAT_ID_AIM)

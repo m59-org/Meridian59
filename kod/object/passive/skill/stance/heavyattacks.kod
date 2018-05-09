@@ -17,12 +17,15 @@ constants:
 
 resources:
 
-   HeavyAttacks_name_rsc = "heavy attacks"
+   HeavyAttacks_name_rsc = "forceful impacts"
    HeavyAttacks_icon_rsc = istreng.bgf
    HeavyAttacks_desc_rsc = \
       "Knights are masters of slow, calculated, and heavy combat. "
       "While in this stance, warriors will perform attacks more slowly, "
       "but when they do swing, the result will be tremendous."
+      "\n\nHeavy attacks are only possible with weaponcraft "
+      "melee weapons. Other tools, like daggers and bows, "
+      "are not designed for honorable combat."
 
    HeavyAttacks_skill_intro = "Knightcraft Lv. 1: A stance that slows attack speed but increases power."
    
@@ -71,14 +74,25 @@ messages:
       return Send(who,@GetMight);
    }
 
-   ModifyAttackTime(who=$, iAttackTime=0)
+   ModifyAttackTime(who=$, iAttackTime=0, stroke_obj = $)
    {
-      return iAttackTime*3;
+      if stroke_obj <> $
+         AND IsClass(stroke_obj,&Slash)
+      {
+         return iAttackTime*3;
+      }
+      return iAttackTime;
    }
 
-   ModifyAttackDamage(who=$, what=$, damage=0)
+   ModifyAttackDamage(who=$, what=$, damage=0, stroke_obj=$)
    {
       local iHeavyAttackAbility, iStat, iDamagePercentage;
+
+      if stroke_obj = $
+         OR NOT IsClass(stroke_obj,&Slash)
+      {
+         return damage;
+      }
 
       iHeavyAttackAbility = Send(who,@GetSkillAbility,#skill_num=viSkill_num);
       iStat = Send(self,@GetRequisiteStat,#who=who);

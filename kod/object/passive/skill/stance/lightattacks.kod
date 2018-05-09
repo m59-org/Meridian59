@@ -17,19 +17,26 @@ constants:
 
 resources:
 
-   LightAttacks_name_rsc = "light attacks"
-   LightAttacks_icon_rsc = idodge.bgf
+   LightAttacks_name_rsc = "rapid assault"
+   LightAttacks_icon_rsc = slashico.bgf
    LightAttacks_desc_rsc = \
-      "Bandits must strike quickly and retreat."
+      "Sometimes, the best defense is a savage offense. "
+      "New knights are taught to wield weapons with aggressiveness in mind, "
+      "allowing them to attack twice as fast. Attacks made in this manner "
+      "do less damage, but are sure to cow the enemy."
+      "\n\nRapid attacks are only possible with "
+      "melee weapons. Other tools, like bows, "
+      "are not designed for assaults."
 
-   LightAttacks_skill_intro = "Banditry Lv. 4: A stance that increases attack speed but lowers power."
+   LightAttacks_skill_intro = "Knightcraft Lv. 2: A stance that increases attack speed but lowers power."
    
    LightAttacks_begin = "You lower your shoulders and prepare to strike quickly."
    LightAttacks_end = "You return your upper body to its normal position."
-   LightAttacks_mantra = "Your money or your life!"
+   LightAttacks_mantra = \
+      "Forward with courage!"
 
    LightAttacks_intro = \
-      "Banditry Lv. 4: Faster attacks, less power."
+      "Knightcraft Lv. 2: Faster attacks, less power."
 
 classvars:
 
@@ -48,8 +55,8 @@ classvars:
    viDefinite = ARTICLE_NONE
 
    viSkill_num = SKID_LIGHT_ATTACK_STANCE
-   viSchool = SKS_BANDITRY
-   viSkill_Level = 4
+   viSchool = SKS_KNIGHTCRAFT
+   viSkill_Level = 2
    viChance_to_Increase = 5
    viMeditate_ratio = 70
 
@@ -67,14 +74,16 @@ messages:
       return Send(who,@GetAgility);
    }
 
-   ModifyAttackTime(who=$, iAttackTime=0)
-   {
-      return iAttackTime/2;
-   }
-
-   ModifyAttackDamage(who=$, what=$, damage=0)
+   ModifyAttackDamage(who=$, what=$, damage=0, stroke_obj=$)
    {
       local iLightAttackAbility, iStat, iDamagePercentage;
+
+      if stroke_obj = $
+         OR NOT (IsClass(stroke_obj,&Stab)
+            OR IsClass(stroke_obj,&Slash))
+      {
+         return damage;
+      }
 
       iLightAttackAbility = Send(who,@GetSkillAbility,#skill_num=viSkill_num);
       iStat = Send(self,@GetRequisiteStat,#who=who);

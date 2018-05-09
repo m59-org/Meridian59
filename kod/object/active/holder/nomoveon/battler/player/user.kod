@@ -96,7 +96,9 @@ resources:
    user_said_str = "%s says, \"%q~n\""
    user_said_echo_str = "You say, \"%q~n\""
    user_mantra_str = "~wAs %s shifts %s stance, %s intones, \"~I%q...~I\""
+   user_shout_str = "~wAs %s shifts %s stance, %s shouts, \"~B%q~B\""
    user_mantra_echo_str = "~wAs you shift your stance, you intone, \"~I%q...~I\""
+   user_shout_echo_str = "~wAs you shift your stance, you shout, \"~B%q~B\""
    user_yelled_str = "%s yells, \"%q~n\""
    user_yelled_nearby_str = "You hear %s yelling, \"%q~n\""
    user_yelled_echo_str = "You yell, \"%q~n\""
@@ -5317,7 +5319,14 @@ messages:
             {
                Send(Send(SYS,@FindSkillByNum,#num=Nth(i,2)),
                      @BeginStance,#who=self);
-               type = SAY_MANTRA;
+               if Send(Send(SYS,@FindSkillByNum,#num=Nth(i,2)),@GetSchool) = SKS_KNIGHTCRAFT
+               {
+                  type = SAY_SHOUT;
+               }
+               else
+               {
+                  type = SAY_MANTRA;
+               }
                break;
             }
          }
@@ -5464,6 +5473,7 @@ messages:
       }
 
       if type = SAY_MANTRA
+         OR type = SAY_SHOUT
       {
          % This avoids squelches, since it's really an ability.
          % Notably, Mantras can be suppressed by Silence.
@@ -8493,6 +8503,24 @@ messages:
 
             SendPacket(poSession);
 
+            propagate;
+         }
+
+         if type = SAY_SHOUT
+         {
+            if what = self
+            {
+               Send(self,@MsgSendUser,#message_rsc=user_shout_echo_str,
+                     #parm1=string);
+            }
+            else
+            {
+               Send(self,@MsgSendUser,#message_rsc=user_shout_str,
+                     #parm1=Send(what,@GetName),
+                     #parm2=Send(what,@GetHisHer),
+                     #parm3=Send(what,@GetHeShe),
+                     #parm4=string);
+            }
             propagate;
          }
 
