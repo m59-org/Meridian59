@@ -169,6 +169,11 @@ resources:
    rTumbleSoundTwo = Swoosh02.wav
    rTumbleSoundThree = Swoosh03.wav
    rTumbleSoundFour = Swoosh04.wav
+
+   rActiveBlockSoundOne = SwrdMtl1.wav
+   rActiveBlockSoundTwo = SwrdMtl2.wav
+   rActiveBlockSoundThree = SwrdMtl3.wav
+   rActiveBlockSoundFour = FlshHit2.wav
    
    backstab_sound = Knife-Slice.wav
 
@@ -973,6 +978,25 @@ messages:
          + Send(SETTINGS_OBJECT,@GetBaseRating);
       iChanceToHit = iOffense * Send(SETTINGS_OBJECT,@GetEqualChanceToHit) / iDefense;
       iChanceToHit = bound(iChanceToHit,125,2000);
+
+      if IsClass(what,&Player)
+         AND Send(what,@GetStance) <> $
+         AND IsClass(Send(what,@GetStance),&ActiveBlockingStance)
+      {
+         if Send(Send(what,@GetStance),@AttemptActiveBlock,#who=what,#what=self)
+         {
+            Send(poOwner,@SomethingWaveRoom,#what=what,#wave_rsc=Send(self,@GetActiveBlockSound));
+            return FALSE;
+         }
+         else
+         {
+            % Guaranteed hit if player fails active blocking.
+            % Defense + active blocking would be way too strong.
+            % However, tumbling will still work.
+            iChanceToHit = 2000;
+         }
+      }
+
       if iChanceToHit >= random(1,1000)
          OR (IsClass(self,&Player)
              AND Send(Send(SYS,@FindSkillByNum,#num=SKID_SNEAK),
@@ -2075,6 +2099,30 @@ messages:
          }
 
       return;
+   }
+
+   GetActiveBlockSound()
+   {
+      local iRandom;
+      
+      iRandom = Random(1,3);
+      
+      if iRandom = 1
+      {
+         return rActiveBlockSoundOne;
+      }
+      
+      if iRandom = 2
+      {
+         return rActiveBlockSoundTwo;
+      }
+      
+      if iRandom = 3
+      {
+         return rActiveBlockSoundThree;
+      }
+      
+      return rActiveBlockSoundFour;
    }
 
    GetTumbleSound()

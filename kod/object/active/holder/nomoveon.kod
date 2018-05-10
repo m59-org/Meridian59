@@ -495,5 +495,137 @@ messages:
       return iResult;
    }
 
+   AttackIsComingFromSide(what=$,iSide=SIDE_FRONT)
+   {
+      local iMyAngle, iWhatAngle, iMinBound, iMaxBound;
+      % This function just compares the directions we and what are facing during an attack
+      % For all single target attacks and spells, the attacker must be facing the defender
+      % We can use that relationship to determine an angle without trigonometry
+
+      if what = $
+      {
+         return FALSE;
+      }
+
+      iMyAngle = Send(self,@GetAngle);
+      iWhatAngle = Send(what,@GetAngle);
+
+      % On a case of iMyAngle = 0,
+      % personal quadrants are 0-1025, 1026-2050, 2051-3075, 3076-4099
+
+      % On a case of iWhatAngle = 0,
+      % iMyAngle 1026-3075 means What is in front of us
+      % iMyAngle 0-1025 and 3076-4099 means What is behind us
+      
+      % On a case of iWhatAngle = 512,
+      % iMyAngle opposite is 2563
+      % iMyAngle 1538 - 3588 means What is in front of us
+      % iMyAngle 0-1537 and 3589-4099 means What is behind us
+
+      % The ranges are always 2050 in length.
+      % The relationship is such that:
+      % iMyAngle being in range 1025 + iWhatAngle to 3075 + iWhatAngle means What is in front of us
+
+      switch(iSide)
+      {
+         case SIDE_FRONT:
+            iMinBound = 1025 + iWhatAngle;
+            iMaxBound = 3075 + iWhatAngle;
+            break;
+         case SIDE_BACK:
+            iMinBound = 3075 + iWhatAngle;
+            iMaxBound = 5125 + iWhatAngle;
+            break;
+         case SIDE_LEFT:
+            iMinBound = 2050 + iWhatAngle;
+            iMaxBound = 4100 + iWhatAngle;
+            break;
+         case SIDE_RIGHT:
+            iMinBound = 0 + iWhatAngle;
+            iMaxBound = 2050 + iWhatAngle;
+            break;
+         case QUADRANT_FRONT_RIGHT:
+            iMinBound = 1025 + iWhatAngle;
+            iMaxBound = 2050 + iWhatAngle;
+            break;
+         case QUADRANT_BACK_RIGHT:
+            iMinBound = 0 + iWhatAngle;
+            iMaxBound = 1025 + iWhatAngle;
+            break;
+         case QUADRANT_BACK_LEFT:
+            iMinBound = 3075 + iWhatAngle;
+            iMaxBound = 4100 + iWhatAngle;
+            break;
+         case QUADRANT_FRONT_LEFT:
+            iMinBound = 2050 + iWhatAngle;
+            iMaxBound = 3075 + iWhatAngle;
+            break;
+      }
+
+      if iMaxBound >= 8200
+      {
+         % Adjust to same iteration
+         iMyAngle = iMyAngle + 8200;
+      }
+      else if iMaxBound >= 4100
+      {
+         iMyAngle = iMyAngle + 4100;
+      }
+
+      if iMyAngle >= iMinBound
+         AND iMyAngle <= iMaxBound
+      {
+         return TRUE;
+      }
+
+      return FALSE;
+   }
+
+   AttackIsComingFromTheLeft(what=$)
+   {
+      local iMyAngle, iWhatAngle, iMinBound, iMaxBound;
+
+      if what = $
+      {
+         return FALSE;
+      }
+
+      iMyAngle = Send(self,@GetAngle);
+      iWhatAngle = Send(what,@GetAngle);
+
+      % On a case of iMyAngle = 0,
+      % personal quadrants are 0-1025, 1026-2050, 2051-3075, 3076-4099
+
+      % On a case of iWhatAngle = 0,
+      % iMyAngle 1026-3075 means What is in front of us
+      % iMyAngle 0-1025 and 3076-4099 means What is behind us
+      
+      % On a case of iWhatAngle = 512,
+      % iMyAngle opposite is 2563
+      % iMyAngle 1538 - 3588 means What is in front of us
+      % iMyAngle 0-1537 and 3589-4099 means What is behind us
+
+      % The ranges are always 2050 in length.
+      % The relationship is such that:
+      % iMyAngle being in range 1025 + iWhatAngle to 3075 + iWhatAngle means What is in front of us
+
+      iMinBound = 1025 + iWhatAngle;
+      iMaxBound = 3075 + iWhatAngle;
+
+      if iMaxBound >= 4100
+      {
+         % Adjust to same iteration
+         iMyAngle = iMyAngle + 4100;
+      }
+
+      if iMyAngle >= iMinBound
+         AND iMyAngle <= iMaxBound
+      {
+         return TRUE;
+      }
+
+      return FALSE;
+   }
+
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -490,6 +490,9 @@ resources:
    necromancer_guildmaster_cant_bind_here = \
       "This place refuses that kind of energy. You cannot bind here."
 
+   user_is_active_blocking = \
+      "You can't attack or cast spells while maintaining a shield wall!"
+
 classvars:
 
    viIndefinite = ARTICLE_NONE
@@ -6472,6 +6475,14 @@ messages:
          return FALSE;
       }
 
+      if Send(self,@GetStance) <> $
+         AND IsClass(Send(self,@GetStance),&ActiveBlockingStance)
+      {
+         % No offensive actions while actively blocking!
+         Send(self,@MsgSendUser,#message_rsc=user_is_active_blocking);
+         return FALSE;
+      }
+
       % Get use_weapon
       use_weapon = Send(self,@GetWeapon);
 
@@ -6584,6 +6595,16 @@ messages:
       }
 
       Send(self,@BreakTrance,#event=EVENT_CAST,#what=oSpell);
+
+      if Send(self,@GetStance) <> $
+         AND IsClass(Send(self,@GetStance),&ActiveBlockingStance)
+         AND NOT IsClass(oSpell,&Phase)
+         AND NOT IsClass(oSpell,&Spectate)
+      {
+         % No offensive actions while actively blocking!
+         Send(self,@MsgSendUser,#message_rsc=user_is_active_blocking);
+         return FALSE;
+      }
 
       if ((piFlags & PFLAG_NO_MAGIC)
          OR Send(self,@IsInCannotInteractMode))
