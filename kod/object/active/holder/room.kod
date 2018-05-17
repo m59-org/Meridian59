@@ -969,13 +969,13 @@ messages:
       }
       if type = INTRA_TELEPORT_AWAY_FROM_DESTINATION
       {
-         % Starting coordinates dependent upon the away position
+         % Starting coordinates dependent upon the player's position
          iCol = Send(what,@GetCol);
          iRow = Send(what,@GetRow);
          iFineCol = Send(what,@GetFineCol);
          iFineRow = Send(what,@GetFineRow);
          
-         iRot = new_angle;
+         iRot = Send(what,@GetMyAngleAwayFromDestination,#iRow=new_row,#iCol=new_col,#iFineRow=fine_row,#iFineCol=fine_col);
          iWhoAngle = Send(what,@GetAngle);
       }
       if type = INTRA_TELEPORT_LEFT_AROUND_DESTINATION
@@ -1019,7 +1019,7 @@ messages:
       else if type = INTRA_TELEPORT_BACKWARD
       {
          % Teleports player directly backward.
-         iRot = Send(what,@GetAngle) + 2050;
+         iRot = Send(what,@GetAngle) + 2048;
          iWhoAngle = Send(what,@GetAngle);
       }
       else if type = INTRA_TELEPORT_LEFTWARD
@@ -1037,86 +1037,86 @@ messages:
       else if type = INTRA_TELEPORT_FRONT_TARGET
       {
          iRot = Send(target,@GetAngle);
-         iWhoAngle = iRot + 2050;
+         iWhoAngle = iRot + 2048;
       }
       else if type = INTRA_TELEPORT_FRONT_LEFT_TARGET
       {
          iRot = Send(target,@GetAngle) + 3587;
-         iWhoAngle = iRot + 2050;
+         iWhoAngle = iRot + 2048;
       }
       else if type = INTRA_TELEPORT_FRONT_LEFT_LEFTWARD_TARGET
       {
          iRot = Send(target,@GetAngle) + 3331;
-         iWhoAngle = iRot + 2050;
+         iWhoAngle = iRot + 2048;
       }
       else if type = INTRA_TELEPORT_FRONT_LEFT_RIGHTWARD_TARGET
       {
          iRot = Send(target,@GetAngle) + 3843;
-         iWhoAngle = iRot + 2050;
+         iWhoAngle = iRot + 2048;
       }
       else if type = INTRA_TELEPORT_FRONT_RIGHT_TARGET
       {
          iRot = Send(target,@GetAngle) + 512;
-         iWhoAngle = iRot + 2050;
+         iWhoAngle = iRot + 2048;
       }
       else if type = INTRA_TELEPORT_FRONT_RIGHT_LEFTWARD_TARGET
       {
          iRot = Send(target,@GetAngle) + 256;
-         iWhoAngle = iRot + 2050;
+         iWhoAngle = iRot + 2048;
       }
       else if type = INTRA_TELEPORT_FRONT_RIGHT_RIGHTWARD_TARGET
       {
          iRot = Send(target,@GetAngle) + 768;
-         iWhoAngle = iRot + 2050;
+         iWhoAngle = iRot + 2048;
       }
       else if type = INTRA_TELEPORT_BEHIND_TARGET
       {
-         iRot = Send(target,@GetAngle) + 2050;
-         iWhoAngle = iRot + 2050;
+         iRot = Send(target,@GetAngle) + 2048;
+         iWhoAngle = iRot + 2048;
       }
       else if type = INTRA_TELEPORT_BEHIND_LEFT_TARGET
       {
          iRot = Send(target,@GetAngle) + 2562;
-         iWhoAngle = iRot + 2050;
+         iWhoAngle = iRot + 2048;
       }
       else if type = INTRA_TELEPORT_BEHIND_LEFT_LEFTWARD_TARGET
       {
          iRot = Send(target,@GetAngle) + 2306;
-         iWhoAngle = iRot + 2050;
+         iWhoAngle = iRot + 2048;
       }
       else if type = INTRA_TELEPORT_BEHIND_LEFT_RIGHTWARD_TARGET
       {
          iRot = Send(target,@GetAngle) + 2818;
-         iWhoAngle = iRot + 2050;
+         iWhoAngle = iRot + 2048;
       }
       else if type = INTRA_TELEPORT_BEHIND_RIGHT_TARGET
       {
          iRot = Send(target,@GetAngle) + 1537;
-         iWhoAngle = iRot + 2050;
+         iWhoAngle = iRot + 2048;
       }
       else if type = INTRA_TELEPORT_BEHIND_RIGHT_LEFTWARD_TARGET
       {
          iRot = Send(target,@GetAngle) + 1281;
-         iWhoAngle = iRot + 2050;
+         iWhoAngle = iRot + 2048;
       }
       else if type = INTRA_TELEPORT_BEHIND_RIGHT_RIGHTWARD_TARGET
       {
          iRot = Send(target,@GetAngle) + 1793;
-         iWhoAngle = iRot + 2050;
+         iWhoAngle = iRot + 2048;
       }
       else if type = INTRA_TELEPORT_LEFT_TARGET
       {
-         iRot = Send(target,@GetAngle) + 3075;
-         iWhoAngle = iRot + 2050;
+         iRot = Send(target,@GetAngle) + 3072;
+         iWhoAngle = iRot + 2048;
       }
       else if type = INTRA_TELEPORT_RIGHT_TARGET
       {
-         iRot = Send(target,@GetAngle) + 1025;
-         iWhoAngle = iRot + 2050;
+         iRot = Send(target,@GetAngle) + 1024;
+         iWhoAngle = iRot + 2048;
       }
 
-      iRot = iRot mod 4100;
-      iWhoAngle = iWhoAngle mod 4100;
+      iRot = iRot mod MAX_ANGLE;
+      iWhoAngle = iWhoAngle mod MAX_ANGLE;
 
       % This calculates your intended destination without trigonometry.
       % The diff you travel is split into percentages of X and Y distance.
@@ -1126,40 +1126,40 @@ messages:
       iColSign = 1;
       iRowSign = 1;
       
-      % iRot 0 - 4100
+      % iRot 0 - MAX_ANGLE
       
       if iRot >= 0
-         AND iRot <= 1025
+         AND iRot <= 1024
       {
-         iColPercentage = 100 - (100*iRot)/1025;
-         iRowPercentage = (100*iRot)/1025;
+         iColPercentage = 100 - (100*iRot)/1024;
+         iRowPercentage = (100*iRot)/1024;
          iColSign = 1;
          iRowSign = 1;
       }
       
-      if iRot > 1025
-         AND iRot <= 2050
+      if iRot > 1024
+         AND iRot <= 2048
       {
-         iColPercentage = (100*(iRot-1025))/1025;
-         iRowPercentage = 100 - (100*(iRot-1025))/1025;
+         iColPercentage = (100*(iRot-1024))/1024;
+         iRowPercentage = 100 - (100*(iRot-1024))/1024;
          iColSign = -1;
          iRowSign = 1;
       }
       
-      if iRot > 2050
-         AND iRot <= 3175
+      if iRot > 2048
+         AND iRot <= 3172
       {
-         iColPercentage = 100 - (100*(iRot-2050))/1025;
-         iRowPercentage = (100*(iRot-2050))/1025;
+         iColPercentage = 100 - (100*(iRot-2048))/1024;
+         iRowPercentage = (100*(iRot-2048))/1024;
          iColSign = -1;
          iRowSign = -1;
       }
       
-      if iRot > 3175
-         AND iRot < 4100
+      if iRot > 3172
+         AND iRot < 4096
       {
-         iColPercentage = (100*(iRot-3175))/1025;
-         iRowPercentage = 100 - (100*(iRot-3175))/1025;
+         iColPercentage = (100*(iRot-3172))/1024;
+         iRowPercentage = 100 - (100*(iRot-3172))/1024;
          iColSign = 1;
          iRowSign = -1;
       }

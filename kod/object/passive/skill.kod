@@ -45,6 +45,7 @@ resources:
    skill_school_witchery_nequzon = "Witchery, through Nequzon"
    skill_school_witchery_iwodach = "Witchery, through Iwodach"
    skill_school_witchery_ventdal = "Witchery, through Ventdal"
+   skill_school_knightcraft = "Knightcraft"
 
    skill_meditate_ratio_rsc = \
       "\n\nIt will cost you %i training points to improve in this skill."
@@ -139,7 +140,12 @@ messages:
       {
          oSchool = skill_school_banditry;
       }
-      
+
+      if viSchool = SKS_KNIGHTCRAFT
+      {
+         oSchool = skill_school_knightcraft;
+      }
+
       if viSchool = SS_FAREN
       {
          oSchool = skill_school_faren;
@@ -203,7 +209,12 @@ messages:
       {
          rSchool = skill_school_banditry;
       }
-      
+
+      if viSchool = SKS_KNIGHTCRAFT
+      {
+         rSchool = skill_school_knightcraft;
+      }
+
       if viSchool = SS_FAREN
       {
          rSchool = skill_school_faren;
@@ -389,7 +400,7 @@ messages:
 
       iRequisiteStat = Send(self,@GetRequisiteStat,#who=who);
 
-      return bound(random(iRequisiteStat/2,iRequisiteStat)/2,1,25);
+      return bound(random(iRequisiteStat/2,iRequisiteStat)/2,1,100);
    }
 
    GetMeditateRatio()

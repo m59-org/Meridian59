@@ -92,6 +92,9 @@ constants:
 
    % If vigor gets this low, see if second wind skill kicks in.
    SECONDWIND_THRESHOLD = 25
+
+   % If health gets below this percentage of max health, see if zealous fervor skill kicks in.
+   ZEALOUS_FERVOR_THRESHOLD = 25
    
    % How steep is the curve for learning new levels of spells?
    %  A higher number means a greater slope (less points at low levels)
@@ -846,6 +849,8 @@ resources:
       "yourself ejected back into reality!"
    second_wind_finished = \
       "You feel more relaxed as your second wind dissipates."
+   zealous_fervor_finished = \
+      "Your zealous fervor fades."
 
    player_monster_attack_string = "monster attack"
    player_no_weapon_string = "no weapon"
@@ -1170,6 +1175,7 @@ properties:
    ptHealth = $
    ptAdvancement = $
    ptRest = $
+   ptFortitude = $
    ptUnboundEnergy = $
 
    % Poison info
@@ -1276,6 +1282,9 @@ properties:
    
    % This keeps the duration of our Second Wind skill's "downtime"
    ptSecondWind = $
+
+   % This keeps the duration of our Zealous Fervor skill's downtime
+   ptZealousFervor = $
 
    % Measures how long we have to wait before we're rescued.
    ptRescue = $
@@ -1415,6 +1424,18 @@ messages:
       
       Send(self,@ClearDelayedAdditionalAttacks);
 
+      if ptRest <> $
+      {
+         DeleteTimer(ptRest);
+         ptRest = $;
+      }
+
+      if ptFortitude <> $
+      {
+         DeleteTimer(ptFortitude);
+         ptFortitude = $;
+      }
+
       if ptUnboundEnergy <> $
       {
          DeleteTimer(ptUnboundEnergy);
@@ -1443,6 +1464,14 @@ messages:
       {
          DeleteTimer(ptAdvancement);
          ptAdvancement = $;
+      }
+
+      if ptZealousFervor <> $
+      {
+         DeleteTimer(ptZealousFervor);
+         ptZealousFervor = $;
+         Send(self,@ShowRemoveEnchantment,#what=Send(SYS,@FindSkillByNum,
+               #num=SKID_ZEALOUS_FERVOR),#type=ENCHANTMENT_PLAYER);
       }
 
       if ptSecondWind <> $
@@ -2670,6 +2699,57 @@ messages:
       return;
    }
 
+   StartZealousFervor()
+   {
+      local oFervor, iTime;
+
+      if Send(self,@GetSkillAbility,#Skill_num=SKID_ZEALOUS_FERVOR) = 0
+      {
+         return FALSE;
+      }
+
+      oFervor = Send(SYS,@FindSkillByNum,#num=SKID_ZEALOUS_FERVOR);
+      iTime = Send(oFervor,@GetWaitTime,#who=self);
+      ptZealousFervor = CreateTimer(self,@EndZealousFervorTimer,iTime);
+      
+      return TRUE;
+   }
+
+   EndZealousFervorTimer()
+   {
+      ptZealousFervor = $;
+      Send(self,@EndZealousFervor);
+
+      return;
+   }
+
+   EndZealousFervor()
+   {
+      if ptZealousFervor <> $
+      {
+         DeleteTimer(ptZealousFervor);
+         ptZealousFervor = $;
+      }
+
+      % This prevents repeated triggering of the zealous fervor skill.
+      if piHealth < (ZEALOUS_FERVOR_THRESHOLD * (piMax_Health*100))/100
+      {
+         piHealth = (ZEALOUS_FERVOR_THRESHOLD * (piMax_Health*100))/100;
+      }
+
+      Send(self,@NewHealth);
+      Send(self,@MsgSendUser,#message_rsc=zealous_fervor_finished);
+      Send(self,@ShowRemoveEnchantment,#what=Send(SYS,@FindSkillByNum,
+            #num=SKID_ZEALOUS_FERVOR),#type=ENCHANTMENT_PLAYER);
+
+      return;
+   }
+
+   GetZealousFervorTimer()
+   {
+      return ptZealousFervor;
+   }
+
    StartSecondWind()
    {
       local oWind, iTime;
@@ -2743,16 +2823,48 @@ messages:
       return;
    }
 
+   StartFortitude()
+   {
+      if ptFortitude = $
+         AND piVigor < piVigor_rest_threshold
+         AND NOT Send(self,@IsResting)
+      {
+         ptFortitude = CreateTimer(self,@DoFortitude,Send(self,@GetRestTime)*4);
+      }
+      return;
+   }
+
+   DoFortitude(timer=$)
+   {
+      local iRestAmount, oFortitude;
+
+      ptFortitude = $;
+
+      if Send(self,@HasSkill,#num=SKID_FORTITUDE)
+         AND NOT Send(self,@IsResting)
+      {
+         iRestAmount = -10000;
+         oFortitude = Send(SYS,@FindSkillByNum,#num=SKID_FORTITUDE);
+         iRestAmount = Send(oFortitude,@ModifyRestExertion,#who=self,#iRestAmount=iRestAmount);
+         Send(self,@RestAddExertion,#amount=iRestAmount);
+      }
+      return;
+   }
+
+   CancelFortitude()
+   {
+      if ptFortitude <> $
+      {
+         DeleteTimer(ptFortitude);
+         ptFortitude = $;
+      }
+      return;
+   }
+
    AddExertion(amount = 0, SetToThreshold = FALSE)
    {
       local iExertionAdded, iPercentReduced, iVigorLost, i;
 
-      % If we cannot gain vigor due to Second Wind, return out if trying
-      % to take away exertion
-%      if ptSecondWind <> $ AND amount < 0
-%      {
-%         return;
-%      }
       if Send(self,@IsInCannotInteractMode)
       {
          return;
@@ -2804,6 +2916,8 @@ messages:
          Send(self,@NewVigor);
       }
 
+      Send(self,@StartFortitude);
+
       return;
    }
 
@@ -2848,6 +2962,8 @@ messages:
          piExertion = 0;
          Send(self,@NewVigor);
       }
+
+      Send(self,@StartFortitude);
 
       return;
    }
@@ -3591,6 +3707,7 @@ messages:
       % Restart Health and Mana timers
       Send(self,@NewHealth);
       Send(self,@NewMana);
+      Send(self,@StartFortitude);
 
       Send(self,@SendUserAllWindowOverlays);
 
@@ -3717,6 +3834,8 @@ messages:
          }
          plEvilTwins = $;
       }
+
+      Send(self,@CancelFortitude);
 
       Send(self,@ClearDelayedAdditionalAttacks);
 
@@ -4129,6 +4248,9 @@ messages:
          Send(i,@Delete);
       }
 
+      % Remove Zealous Fervor first to account for health bonus.
+      Send(self,@RemoveSkill,#num=SKID_ZEALOUS_FERVOR);
+
       plSpells = $;
       plSkills = $;
 
@@ -4224,6 +4346,9 @@ messages:
          DeleteTimer(ptBondedItemReport);
          ptBondedItemReport = $;
       }
+
+      % Remove Zealous Fervor first to account for health bonus.
+      Send(self,@RemoveSkill,#num=SKID_ZEALOUS_FERVOR);
 
       plSpells = $;
       plSkills = $;
@@ -9055,6 +9180,16 @@ messages:
 
    NewHealth()
    {
+      if piHealth > 0
+         AND piHealth < (ZEALOUS_FERVOR_THRESHOLD * (piMax_Health*100))/100
+         AND ptZealousFervor = $
+         AND pbLogged_on
+         AND Send(self,@GetSkillAbility,#Skill_num=SKID_ZEALOUS_FERVOR) > 0
+         AND Send(Send(SYS,@FindSkillByNum,#num=SKID_ZEALOUS_FERVOR),@DoSkill,#who=self)
+      {
+         Send(self,@StartZealousFervor);
+      }
+
       if piHealth < 0
       {
          piHealth = 0;
@@ -9492,8 +9627,8 @@ messages:
 
       if plSchoolCasts = $
       {
-         % 15 elements for now
-         plSchoolCasts = [ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 ];
+         % 16 elements for now
+         plSchoolCasts = [ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 ];
       }
 
       if school = $
@@ -10134,8 +10269,8 @@ messages:
 
       lOldList = plSchools;
 
-      % 15 elements right now.
-      plSchools = [ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 ];
+      % 16 elements right now.
+      plSchools = [ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 ];
 
       foreach i in plSpells
       {
@@ -10683,6 +10818,12 @@ messages:
       newability = bound(iability+amount,1,99);
       iChange = newability - iability;
 
+      if Skill_num = SKID_ZEALOUS_FERVOR
+      {
+         % Remove existing health bonus before we change the skill.
+         Send(self,@GainMaxHealth,#amount=-((Send(self,@GetSkillAbility,#Skill_num=SKID_ZEALOUS_FERVOR)+1)/5));
+      }
+
       % If we advance a stroke or a proficiency, then
       % reset our stroke count (and bonuses)
       if IsClass(oSkill,&Stroke) OR IsClass(oSkill,&Proficiency)
@@ -10702,6 +10843,12 @@ messages:
             Send(poOwner,@SomethingWaveRoom,#what=self,
                   #wave_rsc=player_improved_wav_rsc);
          }
+      }
+
+      if Skill_num = SKID_ZEALOUS_FERVOR
+      {
+         % Add health bonus back with new amount.
+         Send(self,@GainMaxHealth,#amount=(Send(self,@GetSkillAbility,#Skill_num=SKID_ZEALOUS_FERVOR)+1)/5);
       }
 
       Send(self,@PlayerIsIntriguing);
@@ -10818,6 +10965,11 @@ messages:
          iBoundAbility = Send(oSkill,@InitialAbility,#who=self);
       }
 
+      if num = SKID_ZEALOUS_FERVOR
+      {
+         Send(self,@GainMaxHealth,#amount=(iBoundAbility+1)/5);
+      }
+
       plSkills = Cons(Send(self,@EncodeSkill,#num=num,
                      #iability=iBoundAbility),plSkills);
 
@@ -10853,6 +11005,9 @@ messages:
 
    RemoveAllSkills()
    {
+      % Remove Zealous Fervor first to account for health bonus.
+      Send(self,@RemoveSkill,#num=SKID_ZEALOUS_FERVOR);
+
       plSkills = $;
 
       if Send(self,@checklog)
@@ -10890,6 +11045,12 @@ messages:
       {
          if num = Send(self,@DecodeSkillNum,#compound=i)
          {
+            % If we remove Zealous Fervor, remove the health bonus.
+            if num = SKID_ZEALOUS_FERVOR
+            {
+               Send(self,@GainMaxHealth,#amount=-((Send(self,@GetSkillAbility,#Skill_num=SKID_ZEALOUS_FERVOR)+1)/5));
+            }
+
             plSkills = DelListElem(plSkills,i);
             if Send(self,@CheckLog)
             {
@@ -14274,6 +14435,8 @@ messages:
          return;
       }
 
+      Send(self,@CancelFortitude);
+
       if Send(self,@GetSkillAbility,#skill_num=SKID_TRACK) > 0
       {
          Send(Send(SYS,@FindSkillByNum,#num=SKID_TRACK),@StopTracking,#who=self);
@@ -14332,6 +14495,8 @@ messages:
          DeleteTimer(ptRest);
          ptRest = $;
       }
+
+      Send(self,@StartFortitude);
 
       Send(self,@ResetPlayerFlagList);
 

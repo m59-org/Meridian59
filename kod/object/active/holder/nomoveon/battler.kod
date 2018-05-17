@@ -180,7 +180,7 @@ resources:
    illusion_damage_heal_msg = "Hey!  Some of those wounds were illusionary!"
    
    knockback_message = \
-      "~BYour strike knocks %s%s away!"
+      "~BYou knock %s%s away!"
    knocked_back_message = \
       "~B%s%s knocks you away!"
    stun_message = \
@@ -2760,7 +2760,7 @@ messages:
          else
          {
             % Use the reverse of our own angle otherwise.
-            iAngle = Abs(Send(self,@GetAngle)-2050);
+            iAngle = Abs(Send(self,@GetAngle)-2048);
          }
       }
       else
@@ -2802,6 +2802,11 @@ messages:
       {
          return FALSE;
       }
+
+      if IsClass(self,&User)
+      {
+         Send(self,@EffectSendUserDuration,#effect=EFFECT_SHAKE,#duration=Bound(iKnockbackDistance*2,500,2000));
+      }
       
       if IsClass(what,&Player)
       {
@@ -2811,10 +2816,11 @@ messages:
       }
 
       if IsClass(self,&Player)
+         AND what <> $
       {
          Send(self,@MsgSendUser,#message_rsc=knocked_back_message,
-                                  #parm1=Send(poOwner,@GetDef),
-                                  #parm2=Send(poOwner,@GetName));
+                                  #parm1=Send(what,@GetDef),
+                                  #parm2=Send(what,@GetName));
       }
 
       Send(oRoom,@IntraTeleport,#what=self,
