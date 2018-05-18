@@ -534,6 +534,7 @@ properties:
    plActiveQuests = $
    plPassiveQuests = $
    plCompletedPassiveQuestChains = $
+   plOngoingPassiveQuestChains = $
 
    piLogoffPenaltyCount = 0
 
@@ -11497,10 +11498,24 @@ messages:
 
       return;
    }
-   
+
+   RecordOngoingPassiveQuestChain(chain_num = HP20_RAZA_CHAIN)
+   {
+      if plOngoingPassiveQuestChains = $
+         OR FindListElem(plOngoingPassiveQuestChains, chain_num) = 0
+      {
+         plOngoingPassiveQuestChains = Cons(chain_num, plOngoingPassiveQuestChains);
+      }
+      return;
+   }
+
    RecordCompletedPassiveQuestChain(chain_num = HP20_RAZA_CHAIN)
    {
-      plCompletedPassiveQuestChains = Cons(chain_num, plCompletedPassiveQuestChains);
+      if plCompletedPassiveQuestChains = $
+         OR FindListElem(plCompletedPassiveQuestChains, chain_num) = 0
+      {
+         plCompletedPassiveQuestChains = Cons(chain_num, plCompletedPassiveQuestChains);
+      }
       return;
    }
 
@@ -11530,7 +11545,15 @@ messages:
             return TRUE;
          }
       }
-      
+
+      foreach i in plOngoingPassiveQuestChains
+      {
+         if Send(i,@GetChain) = chain_num
+         {
+            return TRUE;
+         }
+      }
+
       foreach i in plCompletedPassiveQuestChains
       {
          if i = chain_num
