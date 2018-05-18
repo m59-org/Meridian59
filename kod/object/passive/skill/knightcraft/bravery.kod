@@ -1,0 +1,80 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Bravery is Skill
+
+constants:
+
+   include blakston.khd
+   include protocol.khd   
+
+resources:
+
+   Bravery_name_rsc = "bravery"
+   Bravery_icon_rsc = idistrac.bgf
+   Bravery_desc_rsc = \
+      "To inspire others, a knight must have a quality of selflessness. "
+      "By stepping forward and calling attention to himself, "
+      "a true knight takes danger away from others. "
+      "Due to this bravery, monsters engaged in harming a victim will tend to "
+      "turn and fight the knight in response to the knight's attacks."
+
+   Bravery_skill_intro = \
+      "Knightcraft Lv. 2: Monsters fighting others tend to aggro you when attacked."
+
+classvars:
+
+   vrName = Bravery_name_rsc
+   vrIcon = Bravery_icon_rsc
+   vrDesc = Bravery_desc_rsc
+
+   vrSkill_intro = Bravery_skill_intro
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+
+   viSkill_num = SKID_BRAVERY
+   viSchool = SKS_KNIGHTCRAFT
+   viSkill_Level = 2
+   viChance_to_Increase = 3
+   viMeditate_ratio = 80
+
+   viSkillExertion = 0
+   vbCheck_exertion = FALSE
+
+   vbAutomatic = TRUE
+
+properties:
+
+messages:
+
+   GetRequisiteStat(who=$)
+   {
+      return Send(who,@GetMight);
+   }
+
+   DoSkill(who=$, what=$)
+   {
+      local iSkillAbility, iStat;
+
+      iSkillAbility = Send(who,@GetSkillAbility,#skill_num=viSkill_num);
+      iStat = Send(self,@GetRequisiteStat,#who=who);
+
+      if Random(1,99) <= iSkillAbility
+      {
+         Send(what,@TargetSwitch,#what=who,#iHatred=iSkillAbility+iStat/2);
+         Send(what,@EnterStateChase,#target=who,#actnow=True);
+         Send(self,@ImproveAbility,#who=who);
+      }
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -2583,6 +2583,17 @@ messages:
          % Should scale based on damage?
          piHatred = piHatred + 1;
       }
+      else
+      {
+         % Our target is not the one that hit us
+         if what <> $
+            AND poTarget <> $
+            AND IsClass(what,&Player)
+            AND Send(what,@HasSkill,#num=SKID_BRAVERY)
+         {
+            Post(Send(SYS,@FindSkillByNum,#num=SKID_BRAVERY),@DoSkill,#who=what,#what=self);
+         }
+      }
 
       piHit_points = piHit_points - iDamage;
       
