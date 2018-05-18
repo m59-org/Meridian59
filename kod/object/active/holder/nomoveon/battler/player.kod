@@ -4959,6 +4959,11 @@ messages:
       {
          Send(self,@SetOverlay,#what=what);
       }
+      
+      if Send(what,@AltersLightLevel)
+      {
+         Post(self,@RecalcLight);
+      }
 
       Post(self,@DrawResistances);
 
@@ -14749,7 +14754,7 @@ messages:
          case RACE_HALF_ORC:
             return 60;
          case RACE_HALF_DEMON:
-            return -10;
+            return 0;
          case RACE_HALF_ELF:
             return 15;
          case RACE_HALF_UNDINE:
@@ -14783,8 +14788,7 @@ messages:
          }
       }
 
-      iState = Send(self,@GetEnchantedState,
-                    #what=Send(SYS,@FindSpellByNum,#num=SID_NIGHTVISION));
+      iState = Send(self,@GetEnchantedState,#what=Send(SYS,@FindSpellByNum,#num=SID_NIGHT_VISION));
       if iState <> $
       {
          iLight = iLight + iState;

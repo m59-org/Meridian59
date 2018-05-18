@@ -33,6 +33,9 @@ resources:
    guild_hall_recall_depart_to_destination = \
       "%s vanishes in a blur of arcane energy."
 
+   guild_hall_recall_in_raza = \
+      "Raza is much too far away for you to reach your guild hall with egress."
+
 classvars:
 
    vrName = guild_hall_recall_name_rsc
@@ -69,7 +72,17 @@ messages:
 
    CastSpell(who = $, lTargets = $)
    {
-      local owner, oRoom, oGuild, i, each_obj;
+      local owner, oRoom, oGuild, i, each_obj, oCurrentRoom;
+      
+      oCurrentRoom = Send(who,@GetOwner);
+      if oCurrentRoom <> $
+      {
+         if Send(oCurrentRoom,@GetRegion) = RID_NEWB_BASE
+         {
+            Send(who,@MsgSendUser,#message_rsc=guild_hall_recall_in_raza);
+            propagate;
+         }
+      }
 
       oGuild = Send(who,@GetGuild);
       

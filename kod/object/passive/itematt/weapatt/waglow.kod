@@ -81,7 +81,7 @@ messages:
 
       Send(oPlayer,@SetFlickerFlag);
       iLightStr = Nth(Send(oItem,@GetAttributeData,#ItemAtt=WA_GLOWING),3);
-      Send(oPlayer,@GainLight,#amount=iLightStr);
+      Post(oPlayer,@RecalcLight);
 
       return;
    }
@@ -92,7 +92,7 @@ messages:
       local iLightStr, i;
 
       iLightStr = Nth(Send(oItem,@GetAttributeData,#ItemAtt=WA_GLOWING),3);
-      Send(oPlayer,@LoseLight,#amount=iLightStr);
+      Post(oPlayer,@RecalcLight);
 
       Send(oPlayer,@RecalcFlickerFlag);
 
