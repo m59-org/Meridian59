@@ -350,6 +350,7 @@ resources:
    player_race_demon = "%s appears to be of half-demon ancestry.\n"
    player_race_elf = "%s appears to be of half-elf ancestry.\n"
    player_race_undine = "%s appears to be of half-undine ancestry.\n"
+   player_race_drow = "%s appears to be of drow ancestry.\n"
    player_race_dragon = "%s appears to be of draconian ancestry.\n"
 
    player_opt_out_pvp = \
@@ -1914,19 +1915,23 @@ messages:
       switch(piPlayerRace)
       {
          case RACE_HALF_ORC:
-            lBaseEmpowerments = Cons([ATCK_WEAP_SLASH, 10],lBaseEmpowerments);
+            lBaseEmpowerments = Cons([ATCK_WEAP_SLASH, 15],lBaseEmpowerments);
             break;
          case RACE_HALF_DEMON:
-            lBaseEmpowerments = Cons([-ATCK_SPELL_ACID, 10],lBaseEmpowerments);
+            lBaseEmpowerments = Cons([-ATCK_SPELL_ACID, 15],lBaseEmpowerments);
             break;
          case RACE_HALF_ELF:
-            lBaseEmpowerments = Cons([ATCK_WEAP_MAGIC, 20],lBaseEmpowerments);
+            lBaseEmpowerments = Cons([ATCK_WEAP_MAGIC, 15],lBaseEmpowerments);
             break;
          case RACE_HALF_UNDINE:
-            lBaseEmpowerments = Cons([-ATCK_SPELL_COLD, 10],lBaseEmpowerments);
+            lBaseEmpowerments = Cons([-ATCK_SPELL_COLD, 15],lBaseEmpowerments);
             break;
          case RACE_DRACONIAN:
             lBaseEmpowerments = Cons([ATCK_WEAP_PUNCH, 15],lBaseEmpowerments);
+            break;
+         case RACE_DROW:
+            lBaseEmpowerments = Cons([-ATCK_SPELL_UNHOLY, 15],lBaseEmpowerments);
+            lBaseEmpowerments = Cons([-ATCK_SPELL_HOLY,-300],lBaseEmpowerments);
             break;
       }
 
@@ -2023,6 +2028,13 @@ messages:
                   [ATCK_WEAP_BLUDGEON, -10]];
       }
       
+      if race = RACE_DROW
+      {
+         return [ [-ATCK_SPELL_COLD, 10],
+                  [ATCK_WEAP_PIERCE, 10],
+                  [-ATCK_SPELL_ACID, -25]];
+      }
+      
       return $;
    }
 
@@ -2096,6 +2108,18 @@ messages:
                return 1;
             case -ATCK_SPELL_ACID:
                return 5;
+         }
+      }
+      if piPlayerRace = RACE_DROW
+      {
+         switch(type)
+         {
+            case -ATCK_SPELL_ACID:
+               return -7;
+            case -ATCK_SPELL_COLD:
+               return 2;
+            case ATCK_WEAP_PIERCE:
+               return 2;
          }
       }
       return 0;
@@ -2234,6 +2258,28 @@ messages:
          piRacialAimMod = 10;
 
          piRacialVigorMod = 20;
+         piStomachMax = 80;
+         piVigor_rest_threshold = Send(self,@CalculateVigorThreshold);
+         piVigor = piVigor_rest_threshold;
+         Post(self,@NewVigor);
+
+         piPlayerRace = race;
+      }
+     
+      if race = RACE_DROW
+      {
+         Send(self,@SetSkinTranslation,#translation=142);
+         Send(self,@SetDefaultClothes,#shirt_color=7,#pants_color=7);
+         plResistances = Send(self,@GetRacialBaseResistances,#race=RACE_DROW);
+
+         piRacialMightMod = 0;
+         piRacialIntellectMod = 20;
+         piRacialStaminaMod = 0;
+         piRacialAgilityMod = 0;
+         piRacialMysticismMod = -40;
+         piRacialAimMod = 0;
+
+         piRacialVigorMod = 0;
          piStomachMax = 80;
          piVigor_rest_threshold = Send(self,@CalculateVigorThreshold);
          piVigor = piVigor_rest_threshold;
@@ -3467,6 +3513,10 @@ messages:
       else if i = RACE_HALF_UNDINE
       {
          AddPacket(4,player_race_undine,4,Send(self,@GetHeShe,#cap=TRUE));
+      }
+      else if i = RACE_DROW
+      {
+         AddPacket(4,player_race_drow,4,Send(self,@GetHeShe,#cap=TRUE));
       }
       else if i = RACE_DRACONIAN
       {
@@ -14757,6 +14807,8 @@ messages:
             return 0;
          case RACE_HALF_ELF:
             return 15;
+         case RACE_DROW:
+            return 25;
          case RACE_HALF_UNDINE:
             return 25;
          case RACE_DRACONIAN:
@@ -19497,6 +19549,9 @@ messages:
             break;
          case RACE_HALF_DEMON:
             iRacialSizeBonus = -50;
+            break;
+         case RACE_DROW:
+            iRacialSizeBonus = -25;
             break;
          case RACE_HALF_ELF:
             iRacialSizeBonus = -25;
