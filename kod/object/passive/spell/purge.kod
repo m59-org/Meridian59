@@ -219,6 +219,12 @@ messages:
       % User's enchantment list might change, so get it now.
       lEnchantments = Send(who,@GetEnchantmentList);
       lReservedEnchantments = Send(who,@GetReservedSpells);
+         
+      if IsClass(who,&Player)
+      {
+         % Check for purge resistance
+         iSpellPower = iSpellPower - (iSpellPower*Send(who,@GetPurgeResistance,#caster=caster))/100;
+      }
 
       foreach i in lEnchantments
       {
