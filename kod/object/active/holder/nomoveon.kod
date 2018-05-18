@@ -1129,5 +1129,345 @@ messages:
       return ANGLE_EAST;
    }
 
+   GetInFrontOrBehindMe(what=$)
+   {
+      local iMyAngle, iTheirPositionRelativeToMe;
+      
+      iMyAngle = Send(self,@GetAngle);
+      iTheirPositionRelativeToMe = Send(self,@GetAngleRelativeToMe,#what=what);
+      
+      % Ok, if our angle is 0, then 3072-4096 and 0-1024 is front
+      %                           and 1025-3071 is behind
+      %
+      % Add 4096 to everything to make them the same iteration around the rotation
+      % (avoids negative / positive issues)
+      
+      iMyAngle = iMyAngle + 4096;
+      iTheirPositionRelativeToMe = iTheirPositionRelativeToMe + 4096;
+      
+      if iTheirPositionRelativeToMe >= iMyAngle - 1024
+         AND iTheirPositionRelativeToMe <= iMyAngle + 1024
+      {
+         return SIDE_FRONT;
+      }
+      else
+      {
+         return SIDE_BACK;
+      }
+      return 0;
+   }
+
+   GetLocationInFrontOrBehindMe(iRow=0, iCol=0, iFineRow=0, iFineCol=0)
+   {
+      local iMyAngle, iTheirPositionRelativeToMe;
+      
+      iMyAngle = Send(self,@GetAngle);
+      iTheirPositionRelativeToMe = Send(self,@GetLocationAngleRelativeToMe,#iRow=iRow,#iCol=iCol,#iFineRow=iFineRow,#iFineCol=iFineCol);
+      
+      % Ok, if our angle is 0, then 3072-4096 and 0-1024 is front
+      %                           and 1025-3071 is behind
+      %
+      % Add 4096 to everything to make them the same iteration around the rotation
+      % (avoids negative / positive issues)
+      
+      iMyAngle = iMyAngle + 4096;
+      iTheirPositionRelativeToMe = iTheirPositionRelativeToMe + 4096;
+      
+      if iTheirPositionRelativeToMe >= iMyAngle - 1024
+         AND iTheirPositionRelativeToMe <= iMyAngle + 1024
+      {
+         return SIDE_FRONT;
+      }
+      else
+      {
+         return SIDE_BACK;
+      }
+      return 0;
+   }
+
+   GetLocationAngleRelativeToMe(iRow=0, iCol=0, iFineRow=0, iFineCol=0)
+   {
+      local iMyRow, iMyCol, iMyFineRow, iMyFineCol,
+            iWhatRow, iWhatCol, iWhatFineRow, iWhatFineCol,
+            iRowDif, iColDif;
+
+      iMyRow = Send(self,@GetRow);
+      iMyCol = Send(self,@GetCol);
+      iMyFineRow = Send(self,@GetFineRow);
+      iMyFineCol = Send(self,@GetFineCol);
+
+      iWhatRow = iRow; 
+      iWhatCol = iCol;
+      iWhatFineRow = iFineRow;
+      iWhatFineCol = iFineCol;
+
+      iColDif = (iWhatCol*64 + iWhatFineCol) - (iMyCol*64 + iMyCol);
+      iRowDif = (iWhatRow*64 + iWhatFineRow) - (iMyRow*64 + iMyRow);
+
+      if iColDif >= 0
+         AND iRowDif >= 0
+      {
+         % What is southeast of us
+         if iColDif >= iRowDif
+         {
+            % What is upper side of southeast
+            if iColDif >= iRowDif*2
+            {
+               % What is upper upper side of southeast
+               if iColDif >= iRowDif*4
+               {
+                  % What is upper upper upper side of southeast
+                  return ANGLE_EAST;
+               }
+               else
+               {
+                  % What is upper upper lower side of southeast
+                  return ANGLE_ESE;
+               }
+            }
+            else
+            {
+               % What is lower side of southeast
+               if iColDif >= (iRowDif*3)/2
+               {
+                  return ANGLE_ESE;
+               }
+               else
+               {
+                  return ANGLE_SOUTH_EAST;
+               }
+            }
+         }
+         else
+         {
+            % What is lower side of southeast
+            if iRowDif >= iColDif*2
+            {
+               if iRowDif >= iColDif*4
+               {
+                  return ANGLE_SOUTH;
+               }
+               else
+               {
+                  return ANGLE_SSE;
+               }
+            }
+            else
+            {
+               if iRowDif >= (iColDif*3)/2
+               {
+                  return ANGLE_SSE;
+               }
+               else
+               {
+                  return ANGLE_SOUTH_EAST;
+               }
+            }
+         }
+      }
+
+      if iColDif < 0
+         AND iRowDif < 0
+      {
+         % What is northwest of us
+         if Abs(iColDif) >= Abs(iRowDif)
+         {
+            % What is lower side of northwest
+            if Abs(iColDif) >= Abs(iRowDif*2)
+            {
+               % What is lower lower side of northwest
+               if Abs(iColDif) >= Abs(iRowDif*4)
+               {
+                  % What is upper upper upper side of southeast
+                  return ANGLE_WEST;
+               }
+               else
+               {
+                  return ANGLE_WNW;
+               }
+            }
+            else
+            {
+               if Abs(iColDif) >= Abs((iRowDif*3)/2)
+               {
+                  return ANGLE_WNW;
+               }
+               else
+               {
+                  return ANGLE_NORTH_WEST;
+               }
+            }
+         }
+         else
+         {
+            % What is upper side of northwest
+            if Abs(iRowDif) >= Abs(iColDif*2)
+            {
+               if Abs(iRowDif) >= Abs(iColDif*4)
+               {
+                  return ANGLE_NORTH;
+               }
+               else
+               {
+                  return ANGLE_NNW;
+               }
+            }
+            else
+            {
+               if Abs(iRowDif) >= Abs((iColDif*3)/2)
+               {
+                  return ANGLE_NNW;
+               }
+               else
+               {
+                  return ANGLE_NORTH_WEST;
+               }
+            }
+         }
+      }
+
+      if iColDif > 0
+         AND iRowDif < 0
+      {
+         % What is northeast of us
+         if Abs(iColDif) >= Abs(iRowDif)
+         {
+            if Abs(iColDif) >= Abs(iRowDif*2)
+            {
+               if Abs(iColDif) >= Abs(iRowDif*4)
+               {
+                  return ANGLE_EAST;
+               }
+               else
+               {
+                  return ANGLE_ENE;
+               }
+            }
+            else
+            {
+               if Abs(iColDif) >= Abs((iRowDif*3)/2)
+               {
+                  return ANGLE_ENE;
+               }
+               else
+               {
+                  return ANGLE_NORTH_EAST;
+               }
+            }
+         }
+         else
+         {
+            if Abs(iRowDif) >= Abs(iColDif*2)
+            {
+               if Abs(iRowDif) >= Abs(iColDif*4)
+               {
+                  return ANGLE_NORTH;
+               }
+               else
+               {
+                  return ANGLE_NNE;
+               }
+            }
+            else
+            {
+               if Abs(iRowDif) >= Abs((iColDif*3)/2)
+               {
+                  return ANGLE_NNE;
+               }
+               else
+               {
+                  return ANGLE_NORTH_EAST;
+               }
+            }
+         }
+      }
+
+      if iColDif < 0
+         AND iRowDif > 0
+      {
+         % What is southwest of us
+         if Abs(iColDif) >= Abs(iRowDif)
+         {
+            if Abs(iColDif) >= Abs(iRowDif*2)
+            {
+               if Abs(iColDif) >= Abs(iRowDif*4)
+               {
+                  return ANGLE_WEST;
+               }
+               else
+               {
+                  return ANGLE_WSW;
+               }
+            }
+            else
+            {
+               if Abs(iColDif) >= Abs((iRowDif*3)/2)
+               {
+                  return ANGLE_WSW;
+               }
+               else
+               {
+                  return ANGLE_SOUTH_WEST;
+               }
+            }
+         }
+         else
+         {
+            if Abs(iRowDif) >= Abs(iColDif*2)
+            {
+               if Abs(iRowDif) >= Abs(iColDif*4)
+               {
+                  return ANGLE_SOUTH;
+               }
+               else
+               {
+                  return ANGLE_SSW;
+               }
+            }
+            else
+            {
+               if Abs(iRowDif) >= Abs((iColDif*3)/2)
+               {
+                  return ANGLE_SSW;
+               }
+               else
+               {
+                  return ANGLE_SOUTH_WEST;
+               }
+            }
+         }
+      }
+
+      return ANGLE_EAST;
+   }
+
+   GetInFrontOrBehindLocation(iAngle=0, iRow=0, iCol=0, iFineRow=0, iFineCol=0)
+   {
+      local iMyAngle, iTheirPositionRelativeToMe;
+      
+      iMyAngle = iAngle;
+      iTheirPositionRelativeToMe = Send(self,@GetMyAngleAwayFromDestination,#iRow=iRow,#iCol=iCol,#iFineRow=iFineRow,#iFineCol=iFineCol);
+      
+      % Ok, if our angle is 0, then 3072-4096 and 0-1024 is front
+      %                           and 1025-3071 is behind
+      %
+      % Add 4096 to everything to make them the same iteration around the rotation
+      % (avoids negative / positive issues)
+      
+      iMyAngle = iMyAngle + 4096;
+      iTheirPositionRelativeToMe = iTheirPositionRelativeToMe + 4096;
+      
+      if iTheirPositionRelativeToMe >= iMyAngle - 1024
+         AND iTheirPositionRelativeToMe <= iMyAngle + 1024
+      {
+         return SIDE_FRONT;
+      }
+      else
+      {
+         return SIDE_BACK;
+      }
+      return 0;
+   }
+
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

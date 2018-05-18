@@ -348,6 +348,9 @@ properties:
    % Save the default area music for Jala / music change purposes
    prDefaultAreaMusic = $
 
+   % This player is presenting a shield wall, blocking certain movements
+   plShieldWallers = $
+
 messages:
 
    Constructor()
@@ -1533,6 +1536,8 @@ messages:
          }
       }
 
+      Send(self,@ClearShieldWallers);
+
       if ptDispose <> $
       {
          DeleteTimer(ptDispose);
@@ -2617,6 +2622,13 @@ messages:
 
       if IsClass(what,&User)
       {
+         % Do we have any special positioning stances?
+         if Send(what,@GetStance) <> $
+            AND IsClass(Send(what,@GetStance),&ActiveBlockingStance)
+         {
+            Send(self,@AddShieldWaller,#who=what);
+         }
+
          % NPCs might need to do or say something.
          foreach i in plActive
          {
@@ -2825,6 +2837,7 @@ messages:
          propagate;
       }
 
+      Send(self,@LeaveShieldWallers,#who=what);
       Send(what,@LeaveBuilderGroup);
 
       % unenchant this one occupant
@@ -3339,6 +3352,7 @@ messages:
          ptPeriodic_sounds = $;
       }
 
+      Send(self,@ClearShieldWallers);
       Post(self,@EndAllThreats);
 
       propagate;
@@ -6080,6 +6094,59 @@ messages:
    GetOverridePlayerLightLevel()
    {
       return viOverridePlayerLightLevel;
+   }
+
+   AddShieldWaller(who=$)
+   {
+      if plShieldWallers = $
+         OR FindListElem(plShieldWallers,who) = 0
+      {
+         plShieldWallers = Cons(who,plShieldWallers);
+      }
+      return;
+   }
+
+   LeaveShieldWallers(who=$)
+   {
+      if plShieldWallers <> $
+         AND FindListElem(plShieldWallers,who) <> 0
+      {
+         plShieldWallers = DelListElem(plShieldWallers,who);
+      }
+      return;
+   }
+
+   ClearShieldWallers()
+   {
+      plShieldWallers = $;
+      return;
+   }
+
+   GetShieldWallersNearMe(who=$)
+   {
+      local i, lShieldWallersNearMe;
+
+      if plShieldWallers = $
+      {
+         return $;
+      }
+
+      if who = $
+      {
+         return $;
+      }
+
+      lShieldWallersNearMe = $;
+      foreach i in plShieldWallers
+      {
+         % Check for 64 fine units past the radius of the battler itself (16)
+         if Send(i,@SquaredFineDistanceTo,#what=who) <= 80 * 80
+         {
+            lShieldWallersNearMe = Cons(i,lShieldWallersNearMe);
+         }
+      }
+      
+      return lShieldWallersNearMe;
    }
 
 end

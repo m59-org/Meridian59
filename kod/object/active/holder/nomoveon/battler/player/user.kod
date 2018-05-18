@@ -493,6 +493,9 @@ resources:
    user_is_active_blocking = \
       "You can't attack or cast spells while maintaining a shield wall!"
 
+   shield_wall_holds_you_back = \
+      "The shield wall holds you back!"
+
 classvars:
 
    viIndefinite = ARTICLE_NONE
@@ -3783,7 +3786,8 @@ messages:
       local iCurrentTime, iDelta, iDeltaVigor, iExertion, iHasteLevel,
          iAngle, iRow, iCol, iFineRow, iFineCol, iRoomNum,
          iDx, iDy, iMoveLength, iMaxMoveRun, 
-         iQflags, iRflags, iHeightF, iHeightFWD, iHeightC, iServerID;
+         iQflags, iRflags, iHeightF, iHeightFWD, iHeightC, iServerID,
+         lShieldWallersNearMe, i;
 
       %
       % 1.1 Get current position values
@@ -3824,6 +3828,36 @@ messages:
                #new_angle=iAngle);
 
          return;
+      }
+
+      %
+      % 2.1 Check for players holding a Shield Wall
+      %     
+      %
+      lShieldWallersNearMe = Send(poOwner,@GetShieldWallersNearMe,#who=self);
+      if lShieldWallersNearMe <> $
+      {
+         foreach i in lShieldWallersNearMe
+         {
+            if i <> self
+               AND Send(i,@GetLocationInFrontOrBehindMe,#iRow=iRow,#iCol=iCol,#iFineRow=iFineRow,#iFineCol=iFineCol) = SIDE_FRONT
+               AND Send(i,@GetLocationInFrontOrBehindMe,#iRow=new_row,#iCol=new_col,#iFineRow=fine_row,#iFineCol=fine_col) = SIDE_BACK
+               AND (Send(i,@IsUsingA,#class=&Knightshield)
+                  OR Send(i,@IsUsingA,#class=&GuildShield))
+               AND Send(i,@AllowPlayerAttack,#victim=self,#report=FALSE,#actual=FALSE)
+            {
+               % Tell them what happened
+               Send(self,@MsgSendUser,#message_rsc=shield_wall_holds_you_back);
+               % Reset position
+               Send(SYS,@UtilGoNearSquare,#what=self,#where=poOwner,
+                     #new_row=iRow,
+                     #new_col=iCol,
+                     #fine_row=iFineRow,
+                     #fine_col=iFineCol,
+                     #new_angle=iAngle);
+               return;
+            }
+         }
       }
 
       %
