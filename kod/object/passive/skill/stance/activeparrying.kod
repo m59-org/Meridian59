@@ -28,11 +28,7 @@ resources:
       "While in this stance, "
       "a warrior will attempt to parry melee attacks coming from the front, but cannot himself attack. "
       "Successful parries open up the opponent to a counterattack which knocks back and stuns them. "
-      "\n\nThis stance is difficult to maintain, and therefore "
-      "drops after a moment - or after a successful counter. "
-      "If the stance drops without countering an attack, "
-      "the knight will be more vulnerable for a brief period, "
-      "so use of a counterattack must be timed well."      
+      "The counterattack motions then drop the stance so that the knight may press his advantage."
       "\n\nFocusing all one's attention on the front comes with a risk: "
       "attacks from behind are extremely difficult to avoid."
       "\n\nLastly, wielding a sword of any type is required to actively parry. "
@@ -79,7 +75,7 @@ classvars:
 
    vbAutomatic = TRUE
    
-   viParryExertion = 4
+   viParryExertion = 6
 
 properties:
 
@@ -105,7 +101,7 @@ messages:
             OR Send(who,@IsUsingA,#class=&LongSword)
             OR Send(who,@IsUsingA,#class=&GoldSword)
             OR Send(who,@IsUsingA,#class=&HunterSword))
-         OR NOT Send(who,@AttackIsComingFromSide,#what=what,#iSide=SIDE_FRONT)
+         OR NOT Send(who,@GetInFrontOrBehindMe,#what=what,#iSide=SIDE_FRONT)
          %OR Send(who,@CheckPlayerFlag,#flag=PFLAG_NO_MOVE)
       {
          return FALSE;
@@ -127,14 +123,12 @@ messages:
          }
          Send(who,@AddExertion,#amount=10000*viParryExertion);
          Send(self,@ImproveAbility,#who=who);
+         Send(what,@ApplyKnockback,#what=who,#knockback_power=Send(who,@GetKnockbackPower));
+         Send(what,@ApplyStun,#what=who,#stun_power=Send(who,@GetStunPower));
+         Send(who,@ClearStance);
          return TRUE;
       }
 
-      return FALSE;
-   }
-
-   AttemptToTakeAlliedHit(who=$, what=$)
-   {
       return FALSE;
    }
 

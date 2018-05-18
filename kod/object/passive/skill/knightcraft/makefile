@@ -6,6 +6,6 @@
 
 DEPEND = ..\knightcraft.bof
 BOFS = heavyarmor.bof mediumarmor.bof fortitude.bof zealousfervor.bof \
-       bravery.bof determination.bof piety.bof
+       bravery.bof determination.bof piety.bof honesty.bof
 
 !include $(KODDIR)\kod.mak

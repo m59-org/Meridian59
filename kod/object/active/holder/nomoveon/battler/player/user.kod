@@ -491,7 +491,7 @@ resources:
       "This place refuses that kind of energy. You cannot bind here."
 
    user_is_active_blocking = \
-      "You can't attack or cast spells while maintaining a shield wall!"
+      "You can't attack or cast spells while maintaining a reactive stance!"
 
    shield_wall_holds_you_back = \
       "The shield wall holds you back!"
@@ -6510,7 +6510,8 @@ messages:
       }
 
       if Send(self,@GetStance) <> $
-         AND IsClass(Send(self,@GetStance),&ActiveBlockingStance)
+         AND (IsClass(Send(self,@GetStance),&ActiveBlockingStance)
+            OR Isclass(Send(self,@GetStance),&ActiveParryingStance))
       {
          % No offensive actions while actively blocking!
          Send(self,@MsgSendUser,#message_rsc=user_is_active_blocking);
@@ -6631,7 +6632,8 @@ messages:
       Send(self,@BreakTrance,#event=EVENT_CAST,#what=oSpell);
 
       if Send(self,@GetStance) <> $
-         AND IsClass(Send(self,@GetStance),&ActiveBlockingStance)
+         AND (IsClass(Send(self,@GetStance),&ActiveBlockingStance)
+            OR IsClass(Send(self,@GetStance),&ActiveParryingStance))
          AND NOT IsClass(oSpell,&Phase)
          AND NOT IsClass(oSpell,&Spectate)
       {

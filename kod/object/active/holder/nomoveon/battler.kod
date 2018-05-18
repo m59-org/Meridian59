@@ -981,16 +981,22 @@ messages:
 
       if IsClass(what,&Player)
          AND Send(what,@GetStance) <> $
-         AND IsClass(Send(what,@GetStance),&ActiveBlockingStance)
+         AND (IsClass(Send(what,@GetStance),&ActiveBlockingStance)
+            OR IsClass(Send(what,@GetStance),&ActiveParryingStance))
       {
          if Send(Send(what,@GetStance),@AttemptActiveBlock,#who=what,#what=self)
          {
             Send(poOwner,@SomethingWaveRoom,#what=what,#wave_rsc=Send(self,@GetActiveBlockSound));
             return FALSE;
          }
+         else if Send(Send(what,@GetStance),@AttemptActiveParry,#who=what,#what=self)
+         {
+            Send(poOwner,@SomethingWaveRoom,#what=what,#wave_rsc=Send(self,@GetActiveBlockSound));
+            return FALSE;
+         }
          else
          {
-            % Guaranteed hit if player fails active blocking.
+            % Guaranteed hit if player fails active blocking and parrying.
             % Defense + active blocking would be way too strong.
             % However, tumbling will still work.
             iChanceToHit = 2000;

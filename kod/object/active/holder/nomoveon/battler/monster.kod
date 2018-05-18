@@ -2519,6 +2519,13 @@ messages:
                                   #damage=bonus,
                                   #aspell=aspell);
          }
+         if (aspell & ATCK_SPELL_ILLUSION)
+            AND Send(what,@GetSkillAbility,#Skill_num=SKID_HONESTY) > 0
+         {
+            % Players with Honesty do significantly less damage with illusions
+            bonus = bonus - (Send(what,@GetSkillAbility,#Skill_num=SKID_HONESTY)*100)/9;
+            Send(Send(SYS,@FindSkillByNum,#num=SKID_HONESTY),@DoSkill,#who=what);
+         }
       }
 
       % check for any applicable resistances.

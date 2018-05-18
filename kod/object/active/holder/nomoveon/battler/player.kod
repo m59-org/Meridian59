@@ -2416,6 +2416,7 @@ messages:
       lResistances = ListCopy(plResistances);
 
       lResistances = Send(SYS,@AddResistance,#resistance_list=lResistances,#what=-ATCK_SPELL_ILLUSION,#value=Send(self,@GetIntellect));
+      lResistances = Send(SYS,@AddResistance,#resistance_list=lResistances,#what=-ATCK_SPELL_ILLUSION,#value=Send(self,@GetSkillAbility,#Skill_num=SKID_HONESTY)/3);
 
       foreach i in plRadiusEnchantments
       {
@@ -7655,6 +7656,20 @@ messages:
                                   #damage=bonus,
                                   #aspell=aspell);
          }
+         if (aspell & ATCK_SPELL_ILLUSION)
+            AND Send(what,@GetSkillAbility,#Skill_num=SKID_HONESTY) > 0
+         {
+            % Players with Honesty do significantly less damage with illusions
+            bonus = bonus - (Send(what,@GetSkillAbility,#Skill_num=SKID_HONESTY)*100)/9;
+            Send(Send(SYS,@FindSkillByNum,#num=SKID_HONESTY),@DoSkill,#who=what);
+         }
+      }
+
+      if (aspell & ATCK_SPELL_ILLUSION)
+         AND Send(self,@GetSkillAbility,#Skill_num=SKID_HONESTY) > 0
+      {
+         % Put an imp check for Honesty here so it doesn't get spammed by resistance calculations
+         Send(Send(SYS,@FindSkillByNum,#num=SKID_HONESTY),@DoSkill,#who=self);
       }
 
       if NOT bSecondary
