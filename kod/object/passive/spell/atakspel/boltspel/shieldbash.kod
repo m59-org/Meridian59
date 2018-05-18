@@ -26,6 +26,9 @@ resources:
    ShieldBash_sound = SwrdMtl2.wav
 
    ShieldBash_projectile_icon_rsc = blank.bgf
+   
+   requires_shield_to_bash_msg = \
+      "You can't shield bash without a heavy shield!"
 
 classvars:
 
@@ -71,6 +74,20 @@ properties:
    piManaFocusBonus = 0
 
 messages:
+
+   CanPayCosts(who=$,lTargets=$,bItemCast=FALSE)
+   {
+      if who <> $
+         AND IsClass(who,&Player)
+         AND NOT Send(who,@IsUsingA,#class=&Knightshield)
+         AND NOT Send(who,@IsUsingA,#class=&GuildShield)
+      {
+         Send(who,@MsgSendUser,#message_rsc=requires_shield_to_bash_msg);
+         return FALSE;
+      }
+
+      propagate;
+   }
 
    ResetReagents()
    {
