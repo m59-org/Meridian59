@@ -155,6 +155,10 @@ messages:
       else
       {
          iHeal = Send(oTarget,@GainHealthNormal,#amount=iHeal,#precision=TRUE);
+         if IsClass(oTarget,&Player)
+         {
+            Send(oTarget,@RemoveEnchantmentClass,#class=&Bleed);
+         }
       }
 
       if who <> oTarget
