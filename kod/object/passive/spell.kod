@@ -99,6 +99,7 @@ resources:
    spell_school_faren = "Faren"
    spell_school_kraanan = "Kraanan"
    spell_school_jala = "Jala"
+   spell_school_knightcraft = "Knightcraft"
    spell_intro_rsc = "One of the many mystical spells."
 
    spell_sound_jala = lute_equip.wav
@@ -153,6 +154,8 @@ resources:
 
    spell_mastered_desc_rsc = \
       "You've mastered this spell to an exceptional degree."
+
+   male_shout_sound = maleshout.wav
 
 classvars:
 
@@ -305,7 +308,11 @@ messages:
          iSchool = viSchool;
       }
 
-      if iSchool = SS_WITCHERY
+      if iSchool = SKS_KNIGHTCRAFT
+      {
+         rSchool = spell_school_knightcraft;
+      }
+      else if iSchool = SS_WITCHERY
       {
          if viSubSchool = SSS_WITCHERY_XAERDUN
          {
@@ -501,6 +508,11 @@ messages:
          OR viSchool = SS_WITCHERY
       {
          return Send(who,@GetMysticism);
+      }
+
+      if viSchool = SKS_KNIGHTCRAFT
+      {
+         return Send(who,@GetMight);
       }
 
       if viSchool = SS_KRAANAN
@@ -1856,6 +1868,11 @@ messages:
          return vrSucceed_wav;
       }
 
+      if viSchool = SKS_KNIGHTCRAFT
+      {
+         return male_shout_sound;
+      }
+
       if viSchool = SS_JALA
       {
          return spell_sound_jala;
@@ -2576,6 +2593,15 @@ messages:
          if iItemModifier < 0
          {
             iItemModifier = iItemModifier/2;
+         }
+      }
+      
+      if viSchool = SKS_KNIGHTCRAFT
+      {
+         % Knightcraft is stronger the heavier your gear
+         if iItemModifier < 0
+         {
+            iItemModifier = Abs(iItemModifier);
          }
       }
       

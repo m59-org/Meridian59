@@ -6,6 +6,7 @@
 
 DEPEND = ..\movementspell.bof
 BOFS = flamedash.bof \
-       lightningstrike.bof
+       lightningstrike.bof \
+       chargeattack.bof
 
 !include $(KODDIR)\kod.mak
