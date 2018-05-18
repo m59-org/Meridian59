@@ -7648,6 +7648,14 @@ messages:
          }
       }
 
+      if NOT bSecondary
+      {
+         if Send(self,@HasSkill,#num=SKID_DETERMINATION)
+         {
+            bonus = Send(Send(SYS,@FindSkillByNum,#num=SKID_DETERMINATION),@ModifyDamageTaken,#who=self,#bonus=bonus);
+         }
+      }
+
       % Add attmods AFTER resistance/suscep mods.
       damage = damage + bonus;
 
