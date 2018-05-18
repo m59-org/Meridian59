@@ -37,14 +37,14 @@ classvars:
 
    viSpell_num = SKID_BATTLE_SHOUT
    viSchool = SKS_KNIGHTCRAFT
-   viSpell_level = 5
+   viSpell_level = 2
    viMana = 30
 
    viChance_to_increase = 10
    viMeditate_ratio = 100
    vrSucceed_wav = Shout_sound
 
-   viAttack_spell = ATCK_SPELL_ALL+ATCK_SPELL_FIRE
+   viAttack_spell = ATCK_SPELL_ALL+ATCK_SPELL_QUAKE
    viOutlaw = TRUE
    viHarmful = TRUE
    viNoNewbieOffense = TRUE
@@ -137,9 +137,9 @@ messages:
    }
 
    % The chance to do something in addition to normal damage.
-   DoSideEffect(who=$,victim=$,damage=0)
+   DoSideEffect(who=$,victim=$,damage=0,iSpellPower=0)
    {
-      Send(victim,@ApplyKnockback,#what=who,#knockback_power=Send(who,@GetKnockbackPower));
+      Send(victim,@ApplyKnockback,#what=who,#knockback_power=(Send(who,@GetKnockbackPower)*(iSpellPower+1)*2)/100);
       return;
    }
 
