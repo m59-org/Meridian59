@@ -2054,5 +2054,19 @@ messages:
       return FALSE;
    }
 
+   SomethingMoved(what = $, new_row = $, new_col = $, fine_row = FINENESS/2,
+                  fine_col = FINENESS/2, cause = CAUSE_UNKNOWN, speed = 0,
+                  non_monsters_only = FALSE)
+   {
+      if IsClass(what,&Player)
+         AND NOT Send(what,@CheckPlayerFlag,#flag=PFLAG_PKILL_ENABLE)
+      {
+         Debug("Booting ", Send(what,@GetName), " from ", Send(self,@GetName), " for being angeled");
+         Post(what,@AdminGoToSafety);
+      }
+
+      propagate;
+   }
+
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
