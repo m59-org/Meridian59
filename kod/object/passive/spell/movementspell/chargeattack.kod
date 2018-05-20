@@ -273,5 +273,35 @@ messages:
       propagate;
    }
 
+   PlaySpellSound(room_obj = $,what = $)
+   {
+      local wave_rsc;
+
+      if room_obj <> $
+      {
+         if what <> $
+            AND IsClass(what,&Player)
+            AND Send(what,@GetGender) = GENDER_FEMALE
+         {
+            wave_rsc = Female_battle_shout_sound;
+         }
+         else
+         {
+            wave_rsc = Battle_shout_sound;
+         }
+
+         if wave_rsc <> $
+         {
+            Send(room_obj,@SomethingWaveRoom,#what=what,#wave_rsc=wave_rsc);
+         }
+         else
+         {
+            debug("Spell has no spell sound defined, is not a jala song!");
+         }
+      }
+
+      return;
+   }
+
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

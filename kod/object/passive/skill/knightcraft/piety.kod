@@ -31,6 +31,9 @@ resources:
    Piety_skill_intro = \
       "Knightcraft Lv. 5: Purge resistance."
 
+   pious_resistance = \
+      "~B%s resists your purging energies by sheer force of piety!"
+
 classvars:
 
    vrName = Piety_name_rsc
@@ -79,6 +82,12 @@ messages:
       else
       {
          iMonsterBonus = 1;
+      }
+      
+      if caster <> $
+         AND IsClass(caster,&Player)
+      {
+         Send(caster,@MsgSendUser,#message_rsc=pious_resistance,#parm1=Send(who,@Getname));
       }
 
       % Up to 33% resistance from skill and 20% from Myst (if 100 myst somehow)

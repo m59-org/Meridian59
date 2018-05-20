@@ -20,14 +20,16 @@ resources:
    Shout_icon_rsc = iholysym.bgf
    Shout_projectile_rsc = poisoncl.bgf
    Shout_desc_rsc = \
-      "Knockback enemies around you."
+      "Knockback enemies around you with a mighty shout. "
+      "The power of the knockback depends on skill, your size, and your Might."
 
    Shout_first_rsc = \
       "You channel your determination and unleash a massive shout!"
    Shout_third_rsc = \
       "%s%s unleashes a determined shout!"
 
-   Shout_sound = maleshout.wav
+   Battle_shout_sound = maleshout.wav
+   Female_battle_shout_sound = femaleshout.wav
 
 classvars:
 
@@ -42,7 +44,7 @@ classvars:
 
    viChance_to_increase = 10
    viMeditate_ratio = 100
-   vrSucceed_wav = Shout_sound
+   vrSucceed_wav = Battle_shout_sound
 
    viAttack_spell = ATCK_SPELL_ALL+ATCK_SPELL_QUAKE
    viOutlaw = TRUE
@@ -140,6 +142,42 @@ messages:
    DoSideEffect(who=$,victim=$,damage=0,iSpellPower=0)
    {
       Send(victim,@ApplyKnockback,#what=who,#knockback_power=(Send(who,@GetKnockbackPower)*(iSpellPower+1)*2)/100);
+      return;
+   }
+
+   SuccessChance(who=$)
+   "This is actually a skill."
+   {
+      return TRUE;
+   }
+
+   PlaySpellSound(room_obj = $,what = $)
+   {
+      local wave_rsc;
+
+      if room_obj <> $
+      {
+         if what <> $
+            AND IsClass(what,&Player)
+            AND Send(what,@GetGender) = GENDER_FEMALE
+         {
+            wave_rsc = Female_battle_shout_sound;
+         }
+         else
+         {
+            wave_rsc = Battle_shout_sound;
+         }
+
+         if wave_rsc <> $
+         {
+            Send(room_obj,@SomethingWaveRoom,#what=what,#wave_rsc=wave_rsc);
+         }
+         else
+         {
+            debug("Spell has no spell sound defined, is not a jala song!");
+         }
+      }
+
       return;
    }
 
