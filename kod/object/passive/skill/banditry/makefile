@@ -6,6 +6,6 @@
 
 DEPEND = ..\banditry.bof
 BOFS = awareness.bof sneak.bof hide.bof tumble.bof backstab.bof spy.bof perception.bof tightgrip.bof track.bof \
-       poisonblade.bof
+       poisonblade.bof blademastery.bof
 
 !include $(KODDIR)\kod.mak

@@ -19603,31 +19603,51 @@ messages:
       return 100;
    }
 
-   GetCriticalHitRate()
+   GetCriticalHitRate(oWeapon=$)
    {
-      local iCritBonus;
+      local iStanceCritMultiplier, iBaseCritRate, iAimMultiplier, iFinalCritRate;
 
-      % 100 means no change
-      iCritBonus = 100;
+      iBaseCritRate = Send(oWeapon,@GetCriticalHitRate);
+
+      % Scale of 100 for granularity purposes
+      % 1%  = 100
+      % 5%  = 500
+      % 10% = 1000
+      % 15% = 1500
+      % 20% = 2000
+      
+      % Check for base crit bonuses
+      if IsClass(oWeapon,&Dagger)
+         AND Send(self,@HasSkill,#num=SKID_BLADE_MASTERY)
+      {
+         iBaseCritRate = Send(Send(SYS,@FindSkillByNum,#num=SKID_BLADE_MASTERY),@ModifyBaseCritRate,#who=self,#iBaseCritRate=iBaseCritRate);
+      }
+
+      % Aim multiplier can increase crit rate up to 50%
+      iAimMultiplier = 100 + (Send(self,@GetAim)/2);
+      
+      % Combine base and aim
+      iFinalCritRate = (iBaseCritRate * iAimMultiplier)/100;
+
+      % Check for stance multipliers. 100 means no change
+      iStanceCritMultiplier = 100;
       if poStance <> $
       {
          
          if IsClass(poStance,&HeavyAttackStance)
          {
-            iCritBonus = 200;
+            iStanceCritMultiplier = 200;
          }
          %if IsClass(poStance,&LightAttackStance)
          %{
-         %   iCritBonus = 50;
+         %   iStanceCritMultiplier = 50;
          %}
       }
+      
+      % Combine rate and stance multiplier
+      iFinalCritRate = (iFinalCritRate * iStanceCritMultiplier)/100;
 
-      % Multiplied by 100 for granularity purposes
-      % 5%  = 500
-      % 10% = 1000
-      % 15% = 1500
-      % 20% = 2000
-      return Bound(((((Send(Send(self,@GetWeapon),@GetCriticalHitRate)*100) * (100+Send(self,@GetAim)/2))/100)*iCritBonus)/100,0,10000);
+      return Bound(iFinalCritRate,0,10000);
    }
 
    GetKnockbackPower()
@@ -19668,6 +19688,20 @@ messages:
          }
       }
       return (Send(self,@GetSize)*iStanceBonus)/100;
+   }
+
+   GetBleedPower()
+   {
+      local iBleedPower;
+      
+      iBleedPower = Send(self,@GetSize);
+      
+      if Send(self,@HasSkill,#num=SKID_BLEED_MASTERY)
+      {
+         iBleedPower = Send(Send(SYS,@FindSkillByNum,#num=SKID_BLEED_MASTERY),@ModifyBleedPower,#who=self,#iBleedPower=iBleedPower);
+      }
+      
+      return iBleedPower;
    }
 
    AttemptTrainStatPoint(type=STAT_ID_AIM)
