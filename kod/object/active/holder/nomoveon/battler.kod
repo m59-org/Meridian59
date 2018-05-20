@@ -2754,7 +2754,7 @@ messages:
 
    ApplyKnockback(what=$, iRow=0, iCol=0, iFineRow=0, iFineCol=0, knockback_power=0, knockback_angle=0)
    {
-      local oRoom, iKnockbackDistance, iAngle;
+      local oRoom, iKnockbackDistance, iAngle, i, lSteps, oElement, iIncDuration;
       
       if knockback_angle = 0
       {
@@ -2829,14 +2829,27 @@ messages:
                                   #parm2=Send(what,@GetName));
       }
 
-      Send(oRoom,@IntraTeleport,#what=self,
-                                #distance=iKnockbackDistance,
-                                #type=INTRA_TELEPORT_AWAY_FROM_DESTINATION,
-                                #new_row=iRow,
-                                #new_col=iCol,
-                                #fine_row=iFineRow,
-                                #fine_col=iFineCol,
-                                #new_angle=iAngle);
+      lSteps = Send(oRoom,@IntraTeleport,#what=self,
+                                   #distance=iKnockbackDistance,
+                                   #type=INTRA_TELEPORT_AWAY_FROM_DESTINATION,
+                                   #new_row=iRow,
+                                   #new_col=iCol,
+                                   #fine_row=iFineRow,
+                                   #fine_col=iFineCol,
+                                   #new_angle=iAngle);
+
+      if lSteps <> $
+      {
+         iIncDuration = 100 * Length(lSteps);
+         foreach i in lSteps
+         {
+            oElement = Create(&DustCloud,#Caster=what,#duration=iIncDuration,#bMS=TRUE);
+            Send(oRoom,@NewHold,#what=oElement,
+                 #new_row=Nth(i,1),#new_col=Nth(i,2),
+                 #fine_row=Nth(i,3),#fine_col=Nth(i,4));
+            iIncDuration = Bound(iIncDuration - 100, 100, $);
+         }
+      }
       return TRUE;
    }
 
