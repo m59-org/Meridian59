@@ -399,6 +399,8 @@ resources:
    genealogy_choose_elf_trigger = "I wish to reincarnate as half-elf."
    genealogy_choose_undine_trigger = "I wish to reincarnate as half-undine."
 
+   genealogy_choose_same_trigger = "I wish to reincarnate as my current race."
+
    genealogy_inform_trigger = "I wish to be informed of my reincarnation progress."
    genealogy_accumulated_wisdom_trigger = "I wish to be informed of my accumulated wisdom."
 
@@ -970,6 +972,11 @@ messages:
       {
          bTryReincarnate = TRUE;
          iReincarnateAsRace = RACE_HALF_UNDINE;
+      }
+      if StringEqual(string,genealogy_choose_same_trigger)
+      {
+         bTryReincarnate = TRUE;
+         iReincarnateAsRace = Send(what,@GetPlayerRace);
       }
 
       if bTryReincarnate
