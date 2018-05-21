@@ -2855,11 +2855,19 @@ messages:
 
    ApplyStun(what=$, stun_power=0)
    {
-      local oSpell, iStunDuration;
+      local oSpell, iStunDuration, oRoom;
       
       if Send(self,@IsEnchanted,#byClass=&Stun)
       {
          % No multi stunning
+         return FALSE;
+      }
+
+      oRoom = Send(self,@GetOwner);
+      if oRoom = $
+         OR NOT IsClass(oRoom,&Room)
+      {
+         % Dead things don't get stunned
          return FALSE;
       }
 
@@ -2902,7 +2910,15 @@ messages:
 
    ApplyBleed(what=$, bleed_power = 0)
    {
-      local oSpell, iBleedDuration;
+      local oSpell, iBleedDuration, oRoom;
+
+      oRoom = Send(self,@GetOwner);
+      if oRoom = $
+         OR NOT IsClass(oRoom,&Room)
+      {
+         % No bleeds on dead things
+         return FALSE;
+      }
 
       iBleedDuration = Send(SETTINGS_OBJECT,@GetStandardBleedDuration);
 
