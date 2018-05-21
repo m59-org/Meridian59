@@ -8189,34 +8189,6 @@ messages:
       return;
    }
 
-   GetDamageShare(who=$)
-   {
-      local i, iTotalDamageTaken, iRequesterDamage;
-
-      if who <> $
-         AND plHurtMeRecently <> $
-      {
-         iTotalDamageTaken = 0;
-         iRequesterDamage = 0;
-         foreach i in plHurtMeRecently
-         {
-            iTotalDamageTaken = iTotalDamageTaken + Nth(i,2);
-            if First(i) = who
-            {
-               iRequesterDamage = Nth(i,2);
-            }
-         }
-         
-         if iTotalDamageTaken = 0
-         {
-            return 100;
-         }
-
-         return (iRequesterDamage * 100) / iTotalDamageTaken;
-      }
-      return 100;
-   }
-
    GetBonusBaseTP()
    {
       return viBonusBaseTP;
