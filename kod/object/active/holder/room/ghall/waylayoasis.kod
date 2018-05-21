@@ -424,10 +424,26 @@ messages:
             {
                Send(self,@EndSnow);
             }
+            if Send(self,@CheckRoomFlag,#flag=ROOM_RAINING)
+            {
+               Send(self,@EndRain);
+            }
             break;
          case DAY_PHASE_DAY:
+            if Send(self,@CheckRoomFlag,#flag=ROOM_SNOWING)
+            {
+               Send(self,@EndSnow);
+            }
+            if Send(self,@CheckRoomFlag,#flag=ROOM_RAINING)
+            {
+               Send(self,@EndRain);
+            }
             break;
          case DAY_PHASE_DUSK:
+            if Send(self,@CheckRoomFlag,#flag=ROOM_SNOWING)
+            {
+               Send(self,@EndSnow);
+            }
             if NOT Send(self,@CheckRoomFlag,#flag=ROOM_RAINING)
             {
                Send(self,@StartRain);
