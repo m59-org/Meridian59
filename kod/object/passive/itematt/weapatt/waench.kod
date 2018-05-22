@@ -126,8 +126,19 @@ messages:
          return;
       }
 
-      Send(oItem,@SetTypeFlag,#flag=ATCK_WEAP_MAGIC,#value=True);
-      Send(oItem,@SetTypeFlag,#flag=ATCK_WEAP_NONMAGIC,#value=False);
+      if IsClass(oItem,&NeruditeSword)
+      {
+         Send(oItem,@SetTypeFlag,#flag=ATCK_WEAP_MAGIC,#value=True);
+      }
+      else if IsClass(oItem,&RiijaSword)
+      {
+         Send(oItem,@SetTypeFlag,#flag=ATCK_WEAP_MAGIC,#value=True);
+      }
+      else
+      {
+         Send(oItem,@SetTypeFlag,#flag=ATCK_WEAP_MAGIC,#value=True);
+         Send(oItem,@SetTypeFlag,#flag=ATCK_WEAP_NONMAGIC,#value=False);
+      }
 
       return;
    }
@@ -157,8 +168,19 @@ messages:
                #parm1=Send(oItem,@GetName));
       }
 
-      Send(oItem,@SetTypeFlag,#flag=ATCK_WEAP_MAGIC,#value=False);
-      Send(oItem,@SetTypeFlag,#flag=ATCK_WEAP_NONMAGIC,#value=True);
+      if IsClass(oItem,&NeruditeSword)
+      {
+         Send(oItem,@SetTypeFlag,#flag=ATCK_WEAP_MAGIC,#value=False);
+      }
+      else if IsClass(oItem,&RiijaSword)
+      {
+         Send(oItem,@SetTypeFlag,#flag=ATCK_WEAP_MAGIC,#value=True);
+      }
+      else
+      {
+         Send(oItem,@SetTypeFlag,#flag=ATCK_WEAP_MAGIC,#value=False);
+         Send(oItem,@SetTypeFlag,#flag=ATCK_WEAP_NONMAGIC,#value=True);
+      }
 
       return;
    }
