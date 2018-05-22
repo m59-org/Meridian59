@@ -88,7 +88,7 @@ messages:
       return Send(who,@GetAim);
    }
 
-   AttemptActiveParry(who=$, what=$)
+   AttemptActiveParry(who=$, what=$, stroke_obj=$)
    {
       local iActiveParryingAbility, iStat, iParryChance;
 
@@ -103,6 +103,20 @@ messages:
             OR Send(who,@IsUsingA,#class=&HunterSword))
          OR NOT Send(who,@GetInFrontOrBehindMe,#what=what,#iSide=SIDE_FRONT)
          %OR Send(who,@CheckPlayerFlag,#flag=PFLAG_NO_MOVE)
+      {
+         return FALSE;
+      }
+
+      % Don't work versus ranged
+      if IsClass(what,&Player)
+         AND Send(what,@IsUsingA,#class=&RangedWeapon)
+      {
+         return FALSE;
+      }
+
+      % Don't work against throwing daggers
+      if stroke_obj <> $
+         AND IsClass(stroke_obj,&Throw)
       {
          return FALSE;
       }
