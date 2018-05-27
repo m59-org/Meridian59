@@ -150,6 +150,8 @@ properties:
    pbCounted = FALSE
    pbCheapDeath = FALSE
 
+   piItemLevel = 200
+
 messages:
 
    Constructor()
@@ -264,8 +266,7 @@ messages:
       }
 
       % Don't let them pick it up unless they're worthy!
-      if (NOT ((Send(what,@GetKarma) > piKarmaWorthyThreshold)
-            AND (Send(what,@GetBaseMaxHealth) > piHpWorthyThreshold)))
+      if NOT (Send(what,@GetBaseMaxHealth) > piHpWorthyThreshold)
          OR Send(what,@CheckPlayerFlag,#flag=PFLAG_OUTLAW)
          OR Send(what,@CheckPlayerFlag,#flag=PFLAG_MURDERER)
       {
@@ -273,13 +274,9 @@ messages:
 
          if Send(what,@CheckPlayerFlag,#flag=PFLAG_PKILL_ENABLE)
          {
-            iDamage = Random(1,2);
-            if Send(what,@GetKarma) < 0
-            {
-               iDamage = iDamage - (8*Send(what,@GetKarma)/100);
-            }
+            iDamage = Random(8,16);
 
-            if Send(what,@AssessDamage,#what=self,#damage=iDamage,#report=FALSE) = $
+            if Send(what,@AssessDamage,#what=self,#damage=iDamage,#aspell=ATCK_SPELL_ALL+ATCK_SPELL_HOLY,#report=FALSE) = $
             {
                % We killed someone off... heh heh heh.
                Send(Send(what,@GetOwner),@SomethingKilled,#what=self,#victim=what);
@@ -345,17 +342,15 @@ messages:
 
       % Karma mod is bilinear -  rises fast from  0 at -30 to  75 at +30
       %                          rises slow from 75 at +30 to 100 at 100
-      iKarma = Send(poOwner,@GetKarma);
+      iKarma = 100;
 
       if iKarma < (-piKarmaWorthyThreshold)
       {
-         iKarmaFactor =  (75 * (iKarma - piKarmaWorthyThreshold))
-                              / (-2 * piKarmaWorthyThreshold);
+         iKarmaFactor =  (75 * (iKarma - piKarmaWorthyThreshold)) / (-2 * piKarmaWorthyThreshold);
       }
       else
       {
-         iKarmaFactor =  75 + (25 * (iKarma + piKarmaWorthyThreshold))
-                              / (100 - piKarmaWorthyThreshold);
+         iKarmaFactor =  75 + (25 * (iKarma + piKarmaWorthyThreshold)) / (100 - piKarmaWorthyThreshold);
       }
 
       iHungerFactor = ( 100 * (piHunger - HUNGER_5 ))/(-2 * HUNGER_5);
@@ -553,8 +548,7 @@ messages:
       }
 
       % Check that owner still satisfies sword restrictions.
-      if NOT ((Send(poOwner,@GetKarma) > piKarmaWorthyThreshold)
-            AND(Send(poOwner,@GetBaseMaxHealth) > piHpWorthyThreshold))
+      if NOT Send(poOwner,@GetBaseMaxHealth) > piHpWorthyThreshold
          AND ptHoldingDamage = $
       {
          Send(self,@HoldingDamageTrigger);
@@ -575,7 +569,7 @@ messages:
          Send(poOwner,@AddExertion,#amount=40000);
          Send(poOwner,@MsgSendUser,#message_rsc=HunterSword_hunger_5);
 
-         if Send(poOwner,@AssessDamage,#what=self,#damage=Random(1,5),
+         if Send(poOwner,@AssessDamage,#what=self,#damage=Random(1,5),#aspell=ATCK_SPELL_ALL+ATCK_SPELL_HOLY,
                   #report=FALSE) = $
          {
             % We killed someone off... heh heh heh.
@@ -641,8 +635,7 @@ messages:
          return;
       }
 
-      if Send(poOwner,@GetKarma) > piKarmaWorthyThreshold
-         AND Send(poOwner,@GetBaseMaxHealth) > piHpWorthyThreshold
+      if Send(poOwner,@GetBaseMaxHealth) > piHpWorthyThreshold
          AND (NOT Send(poOwner,@CheckPlayerFlag,#flag=PFLAG_OUTLAW))
          AND (NOT Send(poOwner,@CheckPlayerFlag,#flag=PFLAG_MURDERER))
       {
@@ -667,7 +660,7 @@ messages:
 
          Send(poOwner,@MsgSendUser,#message_rsc=HunterSword_holding_damage_using);
 
-         if Send(poOwner,@AssessDamage,#what=self,
+         if Send(poOwner,@AssessDamage,#what=self,#aspell=ATCK_SPELL_ALL+ATCK_SPELL_HOLY,
                   #damage=(Random(1,3)),#report=FALSE) = $
          {
             % We killed them off... heh heh heh.
@@ -834,7 +827,7 @@ messages:
    {
       Send(poOwner,@MsgSendUser,#message_rsc=HunterSword_try_unuse_rsc);
 
-      if Send(poOwner,@AssessDamage,#what=self,
+      if Send(poOwner,@AssessDamage,#what=self,#aspell=ATCK_SPELL_ALL+ATCK_SPELL_HOLY,
                #damage=Random(viDamage_min,viDamage_max),#report=FALSE) = $
       {
          % We killed someone off... heh heh heh.
@@ -1005,12 +998,20 @@ messages:
 
    GetPrefixes()
    {
-      return $;
+      return [[&OffenseMod,100],
+              [&WeaponDamageMod,100],
+              [&ThrustEmpowermentMod,100],
+              [&SlashEmpowermentMod,100],
+              [&BludgeonEmpowermentMod,100],
+              [&PierceEmpowermentMod,100],
+              [&WeaponEmpowermentMod,1]];
    }
    
    GetSuffixes()
    {
-      return $;
+      return [[&WeaponMightMod,100],
+              [&WeaponAgilityMod,100],
+              [&WeaponAimMod,100]];
    }
 
    CanCleave()

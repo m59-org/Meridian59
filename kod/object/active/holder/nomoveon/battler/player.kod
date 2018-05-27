@@ -1039,6 +1039,8 @@ classvars:
    viNeck_space = 1
    viHead_space = 1
    viLeg_space = 1
+   viAmulet_space = 1
+   viThroat_space = 1
 
    viFinger_space = 2
    viGauntlet_space = 1
@@ -5753,6 +5755,20 @@ messages:
       if (iUse_type & ITEM_USE_NECK)
          AND NOT Send(self,@CheckPosition,#what=what,
                      #type=ITEM_USE_NECK,#space=viNeck_space)
+      {
+         return FALSE;
+      }
+
+      if (iUse_type & ITEM_USE_AMULET)
+         AND NOT Send(self,@CheckPosition,#what=what,
+                     #type=ITEM_USE_AMULET,#space=viAmulet_space)
+      {
+         return FALSE;
+      }
+
+      if (iUse_type & ITEM_USE_THROAT)
+         AND NOT Send(self,@CheckPosition,#what=what,
+                     #type=ITEM_USE_THROAT,#space=viThroat_space)
       {
          return FALSE;
       }
