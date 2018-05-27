@@ -63,6 +63,12 @@ messages:
    {
       local iStat, iAbility;
       
+      if IsClass(who,&Monster)
+      {
+         % No monster weaponmasters... for now
+         return 0;
+      }
+      
       iStat = Send(self,@GetRequisiteStat,#who=who);
       iAbility = Send(who,@GetSkillAbility,#skill_num=viSkill_num);
          

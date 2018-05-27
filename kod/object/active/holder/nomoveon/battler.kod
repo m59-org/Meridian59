@@ -1693,7 +1693,23 @@ messages:
 
       % Spell types are usually represented by negative values, to
       %  differentiate between physical and spell damage.
-      iType = Send(self,@GetSpellType,#use_weapon=use_weapon,#stroke_obj=stroke_obj);
+      if IsClass(self,&Monster)
+      {
+         if use_weapon <> $
+         {
+            % Might be a spell.
+            iType = Send(use_weapon,@GetAttackSpell);
+         }
+         else
+         {
+            % Use ourselves as default.
+            iType = Send(self,@GetSpellType);
+         }
+      }
+      else
+      {
+         iType = Send(self,@GetSpellType,#use_weapon=use_weapon,#stroke_obj=stroke_obj);
+      }
 
       % We only want to use a unique word if the spell damage is NOT generic
       %  or Hunter sword damage.  Otherwise, use the physical damage type.
