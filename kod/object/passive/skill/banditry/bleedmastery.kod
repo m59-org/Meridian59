@@ -19,7 +19,11 @@ resources:
 
    BleedMastery_name_rsc = "bleed mastery"
    BleedMastery_icon_rsc = ibloodrunes.bgf
-   BleedMastery_desc_rsc = "Increases the duration of all bleeds you inflict."
+   BleedMastery_desc_rsc = \
+      "Increases the duration and power of all bleeds you inflict. "
+
+   BleedMastery_skill_intro = \
+      "Banditry Lv. 2: Increases the duration and power of all bleeds you inflict."
 
 classvars:
 
@@ -29,6 +33,8 @@ classvars:
 
    viIndefinite = ARTICLE_NONE
    viDefinite = ARTICLE_NONE
+
+   vrSkill_intro = BleedMastery_skill_intro
 
    viSkill_num = SKID_BLEED_MASTERY
    viSchool = SKS_BANDITRY
@@ -57,7 +63,8 @@ messages:
       iStat = Send(self,@GetRequisiteStat,#who=who);
       iAbility = Send(who,@GetSkillAbility,#skill_num=viSkill_num);
 
-      Send(self,@ImproveAbility,#who=who);  
+      % Have to move this so people don't imp on bleed immune monsters when not even applying bleeds!
+%     Send(self,@ImproveAbility,#who=who);  
 
       % Up to 5% from skill and another 5% from stat to bring Daggers up to 15% crit rate
       return iBleedPower + (iBleedPower*((iAbility+1)+iStat)/2)/100;

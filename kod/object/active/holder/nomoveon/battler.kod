@@ -192,6 +192,9 @@ resources:
    bleeded_message = \
       "~BYou begin to bleed!"
 
+   tumble_success = "You tumble out of the way of %s%s's attack!"
+   enemy_tumbled = "%s%s tumbles out of the way of your attack!"
+
 classvars:
 
    viObject_flags = OF_ATTACKABLE
@@ -968,7 +971,8 @@ messages:
    TryAttack(what = $,stroke_obj=$)
    {
       local iOffense, iDefense, iChanceToHit, iDamage, iScalefactor, oWeapon,
-            iBackstabDamage, bDoingBackstab;
+            iBackstabDamage, bDoingBackstab, iBeatThisCheck, iTumblePercentage,
+            iWeaponmasterPercentage;
 
       oWeapon = Send(self,@GetWeapon);
 
@@ -998,12 +1002,35 @@ messages:
          {
             % Guaranteed hit if player fails active blocking and parrying.
             % Defense + active blocking would be way too strong.
-            % However, tumbling will still work.
-            iChanceToHit = 2000;
+            % However, tumbling will still allow a chance to not get hit.
+            iChanceToHit = 1000;
          }
       }
+      
+      iTumblePercentage = Send(Send(SYS,@FindSkillByNum,#num=SKID_TUMBLE),@GetTumblePercentage,#who=what,#what=self);
+      iWeaponmasterPercentage = Send(Send(SYS,@FindSkillByNum,#num=SKID_WEAPONMASTER),@GetWeaponmasterPercentage,#who=self,#what=what);
 
-      if iChanceToHit >= random(1,1000)
+      iChanceToHit = iChanceToHit + iWeaponmasterPercentage;
+
+      iBeatThisCheck = Random(1,1000);
+      if iChanceToHit >= iBeatThisCheck
+         AND iChanceToHit - iTumblePercentage <= iBeatThisCheck
+      {
+         % This attack would have worked if not for our tumble percentage
+         if IsClass(what,&Player)
+         {
+            Send(what,@MsgSendUser,#message_rsc=tumble_success,#parm1=Send(self,@GetDef),#parm2=Send(self,@GetName));
+            Send(Send(SYS,@FindSkillByNum,#num=SKID_TUMBLE),@ImproveAbility,#who=what);
+         }
+         Send(poOwner,@SomethingWaveRoom,#what=what,#wave_rsc=Send(what,@GetTumbleSound));
+         if IsClass(self,&Player)
+         {
+            Send(self,@MsgSendUser,#message_rsc=enemy_tumbled,#parm1=Send(what,@GetDef),#parm2=Send(what,@GetName));
+         }
+         return FALSE;
+      }
+
+      if iChanceToHit >= iBeatThisCheck
          OR (IsClass(self,&Player)
              AND Send(Send(SYS,@FindSkillByNum,#num=SKID_SNEAK),
                        @IsSneaking,#who=self)
@@ -1013,17 +1040,6 @@ messages:
              AND Send(Send(SYS,@FindSkillByNum,#num=SKID_BACKSTAB),
                        @TryAutomaticHit,#who=self,#what=what))
       {
-         if Send(Send(SYS,@FindSkillByNum,#num=SKID_TUMBLE),
-                  @AttemptTumble,#who=what,#what=self)
-         {
-            if IsClass(self,&Player)
-            {
-               Send(poOwner,@SomethingWaveRoom,#what=what,
-                     #wave_rsc=Send(self,@GetTumbleSound));
-            }
-            return FALSE;
-         }
-
          % We hit!
          iDamage = Send(self,@GetDamage,#what=what,#stroke_obj=stroke_obj);
          iScalefactor = 1000;
@@ -2928,7 +2944,7 @@ messages:
       % Modify by our bleed percentage. This can make us less or more vulnerable.
       iBleedDuration = (iBleedDuration*Send(self,@GetBleedPercentage))/100;
       
-      % No stuns under five seconds, because that's not even one damage
+      % No bleeds under five seconds, because that's not even one damage
       if iBleedDuration < 5000
       {
          return FALSE;
@@ -2943,6 +2959,10 @@ messages:
             Send(what,@MsgSendUser,#message_rsc=bleed_message,
                                    #parm1=Send(self,@GetDef),
                                    #parm2=Send(self,@GetName));
+            if Send(what,@HasSkill,#num=SKID_BLEED_MASTERY)
+            {
+               Send(Send(SYS,@FindSkillByNum,#num=SKID_BLEED_MASTERY),@ImproveAbility,#who=what);
+            }
          }
          if IsClass(self,&Player)
             AND what <> $
@@ -2951,7 +2971,7 @@ messages:
                                    #parm1=Send(what,@GetDef),
                                    #parm2=Send(what,@GetName));
          }
-         Send(oSpell,@DoSpell,#oTarget=self,#iDuration=iBleedDuration);
+         Send(oSpell,@DoSpell,#oTarget=self,#iDuration=iBleedDuration,#bleed_applier=what);
       }
 
       return TRUE;

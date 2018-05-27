@@ -49,6 +49,7 @@ classvars:
    viMeditate_ratio = 0
 
    vrSucceed_wav = $
+   viOutlaw = FALSE
 
 properties:
 
@@ -77,18 +78,27 @@ messages:
       propagate;
    }
 
-   DoSpell(oTarget=$,iDuration=0,iSpellPower=$)
+   DoSpell(oTarget=$,iDuration=0,iSpellPower=$,bleed_applier=$)
    {
+      local iBleedPower;
+      
+      iBleedPower = 0;
+      if bleed_applier <> $
+         AND IsClass(bleed_applier,&Player)
+      {
+         iBleedPower = Send(bleed_applier,@GetSkillAbility,#Skill_num=SKID_BLEED_MASTERY);
+      }
+
       % Spell effects
       if IsClass(oTarget,&Player)
       {
          Send(oTarget,@MsgSendUser,#message_rsc=vrEnchantment_On);
-         Send(oTarget,@StartEnchantment,#what=self,#time=iDuration);
+         Send(oTarget,@StartEnchantment,#what=self,#time=iDuration,#iSpellPower=iBleedPower);
          Send(oTarget,@StartBleedTimer);
       }
       else
       {
-         Send(oTarget,@StartEnchantment,#what=self,#time=iDuration);
+         Send(oTarget,@StartEnchantment,#what=self,#time=iDuration,#iSpellPower=iBleedPower);
          Send(oTarget,@StartBleedTimer);
       }
 
@@ -130,6 +140,13 @@ messages:
    CanBeRemovedByPlayer()
    {
       return FALSE;
+   }
+
+   ModifyDamageTaken(who=$, bonus=0, power=0)
+   {
+      % Under normal circumstances, 1 damage taken extra.
+      % Bleed masters boosts it up to 2 damage taken extra.
+      return bonus + 101 + power;
    }
 
 end

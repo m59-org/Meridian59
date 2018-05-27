@@ -1360,6 +1360,7 @@ messages:
          each_obj = Send(self,@HolderExtractObject,#data=i);
          if IsClass(each_obj,&Player)
             AND FindListElem(plLavaSectors,Send(self,@GetSection,#who=each_obj)) <> 0
+            AND NOT Send(each_obj,@IsInCannotInteractMode)
          {
             Send(each_obj,@MsgSendUser,#message_rsc=lava_applying_burn);
             Send(each_obj,@EffectSendUserDurationAndXlat,#effect=EFFECT_FLASHXLAT,#duration=100,#xlat=81);

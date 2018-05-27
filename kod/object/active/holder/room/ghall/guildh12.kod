@@ -160,7 +160,7 @@ properties:
    ptEntrance = $
    
    piGuildHallMeditateEffiency = 100
-   % West Tower Guild Hall boosts Kraanan by 25%
+   % West Tower Guild Hall boosts Kraanan and Knightcraft by 25%
    piSpecialGuildHallMeditateEfficiency = 125
 
 messages:
@@ -511,6 +511,16 @@ messages:
    {
       if oSpell <> $
          AND Send(oSpell,@GetSchool) = SS_KRAANAN
+      {
+         return TRUE;
+      }
+      if oSpell <> $
+         AND Send(oSpell,@GetSchool) = SKS_KNIGHTCRAFT
+      {
+         return TRUE;
+      }
+      if oSkill <> $
+         AND Send(oSkill,@GetSchool) = SKS_KNIGHTCRAFT
       {
          return TRUE;
       }

@@ -111,7 +111,7 @@ messages:
 
    CastSpell(who = $, iSpellPower=0)
    {                   
-      local oRoom, lSteps, iDist, i, oElement, n, lBattlers, iIncDuration;
+      local oRoom, lSteps, iDist, i, oElement, n, lBattlers, iIncDuration, lAlreadyAffected;
 
       oRoom = Send(who,@GetOwner);
       if oRoom = $
@@ -137,6 +137,7 @@ messages:
       lSteps = Send(oRoom,@IntraTeleport,#what=who,#distance=iDist,
                      #type=INTRA_TELEPORT_FORWARD);
 
+      lAlreadyAffected = $;
       if lSteps <> $
       {
          lBattlers = Send(Send(who,@GetOwner),@GetHolderActive);
@@ -155,9 +156,12 @@ messages:
                   AND IsClass(First(n),&Battler)
                   AND Send(who,@AllowPlayerAttack,#victim=First(n),#report=FALSE,#actual=FALSE)
                   AND Send(First(n),@SquaredFineDistanceToLocation,#row=Nth(i,1),#col=Nth(i,2),#fine_row=Nth(i,3),#fine_col=Nth(i,4)) <= piEffectRange * piEffectRange
+                  AND (lAlreadyAffected = $
+                     OR FindListElem(lAlreadyAffected,First(n)) = 0)
                {
                   Send(First(n),@ApplyKnockback,#what=who,#knockback_power=(Send(who,@GetKnockbackPower)*(iSpellPower+1)*2)/100);
                   Send(First(n),@ApplyStun,#what=who,#stun_power=(Send(who,@GetStunPower)*(iSpellPower+1)*2)/100);
+                  lAlreadyAffected = Cons(First(n),lAlreadyAffected);
                }
             }
          }

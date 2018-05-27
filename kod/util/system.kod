@@ -3914,6 +3914,8 @@ messages:
        
        Send(self,@CreateOneSKillIfNew,#num=SKID_BLADE_MASTERY,#class=&BladeMastery);
        Send(self,@CreateOneSKillIfNew,#num=SKID_BLEED_MASTERY,#class=&BleedMastery);
+       Send(self,@CreateOneSKillIfNew,#num=SKID_BASH,#class=&Bash);
+       Send(self,@CreateOneSKillIfNew,#num=SKID_WEAPONMASTER,#class=&Weaponmaster);
        
        return;
    }
@@ -6008,6 +6010,7 @@ messages:
       plItemTemplates = cons(create(&ForgetPotionIwodachWitchery),plItemTemplates);
       plItemTemplates = cons(create(&ForgetPotionSorcery),plItemTemplates);
       plItemTemplates = cons(create(&ForgetPotionBanditry),plItemTemplates);
+      plItemTemplates = cons(create(&ForgetPotionKnightcraft),plItemTemplates);
 
       plItemTemplates = cons(create(&IllusionaryFormPotion),plItemTemplates);
       plItemTemplates = cons(create(&PurifyPotion),plItemTemplates);
@@ -7798,6 +7801,11 @@ messages:
       if level = 0
       {
          return 0;
+      }
+
+      if level > Length(vlLevelPoints)
+      {
+         level = Length(vlLevelPoints);
       }
 
       return Nth(vlLevelPoints,level);

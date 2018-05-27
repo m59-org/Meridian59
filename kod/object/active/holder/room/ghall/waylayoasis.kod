@@ -753,7 +753,7 @@ messages:
       return AREA_OUTSIDE;
    }
 
-   ReqSomethingAttack(what = $,victim = $)
+   ReqSomethingAttack(what = $,victim = $, report=TRUE)
    "No one may attack through the door if it's closed."
    {
       local iVictimSection, iAttackerSection;
@@ -779,6 +779,7 @@ messages:
          OR iVictimSection = AREA_CAVES
       {
          if IsClass(what,&Player)
+            AND report
          {
             Send(what,@MsgSendUser,#message_rsc=no_tribe_fight_in_caves);
          }

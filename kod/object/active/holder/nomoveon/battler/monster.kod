@@ -665,7 +665,7 @@ messages:
          piMaxDamage = piLevel/10 + piSurvivalLevel/2;
          piArmor = piSurvivalLevel/5;
       }
-      
+
       if viBonusBaseTP <> 0
       {
          % for special bonuses, keep track up to five minutes.
@@ -2527,6 +2527,14 @@ messages:
             Send(Send(SYS,@FindSkillByNum,#num=SKID_HONESTY),@DoSkill,#who=what);
          }
       }
+      
+      if NOT bSecondary
+      {
+         foreach i in Send(self,@GetEnchantmentsByClass,#enchClass=&Bleed)
+         {
+            bonus = Send(Nth(i,2),@ModifyDamageTaken,#who=self,#bonus=bonus,#power=Nth(i,3));
+         }
+      }
 
       % check for any applicable resistances.
 
@@ -2597,6 +2605,7 @@ messages:
             AND poTarget <> $
             AND IsClass(what,&Player)
             AND Send(what,@HasSkill,#num=SKID_BRAVERY)
+            AND NOT Send(poTarget,@HasSkill,#num=SKID_BRAVERY)
          {
             Post(Send(SYS,@FindSkillByNum,#num=SKID_BRAVERY),@DoSkill,#who=what,#what=self);
          }
@@ -5900,8 +5909,15 @@ messages:
 
    GetAttackTime()
    {
-      return Bound(Send(self,@Fuzzy,#num=MOB_ATTACK_TIMER_WAIT)
-             + 3500-70*(3*viDifficulty+piSpeed),250,$);
+      local i, iWait;
+
+      iWait = Bound(Send(self,@Fuzzy,#num=MOB_ATTACK_TIMER_WAIT) + 3500-70*(3*viDifficulty+piSpeed),250,$);
+
+      foreach i in Send(self,@GetEnchantmentsByClass,#enchClass=&Hex)
+      {
+         iWait = Send(Nth(i,2),@ModifyDelay,#state=Nth(i,3),#iDelay=iWait);
+      }
+      return iWait;
    }
 
    GetMoveTime()

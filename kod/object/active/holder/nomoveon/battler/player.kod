@@ -7733,6 +7733,11 @@ messages:
          {
             bonus = Send(Send(SYS,@FindSkillByNum,#num=SKID_DETERMINATION),@ModifyDamageTaken,#who=self,#bonus=bonus);
          }
+
+         foreach i in Send(self,@GetEnchantmentsByClass,#enchClass=&Bleed)
+         {
+            bonus = Send(Nth(i,2),@ModifyDamageTaken,#who=self,#bonus=bonus,#power=Nth(i,3));
+         }
       }
 
       % Add attmods AFTER resistance/suscep mods.
@@ -19623,6 +19628,13 @@ messages:
       {
          iBaseCritRate = Send(Send(SYS,@FindSkillByNum,#num=SKID_BLADE_MASTERY),@ModifyBaseCritRate,#who=self,#iBaseCritRate=iBaseCritRate);
       }
+      if (IsClass(oWeapon,&Mace)
+         OR IsClass(oWeapon,&Hammer)
+         OR IsClass(oWeapon,&SpiritualHammer))
+         AND Send(self,@HasSkill,#num=SKID_BASH)
+      {
+         iBaseCritRate = Send(Send(SYS,@FindSkillByNum,#num=SKID_BASH),@ModifyBaseCritRate,#who=self,#iBaseCritRate=iBaseCritRate);
+      }
 
       % Aim multiplier can increase crit rate up to 50%
       iAimMultiplier = 100 + (Send(self,@GetAim)/2);
@@ -19634,10 +19646,9 @@ messages:
       iStanceCritMultiplier = 100;
       if poStance <> $
       {
-         
          if IsClass(poStance,&HeavyAttackStance)
          {
-            iStanceCritMultiplier = 200;
+            iStanceCritMultiplier = 300;
          }
          %if IsClass(poStance,&LightAttackStance)
          %{
@@ -19661,7 +19672,7 @@ messages:
       {
          if IsClass(poStance,&HeavyAttackStance)
          {
-            iStanceBonus = 150;
+            iStanceBonus = 300;
          }
          if IsClass(poStance,&LightAttackStance)
          {
@@ -19681,7 +19692,7 @@ messages:
       {
          if IsClass(poStance,&HeavyAttackStance)
          {
-            iStanceBonus = 150;
+            iStanceBonus = 300;
          }
          if IsClass(poStance,&LightAttackStance)
          {

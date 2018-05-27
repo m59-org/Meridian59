@@ -72,9 +72,9 @@ messages:
       iRecklessHeartAbility = Send(who,@GetSkillAbility,#skill_num=viSkill_num);
       iStat = Send(self,@GetRequisiteStat,#who=who);
 
-      % Up to 20% final damage increase from skill, and up to 5% from stat.
-      iDamageBonus = 100 + ((iRecklessHeartAbility+1) / 5) + (Bound(iStat-20,0,50) / 10);
-      iDamageBonus = Bound(iDamageBonus,100,205);
+      % Up to 50% final damage increase from skill, and up to 10% from stat.
+      iDamageBonus = 100 + ((iRecklessHeartAbility+1) / 2) + (iStat / 10);
+      iDamageBonus = Bound(iDamageBonus,100,160);
 
       if what <> $
          AND IsClass(what,&Battler)
@@ -82,7 +82,7 @@ messages:
          Send(self,@ImproveAbility,#who=who,#target=what);
       }
       
-      return damage * iDamageBonus / 100;
+      return (damage * iDamageBonus) / 100;
    }
 
    LastPriorityModifyDefenseDamage(who=$,what=$,damage=$)
@@ -91,11 +91,11 @@ messages:
 
       iRecklessHeartAbility = Send(who,@GetSkillAbility,#skill_num=viSkill_num);
 
-      % Up to 20% final damage increase
-      iDamageBonus = 100 + ((iRecklessHeartAbility+1) / 5);
-      iDamageBonus = Bound(iDamageBonus,100,120);
+      % Up to 50% final damage increase
+      iDamageBonus = 100 + ((iRecklessHeartAbility+1) / 2);
+      iDamageBonus = Bound(iDamageBonus,100,150);
 
-      return damage * iDamageBonus / 100;
+      return (damage * iDamageBonus) / 100;
    }
 
 
