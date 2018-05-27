@@ -2712,7 +2712,7 @@ messages:
       return damage - iDamageReduce;
    }
 
-   AssessHit(what = $, stroke_obj = $, damage = $)
+   AssessHit(what = $, stroke_obj = $, damage = $, use_weapon=$)
    "This does the fallout of a hit, gives appropriate message, etc.  "
    "Called on self when hit opponent."
    {
@@ -2722,7 +2722,9 @@ messages:
          propagate;
       }
 
-      if vrSound_miss <> $
+      % If use_weapon isn't $, usually because we're casting a spell or doing some other form of damage
+      if use_weapon = $
+         AND vrSound_miss <> $
       {
          Send(poOwner,@SomethingWaveRoom,#what=what,#wave_rsc=vrSound_miss,
                #flags=SOUND_RANDOM_PITCH);
