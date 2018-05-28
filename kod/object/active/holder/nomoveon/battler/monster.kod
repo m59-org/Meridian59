@@ -8026,6 +8026,29 @@ messages:
 
    SendLightingInformation()
    {
+      if piChampionStatus > 0
+         AND poOwner <> $
+         AND Send(poOwner,@LightingColorOverride)
+      {
+         AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC));
+         % 50 out of 255 intensity of light
+         if piChampionStatus = 4
+         {
+            AddPacket(1,75);
+         }
+         else if piChampionStatus = 5
+         {
+            AddPacket(1,125);
+         }
+         else
+         {
+            AddPacket(1,50);
+         }
+         % Override color
+         AddPacket(2,Send(poOwner,@GetLightingColorOverride,#what=self));
+         return;
+      }
+
       if piChampionStatus = 1
       {
          AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC));

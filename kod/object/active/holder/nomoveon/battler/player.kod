@@ -17838,7 +17838,7 @@ messages:
 
    SendLightingInformation()
    {
-      local i, oLightObject, iColor, iIntensity;
+      local i, oLightObject, iColor, iIntensity, bOverride, iOverrideLightColor;
 
       if poIllusion_set <> $
       {
@@ -17850,12 +17850,26 @@ messages:
 
          return;
       }
-      
+
+      bOverride = FALSE;
+      iOverrideLightColor = LIGHT_WHITE;
+      if poOwner <> $
+      {
+         bOverride = Send(poOwner,@LightingColorOverride);
+         iOverrideLightColor = Send(poOwner,@GetLightingColorOverride,#what=self);
+      }
+
       % Hold gives off a purple glow
       if Send(self,@IsEnchanted,#byClass=&Hold)
       {
-         AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC),
-                   1,100, 2,LIGHT_BPURPLE);
+         if bOverride
+         {
+            AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC),1,100, 2,iOverrideLightColor);
+         }
+         else
+         {
+            AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC),1,100, 2,LIGHT_BPURPLE);
+         }
          return;
       }
 
@@ -17909,6 +17923,11 @@ messages:
                 iColor = Send(oLightObject,@GetLightColor);
             }
          }
+      }
+
+      if bOverride
+      {
+         iColor = iOverrideLightColor;
       }
 
       if iIntensity > 0

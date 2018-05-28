@@ -72,8 +72,8 @@ messages:
       iRecklessHeartAbility = Send(who,@GetSkillAbility,#skill_num=viSkill_num);
       iStat = Send(self,@GetRequisiteStat,#who=who);
 
-      % Up to 50% final damage increase from skill, and up to 10% from stat.
-      iDamageBonus = 100 + ((iRecklessHeartAbility+1) / 2) + (iStat / 10);
+      % Up to 33% final damage increase from skill, and up to 10% from stat.
+      iDamageBonus = 100 + ((iRecklessHeartAbility) / 3) + (iStat / 10);
       iDamageBonus = Bound(iDamageBonus,100,160);
 
       if what <> $
@@ -91,8 +91,8 @@ messages:
 
       iRecklessHeartAbility = Send(who,@GetSkillAbility,#skill_num=viSkill_num);
 
-      % Up to 50% final damage increase
-      iDamageBonus = 100 + ((iRecklessHeartAbility+1) / 2);
+      % Up to 33% final damage increase
+      iDamageBonus = 100 + ((iRecklessHeartAbility) / 3);
       iDamageBonus = Bound(iDamageBonus,100,150);
 
       return (damage * iDamageBonus) / 100;
