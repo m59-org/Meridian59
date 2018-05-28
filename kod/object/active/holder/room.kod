@@ -6139,10 +6139,22 @@ messages:
       lShieldWallersNearMe = $;
       foreach i in plShieldWallers
       {
-         % Check for 64 fine units past the radius of the battler itself (16)
-         if Send(i,@SquaredFineDistanceTo,#what=who) <= 80 * 80
+         % Check for adept shield waller
+         if Send(i,@GetMasteredSkill) = SKID_ACTIVE_BLOCKING_STANCE
          {
-            lShieldWallersNearMe = Cons(i,lShieldWallersNearMe);
+            % Check for 64*3 fine units past the radius of the battler itself (16)
+            if Send(i,@SquaredFineDistanceTo,#what=who) <= 208 * 208
+            {
+               lShieldWallersNearMe = Cons(i,lShieldWallersNearMe);
+            }
+         }
+         else
+         {
+            % Check for 64 fine units past the radius of the battler itself (16)
+            if Send(i,@SquaredFineDistanceTo,#what=who) <= 80 * 80
+            {
+               lShieldWallersNearMe = Cons(i,lShieldWallersNearMe);
+            }
          }
       }
       
