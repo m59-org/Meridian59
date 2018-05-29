@@ -6383,6 +6383,10 @@ messages:
       plMagicMods = Cons(Create(&WeaponAgilityMod),plMagicMods);
       plMagicMods = Cons(Create(&WeaponAimMod),plMagicMods);
       
+      plMagicMods = Cons(Create(&CasterIntMod),plMagicMods);
+      plMagicMods = Cons(Create(&CasterMystMod),plMagicMods);
+      plMagicMods = Cons(Create(&CasterStamMod),plMagicMods);
+      
       plMagicMods = Cons(Create(&HealthMod),plMagicMods);
       plMagicMods = Cons(Create(&ManaMod),plMagicMods);
       plMagicMods = Cons(Create(&VigorMod),plMagicMods);
@@ -6459,7 +6463,21 @@ messages:
       {
          return GROUP_AIM;
       }
+
+      if class = &CasterIntMod
+      {
+         return GROUP_INTELLECT;
+      }
       
+      if class = &CasterMystMod
+      {
+         return GROUP_MYSTICISM;
+      }
+      
+      if class = &CasterStamMod
+      {
+         return GROUP_STAMINA;
+      }
       if class = &ShockEmpowermentMod
          OR class = &AcidEmpowermentMod
          OR class = &ColdEmpowermentMod

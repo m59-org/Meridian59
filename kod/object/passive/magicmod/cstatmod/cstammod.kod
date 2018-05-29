@@ -8,7 +8,7 @@
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-ManaMod is MagicMod
+CasterStamMod is CasterStatMod
 
 constants:
 
@@ -16,35 +16,34 @@ constants:
 
 resources:
 
-   mana_mod_name = "mana"
+   stam_mod_name = "Stamina"
 
 classvars:
 
-   viModName = mana_mod_name
-   viModType = MOD_PREFIX
-   viModGroup = GROUP_MANA
+   viModName = stam_mod_name
+   viModType = MOD_SUFFIX
+   viModGroup = GROUP_STAMINA
 
    viModRangeMin = 1
-   viModRangeMax = 15
+   viModRangeMax = 6
    
-   viPowerDivisor = 15
+   viPowerDivisor = 50
 
 properties:
+
 
 messages:
 
    NewUsed(who=$,iState=0)
    {
-      Post(who,@ComputeMaxMana);
-
-      return;
+      Send(who,@AddStamina,#points=iState);
+      propagate;
    }
 
    NewUnused(who=$,iState=0)
    {
-      Post(who,@ComputeMaxMana);
-
-      return;
+      Send(who,@AddStamina,#points=-iState);
+      propagate;
    }
 
 end
