@@ -53,6 +53,8 @@ properties:
 
    vrIcon = spherical_prism_1_icon_rsc
    
+   pbAcceptAnyAo3User = TRUE
+
 messages:
 
    Constructor(numSides=1)
@@ -107,7 +109,15 @@ messages:
                  OR NOT IsClass(Send(each_obj,@GetGuild),&NecromancerGuild))
             AND NOT IsClass(each_obj,&DM)
          {
-            bDisloyalFound = TRUE;
+            if pbAcceptAnyAo3User
+               AND Send(each_obj,@IsUsingA,#class=&NecromancerAmulet)
+            {
+               continue;
+            }
+            else
+            {
+               bDisloyalFound = TRUE;
+            }
             break;
          }
       }
