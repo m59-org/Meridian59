@@ -71,7 +71,7 @@ messages:
    ModifyDamage(damage=0,target=$,wielder=$,lData=$)
    "Wielder has a 10% chance of stealing life from a bleeding target with any hit."
    {
-      local oSpell;
+      local oSpell, iBleedingBonus;
       
       if target = $
          OR wielder = $
@@ -81,12 +81,16 @@ messages:
 
       if Random(1,100) <= piEffect_percent
       {
-         if NOT Send(target,@IsBleeding)
+         if Send(target,@IsBleeding)
          {
-            Send(wielder,@MsgSendUser,#message_rsc=fail_to_drain_not_bleeding);
+            iBleedingBonus = 2;
+         }
+         else
+         {
+            iBleedingBonus = 1;
          }
          Send(wielder,@GainHealth,
-               #amount=Bound(damage,piMinHealthGain,piMaxHealthGain));
+               #amount=Bound(damage,piMinHealthGain,piMaxHealthGain)*iBleedingBonus);
          Send(wielder,@MsgSendUser,#message_rsc=vamper_worked,
                #parm1=send(target,@GetCapDef),#parm2=Send(target,@GetName),
                #parm3=send(target,@GetHisHer));
