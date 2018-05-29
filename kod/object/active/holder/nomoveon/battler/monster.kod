@@ -426,6 +426,12 @@ classvars:
    
    viBonusBaseTP = 0
 
+   % between 1 and 10000
+   viCriticalHitRate = 0
+   vbCanCauseStun = FALSE
+   vbCanCauseKnockback = FALSE
+   vbCanCauseBleed = FALSE
+
 properties:
 
    piVisionDistance
@@ -2761,6 +2767,7 @@ messages:
    DidDamage(what = $, amount = 0)
    {
       Send(self,@HitSideEffect,#what=what);
+      Send(self,@DoCrit,#what=what);
 
       return;
    }
@@ -4018,6 +4025,26 @@ messages:
          }
       }
 
+      return;
+   }
+
+   DoCrit(what=$)
+   {
+      if Random(1,10000) <= viCriticalHitRate
+      {
+         if vbCanCauseStun
+         {
+            Send(what,@ApplyStun,#what=self,#stun_power=Send(self,@GetSize));
+         }
+         if vbCanCauseKnockback
+         {
+            Send(what,@ApplyKnockback,#what=self,#knockback_power=Send(self,@GetSize));
+         }
+         if vbCanCauseBleed
+         {
+            Send(what,@ApplyBleed,#what=self,#bleed_power=Send(self,@GetSize));
+         }
+      }
       return;
    }
 
