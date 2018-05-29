@@ -5016,6 +5016,12 @@ messages:
          Post(self,@RecalcLight);
       }
 
+      if IsClass(what,&TouchAttackSpell)
+      {
+         % Jewels of Froz have different light for each touch spell
+         Post(self,@UpdateJewelsOfFroz);
+      }
+
       Post(self,@DrawResistances);
 
       return;
@@ -14709,6 +14715,7 @@ messages:
       {
          if IsClass(i,&Torch)
             OR IsClass(i,&MithrilShield)
+            OR IsClass(i,&JewelOfFroz)
             OR (IsClass(i,&Weapon)
                AND Send(i,@HasAttribute,#ItemAtt=WA_GLOWING))
          {
@@ -17835,6 +17842,25 @@ messages:
       return;
    }
 
+   UpdateJewelsOfFroz()
+   {
+      local i, bFound;
+
+      foreach i in plUsing
+      {
+         if IsClass(i,&JewelOfFroz)
+         {
+            bFound = TRUE;
+         }
+      }
+
+      if bFound
+      {
+         Send(self,@SendLightingInformation);
+      }
+      return;
+   }
+
    SendLightingInformation()
    {
       local i, oLightObject, iColor, iIntensity, bOverride, iOverrideLightColor;
@@ -17885,6 +17911,15 @@ messages:
       % a combined lighting effect. Also, if more lighting effects are added
       % this should probably query everything, just in case.
 
+      foreach i in plUsing
+      {
+         if IsClass(i,&MithrilShield)
+         {
+            iIntensity = iIntensity + Send(i,@GetLightIntensity);
+            iColor = Send(i,@GetLightColor);
+         }
+      }
+
       % Check torches and glow enchantment only here, hardcoded color/intensity.
       foreach i in plUsing
       {
@@ -17892,17 +17927,18 @@ messages:
             OR (IsClass(i,&Weapon)
                AND Send(i,@HasAttribute,#ItemAtt=WA_GLOWING))
          {
-            iIntensity = 120;
+            iIntensity = iIntensity + 120;
             iColor = LIGHT_FIRE;
          }
       }
 
+      % Check frozzes here
       foreach i in plUsing
       {
-         if IsClass(i,&MithrilShield)
+         if IsClass(i,&JewelOfFroz)
          {
-            iIntensity = Send(i,@GetLightIntensity);
-            iColor = Send(i,@GetLightColor);
+            iIntensity = iIntensity + Send(i,@GetLightIntensity,#oWeapon=Send(self,@GetWeapon));
+            iColor = Send(i,@GetLightColor,#oWeapon=Send(self,@GetWeapon));
          }
       }
 

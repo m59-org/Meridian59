@@ -444,5 +444,80 @@ messages:
               [&CasterMystMod,50]];
    }
 
+   GetLightIntensity(oWeapon=$)
+   {
+      if oWeapon <> $
+         AND IsClass(oWeapon,&IllusionaryGrasp)
+      {
+         return 0;
+      }
+
+      if oWeapon = $
+         OR NOT IsClass(oWeapon,&TouchAttackSpell)
+      {
+         return 15;
+      }
+      return 25;
+   }
+
+   GetLightColor(oWeapon=$)
+   {
+      if oWeapon = $
+         OR NOT IsClass(oWeapon,&TouchAttackSpell)
+      {
+         return LIGHT_RED;
+      }
+
+      if IsClass(oWeapon,&AcidTouch)
+      {
+         return LIGHT_GREEN;
+      }
+      if IsClass(oWeapon,&TouchOfFlame)
+      {
+         return LIGHT_FIRE;
+      }
+      if IsClass(oWeapon,&HolyTouch)
+      {
+         return LIGHT_WHITE;
+      }
+      if IsClass(oWeapon,&IcyFingers)
+      {
+         return LIGHT_BLUE;
+      }
+      if IsClass(oWeapon,&TouchOfFlame)
+      {
+         return LIGHT_FIRE;
+      }
+      if IsClass(oWeapon,&UnholyTouch)
+      {
+         return LIGHT_PURPLE;
+      }
+      if IsClass(oWeapon,&Zap)
+      {
+         return LIGHT_LIGHTNING;
+      }
+      if IsClass(oWeapon,&IllusionaryGrasp)
+      {
+         return LIGHT_LIGHTNING;
+      }
+      return LIGHT_RED;
+   }
+
+   NewUsed(what=$)
+   {
+      Send(poOwner,@SetFlickerFlag);
+      Send(poOwner,@SomethingChanged,#what=self);
+
+      propagate;
+   }
+
+   NewUnused(what=$)
+   {
+      Send(poOwner,@RecalcFlickerFlag);
+      Send(poOwner,@SomethingChanged,#what=self);
+
+      propagate;
+   }
+
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
