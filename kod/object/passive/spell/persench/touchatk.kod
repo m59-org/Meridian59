@@ -291,6 +291,12 @@ messages:
    "Damage for attack spells is determined largely by expertise in the spell."
    {
       local damage, iAbility;
+      
+      if Send(who,@GetPlayerRace) = RACE_DRACONIAN
+         AND Random(1,100) <= 10
+      {
+         Post(victim,@ApplyBleed,#what=who,#bleed_power=Send(who,@GetBleedPower));
+      }
 
       % Base weapon damage adjusted to high precision
       damage = random(viMin_Damage*100,viMax_damage*100);
