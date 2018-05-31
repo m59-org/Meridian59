@@ -221,6 +221,7 @@ classvars:
    viNoNewbieOffense = FALSE
 
    viFlash = FLASH_NONE
+   vbCanBeCastWithBloodMagic = TRUE
 
    vbCastable_in_HappyLand = TRUE
 
@@ -841,7 +842,8 @@ messages:
             }
             
             % We've failed. Let's try blood magic.
-            if Send(who,@GetSkillAbility,#Skill_num=SKID_BLOOD_MAGIC) > 0
+            if vbCanBeCastWithBloodMagic
+               AND Send(who,@GetSkillAbility,#Skill_num=SKID_BLOOD_MAGIC) > 0
             {
                if Send(Send(SYS,@FindSkillByNum,#num=SKID_BLOOD_MAGIC),
                                @AttemptBloodSacrifice,
