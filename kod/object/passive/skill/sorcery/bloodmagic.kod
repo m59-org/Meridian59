@@ -32,6 +32,8 @@ resources:
    sacrifice_health = \
       "You spill your own blood in place of physical reagents, "
       "losing %i health."
+   already_bleeding_sacrifice = \
+      "In place of physical reagents, you catalyze some of the fluid from your bleeding wounds."
 
 classvars:
 
@@ -90,9 +92,15 @@ messages:
    DoSkill(who=$,iSacrifice=0)
    {
       % Decay is true to avoid breaking focus immediately upon casting
-      Send(who,@LoseHealth,#amount=iSacrifice,#decay=TRUE);
-      Send(who,@MsgSendUser,#message_rsc=sacrifice_health,
-                            #parm1=iSacrifice);
+      if NOT Send(who,@IsBleeding)
+      {
+         Send(who,@LoseHealth,#amount=iSacrifice,#decay=TRUE);
+         Send(who,@MsgSendUser,#message_rsc=sacrifice_health,#parm1=iSacrifice);
+      }
+      else
+      {
+         Send(who,@MsgSendUser,#message_rsc=already_bleeding_sacrifice);
+      }
       
       propagate;
    }
