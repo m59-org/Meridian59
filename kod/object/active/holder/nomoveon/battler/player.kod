@@ -11364,7 +11364,7 @@ messages:
       }
       else
       {
-         % Let players share XP if they're grouped, even if
+         % Let players share XP and TP if they're grouped, even if
          % they're not fighting the same mob.
          if Send(poOwner,@AreGroupedHere,#who=self,#what=what)
          {
@@ -11751,7 +11751,9 @@ messages:
             iEarnedTrainingPoints = iEarnedTrainingPoints * Send(what,@GetChampionRewardMultiplier);
 
             % Now adjust by percent damage dealt by us to this monster.
-            iEarnedTrainingPoints = (iEarnedTrainingPoints * iDamageShare) / 100;
+            % New group TP feature: min bound Damage Share value to a third, such that nobody gets nothing.
+            % This will also give bonus TP at a distance to group members.
+            iEarnedTrainingPoints = Bound((iEarnedTrainingPoints * Bound(iDamageShare,34,$) / 100),1,$);
 
             Send(self,@AddTrainingPoints,#points=iEarnedTrainingPoints,#report=FALSE);
          }

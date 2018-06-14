@@ -114,7 +114,7 @@ messages:
 
    CastSpell(who = $, lTargets = $, iSpellPower = 0)
    {
-      local iHeal, oTarget, i;
+      local iHeal, oTarget, i, oRoom;
 
       oTarget = First(lTargets);
 
@@ -147,9 +147,7 @@ messages:
          else
          {
             Send(who,@MsgSendUser,#message_rsc=hospice_heal_harm_self_rsc,
-                                  #parm1=Send(who,@GetCapDef),
-                                  #parm2=Send(who,@GetName),
-                                  #parm3=-iHeal/100);
+                                  #parm1=-iHeal/100);
             Send(who,@AssessDamage,#what=who,
                                    #damage=-iHeal,
                                    #aspell=ATCK_SPELL_ALL+ATCK_SPELL_HOLY,
@@ -183,10 +181,30 @@ messages:
                   #karma_doer=Send(who,@GetKarma),#karma_act=Send(oTarget,@GetKarma),
                   #Swing_factor=2));
          }
+         
+         oRoom = Send(oTarget,@GetOwner);
+         if oRoom <> $
+            AND Send(oRoom,@IsInBuilderGroup,#who=oTarget)
+         {
+            Send(who,@JoinBuilderGroup);
+         }
+         
+         % Notify room we healed someone.
+         if oRoom <> $
+         {
+            Send(oRoom,@PlayerHealedSomeone,#caster=who,#oTarget=oTarget,#iHealAmount=iHeal/100);
+         }
       }
       else
       {
          Send(who,@MsgSendUser,#message_rsc=hospice_cast_self,#parm1=iHeal/100);
+         
+         oRoom = Send(oTarget,@GetOwner);
+         % Notify room we healed someone.
+         if oRoom <> $
+         {
+            Send(oRoom,@PlayerHealedSomeone,#caster=who,#oTarget=oTarget,#iHealAmount=iHeal/100);
+         }
       }
 
       propagate;

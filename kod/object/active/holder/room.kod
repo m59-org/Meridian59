@@ -5801,6 +5801,20 @@ messages:
       return plBuilderGroup;
    }
 
+   IsInBuilderGroup(who=$)
+   {
+      local i;
+
+      if who <> $
+         AND plBuilderGroup <> $
+         AND FindListElem(plBuilderGroup,who) <> 0
+      {
+         return TRUE;
+      }
+
+      return FALSE;
+   }
+
    AreGroupedHere(who=$,what=$)
    {
       if who <> $
@@ -6159,6 +6173,21 @@ messages:
       }
       
       return lShieldWallersNearMe;
+   }
+
+   PlayerHealedSomeone(caster=$, oTarget=$, iHealAmount=0)
+   {
+      local i, each_obj;
+
+      foreach i in Send(self,@GetHolderActive)
+      {
+         each_obj = Send(self,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&Battler)
+         {
+            Send(each_obj,@PlayerHealedSomeone,#caster=caster,#oTarget=oTarget,#iHealAmount=iHealAmount);
+         }
+      }
+      return;
    }
 
 end

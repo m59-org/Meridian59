@@ -431,6 +431,9 @@ classvars:
    vbCanCauseStun = FALSE
    vbCanCauseKnockback = FALSE
    vbCanCauseBleed = FALSE
+   
+   % Squared fine range limit on reacting to heals?
+   viReactToHealFineDist = 6 * 64
 
 properties:
 
@@ -8291,6 +8294,61 @@ messages:
 
    RecalcLight()
    {
+      return;
+   }
+
+   PlayerHealedSomeone(caster=$, oTarget=$, iHealAmount=0)
+   {
+      if caster = $
+         OR oTarget = $
+      {
+         return;
+      }
+
+      if NOT (piBehavior & AI_FIGHT_SINGLEMINDED)
+         AND NOT (piBehavior & AI_NOFIGHT)
+         AND NOT (piBehavior & AI_NPC)
+      {
+         % Caster healed our target!
+         if oTarget = poTarget
+         {
+            Send(self,@PlayerHealedOurTarget,#caster=caster,#oTarget=oTarget,#iHealAmount=iHealAmount);
+         }
+         else
+         {
+            Send(self,@PlayerHealedNotOurTarget,#caster=caster,#oTarget=oTarget,#iHealAmount=iHealAmount);
+         }
+      }
+      return;
+   }
+
+   PlayerHealedOurTarget(caster=$, oTarget=$, iHealAmount=0)
+   {
+      if caster <> oTarget
+      {
+         % Someone's healing our target!
+         if Random(1,100) < iHealAmount
+         {
+            Send(self,@TargetSwitch,#what=caster,#iHatred=iHealAmount*10);
+            Send(self,@EnterStateChase,#target=caster,#actnow=TRUE);
+         }
+      }
+      return;
+   }
+
+   PlayerHealedNotOurTarget(caster=$, oTarget=$, iHealAmount=0)
+   {
+      if caster <> oTarget
+         AND poTarget = $
+      {
+         if piHatred < iHealAmount
+            AND Random(1,100) < iHealAmount
+            AND Send(self,@SquaredFineDistanceTo3D,#what=caster) <= viReactToHealFineDist * viReactToHealFineDist
+         {
+            Send(self,@TargetSwitch,#what=caster,#iHatred=iHealAmount*10);
+            Send(self,@EnterStateChase,#target=caster,#actnow=TRUE);
+         }
+      }
       return;
    }
 

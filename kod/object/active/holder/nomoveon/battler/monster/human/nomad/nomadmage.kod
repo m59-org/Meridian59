@@ -38,27 +38,25 @@ messages:
    {
       if piDemonSponsor = SSS_WITCHERY_NEQUZON
       {
-         plSpellBook = [ [SID_HEX_BARBS,12,33], [SID_HEX_CONDUCTIVITY,25,55],
+         plSpellBook = [ [SID_HEX_CONDUCTIVITY,25,20],
                          [SID_LIGHTNING_BOLT,10,100]];
       }
       if piDemonSponsor = SSS_WITCHERY_IWODACH
       {
-         plSpellBook = [ [SID_HEX_FRAILTY,40,33], [SID_HEX_WEAKEN,20,90],
-                         [SID_HEX_BLACK_MANTLE,50,100]];
+         plSpellBook = [ [SID_HEX_CORRUPTION,20,10],
+                         [SID_VAMPIRIC_DRAIN,10,100]];
       }
       if piDemonSponsor = SSS_WITCHERY_XAERDUN
       {
-         plSpellBook = [ [SID_HEX_LEECHES,20,33], [SID_HEX_BESTILL,20,50],
-                         [SID_HEX_SLOW,50,100]];
+         plSpellBook = [ [SID_HEX_BESTILL,10,100]];
       }
       if piDemonSponsor = SSS_WITCHERY_VENTDAL
       {
-         plSpellBook = [ [SID_HEX_BECLOUD,20,33], [SID_HEX_SEVER,20,90],
-                         [SID_HEX_THORNS,40,100]];
+         plSpellBook = [ [SID_HEX_BECLOUD,15,100]];
       }
       if piDemonSponsor = SSS_WITCHERY_RAUMLAR
       {
-         plSpellBook = [ [SID_LIGHTNING_BOLT,5,100]];
+         plSpellBook = [ [SID_ICICLE_VOLLEY,5,100]];
       }
 
       propagate;
@@ -74,6 +72,45 @@ messages:
       Send(self,@SetDemonSponsorEquipment);
       Send(self,@SetPhaseEquipment);
 
+      return;
+   }
+
+   PlayerHealedOurTarget(caster=$, oTarget=$, iHealAmount=0)
+   {
+      local oSpell, lTargets;
+
+      if piDemonSponsor = SSS_WITCHERY_IWODACH
+         AND Send(poOwner,@LineOfSight,#obj1=self,#obj2=oTarget)
+         AND Send(poOwner,@ReqSomethingAttack,#what=self,#victim=oTarget,#use_weapon=self)
+      {
+
+         % If no spell returned or cannot pay mana costs, spell fails.
+         if piMana < 15
+         {
+            return;
+         }
+
+         % Get the spell object.
+         oSpell = Send(SYS,@FindSpellByNum,#num=SID_HEX_BLACK_MANTLE);
+         
+         % Find the valid targets, defaulting to oTarget.
+         lTargets = [oTarget];
+         lTargets = Send(oSpell,@GetTargets,#who=self,#lTargets=lTargets);
+
+         % See if we can cast the spell here.
+         if Send(oSpell,@CanPayMonsterCosts,#who=self,#lTargets=lTargets,
+                  #iSpellPower=250)
+            AND Send(poOwner,@ReqSpellCast,#who=self,#oSpell=oSpell,
+                     #lItems=lTargets)
+         {
+            % Do any special cast animations; send spell for specific ones.
+            Send(self,@MonsterCastAnimation,#iSpellNum=SID_HEX_BLACK_MANTLE);
+
+            % Cast the spell.
+            Send(oSpell,@CastSpell,#who=self,#lTargets=lTargets,
+                  #iSpellPower=250);
+         }
+      }
       return;
    }
 
