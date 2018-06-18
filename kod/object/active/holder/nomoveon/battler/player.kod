@@ -5342,11 +5342,15 @@ messages:
          }
       }
 
-      foreach i in plReservedSpells
+      % Checking reserved spells for skills somehow causes an infinite loop?
+      if IsClass(what,&Spell)
       {
-         if First(i) = what
+         foreach i in plReservedSpells
          {
-            Send(self,@UnReserveSpell,#oSpell=First(i));
+            if First(i) = what
+            {
+               Send(self,@UnReserveSpell,#oSpell=First(i));
+            }
          }
       }
 
