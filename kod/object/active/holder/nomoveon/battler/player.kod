@@ -1029,6 +1029,11 @@ resources:
    unassigned_stat_points = \
       "You have %i unassigned stat points remaining."
 
+   schools_report = \
+      "You take a moment of introspection."
+   schools_report_kraanan = \
+      "%i Kraanan"
+
 classvars:
 
    viHand_space = 2
@@ -16975,9 +16980,10 @@ messages:
    GetSkillSchoolLevels(include_cant_forget=FALSE)
    {
       local i, lSchoolLevels, oSkill, iLevel, iWeaponCraftLevel, iCanForget, iSchool,
-            iBanditryLevel, iSorceryLevel, iWitcheryLevel;
+            iKnightcraftLevel, iBanditryLevel, iSorceryLevel, iWitcheryLevel;
 
       iWeaponCraftLevel = 0;
+      iKnightcraftLevel = 0;
       iBanditryLevel = 0;
       iSorceryLevel = 0;
       iWitcheryLevel = 0;
@@ -16999,6 +17005,13 @@ messages:
                if iLevel > iWeaponCraftLevel
                {
                   iWeaponCraftLevel = iLevel;
+               }
+            }
+            if iSchool = SKS_KNIGHTCRAFT
+            {
+               if iLevel > iKnightcraftLevel
+               {
+                  iKnightcraftLevel = iLevel;
                }
             }
             if iSchool = SKS_BANDITRY
@@ -17026,7 +17039,7 @@ messages:
 
       }
 
-      lSchoolLevels = [iWeaponCraftLevel,iBanditryLevel,iSorceryLevel,iWitcheryLevel];
+      lSchoolLevels = [iWeaponCraftLevel,iKnightcraftLevel,iBanditryLevel,iSorceryLevel,iWitcheryLevel];
 
       return lSchoolLevels;
    }
