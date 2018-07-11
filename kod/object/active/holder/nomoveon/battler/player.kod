@@ -1030,9 +1030,35 @@ resources:
       "You have %i unassigned stat points remaining."
 
    schools_report = \
-      "You take a moment of introspection."
+      "You take a moment of introspection. Looking inward, you see knowledge of:"
+   schools_report_shal = \
+      "%i Shal'ille"
+   schools_report_qor = \
+      "%i Qor"
+   schools_report_wc = \
+      "%i Weaponcraft"
+   schools_report_kc = \
+      "%i Knightcraft"
+   schools_report_banditry = \
+      "%i Banditry"
+   schools_report_sorcery = \
+      "%i Sorcery"
+   schools_report_witchery = \
+      "%i Witchery"
+   schools_report_alchemy = \
+      "%i Alchemy"
    schools_report_kraanan = \
       "%i Kraanan"
+   schools_report_faren = \
+      "%i Faren"
+   schools_report_riija = \
+      "%i Riija"
+   schools_report_jala = \
+      "%i Jala"
+   schools_report_intelligence_remaining = \
+      "You are intelligent enough to learn %i more levels."
+   schools_report_level_one_note = \
+      "As a reminder, levels one and two of any school are easier to learn; together, they count as one full level." 
 
 classvars:
 
@@ -15759,7 +15785,7 @@ messages:
    GetTotalLearnPoints(except = $)
    {
       local iSpell, iSID, oSpellObj, iSchool, iLevel, iKraanan, iShalille, iSkill, oSkillObj,
-            iQor, iFaren, iRiija, iJala, iWeapon, iBanditry, iSorcery, iWitchery, iTotalLearnPoints;
+            iQor, iFaren, iRiija, iJala, iWeapon, iBanditry, iSorcery, iWitchery, iKnightcraft, iTotalLearnPoints;
 
       iKraanan = 0;
       iShalille = 0;
@@ -15768,6 +15794,7 @@ messages:
       iRiija = 0;
       iJala = 0;
       iWeapon = 0;
+      iKnightcraft = 0;
       iBanditry = 0;
       iSorcery = 0;
       iWitchery = 0;
@@ -15833,6 +15860,12 @@ messages:
             {
                iWitchery = iLevel;
             }
+
+            if iSchool = SKS_KNIGHTCRAFT
+               AND iLevel > iKnightcraft
+            {
+               iKnightcraft = iLevel;
+            }
          }
       }
 
@@ -15877,6 +15910,12 @@ messages:
             {
                iWitchery = iLevel;
             }
+
+            if iSchool = SKS_KNIGHTCRAFT
+               AND iLevel > iKnightcraft
+            {
+               iKnightcraft = iLevel;
+            }
          }
       }
 
@@ -15885,6 +15924,13 @@ messages:
       {
          Debug("iWeapon");
          Debug(iWeapon);
+      }
+
+      if iKnightcraft = $
+         OR iKnightcraft > 6
+      {
+         Debug("iKnightcraft");
+         Debug(iKnightcraft);
       }
 
       if iBanditry = $
@@ -15951,6 +15997,7 @@ messages:
       }
 
       iTotalLearnPoints =  Send(SYS,@GetLevelLearnPoints,#level=iWeapon)
+                         + Send(SYS,@GetLevelLearnPoints,#level=iKnightcraft)
                          + Send(SYS,@GetLevelLearnPoints,#level=iBanditry)
                          + Send(SYS,@GetLevelLearnPoints,#level=iSorcery)
                          + Send(SYS,@GetLevelLearnPoints,#level=iWitchery)
@@ -19918,6 +19965,81 @@ messages:
    GiveUnassignedStatPointsReport()
    {
       Send(self,@MsgSendUser,#message_rsc=unassigned_stat_points,#parm1=Send(self,@GetTotalRawStatPoints)-(piMight+piIntellect+piStamina+piAgility+piMysticism+piAim));
+      return;
+   }
+
+   GiveSchoolsReport()
+   {
+      local iShal, iQor, iWC, iKC, iBanditry, iSorcery, iWitchery, iAlchemy, iKraanan, iFaren, iRiija, iJala,
+            lSpells, lSkills, iCurrentLearnPoints, iIntRemaining;
+
+      lSpells = Send(self,@GetSpellSchoolLevels);
+      lSkills = Send(self,@GetSkillSchoolLevels);
+
+      iShal = Nth(lSpells,1);
+      iQor = Nth(lSpells,2);
+      iKraanan = Nth(lSpells,3);
+      iFaren = Nth(lSpells,4);
+      iRiija = Nth(lSpells,5);
+      iJala = Nth(lSpells,6);
+      
+      iWC = Nth(lSkills,1);
+      iKC = Nth(lSkills,2);
+      iBanditry = Nth(lSkills,3);
+      iSorcery = Nth(lSkills,4);
+      iWitchery = Nth(lSkills,5);
+
+      Send(self,@MsgSendUser,#message_rsc=schools_report);
+      if iShal > 0
+      {
+         Send(self,@MsgSendUser,#message_rsc=schools_report_shal,#parm1=iShal);
+      }
+      if iQor > 0
+      {
+         Send(self,@MsgSendUser,#message_rsc=schools_report_qor,#parm1=iQor);
+      }
+      if iWC > 0
+      {
+         Send(self,@MsgSendUser,#message_rsc=schools_report_wc,#parm1=iWC);
+      }
+      if iKC > 0
+      {
+         Send(self,@MsgSendUser,#message_rsc=schools_report_kc,#parm1=iKC);
+      }
+      if iBanditry > 0
+      {
+         Send(self,@MsgSendUser,#message_rsc=schools_report_banditry,#parm1=iBanditry);
+      }
+      if iSorcery > 0
+      {
+         Send(self,@MsgSendUser,#message_rsc=schools_report_sorcery,#parm1=iSorcery);
+      }
+      if iWitchery > 0
+      {
+         Send(self,@MsgSendUser,#message_rsc=schools_report_witchery,#parm1=iWitchery);
+      }
+      if iKraanan > 0
+      {
+         Send(self,@MsgSendUser,#message_rsc=schools_report_kraanan,#parm1=iKraanan);
+      }
+      if iFaren > 0
+      {
+         Send(self,@MsgSendUser,#message_rsc=schools_report_faren,#parm1=iFaren);
+      }
+      if iRiija > 0
+      {
+         Send(self,@MsgSendUser,#message_rsc=schools_report_riija,#parm1=iRiija);
+      }
+      if iJala > 0
+      {
+         Send(self,@MsgSendUser,#message_rsc=schools_report_jala,#parm1=iJala);
+      }
+
+      iCurrentLearnPoints = Send(self,@GetTotalLearnPoints);
+      iIntRemaining = 16 + ((Send(self,@GetRawIntellect)/5)*2) - iCurrentLearnPoints;
+
+      Send(self,@MsgSendUser,#message_rsc=schools_report_intelligence_remaining,#parm1=iIntRemaining/2);
+      Send(self,@MsgSendUser,#message_rsc=schools_report_level_one_note);
       return;
    }
 
