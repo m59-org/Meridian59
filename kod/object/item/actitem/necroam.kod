@@ -139,6 +139,9 @@ resources:
       "As your essence dissolves away from this plane of existence, the "
       "amulet slips out of your hands and drops to the ground."
 
+   applied_hex_to_amulet = \
+      "You call upon demonic alliances to curse your Amulet of the Three with an aura of %s."
+
 classvars:
 
    viIndefinite = ARTICLE_AN
@@ -182,6 +185,8 @@ properties:
    pbCounted = FALSE
 
    piItemLevel = 200
+
+   piHexSpellID = 0
 
 messages:
 
@@ -1405,6 +1410,34 @@ messages:
               [&CasterIntMod,50],
               [&CasterMystMod,50],
               [&CasterStamMod,20]];
+   }
+
+   ApplyHex(iHexSpellID=0)
+   {
+      local oHex;
+      oHex = Send(SYS,@FindSpellByNum,#num=iHexSpellID);
+      
+      if oHex <> $
+         AND poOwner <> $
+      {
+         piHexSpellID = iHexSpellID;
+         Send(poOwner,@MsgSendUser,#message_rsc=applied_hex_to_amulet,#parm1=Send(oHex,@GetName));
+      }
+      return;
+   }
+
+   HasHex()
+   {
+      if piHexSpellID <> 0
+      {
+         return TRUE;
+      }
+      return FALSE;
+   }
+
+   GetHex()
+   {
+      return piHexSpellID;
    }
 
 end
