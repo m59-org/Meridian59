@@ -28,7 +28,7 @@ resources:
       "You are a master hammer wielder, allowing you to make a leap attack toward enemies that would "
       "otherwise be slightly out of range. To perform the leap, simply attempt to attack an opponent that is "
       "between one and two full hammer ranges. Leaping can be inaccurate, so be prepared to reorient yourself "
-      "after the strike."
+      "after the strike. The force applied may also knock enemies backwards."
 
    you_do_leap_attack = \
       "You leap toward %s%s!"
@@ -124,6 +124,8 @@ messages:
 
       if iResult 
       {
+         Send(who,@SetLeapKnockback,#value=TRUE);
+
          foreach i in Send(oRoom,@GetHolderActive)
          {
             each_obj = Send(oRoom,@HolderExtractObject,#data=i);

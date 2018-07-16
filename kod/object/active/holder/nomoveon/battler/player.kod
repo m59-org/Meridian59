@@ -1430,6 +1430,9 @@ properties:
    piAccumulatedWisdom = -1
    
    plDelayedAdditionalAttacks = $
+   
+   % Is this attack a leap attack? Knock back enemies on hit.
+   pbLeapKnockback = FALSE
 
 messages:
 
@@ -7550,6 +7553,13 @@ messages:
          {
             Send(oMonster,@HitSideEffect,#what=what,#who=self);
          }
+      }
+      
+      if pbLeapKnockback
+      {
+         % Knock back our victim!
+         Send(what,@ApplyKnockback,#what=self,#knockback_power=Send(self,@GetKnockbackPower));
+         pbLeapKnockback = FALSE;
       }
 
       Send(self,@DoHitMessageSound,#what=what,#damage=damage,#stroke_obj=stroke_obj);
@@ -20272,6 +20282,12 @@ messages:
 
       Send(self,@MsgSendUser,#message_rsc=schools_report_intelligence_remaining,#parm1=iIntRemaining/2);
       Send(self,@MsgSendUser,#message_rsc=schools_report_level_one_note);
+      return;
+   }
+
+   SetLeapKnockback(value=FALSE)
+   {
+      pbLeapKnockback = value;
       return;
    }
 
