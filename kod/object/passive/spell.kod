@@ -86,7 +86,7 @@ resources:
    spell_silenced_rsc = "Your words catch in your throat and you cannot speak."
 
    spell_fail_wav = spelfail.wav
-   spell_desc_rsc = "SCHOOL : %s         LEVEL : %i \n\n%s%s%s%r%r%r"
+   spell_desc_rsc = "SCHOOL : %s         LEVEL : %i %s%s\n\n%s%s%s%r%r%r"
    spell_school_witchery = "Witchery"
    spell_school_witchery_xaerdun = "Witchery, through Xaerdun"
    spell_school_witchery_nequzon = "Witchery, through Nequzon"
@@ -156,6 +156,23 @@ resources:
       "You've mastered this spell to an exceptional degree."
 
    male_shout_sound = maleshout.wav
+   
+   name_spell_stat_might = "\n\nPRIMARY : Might"
+   name_spell_stat_intellect = "\n\nPRIMARY : Intellect"
+   name_spell_stat_stamina = "\n\nPRIMARY : Stamina"
+   name_spell_stat_agility = "\n\nPRIMARY : Agility"
+   name_spell_stat_mysticism = "\n\nPRIMARY : Mysticism"
+   name_spell_stat_aim = "\n\nPRIMARY : Aim"
+   name_spell_stat_none = ""
+
+   spell_secondary_might = "         SECONDARY : Might"
+   spell_secondary_intellect = "         SECONDARY : Intellect"
+   spell_secondary_stamina = "         SECONDARY : Stamina"
+   spell_secondary_agility = "         SECONDARY : Agility"
+   spell_secondary_mysticism = "         SECONDARY : Mysticism"
+   spell_secondary_aim = "         SECONDARY : Aim"
+   spell_secondary_karma = "         SECONDARY : Karma"
+   spell_secondary_none = ""
 
 classvars:
 
@@ -237,6 +254,9 @@ classvars:
    
    % Some spells act as 'area checks', turn off safety reports to stop that behavior
    vbSafetyReport = TRUE
+   
+   viPrimaryStat = STAT_ID_MYSTICISM
+   viSecondaryStat = 0
 
 properties:
 
@@ -366,7 +386,7 @@ messages:
 
    ShowDesc(who=$)
    {
-      local rSchool, rOutlaw, rExtra;
+      local rSchool, rOutlaw, rExtra, rPrimaryStat, rSecondaryStat;
 
       if viSchool <> SS_DM_COMMAND
       {
@@ -378,9 +398,65 @@ messages:
             rOutlaw = spell_outlaw;
          }
 
+         rPrimaryStat = name_spell_stat_none;
+         if viPrimaryStat = STAT_ID_MIGHT
+         {
+            rPrimaryStat = name_spell_stat_might;
+         }
+         if viPrimaryStat = STAT_ID_INTELLECT
+         {
+            rPrimaryStat = name_spell_stat_intellect;
+         }
+         if viPrimaryStat = STAT_ID_STAMINA
+         {
+            rPrimaryStat = name_spell_stat_stamina;
+         }
+         if viPrimaryStat = STAT_ID_AGILITY
+         {
+            rPrimaryStat = name_spell_stat_agility;
+         }
+         if viPrimaryStat = STAT_ID_MYSTICISM
+         {
+            rPrimaryStat = name_spell_stat_mysticism;
+         }
+         if viPrimaryStat = STAT_ID_AIM
+         {
+            rPrimaryStat = name_spell_stat_aim;
+         }
+      
+         rSecondaryStat = spell_secondary_none;
+         if viSecondaryStat = STAT_ID_MIGHT
+         {
+            rSecondaryStat = spell_secondary_might;
+         }
+         if viSecondaryStat = STAT_ID_INTELLECT
+         {
+            rSecondaryStat = spell_secondary_intellect;
+         }
+         if viSecondaryStat = STAT_ID_STAMINA
+         {
+            rSecondaryStat = spell_secondary_stamina;
+         }
+         if viSecondaryStat = STAT_ID_AGILITY
+         {
+            rSecondaryStat = spell_secondary_agility;
+         }
+         if viSecondaryStat = STAT_ID_MYSTICISM
+         {
+            rSecondaryStat = spell_secondary_mysticism;
+         }
+         if viSecondaryStat = STAT_ID_AIM
+         {
+            rSecondaryStat = spell_secondary_aim;
+         }
+         if viSecondaryStat = STAT_ID_KARMA
+         {
+            rSecondaryStat = spell_secondary_karma;
+         }
+
          rExtra = Send(self,@GetExtraDesc,#who=who);
 
-         AddPacket(4,spell_desc_rsc, 4,rSchool, 4,viSpell_Level, 4,vrDesc,
+         AddPacket(4,spell_desc_rsc, 4,rSchool, 4,viSpell_Level, 4,rPrimaryStat, 4,rSecondaryStat, 4,vrDesc,
                    4,rOutlaw, 4,rExtra);
 
          Send(self,@SendStatsDesc,#who=who);
@@ -534,21 +610,15 @@ messages:
       
       return Send(who,@GetMysticism);
    }
-
+   
    GetPrimaryStat()
    {
-      if viSchool = SS_KRAANAN
-      {
-         return STAT_ID_STAMINA;
-      }
+      return viPrimaryStat;
+   }
 
-      if viSchool = SS_JALA
-         OR viSchool = SS_RIIJA
-      {
-         return STAT_ID_INTELLECT;
-      }
-
-      return STAT_ID_MYSTICISM;
+   GetSecondaryStat()
+   {
+      return viSecondaryStat;
    }
    
    GetAbility(who=$)
