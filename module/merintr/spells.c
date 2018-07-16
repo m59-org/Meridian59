@@ -20,7 +20,7 @@
 #include "client.h"
 #include "merintr.h"
 
-#define MAX_SCHOOLS 10
+#define MAX_SCHOOLS 13
 
 static list_type spells = NULL;     /* All spells available to user */
 

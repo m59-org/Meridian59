@@ -338,6 +338,9 @@ resources:
    user_school_faren = "School of Faren"
    user_school_riija = "School of Riija"
    user_school_jala = "School of Jala"
+   user_school_knightcraft = "School of Knightcraft"
+   user_school_witchery = "School of Witchery"
+   user_school_alchemy = "School of Alchemy"
    user_school_dm = "DM spells"
 
    user_admin_message = "%q"
@@ -3633,11 +3636,7 @@ messages:
       local num_schools;
 
       AddPacket(1,BP_USERCOMMAND, 1,UC_SPELL_SCHOOLS);
-      num_schools = 6;
-      if viDM
-      {
-         num_schools = num_schools + 1;
-      }
+      num_schools = 9;
 
       AddPacket(1,num_schools);
       AddPacket(4,user_school_shallile);
@@ -3647,10 +3646,10 @@ messages:
       AddPacket(4,user_school_riija);
       AddPacket(4,user_school_jala); 
 
-      if viDM
-      {
-         AddPacket(4,user_school_dm);
-      }
+      AddPacket(4,user_school_dm);
+
+      AddPacket(4,user_school_witchery); 
+      AddPacket(4,user_school_knightcraft); 
 
       SendPacket(poSession);
 
