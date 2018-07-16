@@ -377,7 +377,16 @@ void CharStatsGetChoices(int *buf)
 void CharSchoolsGetChoices(int *buf)
 {
    int i;
-   
+
+//   buf[0] = schools[0].val;
+//   buf[1] = schools[1].val;
+//   buf[2] = schools[2].val;
+//   buf[3] = schools[3].val;
+//   buf[4] = schools[4].val;
+//   buf[5] = schools[5].val;
+//   buf[6] = 444500;
+
+//   buf[6] = (100000 * (schools[6].val)) + (10000 * (schools[7].val)) + (1000 * (schools[8].val)) + (100 * (schools[9].val)) + (10 * (schools[10].val));
    for (i=0; i < NUM_CHAR_SCHOOLS; i++)
       buf[i] = schools[i].val;
 }

@@ -28,7 +28,8 @@ static handler_struct handler_table[] = {
 
 // Client message table
 client_message msg_table[] = {
-{ BP_CHANGED_STATS,      { PARAM_BYTE,  PARAM_BYTE, PARAM_BYTE, PARAM_BYTE, PARAM_BYTE, PARAM_BYTE, PARAM_BYTE, PARAM_BYTE, PARAM_BYTE, PARAM_BYTE, PARAM_BYTE, PARAM_BYTE, PARAM_BYTE, PARAM_BYTE, PARAM_BYTE, PARAM_END }, },
+{ BP_CHANGED_STATS,      { PARAM_BYTE, PARAM_BYTE, PARAM_BYTE, PARAM_BYTE, PARAM_BYTE, PARAM_BYTE,
+                           PARAM_BYTE, PARAM_BYTE, PARAM_BYTE, PARAM_BYTE, PARAM_BYTE, PARAM_BYTE, PARAM_END }, },
 { 0,                       { PARAM_END }, },
 };
 

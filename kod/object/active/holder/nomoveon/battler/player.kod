@@ -17022,18 +17022,205 @@ messages:
       return TRUE;
    }
 
+   GetSchoolLevels(include_cant_forget=FALSE)
+   {
+      local i, iLevel, iCanForget, iSchool, oSpell, oSkill,
+            iShal, iQor, iKraan, iFaren, iRiija, iJala,
+            iWC, iKC, iBA, iSO, iWI, iAlch;
+      
+      iShal = 0;
+      iQor = 0;
+      iKraan = 0;
+      iFaren = 0;
+      iRiija = 0;
+      iJala = 0;
+      iWC = 0;
+      iKC = 0;
+      iBA = 0;
+      iSO = 0;
+      iWI = 0;
+      iAlch = 0;
+
+      foreach i in plSpells
+      {
+         oSpell = Send(SYS,@FindSpellByNum,#num=Send(self,@DecodeSpellNum,#compound=i));
+
+         iSchool = Send(oSpell,@GetSchool);
+         iLevel = Send(oSpell,@GetLevel);
+         iCanForget = Send(oSpell,@CanForget);
+
+         if (iCanForget) OR (NOT iCanForget AND include_cant_forget)
+         {
+            switch(iSchool)
+            {
+               case SS_SHALILLE:
+                  if iLevel > iShal
+                  {
+                     iShal = iLevel;
+                  }
+                  break;
+               case SS_QOR:
+                  if iLevel > iQor
+                  {
+                     iQor = iLevel;
+                  }
+                  break;
+               case SS_KRAANAN:
+                  if iLevel > iKraan
+                  {
+                     iKraan = iLevel;
+                  }
+                  break;
+               case SS_FAREN:
+                  if iLevel > iFaren
+                  {
+                     iFaren = iLevel;
+                  }
+                  break;
+               case SS_RIIJA:
+                  if iLevel > iRiija
+                  {
+                     iRiija = iLevel;
+                  }
+                  break;
+               case SS_JALA:
+                  if iLevel > iJala
+                  {
+                     iJala = iLevel;
+                  }
+                  break;
+               case SKS_FENCING:
+                  if iLevel > iWC
+                  {
+                     iWC = iLevel;
+                  }
+                  break;
+               case SKS_KNIGHTCRAFT:
+                  if iLevel > iKC
+                  {
+                     iKC = iLevel;
+                  }
+                  break;
+               case SKS_BANDITRY:
+                  if iLevel > iBA
+                  {
+                     iBA = iLevel;
+                  }
+                  break;
+               case SKS_SORCERY:
+                  if iLevel > iSO
+                  {
+                     iSO = iLevel;
+                  }
+                  break;
+               case SS_WITCHERY:
+                  if iLevel > iWI
+                  {
+                     iWI = iLevel;
+                  }
+                  break;
+            }
+         }
+      }
+
+      foreach i in plSkills
+      {
+         oSkill = Send(SYS,@FindSkillByNum,#num=Send(self,@DecodeSkillNum,#compound=i));
+
+         iLevel = Send(oSkill,@GetLevel);
+         iCanForget = Send(oSkill,@CanForget);
+         iSchool = Send(oSkill,@GetSchool);
+
+         if (iCanForget) OR (NOT iCanForget AND include_cant_forget)
+         {
+            switch(iSchool)
+            {
+               case SS_SHALILLE:
+                  if iLevel > iShal
+                  {
+                     iShal = iLevel;
+                  }
+                  break;
+               case SS_QOR:
+                  if iLevel > iQor
+                  {
+                     iQor = iLevel;
+                  }
+                  break;
+               case SS_KRAANAN:
+                  if iLevel > iKraan
+                  {
+                     iKraan = iLevel;
+                  }
+                  break;
+               case SS_FAREN:
+                  if iLevel > iFaren
+                  {
+                     iFaren = iLevel;
+                  }
+                  break;
+               case SS_RIIJA:
+                  if iLevel > iRiija
+                  {
+                     iRiija = iLevel;
+                  }
+                  break;
+               case SS_JALA:
+                  if iLevel > iJala
+                  {
+                     iJala = iLevel;
+                  }
+                  break;
+               case SKS_FENCING:
+                  if iLevel > iWC
+                  {
+                     iWC = iLevel;
+                  }
+                  break;
+               case SKS_KNIGHTCRAFT:
+                  if iLevel > iKC
+                  {
+                     iKC = iLevel;
+                  }
+                  break;
+               case SKS_BANDITRY:
+                  if iLevel > iBA
+                  {
+                     iBA = iLevel;
+                  }
+                  break;
+               case SKS_SORCERY:
+                  if iLevel > iSO
+                  {
+                     iSO = iLevel;
+                  }
+                  break;
+               case SS_WITCHERY:
+                  if iLevel > iWI
+                  {
+                     iWI = iLevel;
+                  }
+                  break;
+            }
+         }
+      }
+
+      return [iShal, iQor, iKraan, iFaren, iRiija, iJala, iWC, iKC, iBA, iSO, iWI, iAlch];
+   }
+
    % Designed this just like GetSpellSchoolLevels in case a skill school
    % is added later and this needs to be extended.
    GetSkillSchoolLevels(include_cant_forget=FALSE)
    {
       local i, lSchoolLevels, oSkill, iLevel, iWeaponCraftLevel, iCanForget, iSchool,
-            iKnightcraftLevel, iBanditryLevel, iSorceryLevel, iWitcheryLevel;
+            iKnightcraftLevel, iBanditryLevel, iSorceryLevel, iWitcheryLevel, iAlchemyLevel;
 
       iWeaponCraftLevel = 0;
       iKnightcraftLevel = 0;
       iBanditryLevel = 0;
       iSorceryLevel = 0;
       iWitcheryLevel = 0;
+      iAlchemyLevel = 0;
       iLevel = 0;
       iCanForget = TRUE;
 
@@ -17086,7 +17273,7 @@ messages:
 
       }
 
-      lSchoolLevels = [iWeaponCraftLevel,iKnightcraftLevel,iBanditryLevel,iSorceryLevel,iWitcheryLevel];
+      lSchoolLevels = [iWeaponCraftLevel,iKnightcraftLevel,iBanditryLevel,iSorceryLevel,iWitcheryLevel,iAlchemyLevel];
 
       return lSchoolLevels;
    }
@@ -17095,7 +17282,7 @@ messages:
    {
       local i, lSchoolLevels, oSpell, iSchool, iLevel, iCanForget,
             shalille_level, qor_level, kraanan_level, faren_level,
-            riija_level, jala_level, witchery_level;
+            riija_level, jala_level;
 
       shalille_level = 0;
       qor_level = 0;
@@ -17103,7 +17290,6 @@ messages:
       faren_level = 0;
       riija_level = 0;
       jala_level = 0;
-      witchery_level = 0;
       iCanForget = TRUE;
 
       % Get max level in each school. Yes, this is ugly but I'm trying for
@@ -17162,19 +17348,12 @@ messages:
                   jala_level = iLevel;
                }
             }
-            else if (iSchool = SS_WITCHERY)
-            {
-               if (iLevel > witchery_level)
-               {
-                  witchery_level = iLevel;
-               }
-            }
          }
       }
 
       % Order matters here, they appear in the order listed in blakston.khd.
       lSchoolLevels = [shalille_level,qor_level,kraanan_level,
-                       faren_level,riija_level,jala_level,witchery_level];
+                       faren_level,riija_level,jala_level];
 
       return lSchoolLevels;
    }
@@ -19971,23 +20150,21 @@ messages:
    GiveSchoolsReport()
    {
       local iShal, iQor, iWC, iKC, iBanditry, iSorcery, iWitchery, iAlchemy, iKraanan, iFaren, iRiija, iJala,
-            lSpells, lSkills, iCurrentLearnPoints, iIntRemaining;
-
-      lSpells = Send(self,@GetSpellSchoolLevels);
-      lSkills = Send(self,@GetSkillSchoolLevels);
-
-      iShal = Nth(lSpells,1);
-      iQor = Nth(lSpells,2);
-      iKraanan = Nth(lSpells,3);
-      iFaren = Nth(lSpells,4);
-      iRiija = Nth(lSpells,5);
-      iJala = Nth(lSpells,6);
+            iCurrentLearnPoints, iIntRemaining, lSchoolLevels;
       
-      iWC = Nth(lSkills,1);
-      iKC = Nth(lSkills,2);
-      iBanditry = Nth(lSkills,3);
-      iSorcery = Nth(lSkills,4);
-      iWitchery = Nth(lSkills,5);
+      lSchoolLevels = Send(self,@GetSchoolLevels);
+
+      iShal = Nth(lSchoolLevels,1);
+      iQor = Nth(lSchoolLevels,2);
+      iKraanan = Nth(lSchoolLevels,3);
+      iFaren = Nth(lSchoolLevels,4);
+      iRiija = Nth(lSchoolLevels,5);
+      iJala = Nth(lSchoolLevels,6);
+      iWC = Nth(lSchoolLevels,7);
+      iKC = Nth(lSchoolLevels,8);
+      iBanditry = Nth(lSchoolLevels,9);
+      iSorcery = Nth(lSchoolLevels,10);
+      iWitchery = Nth(lSchoolLevels,11);
 
       Send(self,@MsgSendUser,#message_rsc=schools_report);
       if iShal > 0

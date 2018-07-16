@@ -1774,7 +1774,7 @@ messages:
 
       if liClient_cmd = BP_CHANGED_STATS
       {
-         if Length(client_msg) <> 16
+         if Length(client_msg) <> 13
          {
             Debug("wrong changed stats size!");
             Debug(Length(client_msg));
@@ -1791,21 +1791,32 @@ messages:
          }
 
          Debug("sending changed stats");
+         Debug(Nth(client_msg,1));
+         Debug(Nth(client_msg,2));
+         Debug(Nth(client_msg,3));
+         Debug(Nth(client_msg,4));
+         Debug(Nth(client_msg,5));
+         Debug(Nth(client_msg,6));
+         Debug(Nth(client_msg,7));
+         Debug(Nth(client_msg,8));
+         Debug(Nth(client_msg,9));
+         Debug(Nth(client_msg,10));
+         Debug(Nth(client_msg,11));
+         Debug(Nth(client_msg,12));
+         Debug(Nth(client_msg,13));
+         Debug("end changed stats");
          Send(self,@UserChangedStats, #might=Nth(client_msg,2),
                                        #intellect=Nth(client_msg,3),
                                        #stamina=Nth(client_msg,4),
                                        #agility=Nth(client_msg,5),
                                        #mysticism=Nth(client_msg,6),
                                        #aim=Nth(client_msg,7),
-                                       #shallile_lvl=Nth(client_msg,8),
-                                       #qor_lvl=Nth(client_msg,9),
-                                       #kraanan_lvl=Nth(client_msg,10),
-                                       #faren_lvl=Nth(client_msg,11),
-                                       #riija_lvl=Nth(client_msg,12),
-                                       #jala_lvl=Nth(client_msg,13),
-                                       #weaponcraft_lvl=Nth(client_msg,14),
-                                       #knightcraft_level=Nth(client_msg,15),
-                                       #banditry_level=4);
+                                       #school_pair_1=Nth(client_msg,8),
+                                       #school_pair_2=Nth(client_msg,9),
+                                       #school_pair_3=Nth(client_msg,10),
+                                       #school_pair_4=Nth(client_msg,11),
+                                       #school_pair_5=Nth(client_msg,12),
+                                       #school_pair_6=Nth(client_msg,13));
          return;
       }
 
@@ -11146,10 +11157,13 @@ messages:
       return;
    }
    
-   UserChangedStats(might=25,intellect=25,stamina=25,agility=25,mysticism=25,
-                     aim=25,shallile_lvl=0,qor_lvl=0,kraanan_lvl=0,faren_lvl=0,
-                     riija_lvl=0,jala_lvl=0,weaponcraft_lvl=0,knightcraft_level=0,
-                     banditry_level=4)
+   UserChangedStats(might=25,intellect=25,stamina=25,agility=25,mysticism=25,aim=25,
+                    school_pair_1=0,
+                    school_pair_2=0,
+                    school_pair_3=0,
+                    school_pair_4=0,
+                    school_pair_5=0,
+                    school_pair_6=0)
    "Processes a stat change request from the client"
    {
       local i,lSpellLevels,lSkillLevels,lSpellLevels_new,lSkillLevels_new,
@@ -11174,9 +11188,21 @@ messages:
       totalLvlOnes = 0;
       totalSchools = 0;
       lSpellLevels = Send(self, @GetSpellSchoolLevels);
-      lSpellLevels_new = [shallile_lvl,qor_lvl,kraanan_lvl,faren_lvl,riija_lvl,jala_lvl];
+      lSpellLevels_new = [school_pair_1/10,
+                          school_pair_1 - (school_pair_1/10)*10,
+                          school_pair_2/10,
+                          school_pair_2 - (school_pair_2/10)*10,
+                          school_pair_3/10,
+                          school_pair_3 - (school_pair_3/10)*10
+                          ];
       lSkillLevels = Send(self, @GetSkillSchoolLevels);
-      lSkillLevels_new = [weaponcraft_lvl,knightcraft_level,banditry_level,5,0];     % 5 is sorcery and 0 is witchery for test toon
+      lSkillLevels_new = [school_pair_4/10,
+                          school_pair_4 - (school_pair_4/10)*10,
+                          school_pair_5/10,
+                          school_pair_5 - (school_pair_5/10)*10,
+                          school_pair_6/10,
+                          school_pair_6 - (school_pair_6/10)*10
+                          ];
 
       % Range Checks, no client hacking negative stats funny business!
       if (might < 1 OR might > Send(self,@GetMaxMight))
@@ -11191,16 +11217,25 @@ messages:
       }
       
       % School Range Check
-      if (shallile_lvl < 0 OR shallile_lvl > 6)
-         OR (qor_lvl < 0 OR qor_lvl > 6)
-         OR (kraanan_lvl < 0 OR kraanan_lvl > 6)
-         OR (faren_lvl < 0 OR faren_lvl > 6)
-         OR (riija_lvl < 0 OR riija_lvl > 6)
-         OR (jala_lvl < 0 OR jala_lvl > 6)
-         OR (weaponcraft_lvl < 0 OR weaponcraft_lvl > 6)
+      foreach i in lSpellLevels_new
       {
+         Debug(i);
+         if i < 0
+            OR i > 6
+         {
          Debug("School Range Check: Failed!");
-         return FALSE;
+            return FALSE;
+         }
+      }
+      foreach i in lSkillLevels_new
+      {
+         Debug(i);
+         if i < 0
+            OR i > 6
+         {
+         Debug("School Range Check: Failed!");
+            return FALSE;
+         }
       }
          
       % Quick check for too many points in stats
@@ -11231,7 +11266,7 @@ messages:
          }
          if (Nth(lSpellLevels_new,i) > Nth(lSpellLevels,i))
          {
-            Debug("School Not Increased Check: FAIL!");
+            Debug("Tried to increase schools: FAIL!");
             return FALSE;
          }
          i=i+1;
@@ -11239,7 +11274,7 @@ messages:
       
       % skill levels
       i=1;
-      while (i <= Length(lSkillLevels_new))
+      while (i < Length(lSkillLevels_new))
       {
          if (Nth(lSkillLevels_new,i) = 1)
          {
@@ -11351,6 +11386,36 @@ messages:
                      * Send(SETTINGS_OBJECT,@GetStatsResetPenalty)));
             }
          }
+         else if (Send(Send(SYS,@FindSpellByNum,#num=Send(self,@DecodeSpellNum,#compound=i)),@GetPrimaryStat) = STAT_ID_MIGHT)
+         {
+            if (iSpellAbility > (piMight * 2)) AND (might < piMight)
+               OR (iSpellAbility = 99 AND piMight >= 50 AND might < 50)
+            {
+               Send(self,@ChangeSpellAbility,#spell_num=Send(self,@DecodeSpellNum,#compound=i),
+                     #amount=((piMight - might)
+                     * Send(SETTINGS_OBJECT,@GetStatsResetPenalty)));
+            }
+         }
+         else if (Send(Send(SYS,@FindSpellByNum,#num=Send(self,@DecodeSpellNum,#compound=i)),@GetPrimaryStat) = STAT_ID_AGILITY)
+         {
+            if (iSpellAbility > (piAgility * 2)) AND (agility < piAgility)
+               OR (iSpellAbility = 99 AND piAgility >= 50 AND agility < 50)
+            {
+               Send(self,@ChangeSpellAbility,#spell_num=Send(self,@DecodeSpellNum,#compound=i),
+                     #amount=((piAgility - agility)
+                     * Send(SETTINGS_OBJECT,@GetStatsResetPenalty)));
+            }
+         }
+         else if (Send(Send(SYS,@FindSpellByNum,#num=Send(self,@DecodeSpellNum,#compound=i)),@GetPrimaryStat) = STAT_ID_AIM)
+         {
+            if (iSpellAbility > (piAim * 2)) AND (aim < piAim)
+               OR (iSpellAbility = 99 AND piAim >= 50 AND aim < 50)
+            {
+               Send(self,@ChangeSpellAbility,#spell_num=Send(self,@DecodeSpellNum,#compound=i),
+                     #amount=((piAim - aim)
+                     * Send(SETTINGS_OBJECT,@GetStatsResetPenalty)));
+            }
+         }
       }
       Debug("Spell % Recalculated");
       
@@ -11392,6 +11457,24 @@ messages:
             {
                Send(self,@ChangeSkillAbility,#skill_num=Send(self,@DecodeSkillNum,#compound=i),
                      #amount=((piStamina - stamina) * -2));
+            }
+         }
+         else if (Send(Send(SYS,@FindSkillByNum,#num=Send(self,@DecodeSkillNum,#compound=i)),@GetPrimaryStat) = STAT_ID_MYSTICISM)
+         {
+            if (iSkillAbility > (mysticism * 2)) AND (mysticism < piMysticism)
+               OR (iSkillAbility = 99 AND piMysticism >= 50 AND mysticism < 50)
+            {
+               Send(self,@ChangeSkillAbility,#skill_num=Send(self,@DecodeSkillNum,#compound=i),
+                     #amount=((piMysticism - mysticism) * -2));
+            }
+         }
+         else if (Send(Send(SYS,@FindSkillByNum,#num=Send(self,@DecodeSkillNum,#compound=i)),@GetPrimaryStat) = STAT_ID_INTELLECT)
+         {
+            if (iSkillAbility > (intellect * 2)) AND (intellect < piIntellect)
+               OR (iSkillAbility = 99 AND piIntellect >= 50 AND intellect < 50)
+            {
+               Send(self,@ChangeSkillAbility,#skill_num=Send(self,@DecodeSkillNum,#compound=i),
+                     #amount=((piIntellect - intellect) * -2));
             }
          }
       }
