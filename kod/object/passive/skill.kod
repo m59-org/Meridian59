@@ -31,7 +31,7 @@ resources:
    
    skill_sound_fail = spelfail.wav
 
-   skill_desc_rsc = "SCHOOL : %s         LEVEL : %i \n\n%s%r%r%r"
+   skill_desc_rsc = "SCHOOL : %s         LEVEL : %i \n\nPRIMARY : %s%s\n\n%s%r%r%r"
    skill_school_fencing = "Weaponcraft"
    skill_school_brawling = "Brawling"
    skill_school_thievery = "Thievery"
@@ -51,6 +51,22 @@ resources:
       "\n\nIt will cost you %i training points to improve in this skill."
 
    skill_nothing = " "
+   
+   name_skill_stat_might = "Might"
+   name_skill_stat_intellect = "Intellect"
+   name_skill_stat_stamina = "Stamina"
+   name_skill_stat_agility = "Agility"
+   name_skill_stat_mysticism = "Mysticism"
+   name_skill_stat_aim = "Aim"
+   name_skill_stat_none = "None"
+
+   skill_secondary_might = "         SECONDARY : Might"
+   skill_secondary_intellect = "         SECONDARY : Intellect"
+   skill_secondary_stamina = "         SECONDARY : Stamina"
+   skill_secondary_agility = "         SECONDARY : Agility"
+   skill_secondary_mysticism = "         SECONDARY : Mysticism"
+   skill_secondary_aim = "         SECONDARY : Aim"
+   skill_secondary_none = ""
 
 classvars:
 
@@ -93,6 +109,9 @@ classvars:
    viIcon_animation_end = 2
    
    vbUtilitySkill = FALSE
+   
+   viPrimaryStat = STAT_ID_AGILITY
+   viSecondaryStat = STAT_ID_MIGHT
 
 properties:
 
@@ -191,7 +210,7 @@ messages:
 
    ShowDesc(who=$)
    {
-      local rSchool;
+      local rSchool, rPrimaryStat, rSecondaryStat;
 
       rSchool = skill_school_fencing;
 
@@ -260,8 +279,60 @@ messages:
          }
       }
 
+      rPrimaryStat = name_skill_stat_none;
+      if viPrimaryStat = STAT_ID_MIGHT
+      {
+         rPrimaryStat = name_skill_stat_might;
+      }
+      if viPrimaryStat = STAT_ID_INTELLECT
+      {
+         rPrimaryStat = name_skill_stat_intellect;
+      }
+      if viPrimaryStat = STAT_ID_STAMINA
+      {
+         rPrimaryStat = name_skill_stat_stamina;
+      }
+      if viPrimaryStat = STAT_ID_AGILITY
+      {
+         rPrimaryStat = name_skill_stat_agility;
+      }
+      if viPrimaryStat = STAT_ID_MYSTICISM
+      {
+         rPrimaryStat = name_skill_stat_mysticism;
+      }
+      if viPrimaryStat = STAT_ID_AIM
+      {
+         rPrimaryStat = name_skill_stat_aim;
+      }
+      
+      rSecondaryStat = skill_secondary_none;
+      if viSecondaryStat = STAT_ID_MIGHT
+      {
+         rSecondaryStat = skill_secondary_might;
+      }
+      if viSecondaryStat = STAT_ID_INTELLECT
+      {
+         rSecondaryStat = skill_secondary_intellect;
+      }
+      if viSecondaryStat = STAT_ID_STAMINA
+      {
+         rSecondaryStat = skill_secondary_stamina;
+      }
+      if viSecondaryStat = STAT_ID_AGILITY
+      {
+         rSecondaryStat = skill_secondary_agility;
+      }
+      if viSecondaryStat = STAT_ID_MYSTICISM
+      {
+         rSecondaryStat = skill_secondary_mysticism;
+      }
+      if viSecondaryStat = STAT_ID_AIM
+      {
+         rSecondaryStat = skill_secondary_aim;
+      }
+
       % Base description.
-      AddPacket(4,skill_desc_rsc, 4,rSchool, 4,viSkill_Level, 4,vrDesc);
+      AddPacket(4,skill_desc_rsc, 4,rSchool, 4,viSkill_Level, 4,rPrimaryStat, 4,rSecondaryStat, 4,vrDesc);
 
       % Add time resource if appropriate.
       Send(self,@SendTimeDesc,#who=who);
@@ -338,46 +409,14 @@ messages:
    
    GetPrimaryStat()
    {
-      if (viSkill_Num = SKID_DEFAULT)
-         OR (viSkill_Num = SKID_BRAWLING)
-         OR (viSkill_Num = SKID_PROFICIENCY_MACE)
-         OR (viSkill_Num = SKID_PROFICIENCY_HAMMER)
-      {
-         return STAT_ID_MIGHT;
-      }
-   
-      if (viSkill_Num = SKID_SECOND_WIND)
-      {
-         return STAT_ID_STAMINA;
-      }
-
-      if (viSkill_Num = SKID_DODGE)
-         OR (viSkill_Num = SKID_PARRY)
-         OR (viSkill_Num = SKID_ASSESS)
-         OR (viSkill_Num = SKID_BLOCK)
-         OR (viSkill_Num = SKID_DISARM)
-         OR (viSkill_Num = SKID_SLASH)
-         OR (viSkill_Num = SKID_THRUST)
-         OR (viSkill_Num = SKID_PUNCH)
-         OR (viSkill_Num = SKID_KICK)
-         OR (viSkill_Num = SKID_PROFICIENCY_SCIMITAR)
-         OR (viSkill_Num = SKID_PROFICIENCY_AXE)
-      {
-         return STAT_ID_AGILITY;
-      }
-
-      if (viSkill_Num = SKID_FIRE)
-         OR (viSkill_Num = SKID_PROFICIENCY_SWORD)
-         OR (viSkill_Num = SKID_PROFICIENCY_BOW)
-         OR (viSkill_Num = SKID_PROFICIENCY_SHORT_SWORD)
-         OR (viSkill_Num = SKID_PROFICIENCY_SHORTSWORD)
-      {
-         return STAT_ID_AIM;
-      }
-      
-      return;
+      return viPrimaryStat;
    }
-   
+
+   GetSecondaryStat()
+   {
+      return viSecondaryStat;
+   }
+
    GetSkillNum()
    {
       return viSkill_Num;

@@ -1776,7 +1776,6 @@ messages:
       {
          if Length(client_msg) <> 13
          {
-            Debug("wrong changed stats size!");
             Debug(Length(client_msg));
             return;
          }
@@ -1785,26 +1784,10 @@ messages:
          {
             if i = $
             {
-               Debug("wat nil");
                return;
             }
          }
 
-         Debug("sending changed stats");
-         Debug(Nth(client_msg,1));
-         Debug(Nth(client_msg,2));
-         Debug(Nth(client_msg,3));
-         Debug(Nth(client_msg,4));
-         Debug(Nth(client_msg,5));
-         Debug(Nth(client_msg,6));
-         Debug(Nth(client_msg,7));
-         Debug(Nth(client_msg,8));
-         Debug(Nth(client_msg,9));
-         Debug(Nth(client_msg,10));
-         Debug(Nth(client_msg,11));
-         Debug(Nth(client_msg,12));
-         Debug(Nth(client_msg,13));
-         Debug("end changed stats");
          Send(self,@UserChangedStats, #might=Nth(client_msg,2),
                                        #intellect=Nth(client_msg,3),
                                        #stamina=Nth(client_msg,4),
@@ -11166,7 +11149,7 @@ messages:
                     school_pair_6=0)
    "Processes a stat change request from the client"
    {
-      local i,lSpellLevels,lSkillLevels,lSpellLevels_new,lSkillLevels_new,
+      local i,lSchoolLevels,lSchoolLevels_new,
             totalLevels,totalSchools,totalLvlOnes,
             iSpellAbility,iSkillAbility;
 
@@ -11187,16 +11170,16 @@ messages:
       totallevels = 0;
       totalLvlOnes = 0;
       totalSchools = 0;
-      lSpellLevels = Send(self, @GetSpellSchoolLevels);
-      lSpellLevels_new = [school_pair_1/10,
+      
+      lSchoolLevels = Send(self,@GetSchoolLevels);
+      
+      lSchoolLevels_new = [school_pair_1/10,
                           school_pair_1 - (school_pair_1/10)*10,
                           school_pair_2/10,
                           school_pair_2 - (school_pair_2/10)*10,
                           school_pair_3/10,
-                          school_pair_3 - (school_pair_3/10)*10
-                          ];
-      lSkillLevels = Send(self, @GetSkillSchoolLevels);
-      lSkillLevels_new = [school_pair_4/10,
+                          school_pair_3 - (school_pair_3/10)*10,
+                          school_pair_4/10,
                           school_pair_4 - (school_pair_4/10)*10,
                           school_pair_5/10,
                           school_pair_5 - (school_pair_5/10)*10,
@@ -11217,23 +11200,12 @@ messages:
       }
       
       % School Range Check
-      foreach i in lSpellLevels_new
+      foreach i in lSchoolLevels_new
       {
-         Debug(i);
          if i < 0
             OR i > 6
          {
-         Debug("School Range Check: Failed!");
-            return FALSE;
-         }
-      }
-      foreach i in lSkillLevels_new
-      {
-         Debug(i);
-         if i < 0
-            OR i > 6
-         {
-         Debug("School Range Check: Failed!");
+            Debug("School Range Check: Failed!");
             return FALSE;
          }
       }
@@ -11246,48 +11218,27 @@ messages:
          Debug("Points Check: FAIL!");
          return FALSE;
       }
-      Debug(("points check: PASS"));
+      %Debug(("points check: PASS"));
 
       % Check school levels for funny business
       
       % Count schools above level 1
       
-      % Spell Levels - skipping DM school (7)
-      while (i < Length(lSpellLevels_new))
+      % Count up our levels
+      while (i < Length(lSchoolLevels_new))
       {
-         if (Nth(lSpellLevels_new,i) = 1)
+         if (Nth(lSchoolLevels_new,i) = 1)
          {
             totalLvlOnes = totalLvlOnes + 1;
          }
-         if (Nth(lSpellLevels_new,i) > 1)
+         if (Nth(lSchoolLevels_new,i) > 1)
          {
             totalSchools = totalSchools + 1;
-            totalLevels = totalLevels + Nth(lSpellLevels_new,i);
+            totalLevels = totalLevels + Nth(lSchoolLevels_new,i);
          }
-         if (Nth(lSpellLevels_new,i) > Nth(lSpellLevels,i))
+         if (Nth(lSchoolLevels_new,i) > Nth(lSchoolLevels,i))
          {
             Debug("Tried to increase schools: FAIL!");
-            return FALSE;
-         }
-         i=i+1;
-      }
-      
-      % skill levels
-      i=1;
-      while (i < Length(lSkillLevels_new))
-      {
-         if (Nth(lSkillLevels_new,i) = 1)
-         {
-            totalLvlOnes = totalLvlOnes + 1;
-         }
-         if (Nth(lSkillLevels,i) > 1)
-         {
-            totalSchools = totalSchools + 1;
-            totalLevels = totalLevels + Nth(lSkillLevels_new,i);
-         }
-         if (Nth(lSkillLevels_new,i) > Nth(lSkillLevels,i))
-         {
-            Debug("School Not Increased Check: FAIL!");
             return FALSE;
          }
          i=i+1;
@@ -11306,7 +11257,7 @@ messages:
          return FALSE;
       }
       
-      Debug(("School Level Check: PASS"));
+      %Debug(("School Level Check: PASS"));
       
       % everything looks good, start adjusting stats
       
@@ -11317,39 +11268,24 @@ messages:
          Send(Send(self,@FindHolding,#class=&StatsResetToken),@Delete);
       }
       
-      % Strip Spell Levels
+      % Strip School Levels
+      
       i = 1;
-      while (i < Length(lSpellLevels))
+      while i < Length(lSchoolLevels)
       {
-         if (Nth(lSpellLevels,i) > 0 )
+         % We had pre-existing levels in a school, check for removal
+         if Nth(lSchoolLevels,i) > 0
          {
-            while (Nth(lSpellLevels,i) > Nth(lSpellLevels_new,i))
+            % If our existing levels are greater than new settings, begin removal
+            while Nth(lSchoolLevels,i) > Nth(lSchoolLevels_new,i)
             {
-               Send(self,@StripSpellsOfSchoolByLevel,#school=i,
-                     #level=Nth(lSpellLevels,i));
-               SetNth(lSpellLevels,i,Nth(lSpellLevels,i) - 1);
+               Send(self,@StripSpellsAndSkillsOfSchoolByLevel,#school_index=i,#level=Nth(lSchoolLevels,i));
+               SetNth(lSchoolLevels,i,Nth(lSchoolLevels,i) - 1);
             }
          }
          i=i+1;
       }
-      Debug("Spell Schools Stripped");
-      % Strip Skills (Skill schools start at 10)
-      i=1;
-      while (i <= Length(lSkillLevels))
-      {
-         if (Nth(lSkillLevels,i) > 0)
-         {
-            while(Nth(lSkillLevels,i) > Nth(lSkillLevels_new,i))
-            {
-               % have to add 9 to i to get the proper school id
-               Send(self,@StripSkillsOfSchoolByLevel,#school=i+9,
-                     #level=Nth(lSkillLevels,i));
-               SetNth(lSkillLevels,i,Nth(lSkillLevels,i) - 1);
-            }
-         }
-         i=i+1;
-      }
-      Debug("Skill Schools Stripped");
+      %Debug("School Levels Stripped");
       
       % Now iterate through the player's spells and strip 2% per stat loss
       foreach i in plSpells
@@ -11417,7 +11353,7 @@ messages:
             }
          }
       }
-      Debug("Spell % Recalculated");
+      %Debug("Spell % Recalculated");
       
       foreach i in plSkills
       {
@@ -11478,7 +11414,7 @@ messages:
             }
          }
       }
-      Debug("Skill % Recalculated");
+      %Debug("Skill % Recalculated");
 
       Debug(Send(self,@GetTrueName), " changed stats from ",
          piMight, piIntellect, piStamina, piAgility, piMysticism, piAim,
@@ -11497,18 +11433,18 @@ messages:
       {
          % If called with no amount, will verify current max HP is valid.
          Send(self,@GainBaseMaxHealth);
-         Debug("HitPoints Adjusted");
+         %Debug("HitPoints Adjusted");
       }
 
       % recalculate mana pool based on nodes and mysticism
       Send(self,@ComputeMaxMana);
-      Debug("Mana Recalculated");
+      %Debug("Mana Recalculated");
       
       % TODO: Unload stats.dll module.
 
       % Refresh the client screen so they see the new stats
       Send(self, @InvalidateData);
-      Debug("Player Updated!");
+      %Debug("Player Updated!");
 
       if Send(self,@HasReincarnationStatsReset)
       {

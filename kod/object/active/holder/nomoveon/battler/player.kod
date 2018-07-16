@@ -1060,6 +1060,9 @@ resources:
    schools_report_level_one_note = \
       "As a reminder, levels one and two of any school are easier to learn; together, they count as one full level." 
 
+   lost_base_max_health_msg = \
+      "~B~wYou lost ~r%i~w maximum health!!"
+
 classvars:
 
    viHand_space = 2
@@ -9430,6 +9433,12 @@ messages:
       piBase_max_health = Bound(piBase_max_health + amount, 20,(100 + iApparentStamina));
       amount = piBase_max_health - iPrev_max;
 
+      if amount < 0
+      {
+         % We LOST health!
+         Send(self,@MsgSendUser,#message_rsc=lost_base_max_health_msg,#parm1=amount*-1);
+      }
+
       % Give them the "further info" gmail if they've advanced to 25.
       if piBase_Max_health = 25
          AND amount > 0
@@ -9445,12 +9454,6 @@ messages:
       Post(self,@ComputeMaxMana);
       
       Post(Send(SYS,@GetGameQuestMaintenance),@EvaluatePlayer,#who=self,#vbTriggered=TRUE);
-
-      if piReincarnations < 10
-         AND amount > 0
-      {
-         Send(self,@ReportReincarnationProgress);
-      }
 
       return;
    }
@@ -17388,7 +17391,53 @@ messages:
 
       return;
    }
-   
+
+   StripSpellsAndSkillsOfSchoolByLevel(school_index = 0, level = 0)
+   {
+      local i, oSpell, oSkill, iSchool, iLevel, iCanForget, iSpellNum, lSchools, iStripSchool;
+      
+      % For these purposes, we are looking at a specific array of the 12 schools.
+      lSchools = [SS_SHALILLE,
+                  SS_QOR,
+                  SS_KRAANAN,
+                  SS_FAREN,
+                  SS_RIIJA,
+                  SS_JALA,
+                  SKS_FENCING,
+                  SKS_KNIGHTCRAFT,
+                  SKS_BANDITRY,
+                  SKS_SORCERY,
+                  SS_WITCHERY,
+                  SKS_ALCHEMY];
+      iStripSchool = Nth(lSchools,school_index);
+      
+      foreach i in plSpells
+      {
+         iSpellNum = Send(self,@DecodeSpellNum,#compound=i);
+         oSpell = Send(SYS,@FindSpellByNum,#num=iSpellNum);
+         iSchool = Send(oSpell,@GetSchool);
+         iLevel = Send(oSpell,@GetLevel);
+         iCanForget = Send(oSpell,@CanForget);
+
+         if (iSchool = iStripSchool) AND (iLevel = level) AND iCanForget
+         {
+            Send(self,@RemoveSpell,#num=iSpellNum);
+         }
+      }
+      foreach i in plSkills
+      {
+         oSkill = Send(SYS,@FindSkillByNum,#num=Send(self,@DecodeSkillNum,#compound=i));
+         iSchool = Send(oSkill,@GetSchool);
+         iLevel = Send(oSkill,@GetLevel);
+         
+         if (iSchool = iStripSchool) AND (iLevel = level)
+         {
+            Send(self,@RemoveSkill,#num=Send(self,@DecodeSkillNum,#compound=i));
+         }
+      }
+      return;
+   }
+
    StripSpellsOfSchoolByLevel(school = 0, level = 0)
    {
       local i, oSpell, iSchool, iLevel, iCanForget, iSpellNum;
