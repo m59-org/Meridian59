@@ -42,7 +42,6 @@ resources:
 
 classvars:
 
-   vrName = scrap_name_rsc
    vrIcon = scrap_icon_rsc
    vrDesc = scrap_desc_rsc
 
@@ -54,6 +53,7 @@ classvars:
 properties:
 
    piSorcerySkillID = SKID_FORCE_SPIKE
+   vrName = scrap_name_rsc
 
 messages:
 
@@ -93,18 +93,18 @@ messages:
       {
          case 3:
             piSorcerySkillID = Nth(lSkillsThree,Random(1,Length(lSkillsThree)));
-            return;
+            break;
          case 4:
             piSorcerySkillID = Nth(lSkillsFour,Random(1,Length(lSkillsFour)));
-            return;
+            break;
          case 5:
             piSorcerySkillID = Nth(lSkillsFive,Random(1,Length(lSkillsFive)));
-            return;
+            break;
          case 6:
             piSorcerySkillID = Nth(lSkillsSix,Random(1,Length(lSkillsSix)));
-            return;
+            break;
       }
-
+      
       propagate;
    }
 
@@ -173,6 +173,35 @@ messages:
       AddPacket(4, scrap_desc_rsc, 4,Send(oSkill,@GetLevel), 4,Send(oSkill,@GetName), 4,Send(oSkill,@GetDesc));
 
       return;
+   }
+
+   NewOwner(what=$)
+   {
+      local oSkill;
+      
+      if what = $
+      {
+         propagate;
+      }
+      else
+      {
+         if IsClass(what,&Room)
+         {
+            vrName = scrap_name_rsc;
+            Post(what,@SomethingChanged,#what=self);
+            propagate;
+         }
+      }
+
+      oSkill=Send(SYS,@FindSkillByNum,#num=piSorcerySkillID);
+      if oSkill <> $
+         AND Send(oSkill,@GetName) <> $
+      {
+         vrName = Send(oSkill,@GetName);
+         Post(what,@SomethingChanged,#what=self);
+      }
+
+      propagate;
    }
 
 end
