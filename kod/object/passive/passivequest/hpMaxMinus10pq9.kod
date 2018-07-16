@@ -40,10 +40,13 @@ resources:
       "will finally perfect immortality if they are allowed to drain too much mana from your lands. "
       "They'll be unstoppable.\" Vecka scans the grey horizon. \"I always considered this a last resort, "
       "but I believe we can enter their Palace through the Maze of the Minotaur beneath it. "
-      "While I find and seal the Prism of Life and the Prism of Death, you should make your way through the "
+      "After we find and seal the Prism of Life and the Prism of Death, you should make your way through the "
       "Maze. Use what treasures and knowledge you find there to defeat the Palace defenses. If you succeed, "
       "you will be the first ally to make it inside their walls in centuries. Go. I will monitor you from afar "
       "and help with what I know. Let's hope that old broken waypoint still works.\""
+   
+   hpMaxMinus10pq9_reward_sky_stone = \
+      "I acquired this major sky heartstone while sealing the Prism of Lightning. Perhaps you may have a use for it."
 
 classvars:
 
@@ -70,6 +73,8 @@ messages:
    Completed()
    {
       Send(poQuester,@FlagForVeckaAdvice);
+      Send(poQuester,@MsgSendUser,#message_rsc=hpMaxMinus10pq9_reward_sky_stone);
+      Send(poQuester,@NewHold,#what=Create(&MajorSkyHeartStone));
       propagate;
    }
 
