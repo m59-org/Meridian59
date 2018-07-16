@@ -8,39 +8,41 @@
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-OutdoorsE1 is MonsterRoom
+OutdoorsD3 is MonsterRoom
 
 constants:
 
    include blakston.khd
 
+   % 26, 44 for central rock
+
 resources:
 
-   room_name_OutdoorsE1 = "Smuggler's Cove"
-   room_OutdoorsE1 = e1.roo
-   OutdoorsE1_music = walk7.mp3
+   room_name_OutdoorsD3 = "Shipwreck Reef"
+   room_OutdoorsD3 = d3.roo
+   OutdoorsD3_music = walk7.mp3
 
-   E1_oceanwalk = \
+   D3_oceanwalk = \
       "You decide you don't like saltwater enough to go swimming "
       "in the Great Ocean."
-   E1_icewalk = "You walk out onto the oceanic ice."
+   D3_icewalk = "You walk back toward the shore."
 
 classvars:
 
-   vrName = room_name_OutdoorsE1
+   vrName = room_name_OutdoorsD3
 
-   viTeleport_row = 19
-   viTeleport_col = 16
+   viTeleport_row = 49
+   viTeleport_col = 81
 
-   viTerrain_type = TERRAIN_FOREST | TERRAIN_BEACH
+   viTerrain_type = TERRAIN_BEACH | TERRAIN_LAKE | TERRAIN_RIVER
 
    viWeatherZone = WEATHER_ZONE_BARLOQUE
 
 properties:
 
-   prRoom = room_OutdoorsE1
-   prMusic = OutdoorsE1_music
-   piRoom_num = RID_E1
+   prRoom = room_OutdoorsD3
+   prMusic = OutdoorsD3_music
+   piRoom_num = RID_D3
 
    piBaseLight = LIGHT_NICE
    piOutside_factor = 8
@@ -70,7 +72,7 @@ messages:
    CreateStandardExits()
    {
       plEdge_Exits = $;
-      plEdge_Exits = Cons([LEAVE_EAST, RID_E2, 62, 2, ROTATE_NONE], plEdge_exits);
+      plEdge_Exits = Cons([LEAVE_SOUTH, RID_E1, 10, 16, ROTATE_NONE], plEdge_exits);
 
       propagate;
    }
@@ -79,29 +81,34 @@ messages:
    {
       local oTargetRoom;
 
-      if (dir = LEAVE_NORTH)
+      if (dir = LEAVE_SOUTH)
       {
          if (IsClass(what,&Player))
          {
             if Send(self,@CheckRoomFlag,#flag=ROOM_SNOWING)
                AND pbSnowGroundTexture
             {
-               oTargetRoom = Send(SYS,@FindRoomByNum,#num=RID_D3);
-               Send(what,@MsgSendUser,#message_rsc=E1_icewalk);
+               oTargetRoom = Send(SYS,@FindRoomByNum,#num=RID_E1);
+               Send(what,@MsgSendUser,#message_rsc=D3_icewalk);
                Send(SYS,@UtilGoNearSquare,#what=what,
                     #where=oTargetRoom,
-                    #new_row=70,
-                    #new_col=106,
+                    #new_row=4,
+                    #new_col=23,
                     #fine_row=0,
                     #fine_col=0,
                     #new_angle=Send(what,@GetAngle));
             }
             else
             {
-               Send(what,@MsgSendUser,#message_rsc=E1_oceanwalk);
+               Send(what,@MsgSendUser,#message_rsc=D3_oceanwalk);
             }
          }
 
+         return;
+      }
+      else
+      {
+         Send(what,@MsgSendUser,#message_rsc=D3_oceanwalk);
          return;
       }
 
