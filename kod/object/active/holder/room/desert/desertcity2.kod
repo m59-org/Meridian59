@@ -19,6 +19,9 @@ resources:
    room_desertcity2 = desertcity2.roo
    room_name_desertcity2 = "Western Watergate"
 
+   room_desertcity2_winds_air_elementals = \
+      "The air elementals are carried away on the strong winds!"
+
 classvars:
 
    vrName = room_name_desertcity2
@@ -150,6 +153,27 @@ messages:
             return [&ColdThreat,&SnowThreat, &ChaosThreat];
       }
       return [&ShockStorm, &ChaosThreat];
+   }
+
+   SpellCast(who = $,oSpell = $,lItems = $,bItemCast = FALSE)
+   {
+      local i, each_obj;
+
+      if oSpell <> $
+         AND (IsClass(oSpell,&Winds)
+            OR IsClass(oSpell,&Sandstorm))
+      {
+         foreach i in Send(self,@GetHolderActive)
+         {
+            each_obj = Send(self,@HolderExtractObject,#data=i);
+            if IsClass(each_obj,&Player)
+            {
+               Send(each_obj,@MsgSendUser,#message_rsc=room_desertcity2_winds_air_elementals);
+            }
+         }
+      }
+
+      propagate;
    }
 
 end

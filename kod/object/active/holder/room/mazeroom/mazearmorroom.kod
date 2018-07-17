@@ -179,7 +179,7 @@ messages:
 
    FillVault()
    {
-      local lLootClasses, lMinorLootClasses, iJunkNum;
+      local lLootClasses, lMinorLootClasses, iJunkNum, iScrollNum;
 
       lLootClasses = [&PunchArmorRelic,
                       &OffenseArmorRelic,
@@ -208,6 +208,15 @@ messages:
          Send(self,@NewHold,#what=Create(Nth(lMinorLootClasses,Random(1,Length(lMinorLootClasses))),#level=200),
                             #new_row=Random(12,27),#new_col=Random(2,8),#fine_row=Random(0,63),#fine_col=Random(0,63));
          iJunkNum--;
+      }
+      
+      iScrollNum = Random(5,12);
+      
+      while iScrollNum > 0
+      {
+         Send(self,@NewHold,#what=Create(&SorcererScrap),
+                            #new_row=Random(12,27),#new_col=Random(2,8),#fine_row=Random(0,63),#fine_col=Random(0,63));
+         iScrollNum--;
       }
 
       Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_WHITE,#iIntensity=220),
