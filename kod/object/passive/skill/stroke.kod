@@ -203,6 +203,7 @@ messages:
       
       % base weapon damage
       if weapon_used = $
+         OR NOT IsClass(weapon_used,&Weapon)
       {
          return 0;
       }
@@ -341,6 +342,7 @@ messages:
 
       iDamage = damage;
       if weapon_used <> $
+         AND IsClass(weapon_used,&Weapon)
       {
          weapProf = Send(SYS,@FindSkillByNum,#num=Send(weapon_used,@GetProfNumber));
          profAbility = Send(weapon_used,@GetProf,#who=who)+1;
