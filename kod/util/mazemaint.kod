@@ -701,5 +701,46 @@ messages:
       return;
    }
 
+   GetYellZone()
+   {
+      local lYell_Zone, i;
+
+      lYell_Zone = $;
+      lYell_Zone = Cons(Send(poFirstRoom,@GetRoomNum), lYell_Zone);
+      lYell_Zone = Cons(Send(poTreasureRoom,@GetRoomNum), lYell_Zone);
+      lYell_Zone = Cons(Send(poShrineRoom,@GetRoomNum), lYell_Zone);
+      lYell_Zone = Cons(Send(poArmorRoom,@GetRoomNum), lYell_Zone);
+      lYell_Zone = Cons(Send(poBossRoom,@GetRoomNum), lYell_Zone);
+      lYell_Zone = Cons(Send(poReincarnationRoom,@GetRoomNum), lYell_Zone);
+      lYell_Zone = Cons(Send(poMazeExitRoom,@GetRoomNum), lYell_Zone);
+
+      foreach i in plMazeRooms
+      {
+         lYell_Zone = Cons(Send(i,@GetRoomNum), lYell_Zone);
+      }
+
+      return lYell_Zone;
+   }
+
+   GetTreasureRoom()
+   {
+      return poTreasureRoom;
+   }
+   
+   GetShrineRoom()
+   {
+      return poShrineRoom;
+   }
+   
+   GetArmorRoom()
+   {
+      return poArmorRoom;
+   }
+   
+   GetBossRoom()
+   {
+      return poBossRoom;
+   }
+
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -320,6 +320,15 @@ resources:
    maze_exit_blocked13 = \
       "This door is an illusion! A blank wall is all that really lies here."
 
+   maze_headed_towards_boss_room = \
+      "Ancient hoof tracks in the dust indicate the Minotaur once went in this direction."
+   maze_headed_towards_armor_room = \
+      "You feel a strong aura of magic somewhere ahead of you."
+   maze_headed_towards_shrine_room = \
+      "It's getting strangely warmer..."
+   maze_headed_towards_treasure_room = \
+      "The subtle sound of gears grows louder."
+
 classvars:
 
    vrName = room_name_minotaurmazeroom
@@ -1632,6 +1641,8 @@ messages:
 
    MazeEnter(who=$,from_direction=0)
    {
+      local oQuadrantTargetRoom, bInform, rInformMsg;
+
       switch(from_direction)
       {
          case MAZE_DIRECTION_NORTH:
@@ -1670,6 +1681,70 @@ messages:
                  #fine_col=piEastEntranceFineCol,
                  #new_angle=Send(who,@GetAngle));
             break;
+      }
+
+      % Here we give the player environmental hints to find major rooms
+      if piXCoord > 5
+         AND piYCoord > 5
+      {
+         % Northeast quadrant. Ice dragon.
+         oQuadrantTargetRoom = Send(Send(SYS,@GetMazeRoomMaintenance),@GetBossRoom);
+         rInformMsg = maze_headed_towards_boss_room;
+      }
+      if piXCoord > 5
+         AND piYCoord <= 5
+      {
+         % Southeast quadrant. Armor room.
+         oQuadrantTargetRoom = Send(Send(SYS,@GetMazeRoomMaintenance),@GetArmorRoom);
+         rInformMsg = maze_headed_towards_armor_room;
+      }
+      if piXCoord <= 5
+         AND piYCoord > 5
+      {
+         % Northwest quadrant. Lava frog.
+         oQuadrantTargetRoom = Send(Send(SYS,@GetMazeRoomMaintenance),@GetShrineRoom);
+         rInformMsg = maze_headed_towards_shrine_room;
+      }
+      if piXCoord <= 5
+         AND piYCoord <= 5
+      {
+         % Southwest quadrant. Test of Mind and Body.
+         oQuadrantTargetRoom = Send(Send(SYS,@GetMazeRoomMaintenance),@GetTreasureRoom);
+         rInformMsg = maze_headed_towards_treasure_room;
+      }
+
+      bInform = FALSE;
+      switch(from_direction)
+      {
+         case MAZE_DIRECTION_NORTH:
+            if Send(oQuadrantTargetRoom,@GetYCoord) > piYCoord
+            {
+               bInform = TRUE;
+            }
+            break;
+         case MAZE_DIRECTION_SOUTH:
+            if Send(oQuadrantTargetRoom,@GetYCoord) < piYCoord
+            {
+               bInform = TRUE;
+            }
+            break;
+         case MAZE_DIRECTION_WEST:
+            if Send(oQuadrantTargetRoom,@GetXCoord) < piXCoord
+            {
+               bInform = TRUE;
+            }
+            break;
+         case MAZE_DIRECTION_EAST:
+            if Send(oQuadrantTargetRoom,@GetXCoord) > piXCoord
+            {
+               bInform = TRUE;
+            }
+            break;
+      }
+
+      if bInform
+      {
+         Post(who,@MsgSendUser,#message_rsc=rInformMsg);
       }
       return;
    }
@@ -2805,6 +2880,11 @@ messages:
    SpecialPhaseConditionsSatisfied()
    {
       return FALSE;
+   }
+
+   GetYellZone()  % Includes THIS ROOM in list!!
+   {
+      return Send(Send(SYS,@GetMazeRoomMaintenance),@GetYellZone);
    }
 
 end
