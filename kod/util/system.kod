@@ -7767,6 +7767,50 @@ messages:
       return iList;
    }
 
+   ResetPlayersOverLearnCount()
+   {
+      local i, iStartingLearnPoints, iMaxLearnPoints, iTotalLearnPoints, iList,
+            lSpells, lSkills;
+
+      iList = $;
+      foreach i in plUsers
+      {
+         if Send(i,@GetSpellList) = $
+            OR IsClass(i,&DM)
+            OR IsClass(i,&EscapedConvict)
+         {
+            continue;
+         }
+
+         iMaxLearnPoints = 0;
+         iTotalLearnPoints = 0;
+
+         iMaxLearnPoints = Send(SETTINGS_OBJECT,@GetMaxLearnPoints)
+                              + (Send(i,@GetRawIntellect) * 2) / 5;
+
+         iTotalLearnPoints = Send(i,@GetTotalLearnPoints);
+
+         if iTotalLearnPoints > iMaxLearnPoints
+         {
+            iList = Cons(i,iList);
+         }
+      }
+
+      if iList = $
+      {
+         Debug("No players over learn count.");
+
+         return $;
+      }
+
+      foreach i in iList
+      {
+         Send(i,@OverLearnCountStatReset);
+      }
+
+      return iList;
+   }
+
    FixSpellLevelChange(iSID=0)
    "Removes a spell from one level and adds it to another for all players "
    "who have the spell, and also have the second level."

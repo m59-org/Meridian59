@@ -505,6 +505,13 @@ resources:
    user_schools_report_command = \
       "What schools am I?"
 
+   user_intellect_warn = \
+      "~B~rYou feel sick. Your brain is on fire! What's happening? It's like your mind is too full somehow!"
+   user_intellect_warn2 = \
+      "~B~rYour body adjusts to the strain, reducing all your stats to 1 in exchange for more intellect."
+   user_intellect_warn3 = \
+      "~B~rOddly, you feel as if you've been given a free stat reset at any elder for some reason."
+
 classvars:
 
    viIndefinite = ARTICLE_NONE
@@ -587,6 +594,9 @@ properties:
 
    % A quest flag to get informational messages in the desert from Vecka
    pbReceiveVeckaAdvice = FALSE
+
+   % Warn player about stat reset due to over learn count
+   pbWarnAboutIntellect = FALSE
 
 messages:
 
@@ -967,6 +977,12 @@ messages:
       % Ok, we're logged in and good to go. Let's check our passive quest status.
       Send(Send(SYS,@GetGameQuestMaintenance),@EvaluatePlayer,#who=self);
 
+      if pbWarnAboutIntellect
+      {
+         Send(self,@MsgSendUser,#message_rsc=user_intellect_warn);
+         Send(self,@MsgSendUser,#message_rsc=user_intellect_warn2);
+         Send(self,@MsgSendUser,#message_rsc=user_intellect_warn3);
+      }
       return;
    }
 
@@ -11227,25 +11243,34 @@ messages:
       % Count schools above level 1
       
       % Count up our levels
+      i = 1;
       while (i < Length(lSchoolLevels_new))
       {
          if (Nth(lSchoolLevels_new,i) = 1)
          {
-            totalLvlOnes = totalLvlOnes + 1;
+            totalLvlOnes++;
          }
          if (Nth(lSchoolLevels_new,i) > 1)
          {
-            totalSchools = totalSchools + 1;
+            totalSchools++;
             totalLevels = totalLevels + Nth(lSchoolLevels_new,i);
          }
          if (Nth(lSchoolLevels_new,i) > Nth(lSchoolLevels,i))
          {
-            Debug("Tried to increase schools: FAIL!");
             return FALSE;
          }
-         i=i+1;
+         i++;
       }
       
+      Debug("total levels");
+      Debug(totalLevels);
+      
+      Debug("total level ones");
+      Debug(totalLvlOnes);
+      
+      Debug("total schools");
+      Debug(totalSchools);
+
       % treat level 1s as level 2s
       totalLevels = totalLevels + totalLvlOnes;
       
@@ -11253,7 +11278,7 @@ messages:
       if ((totalLevels - totalSchools > 8)
                AND (((totalLevels - totalSchools - 8) * 5) > intellect))
       {
-         Debug("Int Check: FAIL!");
+         %Debug("Int Check: FAIL!");
          %Debug("total levels",totalLevels,"intellect",intellect,"needed",
          %      (totalLevels - totalSchools - 8) * 5);
          return FALSE;
@@ -11453,6 +11478,9 @@ messages:
          % Used up our reincarnation stat reset.
          Send(self,@SetReincarnationStatsReset,#value=FALSE);
       }
+      
+      % In case this player was changing stats after an admin reset.
+      pbWarnAboutIntellect = FALSE;
 
       return;
    }
@@ -11751,6 +11779,24 @@ messages:
       {
          Send(self,@NewHold,#what=Create(&MajorSkyHeartStone));
       }
+      return;
+   }
+
+   OverLearnCountStatReset()
+   {
+      Send(self,@RecalibratePlayer);
+      piMight = 1;
+      piIntellect = Send(self,@GetMaxIntellect);
+      
+      % Not stamina, they might lose hps if they pen or die.
+      %piStamina = 1;
+
+      piAgility = 1;
+      piMysticism = 1;
+      piAim = 1;
+      
+      pbWarnAboutIntellect = TRUE;
+      Send(self,@SetReincarnationStatsReset,#value=TRUE);
       return;
    }
 
