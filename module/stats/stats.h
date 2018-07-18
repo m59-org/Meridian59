@@ -58,7 +58,7 @@ extern Bool        exiting;       // True when module is exiting and should be u
 extern HINSTANCE hInst;  // module handle
 
 /* messages to server */
-#define SendNewCharInfo(stat1, stat2, stat3, stat4, stat5, stat6, schoolpair1,  schoolpair2,  schoolpair3,  schoolpair4,  schoolpair5,  schoolpair6) \
-ToServer(BP_CHANGED_STATS, msg_table, stat1, stat2, stat3, stat4, stat5, stat6, schoolpair1,  schoolpair2,  schoolpair3,  schoolpair4,  schoolpair5,  schoolpair6)
+#define SendNewCharInfo(stat1, stat2, stat3, stat4, stat5, stat6, schoolpair1,  schoolpair2,  schoolpair3,  schoolpair4,  schoolpair5,  schoolpair6, schoolpair7) \
+ToServer(BP_CHANGED_STATS, msg_table, stat1, stat2, stat3, stat4, stat5, stat6, schoolpair1,  schoolpair2,  schoolpair3,  schoolpair4,  schoolpair5,  schoolpair6, schoolpair7)
 
 #endif /* #ifndef _STATS_H */
