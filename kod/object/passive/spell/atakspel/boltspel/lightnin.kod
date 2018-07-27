@@ -87,12 +87,13 @@ messages:
       return;
    }
 
-   CastSpell(who=$,lTargets=$,iSpellPower=0,bSecondaryCast=FALSE)
+   CastSpell(who=$,lTargets=$,iSpellPower=0,bSecondaryCast=FALSE,bDeflectCast=FALSE)
    {
       local oOwner, i, each_obj, oChainTarget, lBattlers, iClosestDist, iCurDist;
 
       if Send(who,@HasMasteredThisSpell,#num=viSpell_num)
          AND NOT bSecondaryCast
+         AND NOT bDeflectCast
       {
          oOwner = Send(who,@GetOwner);
          lBattlers = $;
