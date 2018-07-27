@@ -38,16 +38,16 @@ classvars:
 
 properties:
 
-   piRange = $
+   piRange = 40 * FINENESS
 
    % Maximum amount of bonus damage mana focus gives us for casting this spell.
    piManaFocusBonus = 10
 
 messages:
 
-   CastSpell(who=$,lTargets=$,bChainCast=FALSE,bSecondaryCast=FALSE)
+   CastSpell(who=$,lTargets=$,bChainCast=FALSE,bSecondaryCast=FALSE,oDeflectImpact=$)
    {
-      local oOwner, i;
+      local oOwner, i, iDeflectSpeed;
 
       oOwner = Send(who,@GetOwner);
 
@@ -56,8 +56,24 @@ messages:
       {
          if NOT bSecondaryCast
          {
-            Send(oOwner,@SomethingShot,#who=who,#target=i,#projectile=self,
-                  #flags=viProjectileFlag);
+            if oDeflectImpact <> $
+            {
+               % Don't send to oDeflectImpact, it's not a NoMoveOn!
+               iDeflectSpeed = Send(who,@SquaredFineDistanceTo,#what=oDeflectImpact);
+               
+               if iDeflectSpeed <> $
+               {
+                  iDeflectSpeed = (Sqrt(iDeflectSpeed) / 64) * 2;
+               }
+
+               Send(oOwner,@SomethingShot,#who=who,#target=oDeflectImpact,#projectile=self,
+                     #flags=viProjectileFlag,#iDeflectSpeed=iDeflectSpeed);
+            }
+            else
+            {
+               Send(oOwner,@SomethingShot,#who=who,#target=i,#projectile=self,
+                     #flags=viProjectileFlag);
+            }
          }
       }
 
@@ -130,6 +146,11 @@ messages:
    GetAlternateProjectileLightIntensity()
    {
       return viProjectileLightIntensity;
+   }
+
+   GetProjectileFlag()
+   {
+      return viProjectileFlag;
    }
 
 end

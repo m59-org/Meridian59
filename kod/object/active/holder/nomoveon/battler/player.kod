@@ -3143,20 +3143,6 @@ messages:
       return TRUE;
    }
 
-   TryDeflect(what = $,caster=$)
-   {
-      local oDeflect;
-
-      oDeflect = Send(SYS,@FindSpellByNum,#Num=SID_DEFLECT);
-      if Send(self,@IsEnchanted,#what=oDeflect)
-      {
-         return Send(oDeflect,@TryDeflect,#caster=caster,#victim=self,
-                     #oSpell=what);
-      }
-
-      return FALSE;
-   }
-
    NewOwner(what = $)
    {
       local iBasePhaseTime, i;

@@ -8333,9 +8333,9 @@ messages:
    }
 
    SomethingShot(who=$, target=$, projectile=$, flags=PROJ_FLAG_NONE,
-                 iLightIntensity=0, iLightColor=0, bUseAlternates=FALSE)
+                 iLightIntensity=0, iLightColor=0, bUseAlternates=FALSE, iDeflectSpeed=$)
    {
-      local iValue, iProjectileLightColor;
+      local iValue, iProjectileLightColor, iProjectileSpeed, iDistance;
 
       % This happened in the past.  Ignore this, because Sending nil in a
       %  packet is bad.
@@ -8372,18 +8372,21 @@ messages:
          Send(projectile,@SendProjectileAnimation);
       }
 
-      if bUseAlternates
+      if iDeflectSpeed <> $
       {
-         % Send shooter and target.
-         AddPacket(4,who, 4,target, 1,Send(projectile,@GetAlternateProjectileSpeed),
-                   2,(flags & 0x000F));
+         iProjectileSpeed = iDeflectSpeed;
+      }
+      else if bUseAlternates
+      {
+         iProjectileSpeed = Send(projectile,@GetAlternateProjectileSpeed);
       }
       else
       {
-         % Send shooter and target.
-         AddPacket(4,who, 4,target, 1,Send(projectile,@GetProjectileSpeed),
-                   2,(flags & 0x000F));
+         iProjectileSpeed = Send(projectile,@GetProjectileSpeed);
       }
+
+      % Send shooter and target.
+      AddPacket(4,who, 4,target, 1,iProjectileSpeed,2,(flags & 0x000F));
 
       if (flags & PROJ_FLAG_LIGHT_SOURCE)
       {

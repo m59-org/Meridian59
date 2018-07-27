@@ -49,7 +49,8 @@ BGFS = igreyinvis.bgf isitting.bgf itransferitem.bgf iexplosion.bgf irift.bgf \
        irecklessheart.bgf \
        dyebottle.bgf \
        iaridaria.bgf \
-       ihexsever.bgf
+       ihexsever.bgf \
+       deflectimpact.bgf
 
 DIRS = 
 

@@ -266,15 +266,81 @@ properties:
    % Track periodic bleed damage
    ptBleedTimer = $
 
+   % Is this Battler protected by a magical shield against projectiles?
+   pbMagicalShield = FALSE
+   % Fine units
+   piMagicalShieldRadius = 64 * 5
+
 messages:
 
    % The first lump of code here deals with resistances and immunities/etc.
    % They are included here in battler so both user and mobiles can enjoy
    %  the effect.
 
-   TryDeflect()
+   TryDeflect(what=$, caster=$)
    {
-      return FALSE;
+      local oDeflect, oDeflectImpact, iResult, iSquaredFineDist;
+
+      % what is a spell. Players get to try to deflect this with Deflect spell first.
+      % Deflect has its own spell considerations.
+
+      if IsClass(self,&Player)
+      {
+         oDeflect = Send(SYS,@FindSpellByNum,#Num=SID_DEFLECT);
+         if Send(self,@IsEnchanted,#what=oDeflect)
+         {
+            if Send(oDeflect,@TryDeflect,#caster=caster,#victim=self,#oSpell=what)
+            {
+               oDeflectImpact = Create(&DeflectImpact,#iIntensity=125,#iColor=LIGHT_LIGHTNING,#oSpell=what,#oCaster=caster);
+               Send(poOwner,@NewHold,#what=oDeflectImpact,#new_row=Send(self,@GetRow),
+                                                          #new_col=Send(self,@GetCol),
+                                                          #fine_row=Send(self,@GetFineRow),
+                                                          #fine_col=Send(self,@GetFineCol));
+               return oDeflectImpact;
+            }
+         }
+      }
+      
+      % No deflect spell, or we're a monster? Let's make sure this only works vs bolt spells.
+
+      if what = $
+         OR NOT IsClass(what,&BoltSpell)
+      {
+         return $;
+      }
+
+      if pbMagicalShield
+      {
+         if poOwner <> $
+            AND caster <> $
+         {
+            iSquaredFineDist = Send(self,@SquaredFineDistanceTo,#what=caster);
+            
+            if iSquaredFineDist <> $
+               AND iSquaredFineDist >= piMagicalShieldRadius * piMagicalShieldRadius
+            {
+               oDeflectImpact = Create(&DeflectImpact,#iIntensity=125,#iColor=LIGHT_LIGHTNING,#oSpell=what,#oCaster=caster);
+               Send(poOwner,@NewHold,#what=oDeflectImpact,#new_row=Send(self,@GetRow),
+                                                          #new_col=Send(self,@GetCol),
+                                                          #fine_row=Send(self,@GetFineRow),
+                                                          #fine_col=Send(self,@GetFineCol));
+               
+               if piMagicalShieldRadius > 0
+               {
+                  iResult = Send(poOwner,@IntraTeleport,#what=oDeflectImpact,
+                                                        #type=INTRA_TELEPORT_TOWARD_DESTINATION,
+                                                        #distance=piMagicalShieldRadius,
+                                                        #new_row=Send(caster,@GetRow),
+                                                        #new_col=Send(caster,@GetCol),
+                                                        #fine_row=Send(caster,@GetFineRow),
+                                                        #fine_col=Send(caster,@GetFineCol));
+               }
+               return oDeflectImpact;
+            }
+         }
+      }
+
+      return $;
    }
 
    Delete()

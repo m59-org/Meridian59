@@ -50,7 +50,8 @@ resources:
    spell_too_tired = "You are too tired to cast %s!"
    spell_insufficient_magic = "You don't have enough mana to cast %s!"
    spell_insufficient_reagent = "You don't have the reagents to cast %s!"
-   spell_out_of_range = "%s%s is out of range."
+   
+   spell_out_of_range = "%s%s is too far away to reach with %s."
    spell_begin_trance = "You start to cast %s."
    spell_safety_on = \
       "You can't make an antisocial cast; you don't want to attack innocents."
@@ -284,6 +285,9 @@ properties:
    % other spells that use this behavior when they are cast on a victim.
    % E.g. A newly cast Hex will remove previous Hexes.
    piUseHexBehavior = FALSE
+
+   % Maximum limit for spells
+   piRange = 40 * FINENESS
 
 messages:      
 
@@ -939,7 +943,7 @@ messages:
 
    CanPayCosts(who=$,lTargets=$,iSpellPower=0,bItemCast=FALSE,bFreeCast=FALSE,report=TRUE)
    {
-      local i, each_obj, oRoom, iRand, oSpell, oTarget;
+      local i, each_obj, oRoom, iRand, oSpell, oTarget, iTotalRange;
 
       if lTargets <> $
          AND Length(lTargets) = 1
@@ -955,6 +959,30 @@ messages:
                   #parm2=Send(oTarget,@GetHeShe));
 
             return FALSE;
+         }
+
+         if piRange <> $
+         {
+            iTotalRange = piRange;
+
+            % A little fudge factor to account for lag drift, etc.
+            if IsClass(oTarget,&Player) AND Send(oTarget,@HasMovedRecently)
+            {
+               iTotalRange = iTotalRange + RANGE_MOVEMENT_BONUS;
+            }
+
+            if Send(oTarget,@GetOwner) <> $
+               AND Send(who,@SquaredFineDistanceTo3D,#what=oTarget) > (iTotalRange * iTotalRange)
+            {
+               if NOT bItemCast
+               {
+                  Send(who,@MsgSendUser,#message_rsc=spell_out_of_range,
+                       #parm1=Send(oTarget,@GetCapDef),#parm2=Send(oTarget,@GetName),
+                       #parm3=vrName);
+               }
+
+               return FALSE;
+            }
          }
       }
 
@@ -2290,7 +2318,7 @@ messages:
 
    BeginCastingTrance(who = $, lTargets = $, iSpellPower = 0, report = TRUE)
    {
-      local oTrance, oObject, oOwner, i, oTarget, lFinalTargets, iCastTime;
+      local oTrance, oObject, oOwner, i, oTarget, lFinalTargets, iCastTime, oDeflectImpact;
 
       oOwner = Send(who,@GetOwner);
 
@@ -2323,11 +2351,16 @@ messages:
          lFinalTargets = Send(self,@GetGoodTargets,#who=who,
                               #lTargets=lTargets,#report=report);
 
-         if lFinalTargets <> $ AND IsClass(First(lFinalTargets),&Battler)
-            AND Send(First(lFinalTargets),@TryDeflect,#what=self,#caster=who)
+         oDeflectImpact = $;
+         if lFinalTargets <> $
+            AND IsClass(First(lFinalTargets),&Battler)
          {
-            Send(self,@CastSpell,#who=who,#lTargets=[who],
-                 #iSpellPower=iSpellPower/2);
+            oDeflectImpact = Send(First(lFinalTargets),@TryDeflect,#what=self,#caster=who);
+         }
+         
+         if oDeflectImpact <> $
+         {
+            Send(self,@CastSpell,#who=who,#lTargets=[who],#iSpellPower=iSpellPower/2,#oDeflectImpact=oDeflectImpact);
          }             
          else
          {
