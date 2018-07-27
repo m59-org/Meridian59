@@ -98,10 +98,16 @@ messages:
          iDeflectSpeed = Send(poCaster,@SquaredFineDistanceTo,#what=self);
 
          if iDeflectSpeed <> $
+            AND iDeflectSpeed <> 0
          {
-            iDeflectSpeed = (Sqrt(iDeflectSpeed) / 64) * 2;
+            iDeflectSpeed = Sqrt(iDeflectSpeed);
+            
+            if iDeflectSpeed <> 0
+            {
+               iDeflectSpeed = (iDeflectSpeed / 64) * 2;
+            }
          }
-         Send(poOwner,@SomethingShot,#who=self,#target=poCaster,#projectile=poSpell,#flags=Send(poSpell,@GetProjectileFlag),#iDeflectSpeed=iDeflectSpeed);
+         Send(poOwner,@SomethingShot,#who=self,#target=poCaster,#projectile=poSpell,#flags=Send(poSpell,@GetProjectileFlag),#iDeflectSpeed=Bound(iDeflectSpeed,1,$));
       }
 
       Send(self,@Delete);

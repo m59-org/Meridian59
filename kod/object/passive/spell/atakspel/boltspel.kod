@@ -36,6 +36,8 @@ classvars:
    viChance_To_Increase = 20
    viMeditate_ratio = 40
 
+   viProjectileSpeed = 5
+
 properties:
 
    piRange = 40 * FINENESS
@@ -61,6 +63,11 @@ messages:
                % Don't send to oDeflectImpact, it's not a NoMoveOn!
                iDeflectSpeed = Send(who,@SquaredFineDistanceTo,#what=oDeflectImpact);
                
+               if iDeflectSpeed = 0
+               {
+                  iDeflectSpeed = $;
+               }
+
                if iDeflectSpeed <> $
                {
                   iDeflectSpeed = (Sqrt(iDeflectSpeed) / 64) * 2;
@@ -87,9 +94,45 @@ messages:
    }
 
    % Return the speed at which a particular spell should appear to shoot through the air.
-   GetProjectileSpeed()
+   GetProjectileSpeed(who=$, target=$)
    {
-      return 5;
+      local iDist;
+
+      if who <> $
+         AND target <> $
+      {
+         % only NoMoveOns can calculate distances
+         if IsClass(who,&NoMoveOn)
+         {
+            iDist = Send(who,@SquaredFineDistanceTo,#what=target);
+         }
+         else if IsClass(target,&NoMoveOn)
+         {
+            iDist = Send(target,@SquaredFineDistanceTo,#what=who);
+         }
+         else
+         {
+            % Neither is a NoMoveOn? Give up!
+            return viProjectileSpeed;
+         }
+
+         if iDist <> $
+            AND iDist <> 0
+         {
+            iDist = Sqrt(iDist);
+
+            % Check sqrt value for 0
+            if iDist = 0
+            {
+               return viProjectileSpeed;
+            }
+            else
+            {
+               return Bound((iDist / 64) * 2,viProjectileSpeed,$);
+            }
+         }
+      }
+      return viProjectileSpeed;
    }
 
    SendProjectileAnimation()
