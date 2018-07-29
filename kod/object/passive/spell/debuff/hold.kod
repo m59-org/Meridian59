@@ -82,6 +82,8 @@ classvars:
    % Default color is lightning.
    viProjectileLightColor = LIGHT_BPURPLE
    
+   viProjectileSpeed = 18
+
    viPrimaryStat = STAT_ID_MYSTICISM
    viSecondaryStat = STAT_ID_KARMA
 
@@ -150,7 +152,7 @@ messages:
 
    CastSpell(who=$,wielder=$,lTargets=$,iSpellpower=0,report=TRUE,oDeflectImpact=$,bDeflectCast=FALSE)
    {
-      local oTarget, oRoom, i;
+      local oTarget, oRoom, i, iDeflectSpeed;
 
       oTarget = First(lTargets);
       % Is this a proc from a weapon?
@@ -159,7 +161,19 @@ messages:
          oRoom = Send(who,@GetOwner);
          if oDeflectImpact <> $
          {
-            Send(oRoom,@SomethingShot,#who=who,#target=oDeflectImpact,#projectile=self,#flags=viProjectileFlag);
+            % Don't send to oDeflectImpact, it's not a NoMoveOn!
+            iDeflectSpeed = Send(who,@SquaredFineDistanceTo,#what=oDeflectImpact);
+               
+            if iDeflectSpeed = 0
+            {
+               iDeflectSpeed = $;
+            }
+
+            if iDeflectSpeed <> $
+            {
+               iDeflectSpeed = (Sqrt(iDeflectSpeed) / 64) * 2;
+            }
+            Send(oRoom,@SomethingShot,#who=who,#target=oDeflectImpact,#projectile=self,#flags=viProjectileFlag,#iDeflectSpeed=iDeflectSpeed);
          }
          else
          {
@@ -171,7 +185,19 @@ messages:
          oRoom = Send(wielder,@GetOwner);
          if oDeflectImpact <> $
          {
-            Send(oRoom,@SomethingShot,#who=wielder,#target=oDeflectImpact,#projectile=self,#flags=viProjectileFlag);
+            % Don't send to oDeflectImpact, it's not a NoMoveOn!
+            iDeflectSpeed = Send(wielder,@SquaredFineDistanceTo,#what=oDeflectImpact);
+               
+            if iDeflectSpeed = 0
+            {
+               iDeflectSpeed = $;
+            }
+
+            if iDeflectSpeed <> $
+            {
+               iDeflectSpeed = (Sqrt(iDeflectSpeed) / 64) * 2;
+            }
+            Send(oRoom,@SomethingShot,#who=wielder,#target=oDeflectImpact,#projectile=self,#flags=viProjectileFlag,#iDeflectSpeed=iDeflectSpeed);
          }
          else
          {
@@ -393,9 +419,46 @@ messages:
       return vrProjectile_Icon;
    }
 
-   GetProjectileSpeed()
+   % Return the speed at which a particular spell should appear to shoot through the air.
+   GetProjectileSpeed(who=$, target=$)
    {
-      return 18;
+      local iDist;
+
+      if who <> $
+         AND target <> $
+      {
+         % only NoMoveOns can calculate distances
+         if IsClass(who,&NoMoveOn)
+         {
+            iDist = Send(who,@SquaredFineDistanceTo,#what=target);
+         }
+         else if IsClass(target,&NoMoveOn)
+         {
+            iDist = Send(target,@SquaredFineDistanceTo,#what=who);
+         }
+         else
+         {
+            % Neither is a NoMoveOn? Give up!
+            return viProjectileSpeed;
+         }
+
+         if iDist <> $
+            AND iDist <> 0
+         {
+            iDist = Sqrt(iDist);
+
+            % Check sqrt value for 0
+            if iDist = 0
+            {
+               return viProjectileSpeed;
+            }
+            else
+            {
+               return Bound((iDist / 64) * 2,viProjectileSpeed,$);
+            }
+         }
+      }
+      return viProjectileSpeed;
    }
 
    SendProjectileAnimation()
