@@ -148,7 +148,7 @@ messages:
       propagate;
    }
 
-   CastSpell(who=$,wielder=$,lTargets=$,iSpellpower=0,report=TRUE)
+   CastSpell(who=$,wielder=$,lTargets=$,iSpellpower=0,report=TRUE,oDeflectImpact=$,bDeflectCast=FALSE)
    {
       local oTarget, oRoom, i;
 
@@ -157,12 +157,26 @@ messages:
       if wielder = $
       {
          oRoom = Send(who,@GetOwner);
-         Send(oRoom,@SomethingShot,#who=who,#target=oTarget,#projectile=self,#flags=viProjectileFlag);
+         if oDeflectImpact <> $
+         {
+            Send(oRoom,@SomethingShot,#who=who,#target=oDeflectImpact,#projectile=self,#flags=viProjectileFlag);
+         }
+         else
+         {
+            Send(oRoom,@SomethingShot,#who=who,#target=oTarget,#projectile=self,#flags=viProjectileFlag);
+         }
       }
       else
       {
          oRoom = Send(wielder,@GetOwner);
-         Send(oRoom,@SomethingShot,#who=wielder,#target=oTarget,#projectile=self,#flags=viProjectileFlag);
+         if oDeflectImpact <> $
+         {
+            Send(oRoom,@SomethingShot,#who=wielder,#target=oDeflectImpact,#projectile=self,#flags=viProjectileFlag);
+         }
+         else
+         {
+            Send(oRoom,@SomethingShot,#who=wielder,#target=oTarget,#projectile=self,#flags=viProjectileFlag);
+         }
       }
 
       % Spell effects.

@@ -105,6 +105,11 @@ properties:
 
    piReputationGroup = REP_HERETIC
 
+   % Is this Battler protected by a magical shield against projectiles?
+   pbMagicalShield = TRUE
+   % Fine units
+   piMagicalShieldRadius = 64 * 6
+
 messages:
 
    Constructed()
@@ -280,6 +285,8 @@ messages:
    {
       local iResistChance;
 
+      % Turn this off in favor of new radius-based magical shield
+      propagate;
       if IsClass(who,&DM)
       {
          return FALSE;

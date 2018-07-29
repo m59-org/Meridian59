@@ -126,6 +126,11 @@ properties:
    
    piHexResistance = 30
 
+   % Is this Battler protected by a magical shield against projectiles?
+   pbMagicalShield = TRUE
+   % Fine units
+   piMagicalShieldRadius = 64 * 3
+
 messages:
 
    Constructor(InAttack=FALSE)
@@ -290,6 +295,9 @@ messages:
    SpellResist(oSpell=$,who=$,iSpellpower=$)
    {
       local iResistChance;
+      
+      % Turn this off in favor of new radius-based magical shield
+      propagate;
 
       if IsClass(who,&DM)
       {
