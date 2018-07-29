@@ -35,6 +35,11 @@ resources:
 
    blind_sound = qblind.wav
 
+   % Not implemented yet
+   blind_player_rsc = holdrings.bgf
+
+   blind_ring_projectile_rsc = greenblindring.bgf
+
 classvars:
 
    vrName = blind_name_rsc
@@ -59,6 +64,20 @@ classvars:
    
    viPrimaryStat = STAT_ID_MYSTICISM
    viSecondaryStat = STAT_ID_KARMA
+   
+   vrProjectile_Icon = blind_ring_projectile_rsc
+   viProjectileFlag = PROJ_FLAG_LIGHT_SOURCE
+
+   % Projectile lighting information.
+   viProjectileLightFlags = LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC
+   % Medium light range, out of 255.
+   viProjectileLightIntensity = 100
+   % Default color is lightning.
+   viProjectileLightColor = LIGHT_BGREEN
+
+   vrBlindRings = blind_player_rsc
+
+   viLayer = 9
 
 properties:
 
@@ -95,11 +114,36 @@ messages:
       return;
    }
 
-   CastSpell(who=$,lTargets=$,iSpellPower=0)
+   CastSpell(who=$,wielder=$,lTargets=$,iSpellPower=0,oDeflectImpact=$,bDeflectCast=FALSE)
    {
-      local oTarget;
+      local oTarget, oRoom, i;
 
       oTarget = First(lTargets);
+      % Is this a proc from a weapon?
+      if wielder = $
+      {
+         oRoom = Send(who,@GetOwner);
+         if oDeflectImpact <> $
+         {
+            Send(oRoom,@SomethingShot,#who=who,#target=oDeflectImpact,#projectile=self,#flags=viProjectileFlag);
+         }
+         else
+         {
+            Send(oRoom,@SomethingShot,#who=who,#target=oTarget,#projectile=self,#flags=viProjectileFlag);
+         }
+      }
+      else
+      {
+         oRoom = Send(wielder,@GetOwner);
+         if oDeflectImpact <> $
+         {
+            Send(oRoom,@SomethingShot,#who=wielder,#target=oDeflectImpact,#projectile=self,#flags=viProjectileFlag);
+         }
+         else
+         {
+            Send(oRoom,@SomethingShot,#who=wielder,#target=oTarget,#projectile=self,#flags=viProjectileFlag);
+         }
+      }
 
       % Spell effects
       Send(self,@DoSpell,#what=who,#oTarget=oTarget,
@@ -196,6 +240,38 @@ messages:
       Send(mob,@SetBehaviorFlag,#flag=AI_NOFIGHT,#value=TRUE);
 
       return;
+   }
+
+   % Return the icon used to display a spell shooting through the air.
+   GetProjectileIcon()
+   {
+      return vrProjectile_Icon;
+   }
+
+   GetProjectileSpeed()
+   {
+      return 18;
+   }
+
+   SendProjectileAnimation()
+   {
+      AddPacket(1, ANIMATE_CYCLE, 4, 40, 2, 1, 2, 10);   % 40ms between animations
+      return;
+   }
+
+   GetProjectileLightFlags()
+   {
+      return viProjectileLightFlags;
+   }
+
+   GetProjectileLightIntensity()
+   {
+      return viProjectileLightIntensity;
+   }
+
+   GetProjectileLightColor()
+   {
+      return viProjectileLightColor;
    }
 
 end
