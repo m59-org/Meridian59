@@ -18194,6 +18194,32 @@ messages:
          }
          return;
       }
+      % Blind gives off a dim green glow
+      if Send(self,@IsEnchanted,#byClass=&Blind)
+      {
+         if bOverride
+         {
+            AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC),1,100, 2,iOverrideLightColor);
+         }
+         else
+         {
+            AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC),1,50, 2,LIGHT_BGREEN);
+         }
+         return;
+      }
+      % Dazzle is blazing white
+      if Send(self,@IsEnchanted,#byClass=&Dazzle)
+      {
+         if bOverride
+         {
+            AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC),1,100, 2,iOverrideLightColor);
+         }
+         else
+         {
+            AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC),1,255, 2,LIGHT_WHITE);
+         }
+         return;
+      }
 
       % Bitflag check, don't need to check anything if not set.
       if NOT (piDrawEffectFlag & OF_FLICKERING)

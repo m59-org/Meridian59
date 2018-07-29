@@ -199,6 +199,10 @@ messages:
          % Re-check the bound on duration.
          iDuration = Bound(iDuration,piMonsterMinDazzle,piMaxDazzle);
          Post(oTarget,@ResetBehaviorFlags);
+         if Send(oTarget,@GetOwner) <> $
+         {
+            Post(Send(oTarget,@GetOwner),@SomethingChanged,#what=oTarget);
+         }
       }
 
       Send(what,@MsgSendUser,#message_rsc=vrSuccess,
@@ -257,6 +261,10 @@ messages:
          % Post this so it's done AFTER the enchantment is gone from the
          % monster's ench list
          Post(who,@ResetBehaviorFlags);
+         if Send(who,@GetOwner) <> $
+         {
+            Post(Send(who,@GetOwner),@SomethingChanged,#what=who);
+         }
       }
 
       return;

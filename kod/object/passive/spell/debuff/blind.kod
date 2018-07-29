@@ -212,6 +212,10 @@ messages:
          % class is Monster
          iDuration = Bound(iDuration,piMonsterMinBlind,piMaxBlind);
          Post(oTarget,@ResetBehaviorFlags);
+         if Send(oTarget,@GetOwner) <> $
+         {
+            Post(Send(oTarget,@GetOwner),@SomethingChanged,#what=oTarget);
+         }
       }
 
       Send(what,@MsgSendUser,#message_rsc=vrSuccess,
@@ -247,6 +251,10 @@ messages:
          % This has to be done AFTER the enchantment is gone from the
          % monster's ench list - post it.
          Post(who,@ResetBehaviorFlags);
+         if Send(who,@GetOwner) <> $
+         {
+            Post(Send(who,@GetOwner),@SomethingChanged,#what=who);
+         }
       }
 
       return;
