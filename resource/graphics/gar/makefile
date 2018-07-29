@@ -51,7 +51,8 @@ BGFS = igreyinvis.bgf isitting.bgf itransferitem.bgf iexplosion.bgf irift.bgf \
        iaridaria.bgf \
        ihexsever.bgf \
        deflectimpact.bgf \
-       greenblindring.bof
+       greenblindring.bof \
+       dazzlestar.bof
 
 DIRS = 
 
