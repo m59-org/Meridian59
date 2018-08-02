@@ -31,6 +31,9 @@ resources:
       "Partially severs the victim's connection to their mana nodes, hindering mana regeneration. "
       "This hex requires one cold fragment to cast."
 
+   sever_hex_effect_report = \
+      "At that effectiveness, your sever hex will force the victim to wait ~r~B%i ~ntimes as long to regenerate a point of mana."
+
    Sever_sound = qenfeebl.wav
 
 classvars:
@@ -38,6 +41,8 @@ classvars:
    vrName = Sever_name_rsc
    vrIcon = Sever_icon_rsc
    vrDesc = Sever_desc_rsc
+
+   vrHexEffectReport = sever_hex_effect_report
 
    vrAlreadyEnchanted = Sever_already_enchanted
    vrEnchantment_On = Sever_start
@@ -80,6 +85,12 @@ messages:
       % regen here is a time in ms. delay starts at double, goes up to x10
       regen = regen * (1+((piBaseEffect+((state+1)*9))/100));
       return regen;
+   }
+
+   DoHexEffectReport(what=$,iHexEffect=0)
+   {
+      Send(what,@MsgSendUser,#message_rsc=vrHexEffectReport,#parm1=(1+((piBaseEffect+((iHexEffect+1)*9))/100)));
+      return;
    }
 
 end

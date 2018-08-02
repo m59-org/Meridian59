@@ -34,6 +34,12 @@ resources:
 
    has_been_hexed_default = "%s%s has been hexed!"
 
+   hex_display_hex_effect = \
+      "The effectiveness of your %s hex is ~b%i~n."
+
+   default_hex_effect_report = \
+      "Effect of hex is %i."
+
 classvars:
 
    vrAlreadyEnchanted = already_hexed
@@ -41,6 +47,8 @@ classvars:
    vrEnchantment_Off = hex_off_default
    vrSuccess = hex_success_caster_default
    vrInformRoom = has_been_hexed_default
+
+   vrHexEffectReport = default_hex_effect_report
 
    viSchool = SS_WITCHERY
    viSubSchool = SSS_WITCHERY_XAERDUN
@@ -81,7 +89,7 @@ messages:
       propagate;
    }
 
-   CastSpell(who=$,lTargets=$,iSpellPower=0)
+   CastSpell(who=$,lTargets=$,iSpellPower=0,bSecondaryCast=FALSE)
    {
       local oTarget, oPlayer, oRoom, each_obj;
 
@@ -110,12 +118,12 @@ messages:
       % Spell effects
       Send(self,@DoSpell,#what=who,#oTarget=oTarget,
             #iDuration=Send(self,@GetDuration,#iSpellPower=iSpellPower),
-            #iSpellPower=iSpellPower);
+            #iSpellPower=iSpellPower,#bSecondaryCast=bSecondaryCast);
       
       propagate;
    }
 
-   DoSpell(what=$,oTarget=$,iDuration=0,iSpellPower=0)
+   DoSpell(what=$,oTarget=$,iDuration=0,iSpellPower=0,bSecondaryCast=FALSE)
    {
       local iCasterIncHexEffect, iTargetHexResistance, iHexEffect;
 
@@ -173,6 +181,17 @@ messages:
             #parm1=Send(oTarget,@GetCapDef),#parm2=Send(oTarget,@GetName));
       Send(oTarget,@StartEnchantment,#what=self,#time=iDuration,
                    #state=iHexEffect);
+
+      % Let players see the effectiveness their hexes are cast at, if they
+      % have the setting enabled in their preference menu.
+      if what <> $
+         AND IsClass(what,&Player)
+         AND Send(what,@CheckPlayerPreference,#flag=CF_SPELLPOWER)
+         AND NOT bSecondaryCast
+      {
+         Send(what,@MsgSendUser,#message_rsc=hex_display_hex_effect,#parm1=Send(self,@GetName),#parm2=iHexEffect);
+         Send(self,@DoHexEffectReport,#what=what,#iHexEffect=iHexEffect);
+      }
 
       propagate;
    }
@@ -295,6 +314,12 @@ messages:
    AttackerDealsDamageToMana(damage=0)
    {
       return damage;
+   }
+
+   DoHexEffectReport(what=$,iHexEffect=0)
+   {
+      Send(what,@MsgSendUser,#message_rsc=vrHexEffectReport,#parm1=(piBaseEffect*iHexEffect)/100);
+      return;
    }
 
 end

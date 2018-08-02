@@ -16,11 +16,22 @@ constants:
 
 resources:
 
+   antireshex_report_msg = \
+      "At that effectiveness, the victim will suffer ~r%i\% ~nreduced resistance."
+
 classvars:
+
+   vrHexEffectReport = antireshex_report_msg
 
 properties:
 
 messages:
+
+   DoHexEffectReport(what=$,iHexEffect=0)
+   {
+      Send(what,@MsgSendUser,#message_rsc=vrHexEffectReport,#parm1=piBaseEffect * iHexEffect / 100);
+      return;
+   }
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

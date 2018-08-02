@@ -35,6 +35,11 @@ resources:
       "the intonation of stance mantras and other important spoken tactics. "
       "This hex requires one unholy fragment to cast."
 
+   mute_hex_secondary_report = \
+      "At that extreme effectiveness, your mute hex will prevent all of the victim's communications."
+   mute_hex_effect_report = \
+      "At that effectiveness, your mute hex will block ~r~B%i\% ~nof the victim's attempts to communicate."   
+
    mute_sound = qenfeebl.wav
 
 classvars:
@@ -42,6 +47,8 @@ classvars:
    vrName = mute_name_rsc
    vrIcon = mute_icon_rsc
    vrDesc = mute_desc_rsc
+
+   vrHexEffectReport = mute_hex_effect_report
 
    vrAlreadyEnchanted = mute_already_enchanted
    vrEnchantment_On = mute_start
@@ -87,6 +94,19 @@ messages:
       }
 
       return TRUE;
+   }
+
+   DoHexEffectReport(what=$,iHexEffect=0)
+   {
+      if piBaseEffect+iHexEffect >= 100
+      {
+         Send(what,@MsgSendUser,#message_rsc=mute_hex_secondary_report);
+      }
+      else
+      {
+         Send(what,@MsgSendUser,#message_rsc=vrHexEffectReport,#parm1=piBaseEffect+iHexEffect);
+      }
+      return;
    }
 
 end

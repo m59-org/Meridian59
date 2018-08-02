@@ -136,7 +136,7 @@ resources:
       "~g~BAn unseen force rips the words of the spell from your throat "
       "before you can fully utter them."
    spell_display_spellpower = \
-      "Spellpower for %s is ~b%i~n."
+      "The spellpower of your %s cast is ~b%i~n."
    no_line_of_sight = \
       "Your hindered line of sight makes casting more difficult."
 
@@ -1820,8 +1820,12 @@ messages:
          AND Send(who,@CheckPlayerPreference,#flag=CF_SPELLPOWER)
          AND NOT bSecondaryCast
       {
-         Send(who,@MsgSendUser,#message_rsc=spell_display_spellpower,
-               #parm1=Send(self,@GetName),#parm2=iSpellPower);
+         % Hexes have their own type of report!
+         if NOT IsClass(self,&Hex)
+         {
+            Send(who,@MsgSendUser,#message_rsc=spell_display_spellpower,
+                  #parm1=Send(self,@GetName),#parm2=iSpellPower);
+         }
       }
 
       % Define what is the target for the next few checks.

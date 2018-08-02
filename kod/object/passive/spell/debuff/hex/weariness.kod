@@ -25,11 +25,14 @@ resources:
       "%s%s suddenly seems weary!"
 
    weariness_name_rsc = "weariness"
-   weariness_icon_rsc = ihexexhaustion.bgf
+   weariness_icon_rsc = ihexsever.bgf
    weariness_desc_rsc = \
       "Bonds a spiritual burden to the victim's soul that makes every casting "
       "require more mana. "
       "This hex requires one cold fragment to cast."
+
+   weariness_hex_effect_report = \
+      "At that effectiveness, your weariness hex will cause the victim to suffer ~r~B%i\% ~nincreased mana costs."
 
    weariness_sound = qenfeebl.wav
 
@@ -38,6 +41,8 @@ classvars:
    vrName = weariness_name_rsc
    vrIcon = weariness_icon_rsc
    vrDesc = weariness_desc_rsc
+
+   vrHexEffectReport = weariness_hex_effect_report
 
    vrAlreadyEnchanted = weariness_already_enchanted
    vrEnchantment_On = weariness_start
@@ -79,6 +84,12 @@ messages:
    {
       % base 50 percent up to 100 percent increase
       return (cost * (100+piBaseEffect+((state+1)/2))) / 100;
+   }
+
+   DoHexEffectReport(what=$,iHexEffect=0)
+   {
+      Send(what,@MsgSendUser,#message_rsc=vrHexEffectReport,#parm1=piBaseEffect+((iHexEffect+1)/2));
+      return;
    }
 
 end
