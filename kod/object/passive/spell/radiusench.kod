@@ -289,6 +289,11 @@ messages:
       }
 
       plCurrentEnchantments = Cons([source,0,0,$,iPower,iRange,iDuration,oRoom],plCurrentEnchantments);
+
+      if piOldAreaEnchStyle
+      {
+         Send(self,@StartRoomEffects,#oRoom=oRoom);
+      }
       
       if IsClass(self,&Jala)
       {
@@ -800,6 +805,11 @@ messages:
                   
                   }
                }
+               
+               if piOldAreaEnchStyle
+               {
+                  Send(self,@EndRoomEffects,#oRoom=oRoom);
+               }
 
                if IsClass(self,&Jala)
                   AND source <> $
@@ -831,6 +841,16 @@ messages:
 
    RemoveEnchantmentEffects()
    "Need to override spell.kod's thing, since we do this ourselves specially."
+   {
+      return;
+   }
+
+   StartRoomEffects(oRoom=$)
+   {
+      return;
+   }
+
+   EndRoomEffects(oRoom=$)
    {
       return;
    }
