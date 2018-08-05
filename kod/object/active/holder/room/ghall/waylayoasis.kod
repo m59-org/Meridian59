@@ -144,6 +144,9 @@ resources:
 
    waypoint_trigger_word = \
       "qua quazali"
+   
+   waypoint_trigger_palace = \
+      "qua qua zalo"
 
 classvars:
 
@@ -623,6 +626,14 @@ messages:
          AND StringContain(string,waypoint_trigger_word)
       {
          Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTRIVER3),@Teleport,#what=what);
+         return;
+      }
+      
+      if iSpeakerSection = AREA_WAYPOINT
+         AND StringContain(string,waypoint_trigger_palace)
+         AND Send(what,@HasCompletedQuestChain,#chain_num=ANY_HP_MAZE_EXIT_CHAIN)
+      {
+         Send(Send(SYS,@FindRoomByNum,#num=RID_PALACE_DUNGEON_ENTRANCE),@Teleport,#what=what);
          return;
       }
 

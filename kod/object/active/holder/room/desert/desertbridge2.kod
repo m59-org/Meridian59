@@ -145,6 +145,12 @@ messages:
    {
       local i;
       
+      if pbGateOpen
+      {
+         % Don't do this repeatedly
+         return;
+      }
+      
       foreach i in Send(self,@GetHolderActive)
       {
          if IsClass(First(i),&Player)
@@ -184,7 +190,7 @@ messages:
       {
          Send(SYS,@UtilGoNearSquare,#what=what,
               #where=Send(SYS,@FindRoomByNum,#num=RID_PALACE_DUNGEON_ENTRANCE),
-              #new_row=2,#new_col=4,#new_angle=ANGLE_EAST);
+              #new_row=3,#new_col=6,#fine_row=33,#fine_col=33,#new_angle=Send(what,@GetAngle));
               
          return;
       }
