@@ -12,6 +12,7 @@ BOFS = antimag.bof \
        umbrella.bof \
        winds.bof \
        battlecontrol.bof \
-       blizzard.bof
+       blizzard.bof \
+       thunderstorm.bof
 
 !include $(KODDIR)\kod.mak

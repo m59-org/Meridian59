@@ -14,10 +14,6 @@ constants:
 
    include blakston.khd
 
-   BLIZZARD_VIGOR_LOSS = 5          % 5 vigor / 10 sec
-   BLIZZARD_PERIOD = 10000          % damage every 15 secs
-   BLIZZARD_TIME = 120000           % 2 realtime minutes
-
 resources:
 
    blizzard_name_rsc = "blizzard"
@@ -46,6 +42,9 @@ resources:
    blizzard_caster_enter = "Unnaturally cold snow begins to fall."
    blizzard_enter = "Unnaturally cold snow begins to fall."
    blizzard_leave = "The air around you warms."
+
+   already_snowing_here = \
+      "It's already snowing here!"
    
    blizzard_sound = ficefing.wav
 
@@ -81,7 +80,7 @@ classvars:
 
    viCasterPersist = TRUE
 
-   viCast_time = 10000
+   viCast_time = 30000
 
 properties:
 
@@ -97,6 +96,18 @@ messages:
       return;
    }
 
+   CanPayCosts(who=$)
+   {
+      if who <> $
+         AND Send(who,@GetOwner) <> $
+         AND Send(Send(who,@GetOwner),@CheckRoomFlag,#flag=ROOM_SNOWING)
+      {
+         Send(who,@MsgSendUser,#message_rsc=already_snowing_here);
+         return FALSE;
+      }
+      propagate;
+   }
+
    GetDuration(iSpellPower=0)
    {
       return Bound(80000+(iSpellPower*1000),80000,180000);
@@ -104,6 +115,10 @@ messages:
 
    StartRoomEffects(oRoom=$)
    {
+      if Send(oRoom,@CheckRoomFlag,#flag=ROOM_RAINING)
+      {
+         Send(oRoom,@EndRain);
+      }
       Send(oRoom,@StartSnow);
       return;
    }
