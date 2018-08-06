@@ -33,6 +33,7 @@ resources:
    attribute_name_default = "special %s"
 
    itematt_made_rsc = "  Enchanted by %q, %s %s."
+   itematt_initiate_rsc = "Initiate"
    itematt_novice_rsc = "Novice"
    itematt_apprentice_rsc = "Apprentice"
    itematt_journeyman_rsc = "Journeyman"
@@ -540,7 +541,12 @@ messages:
 
    GetTitle(iAbility=0)
    {
-      iAbility = Bound(iAbility,1,4);
+      iAbility = Bound((iAbility+1)/25,0,4);
+
+      if iAbility = 1
+      {
+         return itematt_novice_rsc;
+      }
 
       if iAbility = 2
       {
@@ -557,7 +563,7 @@ messages:
          return itematt_master_rsc;
       }
 
-      return itematt_novice_rsc;
+      return itematt_initiate_rsc;
    }
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
