@@ -326,6 +326,16 @@ messages:
          iBaseHit = iBaseHit + WEAPON_NERUDITE_HITMOD;
       }
 
+      foreach i in plItem_Attributes
+      {
+         oWeapAtt = Send(SYS,@FindItemAttByNum,#num=Send(self,@GetNumFromCompound,#compound=First(i)));
+         if IsClass(oWeapAtt,&WeaponAttribute)
+         {
+            iBaseHit = Send(oWeapAtt,@ModifyHitRoll,#hitroll=iBaseHit,#wielder=poOwner,
+                              #target=$,#lData=i);
+         }
+      }
+
       iBaseHit = iBaseHit + piHitBonus;
 
       return iBaseHit + sum;
@@ -368,7 +378,7 @@ messages:
 
    GetMinDamage()
    {
-      local iDamage, oSkill, i, oWeaponDamageMod;
+      local iDamage, oSkill, i, oWeaponDamageMod, oWeapAtt;
 
       % Weapon type
       if viWeaponType = WEAPON_TYPE_BLUDGEON
@@ -408,12 +418,24 @@ messages:
          }
       }
 
+      % Then check weapon attributes
+      %  Weapon Attributes in general should only + or - damage - no multipliers!
+      foreach i in plItem_Attributes
+      {
+         oWeapAtt = Send(SYS,@FindItemAttByNum,#num=Send(self,@GetNumFromCompound,#compound=First(i)));
+         if IsClass(oWeapAtt,&WeaponAttribute)
+         {
+            iDamage = Send(oWeapAtt,@ModifyDamage,#damage=iDamage,#wielder=poOwner,
+                           #target=$,#lData=i);
+         }
+      }
+
       return iDamage + piDamageBonus;
    }
 
    GetMaxDamage()
    {
-      local iDamage, oSkill, i, oWeaponDamageMod;
+      local iDamage, oSkill, i, oWeaponDamageMod, oWeapAtt;
 
       % Weapon type
       if viWeaponType = WEAPON_TYPE_BLUDGEON
@@ -450,6 +472,18 @@ messages:
             oWeaponDamageMod = Send(SYS,@GetMagicMod,#class=&WeaponDamageMod);
             iDamage = Send(oWeaponDamageMod,@ModifyDamage,
                         #damage=iDamage,#iState=Nth(i,2));
+         }
+      }
+
+      % Then check weapon attributes
+      %  Weapon Attributes in general should only + or - damage - no multipliers!
+      foreach i in plItem_Attributes
+      {
+         oWeapAtt = Send(SYS,@FindItemAttByNum,#num=Send(self,@GetNumFromCompound,#compound=First(i)));
+         if IsClass(oWeapAtt,&WeaponAttribute)
+         {
+            iDamage = Send(oWeapAtt,@ModifyDamage,#damage=iDamage,#wielder=poOwner,
+                           #target=$,#lData=i);
          }
       }
 
