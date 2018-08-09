@@ -168,13 +168,15 @@ messages:
                                       @GetDurationIncrease,#who=what);
       }
 
-      % Nequzon level 6, hexes don't expire
+      % Nequzon level 6, hexes 'never' expire, but really it's just like a 27 hour timer.
+      % Actually never expiring using $ timer caused logging off and on or phasing to shed the spell
+      % The game thought it was a bad timer.
       if IsClass(what,&Player)
          AND Send(what,@GetSkillAbility,#Skill_num=SKID_OSTRACIZATION) > 0
          AND Send(Send(SYS,@FindSkillByNum,#num=SKID_OSTRACIZATION),
                @DoSkill,#who=what)
       {
-         iDuration = $;
+         iDuration = 100000000;
       }
 
       Send(what,@MsgSendUser,#message_rsc=vrSuccess,

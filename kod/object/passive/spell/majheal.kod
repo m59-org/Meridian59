@@ -112,7 +112,7 @@ messages:
 
    CastSpell(who = $, lTargets = $, iSpellPower = 0)
    {
-      local iHeal, oTarget, i, oRoom;
+      local iHeal, oTarget, i, oRoom, iResult;
 
       oTarget = First(lTargets);
 
@@ -127,30 +127,40 @@ messages:
       if iHeal < 0
          AND Send(who,@AllowPlayerAttack,#victim=oTarget)
       {
-         if who <> oTarget
+         iResult = 0;
+         iResult = Send(oTarget,@AssessDamage,#what=who,
+                                #damage=-iHeal,
+                                #aspell=ATCK_SPELL_ALL+ATCK_SPELL_HOLY,
+                                #precision=TRUE);
+
+         if iResult = $
          {
-            Send(who,@MsgSendUser,#message_rsc=major_heal_harm_other_rsc,
-                                  #parm1=Send(oTarget,@GetDef),
-                                  #parm2=Send(oTarget,@GetName),
-                                  #parm3=-iHeal/100);
-            Send(oTarget,@MsgSendUser,#message_rsc=major_heal_harm_rsc,
-                                      #parm1=Send(who,@GetCapDef),
-                                      #parm2=Send(who,@GetName),
-                                      #parm3=-iHeal/100);
-            Send(oTarget,@AssessDamage,#what=who,
-                                       #damage=-iHeal,
-                                       #aspell=ATCK_SPELL_ALL+ATCK_SPELL_HOLY,
-                                       #precision=TRUE);         
+            % The target died!
+            if IsClass(who,&Battler)
+            {
+               Send(who,@KilledSomething,#what=oTarget,#use_weapon=self);
+            }
          }
          else
          {
-            Send(who,@MsgSendUser,#message_rsc=major_heal_harm_self_rsc,
-                                  #parm1=-iHeal/100);
-            Send(who,@AssessDamage,#what=who,
-                                   #damage=-iHeal,
-                                   #aspell=ATCK_SPELL_ALL+ATCK_SPELL_HOLY,
-                                   #precision=TRUE);
+            if who <> oTarget
+            {
+               Send(who,@MsgSendUser,#message_rsc=major_heal_harm_other_rsc,
+                                     #parm1=Send(oTarget,@GetDef),
+                                     #parm2=Send(oTarget,@GetName),
+                                     #parm3=iResult/100);
+               Send(oTarget,@MsgSendUser,#message_rsc=major_heal_harm_rsc,
+                                         #parm1=Send(who,@GetCapDef),
+                                         #parm2=Send(who,@GetName),
+                                         #parm3=iResult/100);
+            }
+            else
+            {
+               Send(who,@MsgSendUser,#message_rsc=major_heal_harm_self_rsc,
+                                     #parm1=iResult/100);
+            }
          }
+
          propagate;
       }
       else
