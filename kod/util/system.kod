@@ -3929,6 +3929,8 @@ messages:
        Send(self,@CreateOneSKillIfNew,#num=SKID_BLEED_MASTERY,#class=&BleedMastery);
        Send(self,@CreateOneSKillIfNew,#num=SKID_BASH,#class=&Bash);
        Send(self,@CreateOneSKillIfNew,#num=SKID_WEAPONMASTER,#class=&Weaponmaster);
+
+       Send(self,@CreateOneSKillIfNew,#num=SKID_MANA_SHIELD,#class=&ManaShield);
        
        return;
    }
@@ -7681,6 +7683,42 @@ messages:
          }
       }
       return iCount;
+   }
+
+   AdminCountPlayersWithSkill(num=$,includeDMs=FALSE)
+   "Admin Supported."
+   {
+      local i,iCount;
+      iCount = 0;
+      foreach i in plUsers
+      {
+         if includeDMs OR NOT isClass(i,&DM)
+         {
+            if Send(i,@HasSkill,#num=num)
+            {
+               iCount=(iCount+1);
+            }
+         }
+      }
+      return iCount;
+   }
+
+   AdminListPlayersWithSkill(num=$,includeDMs=FALSE)
+   "Admin Supported."
+   {
+      local i,lPlayers;
+      lPlayers = $;
+      foreach i in plUsers
+      {
+         if includeDMs OR NOT isClass(i,&DM)
+         {
+            if Send(i,@HasSkill,#num=num)
+            {
+               lPlayers=cons(i,lPlayers);
+            }
+         }
+      }
+      return lPlayers;
    }
 
    AdminListPlayersWithSpell(num=$,includeDMs=FALSE)

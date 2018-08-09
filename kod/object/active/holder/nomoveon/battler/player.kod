@@ -7656,17 +7656,24 @@ messages:
 
       % Check for Damage to Mana from Spirit Shackles Hex.
       if what <> $
-         AND (IsClass(what,&Player)
-             OR IsClass(what,&Monster))
+         AND IsClass(what,&Battler)
       {
          foreach i in Send(what,@GetEnchantmentsByClass,#enchClass=&Hex)
          {
             damage = Send(Nth(i,2),@AttackerDealsDamageToMana,#who=self,#what=what,#state=Nth(i,3),#damage=damage);
          }
       }
+      % Check for Damage to Mana from Mana Shield skill.
+      if Send(self,@HasSkill,#num=SKID_MANA_SHIELD)
+      {
+         if Send(Send(SYS,@FindSkillByNum,#num=SKID_MANA_SHIELD),@DoSkill,#who=self)
+         {
+            damage = Send(Send(SYS,@FindSkillByNum,#num=SKID_MANA_SHIELD),@AttackerDealsDamageToMana,#oAttacker=what,#oDefender=self,#damage=damage);
+         }
+      }
       if damage = 0
       {
-         % Spirit Shackles took all the damage.
+         % Spirit Shackles and Mana Shield took all the damage.
          return 0;
       }
       
