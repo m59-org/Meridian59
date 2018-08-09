@@ -1353,6 +1353,7 @@ properties:
    ptDeathRiftTimer = $
 
    % This list keeps track of selfcast buffs for passive improvement.
+   % Passive improvement will also check reserved buffs, but at a lower imp rate.
    plPassiveImprovement = $
 
    % Crystalize Mana Surge data
@@ -6810,6 +6811,14 @@ messages:
             Send(First(i),@ImproveAbility,#who=self,#target=what);
          }
       }
+      foreach i in plReservedSpells
+      {
+         if Send(Nth(i,1),@IsOffensive)
+            AND Random(1,100) = 100
+         {
+            Send(First(i),@ImproveAbility,#who=self,#target=what);
+         }
+      }
          
       if poStance <> $
          AND IsClass(poStance,&LightAttackStance)
@@ -7729,7 +7738,14 @@ messages:
                Send(First(i),@ImproveAbility,#who=self,#target=what);
             }
          }
-
+         foreach i in plReservedSpells
+         {
+            if (aspell & (Send(Nth(i,1),@IsResistance)*-1)) AND Random(1,20) = 20
+            {
+               Send(First(i),@ImproveAbility,#who=self,#target=what);
+            }
+         }
+      
          damage = damage * scalefactor / 1000;
       }
 
@@ -11474,6 +11490,13 @@ messages:
             foreach i in plPassiveImprovement
             {
                if Nth(i,2) and random(1,5) = 5
+               {
+                  Send(First(i),@ImproveAbility,#who=self,#target=what);
+               }
+            }
+            foreach i in plReservedSpells
+            {
+               if Send(Nth(i,1),@IsDefensive) AND Random(1,10) = 10
                {
                   Send(First(i),@ImproveAbility,#who=self,#target=what);
                }
