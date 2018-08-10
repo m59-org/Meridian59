@@ -15,6 +15,7 @@ BOFS = arcaneknowledge.bof \
        hermitage.bof \
        nightgrip.bof \
        aversion.bof \
-       manashield.bof
+       manashield.bof \
+       viletouch.bof
 
 !include $(KODDIR)\kod.mak

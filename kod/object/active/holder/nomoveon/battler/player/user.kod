@@ -512,6 +512,20 @@ resources:
    user_intellect_warn3 = \
       "~B~rOddly, you feel as if you've been given a free stat reset at any elder for some reason."
 
+   vile_touch_spell_not_found = \
+      "No hex with that name exists. Try stating it without punctuation, apostrophes, or extra text."
+   vile_touch_no_hexes = \
+      "You have not chosen any hexes to apply on striking with noxious strike."
+   vile_touch_choice_one_will_cast = \
+      "Your noxious strikes will apply %s."
+   vile_touch_choice_two_will_cast = \
+      "Your noxious strikes will also apply %s."
+
+   vile_touch_choice_one_made = \
+      "Your noxious strikes will now apply %s."
+   vile_touch_choice_two_made = \
+      "Your noxious strikes will now also apply %s."
+
 classvars:
 
    viIndefinite = ARTICLE_NONE
@@ -597,6 +611,9 @@ properties:
 
    % Warn player about stat reset due to over learn count
    pbWarnAboutIntellect = FALSE
+
+   % Players can choose hexes to deliver with attacks if they are Iwodach 4, Noxious Strike
+   plNoxiousStrikeChosenHexes = $
 
 messages:
 
@@ -5286,7 +5303,7 @@ messages:
 
    UserSay(type=$,string=$)
    {
-      local i, oSpell, lEnchantData, bTranceBlocksSay, oPrey;
+      local i, oSpell, lEnchantData, bTranceBlocksSay, oPrey, iSpellNum;
 
       % A room can completely block a piece of communication if it chooses.
       % An excellent example is Out Of Grace, which blocks all tells to 
@@ -5316,6 +5333,77 @@ messages:
 
       if type = SAY_NORMAL
       {
+         if StringContain(String,"I wish my noxious strikes to hex my enemy with ")
+            AND Send(self,@HasSkill,#num=SKID_VILE_TOUCH)
+         {
+            % First use case
+            if plNoxiousStrikeChosenHexes = $
+            {
+               plNoxiousStrikeChosenHexes = [$,$];
+            }
+            StringSubstitute(String,"I wish my noxious strikes to hex my enemy with ","");
+            iSpellNum = Send(SYS,@FindSpellNumByString,#string=String);
+            
+            if iSpellNum = 0
+               OR Send(SYS,@FindSpellByNum,#num=iSpellNum) = $
+               OR NOT IsClass(Send(SYS,@FindSpellByNum,#num=iSpellNum),&Hex)
+               OR NOT Send(self,@HasSpell,#num=iSpellNum)
+            {
+               Send(self,@MsgSendUser,#message_rsc=vile_touch_spell_not_found);
+            }
+            else
+            {
+               SetNth(plNoxiousStrikeChosenHexes,1,iSpellNum);
+               Send(self,@MsgSendUser,#message_rsc=vile_touch_choice_one_made,#parm1=Send(Send(SYS,@FindSpellByNum,#num=iSpellNum),@GetName));
+            }
+            return;
+         }
+         if StringContain(String,"I wish my noxious strikes to also hex my enemy with ")
+            AND Send(self,@HasSkill,#num=SKID_VILE_TOUCH)
+            AND Send(self,@HasSkill,#num=SKID_BLOOD_RUNES)
+         {
+            % First use case
+            if plNoxiousStrikeChosenHexes = $
+            {
+               plNoxiousStrikeChosenHexes = [$,$];
+            }
+            StringSubstitute(String,"I wish my noxious strikes to also hex my enemy with ","");
+            iSpellNum = Send(SYS,@FindSpellNumByString,#string=String);
+
+            if iSpellNum = 0
+               OR Send(SYS,@FindSpellByNum,#num=iSpellNum) = $
+               OR NOT IsClass(Send(SYS,@FindSpellByNum,#num=iSpellNum),&Hex)
+               OR NOT Send(self,@HasSpell,#num=iSpellNum)
+            {
+               Send(self,@MsgSendUser,#message_rsc=vile_touch_spell_not_found);
+            }
+            else
+            {
+               SetNth(plNoxiousStrikeChosenHexes,2,iSpellNum);
+               Send(self,@MsgSendUser,#message_rsc=vile_touch_choice_two_made,#parm1=Send(Send(SYS,@FindSpellByNum,#num=iSpellNum),@GetName));
+            }
+            return;
+         }
+         if StringContain(String,"I wish to know which hexes my noxious strikes apply.")
+            AND Send(self,@HasSkill,#num=SKID_VILE_TOUCH)
+         {
+            % First use case
+            if plNoxiousStrikeChosenHexes = $
+            {
+               Send(self,@MsgSendUser,#message_rsc=vile_touch_no_hexes);
+            }
+            if Nth(plNoxiousStrikeChosenHexes,1) <> $
+            {
+               Send(self,@MsgSendUser,#message_rsc=vile_touch_choice_one_will_cast,#parm1=Send(Send(SYS,@FindSpellByNum,#num=Nth(plNoxiousStrikeChosenHexes,1)),@GetName));
+            }
+            if Nth(plNoxiousStrikeChosenHexes,2) <> $
+            {
+               Send(self,@MsgSendUser,#message_rsc=vile_touch_choice_two_will_cast,#parm1=Send(Send(SYS,@FindSpellByNum,#num=Nth(plNoxiousStrikeChosenHexes,2)),@GetName));
+            }
+
+            return;
+         }
+
          if StringEqual(String,"Bind our will here.")
             AND Send(self,@GetGuild) <> $
             AND IsClass(Send(self,@GetGuild),&NecromancerGuild)
@@ -11792,6 +11880,24 @@ messages:
       pbWarnAboutIntellect = TRUE;
       Send(self,@SetReincarnationStatsReset,#value=TRUE);
       return;
+   }
+
+   GetChosenHexOne()
+   {
+      if plNoxiousStrikeChosenHexes = $
+      {
+         return $;
+      }
+      return Nth(plNoxiousStrikeChosenHexes,1);
+   }
+
+   GetChosenHexTwo()
+   {
+      if plNoxiousStrikeChosenHexes = $
+      {
+         return $;
+      }
+      return Nth(plNoxiousStrikeChosenHexes,2);
    }
 
 end

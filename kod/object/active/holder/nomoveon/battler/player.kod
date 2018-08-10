@@ -7537,6 +7537,11 @@ messages:
             Send(stroke_obj,@ImproveStroke,#who=self,#target=what,
                   #use_weapon=oWeapon);
          }
+         
+         if Send(self,@HasSkill,#num=SKID_VILE_TOUCH)
+         {
+            Post(Send(SYS,@FindSkillByNum,#num=SKID_VILE_TOUCH),@HexOpponentOnStrike,#oAttacker=self,#oDefender=what,#damage=damage,#stroke_obj=stroke_obj,#oWeapon=oWeapon);
+         }
       }
 
       % Morphed?
