@@ -14828,9 +14828,13 @@ messages:
          OR event = EVENT_REST
          OR event = EVENT_ATTACK
          OR event = EVENT_CAST
+         OR (event = EVENT_STANCE_CHANGE
+               AND what <> $
+               AND NOT IsClass(what,&LightFeet))
       {
          if NOT (poStance <> $
                AND IsClass(poStance,&LightFeet))
+           OR event = EVENT_STANCE_CHANGE
          {
             Post(Send(SYS,@FindSkillByNum,#num=SKID_SNEAK),@StopSneaking,#who=self);
          }
@@ -14839,6 +14843,9 @@ messages:
             OR event = EVENT_DAMAGE
             OR event = EVENT_ATTACK
             OR event = EVENT_CAST
+            OR (event = EVENT_STANCE_CHANGE
+               AND what <> $
+               AND NOT IsClass(what,&LightFeet))
          {
             Post(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@StopHiding,#who=self);
          }
@@ -19148,6 +19155,8 @@ messages:
    
    BeginStance(what=$)
    {
+      Send(self,@BreakTrance,#event=EVENT_STANCE_CHANGE,#what=what);
+
       poStance = what;
       
       Post(self,@DrawOffense);
