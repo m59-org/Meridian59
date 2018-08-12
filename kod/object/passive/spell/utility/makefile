@@ -5,6 +5,7 @@
 !include $(TOPDIR)\common.mak
 
 DEPEND = ..\utility.bof
-BOFS = set.bof loadout.bof conveyance.bof phase.bof meditate.bof guildconveyance.bof
+BOFS = set.bof loadout.bof conveyance.bof phase.bof meditate.bof guildconveyance.bof \
+       donate.bof
 
 !include $(KODDIR)\kod.mak
