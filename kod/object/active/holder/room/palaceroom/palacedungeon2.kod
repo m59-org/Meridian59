@@ -8,13 +8,7 @@
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-PalaceDungeon1 is PalaceOfTheHighSorcerersRoom
-
-%
-%  Vecka: We're five centuries too late to save Biskalane. Nothing will ever grow here again. This is now about revenge.
-%
-%
-%
+PalaceDungeon2 is PalaceOfTheHighSorcerersRoom
 
 constants:
 
@@ -22,51 +16,59 @@ constants:
 
 resources:
 
-   room_palace_dungeon1 = palacedungeon1.roo
-   name_palace_dungeon1 = "Under the Palace of High Sorcery"
+   room_palace_dungeon2 = palacedungeon2.roo
+   name_palace_dungeon2 = "Southwest Corner of the Ziggurat"
 
-   palace_dungeon1_music = loboloco06lonersinthenightid793.mp3
+   palace_dungeon2_music = loboloco06lonersinthenightid793.mp3
 
 classvars:
 
-   vrName = name_palace_dungeon1
+   vrName = name_palace_dungeon2
 
    viTeleport_row = 18
    viTeleport_col = 15
 
    vbSpawnMonsters = TRUE
-   viMinSpawnRow = 8
-   viMaxSpawnRow = 30
+   viMinSpawnRow = 5
+   viMaxSpawnRow = 53
    viMinSpawnCol = 14
-   viMaxSpawnCol = 40
+   viMaxSpawnCol = 45
 
 properties:
 
    piBaseLight = LIGHT_DARK
    piOutside_factor = OUTDOORS_5 
 
-   prRoom = room_palace_dungeon1
-   piRoom_num = RID_PALACE_DUNGEON1
+   prRoom = room_palace_dungeon2
+   piRoom_num = RID_PALACE_DUNGEON2
    
-   prMusic = palace_dungeon1_music
+   prMusic = palace_dungeon2_music
 
 messages:
 
    SomethingMoved(what = $,new_row = $, new_col = $)
    {
-      if new_row < 2
-      {
-         Send(SYS,@UtilGoNearSquare,#what=what,
-              #where=Send(SYS,@FindRoomByNum,#num=RID_PALACE_DUNGEON2),
-              #new_row=58,#new_col=17,#fine_row=56,#fine_col=32,#new_angle=Send(what,@GetAngle));
-              
-         return;
-      }
       if new_row > Send(self,@GetRoomRows)-1
       {
          Send(SYS,@UtilGoNearSquare,#what=what,
-              #where=Send(SYS,@FindRoomByNum,#num=RID_PALACE_DUNGEON_ENTRANCE),
-              #new_row=3,#new_col=21,#fine_row=49,#fine_col=49,#new_angle=Send(what,@GetAngle));
+              #where=Send(SYS,@FindRoomByNum,#num=RID_PALACE_DUNGEON1),
+              #new_row=3,#new_col=34,#fine_row=15,#fine_col=62,#new_angle=Send(what,@GetAngle));
+              
+         return;
+      }
+      if new_row < 2
+      {
+         Send(SYS,@UtilGoNearSquare,#what=what,
+              #where=Send(SYS,@FindRoomByNum,#num=RID_PALACE_DUNGEON1),
+              #new_row=40,#new_col=28,#fine_row=48,#fine_col=8,#new_angle=Send(what,@GetAngle));
+              
+         return;
+      }
+      if new_col > Send(self,@GetRoomCols)-1
+      {
+         Send(SYS,@UtilGoNearSquare,#what=what,
+              #where=Send(SYS,@FindRoomByNum,#num=RID_PALACE_DUNGEON1),
+              #new_row=40,#new_col=28,#fine_row=48,#fine_col=8,#new_angle=Send(what,@GetAngle));
               
          return;
       }
@@ -92,7 +94,7 @@ messages:
 
    GetPhaseMusic()
    {
-      return palace_dungeon1_music;
+      return palace_dungeon2_music;
    }
    
    GetPhaseThreats()
@@ -170,7 +172,7 @@ messages:
    {
       local i, iNumMonsters, oMonster, lMonsters, lClasses, iMinRow, iMinCol, iMaxRow, iMaxCol, iChosenAngle;
 
-      lClasses = [&XeoEarth];
+      lClasses = [&XeoIll];
 
       iNumMonsters = Random(5,15);
       lMonsters = $;

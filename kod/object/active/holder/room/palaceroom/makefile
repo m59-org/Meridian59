@@ -6,6 +6,6 @@
 
 DEPEND = ..\palaceroom.bof
 
-BOFS = palacedungeon1.bof
+BOFS = palacedungeon1.bof palacedungeon2.bof
 
 !include $(KODDIR)\kod.mak
