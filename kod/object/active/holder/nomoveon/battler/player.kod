@@ -7828,6 +7828,19 @@ messages:
       % Add attmods AFTER resistance/suscep mods.
       damage = damage + bonus;
 
+      % Floor to zero, now check for bleed and last priority mods.
+      % Add bleed after a bound so that it guarantees players take damage even through Determination
+      damage = Bound(damage,0,$);
+      bonus = 0;
+      if NOT bSecondary
+      {
+         foreach i in Send(self,@GetEnchantmentsByClass,#enchClass=&Bleed)
+         {
+            bonus = Send(Nth(i,2),@ModifyDamageTaken,#who=self,#bonus=bonus,#power=Nth(i,3));
+         }
+      }
+      damage = damage + bonus;
+
       if IsClass(what,&Player)
          AND Send(what,@GetStance) <> $
          AND NOT bSecondary
