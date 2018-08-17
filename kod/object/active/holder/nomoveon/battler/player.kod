@@ -7588,6 +7588,19 @@ messages:
             iEmpowermentPercentage, bShielded, iCorrode, iCorrodeMultiple,
             iCorrodeReduction, iDamagePreArmor;
 
+      % flip flag for possible HP gain.
+      if poKill_target = $
+      {
+         poKill_target = what;
+      }
+
+      % We place this here so players aren't penalized by armor and other protections while building
+      % As long as the attack starts with positive damage, we count it
+      if what = poKill_target AND damage > 0
+      {
+         Send(self,@SetPlayerFlag,#flag=PFLAG_TOOK_DAMAGE,#value=TRUE);
+      }
+
       % bSecondary flags this as secondary damage such as burning,
       %    which skips quite a few damage adds. I.e. the primary damage
       %    already got those bonuses.
@@ -7973,17 +7986,6 @@ messages:
          }
 
          return $;
-      }
-
-      % flip flag for possible HP gain.
-      if poKill_target = $
-      {
-         poKill_target = what;
-      }
-
-      if what = poKill_target AND damage > 0
-      {
-         Send(self,@SetPlayerFlag,#flag=PFLAG_TOOK_DAMAGE,#value=TRUE);
       }
 
       % Should we print resistance message?
