@@ -11196,7 +11196,7 @@ messages:
    SendStatChange()
    "Sends a stat change request to the client"
    {
-      local lSpellLevels, lSkillLevels;
+      local lSchoolLevels;
 
       % if stats reset is turned off, ignore the request
       if NOT Send(SETTINGS_OBJECT,@GetStatsResetEnabled)
@@ -11212,9 +11212,8 @@ messages:
          return;
       }
       
-      lSpellLevels = Send(self, @GetSpellSchoolLevels);
-      lSkillLevels = Send(self, @GetSkillSchoolLevels);
- 
+      lSchoolLevels = Send(self,@GetSchoolLevels);
+
       % TODO: don't load module if it is already loaded
 
 
@@ -11226,18 +11225,18 @@ messages:
       AddPacket(1,piAgility);
       AddPacket(1,piMysticism);
       AddPacket(1,piAim);
-      AddPacket(1,Nth(lSpellLevels,1));
-      AddPacket(1,Nth(lSpellLevels,2));
-      AddPacket(1,Nth(lSpellLevels,3));
-      AddPacket(1,Nth(lSpellLevels,4));
-      AddPacket(1,Nth(lSpellLevels,5));
-      AddPacket(1,Nth(lSpellLevels,6));
-      AddPacket(1,Nth(lSkillLevels,1));
-      AddPacket(1,Nth(lSkillLevels,2));
-      AddPacket(1,Nth(lSkillLevels,3));
-      AddPacket(1,Nth(lSkillLevels,4));
-      AddPacket(1,Nth(lSkillLevels,5));
-      AddPacket(1,0);
+      AddPacket(1,Nth(lSchoolLevels,1));
+      AddPacket(1,Nth(lSchoolLevels,2));
+      AddPacket(1,Nth(lSchoolLevels,3));
+      AddPacket(1,Nth(lSchoolLevels,4));
+      AddPacket(1,Nth(lSchoolLevels,5));
+      AddPacket(1,Nth(lSchoolLevels,6));
+      AddPacket(1,Nth(lSchoolLevels,7));
+      AddPacket(1,Nth(lSchoolLevels,8));
+      AddPacket(1,Nth(lSchoolLevels,9));
+      AddPacket(1,Nth(lSchoolLevels,10));
+      AddPacket(1,Nth(lSchoolLevels,11));
+      AddPacket(1,Nth(lSchoolLevels,12));
       AddPacket(1,Send(self,@GetMaxMight));
       AddPacket(1,Send(self,@GetMaxIntellect));
       AddPacket(1,Send(self,@GetMaxStamina));
@@ -11335,7 +11334,7 @@ messages:
       
       % Count up our levels
       i = 1;
-      while (i < Length(lSchoolLevels_new))
+      while (i <= Length(lSchoolLevels_new))
       {
          if (Nth(lSchoolLevels_new,i) = 1)
          {
@@ -11380,7 +11379,7 @@ messages:
       % Strip School Levels
       
       i = 1;
-      while i < Length(lSchoolLevels)
+      while i <= Length(lSchoolLevels)
       {
          % We had pre-existing levels in a school, check for removal
          if Nth(lSchoolLevels,i) > 0

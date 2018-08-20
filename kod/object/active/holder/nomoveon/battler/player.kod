@@ -15338,7 +15338,7 @@ messages:
             aHigh, bHigh, cHigh, iBase, i, temp,
             nObj, nSID, index, iNeed, nSchool, nLevel, msg, bKnowOne,
             iWeapon, iKraanan, iShalille, iQor, iFaren, iRiija, iJala,
-            iKnightcraft, iBanditry, iSorcery, iWitchery, iPoints;
+            iKnightcraft, iBanditry, iSorcery, iWitchery, iAlchemy, iPoints;
       % This function is close to parameter limit.
 
       % Phase one. Assert our data. Be sure we have been fed a valid spell
@@ -15476,6 +15476,7 @@ messages:
       iBanditry = 0;
       iSorcery = 0;
       iWitchery = 0;
+      iAlchemy = 0;
       iKraanan = 0;
       iShalille = 0;
       iQor = 0;
@@ -15553,6 +15554,11 @@ messages:
                AND nLevel > iWitchery
             {
                iWitchery = nLevel;
+            }
+            if nSchool = SKS_ALCHEMY
+               AND nLevel > iAlchemy
+            {
+               iAlchemy = nLevel;
             }
          }
       }
@@ -15660,6 +15666,12 @@ messages:
             {
                iWitchery = nLevel;
             }
+            
+            if nSchool = SKS_ALCHEMY
+               AND nLevel > iAlchemy
+            {
+               iAlchemy = nLevel;
+            }
          }
       }
 
@@ -15703,6 +15715,7 @@ messages:
                + Send(SYS,@GetLevelLearnPoints,#level=iBanditry)
                + Send(SYS,@GetLevelLearnPoints,#level=iSorcery)
                + Send(SYS,@GetLevelLearnPoints,#level=iWitchery)
+               + Send(SYS,@GetLevelLearnPoints,#level=iAlchemy)
                + Send(SYS,@GetLevelLearnPoints,#level=iKraanan)
                + Send(SYS,@GetLevelLearnPoints,#level=iShalille)
                + Send(SYS,@GetLevelLearnPoints,#level=iQor)
@@ -15762,6 +15775,10 @@ messages:
             {
                nSchool = iWitchery;
             }
+            if school = SKS_ALCHEMY
+            {
+               nSchool = iAlchemy;
+            }
          }
          else
          {
@@ -15803,6 +15820,11 @@ messages:
             if school = SS_WITCHERY
             {
                nSchool = iWitchery;
+            }
+
+            if school = SKS_ALCHEMY
+            {
+               nSchool = iAlchemy;
             }
          }
 
@@ -15910,7 +15932,7 @@ messages:
    GetTotalLearnPoints(except = $)
    {
       local iSpell, iSID, oSpellObj, iSchool, iLevel, iKraanan, iShalille, iSkill, oSkillObj,
-            iQor, iFaren, iRiija, iJala, iWeapon, iBanditry, iSorcery, iWitchery, iKnightcraft, iTotalLearnPoints;
+            iQor, iFaren, iRiija, iJala, iWeapon, iBanditry, iSorcery, iWitchery, iKnightcraft, iAlchemy, iTotalLearnPoints;
 
       iKraanan = 0;
       iShalille = 0;
@@ -15923,6 +15945,7 @@ messages:
       iBanditry = 0;
       iSorcery = 0;
       iWitchery = 0;
+      iAlchemy = 0;
 
       foreach iSpell in plSpells
       {
@@ -15991,6 +16014,12 @@ messages:
             {
                iKnightcraft = iLevel;
             }
+
+            if iSchool = SKS_ALCHEMY
+               AND iLevel > iAlchemy
+            {
+               iAlchemy = iLevel;
+            }
          }
       }
 
@@ -16041,6 +16070,12 @@ messages:
             {
                iKnightcraft = iLevel;
             }
+
+            if iSchool = SKS_ALCHEMY
+               AND iLevel > iAlchemy
+            {
+               iAlchemy = iLevel;
+            }
          }
       }
 
@@ -16077,6 +16112,13 @@ messages:
       {
          Debug("iWitchery");
          Debug(iWitchery);
+      }
+
+      if iAlchemy = $
+         OR iAlchemy > 6
+      {
+         Debug("iAlchemy");
+         Debug(iAlchemy);
       }
 
       if iKraanan = $
@@ -16126,6 +16168,7 @@ messages:
                          + Send(SYS,@GetLevelLearnPoints,#level=iBanditry)
                          + Send(SYS,@GetLevelLearnPoints,#level=iSorcery)
                          + Send(SYS,@GetLevelLearnPoints,#level=iWitchery)
+                         + Send(SYS,@GetLevelLearnPoints,#level=iAlchemy)
                          + Send(SYS,@GetLevelLearnPoints,#level=iKraanan)
                          + Send(SYS,@GetLevelLearnPoints,#level=iShalille)
                          + Send(SYS,@GetLevelLearnPoints,#level=iQor)
@@ -17244,6 +17287,11 @@ messages:
                      iWI = iLevel;
                   }
                   break;
+               case SKS_ALCHEMY:
+                  if iLevel > iAlch
+                  {
+                     iAlch = iLevel;
+                  }
             }
          }
       }
@@ -17326,6 +17374,11 @@ messages:
                      iWI = iLevel;
                   }
                   break;
+               case SKS_ALCHEMY:
+                  if iLevel > iAlch
+                  {
+                     iAlch = iLevel;
+                  }
             }
          }
       }
@@ -17392,6 +17445,13 @@ messages:
                if iLevel > iWitcheryLevel
                {
                   iWitcheryLevel = iLevel;
+               }
+            }
+            if iSchool = SKS_ALCHEMY
+            {
+               if iLevel > iAlchemyLevel
+               {
+                  iAlchemyLevel = iLevel;
                }
             }
          }
@@ -20367,6 +20427,7 @@ messages:
       iBanditry = Nth(lSchoolLevels,9);
       iSorcery = Nth(lSchoolLevels,10);
       iWitchery = Nth(lSchoolLevels,11);
+      iAlchemy = Nth(lSchoolLevels,12);
 
       Send(self,@MsgSendUser,#message_rsc=schools_report);
       if iShal > 0
@@ -20412,6 +20473,10 @@ messages:
       if iJala > 0
       {
          Send(self,@MsgSendUser,#message_rsc=schools_report_jala,#parm1=iJala);
+      }
+      if iAlchemy > 0
+      {
+         Send(self,@MsgSendUser,#message_rsc=schools_report_alchemy,#parm1=iAlchemy);
       }
 
       iCurrentLearnPoints = Send(self,@GetTotalLearnPoints);
