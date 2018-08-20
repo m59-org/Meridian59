@@ -29,9 +29,11 @@ resources:
 
    genealogy_draconian_name = "One with the Primal"
    genealogy_drow_name = "Eyes in the Dark"
+   genealogy_gnome_name = "Alchemical Artificers"
 
    genealogy_choose_draconian_trigger = "I wish to reincarnate as draconian."
    genealogy_choose_drow_trigger = "I wish to reincarnate as drow."
+   genealogy_choose_gnome_trigger = "I wish to reincarnate as gnomish."
    
    maze_not_ready_reincarnate = \
       "You cannot reincarnate until you have achieved enough potential "
@@ -118,7 +120,7 @@ resources:
       "ON DROW"
       "\n\n"
       "The second race we sorcerers were able to fuse our souls with "
-      "was one whose spirts were already aching for hybridization. "
+      "was one whose spirits were already aching for hybridization. "
       "The drow, also called dark elves, were found skulking about "
       "deep inside the world under some of our trading partner countries "
       "across the sea. "
@@ -182,6 +184,77 @@ resources:
       "and you will forget everything you have learned in this life. "
       "You will be as a newborn, save a little wiser for your experiences.\n"
 
+   genealogy_gnome = \
+      "Written by Qua Kornedrin, High Sorcerer of Fire"
+      "\n\n"
+      "ON GNOMES"
+      "\n\n"
+      "The third race found suitable for the soul-fusing process "
+      "was actually one of the first the Merchant Princes of Biskalane "
+      "encountered across the many oceans of the world. "
+      "That alliance was prosperous and led to an era of "
+      "rapid technological advancement. The gnomes were curious "
+      "and quite adept with small mechanisms; possessing "
+      "rather unique eyes, the gnomes were able to use Biskalane's "
+      "offered resources to create never-before-seen devices and techniques. "
+      "\n\n"
+      "Unfortunately, their curiosity led to political disaster. "
+      "Using a new extroardinary ore sourced from a distant jungle island, "
+      "the gnomes began to create equipment that was powerfully resistant "
+      "to magic. The Sorcerers of that era created false reasons to "
+      "cut off contact with the gnomes in order to hold on to the power of their "
+      "magical hegemony."
+      "\n\n"
+      "All that remains of the gnomes in Biskalane now are the ubiquitous anti-magical shields "
+      "that were mechanically mass-produced before the separation. "
+      "Without genuine gnomish lineage to draw from, we may only reincarnate "
+      "with portions of souls descended from human-gnome hybrids, "
+      "thus the spiritual line is quite diluted."
+      "\n\n"
+      "However, certain advantages yet remain."
+      "\n\n--¶"
+      "GNOME TRAITS"
+      "\n\n"
+      "Racial Resistances & Empowerments:"
+      "\n"
+      "10% resistance to clawing, biting, whipping, and stinging\n"
+      "25% fire vulnerability\n"
+      "30% increased nerudite damage\n"
+      "\nRacial Stat Maximums:"
+      "\n50 Might"
+      "\n50 Intellect"
+      "\n10 Stamina"
+      "\n50 Agility"
+      "\n50 Mysticism"
+      "\n70 Aim"
+      "\n\n"
+      "The gnomes were a small race, and depended upon technology. "
+      "As a result, their physical prowess was extremely limited. "
+      "They cannot rest to high vigor, nor can they eat much."      
+      "\n\n--¶"
+      "REINCARNATION"
+      "\n\n"
+      "For each enlightenment you have achieved, you will have one additional "
+      "stat point to distribute. When you reincarnate, you have a chance to "
+      "choose your stats anew. Should you fail to choose at the time of "
+      "reincarnation, you will retain one free stat reset that you can use by "
+      "going to an Elder and saying 'change stats'."
+      "\n\n"
+      "Your guardian angel will never return once you reincarnate."
+      "\n\n"
+      "The gnomes are gifted in a way no other race can match. "
+      "They are, however, extremely limited in other ways. "
+      "It is up to you to determine how best to employ the gnomish traits."
+      "\n\n--¶"
+      "REINCARNATING AS GNOMISH"
+      "\n\n"
+      "To reincarnate as gnomish, state thus:"
+      "\n\n"
+      "I wish to reincarnate as gnomish."
+      "\n\nThis process will destroy all of your worn and held items, "
+      "and you will forget everything you have learned in this life. "
+      "You will be as a newborn, save a little wiser for your experiences.\n"
+
 classvars:
 
    vrName = room_maze_reincarnation_room_name
@@ -209,6 +282,11 @@ messages:
       Send(self,@NewHold,#what=oBook,
            #new_row=19,#new_col=17,#fine_col=3,#fine_row=19,
            #new_angle=ANGLE_EAST);
+      oBook = Create(&BookPedestal,#Name=genealogy_gnome_name,
+                     #Text=genealogy_gnome);
+      Send(self,@NewHold,#what=oBook,
+           #new_row=17,#new_col=17,#fine_col=26,#fine_row=52,
+           #new_angle=ANGLE_SOUTH_EAST);
 
       propagate;
    }
@@ -251,6 +329,12 @@ messages:
       {
          bTryReincarnate = TRUE;
          iReincarnateAsRace = RACE_DROW;
+      }
+
+      if StringEqual(string,genealogy_choose_gnome_trigger)
+      {
+         bTryReincarnate = TRUE;
+         iReincarnateAsRace = RACE_GNOME;
       }
 
       if bTryReincarnate
