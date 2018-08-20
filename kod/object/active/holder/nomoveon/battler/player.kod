@@ -352,6 +352,7 @@ resources:
    player_race_undine = "%s appears to be of half-undine ancestry.\n"
    player_race_drow = "%s appears to be of drow ancestry.\n"
    player_race_dragon = "%s appears to be of draconian ancestry.\n"
+   player_race_gnome = "%s appears to be of gnomish ancestry.\n"
 
    player_opt_out_pvp = \
       "%s is a dedicated practitioner of Shal'ille's peaceful path.\n"
@@ -1971,6 +1972,8 @@ messages:
          case RACE_DROW:
             lBaseEmpowerments = Cons([-ATCK_SPELL_UNHOLY, 15],lBaseEmpowerments);
             lBaseEmpowerments = Cons([-ATCK_SPELL_HOLY,-300],lBaseEmpowerments);
+         case RACE_GNOME:
+            lBaseEmpowerments = Cons([ATCK_WEAP_NERUDITE, 30],lBaseEmpowerments);
             break;
       }
 
@@ -2074,6 +2077,15 @@ messages:
                   [-ATCK_SPELL_ACID, -25]];
       }
       
+      if race = RACE_GNOME
+      {
+         return [ [ATCK_WEAP_CLAW, 10],
+                  [ATCK_WEAP_WHIP, 10],
+                  [ATCK_WEAP_BITE, 10],
+                  [ATCK_WEAP_STING, 10],
+                  [-ATCK_SPELL_FIRE, -25]];
+      }
+      
       return $;
    }
 
@@ -2158,6 +2170,22 @@ messages:
             case -ATCK_SPELL_COLD:
                return 2;
             case ATCK_WEAP_PIERCE:
+               return 2;
+         }
+      }
+      if piPlayerRace = RACE_GNOME
+      {
+         switch(type)
+         {
+            case -ATCK_SPELL_FIRE:
+               return -7;
+            case ATCK_WEAP_CLAW:
+               return 2;
+            case ATCK_WEAP_WHIP:
+               return 2;
+            case ATCK_WEAP_BITE:
+               return 2;
+            case ATCK_WEAP_STING:
                return 2;
          }
       }
@@ -2349,6 +2377,28 @@ messages:
          piPlayerRace = race;
       }
      
+      if race = RACE_GNOME
+      {
+         Send(self,@SetSkinTranslation,#translation=139);
+         Send(self,@SetDefaultClothes,#shirt_color=4,#pants_color=4);
+         plResistances = Send(self,@GetRacialBaseResistances,#race=RACE_GNOME);
+
+         piRacialMightMod = 0;
+         piRacialIntellectMod = 0;
+         piRacialStaminaMod = -40;
+         piRacialAgilityMod = 0;
+         piRacialMysticismMod = 0;
+         piRacialAimMod = 20;
+
+         piRacialVigorMod = -40;
+         piStomachMax = 60;
+         piVigor_rest_threshold = Send(self,@CalculateVigorThreshold);
+         piVigor = piVigor_rest_threshold;
+         Post(self,@NewVigor);
+
+         piPlayerRace = race;
+      }
+     
       if race = RACE_DRACONIAN
       {
          Send(self,@SetSkinTranslation,#translation=1);
@@ -2462,6 +2512,11 @@ messages:
       foreach i in plRadiusEnchantments
       {
          sum = Send(First(i),@AddBlindResistance,#power=Nth(i,2),#resistance=sum);
+      }
+
+      if piPlayerRace = RACE_GNOME
+      {
+         sum = sum + 20;
       }
 
       return sum;
@@ -3546,6 +3601,10 @@ messages:
       else if i = RACE_DRACONIAN
       {
          AddPacket(4,player_race_dragon,4,Send(self,@GetHeShe,#cap=TRUE));
+      }
+      else if i = RACE_GNOME
+      {
+         AddPacket(4,player_race_gnome,4,Send(self,@GetHeShe,#cap=TRUE));
       }
       else
       {
@@ -14950,6 +15009,8 @@ messages:
             return 25;
          case RACE_DRACONIAN:
             return 35;
+         case RACE_GNOME:
+            return 30;
       }
       return 5;
    }
@@ -20022,6 +20083,9 @@ messages:
             break;
          case RACE_HALF_DEMON:
             iRacialSizeBonus = -50;
+            break;
+         case RACE_GNOME:
+            iRacialSizeBonus = -25;
             break;
          case RACE_DROW:
             iRacialSizeBonus = -25;

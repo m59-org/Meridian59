@@ -775,13 +775,15 @@ messages:
    {
       local i, oItemAtt;
 
-      % Remove itematts from us, since we're not gonna use 'em anymore.
-      % This also lets cursed items finally remove themselves from us.
+      % Remove curse attribute so players aren't forced to keep a broken weapon
       foreach i in plItem_Attributes
       {
          oItemAtt = Send(SYS,@FindItemAttByNum,
                          #num=Send(self,@GetNumFromCompound,#compound=First(i)));
-         Send(oItemAtt,@RemoveFromItem,#oItem=self);
+         if IsClass(oItemAtt,&WeapAttCursed)
+         {
+            Send(oItemAtt,@RemoveFromItem,#oItem=self);
+         }
       }
 
       Send(poOwner,@SomethingChanged,#what=self);

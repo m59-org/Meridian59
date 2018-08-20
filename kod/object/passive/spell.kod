@@ -101,6 +101,7 @@ resources:
    spell_school_kraanan = "Kraanan"
    spell_school_jala = "Jala"
    spell_school_knightcraft = "Knightcraft"
+   spell_school_alchemy = "Alchemy"
    spell_intro_rsc = "One of the many mystical spells."
 
    spell_sound_jala = lute_equip.wav
@@ -336,7 +337,11 @@ messages:
          iSchool = viSchool;
       }
 
-      if iSchool = SKS_KNIGHTCRAFT
+      if iSchool = SKS_ALCHEMY
+      {
+         rSchool = spell_school_alchemy;
+      }
+      else if iSchool = SKS_KNIGHTCRAFT
       {
          rSchool = spell_school_knightcraft;
       }
@@ -606,6 +611,7 @@ messages:
 
       if viSchool = SS_RIIJA
          OR viSchool = SS_JALA
+         OR viSchool = SKS_ALCHEMY
       {
          return Send(who,@GetIntellect);
       }
