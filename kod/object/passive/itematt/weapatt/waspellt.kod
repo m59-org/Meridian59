@@ -540,6 +540,15 @@ messages:
             % No bonus if using Charged Clutch.
             return damage;
          }
+         if wielder <> $
+            AND IsClass(wielder,&Player)
+            AND Send(wielder,@GetStance) <> $
+            AND IsClass(Send(wielder,@GetStance),&ChargedClutchStance)
+            AND Send(Send(SYS,@FindSkillByNum,#num=SKID_CHARGED_CLUTCH_STANCE),@HasFee,#who=wielder)
+         {
+            % No bonus if using Unstable Infusion.
+            return damage;
+         }
          return damage + iSpellPower/33;
       }
 

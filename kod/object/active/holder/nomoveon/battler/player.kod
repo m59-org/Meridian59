@@ -1436,6 +1436,9 @@ properties:
    % Is this attack a leap attack? Knock back enemies on hit.
    pbLeapKnockback = FALSE
 
+   % Data used by the skill Unstable Infusion (charged clutch stance) to never choose the same element in a row
+   piLastUnstableInfusionChoice = ATCK_SPELL_FIRE
+
 messages:
 
    Constructor()
@@ -7569,9 +7572,8 @@ messages:
 
       if Send(self,@GetStance) <> $
          AND IsClass(Send(self,@GetStance),&ChargedClutchStance)
-         AND NOT IsClass(oWeapon,&RangedWeapon)
       {
-         return Send(Send(self,@GetStance),@GetSpellType,#who=self);
+         return Send(Send(self,@GetStance),@GetSpellType,#who=self,#oWeapon=oWeapon,#damaging_now=damaging_now);
       }
 
       return Send(oWeapon,@GetAttackSpell);
@@ -20496,6 +20498,17 @@ messages:
    IsShadow()
    {
       return Send(self,@IsEnchanted,#byClass=&ShadowForm);
+   }
+
+   GetLastUnstableInfusionChoice()
+   {
+      return piLastUnstableInfusionChoice;
+   }
+
+   SetLastUnstableInfusionChoice(iElement=ATCK_SPELL_FIRE)
+   {
+      piLastUnstableInfusionChoice = iElement;
+      return;
    }
 
 end
