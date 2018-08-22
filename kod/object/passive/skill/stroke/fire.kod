@@ -164,7 +164,15 @@ messages:
 
       if Send(oRoom,@NoReagents)=FALSE
       {
-         Send(oAmmo,@SubtractNumber,#number=1);
+         if Send(who,@HasSkill,#num=SKID_MECHANIZED_QUIVER)
+            AND Send(Send(SYS,@FindSkillByNum,#num=SKID_MECHANIZED_QUIVER),@DoSkill,#who=who,#oAmmo=oAmmo)
+         {
+            propagate;
+         }
+         else
+         {
+            Post(oAmmo,@SubtractNumber,#number=1);
+         }
       }
 
       propagate;
