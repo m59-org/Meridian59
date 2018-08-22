@@ -516,6 +516,8 @@ resources:
       "No hex with that name exists. Try stating it without punctuation, apostrophes, or extra text."
    vile_touch_no_hexes = \
       "You have not chosen any hexes to apply on striking with noxious strike."
+   vile_touch_turn_off_hexes = \
+      "You will stop apply hexes on striking with noxious strike."
    vile_touch_choice_one_will_cast = \
       "Your noxious strikes will apply %s."
    vile_touch_choice_two_will_cast = \
@@ -5401,6 +5403,13 @@ messages:
                Send(self,@MsgSendUser,#message_rsc=vile_touch_choice_two_will_cast,#parm1=Send(Send(SYS,@FindSpellByNum,#num=Nth(plNoxiousStrikeChosenHexes,2)),@GetName));
             }
 
+            return;
+         }
+         if StringContain(String,"I wish my noxious strikes to apply no hexes.")
+            AND Send(self,@HasSkill,#num=SKID_VILE_TOUCH)
+         {
+            plNoxiousStrikeChosenHexes = $;
+            Send(self,@MsgSendUser,#message_rsc=vile_touch_turn_off_hexes);
             return;
          }
 

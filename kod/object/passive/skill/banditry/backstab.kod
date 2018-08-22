@@ -27,6 +27,8 @@ resources:
    Backstab_struck = "%s%s strikes you unexpectedly, dealing you a critical blow!"
    
    fail_to_hit = "Your target notices you at the last second and evades your backstab attempt!"
+   target_too_wary_to_be_caught_off_guard = \
+      "Your target is badly wounded and far too wary to be open to a backstab attempt!"
 
 classvars:
 
@@ -53,6 +55,8 @@ classvars:
 
 properties:
 
+   piMinimumTargetHealthPercent = 0
+
 messages:
 
    GetRequisiteStat(who=$)
@@ -62,10 +66,10 @@ messages:
    
    TryAutomaticHit(who=$,what=$)
    {
-      local chance, iAgility, iAbility, iTargetHealth, iTargetMaxHealth, iDamageBonus;
+      local chance, iAim, iAbility, iTargetHealth, iTargetMaxHealth, iDamageBonus;
 
       % This skill can be used by both players and monsters.
-      iAgility = Send(who,@GetAgility);
+      iAim = Send(self,@GetRequisiteStat,#who=who);
       iAbility = Send(who,@GetSkillAbility,#skill_num=SKID_BACKSTAB);
       
       iTargetHealth = Send(what,@GetHealth);
@@ -78,7 +82,7 @@ messages:
          iTargetMaxHealth = Send(what,@GetMaxHitPoints);
       }
       
-      if iTargetHealth >= iTargetMaxHealth * 95 / 100
+      if iTargetHealth >= (iTargetMaxHealth * piMinimumTargetHealthPercent) / 100
       {
          if Send(who,@LookUpPlayerWeapon) = $
             OR IsClass(Send(who,@LookUpPlayerWeapon),&Bow)
@@ -88,11 +92,11 @@ messages:
 
          if IsClass(Send(who,@LookUpPlayerWeapon),&Dagger)
          {
-            chance = (iAbility+1) + (iAgility / 5);
+            chance = (iAbility+1) + (iAim / 5);
          }
          else
          {
-            chance = ((iAbility+1) + (iAgility / 5)) / 2;
+            chance = ((iAbility+1) + (iAim / 5)) / 2;
          }
          
          if chance > Random(0,100)
@@ -101,19 +105,23 @@ messages:
          }
          Send(who,@MsgSendUser,#message_rsc=fail_to_hit);
       }
+      else
+      {
+         Send(who,@MsgSendUser,#message_rsc=target_too_wary_to_be_caught_off_guard);
+      }
       
       return FALSE;
    }
    
    LastPriorityModifyDamage(who=$,what=$,damage=$)
    {
-      local iAgility, iAbility, iTargetHealth, iTargetMaxHealth, iDamageBonus;
+      local iAim, iAbility, iTargetHealth, iTargetMaxHealth, iDamageBonus;
 
 %      Post(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@StopHiding,#who=who);
 %      Post(Send(SYS,@FindSkillByNum,#num=SKID_SNEAK),@StopSneaking,#who=who);
 
       % This skill can be used by both players and monsters.
-      iAgility = Send(who,@GetAgility);
+      iAim = Send(self,@GetRequisiteStat,#who=who);
       iAbility = Send(who,@GetSkillAbility,#skill_num=SKID_BACKSTAB);
       
       iTargetHealth = Send(what,@GetHealth);
@@ -126,27 +134,27 @@ messages:
          iTargetMaxHealth = Send(what,@GetMaxHitPoints);
       }
       
-      % Daggers up to 100% more damage from skill, and up to 70% more damage from stat
+      % Daggers up to 50% more damage from skill, and up to 50% more damage from stat
       % Other melee weapons do half that
       % No bonus for ranged
-      if iTargetHealth >= (iTargetMaxHealth * 95) / 100
+      if iTargetHealth >= (iTargetMaxHealth * piMinimumTargetHealthPercent) / 100
       {
          if Send(who,@LookUpPlayerWeapon) = $
             OR IsClass(Send(who,@LookUpPlayerWeapon),&Bow)
          {
-            return damage;
+            return 0;
          }
 
          if IsClass(Send(who,@LookUpPlayerWeapon),&Dagger)
          {
-            iDamageBonus = 100 + iAbility + 1 + iAgility;
+            iDamageBonus = 100 + ((iAbility+1)/2) + (iAim/2);
          }
          else
          {
-            iDamageBonus = 100 + (((iAbility+1) + iAgility) / 2);
+            iDamageBonus = 100 + ((((iAbility+1)/2) + (iAim/2)) / 2);
          }
          
-         iDamageBonus = Bound(iDamageBonus,100,270);
+         iDamageBonus = Bound(iDamageBonus,100,200);
 
          Send(who,@MsgSendUser,#message_rsc=Backstab_success,#parm1=Send(what,@GetDef),#parm2=Send(what,@GetName));
          
@@ -157,10 +165,18 @@ messages:
 
          Send(self,@ImproveAbility,#who=who,#target=what);  
          
-         return (damage * iDamageBonus) / 100;
+         if IsClass(what,&Player)
+         {
+            % Can't do over 2/3rds of a player's health.
+            return Bound((damage * iDamageBonus) / 100,0,(iTargetMaxHealth*200)/3);
+         }
+         else
+         {
+            return (damage * iDamageBonus) / 100;
+         }
       }
       
-      return damage;
+      return 0;
    }
 
 end
