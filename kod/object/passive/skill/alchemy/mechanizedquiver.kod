@@ -27,6 +27,9 @@ resources:
       "of mechanizing their quiver often take up archery themselves, "
       "for the synergy is obvious. Other types of ammo, such as throwing knives, "
       "can also be constructed as used."
+      "\n\nAlchemical creation depends upon the essence of gold, "
+      "so each process consumes some number of transmuted shillings. "
+      "More skilled alchemists can consume less gold with each transmutation."
       "\n\nThe more of a type of ammo the alchemist has, the greater the "
       "chance of a successful replication. If there are only a handful of "
       "existing prototypes to analyze, proper replication is exponentially more difficult. "
@@ -34,6 +37,11 @@ resources:
 
    mechanized_quiver_skill_intro = \
       "Alchemy Lv. 2: Automatically replace used ammunition by melting and transmuting gold."
+
+   not_enough_shillings_mechanized_quiver = \
+      "You don't have the %i shillings required to replicate your used ammunition!"
+   transmute_shillings_mechanized_quiver = \
+      "You alchemically melt %i shillings to replicate your used ammunition."
 
 classvars:
 
@@ -69,7 +77,7 @@ messages:
 
    DoSkill(who=$, oAmmo=$)
    {
-      local iAbility, iStat, iAmmoAmount, iChance;
+      local iAbility, iStat, iAmmoAmount, iChance, oMoney, iCash, iFee;
 
       iAbility = Send(who,@GetSkillAbility,#Skill_num=viSkill_num);
       iStat = Send(self,@GetRequisiteStat,#who=who);
@@ -90,6 +98,35 @@ messages:
       if Random(1,100) > iChance
       {
          return FALSE;
+      }
+      
+      % We succeeded! Or, rather, didn't fail. Shilling cost time.
+
+      oMoney = Send(who,@GetMoneyObject);
+      if oMoney = $
+      {
+         % No cash.
+         iCash = 0;
+      }
+      else
+      {
+         iCash = Send(oMoney,@GetValue);
+      }
+      
+      % Fee ranges from 4x down to 2x.
+      iFee = Send(oAmmo,@GetInitValue);
+      iFee = iFee + iFee + iFee + iFee - (iFee*2*(iAbility+1))/100;
+
+      if iCash < iFee AND iFee <> 0
+      {
+         Send(who,@MsgSendUser,#message_rsc=not_enough_shillings_mechanized_quiver,#parm1=iFee);
+         return FALSE;
+      }
+
+      if iFee <> 0
+      {
+         Send(oMoney,@SubtractNumber,#number=iFee);
+         Send(who,@MsgSendUser,#message_rsc=transmute_shillings_mechanized_quiver,#parm1=iFee);
       }
 
       propagate;
