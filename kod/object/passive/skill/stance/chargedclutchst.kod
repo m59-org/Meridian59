@@ -39,7 +39,8 @@ resources:
       "but throwing knives require too delicate a balance to be used in "
       "such a manner."
       "\n\nDestabilized weapons and arrowheads will interfere with the effect "
-      "of any holy or unholy dedications otherwise imbued in them."
+      "of any holy or unholy dedications otherwise imbued in them. Nerudite "
+      "is also impossible to destabilize."
    
    ChargedClutchStance_begin = "You send destabilizing energies coursing through your hands."
    ChargedClutchStance_end = "You let the instability in your hands fade."
@@ -94,6 +95,11 @@ messages:
 
       iChargedClutchStanceAbility = Send(who,@GetSkillAbility,#skill_num=viSkill_num);
       iStat = Send(self,@GetRequisiteStat,#who=who);
+
+      if Send(oWeapon,@GetAttackType) & ATCK_WEAP_NERUDITE
+      {
+         return Send(oWeapon,@GetAttackSpell);
+      }
 
       chance = iChargedClutchStanceAbility + (iStat/2);
       chance = Bound(chance,10,100);
