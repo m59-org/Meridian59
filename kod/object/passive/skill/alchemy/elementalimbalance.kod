@@ -77,6 +77,14 @@ messages:
       iAbility = Send(who,@GetSkillAbility,#Skill_num=viSkill_num);
       iStat = Send(self,@GetRequisiteStat,#who=who);
 
+      if (aspell & ATCK_SPELL_FIRE) = 0
+         AND (aspell & ATCK_SPELL_SHOCK) = 0
+         AND (aspell & ATCK_SPELL_COLD) = 0
+         AND (aspell & ATCK_SPELL_ACID) = 0
+      {
+         return 0;
+      }
+      
       % Up to 20% from ability and up to 5% from stat
       iElementalImbalancePower = (iAbility+1)/5 + iStat/20;
 

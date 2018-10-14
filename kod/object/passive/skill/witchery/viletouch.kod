@@ -113,6 +113,7 @@ messages:
             oChosenHexOne = Send(SYS,@FindSpellByNum,#num=iChosenHexOne);
             
             if oChosenHexOne <> $
+               AND Send(oDefender,@GetNumHexes) < 1
                AND NOT Send(oDefender,@IsEnchanted,#what=oChosenHexOne)
             {
                Send(oChosenHexOne,@CastSpell,#who=oAttacker,#lTargets=[oDefender],#iSpellPower=iEffect,#bItemCast=TRUE);
@@ -131,6 +132,7 @@ messages:
             oChosenHexTwo = Send(SYS,@FindSpellByNum,#num=iChosenHexTwo);
             
             if oChosenHexTwo <> $
+               AND Send(oDefender,@GetNumHexes) < 2
                AND NOT Send(oDefender,@IsEnchanted,#what=oChosenHexTwo)
             {
                Send(oChosenHexTwo,@CastSpell,#who=oAttacker,#lTargets=[oDefender],#iSpellPower=iEffect,#bItemCast=TRUE);
