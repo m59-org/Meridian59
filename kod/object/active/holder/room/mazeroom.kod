@@ -517,6 +517,9 @@ properties:
    % Does this room have lethal fall threat? Height 0 or below = death
    pbFallThreatHere = FALSE
 
+   % Do monsters respawn hourly while players are in room? Generally no
+   pbResetWhilePlayersAreInRoom = FALSE
+
 messages:
 
    Constructor(iRID=RID_MAZE_ENTRANCE, base_room=$)
@@ -2580,6 +2583,7 @@ messages:
 
          if pbUser_in_room
             AND vbSpawnMonsters
+            AND pbResetWhilePlayersAreInRoom
          {
             Post(self,@DepopulateArea);
             Post(self,@PopulateArea);
