@@ -37,9 +37,15 @@ resources:
       "\n\nStriking with holy or unholy damage will not have any effect, "
       "for alchemy involves science, not faith."
 
-   elemental_imbalance_worked_msg = \
-      "You cause a ~r%i\% ~nelemental imbalance in your victim!"
-
+   elemental_imbalance_worked_fire_msg = \
+      "You cause a ~f~B%i\% ~nelemental imbalance in your victim!"
+   elemental_imbalance_worked_shock_msg = \
+      "You cause a ~c~B%i\% ~nelemental imbalance in your victim!"
+   elemental_imbalance_worked_cold_msg = \
+      "You cause a ~b~B%i\% ~nelemental imbalance in your victim!"
+   elemental_imbalance_worked_acid_msg = \
+      "You cause a ~l~B%i\% ~nelemental imbalance in your victim!"
+   
 classvars:
 
    vrName = elemental_imbalance_name_rsc
@@ -90,8 +96,26 @@ messages:
 
       if iElementalImbalancePower > 0
       {
-         Post(who,@MsgSendUser,#message_rsc=elemental_imbalance_worked_msg,
-                               #parm1=iElementalImbalancePower);
+         if (aspell & ATCK_SPELL_FIRE) <> 0
+         {
+            Post(who,@MsgSendUser,#message_rsc=elemental_imbalance_worked_fire_msg,
+                                  #parm1=iElementalImbalancePower);
+         }
+         if (aspell & ATCK_SPELL_SHOCK) <> 0
+         {
+            Post(who,@MsgSendUser,#message_rsc=elemental_imbalance_worked_shock_msg,
+                                  #parm1=iElementalImbalancePower);
+         }
+         if (aspell & ATCK_SPELL_COLD) <> 0
+         {
+            Post(who,@MsgSendUser,#message_rsc=elemental_imbalance_worked_cold_msg,
+                                  #parm1=iElementalImbalancePower);
+         }
+         if (aspell & ATCK_SPELL_ACID) <> 0
+         {
+            Post(who,@MsgSendUser,#message_rsc=elemental_imbalance_worked_acid_msg,
+                                  #parm1=iElementalImbalancePower);
+         }
          Send(self,@ImproveAbility,#who=who);
       }
 
