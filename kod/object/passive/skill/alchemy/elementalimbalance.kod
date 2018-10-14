@@ -38,7 +38,7 @@ resources:
       "for alchemy involves science, not faith."
 
    elemental_imbalance_worked_msg = \
-      "You cause an elemental imbalance in your victim!"
+      "You cause a ~r%i\% ~nelemental imbalance in your victim!"
 
 classvars:
 
@@ -82,7 +82,8 @@ messages:
 
       if iElementalImbalancePower > 0
       {
-         Send(who,@MsgSendUser,#message_rsc=elemental_imbalance_worked_msg);
+         Post(who,@MsgSendUser,#message_rsc=elemental_imbalance_worked_msg,
+                               #parm1=iElementalImbalancePower);
          Send(self,@ImproveAbility,#who=who);
       }
 
