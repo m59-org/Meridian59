@@ -1567,6 +1567,7 @@ messages:
       }
 
       Send(self,@ClearStance);
+      Send(self,@ClearElementalImbalance);
 
       Send(SYS,@SystemRemoveFromChampionLists,#oldchamp = self);
       Send(Send(SYS,@GetLibrary),@DeleteCompletedQuest,#who=self,#id=-1);
@@ -4383,6 +4384,7 @@ messages:
       Send(self,@ClearPrismsDefeated);
 
       Send(self,@ClearStance);
+      Send(self,@ClearElementalImbalance);
 
       Send(self,@SetTattooed,#value=FALSE);
 
@@ -8105,6 +8107,11 @@ messages:
             Send(Nth(i,2),@ReflectPhysicalDamage,#who=self,#what=what,#state=Nth(i,3),#damage=damage,#atype=atype,#aspell=aspell,#stroke_obj=stroke_obj);
             Send(Nth(i,2),@ReflectElementalDamage,#who=self,#what=what,#state=Nth(i,3),#damage=damage,#atype=atype,#aspell=aspell,#stroke_obj=stroke_obj);
          }
+      }
+
+      if NOT bSecondary
+      {
+         Send(self,@ApplyElementalImbalance,#aspell=aspell,#power=Send(what,@GetElementalImbalancePower,#aspell=aspell));
       }
 
       return damage;
@@ -15247,6 +15254,7 @@ messages:
       }
 
       Send(self,@ClearStance);
+      Send(self,@ClearElementalImbalance);
 
       % Reset death costs to 0.
       piDeathCost = 0;
@@ -20509,6 +20517,15 @@ messages:
    {
       piLastUnstableInfusionChoice = iElement;
       return;
+   }
+
+   GetElementalImbalancePower(aspell=0)
+   {
+      if Send(self,@GetSkillAbility,#Skill_num=SKID_ELEMENTAL_IMBALANCE) > 0
+      {
+         return Send(Send(SYS,@FindSkillByNum,#num=SKID_ELEMENTAL_IMBALANCE),@GetElementalImbalancePower,#who=self,#aspell=aspell);
+      }
+      return 0;
    }
 
 end

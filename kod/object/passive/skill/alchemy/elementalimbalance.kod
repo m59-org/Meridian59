@@ -37,6 +37,9 @@ resources:
       "\n\nStriking with holy or unholy damage will not have any effect, "
       "for alchemy involves science, not faith."
 
+   elemental_imbalance_worked_msg = \
+      "You cause an elemental imbalance in your victim!"
+
 classvars:
 
    vrName = elemental_imbalance_name_rsc
@@ -67,17 +70,23 @@ messages:
       return Send(who,@GetIntellect);
    }
 
-   DoSkill(who=$, oAmmo=$)
+   GetElementalImbalancePower(who=$, aspell=0)
    {
-      local iAbility, iStat;
+      local iAbility, iStat, iElementalImbalancePower;
 
       iAbility = Send(who,@GetSkillAbility,#Skill_num=viSkill_num);
       iStat = Send(self,@GetRequisiteStat,#who=who);
-      
-      % Must apply a short buff with 4 separate resistance modifications.
-      % Or apply 4 buffs, one +ele, three -ele?
 
-      propagate;
+      % Up to 20% from ability and up to 5% from stat
+      iElementalImbalancePower = (iAbility+1)/5 + iStat/20;
+
+      if iElementalImbalancePower > 0
+      {
+         Send(who,@MsgSendUser,#message_rsc=elemental_imbalance_worked_msg);
+         Send(self,@ImproveAbility,#who=who);
+      }
+
+      return iElementalImbalancePower;
    }
 
 end

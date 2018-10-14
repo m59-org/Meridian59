@@ -271,6 +271,12 @@ properties:
    % Fine units
    piMagicalShieldRadius = 64 * 5
 
+   % Is this Battler suffering an Elemental Imbalance?
+   % Always of the form [fire mod, shock mod, cold mod, acid mod]
+   % Wears off after a short time (ptElementalImbalanceTimer)
+   plElementalImbalance = $
+   ptElementalImbalanceTimer = $
+
 messages:
 
    % The first lump of code here deals with resistances and immunities/etc.
@@ -456,9 +462,16 @@ messages:
    {
       local oObjectAttribute, lCurResist, oEquipment, oEnchantment,
             iHumbled, iHumbledDivisor, i, iCorrode, iCorrodeDivisor,
-            oGuild, oGuildHall, oRelic;
+            oGuild, oGuildHall, oRelic, lElementalImbalance;
 
       lCurResist = ListCopy(Send(self,@GetBaseResistances));
+
+      foreach lElementalImbalance in Send(self,@GetElementalImbalance)
+      {
+         lCurResist = Send(SYS,@AddResistance,#what=Nth(lElementalImbalance,1),
+                                              #value=Nth(lElementalImbalance,2),
+                                              #resistance_list=lCurResist);
+      }
 
       foreach oObjectAttribute in plObject_attributes
       {
@@ -3167,6 +3180,90 @@ messages:
    {
       % This is a type like Undead, except representing shadows and darkness.
       return FALSE;
+   }
+
+   ClearElementalImbalance()
+   {
+      if ptElementalImbalanceTimer <> $
+      {
+         DeleteTimer(ptElementalImbalanceTimer);
+      }
+      Send(self,@EndElementalImbalance);
+      return;
+   }
+
+   EndElementalImbalance()
+   {
+      ptElementalImbalanceTimer = $;
+
+      if plElementalImbalance <> $
+      {
+         plElementalImbalance = $;
+         if IsClass(self,&User)
+         {
+            Post(self,@DrawResistances);
+         }
+      }
+
+      return;
+   }
+
+   ApplyElementalImbalance(aspell=0, power=0)
+   {
+      local iFire, iShock, iCold, iAcid, iResType, lElements, bFound;
+
+      if power <= 0
+      {
+         return;
+      }
+
+      lElements = [ATCK_SPELL_FIRE,
+                   ATCK_SPELL_SHOCK,
+                   ATCK_SPELL_COLD,
+                   ATCK_SPELL_ACID];
+
+      bFound = FALSE;
+      foreach iResType in lElements
+      {
+         if (aspell & iResType) <> 0
+         {
+            bFound = TRUE;
+         }
+      }
+
+      if NOT bFound
+      {
+         return;
+      }
+
+      Send(self,@ClearElementalImbalance);
+
+      % If we are being dealt damage of a type, gain resistance.
+      % If we aren't, lose resistance.
+      foreach iResType in lElements
+      {
+         if (aspell & iResType) <> 0
+         {
+            plElementalImbalance = Cons([-iResType,power],plElementalImbalance);
+         }
+         else
+         {
+            plElementalImbalance = Cons([-iResType,-power],plElementalImbalance);
+         }
+      }
+
+      ptElementalImbalanceTimer = CreateTimer(self,@EndElementalImbalance,4000);
+
+      if IsClass(self,&User)
+      {
+         Post(self,@DrawResistances);
+      }
+      return;
+   }
+
+   GetElementalImbalance()
+   {
+      return plElementalImbalance;
    }
 
 end

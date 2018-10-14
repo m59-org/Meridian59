@@ -576,6 +576,8 @@ properties:
    piHurtMeTime = 60000
 
    piLevel = 20
+   
+   piApplyElementalImbalancePower = 0
 
 messages:
 
@@ -2682,6 +2684,11 @@ messages:
             Send(self,@ApplyElementalStatusEffects,#damage=(damage/100/2),
                       #aspell=aspell,#what=what,#bSecondary=bSecondary);
          }
+      }
+
+      if NOT bSecondary
+      {
+         Send(self,@ApplyElementalImbalance,#aspell=aspell,#power=Send(what,@GetElementalImbalancePower,#aspell=aspell));
       }
 
       return iDamage;
@@ -8379,6 +8386,11 @@ messages:
    {
       % This is a type like Undead, except representing shadows and darkness.
       return vbIsShadow;
+   }
+
+   GetElementalImbalancePower()
+   {
+      return piApplyElementalImbalancePower;
    }
 
 end
