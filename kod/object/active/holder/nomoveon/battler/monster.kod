@@ -1128,8 +1128,15 @@ messages:
                AND Send(target,@GetSkillAbility,#skill_num=SKID_HIDE) >= piLevel/2
                AND Send(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@IsHiding,#who=target))
          {
-            Send(poOwner,@SomethingWaveRoom,#what=self,#wave_rsc=vrSound_aware,
-                 #flags=SOUND_RANDOM_PITCH);
+            if poOwner <> $
+            {
+               Send(poOwner,@SomethingWaveRoom,#what=self,#wave_rsc=vrSound_aware,
+                    #flags=SOUND_RANDOM_PITCH);
+            }
+            else
+            {
+               Post(self,@Delete);
+            }
          }
       }
 
@@ -1662,7 +1669,9 @@ messages:
       if poOwner = $
       {
          Debug("Unreachable. Null owner.");
+         Debug(self);
          Send(self,@EnterStateLimbo);
+         Post(self,@Delete);
 
          return;
       }
@@ -7558,6 +7567,12 @@ messages:
          OR poOwner = $
       {
          Debug("BAD target we're switching to here!");
+         Debug(self);
+         
+         if poOwner = $
+         {
+            Post(self,@Delete);
+         }
 
          return;
       }

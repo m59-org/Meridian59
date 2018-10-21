@@ -114,6 +114,7 @@ messages:
       {
          oRoom = Send(who,@GetOwner);
          if oDeflectImpact <> $
+            AND oRoom <> $
          {
             % Don't send to oDeflectImpact, it's not a NoMoveOn!
             iDeflectSpeed = Send(who,@SquaredFineDistanceTo,#what=oDeflectImpact);
@@ -131,13 +132,17 @@ messages:
          }
          else
          {
-            Send(oRoom,@SomethingShot,#who=who,#target=oTarget,#projectile=self,#flags=viProjectileFlag);
+            if oRoom <> $
+            {
+               Send(oRoom,@SomethingShot,#who=who,#target=oTarget,#projectile=self,#flags=viProjectileFlag);
+            }
          }
       }
       else
       {
          oRoom = Send(wielder,@GetOwner);
          if oDeflectImpact <> $
+            AND oRoom <> $
          {
             % Don't send to oDeflectImpact, it's not a NoMoveOn!
             iDeflectSpeed = Send(wielder,@SquaredFineDistanceTo,#what=oDeflectImpact);
@@ -155,7 +160,10 @@ messages:
          }
          else
          {
-            Send(oRoom,@SomethingShot,#who=wielder,#target=oTarget,#projectile=self,#flags=viProjectileFlag);
+            if oRoom <> $
+            {
+               Send(oRoom,@SomethingShot,#who=wielder,#target=oTarget,#projectile=self,#flags=viProjectileFlag);
+            }
          }
       }
 
