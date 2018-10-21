@@ -15344,7 +15344,7 @@ messages:
    "learning. For example, if a player can't learn because he has too "
    "many competing schools, he needs to know that."
    {
-      local bSkill, obj, level, school, division, iHave, prev_level,
+      local obj, iHave, prev_level,
             aHigh, bHigh, cHigh, iBase, i, temp,
             nObj, nSID, index, iNeed, nSchool, nLevel, msg, bKnowOne,
             iWeapon, iKraanan, iShalille, iQor, iFaren, iRiija, iJala,
@@ -15362,7 +15362,6 @@ messages:
          }
          else
          {
-            bSkill = TRUE;
             obj = Send(SYS,@FindSkillByNum,#num=skill_num);
          }
       }
@@ -15375,7 +15374,6 @@ messages:
          }
          else
          {
-            bSkill = FALSE;
             obj = Send(SYS,@FindSpellByNum,#num=spell_num);
          }
       }
@@ -15398,14 +15396,9 @@ messages:
          % Spell is temporarily disabled.
          return PLAYER_LEARN_ERROR;
       }
-
-      % Phase two:  get the hard data.
-      level = Send(obj,@GetLevel);
-      school = Send(obj,@GetSchool);
-      division = Send(obj,@GetDivision);
       
       % Check for Witchery hatreds.
-      if school = SS_WITCHERY
+      if Send(obj,@GetSchool) = SS_WITCHERY
       {
          if Send(obj,@GetSubSchool) = SSS_WITCHERY_XAERDUN
          {
@@ -15446,21 +15439,21 @@ messages:
 
       % Check to see if they have any spells of the next level.
       %  If so, let them buy any spells they want.
-      iHave = Send(self,@CountKnownAtLevel,#school=school,#level=level+1);
+      iHave = Send(self,@CountKnownAtLevel,#school=Send(obj,@GetSchool),#level=Send(obj,@GetLevel)+1);
       if iHave > 0
       {
          return PLAYER_LEARN_SUCCESS;
       }
 
       % See how many spells they have at this level.
-      iHave = Send(self,@CountKnownAtLevel,#school=school,#level=level);
+      iHave = Send(self,@CountKnownAtLevel,#school=Send(obj,@GetSchool),#level=Send(obj,@GetLevel));
       if iHave > 0
       {
          % For level 3 or higher, they can learn if they have another spell
          % in that school and level. If they have two spells at a lower level,
          % they need 2 or more spells in that school or level. This prevents
          % people getting all level 2 spells fresh out of character creation.
-         if level > 2
+         if Send(obj,@GetLevel) > 2
             OR iHave >= 2
          {
             return PLAYER_LEARN_SUCCESS;
@@ -15470,9 +15463,9 @@ messages:
          bKnowOne = TRUE;
       }
 
-      if level > 1
+      if Send(obj,@GetLevel) > 1
       {
-         prev_level = Send(SYS,@GetNumAtLevel,#school=school,#level=level-1);
+         prev_level = Send(SYS,@GetNumAtLevel,#school=Send(obj,@GetSchool),#level=Send(obj,@GetLevel)-1);
       }
       else
       {
@@ -15515,7 +15508,7 @@ messages:
          nLevel = Send(nobj,@GetLevel);
 
          % Is this in the same school at level N-1?
-         if school = nSchool AND (level-1) = (nLevel)
+         if Send(obj,@GetSchool) = nSchool AND (Send(obj,@GetLevel)-1) = (nLevel)
          {
             index = Send(self,@DecodeSkillAbility,#compound=i);
             if index > aHigh
@@ -15604,7 +15597,7 @@ messages:
          }
 
          % Is this in the same school at level N-1?
-         if school = nSchool AND (level-1) = (nlevel)
+         if Send(obj,@GetSchool) = nSchool AND (Send(obj,@GetLevel)-1) = (nlevel)
          {
             index = Send(self,@DecodeSpellAbility,#compound=i);
 
@@ -15685,7 +15678,7 @@ messages:
          }
       }
 
-      if level > 1
+      if Send(obj,@GetLevel) > 1
       {
          % Only top three matter in the math.
          iHave = aHigh + bHigh + cHigh;
@@ -15738,8 +15731,8 @@ messages:
       %  knowledge.  Add points.
       if not bKnowOne
       {
-         iPoints = iPoints + Send(SYS,@GetLevelLearnPoints,#level=level)
-                           - Send(SYS,@GetLevelLearnPoints,#level=(level-1));
+         iPoints = iPoints + Send(SYS,@GetLevelLearnPoints,#level=Send(obj,@GetLevel))
+                           - Send(SYS,@GetLevelLearnPoints,#level=(Send(obj,@GetLevel)-1));
       }
 
       % How this oddball equation works: You have a POINTS_SLOPE that determines
@@ -15763,76 +15756,76 @@ messages:
       if scryer <> $
       {
          % nSchool will equal how much the intended school's points added.
-         if bSkill
+         if skill_num <> 0
          {
-            if school = SKS_FENCING
+            if Send(obj,@GetSchool) = SKS_FENCING
             {
                nSchool = iWeapon;
             }
-            if school = SKS_KNIGHTCRAFT
+            if Send(obj,@GetSchool) = SKS_KNIGHTCRAFT
             {
                nSchool = iKnightcraft;
             }
-            if school = SKS_BANDITRY
+            if Send(obj,@GetSchool) = SKS_BANDITRY
             {
                nSchool = iBanditry;
             }
-            if school = SKS_SORCERY
+            if Send(obj,@GetSchool) = SKS_SORCERY
             {
                nSchool = iSorcery;
             }
-            if school = SS_WITCHERY
+            if Send(obj,@GetSchool) = SS_WITCHERY
             {
                nSchool = iWitchery;
             }
-            if school = SKS_ALCHEMY
+            if Send(obj,@GetSchool) = SKS_ALCHEMY
             {
                nSchool = iAlchemy;
             }
          }
          else
          {
-            if school = SS_KRAANAN
+            if Send(obj,@GetSchool) = SS_KRAANAN
             {
                nSchool = iKraanan;
             }
 
-            if school = SS_SHALILLE
+            if Send(obj,@GetSchool) = SS_SHALILLE
             {
                nSchool = iShalille;
             }
 
-            if school = SS_QOR
+            if Send(obj,@GetSchool) = SS_QOR
             {
                nSchool = iQor;
             }
 
-            if school = SS_FAREN
+            if Send(obj,@GetSchool) = SS_FAREN
             {
                nSchool = iFaren;
             }
 
-            if school = SS_RIIJA
+            if Send(obj,@GetSchool) = SS_RIIJA
             {
                nSchool = iRiija;
             }
 
-            if school = SS_JALA
+            if Send(obj,@GetSchool) = SS_JALA
             {
                nSchool = iJala;
             }
 
-            if school = SKS_KNIGHTCRAFT
+            if Send(obj,@GetSchool) = SKS_KNIGHTCRAFT
             {
                nSchool = iKnightcraft;
             }
 
-            if school = SS_WITCHERY
+            if Send(obj,@GetSchool) = SS_WITCHERY
             {
                nSchool = iWitchery;
             }
 
-            if school = SKS_ALCHEMY
+            if Send(obj,@GetSchool) = SKS_ALCHEMY
             {
                nSchool = iAlchemy;
             }
@@ -15841,8 +15834,8 @@ messages:
          % Bring the points back down to the original total, before learning.
          if NOT bKnowOne
          {
-            iPoints = iPoints - Send(SYS,@GetLevelLearnPoints,#level=level)
-                              + Send(SYS,@GetLevelLearnPoints,#level=(level-1));
+            iPoints = iPoints - Send(SYS,@GetLevelLearnPoints,#level=Send(obj,@GetLevel))
+                              + Send(SYS,@GetLevelLearnPoints,#level=(Send(obj,@GetLevel)-1));
          }
 
          Send(scryer,@MsgSendUser,#message_rsc=player_Debug_playercanlearn,
