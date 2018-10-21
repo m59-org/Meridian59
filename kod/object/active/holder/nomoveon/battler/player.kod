@@ -1364,8 +1364,8 @@ properties:
    % Players will naturally fall out of groups if they aren't getting kills
    ptLeaveBuilderGroupTimer = $
 
-   % Player's last corpse
-   poCorpse = $
+   % Player's corpse tracking
+   plCorpses = $
 
    % Time remaining phased out
    ptPhaseTimer = $
@@ -12636,7 +12636,7 @@ messages:
       {
          oBody = Send(self,@CreateCorpse);
       }
-      poCorpse = oBody;
+      plCorpses = Cons(oBody,plCorpses);
 
       Send(oRoom,@NewHold,#what=oBody,#new_row=iRow,#new_col=iCol,
             #fine_row=iFine_Row,#fine_col=iFine_Col,#new_angle=iAngle);
@@ -19271,15 +19271,34 @@ messages:
       propagate;
    }
 
-   SetCorpse(corpse=$)
+   AddCorpse(corpse=$)
    {
-      poCorpse = corpse;
+      plCorpses = Cons(corpse,plCorpses);
       return;
    }
 
-   GetCorpse()
+   RemoveCorpse(corpse=$)
    {
-      return poCorpse;
+      if plCorpses <> $
+         AND FindListElem(plCorpses,corpse) <> 0
+      {
+         plCorpses = DelListElem(plCorpses, corpse);
+      }
+      return;
+   }
+
+   GetCorpses()
+   {
+      return plCorpses;
+   }
+
+   GetLastCorpse()
+   {
+      if plCorpses <> $
+      {
+         return First(plCorpses);
+      }
+      return $;
    }
 
    ClearStance()

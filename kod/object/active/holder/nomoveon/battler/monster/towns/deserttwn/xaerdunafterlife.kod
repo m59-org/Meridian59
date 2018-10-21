@@ -309,9 +309,9 @@ messages:
       if StringContain(string,"summon")
          AND what <> $
          AND IsClass(what,&User)
-         AND Send(what,@GetCorpse) <> $
+         AND Send(what,@GetLastCorpse) <> $
       {
-         oCorpse = Send(what,@GetCorpse);
+         oCorpse = Send(what,@GetLastCorpse);
          
          if NOT Send(oCorpse,@GetSummonable)
          {
@@ -325,6 +325,7 @@ messages:
          Send(poOwner,@NewHold,#what=oCorpse,#new_row=Send(what,@GetRow),
                #new_col=Send(what,@GetCol));
          Send(what,@MsgSendUser,#message_rsc=Xaerdun_summoned);
+         Send(what,@RemoveCorpse,#corpse=oCorpse);
          propagate;
       }
       
