@@ -528,6 +528,9 @@ resources:
    vile_touch_choice_two_made = \
       "Your noxious strikes will now also apply %s."
 
+   donate_spell_given = \
+      "~B~r[###] You have been given the spell 'Donate' because your character did not have it."
+
 classvars:
 
    viIndefinite = ARTICLE_NONE
@@ -943,7 +946,7 @@ messages:
       {
          Send(self,@UpdateAccumulatedWisdom);
       }
-
+      
       Send(self,@UserLogonHook);
 
       % Give user the logon delay
@@ -1002,6 +1005,14 @@ messages:
          Send(self,@MsgSendUser,#message_rsc=user_intellect_warn2);
          Send(self,@MsgSendUser,#message_rsc=user_intellect_warn3);
       }
+
+      % Existing characters may need new spells.
+      if NOT Send(self,@HasSpell,#num=SID_DONATE)
+      {
+         Send(self,@AddSpell,#num=SID_DONATE,#initial=TRUE);
+         Send(self,@MsgSendUser,#message_rsc=donate_spell_given);
+      }
+
       return;
    }
 
