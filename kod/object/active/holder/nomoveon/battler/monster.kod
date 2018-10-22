@@ -1668,8 +1668,12 @@ messages:
       % Sanity checks
       if poOwner = $
       {
-         Debug("Unreachable. Null owner.");
-         Debug(self);
+         % Suppress survival mob messages. Happens sometimes.
+         if piBoostedLevel = 0
+         {
+            Debug("Unreachable. Null owner.");
+            Debug(self);
+         }
          Send(self,@EnterStateLimbo);
          Post(self,@Delete);
 
@@ -7566,8 +7570,12 @@ messages:
       if what = $
          OR poOwner = $
       {
-         Debug("BAD target we're switching to here!");
-         Debug(self);
+         % Suppress survival messages, because this happens sometimes there.
+         if piBoostedLevel = 0
+         {
+            Debug("BAD target we're switching to here!");
+            Debug(self);
+         }
          
          if poOwner = $
          {
