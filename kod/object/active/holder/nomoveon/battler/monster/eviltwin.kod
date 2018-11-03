@@ -38,6 +38,14 @@ resources:
       "You sense that a evil twin you summoned has gotten you "
       "into some trouble..."
 
+   evil_twin_failsafe_icon_rsc = amoeba.bgf
+   evil_twin_failsafe_desc_rsc = \
+   "A mass of quivering goo, the slime inches forward "
+   "leaving a sickly trail behind.  The remains of its last "
+   "victim are visible within its transparent innards."
+
+   evil_twin_failsafe_dead_name_rsc = "dead slime"
+
 classvars:
 
    viIndefinite = ARTICLE_NONE
@@ -575,12 +583,20 @@ messages:
    % This returns the battler's ability to-hit.
    GetOffense(what = $, stroke_obj=$)
    {
+      if poOriginal = $
+      {
+         return 1000;
+      }
       return Send(poOriginal,@GetOffense,#what=what,#stroke_obj=stroke_obj);
    }
 
    % This returns the battler's ability to avoid being hit.
    GetDefense(what = $, stroke_obj=$)
    {
+      if poOriginal = $
+      {
+         return 1000;
+      }
       return Send(poOriginal,@GetDefense,#what=what,#stroke_obj=stroke_obj);
    }
 
@@ -615,6 +631,11 @@ messages:
 
    GetKarma(detect=FALSE)
    {
+      if poOriginal = $
+      {
+         return 0;
+      }
+
       if detect
       {
          return Send(poOriginal,@GetKarma);
@@ -705,6 +726,10 @@ messages:
 
    GetIcon()
    {
+      if poOriginal = $
+      {
+         return evil_twin_failsafe_icon_rsc;
+      }
       return Send(poOriginal,@GetIcon);
    }
 
@@ -721,16 +746,28 @@ messages:
    % skills.  Used in player for defense, used in battler for defense messages.
    GetParryAbility(stroke_obj=$)
    {
+      if poOriginal = $
+      {
+         return 0;
+      }
       return Send(poOriginal,@GetParryAbility,#stroke_obj=stroke_obj);
    }
 
    GetBlockAbility(stroke_obj=$)
    {
+      if poOriginal = $
+      {
+         return 0;
+      }
       return Send(poOriginal,@GetBlockAbility,#stroke_obj=stroke_obj);
    }
 
    GetDodgeAbility(stroke_obj=$)
    {
+      if poOriginal = $
+      {
+         return 0;
+      }
       return Send(poOriginal,@GetDodgeAbility,#stroke_obj=stroke_obj);
    }
 
@@ -806,6 +843,20 @@ messages:
 
    ShowDesc()
    {
+      local oMonster;
+      
+      if poOriginal = $
+      {
+         foreach oMonster in Send(SYS,@GetMonsterTemplates)
+         {
+            if IsClass(oMonster,&Slime)
+            {
+               Send(oMonster,@ShowDesc);
+               return;
+            }
+         }
+      }
+
       Send(poOriginal,@ShowDesc);
 
       return;
@@ -813,6 +864,20 @@ messages:
 
    SendMoveAnimation()
    {
+      local oMonster;
+      
+      if poOriginal = $
+      {
+         foreach oMonster in Send(SYS,@GetMonsterTemplates)
+         {
+            if IsClass(oMonster,&Slime)
+            {
+               Send(oMonster,@SendMoveAnimation);
+               return;
+            }
+         }
+      }
+
       % Make it look like EvilTwin is walking
 
       Send(poOriginal,@SendMoveAnimation);
@@ -822,6 +887,19 @@ messages:
 
    SendMoveOverlays()
    {
+      local oMonster;
+      
+      if poOriginal = $
+      {
+         foreach oMonster in Send(SYS,@GetMonsterTemplates)
+         {
+            if IsClass(oMonster,&Slime)
+            {
+               Send(oMonster,@SendMoveOverlays);
+               return;
+            }
+         }
+      }
       Send(poOriginal,@SendMoveOverlays);
 
       return;
@@ -829,6 +907,19 @@ messages:
 
    SendAnimation()
    {
+      local oMonster;
+      
+      if poOriginal = $
+      {
+         foreach oMonster in Send(SYS,@GetMonsterTemplates)
+         {
+            if IsClass(oMonster,&Slime)
+            {
+               Send(oMonster,@SendAnimation,#iAnimation=piAnimation);
+               return;
+            }
+         }
+      }
       Send(poOriginal,@SendAnimation,#iAnimation=piAnimation);
 
       return;
@@ -836,6 +927,19 @@ messages:
 
    SendOverlays()
    {
+      local oMonster;
+      
+      if poOriginal = $
+      {
+         foreach oMonster in Send(SYS,@GetMonsterTemplates)
+         {
+            if IsClass(oMonster,&Slime)
+            {
+               Send(oMonster,@SendOverlays,#iAnimation=piAnimation);
+               return;
+            }
+         }
+      }
       Send(poOriginal,@SendOverlays,#iAnimation=piAnimation);
 
       return;
@@ -843,6 +947,18 @@ messages:
 
    GetIllusionForm()
    {
+      local oMonster;
+      
+      if poOriginal = $
+      {
+         foreach oMonster in Send(SYS,@GetMonsterTemplates)
+         {
+            if IsClass(oMonster,&Slime)
+            {
+               return oMonster;
+            }
+         }
+      }
       return poOriginal;
    }
 
