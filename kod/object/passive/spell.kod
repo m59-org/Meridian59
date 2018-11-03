@@ -981,6 +981,9 @@ messages:
             }
 
             if Send(oTarget,@GetOwner) <> $
+               AND who <> $
+               AND IsClass(who,&NoMoveOn)
+               AND Send(who,@GetOwner) <> $
                AND Send(who,@SquaredFineDistanceTo3D,#what=oTarget) > (iTotalRange * iTotalRange)
             {
                if NOT bItemCast
