@@ -76,6 +76,12 @@ messages:
       }
 
       oWeapon = Send(wielder,@LookUpPlayerWeapon);
+
+      if oWeapon = $
+      {
+         return damage;
+      }
+
       iProf = Send(oWeapon,@GetProf,#who=wielder);
 
       iPower = Send(self,@TranslatePowerFromCompound,#iCompound=First(lData));
@@ -113,6 +119,12 @@ messages:
       }
 
       oWeapon = Send(wielder,@LookUpPlayerWeapon);
+      
+      if oWeapon = $
+      {
+         return hitroll;
+      }
+
       iProf = Send(oWeapon,@GetProf,#who=wielder);
 
       iPower = Send(self,@TranslatePowerFromCompound,#iCompound=First(lData));
