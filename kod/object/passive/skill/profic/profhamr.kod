@@ -122,38 +122,38 @@ messages:
                                          #fine_row=Send(oTarget,@GetFineRow),
                                          #fine_col=Send(oTarget,@GetFineCol));
 
-      if iResult 
-      {
-         Send(who,@SetLeapKnockback,#value=TRUE);
-
-         foreach i in Send(oRoom,@GetHolderActive)
-         {
-            each_obj = Send(oRoom,@HolderExtractObject,#data=i);
-            if IsClass(each_obj,&Player)
-            {
-               if each_obj = who
-               {
-                  Send(each_obj,@MsgSendUser,#message_rsc=you_do_leap_attack,
-                                             #parm1=Send(who,@GetIndef),
-                                             #parm2=Send(oTarget,@GetName));
-               }
-               else if each_obj = oTarget
-               {
-                  Send(each_obj,@MsgSendUser,#message_rsc=leap_attack_on_you,
-                                             #parm1=Send(who,@GetName));
-               }
-               else
-               {
-                  Send(each_obj,@MsgSendUser,#message_rsc=third_person_does_leap_attack,
-                                             #parm1=Send(who,@GetName),
-                                             #parm2=Send(who,@GetHisHer),
-                                             #parm3=Send(oTarget,@GetIndef),
-                                             #parm4=Send(oTarget,@GetName));
-               }
-            }
-         }
-         return TRUE;
-      }
+%      if iResult 
+%      {
+%         Send(who,@SetLeapKnockback,#value=TRUE);
+%
+%         foreach i in Send(oRoom,@GetHolderActive)
+%         {
+%            each_obj = Send(oRoom,@HolderExtractObject,#data=i);
+%            if IsClass(each_obj,&Player)
+%            {
+%               if each_obj = who
+%               {
+%                  Send(each_obj,@MsgSendUser,#message_rsc=you_do_leap_attack,
+%                                             #parm1=Send(who,@GetIndef),
+%                                             #parm2=Send(oTarget,@GetName));
+%               }
+%               else if each_obj = oTarget
+%               {
+%                  Send(each_obj,@MsgSendUser,#message_rsc=leap_attack_on_you,
+%                                             #parm1=Send(who,@GetName));
+%               }
+%               else
+%               {
+%                  Send(each_obj,@MsgSendUser,#message_rsc=third_person_does_leap_attack,
+%                                             #parm1=Send(who,@GetName),
+%                                             #parm2=Send(who,@GetHisHer),
+%                                             #parm3=Send(oTarget,@GetIndef),
+%                                             #parm4=Send(oTarget,@GetName));
+%               }
+%            }
+%         }
+%         return TRUE;
+%      }
 
       return FALSE;
    }
