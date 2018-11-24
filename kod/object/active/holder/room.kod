@@ -214,6 +214,11 @@ classvars:
    vbOverridePlayerLightLevel = FALSE
    viOverridePlayerLightLevel = 0
 
+   % Rough coordinate system for pathfinding
+   % 1000 is 'super far away' to avoid pathfinding there
+   viLongitude = 1000
+   viLatitude = 1000
+
 properties:
 
    piRoom_Flags = 0
@@ -2475,6 +2480,7 @@ messages:
       {
          each_obj = Send(self,@HolderExtractObject,#data=i);
          if IsClass(each_obj,&User)
+            AND NOT IsClass(each_obj,&Competitor)
          {
             oSession = Send(each_obj,@GetSession);
             if oSession <> $
@@ -3191,6 +3197,7 @@ messages:
 
          each_obj = First(i);
          if IsClass(each_obj,&User)
+            AND NOT IsClass(each_obj,&Competitor)
          {
             if not packet_built
             {
@@ -3288,6 +3295,7 @@ messages:
 
          each_obj = First(i);
          if IsClass(each_obj,&User)
+            AND NOT IsClass(each_obj,&Competitor)
          {
             % we don't send turns to non-users
             if NOT packet_built
@@ -6188,6 +6196,53 @@ messages:
          }
       }
       return;
+   }
+
+   GetStandardExits()
+   {
+      return plExits;
+   }
+
+   GetEdgeExits()
+   {
+      return plEdge_Exits;
+   }
+
+   HasExitTo(oRoom=$)
+   {
+      local i;
+      
+      if oRoom = $
+      {
+         return FALSE;
+      }
+
+      foreach i in plExits
+      {
+         if Nth(i,3) <> ROOM_LOCKED_DOOR
+            AND Send(SYS,@FindRoomByNum,#num=Nth(i,3)) = oRoom
+         {
+            return TRUE;
+         }
+      }
+      foreach i in plEdge_exits
+      {
+         if Send(SYS,@FindRoomByNum,#num=Nth(i,2)) = oRoom
+         {
+            return TRUE;
+         }
+      }
+      return FALSE;
+   }
+
+   GetLongitude()
+   {
+      return viLongitude;
+   }
+
+   GetLatitude()
+   {
+      return viLatitude;
    }
 
 end
