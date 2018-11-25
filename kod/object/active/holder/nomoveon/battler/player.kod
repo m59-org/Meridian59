@@ -1064,6 +1064,12 @@ resources:
    lost_base_max_health_msg = \
       "~B~wYou lost ~r%i~w maximum health!!"
 
+   new_corpse_information = \
+      "~rYour loot can be "
+      "obtained by getting close to your body and interacting with it like a chest. "
+      "~BYour loot is inside your corpse like a chest.~B "
+      "You can also summon your corpse by saying 'summon' to Priestess Xiana."
+
 classvars:
 
    viHand_space = 2
@@ -12997,6 +13003,8 @@ messages:
    CreateCorpse(Assassinated=FALSE, oPlayerKiller=$)
    {
       local inKocatan;
+      
+      Post(self,@MsgSendUser,#message_rsc=new_corpse_information);
 
       % Send current pant/shirt color to body only if they both use
       % the new two-color xlats. Otherwise, Send default colors.
