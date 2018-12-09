@@ -569,7 +569,8 @@ messages:
       if piTravelState = FLYING_TOO_HIGH
       {
          if oStroke = $
-            OR NOT Send(oStroke,@IsRangedAttack)
+            OR (NOT Send(oStroke,@IsRangedAttack)
+               AND NOT IsClass(oStroke,&Spell))
          {
             if IsClass(who,&User)
             {
