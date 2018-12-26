@@ -72,6 +72,7 @@ properties:
    piSouthBarrierHeight = 70
    
    pbIceDragonDefeated = FALSE
+   ptRespawnIceDragon = $
    
    vbSpawnMonsters = TRUE
 
@@ -166,6 +167,20 @@ messages:
       local i;
 
       pbIceDragonDefeated = TRUE;
+      Send(self,@RecalculateRoomMusic);
+      
+      if ptRespawnIceDragon = $
+      {
+         % Six hours
+         ptRespawnIceDragon = CreateTimer(self,@RespawnIceDragon, 6 * 60 * 60 * 1000);
+      }
+      return;
+   }
+
+   RespawnIceDragon(timer=$)
+   {
+      ptRespawnIceDragon = $;
+      pbIceDragonDefeated = FALSE;
       Send(self,@RecalculateRoomMusic);
       return;
    }
@@ -402,6 +417,16 @@ messages:
                #new_angle=ANGLE_NORTH);
       }
       return;
+   }
+   
+   Delete()
+   {
+      if ptRespawnIceDragon <> $
+      {
+         DeleteTimer(ptRespawnIceDragon);
+         ptRespawnIceDragon = $;
+      }
+      propagate;
    }
 
 end
