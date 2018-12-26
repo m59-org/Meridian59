@@ -6744,6 +6744,9 @@ messages:
       % Send to the STROKE to get the range; unarmed attacks have ranges too
       iRange = Send(stroke_obj,@GetRange,#weapon_used=use_weapon);
 
+      % How big are enemies?
+      iRange = iRange + Send(what,@GetEnemyRangeBonus);
+
       % A little fudge factor to account for lag drift, etc.
       %  Don't fudge for ranged weapons.
       if IsClass(what,&User) AND Send(what,@HasMovedRecently)
