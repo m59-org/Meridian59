@@ -6950,7 +6950,7 @@ messages:
    TargetWithinSightAndRange(oTarget=$,iRange=$,use_weapon=$,stroke_obj=$)
    {
       local iSquareRange, iDist, oTargetOwner, oFinalTarget, iAngle,
-            iRow, iCol, iTargetRow, iTargetCol, oHammerWielding;
+            iRow, iCol, iTargetRow, iTargetCol, oHammerWielding, iEnemyRangeBonus;
 
       oTargetOwner = Send(oTarget,@GetOwner);
 
@@ -6962,6 +6962,7 @@ messages:
       }
 
       oFinalTarget = oTarget;
+      iEnemyRangeBonus = Send(oFinalTarget,@GetEnemyRangeBonus);
 
       % Strange case of us targeting something that someone else is holding.
       % This cannot be owned by us, since we already checked that.
@@ -6989,7 +6990,7 @@ messages:
          if iDist > iSquareRange
          {
             % Check whether we can leap attack with a hammer between range 2 and 4
-            if iDist <= (4 * FINENESS) * (4 * FINENESS)
+            if iDist <= ((4 * FINENESS)+iEnemyRangeBonus) * ((4 * FINENESS)+iEnemyRangeBonus)
                AND IsClass(stroke_obj,&Slash)
                AND (Send(self,@IsUsingA,#class=&Hammer)
                   OR Send(self,@IsUsingA,#class=&SpiritualHammer))
