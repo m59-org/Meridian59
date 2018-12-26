@@ -5461,6 +5461,8 @@ messages:
                AND IsClass(oPrey,&User)
             {
                if NOT Send(oPrey,@IsLoggedOn)
+                  OR (Send(oPrey,@GetOwner) <> $
+                     AND IsClass(Send(oPrey,@GetOwner),&SurvivalRoom))
                {
                   Send(self,@MsgSendUser,#message_rsc=track_target_not_logged_on);
                   return;
