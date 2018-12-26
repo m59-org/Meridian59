@@ -209,6 +209,13 @@ messages:
       %  attack messages.
       foreach i in lTargets
       {
+         % Ignore those not in this room.
+         if Send(i,@GetOwner) <> Send(who,@GetOwner)
+            OR Send(i,@GetOwner) = $
+         {
+            continue;
+         }
+
          if IsClass(who,&Player)
          {
             Send(who,@SetKillTarget,#target=i);
@@ -231,6 +238,7 @@ messages:
          }
 
          if IsClass(self,&Earthquake)
+            OR IsClass(self,&MonsterEarthquake)
          {
             iDamage = Send(self,@ComputeDamage,#who=who,#target=i,
                            #iDamage=iDamage);

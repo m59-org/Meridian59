@@ -6,6 +6,7 @@
 
 DEPEND = ..\atakspel.bof
 BOFS = boltspel.bof \
-       earthqua.bof radproj.bof
+       earthqua.bof radproj.bof \
+       monsterquake.bof
 
 !include $(KODDIR)\kod.mak
