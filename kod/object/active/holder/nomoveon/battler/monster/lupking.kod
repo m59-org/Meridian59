@@ -68,6 +68,9 @@ resources:
    angered_by_wall_element_msg = \
       "Enraged by %s%s, the lupogg king stomps down hard!"
 
+   lupogg_king_charges = \
+      "~BThe enraged lupogg king charges at you!"
+
 classvars:
    vrName = lupoggking_name_rsc
    vrIcon = lupoggking_icon_rsc
@@ -103,7 +106,7 @@ classvars:
    viBaseSize = 3000
 
    % between 1 and 10000
-   viCriticalHitRate = 2000
+   viCriticalHitRate = 500
    vbCanCauseBleed = TRUE
 
 properties:
@@ -615,6 +618,105 @@ messages:
             #lTargets=lFinalTargets);
 
       return;
+   }
+
+   HitPointThresholdDamage()
+   {
+      local iThreshold;
+
+      iThreshold = piHit_points / (piMax_hit_points * 20);
+
+      if iThreshold >= 4
+      {
+         Post(self,@AttemptChargeAttack);
+         propagate;
+      }
+      else if iThreshold = 3
+      {
+         Post(self,@AttemptChargeAttack);
+         propagate;
+      }
+      else if iThreshold = 2
+      {
+         Post(self,@AttemptChargeAttack);
+         propagate;
+      }
+      else if iThreshold = 1
+      {
+         propagate;
+      }
+      else
+      {
+         Post(self,@AttemptChargeAttack);
+         propagate;
+      }
+
+      propagate;
+   }
+
+   AttemptChargeAttack()
+   {
+      local oRoom, lSteps, iDist, i, oElement, n, lBattlers, iIncDuration, lAlreadyAffected;
+      
+      oRoom = Send(self,@GetOwner);
+
+      if oRoom <> $
+         AND IsClass(oRoom,&Room)
+         AND Send(oRoom,@CheckRoomFlag,#flag=ROOM_NO_COMBAT)
+      {
+         return FALSE;
+      }
+
+      oRoom = Send(self,@GetOwner);
+      if oRoom = $
+      {
+         return FALSE;
+      }
+      
+      % Can go up to 20 rows/cols (expressed in *64 fine)
+      iDist = ((99+1)*64)/5;
+
+      lSteps = Send(oRoom,@IntraTeleport,#what=self,#distance=iDist,
+                     #type=INTRA_TELEPORT_FORWARD);
+
+      lAlreadyAffected = $;
+      if lSteps <> $
+      {
+         lBattlers = Send(Send(self,@GetOwner),@GetHolderActive);
+         iIncDuration = 100 * Length(lSteps);
+         foreach i in lSteps
+         {
+            oElement = Create(&DustCloud,#Caster=self,#duration=iIncDuration,#bMS=TRUE);
+            Send(oRoom,@NewHold,#what=oElement,
+                 #new_row=Nth(i,1),#new_col=Nth(i,2),
+                 #fine_row=Nth(i,3),#fine_col=Nth(i,4));
+            iIncDuration = Bound(iIncDuration - 100, 100, $);
+
+            foreach n in lBattlers
+            {
+               if First(n) <> self
+                  AND IsClass(First(n),&Battler)
+                  AND Send(First(n),@SquaredFineDistanceToLocation,#row=Nth(i,1),#col=Nth(i,2),#fine_row=Nth(i,3),#fine_col=Nth(i,4)) <= 64 * 3 * 64 * 3
+                  AND (lAlreadyAffected = $
+                     OR FindListElem(lAlreadyAffected,First(n)) = 0)
+               {
+                  Send(First(n),@ApplyKnockback,#what=self,#knockback_power=(Send(self,@GetKnockbackPower)*(99+1)*2)/100);
+                  lAlreadyAffected = Cons(First(n),lAlreadyAffected);
+               }
+            }
+         }
+
+         foreach i in lAlreadyAffected
+         {
+            Send(i,@MsgSendUser,#message_rsc=lupogg_king_charges);
+         }
+         Send(poOwner,@Rumble,#duration=500,#disruption=100);
+         Send(poOwner,@SomethingWaveRoom,#what=self,
+               #wave_rsc=lupoggking_sound_aware);
+         return TRUE;
+      }
+
+      return FALSE;
    }
 
 end
