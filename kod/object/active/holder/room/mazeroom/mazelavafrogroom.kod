@@ -53,6 +53,7 @@ properties:
    % We modify these functions for our purposes here
    vbSpawnMonsters = TRUE
    vbDesertThreatsHere = TRUE
+   ptRespawnLavaFrog = $
 
 messages:
 
@@ -148,11 +149,38 @@ messages:
 
       pbLavaFrogDefeated = TRUE;
       Send(self,@RecalculateRoomMusic);
+      
+      if ptRespawnLavaFrog = $
+      {
+         % Six hours
+         ptRespawnLavaFrog = CreateTimer(self,@RespawnLavaFrog, 6 * 60 * 60 * 1000);
+      }
+      
+      return;
+   }
+
+   RespawnLavaFrog(timer=$)
+   {
+      ptRespawnLavaFrog = $;
+      pbLavaFrogDefeated = FALSE;
+      Send(self,@RecalculateRoomMusic);
       return;
    }
 
    PopulateArea()
    {
+      local i, each_obj;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         each_obj = Send(self,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&LavaFrog)
+         {
+            % Don't make a duplicate lava frog
+            return;
+         }
+      }
+
       if NOT pbLavaFrogDefeated
       {
          Send(self,@NewHold,#what=Create(&LavaFrog),
@@ -162,6 +190,22 @@ messages:
                #fine_col=0,
                #new_angle=ANGLE_EAST);
       }
+      return;
+   }
+   
+   DepopulateArea()
+   {
+      local i, each_obj;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         each_obj = Send(self,@HolderExtractObject,#data=i);
+         if NOT IsClass(each_obj,&LavaFrog) % don't delete lava frog
+         {
+            Send(each_obj,@Delete);
+         }
+      }
+      
       return;
    }
    
@@ -178,6 +222,16 @@ messages:
       }
 
       return shrine_music1;
+   }
+   
+   Delete()
+   {
+      if ptRespawnLavaFrog <> $
+      {
+         DeleteTimer(ptRespawnLavaFrog);
+         ptRespawnLavaFrog = $;
+      }
+      propagate;
    }
 
 end
