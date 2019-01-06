@@ -137,7 +137,8 @@ messages:
 
    Constructed()
    {
-      plSpellBook = [ [SID_ICICLE_VOLLEY,4,90], [SID_FROST_BREATH,10,100] ];
+      plRangedSpellBook = [ [SID_ICICLE_VOLLEY,4,90,99],
+                            [SID_FROST_BREATH,10,100,99] ];
 
       plResistances = [ [-ATCK_SPELL_FIRE, -20],
                         [-ATCK_SPELL_SHOCK, 40],
@@ -221,7 +222,9 @@ messages:
                               [ATCK_WEAP_NERUDITE, 40]  ];
             
             % The dragon relies heavily on attacks and single target spells on the ground
-            plSpellBook = [ [SID_ICICLE_VOLLEY,4,90], [SID_FROST_BREATH,10,100] ];
+            plRangedSpellBook = [ [SID_ICICLE_VOLLEY,4,95,99],
+                                  [SID_FROST_BREATH,10,100,99] ];
+            piRangedSpellChance = 10;
             break;
          case IN_THE_AIR:
             piSpeed = SPEED_FASTER;
@@ -240,7 +243,9 @@ messages:
                               [ATCK_WEAP_NERUDITE, 80]  ];
             
             % The dragon shifts more towards breath spell while in the air
-            plSpellBook = [ [SID_ICICLE_VOLLEY,4,50], [SID_FROST_BREATH,10,100] ];
+            plRangedSpellBook = [ [SID_ICICLE_VOLLEY,4,50,99],
+                                  [SID_FROST_BREATH,10,100,99] ];
+            piRangedSpellChance = 30;
             piAttackRange = viAttackRange;
             break;
          case FLYING_TOO_HIGH:
@@ -260,7 +265,10 @@ messages:
                               [ATCK_WEAP_NERUDITE, 80]  ];
             
             % The dragon goes all out once flying high
-            plSpellBook = [ [SID_FROST_BREATH,2,95], [SID_WINDS,0,100] ];
+            plRangedSpellBook = [ [SID_WINDS,4,5,99],
+                                  [SID_ICICLE_VOLLEY,10,20,99],
+                                  [SID_FROST_BREATH,10,100,99] ];
+            piRangedSpellChance = 60;
             piAttackRange = 0;
             break;
       }
@@ -472,101 +480,10 @@ messages:
       propagate;
    }
 
-   %
-   % MonsterCastSpell is defined here because we need the dragon to face 
-   %    players when he casts Frost Breath. Otherwise, he may be casting
-   %    in the opposite direction because of his optimal range movement
-   %
-   MonsterCastSpell()
+   AttemptSpell()
    {
-      local i, iDistance, oSpell, iRandom, lTargets, iSpellNum, iManaCost;
-
-      % If monster knows no spells, or has no target, return.
-      if plSpellBook = $
-         OR poTarget = $
-      {
-         return FALSE;
-      }
-
-      % Get the adjusted chance to cast, based on whether we're demented
-      % or if AmA is up. Multiply this by 6 because we've decreased the
-      % time between chase behavior checks by a factor of 4-7x.
-      iRandom = Send(self,@AdjustedChanceBase,#base=(piSpellChance*6));
-
-      % Do the random check now, so we don't go any further
-      % if we don't have to.
-      if Random(1,iRandom) <> 1
-      {
-         return FALSE;
-      }
-
-      % Get distance to target.
-      iDistance = Send(self,@SquaredFineDistanceTo3D,#what=poTarget);
-
-      % Check LoS to target here so we don't waste mana casting
-      % when we can't get our target. Instead, we use that time
-      % walking to the target.
-
-      if iDistance <= piSpellRange * piSpellRange
-         AND Send(poOwner,@LineOfSight,#obj1=self,#obj2=poTarget)
-         AND Send(poOwner,@ReqSomethingAttack,#what=self,#victim=poTarget,
-                  #use_weapon=self)
-      {
-         % We go through the monster's spellbook and pick the spell
-         % that corresponds to the random number picked. This is used
-         % to give a % chance for each spell to be picked.
-         iRandom = Random(1,100);
-         foreach i in plSpellBook
-         {
-            if iRandom <= Nth(i,3)
-            {
-               iSpellNum = Nth(i,1);
-               iManaCost = Nth(i,2);
-
-               break;
-            }
-         }
-
-         % If no spell returned or cannot pay mana costs, spell fails.
-         if iSpellNum = $
-            OR piMana < iManaCost
-         {
-            return FALSE;
-         }
-
-         % Take mana from monster.
-         piMana = piMana - iManaCost;
-         Send(self,@NewMana);
-
-         % Get the spell object.
-         oSpell = Send(SYS,@FindSpellByNum,#num=iSpellNum);
-         
-         % Find the valid targets, defaulting to poTarget.
-         lTargets = [poTarget];
-         lTargets = Send(oSpell,@GetTargets,#who=self,#lTargets=lTargets);
-
-         % See if we can cast the spell here.
-         if Send(oSpell,@CanPayMonsterCosts,#who=self,#lTargets=lTargets,
-                  #iSpellPower=piSpellPower)
-            AND Send(poOwner,@ReqSpellCast,#who=self,#oSpell=oSpell,
-                     #lItems=lTargets)
-         {
-            % We are definitely casting now.
-            % Face the dragon toward his target.
-            Send(self,@MonsterOrient,#face_target=TRUE);
-
-            % Do any special cast animations; send spell for specific ones.
-            Send(self,@MonsterCastAnimation,#iSpellNum=iSpellNum);
-            
-            % Cast the spell.
-            Send(oSpell,@CastSpell,#who=self,#lTargets=lTargets,
-                  #iSpellPower=piSpellPower);
-         }
-
-         return TRUE;
-      }
-
-      return FALSE;
+      Send(self,@MonsterOrient,#face_target=TRUE);
+      propagate;
    }
 
    CanMonsterFight(who=$,oStroke=$)

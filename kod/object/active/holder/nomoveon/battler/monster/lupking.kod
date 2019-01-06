@@ -126,6 +126,9 @@ properties:
    piMinDamage = 30
    piMaxDamage = 120
 
+   piMax_mana = 40
+   piOtherSpellChance = 5
+
 messages:
 
    Constructed()
@@ -150,6 +153,8 @@ messages:
                         [-ATCK_SPELL_QUAKE, 100 ],
                         [ATCK_WEAP_NERUDITE, -40 ]
                       ];
+
+      plOtherSpellBook = [ [SKID_MONSTER_ROAR, 5, 100, Random(90,99)] ];
 
       propagate;
    }
@@ -722,6 +727,18 @@ messages:
       }
 
       return FALSE;
+   }
+
+   WasHeld()
+   {
+      Post(self,@AttemptSpell,#type=CAST_TYPE_OTHER);
+      return;
+   }
+
+   WasBlinded()
+   {
+      Post(self,@AttemptSpell,#type=CAST_TYPE_OTHER);
+      return;
    }
 
 end

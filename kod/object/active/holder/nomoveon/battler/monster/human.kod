@@ -2033,14 +2033,24 @@ messages:
    {
       local i, lSpells;
 
-      if plSpellBook = $
-      {
-         return $;
-      }
-
       lSpells = $;
 
-      foreach i in plSpellBook
+      foreach i in plMeleeSpellBook
+      {
+         lSpells = Cons(First(i),lSpells);
+      }
+
+      foreach i in plRangedSpellBook
+      {
+         lSpells = Cons(First(i),lSpells);
+      }
+
+      foreach i in plAllySpellBook
+      {
+         lSpells = Cons(First(i),lSpells);
+      }
+
+      foreach i in plOtherSpellBook
       {
          lSpells = Cons(First(i),lSpells);
       }

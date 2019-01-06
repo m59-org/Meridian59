@@ -61,9 +61,6 @@ classvars:
    viDefault_behavior = \
       AI_FIGHT_AGGRESSIVE | AI_MOVE_WALKTHROUGH_WALLS \
       | AI_FIGHT_WIZARD_KILLER | AI_MOVE_FLEE_FRIGHTENERS
-
-   % 1 in x chance to cast a spell.
-   viSpellChance = 4
    
    viBaseSize = 5
    viBaseKnockbackPercentage = 0
@@ -82,8 +79,9 @@ properties:
    piMaxDamage = 25
    vrDesc = airelemental_desc_rsc
 
-   piSpellPower = 99
    piMax_mana = 20
+   piMeleeSpellChance = 100
+   piRangedSpellChance = 50
    
 messages:
 
@@ -92,7 +90,8 @@ messages:
       plResistances = [ [ATCK_WEAP_ALL, 200]
                       ];
 
-      plSpellBook = [ [ SID_LIGHTNING_BOLT, 3, 100 ] ];
+      plMeleeSpellBook = [ [ SID_SHOCKING_FURY, 3, 100, Random(40,99) ] ];
+      plRangedSpellBook = [ [ SID_LIGHTNING_BOLT, 3, 100, Random(40,99) ] ];
 
       propagate;
    }

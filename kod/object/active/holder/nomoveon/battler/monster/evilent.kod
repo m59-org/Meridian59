@@ -66,8 +66,6 @@ classvars:
    vrLeaves = EvilEnt_leaves_sparse_rsc
    vrDead_leaves = EvilEnt_dead_leaves_sparse_rsc
 
-   % 1 in x chance to cast a spell.
-   viSpellChance = 8
 
    viBaseBleedPercentage = 50
    viBaseKnockbackPercentage = 0
@@ -78,8 +76,9 @@ properties:
 
    piAnimation = ANIM_NONE
 
-   piSpellPower = 90
    piMax_mana = 60
+   piMeleeSpellChance = 0
+   piRangedSpellChance = 10
 
    piReputationGroup = REP_FAROL
    
@@ -116,8 +115,9 @@ messages:
                         [ATCK_WEAP_BLUDGEON, 50 ],
                         [ATCK_WEAP_SLASH, -10 ],
                         [-ATCK_SPELL_FIRE, -10 ] ];
-
-      plSpellBook = [ [SID_LIGHTNING, 5, 100] ];
+                        
+      plMeleeSpellBook = [ [SID_SHOCKING_FURY, 5, 100, Random(85,99)] ];
+      plRangedSpellBook = [ [SID_LIGHTNING_BOLT, 5, 100, Random(70,90)] ];
 
       plReputationEnemies = [REP_UNDEAD];
 
@@ -214,9 +214,10 @@ messages:
    {
       % Living trees get more dangerous if you burn 'em.
 
-      if (aSpell & ATCK_SPELL_FIRE) AND piSpellChance > 2
+      if (aSpell & ATCK_SPELL_FIRE)
       {
-         piSpellChance = piSpellChance - 1;
+         piMeleeSpellChance = Bound(piMeleeSpellChance+10,10,100);
+         piRangedSpellChance = Bound(piRangedSpellChance+10,10,100);
       }
 
       propagate;

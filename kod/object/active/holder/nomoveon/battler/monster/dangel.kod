@@ -83,9 +83,6 @@ classvars:
    vrSound_miss = DarkAngel_sound_attack
    vrSound_aware = DarkAngel_sound_aware
    vrSound_death = DarkAngel_sound_death
-
-   % 1 in x chance to cast a spell.
-   viSpellChance = 3
    
    viBonusBaseTP = 50
 
@@ -102,11 +99,8 @@ properties:
    piAnimation = ANIM_NONE
    piDrawEffectFlag = OF_BOUNCING
 
-   piSpellPower = 99
-   piMax_mana = 40
 
-   % piSpellRange in FINENESS units. 10 row/cols.
-   piSpellRange = 640
+   piMax_mana = 60
 
    piReputationGroup = REP_HERETIC
 
@@ -125,9 +119,22 @@ messages:
                         [ ATCK_WEAP_NERUDITE, 75 ],
                         [ ATCK_WEAP_MAGIC, -5 ]
                       ];
-      plSpellBook =  [ [SID_BLIND,8,20],[SID_VERTIGO,12,30], [SID_HOLD,8,40],
-                       [SID_REFLECTION,5,60], [SID_DISCORDANCE,5,70],
-                       [SID_ENFEEBLE,8,80], [SID_FORGET,5,100] ];
+
+      plMeleeSpellBook =  [ [SID_BLIND,8,20, Random(50,99)],
+                            [SID_VERTIGO,12,30, Random(50,99)],
+                            [SID_HOLD,8,40, Random(50,99)],
+                            [SID_REFLECTION,5,60, Random(50,99)],
+                            [SID_DISCORDANCE,5,70, Random(50,99)],
+                            [SID_ENFEEBLE,8,80, Random(50,99)],
+                            [SID_FORGET,5,100, Random(50,99)] ];
+
+      plRangedSpellBook =  [ [SID_BLIND,8,20, Random(50,99)],
+                             [SID_VERTIGO,12,30, Random(50,99)],
+                             [SID_HOLD,8,40, Random(50,99)],
+                             [SID_REFLECTION,5,60, Random(50,99)],
+                             [SID_DISCORDANCE,5,70, Random(50,99)],
+                             [SID_ENFEEBLE,8,80, Random(50,99)],
+                             [SID_FORGET,5,100, Random(50,99)] ];
 
       propagate;
    }
@@ -146,7 +153,6 @@ messages:
               #iSpellPower=piSpellPower);
       }
 
-      Send(self,@MonsterCastSpell);
       Send(self,@DoFireball);
 
       return;

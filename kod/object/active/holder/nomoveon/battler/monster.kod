@@ -539,8 +539,29 @@ properties:
    piSweepCounter = 0
 
    % List of spells this monster can cast. Has the format:
-   % [ Spell num, mana cost, number req. from Random(1,100) to cast ]
-   plSpellBook = $
+   % [ Spell num, mana cost, number req. from Random(1,100) to cast, base spellpower for this spell ]
+   % Melee spell book occurs instead of close range attacks
+   % Ranged spell book occurs instead of chase movement
+   % Ally spell book includes spells to cast on allies
+   % Other spell book includes custom spells for custom AI
+   plMeleeSpellBook = $
+   plRangedSpellBook = $
+   plSelfSpellBook = $
+   plAllySpellBook = $
+   plOtherSpellBook = $
+   
+   % What are the monster's chances to cast spells each check?
+   % Number is out of one hundred
+   piMeleeSpellChance = 10
+   piRangedSpellChance = 10
+   piAllySpellChance = 10
+   piSelfSpellChance = 10
+   piOtherSpellChance = 10
+   
+   % Let's limit monster casting to once a second to prevent classic Meridian spell spam.
+   piLastTimeCasted = 0
+   % Minimum time in MS between monster casts.
+   piMonsterCastDelayMinimum = 1000
 
    % 1 in x chance to cast a spell. Default 10% chance. Set
    % from classvar in Constructor.
@@ -881,7 +902,11 @@ messages:
          ptMana = $;
       }
 
-      plSpellBook = $;
+      plMeleeSpellBook = $;
+      plRangedSpellBook = $;
+      plSelfSpellBook = $;
+      plAllySpellBook = $;
+      plOtherSpellBook = $;
 
       Send(self,@RemoveAllEnchantments);
       poMaster = $;
@@ -1363,6 +1388,19 @@ messages:
       return piLastTimeAttacked;
    }
 
+   RecordTimeCasted()
+   "This records the last time the monster cast a spell."
+   {
+      piLastTimeAttacked = GetTime();
+
+      return;
+   }
+   
+   GetTimeCasted()
+   {
+      return piLastTimeCasted;
+   }
+
    GetLastAttacker()
    {
       return poLastAttacker;
@@ -1649,8 +1687,14 @@ messages:
          piState = piState & ESTATE_CCLK_MASK;
       }
 
-      % Carry out attack
-      Send(self,@TryAttack,#what=poTarget,#stroke_obj=self);
+      % Are we attacking or casting a melee spell?
+      if NOT (Send(self,@MonsterCanCastSpell)
+            AND Random(1,100) <= piMeleeSpellChance
+            AND Send(self,@AttemptSpell,#type=CAST_TYPE_MELEE))
+      {
+         % AttemptSpell returns TRUE if everything works out. If not, we attack.
+         Send(self,@TryAttack,#what=poTarget,#stroke_obj=self);
+      }
       
       % Sanity check, in rare occurrences mob dies before this can execute 
       if poBrain <> $
@@ -1660,7 +1704,286 @@ messages:
 
       return;
    }
- 
+  
+   AttemptSpell(type=CAST_TYPE_MELEE)
+   {
+      local lSpell, oSpell, iSpellPower, oAntiMagicAura, lRadiusState, iDistance, lTargets;
+      
+      if poTarget = $
+      {
+         % Why are we casting if we have no enemy?
+         return FALSE;
+      }
+      
+      lSpell = Send(self,@PickSpell,#type=type);
+
+      if lSpell <> $
+         AND piMana >= Nth(lSpell,2)
+      {
+         oSpell = Send(SYS,@FindSpellByNum,#num=Nth(lSpell,1));
+         if oSpell <> $
+         {
+            if Length(lSpell) > 3
+            {
+               iSpellPower = Send(self,@GetSpellPower,#base_power=Nth(lSpell,4),#oSpell=oSpell);
+            }
+            else
+            {
+               iSpellPower = Send(self,@GetSpellPower,#base_power=Random(1,99),#oSpell=oSpell);
+            }
+
+            % Get distance to target.
+            iDistance = Send(self,@SquaredFineDistanceTo3D,#what=poTarget);
+
+            % Check LoS to target here so we don't waste mana casting
+            % when we can't get our target.
+
+            if iDistance <= Send(oSpell,@GetRange) * Send(oSpell,@GetRange)
+               AND Send(poOwner,@LineOfSight,#obj1=self,#obj2=poTarget)
+               AND Send(poOwner,@ReqSomethingAttack,#what=self,#victim=poTarget,
+                        #use_weapon=self)
+            {
+               piMana = piMana - Nth(lSpell,2);
+               Send(self,@NewMana);
+         
+               % Find the valid targets, defaulting to poTarget.
+               lTargets = [poTarget];
+               lTargets = Send(oSpell,@GetTargets,#who=self,#lTargets=lTargets);
+
+               % See if we can cast the spell here.
+               if Send(oSpell,@CanPayMonsterCosts,#who=self,#lTargets=lTargets,
+                        #iSpellPower=iSpellPower)
+                  AND Send(poOwner,@ReqSpellCast,#who=self,#oSpell=oSpell,
+                           #lItems=lTargets)
+               {
+                  % Do any special cast animations; send spell for specific ones.
+                  Send(self,@MonsterCastAnimation,#iSpellNum=Send(oSpell,@GetSpellNum));
+
+                  % Cast the spell.
+                  Send(oSpell,@CastSpell,#who=self,#lTargets=lTargets,
+                        #iSpellPower=iSpellPower);
+               }
+
+               Send(self,@RecordTimeCasted);
+               return TRUE;
+            }
+         }
+      }
+
+      return FALSE;
+   }
+
+   GetSpellPower(base_power=0, oSpell=$, lTargets=$)
+   {
+      local iSpellPower, i, iTerrain, oRoom, oModifierSpell, iAbilityLoss,
+            iAbilityGain, iItemModifier, iBase, iPrimaryBonus, iSecondaryBonus,
+            iPowerBonus, iShrines, lRadiusState, iSchool;
+
+      if oSpell = $
+      {
+         return SPELLPOWER_MINIMUM;
+      }
+
+      oRoom = Send(self,@GetOwner);  
+
+      % Check the monster's in use items to see if they affect anything.
+      % Note that this also checks itematts.
+      iItemModifier = 0;
+      foreach i in Send(self,@GetPlayerUsing)
+      {
+         iItemModifier = iItemModifier + Send(i,@GetSpellModifier,
+                                              #oSpell=oSpell);
+      }
+   
+      % Each school has a bonus for different things.
+      iPrimaryBonus = 0;
+      iSecondaryBonus = 0;
+
+      iSchool = Send(oSpell,@GetSchool);
+      if iSchool = SS_SHALILLE
+      {
+         % Shal'ille gives bonuses depending on the room setting,
+         %  prefers natural settings.
+         iPrimaryBonus = Send(oRoom,@GetShalilleBonus);
+         % Secondary bonus based on Karma.
+         iSecondaryBonus = abs(Send(self,@GetKarma)/10);
+
+         % Forces of Light boosts Shal'ille
+         if Send(oRoom,@IsEnchanted,#what=SID_FORCES_OF_LIGHT)
+         {
+            % Add a function of the spellpower.
+            iAbilityGain = Send(oRoom,@GetEnchantmentState,
+                                 #what=SID_FORCES_OF_LIGHT);
+            iAbilityGain = iAbilityGain/10;
+            iSecondaryBonus = iSecondaryBonus + iAbilityGain;
+         }
+      }
+      
+      if iSchool = SS_QOR
+      {
+         % Qor strength determined by day or night.
+         iPrimaryBonus =  (2 + Send(SYS,@GetHour));
+         % Secondary bonus comes from Karma.
+         iSecondaryBonus = abs(Send(self,@GetKarma)/10);
+
+         % Darkness boosts Qor
+         if Send(oRoom,@IsEnchanted,#what=SID_DARKNESS)
+         {
+            % This reconstructs the darkness spellpower.
+            iAbilityGain = Send(oRoom,@GetEnchantmentState,
+                                 #what=SID_DARKNESS);
+            iAbilityGain = -(iAbilityGain - 25);
+            iAbilityGain = iAbilityGain/10;
+            iSecondaryBonus = iSecondaryBonus + iAbilityGain;
+         }
+      }
+      
+      if iSchool = SS_RIIJA
+      {
+         % Riija's bonuses are a bit random seeming.
+         % Riija strength determined by moon position - range is -16 to 30
+         foreach i in Send(SYS,@GetBackgroundObjects)
+         {
+            if IsClass(i,&Moon)  
+            {
+               iPrimaryBonus = Send(i,@GetBackgroundOverlayHeight)/12;
+            }
+         }
+
+         % Riija's secondary bonus depends on the number of items you're holding.
+         iSecondaryBonus = (Send(self,@GetBulkHold)*10)/Send(self,@GetBulkMax);
+      }
+      
+      if iSchool = SS_FAREN
+      {
+         % Faren prefers water and fire.  If he finds water and fire, he gets stronger.
+         iPrimaryBonus = Send(oRoom,@GetFarenBonus);
+         % Faren also rewards the vigorous warrior.
+         iSecondaryBonus = Send(self,@GetHealth)/Send(self,@GetMaxHealth);
+      }
+      
+      if iSchool = SS_KRAANAN
+      {
+         % Kraanan favors adversity and armies.  More people in a room, the better.
+         iPrimaryBonus = Length(Send(oRoom,@GetHolderActive));
+         % Kraanan also favors the healthy warrior.  Full hps = more bonus.
+         iSecondaryBonus = ((Send(self,@GetHealth)*100)/Send(self,@GetMaxHealth))/10;
+      }
+      
+      if iSchool = SS_JALA
+      {
+         iSecondaryBonus = Send(self,@GetMaxHealth)/12;
+      }
+
+      % Bind the bonuses to reasonable values.
+      if iSchool <> SS_JALA
+      {
+         iPrimaryBonus = bound(iPrimaryBonus,0,30);
+      }
+      iSecondaryBonus = bound(iSecondaryBonus,0,10);
+
+      iSpellPower = iPrimaryBonus + iSecondaryBonus + base_power;
+
+      lRadiusState = Send(self,@GetMostPowerfulRadiusEnchantmentState,#byClass=&AntiMagicAura);
+      if lRadiusState <> $
+      {
+         iSpellPower = Send(Nth(lRadiusState,1),@ModifySpellpower,#who=self,#oSpell=oSpell,#state=lRadiusState,#iSpellPower=iSpellPower);
+      }
+
+      lRadiusState = Send(self,@GetMostPowerfulRadiusEnchantmentState,#byClass=&ManaConvergence);
+      if lRadiusState <> $
+      {
+         iSpellPower = Send(Nth(lRadiusState,1),@ModifySpellpower,#who=self,#oSpell=oSpell,#state=lRadiusState,#iSpellPower=iSpellPower);
+      }
+
+      % Bound the lower end so that the stuff that follows is truly a bonus.
+      iSpellPower = bound(iSpellPower,0,$);
+
+      % This number is based on the number of shrines this god controls.
+      iShrines = Send(SYS,@GetShrineBonus,#school=iSchool);
+
+      % These bonuses (shrine, items) can boost spell power after all other modifiers.
+      iSpellPower = iSpellPower + iShrines + iItemModifier;
+
+      % Then, add bonus from the system object, set by admins
+      iSpellPower = iSpellPower + Send(SYS,@GetBonusSpellpower,#school=iSchool);
+
+      % Affected by the Dement spell?
+      oModifierSpell = Send(SYS,@FindSpellByNum,#num=SID_DEMENT);
+      if Send(self,@IsEnchanted,#what=oModifierSpell)
+      {
+         iAbilityLoss = first(Send(self,@GetEnchantedState,#what=oModifierSpell));
+         iAbilityLoss = Random(iAbilityLoss, iAbilityLoss*2);
+         iSpellpower = iSpellpower - iAbilityLoss;
+      }
+
+      % Bound the result.
+      iSpellPower = bound(iSpellPower,SPELLPOWER_MINIMUM,SPELLPOWER_MAXIMUM);
+
+      return iSpellPower;
+   }
+
+   PickSpell(type=CAST_TYPE_MELEE)
+   {
+      local iRandom, lSpell;
+
+      iRandom = Random(1,100);
+
+      % [ Spell num, mana cost, number req. from Random(1,100) to cast ]
+      if type = CAST_TYPE_MELEE
+      {
+         foreach lSpell in plMeleeSpellBook
+         {
+            if iRandom <= Nth(lSpell,3)
+            {
+               return lSpell;
+            }
+         }
+      }
+      if type = CAST_TYPE_RANGED
+      {
+         foreach lSpell in plRangedSpellBook
+         {
+            if iRandom <= Nth(lSpell,3)
+            {
+               return lSpell;
+            }
+         }
+      }
+      if type = CAST_TYPE_SELF
+      {
+         foreach lSpell in plSelfSpellBook
+         {
+            if iRandom <= Nth(lSpell,3)
+            {
+               return lSpell;
+            }
+         }
+      }
+      if type = CAST_TYPE_ALLY
+      {
+         foreach lSpell in plAllySpellBook
+         {
+            if iRandom <= Nth(lSpell,3)
+            {
+               return lSpell;
+            }
+         }
+      }
+      if type = CAST_TYPE_OTHER
+      {
+         foreach lSpell in plOtherSpellBook
+         {
+            if iRandom <= Nth(lSpell,3)
+            {
+               return lSpell;
+            }
+         }
+      }
+      
+      return $;
+   }
+
    ChaseTimer( timer = $ )
    "We're in Hot pursuit, so either we keep chasing, or we attack."
    "Note that even if we can't move, we can be 'chasing'...."
@@ -1716,29 +2039,17 @@ messages:
       {
          Send(self,@HealHitPoint);
       }
-      
-      bCast = FALSE;
-      if Send(self,@MonsterCanCastSpell)
-      {
-         bCast = Send(self,@MonsterCastSpell);
-      }
 
       % If we can move, we physically try to get closer
-      if not bCast
-      {
-         Send(poBrain,@GetChaseBehavior,#mob=self,#target=poTarget,
-              #behavior=piBehavior);
-      }
+      Send(poBrain,@GetChaseBehavior,#mob=self,#target=poTarget,#behavior=piBehavior);
 
-      % Call this if the monster just killed the player with a spell
-      if poTarget <> $
+      Send(poBrain,@PostChaseTimer,#mob=self);
+
+      % Alright, we've chased. Do we cast a spell?
+      if Send(self,@MonsterCanCastSpell)
+         AND Random(1,100) <= piRangedSpellChance
       {
-         Send(poBrain,@PostChaseTimer,#mob=self);
-      }
-      else
-      {
-         % Monster slung a spell, killed player
-         Send(self,@EnterStateMove);      
+         Send(self,@AttemptSpell,#type=CAST_TYPE_RANGED);
       }
 
       return;
@@ -5363,97 +5674,14 @@ messages:
       {
          return FALSE;
       }
+      
+      if (GetTime() - piLastTimeCasted) < piMonsterCastDelayMinimum
+      {
+         % Hasn't been long enough. In MS.
+         return FALSE;
+      }
 
       return TRUE;
-   }
-
-   MonsterCastSpell()
-   "Handle monster spellcasting here."
-   {
-      local i, iDistance, oSpell, iRandom, lTargets, iSpellNum, iManaCost;
-
-      % If monster knows no spells, or has no target, return.
-      if plSpellBook = $
-         OR poTarget = $
-      {
-         return FALSE;
-      }
-
-      % Get the adjusted chance to cast, based on whether we're demented
-      % or if AmA is up. Multiply this by 6 because we've decreased the
-      % time between chase behavior checks by a factor of 4-7x.
-      iRandom = Send(self,@AdjustedChanceBase,#base=(piSpellChance*6));
-
-      % Do the random check now, so we don't go any further
-      % if we don't have to.
-      if Random(1,iRandom) <> 1
-      {
-         return FALSE;
-      }
-
-      % Get distance to target.
-      iDistance = Send(self,@SquaredFineDistanceTo3D,#what=poTarget);
-
-      % Check LoS to target here so we don't waste mana casting
-      % when we can't get our target. Instead, we use that time
-      % walking to the target.
-
-      if iDistance <= piSpellRange * piSpellRange
-         AND Send(poOwner,@LineOfSight,#obj1=self,#obj2=poTarget)
-         AND Send(poOwner,@ReqSomethingAttack,#what=self,#victim=poTarget,
-                  #use_weapon=self)
-      {
-         % We go through the monster's spellbook and pick the spell
-         % that corresponds to the random number picked. This is used
-         % to give a % chance for each spell to be picked.
-         iRandom = Random(1,100);
-         foreach i in plSpellBook
-         {
-            if iRandom <= Nth(i,3)
-            {
-               iSpellNum = Nth(i,1);
-               iManaCost = Nth(i,2);
-
-               break;
-            }
-         }
-
-         % If no spell returned or cannot pay mana costs, spell fails.
-         if iSpellNum = $
-            OR piMana < iManaCost
-         {
-            return FALSE;
-         }
-
-         % Take mana from monster.
-         piMana = piMana - iManaCost;
-         Send(self,@NewMana);
-
-         % Get the spell object.
-         oSpell = Send(SYS,@FindSpellByNum,#num=iSpellNum);
-         
-         % Find the valid targets, defaulting to poTarget.
-         lTargets = [poTarget];
-         lTargets = Send(oSpell,@GetTargets,#who=self,#lTargets=lTargets);
-
-         % See if we can cast the spell here.
-         if Send(oSpell,@CanPayMonsterCosts,#who=self,#lTargets=lTargets,
-                  #iSpellPower=piSpellPower)
-            AND Send(poOwner,@ReqSpellCast,#who=self,#oSpell=oSpell,
-                     #lItems=lTargets)
-         {
-            % Do any special cast animations; send spell for specific ones.
-            Send(self,@MonsterCastAnimation,#iSpellNum=iSpellNum);
-
-            % Cast the spell.
-            Send(oSpell,@CastSpell,#who=self,#lTargets=lTargets,
-                  #iSpellPower=piSpellPower);
-         }
-
-         return TRUE;
-      }
-
-      return FALSE;
    }
 
    MonsterCastAnimation(iSpellNum=$)
@@ -8424,6 +8652,22 @@ messages:
    GetBonusXPGain()
    {
       return vbBonusXPGain;
+   }
+
+   GetPlayerUsing()
+   {
+      % Human monsters can equip items.
+      return $;
+   }
+
+   WasHeld()
+   {
+      return;
+   }
+
+   WasBlinded()
+   {
+      return;
    }
 
 end

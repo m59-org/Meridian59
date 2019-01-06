@@ -59,11 +59,8 @@ classvars:
       AI_FIGHT_AGGRESSIVE | AI_MOVE_WALKTHROUGH_WALLS \
       | AI_FIGHT_WIZARD_KILLER | AI_MOVE_FLEE_FRIGHTENERS
 
-   % 1 in x chance to cast a spell.
-   viSpellChance = 4
-
    % crystal being is absurdly deadly
-   viBonusBaseTP = 5000
+   viBonusBaseTP = 100000
 
    viBaseBleedPercentage = 0
 
@@ -79,9 +76,10 @@ properties:
    piMaxDamage = 15
    vrDesc = burning_orb_desc_rsc
 
-   piSpellPower = 99
-   piMax_mana = 20
-
+   piMax_mana = 2000
+   piMeleeSpellChance = 100
+   piRangedSpellChance = 100
+   piMonsterCastDelayMinimum = 500
    
 messages:
 
@@ -95,17 +93,18 @@ messages:
                         [ATCK_WEAP_MAGIC, -50],
                         [-ATCK_SPELL_HOLY, -50]
                       ];
+                      
+      plMeleeSpellBook =  [ [ SID_SPLASH_OF_ACID, 3, 35, 99 ],
+                            [ SID_EXPLOSIVE_FROST, 3, 70, 99 ],
+                            [ SID_FIRE_STORM, 3, 80, 99 ],
+                            [ SID_ICE_NOVA, 3, 90, 99 ],
+                            [ SID_EARTHQUAKE, 3, 100, 99 ]];
 
-      plSpellBook = [ [ SID_FROST_BREATH, 3, 5 ],
-                      [ SID_SPLASH_OF_ACID, 3, 10 ],
-                      [ SID_EXPLOSIVE_FROST, 3, 20 ],
-                      [ SID_FIRE_STORM, 3, 40 ],
-                      [ SID_ICE_NOVA, 3, 50 ],
-                      [ SID_EARTHQUAKE, 3, 60 ],
-                      [ SID_SLITHERBOLT, 3, 70 ],
-                      [ SID_ICICLE_VOLLEY, 3, 80 ],
-                      [ SID_FIREBALL, 3, 90 ],
-                      [ SID_LIGHTNING_BOLT, 3, 100 ] ];
+      plRangedSpellBook = [ [ SID_FROST_BREATH, 3, 5, 99 ],
+                            [ SID_SLITHERBOLT, 3, 25, 99 ],
+                            [ SID_ICICLE_VOLLEY, 3, 50, 99 ],
+                            [ SID_FIREBALL, 3, 75, 99 ],
+                            [ SID_LIGHTNING_BOLT, 3, 100, 99 ] ];
 
       propagate;
    }

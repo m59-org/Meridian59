@@ -63,9 +63,6 @@ classvars:
    viDead_drawfx = DRAWFX_TRANSLUCENT_75
    viDefault_behavior = \
       AI_FIGHT_AGGRESSIVE | AI_FIGHT_WIZARD_KILLER
-
-   % 1 in x chance to cast a spell.
-   viSpellChance = 16
    
    viCanSpawnAsChampion = FALSE
    
@@ -90,8 +87,9 @@ properties:
    piMaxDamage = 22
    vrDesc = lavafrog_desc_rsc
 
-   piSpellPower = 99
    piMax_mana = 20
+   piMeleeSpellChance = 40
+   piRangedSpellChance = 5
    
 messages:
 
@@ -101,7 +99,8 @@ messages:
                         [-ATCK_SPELL_FIRE, 300]
                       ];
 
-      plSpellBook = [ [ SID_FIREBALL, 3, 100 ] ];
+      plMeleeSpellBook = [ [SID_BLAST_OF_FIRE, 5, 100, Random(85,99)]];
+      plRangedSpellBook = [ [SID_FIREBALL, 5, 100, Random(90,99)] ];
 
       propagate;
    }
