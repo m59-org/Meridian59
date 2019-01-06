@@ -401,6 +401,8 @@ resources:
    %
    %  Mace fighting: Player has a might-based chance to stun with mace attacks.
    %  Archery: 
+   %  Axe Wielding: greatly reduced vigor drain for Cleave.
+   %  
    %
    %
    %
@@ -11633,7 +11635,7 @@ messages:
                {
                   % We killed and fought a stronger monster.
                   % Full XP.
-                  gain = monster_level;
+                  gain = monster_level + Send(what,@GetBonusXPGain);
                }
             }
             else
@@ -11684,7 +11686,7 @@ messages:
                   %  it's a group member kill.
                   %
                   % Half XP.
-                  gain = monster_level/2;
+                  gain = (monster_level + Send(what,@GetBonusXPGain))/2;
                
                   % Inform the player that a group kill successfully garnered XP.
                   if group_member_kill
@@ -11738,7 +11740,7 @@ messages:
                   AND ((piFlags & PFLAG_TOOK_DAMAGE)
                      OR (piFlags & PFLAG_DODGED))
                {
-                  gain = monster_level/4;
+                  gain = (monster_level + Send(what,@GetBonusXPGain))/4;
                }
                else
                {
