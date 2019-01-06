@@ -24,12 +24,17 @@ resources:
    HeavyArms_begin = "You shift back slightly, holding your arms in a defensive position."
    HeavyArms_end = "You return your arms to their normal position."
    HeavyArms_mantra = "Uiozi' Olpr"
+   HeavyArms_mastered_desc_rsc = \
+      "\n\n"
+      "You have mastered the heavy arms stance, allowing you to evade a fifth of the initial damage "
+      "from any source."
 
 classvars:
 
    vrName = HeavyArms_name_rsc
    vrIcon = HeavyArms_icon_rsc
    vrDesc = HeavyArms_desc_rsc
+   vrMasteredDesc = HeavyArms_mastered_desc_rsc
    
    stance_begin_msg = HeavyArms_begin
    stance_end_msg = HeavyArms_end
@@ -97,6 +102,10 @@ messages:
       return defense_power * iDefensePowerBonus / 100;
    }
 
+   MasteryModifyDamage(damage=0)
+   {
+      return (damage*4)/5;
+   }
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -154,6 +154,18 @@ messages:
       return iTime;
    }
 
+   SendTimeDesc(who=$)
+   {
+      if who <> $
+         AND Send(who,@HasMasteredThisSkill,#num=viSkill_num)
+      {
+         AddPacket(4,vrMasteredDesc);
+         return;
+      }
+      AddPacket(4,skill_nothing);
+      return;
+   }
+
    SendExtraDesc()
    {
       AddPacket(4,stance_info, 4,Send(self,@GetStanceMantraStr));

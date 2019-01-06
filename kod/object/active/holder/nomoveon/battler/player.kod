@@ -401,7 +401,6 @@ resources:
    %
    %  Mace fighting: Player has a might-based chance to stun with mace attacks.
    %  Archery: 
-   %  Axe Wielding: greatly reduced vigor drain for Cleave.
    %  
    %
    %
@@ -413,6 +412,7 @@ resources:
    %  Track: Your Track range increases to 5 rooms distant.
    %
    %  COMPLETE:
+   %  Axe Wielding: greatly reduced vigor drain for Cleave.
    %  Inert Form: Your resistance to elemental status effects is tripled.
    %
    %  Hammer wielding: Player can perform a short 'leap attack', jumping forward to strike an opponent that would otherwise be out of range (range 2-4).
@@ -2624,7 +2624,8 @@ messages:
 
       return 80 + iItemVigorBonus
                 + piRacialVigorMod
-                + ((Send(self,@GetSkillAbility,#Skill_num=SKID_SECOND_WIND) + 1) / 5);
+                + ((Send(self,@GetSkillAbility,#Skill_num=SKID_SECOND_WIND) + 1) / 5)
+                + 40 * Send(self,@HasMasteredThisSkill,#num=SKID_FORTITUDE);
    }
 
    %%% Player flags
@@ -7747,6 +7748,14 @@ messages:
             }
          }
          damage = (damage * (100+iEmpowermentPercentage))/100;
+      }
+
+      % Check for Heavy Arms mastery.
+      if Send(self,@HasMasteredThisSkill,#num=SKID_HEAVY_ARMS)
+         AND poStance <> $
+         AND IsClass(poStance,&HeavyArms)
+      {
+         damage = Send(Send(SYS,@FindSkillByNum,#num=SKID_HEAVY_ARMS),@MasteryModifyDamage,#damage=damage);
       }
 
       % Check for Damage to Mana from Spirit Shackles Hex.
@@ -20002,12 +20011,19 @@ messages:
    
    SetMasteredSkill(num=0)
    {
-      piMasteredSkill=num;
-      
-      if num = SKID_PROFICIENCY_SWORD
+      if piMasteredSkill = SKID_PROFICIENCY_SWORD
+         OR num = SKID_PROFICIENCY_SWORD
       {
          Post(self,@DrawDefense);
       }
+      if piMasteredSkill = SKID_FORTITUDE
+         OR num = SKID_FORTITUDE
+      {
+         Post(self,@SetVigorRestThreshold);
+      }
+
+      piMasteredSkill=num;
+
       return;
    }
    

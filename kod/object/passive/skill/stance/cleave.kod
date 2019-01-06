@@ -130,7 +130,17 @@ messages:
       iDamagePercentage = ((40 + iCleaveAbility/3 + iStat/10) * (iWeaponModifier))/100;
       iDamagePercentage = Bound(iDamagePercentage,1,83);
 
-      Send(who,@AddExertion,#amount=10000*viCleaveExertion);
+      if Send(who,@GetMasteredSkill) = SKID_PROFICIENCY_AXE
+         AND Send(who,@IsUsingA,#class=&Axe)
+      {
+         % Axe masters exert much less.
+         % This is still going to be a pretty significant drain, considering it's per monster.
+         Send(who,@AddExertion,#amount=500*viCleaveExertion);
+      }
+      else
+      {
+         Send(who,@AddExertion,#amount=10000*viCleaveExertion);
+      }
       Send(self,@ImproveAbility,#who=who);
 
       return (damage * iDamagePercentage)/100;
