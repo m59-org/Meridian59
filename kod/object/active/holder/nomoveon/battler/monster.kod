@@ -2040,16 +2040,29 @@ messages:
          Send(self,@HealHitPoint);
       }
 
-      % If we can move, we physically try to get closer
-      Send(poBrain,@GetChaseBehavior,#mob=self,#target=poTarget,#behavior=piBehavior);
-
-      Send(poBrain,@PostChaseTimer,#mob=self);
-
-      % Alright, we've chased. Do we cast a spell?
+      bCast = FALSE;
       if Send(self,@MonsterCanCastSpell)
          AND Random(1,100) <= piRangedSpellChance
       {
-         Send(self,@AttemptSpell,#type=CAST_TYPE_RANGED);
+         bCast = Send(self,@AttemptSpell,#type=CAST_TYPE_RANGED);
+      }
+
+      % If we can move, we physically try to get closer
+      if not bCast
+      {
+         Send(poBrain,@GetChaseBehavior,#mob=self,#target=poTarget,
+              #behavior=piBehavior);
+      }
+
+      % Call this if the monster just killed the player with a spell
+      if poTarget <> $
+      {
+         Send(poBrain,@PostChaseTimer,#mob=self);
+      }
+      else
+      {
+         % Monster slung a spell, killed player
+         Send(self,@EnterStateMove);      
       }
 
       return;
