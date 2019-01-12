@@ -51,11 +51,12 @@ BGFS = igreyinvis.bgf isitting.bgf itransferitem.bgf iexplosion.bgf irift.bgf \
        iaridaria.bgf \
        ihexsever.bgf \
        deflectimpact.bgf \
-       greenblindring.bof \
-       dazzlestar.bof \
-       crystalbeing.bof \
-       burningorb.bof \
-       fburningorb.bof
+       greenblindring.bgf \
+       dazzlestar.bgf \
+       crystalbeing.bgf \
+       burningorb.bgf \
+       fburningorb.bgf \
+       charmprojectile.bgf
 
 DIRS = 
 

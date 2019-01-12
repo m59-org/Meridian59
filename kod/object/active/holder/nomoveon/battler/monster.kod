@@ -315,6 +315,9 @@ resources:
    indomitable_arrived = "An indomitable %s steps forward, ready for combat!"
    legendary_arrived = "~BA legendary %s appears, intent on destroying you!"
 
+   minion_breaks_free = \
+      "~B%s%s is no longer under your control!"
+
 classvars:
 
    vrKocName = monster_koc_name
@@ -604,6 +607,10 @@ properties:
    piLevel = 20
    
    piApplyElementalImbalancePower = 0
+   
+   % Level of binding as a charmed monster
+   piLoyalty = 0
+   ptLoyaltyTimer = $
 
 messages:
 
@@ -716,6 +723,8 @@ messages:
       {
          piColor_translation = color;
       }
+      
+      plCreatureTypes = Cons(CREATURE_TYPE_MONSTER,plCreatureTypes);
 
       propagate;
    }
@@ -915,6 +924,12 @@ messages:
       {
          deleteTimer(ptUnturn);
          ptUnturn = $;
+      }
+
+      if ptLoyaltyTimer <> $
+      {
+         DeleteTimer(ptLoyaltyTimer);
+         ptLoyaltyTimer = $;
       }
 
       poLastAttacker = $;
@@ -2699,6 +2714,9 @@ messages:
       {
          iMultiplier = 3;
       }
+      
+      % Check for Charmed status.
+      iDamage = iDamage - ((iDamage * Send(self,@GetStatusEffect,#type=STATUS_CHARMED))/Send(self,@GetHealth));
 
       foreach i in Send(self,@GetEnchantmentsByClass,#enchClass=&Hex)
       {
@@ -8680,6 +8698,80 @@ messages:
 
    WasBlinded()
    {
+      return;
+   }
+
+   GetLoyalty()
+   {
+      return piLoyalty;
+   }
+
+   AddLoyalty(amount=0)
+   {
+      piLoyalty = piLoyalty + amount;
+      
+      if piLoyalty > 0
+         AND ptLoyaltyTimer = $
+      {
+         ptLoyaltyTimer = CreateTimer(self,@LoyaltyTimer,3000);
+      }
+      
+      return;
+   }
+
+   LoyaltyTimer(timer=$)
+   {
+      ptLoyaltyTimer = $;
+      
+      if poMaster = $
+      {
+         Send(self,@BreakAllegiance);
+         return;
+      }
+      
+      if Send(self,@HasCreatureType,#type=CREATURE_TYPE_INTELLIGENT)
+      {
+         % Intelligent mobs shrug off charms faster
+         piLoyalty--;
+      }
+
+      if Send(poMaster,@GetKarma) > 0
+         AND Send(self,@HasCreatureType,#type=CREATURE_TYPE_UNDEAD)
+      {
+         % Undead don't like positive karma masters
+         piLoyalty--;
+      }
+
+      if Send(poMaster,@GetKarma) < 0
+         AND Send(self,@HasCreatureType,#type=CREATURE_TYPE_HUMANOID)
+      {
+         % Humanoids don't generally trust negative karma masters
+         piLoyalty--;
+      }
+
+      % Generic drop
+      piLoyalty--;
+      
+      if piLoyalty <= 0
+      {
+         piLoyalty = 0;
+         Send(self,@BreakAllegiance);
+      }
+      else
+      {
+         ptLoyaltyTimer = CreateTimer(self,@LoyaltyTimer,3000);
+      }
+      
+      return;
+   }
+
+   BreakAllegiance()
+   {
+      if poMaster <> $
+      {
+         Send(poMaster,@MsgSendUser,#message_rsc=minion_breaks_free,#parm1=Send(self,@GetCapDef),#parm2=Send(self,@GetName));
+      }
+      Send(self,@SetMaster,#oMaster=$);
       return;
    }
 

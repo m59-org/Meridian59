@@ -109,6 +109,12 @@ resources:
    battler_illusion_damage = "terrifies"
    battler_illusion_slay = "deranges"
 
+   battler_charm_fail = "repulses"
+   battler_charm_nick = "intrigues"
+   battler_charm_wound = "captivates"
+   battler_charm_damage = "enchants"
+   battler_charm_slay = "charms"
+   
    battler_quake_fail = "startles"
    battler_quake_nick = "shakes"
    battler_quake_wound = "buffets"
@@ -279,6 +285,8 @@ properties:
    % Wears off after a short time (ptElementalImbalanceTimer)
    plElementalImbalance = $
    ptElementalImbalanceTimer = $
+   
+   plCreatureTypes = $
 
 messages:
 
@@ -1440,6 +1448,31 @@ messages:
 
             return battler_illusion_fail;
          }
+
+         if (type & ATCK_SPELL_CHARM)
+         {
+            if damage = $
+            {
+               return battler_charm_slay;
+            }
+
+            if damage > DAMAGE_THRESHOLD_DAMAGE
+            {
+               return battler_charm_damage;
+            }
+
+            if damage > DAMAGE_THRESHOLD_WOUND
+            {
+               return battler_charm_wound;
+            }
+
+            if damage > 99
+            {
+               return battler_charm_nick;
+            }
+
+            return battler_charm_fail;
+         }
       }
       else
       {
@@ -2344,6 +2377,10 @@ messages:
       {
          Send(self,@AddStatusEffect,#value=iDrainDamage,#type=STATUS_DRAINED);
       }
+      if aspell & ATCK_SPELL_CHARM
+      {
+         Send(self,@AddStatusEffect,#value=iDrainDamage,#type=STATUS_CHARMED);
+      }
       return;
    }
 
@@ -2463,7 +2500,7 @@ messages:
 
    StatusEffectTimer(timer=$)
    {
-      local i, iBurningDamage, iIllusionHeal, oOpponent, iDrainRegain;
+      local i, iBurningDamage, iIllusionHeal, oOpponent, iDrainRegain, iCharmedWearOff;
       
       ptStatusEffectTimer = $;
       
@@ -2554,6 +2591,18 @@ messages:
                {
                   Post(self,@NewHealth);
                }
+            }
+         }
+         else if Nth(i,2) = STATUS_CHARMED
+         {
+            if NOT (IsClass(self,&Player) AND Send(self,@IsInCannotInteractMode))
+               AND NOT (IsClass(self,&Player) AND NOT Send(self,@IsLoggedOn))
+            {
+               iCharmedWearOff = Send(SETTINGS_OBJECT,
+                                    @GetStatusEffectReductionAmount,
+                                    #type=STATUS_CHARMED);
+               iCharmedWearOff = Bound(iCharmedWearOff,0,Nth(i,1));
+               SetNth(i,1,Nth(i,1) - iCharmedWearOff);
             }
          }
          else
@@ -3309,6 +3358,23 @@ messages:
    GetBonusXPGain()
    {
       return 0;
+   }
+
+   GetCreatureTypes()
+   {
+      return plCreatureTypes;
+   }
+
+   HasCreatureType(type=CREATURE_TYPE_MONSTER)
+   {
+      local i;
+      
+      if plCreatureTypes <> $
+         AND FindListElem(plCreatureTypes,type) <> 0
+      {
+         return TRUE;
+      }
+      return FALSE;
    }
 
 end
