@@ -2895,9 +2895,9 @@ messages:
       }
 
       % This prevents repeated triggering of the zealous fervor skill.
-      if piHealth < (ZEALOUS_FERVOR_THRESHOLD * (piMax_Health*100))/100
+      if piHealth < (ZEALOUS_FERVOR_THRESHOLD * (Send(self,@GetMaxHealth)*100))/100
       {
-         piHealth = (ZEALOUS_FERVOR_THRESHOLD * (piMax_Health*100))/100;
+         piHealth = (ZEALOUS_FERVOR_THRESHOLD * (Send(self,@GetMaxHealth)*100))/100;
       }
 
       Send(self,@NewHealth);
@@ -3321,7 +3321,7 @@ messages:
       {
          % Since piHealth is internally inflated by a factor of 100, this 
          % returns the percentage correctly.
-         HitPoint_Percent = piHealth / piMax_Health;
+         HitPoint_Percent = piHealth / Send(self,@GetMaxHealth);
          Send(poIllusion_set,@IllusionShowDesc,#who=self,
                #iHitPoint_Percent=HitPoint_Percent);
 
@@ -4860,7 +4860,7 @@ messages:
 
    GetMaxHealth()
    {
-      return piMax_health;
+      return Bound(piMax_health-Send(self,@GetStatusEffect,#type=STATUS_DRAINED),20,$);
    }
 
    GetBaseMaxHealth()
@@ -4903,7 +4903,7 @@ messages:
    {
       local iDifference, i;
 
-      iDifference = bound(piMax_Health*100 - piHealth,-100,100);
+      iDifference = bound(Send(self,@GetMaxHealth)*100 - piHealth,-100,100);
       ptHealth = $;
 
       foreach i in Send(self,@GetEnchantmentsByClass,#enchClass=&Hex)
@@ -7995,13 +7995,13 @@ messages:
       {
          % If we have more health than twice our max, no percent limit on damage.
          % If we are outlaw or murderer, no percent limit on damage.
-         if piHealth < (piBase_Max_Health * 200)
+         if piHealth < (Send(self,@GetMaxHealth) * 200)
             AND ((NOT (piFlags & PFLAG_OUTLAW)
                AND NOT (piFlags & PFLAG_MURDERER))
                OR Send(SETTINGS_OBJECT,@DamageCapProtectionMurderersEnabled))
          {
             % Cap damage to 1/3 of max health (+2 so we "round up")
-            damage = Bound(damage,$,((piBase_Max_Health*100) + (MAX_HEALTH_DAMAGE_FRACTION-1)) / MAX_HEALTH_DAMAGE_FRACTION);
+            damage = Bound(damage,$,((Send(self,@GetMaxHealth)*100) + (MAX_HEALTH_DAMAGE_FRACTION-1)) / MAX_HEALTH_DAMAGE_FRACTION);
          }
 
          % maximum of 30 damage per hit
@@ -8540,9 +8540,9 @@ messages:
 
       % Since piHealth is inflated by a factor of 100, 
       % this returns the correct fraction.
-      if piMax_health > 0
+      if Send(self,@GetMaxHealth) > 0
       {
-         iHealthFraction = piHealth / piMax_health;
+         iHealthFraction = piHealth / Send(self,@GetMaxHealth);
       }
       else
       {
@@ -9209,7 +9209,7 @@ messages:
       iTime = ((200-piVigor)*(200-piVigor))/6 + 1000;
 
       iTime = ((125-Send(self,@GetStamina)) * iTime)/100;
-      iMaxHealth = bound(piMax_health,40,100);
+      iMaxHealth = bound(Send(self,@GetMaxHealth),40,100);
       iTime = (iTime *100)/iMaxHealth;
 
       iTime = iTime - Send(Send(SYS,@GetParliament),@GetFactionRegenBonus,
@@ -9353,10 +9353,10 @@ messages:
 
       if NOT Send(self,@IsInCannotInteractMode)
       {
-         if (200*piMax_health) < (piHealth+amount)
+         if (200*Send(self,@GetMaxHealth)) < (piHealth+amount)
          {
             Send(self,@MsgSendUser,#message_rsc=player_health_gain_maxed);
-            piHealth = 200 * piMax_health;
+            piHealth = 200 * Send(self,@GetMaxHealth);
          }
          else
          {
@@ -9402,7 +9402,7 @@ messages:
          return 0;
       }
 
-      if piHealth > piMax_health*100
+      if piHealth > Send(self,@GetMaxHealth)*100
       {
          return 0;
       }
@@ -9410,9 +9410,9 @@ messages:
       if NOT Send(self,@IsInCannotInteractMode)
       {
          pihealth = piHealth + amount;
-         if piHealth > piMax_health*100
+         if piHealth > Send(self,@GetMaxHealth)*100
          {
-            piHealth = piMax_health*100;
+            piHealth = Send(self,@GetMaxHealth)*100;
          }
       }
 
@@ -9463,7 +9463,7 @@ messages:
    NewHealth()
    {
       if piHealth > 0
-         AND piHealth < (ZEALOUS_FERVOR_THRESHOLD * (piMax_Health*100))/100
+         AND piHealth < (ZEALOUS_FERVOR_THRESHOLD * (Send(self,@GetMaxHealth)*100))/100
          AND ptZealousFervor = $
          AND pbLogged_on
          AND Send(self,@GetSkillAbility,#Skill_num=SKID_ZEALOUS_FERVOR) > 0
@@ -9486,7 +9486,7 @@ messages:
 
       if ptHealth = $
       {
-         if piHealth <> piMax_health*100
+         if piHealth <> Send(self,@GetMaxHealth)*100
             AND piHealth > 0
          {
             ptHealth = CreateTimer(self,@HealthTimer,Send(self,@CalculateHealthTime));
@@ -9494,7 +9494,7 @@ messages:
       }
       else
       {
-         if piHealth = piMax_health*100
+         if piHealth = Send(self,@GetMaxHealth)*100
          {
             DeleteTimer(ptHealth);
             ptHealth = $;
@@ -12046,7 +12046,7 @@ messages:
 
             % Boost the player to max health, and give them 200 vigor.
             Send(self,@MsgSendUser,#message_rsc=player_improve_health_invigorate);
-            piHealth = piMax_Health * 100;
+            piHealth = Send(self,@GetMaxHealth) * 100;
             Send(self,@DrawHealth);
             Send(self,@EatSomething,#nutrition=200);
             Post(self,@DrawOffense);
@@ -12175,7 +12175,7 @@ messages:
                % Boost the player to max health, and give them 200 vigor.
                % Send(self,@MsgSendUser,
                %      #message_rsc=player_improve_health_invigorate);
-               piHealth = piMax_Health * 100;
+               piHealth = Send(self,@GetMaxHealth) * 100;
                Send(self,@DrawHealth);
                Send(self,@EatSomething,#nutrition=200);
                Post(self,@DrawOffense);
@@ -12792,7 +12792,7 @@ messages:
       if Send(SYS,@GetChaosNight)
       {
          % It's a frenzy!  Give us a leg up.
-         piHealth = 80*piMax_Health;
+         piHealth = 80*Send(self,@GetMaxHealth);
          piMana = 4*(piMax_Mana/5);
          piVigor = 200;
       }

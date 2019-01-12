@@ -269,6 +269,8 @@ properties:
    % Humbled temporarily lowers resistances (X/m resist)
    % Mantled temporarily lowers the effect of healing on the victim (X/m healing)
    % Tricked heals the user when it wears off (illusionary damage)
+   % Drained reduces max health and wears off slowly
+   % Charmed reduces outgoing damage dealt, but is applied in narrow ways
    piShockedMultiple = 4
    piChilledMultiple = 4
    piBurningDivisor = 3
@@ -276,6 +278,8 @@ properties:
    piHumbledDivisor = 1
    piMantledDivisor = 6
    piTrickedDivisor = 1
+   piDrainedDivisor = 1
+   piCharmedMultiple = 2
    
    piStatusEffectReductionTime = 3000
    
@@ -289,6 +293,8 @@ properties:
    piHumbledReductionAmount = 10
    piMantledReductionAmount = 1
    piTrickedReductionAmount = 7
+   piDrainedReductionAmount = 1
+   piCharmedReductionAmount = 5
 
    % Percent of mana required/used for broadcasting. Default 0 (no cost).
    piBroadcastManaPercent = 0
@@ -823,6 +829,14 @@ messages:
       {
          return bound(piTrickedDivisor,1,100);
       }
+      if type = STATUS_DRAINED
+      {
+         return bound(piDrainedDivisor,1,100);
+      }
+      if type = STATUS_CHARMED
+      {
+         return bound(piCharmedMultiple,1,100);
+      }
       return 0;
    }
    
@@ -847,6 +861,10 @@ messages:
             return piChilledReductionAmount;
          case STATUS_TRICKED:
             return piTrickedReductionAmount;
+         case STATUS_DRAINED:
+            return piDrainedReductionAmount;
+         case STATUS_CHARMED:
+            return piCharmedReductionAmount;
       }
       return piStatusEffectReductionAmount;
    }
