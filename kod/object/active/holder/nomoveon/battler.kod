@@ -2307,7 +2307,7 @@ messages:
 
    ApplyElementalStatusEffects(damage=1,bSecondary=FALSE,aspell=0,what=$,absolute=FALSE)
    {
-      local iIllusionDamage, iDrainDamage;
+      local iIllusionDamage, iDrainDamage, iCharmDamage;
 
       if absolute
       {
@@ -2319,6 +2319,8 @@ messages:
       iIllusionDamage = damage;
       % Drain damage is not altered by Sorcery.
       iDrainDamage = damage;
+      % Charm damage is resisted by all creatures somewhat.
+      iCharmDamage = Bound(damage - ((damage * Send(self,@GetCharmResistance))/100),0,$);
 
       if what <> $
          AND IsClass(what,&Player)
@@ -2379,7 +2381,7 @@ messages:
       }
       if aspell & ATCK_SPELL_CHARM
       {
-         Send(self,@AddStatusEffect,#value=iDrainDamage,#type=STATUS_CHARMED);
+         Send(self,@AddStatusEffect,#value=iCharmDamage,#type=STATUS_CHARMED);
       }
       return;
    }
@@ -3375,6 +3377,12 @@ messages:
          return TRUE;
       }
       return FALSE;
+   }
+   
+   GetCharmResistance()
+   {
+      % This is a percentage value
+      return 0;
    }
 
 end

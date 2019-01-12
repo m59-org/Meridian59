@@ -8,6 +8,8 @@ DEPEND = ..\charmspel.bof
 BOFS = charminsect.bof \
        charmanimal.bof \
        charmundead.bof \
-       charmhumanoid.bof
+       charmhumanoid.bof \
+       charmplant.bof \
+       charmelemental.bof
 
 !include $(KODDIR)\kod.mak

@@ -28,6 +28,11 @@ resources:
    charmed_final = \
       "~B%s%s loses its will and becomes your servant!"
 
+   wrong_karma_undead = \
+      "%s%s recognizes your karmically positive spirit as nothing but an enemy."
+   wrong_karma_humanoid = \
+      "%s%s senses your karmically negative spirit and refuses to be swayed."
+
 classvars:
 
    viSchool = SS_BESTIARY
@@ -39,9 +44,6 @@ properties:
    % Base damage already charms, so charm multiple is for added based on spellpower
    % Should always be at least 1, otherwise mob will just die before being charmed
    piExtraCharmMultiple = 1
-
-   % Charm spells are specific to classes of monster
-   piTypeCharmed = $
 
 messages:
 
@@ -60,6 +62,20 @@ messages:
          if lGetCreatureTypes <> $
             AND FindListElem(lGetCreatureTypes,viCharmedType) <> 0
          {
+            if viCharmedType = CREATURE_TYPE_UNDEAD
+               AND Send(who,@GetKarma) > 0
+            {
+               Send(who,@MsgSendUser,#message_rsc=wrong_karma_undead,#parm1=Send(victim,@GetCapDef),#parm2=Send(victim,@GetName));
+               return;
+            }
+            
+            if viCharmedType = CREATURE_TYPE_HUMANOID
+               AND Send(who,@GetKarma) < 0
+            {
+               Send(who,@MsgSendUser,#message_rsc=wrong_karma_humanoid,#parm1=Send(victim,@GetCapDef),#parm2=Send(victim,@GetName));
+               return;
+            }
+
             Send(victim,@ApplyElementalStatusEffects,#damage=(damage/100)*piExtraCharmMultiple*(iSpellPower/99),#aspell=ATCK_SPELL_CHARM,#what=who,#absolute=FALSE);
 
             if Send(victim,@GetStatusEffect,#type=STATUS_CHARMED) >= Send(victim,@GetHealth)
@@ -94,6 +110,15 @@ messages:
          {
             Send(who,@MsgSendUser,#message_rsc=charmed_wrong,#parm1=Send(victim,@GetCapDef),#parm2=Send(victim,@GetName));
          }
+      }
+
+      if victim <> $
+         AND who <> $
+         AND IsClass(victim,&Player)
+         AND Send(victim,@GetHealth) > 0
+         AND viCharmedType = CREATURE_TYPE_HUMANOID
+      {
+         Send(victim,@ApplyElementalStatusEffects,#damage=(damage/100)*piExtraCharmMultiple*(iSpellPower/99),#aspell=ATCK_SPELL_CHARM,#what=who,#absolute=FALSE);
       }
 
       return;
