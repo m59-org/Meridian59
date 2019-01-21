@@ -1,0 +1,133 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+WaterTest is Room
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   room_watertest = watertest.roo
+   room_name_watertest = "The Test of Water"
+
+   water_test_music = temple.mp3
+
+classvars:
+
+   vrName = room_name_watertest
+
+   viTeleport_row = 5
+   viTeleport_col = 5
+
+   viTerrain_type = TERRAIN_BEACH
+
+   viClientFlags = ROOM_OVERRIDE_DEPTH3
+   viOverrideDepth3 = 80
+
+   viLongitude = 58
+   viLatitude = 58
+
+properties:
+
+   prRoom = room_watertest
+   piRoom_num = RID_WATER_TEST
+
+   prMusic = water_test_music
+
+   piBaseLight = LIGHT_MIN
+   piOutside_factor = 0
+
+   pbSnowGroundTexture = FALSE
+   
+   piLightsMoveTime = 500
+   ptLightsMoveTimer = $
+
+messages:
+
+   CreateStandardExits()
+   {
+      plEdge_exits = $;
+      
+      return;
+   }
+   
+   CreateStandardObjects()
+   {
+      Send(self,@PlaceLights);
+      propagate;
+   }
+
+   PlaceLights(timer=$)
+   {
+      local iMinRow, iMinCol, iUpperBound, iCount, iCur, i;
+      
+      iMinRow = 16;
+      iMinCol = 5;
+      iUpperBound = 79;
+      
+      iCount = 30;
+      
+      iCur = 0;
+      while iCur < iCount
+      {
+         iCur++;
+         Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_DBLUE,
+           #iIntensity=255),#new_row=Random(iMinRow,iUpperBound),#new_col=Random(iMinCol,iUpperBound));
+      }
+      iCur = 0;
+      while iCur < iCount
+      {
+         iCur++;
+         Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_DGREEN,
+           #iIntensity=255),#new_row=Random(iMinRow,iUpperBound),#new_col=Random(iMinCol,iUpperBound));
+      }
+   
+      ptLightsMoveTimer = CreateTimer(self,@MoveLights,piLightsMoveTime);
+      return;
+   }
+
+   MoveLights(timer=$)
+   {
+      local i, iRow, iCol;
+
+      ptLightsMoveTimer = $;
+
+      foreach i in plPassive
+      {
+         if IsClass(First(i),&DynamicLight)
+         {
+            Send(SYS,@UtilGoNearSquare,#what=First(i),
+            #where=self,
+            #new_row=Bound(Send(First(i),@GetRow)+Random(-1,1),1,Send(self,@GetRoomRows)-1),
+            #new_col=Bound(Send(First(i),@GetCol)+Random(-1,1),1,Send(self,@GetRoomCols)-1),
+            #fine_row=0,
+            #fine_col=0,
+            #new_angle=0);
+         }
+      }
+
+      ptLightsMoveTimer = CreateTimer(self,@MoveLights,piLightsMoveTime);
+      return;
+   }
+
+   Delete()
+   {
+      if ptLightsMoveTimer <> $
+      {
+         DeleteTimer(ptLightsMoveTimer);
+         ptLightsMoveTimer = $;
+      }
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

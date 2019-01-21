@@ -56,7 +56,25 @@ BGFS = igreyinvis.bgf isitting.bgf itransferitem.bgf iexplosion.bgf irift.bgf \
        crystalbeing.bgf \
        burningorb.bgf \
        fburningorb.bgf \
-       charmprojectile.bgf
+       charmprojectile.bgf \
+       bindcircle.bgf \
+       maul.bgf \
+       maulov.bgf \
+       povmaul.bgf \
+       flail.bgf \
+       flailov.bgf \
+       povflail.bgf \
+       banditscimitar.bgf \
+       povbanditscimitar.bgf \
+       banditscimitarov.bgf \
+       knighthelm.bgf \
+       balta.bgf \
+       baltaov.bgf \
+       povbalta.bgf \
+       runedhelm.bgf \
+       spikedhelm.bgf \
+       shades.bgf
+       
 
 DIRS = 
 
