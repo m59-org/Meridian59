@@ -1,0 +1,85 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+SpikedHelm is Helmet
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   SpikedHelm_name_rsc = "spiked helm"
+   SpikedHelm_icon_rsc = spikedhelm.bgf
+   SpikedHelm_desc_rsc = \
+      "Spiked iron makes it difficult to attack the wearer of this helmet."   
+
+classvars:
+
+   vrName = SpikedHelm_name_rsc
+   vrDesc = SpikedHelm_desc_rsc
+   vrIcon = SpikedHelm_icon_rsc
+
+   viHits_init_min = 200
+   viHits_init_max = 225
+
+   viValue_average = 100
+   viWeight = 50
+   viBulk = 25
+
+   viUse_type = ITEM_USE_HEAD
+   viUse_amount = 1
+   viSpell_modifier = -5
+
+   viGround_group = 3
+   viInventory_group = 2
+   viBroken_group = 4
+
+   viDefense_base = 80
+   viDamage_base = 1
+
+properties:
+
+
+messages:
+
+   NewUsed()
+   {
+      Send(poOwner,@RemoveHair,#what=self);
+
+      propagate;
+   }
+
+   NewUnused()
+   {
+      Send(poOwner,@ResetHair,#what=self);
+
+      propagate;
+   }
+
+   GetResistanceModifiers()
+   {
+      if Send(SETTINGS_OBJECT,@GetDirectArmorEnabled)
+      {
+         return [ [ATCK_WEAP_BLUDGEON,-10]
+                ];
+      }
+      
+      return [ [ATCK_WEAP_ALL,1]
+               ];
+   }
+
+   GetStunResistance()
+   {
+      return 10;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

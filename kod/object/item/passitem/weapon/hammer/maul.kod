@@ -1,0 +1,62 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Maul is Weapon
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   maul_name_rsc = "blood maul"
+   maul_icon_rsc = maul.bgf
+   maul_desc_rsc = \
+      "This heavy hammer belies its own use. Enchantments layered into "
+      "the metal seek the blood of enemies, drawing upon sorcerous constructs "
+      "to make the weight of the weapon cause bleeds instead of stuns."
+
+   maul_window_overlay_rsc = povmaul.bgf
+   maul_player_overlay = maulov.bgf
+
+classvars:
+   vrName = maul_name_rsc
+   vrIcon = maul_icon_rsc
+   vrDesc = maul_desc_rsc
+
+   % Mauls are normal quality bludgeon weapons.
+   viWeaponType = WEAPON_TYPE_BLUDGEON
+   viWeaponQuality = WEAPON_QUALITY_HIGH
+
+   viProficiency_Needed = SKID_PROFICIENCY_HAMMER
+
+   viValue_average = 900
+   viWeight = 150
+   viBulk = 90
+
+   vrWeapon_window_overlay = maul_window_overlay_rsc
+   vrWeapon_overlay = maul_player_overlay
+
+   viGround_group = 1
+   viInventory_group = 3
+   viBroken_group = 2
+   
+   % Chance to apply knockbacks, stuns, and bleeds
+   viCriticalHitRate = 500
+   vbCanBleed = TRUE
+
+properties:
+
+   piAttack_type = ATCK_WEAP_MAGIC+ATCK_WEAP_BLUDGEON
+
+messages:
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
