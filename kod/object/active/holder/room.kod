@@ -355,6 +355,9 @@ properties:
 
    % This player is presenting a shield wall, blocking certain movements
    plShieldWallers = $
+   
+   % Does this room let you breathe?
+   pbRoomHasAir = TRUE
 
 messages:
 
@@ -2627,6 +2630,16 @@ messages:
 
       if IsClass(what,&User)
       {
+         % Does this room have air?
+         if pbRoomHasAir
+         {
+            Send(what,@SetHasBreath);
+         }
+         else
+         {
+            Send(what,@BeginHoldingBreath);
+         }
+         
          % Do we have any special positioning stances?
          if Send(what,@GetStance) <> $
             AND IsClass(Send(what,@GetStance),&ActiveBlockingStance)

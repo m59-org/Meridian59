@@ -8781,5 +8781,27 @@ messages:
       return piLevel/4;
    }
 
+   StartSwimming()
+   {
+      piDrawEffectFlag = piDrawEffectFlag | OF_BOUNCING;
+      
+      if poOwner <> $
+      {
+         Send(poOwner,@SomethingChanged,#what=self);
+      }
+      return;
+   }
+   
+   StopSwimming()
+   {
+      piDrawEffectFlag = (piDrawEffectFlag & (~OF_BOUNCING));
+      
+      if poOwner <> $
+      {
+         Send(poOwner,@SomethingChanged,#what=self);
+      }
+      return;
+   }
+
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

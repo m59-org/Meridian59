@@ -192,6 +192,7 @@ messages:
             % Some threats apply other effects.
             Send(self,@ApplyDirectEffect,#who=First(i));
             
+            Send(self,@PlayDamageSound,#who=First(i));
             iDamageResult = Send(First(i),@AssessDamage,#what=self,
                   #damage=Random(piDamageMin,piDamageMax),
                   #atype=piDamageTypeAttack,
@@ -209,6 +210,11 @@ messages:
       % Some threats change the time dynamically.
       Send(self,@AlterDamageTime);
       ptDamageTimer = CreateTimer(self,@DealDamage,piDamageTime);
+      return;
+   }
+
+   PlayDamageSound(who=$)
+   {
       return;
    }
 

@@ -48,8 +48,10 @@ properties:
 
    pbSnowGroundTexture = FALSE
    
-   piLightsMoveTime = 500
+   piLightsMoveTime = 3000
    ptLightsMoveTimer = $
+   
+   pbRoomHasAir = FALSE
 
 messages:
 
@@ -90,6 +92,13 @@ messages:
          Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_DGREEN,
            #iIntensity=255),#new_row=Random(iMinRow,iUpperBound),#new_col=Random(iMinCol,iUpperBound));
       }
+      iCur = 10;
+      while iCur < iCount
+      {
+         iCur++;
+         Send(self,@NewHold,#what=Create(&FogCloud,#Duration=$),#new_row=Random(iMinRow,iUpperBound),
+               #new_col=Random(iMinCol,iUpperBound));
+      }
    
       ptLightsMoveTimer = CreateTimer(self,@MoveLights,piLightsMoveTime);
       return;
@@ -104,6 +113,7 @@ messages:
       foreach i in plPassive
       {
          if IsClass(First(i),&DynamicLight)
+            OR IsClass(First(i),&FogCloud)
          {
             Send(SYS,@UtilGoNearSquare,#what=First(i),
             #where=self,
@@ -118,6 +128,11 @@ messages:
       ptLightsMoveTimer = CreateTimer(self,@MoveLights,piLightsMoveTime);
       return;
    }
+   
+   GetPhaseThreats()
+   {
+      return [&UnderwaterThreat];
+   }
 
    Delete()
    {
@@ -125,6 +140,15 @@ messages:
       {
          DeleteTimer(ptLightsMoveTimer);
          ptLightsMoveTimer = $;
+      }
+      propagate;
+   }
+
+   NewHoldObject(what = $,new_pos = $)
+   {
+      if IsClass(what,&Monster)
+      {
+         Send(what,@StartSwimming);
       }
       propagate;
    }

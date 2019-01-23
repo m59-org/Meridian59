@@ -1072,6 +1072,15 @@ resources:
       "~BYour loot is inside your corpse like a chest.~B "
       "You can also summon your corpse by saying 'summon' to Priestess Xiana."
 
+   start_holding_breath = \
+      "You start holding your breath. You're certain you can hold it for %i seconds."
+   undine_breath = \
+      "Your undine side rejoices. You can hold your breath for %i seconds, but it doesn't matter. You can breathe underwater!"
+   relief_take_breath = \
+      "With relief, you take a breath of open air, and begin shaking off your drowning experience."
+   take_breath = \
+      "You take a breath of open air."
+
 classvars:
 
    viHand_space = 2
@@ -1449,6 +1458,14 @@ properties:
 
    % Does this player have a statue?
    piRenowned = FALSE
+   
+   % Underwater or areas with no air
+   ptBreathTimer = $
+   % Some races can hold their breath longer than others
+   piNaturalBreathTime = 60000
+   
+   % Is this person drowning?
+   pbHasBreath = TRUE
 
 messages:
 
@@ -1481,6 +1498,12 @@ messages:
       }
       
       Send(self,@ClearDelayedAdditionalAttacks);
+
+      if ptBreathTimer <> $
+      {
+         DeleteTimer(ptBreathTimer);
+         ptBreathTimer = $;
+      }
 
       if ptRest <> $
       {
@@ -2276,6 +2299,8 @@ messages:
          piRacialMysticismMod = 0;
          piRacialAimMod = 0;
 
+         piNaturalBreathTime = 60000;
+
          piRacialVigorMod = 0;
          piStomachMax = 100;
          piVigor_rest_threshold = Send(self,@CalculateVigorThreshold);
@@ -2297,6 +2322,8 @@ messages:
          piRacialAgilityMod = -20;
          piRacialMysticismMod = 0;
          piRacialAimMod = -20;
+
+         piNaturalBreathTime = 90000;
 
          piRacialVigorMod = 40;
          piStomachMax = 120;
@@ -2320,6 +2347,8 @@ messages:
          piRacialMysticismMod = 10;
          piRacialAimMod = 0;
 
+         piNaturalBreathTime = 30000;
+
          piRacialVigorMod = -20;
          piStomachMax = 60;
          piVigor_rest_threshold = Send(self,@CalculateVigorThreshold);
@@ -2341,6 +2370,8 @@ messages:
          piRacialAgilityMod = 10;
          piRacialMysticismMod = -20;
          piRacialAimMod = 10;
+
+         piNaturalBreathTime = 60000;
 
          piRacialVigorMod = 20;
          piStomachMax = 80;
@@ -2364,6 +2395,8 @@ messages:
          piRacialMysticismMod = -40;
          piRacialAimMod = 0;
 
+         piNaturalBreathTime = 90000;
+
          piRacialVigorMod = 0;
          piStomachMax = 80;
          piVigor_rest_threshold = Send(self,@CalculateVigorThreshold);
@@ -2386,6 +2419,8 @@ messages:
          piRacialMysticismMod = -20;
          piRacialAimMod = -20;
 
+         piNaturalBreathTime = 240000;
+
          piRacialVigorMod = 0;
          piStomachMax = 100;
          piVigor_rest_threshold = Send(self,@CalculateVigorThreshold);
@@ -2407,6 +2442,8 @@ messages:
          piRacialAgilityMod = -10;
          piRacialMysticismMod = 0;
          piRacialAimMod = 20;
+
+         piNaturalBreathTime = 30000;
 
          piRacialVigorMod = -40;
          piStomachMax = 60;
@@ -2434,6 +2471,8 @@ messages:
          piRacialAgilityMod = -20;
          piRacialMysticismMod = 0;
          piRacialAimMod = 0;
+
+         piNaturalBreathTime = 120000;
 
          piRacialVigorMod = 70;
          piStomachMax = 140;
@@ -20602,6 +20641,79 @@ messages:
    {
       piRenowned = value;
       return;
+   }
+   
+   BeginHoldingBreath()
+   {
+      local iBreathTime;
+      if ptBreathTimer = $
+      {
+         iBreathTime = Send(self,@GetBreathTime);
+         
+         if piPlayerRace = RACE_HALF_UNDINE
+         {
+            Send(self,@MsgSendUser,#message_rsc=undine_breath,#parm1=iBreathTime/1000);
+         }
+         else
+         {
+            Send(self,@MsgSendUser,#message_rsc=start_holding_breath,#parm1=iBreathTime/1000);
+         }
+         ptBreathTimer = CreateTimer(self,@RunOutOfBreath,iBreathTime);
+      }
+      return;
+   }
+   
+   GetBreathTime()
+   {
+      local iBreathTime, oWaterBreathing;
+      
+      oWaterBreathing = Send(SYS,@FindSpellByNum,#num=SID_WATER_BREATHING);
+      if oWaterBreathing <> $
+         AND Send(self,@IsEnchanted,#what=oWaterBreathing)
+      {
+         return Send(oWaterBreathing,@ModifyBreathTime,
+                                     #who=self,
+                                     #iBreathTime=piNaturalBreathTime,
+                                     #iSpellPower=Send(self,@GetEnchantedState,#what=oWaterBreathing));
+      }
+      
+      return piNaturalBreathTime;
+   }
+
+   RunOutOfBreath(timer=$)
+   {
+      ptBreathTimer = $;
+      
+      pbHasBreath = FALSE;
+      
+      return;
+   }
+
+   SetHasBreath(value=TRUE)
+   {
+      if value = TRUE
+         AND ptBreathTimer <> $
+      {
+         DeleteTimer(ptBreathTimer);
+         ptBreathTimer = $;
+         Send(self,@MsgSendUser,#message_rsc=take_breath);
+         pbHasBreath = value;
+         return;
+      }
+      if value = TRUE
+         AND NOT Send(self,@GetHasBreath)
+      {
+         Send(self,@MsgSendUser,#message_rsc=relief_take_breath);
+         pbHasBreath = value;
+         return;
+      }
+      pbHasBreath = value;
+      return;
+   }
+
+   GetHasBreath()
+   {
+      return pbHasBreath;
    }
 
 end

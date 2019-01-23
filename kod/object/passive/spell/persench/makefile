@@ -30,6 +30,7 @@ BOFS = anon.bof \
        strength.bof \
        touchatk.bof \
        greyghost.bof \
-       singularfocus.bof
+       singularfocus.bof \
+       waterbreathing.bof
 
 !include $(KODDIR)\kod.mak
