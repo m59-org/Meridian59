@@ -27,6 +27,9 @@ resources:
       "in the Great Ocean."
    E2_icewalk = "The ice looks a bit too thin to risk going any farther out."
 
+   dive_into_the_waters_e2 = \
+      "You dive into the waters of the Great Ocean."
+
 classvars:
 
    vrName = room_name_OutdoorsE2
@@ -71,6 +74,30 @@ messages:
 
       plGenerators = [ [40, 6], [45, 13], [58, 28], [34, 34], [32, 53],
                        [53, 50], [40, 67], [14, 66], [15, 46], [4, 68] ];
+
+      propagate;
+   }
+
+   SomethingMoved(what = $,new_row = $, new_col = $)
+   {
+      local iSectorID, oUnderWater;
+
+      if IsClass(what,&Player)
+      {
+         if new_row < 2
+         {
+            oUnderWater = Send(SYS,@FindRoomByNum,#num=RID_WATER_TEST);
+            Send(what,@MsgSendUser,#message_rsc=dive_into_the_waters_e2);
+            Post(SYS,@UtilGoNearSquare,#what=what,
+                 #where=oUnderWater,
+                 #new_row=Send(oUnderWater,@GetRoomRows)-15,
+                 #new_col=new_col,
+                 #fine_row=0,
+                 #fine_col=0,
+                 #new_angle=Send(what,@GetAngle));
+            return;
+         }
+      }
 
       propagate;
    }

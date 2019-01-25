@@ -18,6 +18,8 @@ constants:
 
    SECTOR_DOOR = 4
 
+   TEST_LEVEL = 100000
+
 resources:
 
    include temprii.lkod
@@ -57,7 +59,7 @@ classvars:
    viTerrain_type = TERRAIN_TEMPLE | TERRAIN_MYSTICAL | TERRAIN_JUNGLE | TERRAIN_BEACH | TERRAIN_MOUNTAIN
 
    viClientFlags = ROOM_OVERRIDE_DEPTH1
-   viOverrideDepth1 = BRIDGE_OF_FAITH_LEVEL
+   viOverrideDepth1 = TEST_LEVEL
 
    viWeatherZone = WEATHER_ZONE_KOC_OUTP
    viWeatherMask = WEATHER_MASK_JUNGLE
@@ -110,6 +112,12 @@ messages:
       propagate;
    }
 
+   ChangeDepthTest()
+   {
+            Send(self,@SetSectorFlags,#sector=41,#depth=SF_DEPTH1);
+      return;
+   }
+   
    NewHold(what=$,new_row=0,new_col=0)
    {
       local iRow, iCol;
