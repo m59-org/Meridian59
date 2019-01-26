@@ -10375,6 +10375,13 @@ messages:
       local iFlags, oIllusion;
 
       iFlags = OF_ATTACKABLE | OF_PLAYER | OF_OFFERABLE | OF_DISPLAY_NAME;
+      
+      if poOwner <> $
+         AND Send(poOwner,@IsUnderwater)
+         AND Send(self,@IsResting)
+      {
+        iFlags = iFlags | OF_BOUNCING;
+      }
 
       oIllusion = Send(self,@GetIllusionForm);
 

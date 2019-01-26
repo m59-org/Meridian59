@@ -45,6 +45,7 @@ resources:
       "~B~U~k[###]~n ~B~v%s drowned cold and alone in vast quiet darkness."
 
    underwater_drowning_sound = ouchf2.wav
+   underwater_drowning_sound_male = ouchm2.wav
    
 classvars:
 
@@ -107,8 +108,15 @@ messages:
    {
       if who <> $
          AND IsClass(who,&Player)
+         AND Send(who,@GetGender) = GENDER_FEMALE
       {
          Send(poHostObject,@SomethingWaveRoom,#what=who,#wave_rsc=underwater_drowning_sound);
+      }
+      if who <> $
+         AND IsClass(who,&Player)
+         AND Send(who,@GetGender) = GENDER_MALE
+      {
+         Send(poHostObject,@SomethingWaveRoom,#what=who,#wave_rsc=underwater_drowning_sound_male);
       }
       return;
    }

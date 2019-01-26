@@ -4015,21 +4015,21 @@ void D3DRenderNamesDraw3D(d3d_render_cache_system *pCacheSystem, d3d_render_pool
 					depth = GetOverrideRoomDepth(SF_DEPTH1);
                bUsingAlternateDepth = TRUE;
 				}
-			break;
+			   break;
 			case SF_DEPTH2:
 				if (ROOM_OVERRIDE_DEPTH2 & GetRoomFlags())
 				{
 					depth = GetOverrideRoomDepth(SF_DEPTH2);
                bUsingAlternateDepth = TRUE;
 				}
-			break;
+            break;
 			case SF_DEPTH3:
 				if (ROOM_OVERRIDE_DEPTH3 & GetRoomFlags())
 				{
 					depth = GetOverrideRoomDepth(SF_DEPTH3);
                bUsingAlternateDepth = TRUE;
 				}
-			break;
+            break;
 			}
 		}
 
@@ -4039,8 +4039,20 @@ void D3DRenderNamesDraw3D(d3d_render_cache_system *pCacheSystem, d3d_render_pool
 
 		MatrixRotateY(&rot, (float)angleHeading * 360.0f / 4096.0f * PI / 180.0f);
 		MatrixTranspose(&rot, &rot);
-      
-		if (bUsingAlternateDepth)
+
+      if (pRNode->obj.flags & OF_HANGING)
+      {
+		   MatrixTranslate(&mat, (float)pRNode->motion.x, top - pRNode->obj.boundingHeight +
+		   	(((float)pDib->height / (float)pDib->shrink * 16.0f) - (float)pDib->yoffset * 4.0f) +
+		   	((float)pRNode->boundingHeightAdjust * 4.0f), (float)pRNode->motion.y);
+      }
+      else if (pRNode->obj.flags & OF_GROUNDED)
+      {
+		   MatrixTranslate(&mat, (float)pRNode->motion.x, bottom +
+		   	(((float)pDib->height / (float)pDib->shrink * 16.0f) - (float)pDib->yoffset * 4.0f) +
+		   	((float)pRNode->boundingHeightAdjust * 4.0f), (float)pRNode->motion.y);
+      }
+		else if (bUsingAlternateDepth)
 		{
 		   MatrixTranslate(&mat, (float)pRNode->motion.x, depth +
 		   	(((float)pDib->height / (float)pDib->shrink * 16.0f) - (float)pDib->yoffset * 4.0f) +
@@ -4048,11 +4060,9 @@ void D3DRenderNamesDraw3D(d3d_render_cache_system *pCacheSystem, d3d_render_pool
 		}
       else
       {
-      
-		MatrixTranslate(&mat, (float)pRNode->motion.x, (float)max(bottom,
-			pRNode->motion.z) - depth +
-			(((float)pDib->height / (float)pDib->shrink * 16.0f) - (float)pDib->yoffset * 4.0f) +
-			((float)pRNode->boundingHeightAdjust * 4.0f), (float)pRNode->motion.y);
+         MatrixTranslate(&mat, (float)pRNode->motion.x, (float)max(bottom,pRNode->motion.z) - depth +
+         (((float)pDib->height / (float)pDib->shrink * 16.0f) - (float)pDib->yoffset * 4.0f) +
+         ((float)pRNode->boundingHeightAdjust * 4.0f), (float)pRNode->motion.y);
       }
          
          
@@ -7480,10 +7490,17 @@ void D3DRenderObjectsDraw(d3d_render_pool_new *pPool, room_type *room,
 		MatrixRotateY(&rot, (float)angleHeading * 360.0f / 4096.0f * PI / 180.0f);
 		MatrixTranspose(&rot, &rot);
 
-      if (bUsingAlternateDepth)
+      if (pRNode->obj.flags & OF_HANGING)
+      {
+   		MatrixTranslate(&mat, (float)pRNode->motion.x, top - pRNode->obj.boundingHeight,(float)pRNode->motion.y);
+      }
+      else if (pRNode->obj.flags & OF_GROUNDED)
+      {
+   		MatrixTranslate(&mat, (float)pRNode->motion.x, bottom,(float)pRNode->motion.y);
+      }
+      else if (bUsingAlternateDepth)
 		{
-   		MatrixTranslate(&mat, (float)pRNode->motion.x, depth,
-	   		(float)pRNode->motion.y);
+   		MatrixTranslate(&mat, (float)pRNode->motion.x, depth,(float)pRNode->motion.y);
 		}
       else
       {
@@ -8212,8 +8229,16 @@ void D3DRenderOverlaysDraw(d3d_render_pool_new *pPool, room_type *room, Draw3DPa
 
 					MatrixRotateY(&rot, (float)angleHeading * 360.0f / 4096.0f * PI / 180.0f);
 					MatrixTranspose(&rot, &rot);
-               
-					if (bUsingAlternateDepth)
+
+               if (pRNode->obj.flags & OF_HANGING)
+               {
+   					MatrixTranslate(&mat, (float)pRNode->motion.x, top - pRNode->obj.boundingHeight, (float)pRNode->motion.y);
+               }
+               else if (pRNode->obj.flags & OF_GROUNDED)
+               {
+   					MatrixTranslate(&mat, (float)pRNode->motion.x, bottom, (float)pRNode->motion.y);
+               }
+               else if (bUsingAlternateDepth)
 					{
    					MatrixTranslate(&mat, (float)pRNode->motion.x, depthf, (float)pRNode->motion.y);
 					}

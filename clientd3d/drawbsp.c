@@ -394,6 +394,8 @@ static void AddObjects(room_type *room)
    long a,b;
    long xdif,ydif; // used to generate extra endpoints for height test
    long top,bottom;
+	BOOL hanging;
+   BOOL grounded;
    
    nobjects = 0;
 
@@ -476,31 +478,33 @@ static void AddObjects(room_type *room)
 #if 1
       // Set object depth based on "depth" sector flags
       d->draw.depth = sector_depths[SectorDepth(sector_flags)];
-      if (ROOM_OVERRIDE_MASK & GetRoomFlags()) // if depth flags are normal (no overrides)
+      hanging = (d->draw.flags & OF_HANGING);
+      grounded = (d->draw.flags & OF_GROUNDED);
+      if ((ROOM_OVERRIDE_MASK & GetRoomFlags()) && !hanging && !grounded) // if depth flags are normal (no overrides)
       {
-	 switch (SectorDepth(sector_flags)) {
-	 case SF_DEPTH1:
-	    if (ROOM_OVERRIDE_DEPTH1 & GetRoomFlags())
-	    {
-	       d->draw.height = GetOverrideRoomDepth(SF_DEPTH1);
-	       d->draw.depth = 0;
-	    }
-	    break;
-	 case SF_DEPTH2:
-	    if (ROOM_OVERRIDE_DEPTH2 & GetRoomFlags())
-	    {
-	       d->draw.height = GetOverrideRoomDepth(SF_DEPTH2);
-	       d->draw.depth = 0;
-	    }
-	    break;
-	 case SF_DEPTH3:
-	    if (ROOM_OVERRIDE_DEPTH3 & GetRoomFlags())
-	    {
-	       d->draw.height = GetOverrideRoomDepth(SF_DEPTH3);
-	       d->draw.depth = 0;
-	    }
-	    break;
-	 }
+         switch (SectorDepth(sector_flags)) {
+            case SF_DEPTH1:
+               if (ROOM_OVERRIDE_DEPTH1 & GetRoomFlags())
+               {
+                  d->draw.height = GetOverrideRoomDepth(SF_DEPTH1);
+                  d->draw.depth = 0;
+               }
+               break;
+            case SF_DEPTH2:
+               if (ROOM_OVERRIDE_DEPTH2 & GetRoomFlags())
+               {
+                  d->draw.height = GetOverrideRoomDepth(SF_DEPTH2);
+                  d->draw.depth = 0;
+               }
+               break;
+            case SF_DEPTH3:
+               if (ROOM_OVERRIDE_DEPTH3 & GetRoomFlags())
+               {
+                  d->draw.height = GetOverrideRoomDepth(SF_DEPTH3);
+                  d->draw.depth = 0;
+               }
+               break;
+         }
       }
 #endif      
       d->ncones        = 0;
