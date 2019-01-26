@@ -2909,6 +2909,15 @@ messages:
          iFlags = (iFlags | OF_FLASHING);
       }
 
+      if IsClass(what,&Item)
+      {
+         if poOwner <> $
+            AND Send(poOwner,@IsUnderwater)
+         {
+            iFlags = (iFlags | OF_GROUNDED);
+         }
+      }
+
       if IsClass(what,&Battler)
       {
          iEnemyKarma = Send(what,@GetKarma,#detect=TRUE);
@@ -10380,7 +10389,7 @@ messages:
          AND Send(poOwner,@IsUnderwater)
          AND Send(self,@IsResting)
       {
-        iFlags = iFlags | OF_BOUNCING;
+        iFlags = iFlags | OF_GROUNDED;
       }
 
       oIllusion = Send(self,@GetIllusionForm);

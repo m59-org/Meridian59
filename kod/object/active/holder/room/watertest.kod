@@ -31,6 +31,7 @@ WaterTest is Room
 % sounds for entering / leaving water
 %
 %
+%  moveobj.c bounce anim - can let people go deeper when resting
 %
 %  Look for animation and interpolation - no animations while moving on depth?
 
@@ -364,15 +365,6 @@ messages:
       {
          DeleteTimer(ptLightsMoveTimer);
          ptLightsMoveTimer = $;
-      }
-      propagate;
-   }
-
-   NewHoldObject(what = $,new_pos = $)
-   {
-      if IsClass(what,&Monster)
-      {
-         Send(what,@StartSwimming);
       }
       propagate;
    }
