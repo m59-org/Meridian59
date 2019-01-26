@@ -442,8 +442,10 @@ void UserMovePlayer(int action)
    }
    else player_obj->motion.z = z;
 
-   if (bounce)
+   if ((bounce && config.bounce) || (depthMask[depth] & GetRoomFlags()))
       BounceUser(dt);
+   else
+      bounce_height = 0;
 
    // Play the wading sound if they persist to wade,
    // but sounds get spaced out more if they're deeper.
@@ -1063,14 +1065,9 @@ void BounceUser(int dt)
 {
    static float bounce_time = 0.0;
 
-   if (config.bounce)
-   {
-     dt = min(dt, MOVE_DELAY);
-     bounce_time += ((float) dt) / MOVE_DELAY;  /* In radians */
-     bounce_height = (long) (BOUNCE_HEIGHT * sin(bounce_time));
-   }
-   else
-      bounce_height = 0;
+   dt = min(dt, MOVE_DELAY);
+   bounce_time += ((float) dt) / MOVE_DELAY;  /* In radians */
+   bounce_height = (long) (BOUNCE_HEIGHT * sin(bounce_time));
 }
 /************************************************************************/
 /*
