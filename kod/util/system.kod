@@ -6697,7 +6697,7 @@ messages:
    AddChestToList(oChest=$)
    "Adds chest objects or box objects to list of chests and boxes."
    {
-      local iRoom, iRow, iCol, iFineRow, iFineCol, iAngle;
+      local iRoom, iRow, iCol, iFineRow, iFineCol;
 
       if oChest <> $
       {
@@ -6706,9 +6706,8 @@ messages:
          iCol = Send(oChest,@GetCol);
          iFineRow = Send(oChest,@GetFineRow);
          iFineCol = Send(oChest,@GetFineCol);
-         iAngle = Send(oChest,@GetAngle);
       }
-      plChests = cons([oChest,iRoom,iRow,iCol,iFineRow,iFineCol,iAngle],plChests);
+      plChests = cons([oChest,iRoom,iRow,iCol,iFineRow,iFineCol],plChests);
 
       return;
    }
@@ -6717,7 +6716,7 @@ messages:
    "This is always considered optional, just in case the admin doesn't want "
    "to recreate the chests."
    {
-      local iRoom, oRoom, iRow, iCol, iFineRow, iFineCol, iAngle, oChest, i, j;
+      local iRoom, oRoom, iRow, iCol, iFineRow, iFineCol, oChest, i, j, iPreviousAngle;
 
       foreach i in plChests
       {
@@ -6727,15 +6726,6 @@ messages:
          iCol = Nth(i,4);
          iFineRow = Nth(i,5);
          iFineCOl = Nth(i,6);
-         
-         if Length(plChests) > 6
-         {
-            iAngle = Nth(i,7);
-         }
-         else
-         {
-            iAngle = ANGLE_EAST;
-         }
 
          oRoom = Send(self,@FindRoomByNum,#num=iRoom);
          if oRoom = $
@@ -6752,9 +6742,10 @@ messages:
                   AND iFineRow = Send(first(j),@GetFineRow)
                   AND iFineCol = Send(first(j),@GetFineCol)
                {
+                  iPreviousAngle = Send(first(j),@GetAngle);
                   Send(first(j),@Delete);
                   Send(oRoom,@NewHold,#what=oChest,#new_row=iRow,#new_col=iCol,
-                     #fine_row=iFineRow,#fine_col=iFineCol,#angle=iAngle);
+                     #fine_row=iFineRow,#fine_col=iFineCol,#new_angle=iPreviousAngle);
                }
             }
          }
