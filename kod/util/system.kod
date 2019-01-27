@@ -435,6 +435,7 @@ properties:
    poSurvivalRoomMaintenance = $
    poDesertRoomMaintenance = $
    poMazeRoomMaintenance = $
+   poLanguageMaintenance = $
 
    % Singleton object that keeps track of various game statistics
    poStatistics = $
@@ -603,6 +604,7 @@ messages:
       Send(self,@RecreateSurvivalRoomMaintenance);
       Send(self,@RecreateDesertRoomMaintenance);
       Send(self,@RecreateMazeRoomMaintenance);
+      Send(self,@RecreateLanguageMaintenance);
 
       Send(self,@RecreateAllSpells,#figure_totals=FALSE);
       Send(self,@RecreateAllSkills,#figure_totals=FALSE);
@@ -716,6 +718,7 @@ messages:
       Send(self,@RecreateSurvivalRoomMaintenance);
       Send(self,@RecreateDesertRoomMaintenance);
       Send(self,@RecreateMazeRoomMaintenance);
+      Send(self,@RecreateLanguageMaintenance);
       Send(self,@RecreateWarEvent);
 
       % These don't need to be done here.
@@ -1493,6 +1496,7 @@ messages:
       Send(poNodeAttack,@NewDay);
       Send(poRentableRoomMaintenance,@NewDay);
       Send(poDesertRoomMaintenance,@NewDay);
+      Send(poLanguageMaintenance,@NewDay);
       Send(poMazeRoomMaintenance,@NewDay);
       Send(&SoldierShield,@NewDay);
 
@@ -4452,6 +4456,11 @@ messages:
          Send(poDesertRoomMaintenance,@NewGameHour);
       }
 
+      if poLanguageMaintenance <> $
+      {
+         Send(poLanguageMaintenance,@NewGameHour);
+      }
+
       if poMazeRoomMaintenance <> $
       {
          Send(poMazeRoomMaintenance,@NewGameHour);
@@ -5412,6 +5421,11 @@ messages:
       return poDesertRoomMaintenance;
    }
    
+   GetLanguageMaintenance()
+   {
+      return poLanguageMaintenance;
+   }
+
    GetMazeRoomMaintenance()
    {
       return poMazeRoomMaintenance;
@@ -5512,6 +5526,20 @@ messages:
          poDesertRoomMaintenance = Create(&DesertRoomMaintenance);
       }
 
+      return TRUE;
+   }
+
+   RecreateLanguageMaintenance()
+   {
+      if poLanguageMaintenance <> $
+      {
+         Send(poLanguageMaintenance,@Recreate);
+      }
+      else
+      {
+         poLanguageMaintenance = Create(&LanguageMaintenance);
+      }
+      
       return TRUE;
    }
 

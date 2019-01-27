@@ -323,6 +323,8 @@ classvars:
    vrKocName = monster_koc_name
    viGender = GENDER_NEUTER
    
+   viLanguage = LANGUAGE_NONE
+   
    vbNamedMob = FALSE
    
    vrDead_icon = $
@@ -8800,6 +8802,21 @@ messages:
       {
          Send(poOwner,@SomethingChanged,#what=self);
       }
+      return;
+   }
+
+   GetLanguage()
+   {
+      return viLanguage;
+   }
+
+   AttemptConversation(who=$)
+   {
+      local oLanguageMaintenance;
+      
+      oLanguageMaintenance = Send(SYS,@GetLanguageMaintenance);
+      
+      Send(oLanguageMaintenance,@AttemptConversation,#who=who,#oMonster=self);
       return;
    }
 

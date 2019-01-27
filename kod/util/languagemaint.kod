@@ -1,0 +1,313 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+LanguageMaintenance is UtilityFunctions
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   insect_language_name = "skitteratic"
+   water_language_name = "amphibic"
+   undead_language_name = "necromantic"
+   forest_language_name = "sylvan"
+   avar_language_name = "birdsong"
+   orc_language_name = "orcish"
+   animal_language_name = "primal"
+   troll_language_name = "trollimaic"
+   desert_language_name = "biskalanic"
+   dragon_language_name = "draconic"
+   
+   fail_to_understand = "You fail to understand %s%s."
+
+   orc1 = "We orcs were once much uglier, but a social beautiment program taught many how to stay fit and take care of themselves."
+   orc2 = "Passage into the warrens is difficult because of the illusion your ancient heroes placed on our warren entrance, but we dug another way through..."
+   orc3 = "There lies a node of mana in the cave where spiders live. You may partake of it if you wish."
+   orc4 = "I am simply amazed you can understand me. Our peoples have long been at war simply because of miscommunication."
+   orc5 = "We did invade your cities once, in the past. We deeply regret the divide this has caused between our peoples."
+   orc6 = "I hope to work my way up the ranks and one day become Pit Boss. Don't tell the current one I said that, though."
+   orc7 = "My recall spell fizzles constantly. I think something is wrong with me."
+   orc8 = "Tomorrow is my birthday."
+   orc9 = "You should see the wizard."
+   orc_if_orc = "You are quite good looking for a human... did you have an orcish ancestor?"
+
+   cave_orc1 = "I am on duty. I am not permitted to fraternize at this time."
+   cave_orc2 = "This area is off-limits to your kind."
+   cave_orc3 = "The Pit Boss will have my head if he catches me wasting time talking to a stranger while on duty."
+   cave_orc4 = "I am going to challenge the Pit Boss for his position one of these days. Two of my warren-mates say I would be a great Pit Boss."
+   cave_orc5 = "The wizards make my skin crawl. I would trust a pickaxe over a spell in any fight."
+   cave_orc6 = "The island-humans fear us for good reason."
+   cave_orc7 = "The island-birdmen hate us, but we do not know why."
+   cave_orc8 = "It must be terrifying to live under the open sky."
+   cave_orc9 = "I'm busy."
+   
+   cave_orc_if_elf = "What manner of creature are you, blue-skin?"
+   cave_orc_if_demon = "Your red skin makes me experience an urge toward primal violence."
+   cave_orc_if_undine = "The undine hail from a body of water how big? I do not believe you. Such a thing is impossible."
+   cave_orc_if_drow = "You are indeed far from your home caves, drow."
+   cave_orc_if_draconian = "Can you even understand me, beast?"
+   
+   cave_orc_if_orc_female = "You are far too lovely to be outside your warren unprotected."
+   cave_orc_if_orc_male = "You should look into joining the fighting elite."
+   
+   orc_wizard1 = "I could teach you a thing or two about magic, if you only had the capability."
+   orc_wizard2 = "The beasts of shadow are held back only by the valiant and constant effort of my fellow wizards."
+   orc_wizard3 = "If you see the bird priestess who scries using bones, cut off her head. It is only fair."
+   orc_wizard4 = "Merb was once great and mighty, but the beasts of shadow forced us from our ancestral city and into lesser caves."
+   orc_wizard5 = "The chamber you call enigmatic is our place of honored rest for the dead."
+   orc_wizard6 = "Brog and Grog were brothers, but only one could be Pit Boss. Their example leads our society even now, generations later."
+   orc_wizard7 = "Ah, you call your leyline of warfare Kraanan. Curious, how you have personified it. We classify Killing Fields and Mana Bomb as 'ungjukto.' It does not translate well to an outsider."
+   orc_wizard8 = "My staff was carved by my warren's first magic-wielding ancestor. His inner spark awoke during a fight for supremacy. He lost, but his warren boss saw the wisdom in keeping him alive in an entirely new position of service."
+   orc_wizard9 = "The acidic spell of 'slitherbolt' is quite draining to cast, but necessary to keep the beasts of shadow at bay without risking their claws."
+   orc_wizard10 = "We will never attack the island-humans. They earned our respect. Their founding warriors fought with a fury we never knew humans possessed."
+   
+   orc_wizard_if_demon = "Our wizards rejected the offers of demons long ago. You would be wise to do the same."
+   orc_wizard_if_drow = "How are you here, drow? We sealed our caves off from yours generations ago!"
+   orc_wizard_if_undine = "I dream of the ocean sometimes, undine. I have never been, but I have still seen it."
+   orc_wizard_if_draconian = "How incredible! You are not a natural creature at all. You are called a 'draconian,' you say?"
+   orc_wizard_if_elf = "Even we have heard of the tragedy of your Vale, sylvan one. We cannot help, but we would if we had the means."
+
+   orc_pit_boss1 = "I have two weapons. You have one. The outcome of a struggle is obvious."
+   orc_pit_boss2 = "The wizards serve me well. Do you know magic, stranger?"
+   orc_pit_boss3 = "The life of a Pit Boss is not all fighting and mating. It takes dedication and vigilance, lest a younger orc rises up and take the position for himself."
+   orc_pit_boss4 = "The bird priestess that scries with bones has sent many warriors to kill me. The warren-children have feasted on their bones."
+   orc_pit_boss5 = "I will restore our people to glory in the seat of our ancestral capital, Merb, once we destroy the beasts of shadow."
+   orc_pit_boss6 = "Konima earned honor in these tunnels long ago."
+   orc_pit_boss7 = "There is little to be said, stranger."
+   orc_pit_boss8 = "You speak our language with an uncouth accent."
+   orc_pit_boss9 = "We had a sun, like yours. It shook and spewed magma for a generation, shaping Merb, or so the tales say."
+   
+   orc_pit_boss_if_drow = "I know of your kind, drow, though our caves have not connected in generations. Be wary in these tunnels. Not many will be as understanding as I."
+   orc_pit_boss_if_draconian = "You look tough, beast. I would enjoy sparring with you."
+   orc_pit_boss_if_elf = "A Fey mated with a human, did it? Disgusting and hilarious! You are truly a tragic creature."
+   orc_pit_boss_if_undine = "We have no quarrel with your kind, water-spirit. You may find access back to your realm of water through the Aqueducts of Merb."
+   orc_pit_boss_if_demon = "We are not buying what you are probably selling, demon."
+
+classvars:
+
+   orc1_classvar = orc1
+
+properties:
+
+   plOrcStrings = $
+   plCaveOrcStrings = $
+   plOrcWizardStrings = $
+   plOrcPitBossStrings = $
+   
+   plLetters = $
+   plOrcGarbles = $
+   plAvarGarbles = $
+
+messages:
+
+   Constructor()
+   {
+      Send(self,@Recreate);
+
+      return;
+   }
+
+   Recreate()
+   {
+      plOrcStrings = $;
+      plCaveOrcStrings = $;
+      plOrcWizardStrings = $;
+      plOrcPitBossStrings = $;
+      plLetters = $;
+      plOrcGarbles = $;
+      
+      plLetters = ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"];
+      plOrcGarbles = ["g","k","r","j","u"];
+      plAvarGarbles = ["y","ee","kr-","ii","k"];
+      
+      plOrcStrings = Cons([orc1],plOrcStrings);
+      plOrcStrings = Cons([orc2],plOrcStrings);
+      plOrcStrings = Cons([orc3],plOrcStrings);
+      plOrcStrings = Cons([orc4],plOrcStrings);
+      plOrcStrings = Cons([orc5],plOrcStrings);
+      plOrcStrings = Cons([orc6],plOrcStrings);
+      plOrcStrings = Cons([orc7],plOrcStrings);
+      plOrcStrings = Cons([orc8],plOrcStrings);
+      plOrcStrings = Cons([orc9],plOrcStrings);
+      plOrcStrings = Cons([orc_if_orc,RACE_HALF_ORC],plOrcStrings);
+
+      plCaveOrcStrings = Cons([cave_orc1],plCaveOrcStrings);
+      plCaveOrcStrings = Cons([cave_orc2],plCaveOrcStrings);
+      plCaveOrcStrings = Cons([cave_orc3],plCaveOrcStrings);
+      plCaveOrcStrings = Cons([cave_orc4],plCaveOrcStrings);
+      plCaveOrcStrings = Cons([cave_orc5],plCaveOrcStrings);
+      plCaveOrcStrings = Cons([cave_orc6],plCaveOrcStrings);
+      plCaveOrcStrings = Cons([cave_orc7],plCaveOrcStrings);
+      plCaveOrcStrings = Cons([cave_orc8],plCaveOrcStrings);
+      plCaveOrcStrings = Cons([cave_orc9],plCaveOrcStrings);
+      plCaveOrcStrings = Cons([cave_orc_if_orc_male,RACE_HALF_ORC,GENDER_MALE],plCaveOrcStrings);
+      plCaveOrcStrings = Cons([cave_orc_if_orc_female,RACE_HALF_ORC,GENDER_FEMALE],plCaveOrcStrings);
+      
+      plOrcWizardStrings = Cons([orc_wizard1],plOrcWizardStrings);
+      plOrcWizardStrings = Cons([orc_wizard2],plOrcWizardStrings);
+      plOrcWizardStrings = Cons([orc_wizard3],plOrcWizardStrings);
+      plOrcWizardStrings = Cons([orc_wizard4],plOrcWizardStrings);
+      plOrcWizardStrings = Cons([orc_wizard5],plOrcWizardStrings);
+      plOrcWizardStrings = Cons([orc_wizard6],plOrcWizardStrings);
+      plOrcWizardStrings = Cons([orc_wizard7],plOrcWizardStrings);
+      plOrcWizardStrings = Cons([orc_wizard8],plOrcWizardStrings);
+      plOrcWizardStrings = Cons([orc_wizard9],plOrcWizardStrings);
+      plOrcWizardStrings = Cons([orc_wizard10],plOrcWizardStrings);
+      plOrcWizardStrings = Cons([orc_wizard_if_demon,RACE_HALF_DEMON],plOrcWizardStrings);
+      plOrcWizardStrings = Cons([orc_wizard_if_draconian,RACE_DRACONIAN],plOrcWizardStrings);
+      plOrcWizardStrings = Cons([orc_wizard_if_drow,RACE_DROW],plOrcWizardStrings);
+      plOrcWizardStrings = Cons([orc_wizard_if_elf,RACE_HALF_ELF],plOrcWizardStrings);
+      plOrcWizardStrings = Cons([orc_wizard_if_undine,RACE_HALF_UNDINE],plOrcWizardStrings);
+      
+      plOrcPitBossStrings = Cons([orc_pit_boss1],plOrcPitBossStrings);
+      plOrcPitBossStrings = Cons([orc_pit_boss2],plOrcPitBossStrings);
+      plOrcPitBossStrings = Cons([orc_pit_boss3],plOrcPitBossStrings);
+      plOrcPitBossStrings = Cons([orc_pit_boss4],plOrcPitBossStrings);
+      plOrcPitBossStrings = Cons([orc_pit_boss5],plOrcPitBossStrings);
+      plOrcPitBossStrings = Cons([orc_pit_boss6],plOrcPitBossStrings);
+      plOrcPitBossStrings = Cons([orc_pit_boss7],plOrcPitBossStrings);
+      plOrcPitBossStrings = Cons([orc_pit_boss8],plOrcPitBossStrings);
+      plOrcPitBossStrings = Cons([orc_pit_boss9],plOrcPitBossStrings);
+      plOrcPitBossStrings = Cons([orc_pit_boss_if_demon,RACE_HALF_DEMON],plOrcPitBossStrings);
+      plOrcPitBossStrings = Cons([orc_pit_boss_if_draconian,RACE_DRACONIAN],plOrcPitBossStrings);
+      plOrcPitBossStrings = Cons([orc_pit_boss_if_drow,RACE_DROW],plOrcPitBossStrings);
+      plOrcPitBossStrings = Cons([orc_pit_boss_if_elf,RACE_HALF_ELF],plOrcPitBossStrings);
+      plOrcPitBossStrings = Cons([orc_pit_boss_if_undine,RACE_HALF_UNDINE],plOrcPitBossStrings);
+      
+      return;
+   }
+
+   NewDay()
+   {
+      return;
+   }
+
+   NewGameHour()
+   {
+      return;
+   }
+
+   AttemptConversation(who=$, oMonster=$)
+   {
+      local iPlayerRace, iPlayerGender, cMonsterClass, lChoicesList, lPossibleChoices, sChosenString, i;
+      
+      if who <> $
+         AND IsClass(who,&Player)
+         AND oMonster <> $
+         AND IsClass(oMonster,&Monster)
+         AND Send(oMonster,@GetLanguage) <> LANGUAGE_NONE
+      {
+         lPossibleChoices = $;
+         iPlayerRace = Send(who,@GetPlayerRace);
+         iPlayerGender = Send(who,@GetGender);
+         
+         % Ability check!
+         if Send(who,@GetLanguageAbility,#iLanguage=Send(oMonster,@GetLanguage)) + (Send(who,@GetIntellect)/5) <= Random(1,99)
+         {
+            Send(who,@MsgSendUser,#message_rsc=fail_to_understand,#parm1=Send(oMonster,@GetDef),#parm2=Send(oMonster,@GetName));
+            return;
+         }
+         
+         cMonsterClass = GetClass(oMonster);
+         switch(cMonsterClass)
+         {
+            case &Orc:
+               lChoicesList = ListCopy(plOrcStrings);
+               break;
+            case &CaveOrc:
+               lChoicesList = ListCopy(plCaveOrcStrings);
+               break;
+            case &OrcWizard:
+               lChoicesList = ListCopy(plOrcWizardStrings);
+               break;
+            case &OrcPitBoss:
+               lChoicesList = ListCopy(plOrcPitBossStrings);
+               break;
+         }
+
+         foreach i in lChoicesList
+         {
+            if Length(i) = 1
+            {
+               lPossibleChoices = Cons(i,lPossibleChoices);
+            }
+            else if Length(i) = 2
+            {
+               if iPlayerRace = Nth(i,2)
+               {
+                  lPossibleChoices = Cons(i,lPossibleChoices);
+               }
+            }
+            else if Length(i) = 3
+            {
+               if iPlayerRace = Nth(i,2)
+                  AND iPlayerGender = Nth(i,3)
+               {
+                  lPossibleChoices = Cons(i,lPossibleChoices);
+               }
+            }
+         }
+
+         Post(Send(oMonster,@GetOwner),@SomeoneSaid,#what=oMonster,#type=SAY_RESOURCE,#string=First(Nth(lPossibleChoices,Random(1,Length(lPossibleChoices)))));
+      }
+      return;
+   }
+   
+   GarbleString(sString=$,iPlayerAbility=0,iPlayerIntelligence=1,iLanguage=LANGUAGE_NONE)
+   {
+      local iGarbleNum, lLetters, oChosenLetter, lGarbleList;
+
+      switch(iLanguage)
+      {
+         case LANGUAGE_NONE:
+            return sString;
+         case LANGUAGE_ORCISH:
+            lGarbleList = ListCopy(plOrcGarbles);
+         case LANGUAGE_BIRDSONG:
+            lGarbleList = ListCopy(plAvarGarbles);
+            break;
+      }
+
+      iGarbleNum = (104 - (iPlayerAbility+5) - (iPlayerIntelligence/2))/4;
+      lLetters = ListCopy(plLetters);
+
+      while iGarbleNum > 0
+      {
+         if lLetters <> $
+         {
+            oChosenLetter = Nth(lLetters,Random(1,Length(lLetters)));
+            lLetters = DelListElem(lLetters,oChosenLetter);
+            sString = StringSubstitute(sString,oChosenLetter,Nth(lGarbleList,Random(1,Length(lGarbleList))));
+         }
+         iGarbleNum--;
+      }
+      
+      Debug(sString);
+      
+      return sString;
+   }
+
+   DoTest()
+   {
+      local testString;
+      
+%      testString = CreateString();
+%      SetString(testString,Nth(plOrcStrings,1));
+      
+%      DO THIS INSTEAD         Post(poOwner,@SomeoneSaid,#what=self,#type=SAY_RESOURCE,#string=Nth(i,2));
+
+%      Send(self,@GarbleString,#sString=testString,#iPlayerAbility=25,#iPlayerIntelligence=50,#iLanguage=LANGUAGE_ORCISH);
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
