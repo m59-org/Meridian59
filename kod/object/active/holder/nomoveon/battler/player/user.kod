@@ -2914,7 +2914,7 @@ messages:
          if poOwner <> $
             AND Send(poOwner,@IsUnderwater)
          {
-            iFlags = (iFlags | OF_BOUNCING);
+            iFlags = (iFlags | OF_GROUNDED);
          }
       }
 
@@ -2941,6 +2941,13 @@ messages:
          {
             iFlags = (iFlags & (~OF_FLICKERING));
             iFlags = (iFlags | OF_FLASHING);
+         }
+
+         if poOwner <> $
+            AND Send(poOwner,@IsUnderwater)
+            AND what <> self
+         {
+            iFlags = (iFlags | OF_BOUNCING);
          }
       }
 
@@ -10389,7 +10396,7 @@ messages:
          AND Send(poOwner,@IsUnderwater)
          AND Send(self,@IsResting)
       {
-        iFlags = iFlags | OF_GROUNDED;
+        iFlags = iFlags | OF_BOUNCING;
       }
 
       oIllusion = Send(self,@GetIllusionForm);
