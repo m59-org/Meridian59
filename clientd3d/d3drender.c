@@ -4054,9 +4054,18 @@ void D3DRenderNamesDraw3D(d3d_render_cache_system *pCacheSystem, d3d_render_pool
       }
 		else if (bUsingAlternateDepth)
 		{
-		   MatrixTranslate(&mat, (float)pRNode->motion.x, depth +
-		   	(((float)pDib->height / (float)pDib->shrink * 16.0f) - (float)pDib->yoffset * 4.0f) +
-		   	((float)pRNode->boundingHeightAdjust * 4.0f), (float)pRNode->motion.y);
+         if (pRNode->obj.flags & OF_BOUNCING)
+         {
+		      MatrixTranslate(&mat, (float)pRNode->motion.x, (float)max(depth,pRNode->motion.z) +
+		      	(((float)pDib->height / (float)pDib->shrink * 16.0f) - (float)pDib->yoffset * 4.0f) +
+		      	((float)pRNode->boundingHeightAdjust * 4.0f), (float)pRNode->motion.y);
+         }
+         else
+         {
+		      MatrixTranslate(&mat, (float)pRNode->motion.x, depth +
+		      	(((float)pDib->height / (float)pDib->shrink * 16.0f) - (float)pDib->yoffset * 4.0f) +
+		      	((float)pRNode->boundingHeightAdjust * 4.0f), (float)pRNode->motion.y);
+         }
 		}
       else
       {
@@ -7500,7 +7509,15 @@ void D3DRenderObjectsDraw(d3d_render_pool_new *pPool, room_type *room,
       }
       else if (bUsingAlternateDepth)
 		{
-   		MatrixTranslate(&mat, (float)pRNode->motion.x, depth,(float)pRNode->motion.y);
+         if (pRNode->obj.flags & OF_BOUNCING)
+         {
+   		   MatrixTranslate(&mat, (float)pRNode->motion.x, max(depth, pRNode->motion.z),
+              (float)pRNode->motion.y);
+         }
+         else
+         {
+      		MatrixTranslate(&mat, (float)pRNode->motion.x, depth,(float)pRNode->motion.y);
+         }
 		}
       else
       {
@@ -8240,7 +8257,15 @@ void D3DRenderOverlaysDraw(d3d_render_pool_new *pPool, room_type *room, Draw3DPa
                }
                else if (bUsingAlternateDepth)
 					{
-   					MatrixTranslate(&mat, (float)pRNode->motion.x, depthf, (float)pRNode->motion.y);
+                  if (pRNode->obj.flags & OF_BOUNCING)
+                  {
+                     MatrixTranslate(&mat, (float)pRNode->motion.x, (float)max(depth,
+                        pRNode->motion.z), (float)pRNode->motion.y);
+                  }
+                  else
+                  {
+   					   MatrixTranslate(&mat, (float)pRNode->motion.x, depthf, (float)pRNode->motion.y);
+                  }
 					}
                else
                {
