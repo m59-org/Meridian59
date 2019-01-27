@@ -373,6 +373,16 @@ messages:
       return 0;
    }
 
+   SetAngle(angle=0)
+   {
+      if poOwner <> $
+         AND IsClass(poOwner,&Room)
+      {
+         Send(poOwner,@SetRoomAngle,#what=self,#angle=angle);
+      }
+      return;
+   }
+
    GetRow()
    {
       local lPos;

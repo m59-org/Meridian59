@@ -2918,6 +2918,24 @@ messages:
       return $;
    }
 
+   SetRoomAngle(what = $, angle = 0)
+   {
+      local lNode;
+
+      lNode = GetListNode(plActive,1,what);
+      if lNode = $
+      {
+         lNode = GetListNode(plPassive,1,what);
+      }
+
+      if lNode <> $
+      {
+         SetNth(lNode,2,angle MOD 4100);
+      }
+
+      return;
+   }
+
    ReqSomethingUse(what = $, use_item = $)
    {
       propagate;
