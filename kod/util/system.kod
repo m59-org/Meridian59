@@ -2680,6 +2680,7 @@ messages:
       Send(self,@CreateOneRoomIfNew,#num=RID_GUILDH13,#class=&GuildHall13);
       Send(self,@CreateOneRoomIfNew,#num=RID_GUILDH14,#class=&GuildHall14);
       Send(self,@CreateOneRoomIfNew,#num=RID_GUILDH15,#class=&GuildHall15);
+      Send(self,@CreateOneRoomIfNew,#num=RID_JASPER_TOMB,#class=&JasperTomb);
 
       Send(self,@CreateOneRoomIfNew,#num=RID_TEMPLE_KRAANAN,#class=&TempleKraanan);
       Send(self,@CreateOneRoomIfNew,#num=RID_TEMPLE_QOR,#class=&TempleQor);
@@ -6696,7 +6697,7 @@ messages:
    AddChestToList(oChest=$)
    "Adds chest objects or box objects to list of chests and boxes."
    {
-      local iRoom, iRow, iCol, iFineRow, iFineCol;
+      local iRoom, iRow, iCol, iFineRow, iFineCol, iAngle;
 
       if oChest <> $
       {
@@ -6705,8 +6706,9 @@ messages:
          iCol = Send(oChest,@GetCol);
          iFineRow = Send(oChest,@GetFineRow);
          iFineCol = Send(oChest,@GetFineCol);
+         iAngle = Send(oChest,@GetAngle);
       }
-      plChests = cons([oChest,iRoom,iRow,iCol,iFineRow,iFineCol],plChests);
+      plChests = cons([oChest,iRoom,iRow,iCol,iFineRow,iFineCol,iAngle],plChests);
 
       return;
    }
@@ -6715,7 +6717,7 @@ messages:
    "This is always considered optional, just in case the admin doesn't want "
    "to recreate the chests."
    {
-      local iRoom, oRoom, iRow, iCol, iFineRow, iFineCol, oChest, i, j;
+      local iRoom, oRoom, iRow, iCol, iFineRow, iFineCol, iAngle, oChest, i, j;
 
       foreach i in plChests
       {
@@ -6725,6 +6727,15 @@ messages:
          iCol = Nth(i,4);
          iFineRow = Nth(i,5);
          iFineCOl = Nth(i,6);
+         
+         if Length(plChests) > 6
+         {
+            iAngle = Nth(i,7);
+         }
+         else
+         {
+            iAngle = ANGLE_EAST;
+         }
 
          oRoom = Send(self,@FindRoomByNum,#num=iRoom);
          if oRoom = $
@@ -6743,7 +6754,7 @@ messages:
                {
                   Send(first(j),@Delete);
                   Send(oRoom,@NewHold,#what=oChest,#new_row=iRow,#new_col=iCol,
-                     #fine_row=iFineRow,#fine_col=iFineCol);
+                     #fine_row=iFineRow,#fine_col=iFineCol,#angle=iAngle);
                }
             }
          }
