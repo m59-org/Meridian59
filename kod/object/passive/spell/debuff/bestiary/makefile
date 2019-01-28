@@ -5,6 +5,7 @@
 !include $(TOPDIR)\common.mak
 
 DEPEND = ..\bestiary.bof
-BOFS = binding.bof
+BOFS = binding.bof \
+       speak.bof
 
 !include $(KODDIR)\kod.mak
