@@ -148,6 +148,7 @@ messages:
 
       if IsClass(oTarget,&Monster)
       {
+         
          if Send(what,@GetBaseMaxHealth) + Random(1,20) >= Send(oTarget,@GetLevel) + 5
             AND Send(oTarget,@GetHealth) >= Send(oTarget,@GetMaxHealth)
          {
@@ -193,6 +194,22 @@ messages:
       iDuration = Random(iDuration * (100 - piDeviation) / 100,iDuration);
 
       return iDuration;
+   }
+
+   EndEnchantment(who=$,report=TRUE,state=$)
+   {
+      if IsClass(who,&Monster)
+      {
+         % This has to be done AFTER the enchantment is gone from the
+         % monster's ench list - Post it
+         Post(who,@ResetBehaviorFlags);
+         if Send(who,@GetOwner) <> $
+         {
+            Post(Send(who,@GetOwner),@SomethingChanged,#what=who);
+         }
+      }
+
+      return;
    }
 
 end

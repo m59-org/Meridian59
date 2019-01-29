@@ -36,8 +36,23 @@ messages:
    {
       return viLanguage;
    }
-   
-   % Improves here
+
+   DoSkill(who = $, oMonster = $)
+   {
+      local iAbility, iIntellect;
+      
+      iIntellect = Send(self,@GetRequisiteStat,#who=who);
+      iAbility = Send(who,@GetSkillAbility,#skill_num=viSkill_num);
+      
+      if iAbility + iIntellect/5 >= Random(1,99)
+      {
+         % Check for advancement conditions.
+         Send(self,@ImproveAbility,#who=who,#target=oMonster);
+         return TRUE;         
+      }
+
+      return FALSE;
+   }
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -198,7 +198,7 @@ messages:
 
    AttemptConversation(who=$, oMonster=$)
    {
-      local iPlayerRace, iPlayerGender, cMonsterClass, lChoicesList, lPossibleChoices, sChosenString, i;
+      local iPlayerRace, iPlayerGender, cMonsterClass, lChoicesList, lPossibleChoices, sChosenString, i, oLanguage;
       
       if who <> $
          AND IsClass(who,&Player)
@@ -210,8 +210,10 @@ messages:
          iPlayerRace = Send(who,@GetPlayerRace);
          iPlayerGender = Send(who,@GetGender);
          
+         oLanguage = Send(SYS,@FindSkillByNum,#num=Send(oMonster,@GetLanguage));
+         
          % Ability check!
-         if Send(who,@GetLanguageAbility,#iLanguage=Send(oMonster,@GetLanguage)) + (Send(who,@GetIntellect)/5) <= Random(1,99)
+         if NOT Send(oLanguage,@DoSkill,#who=who,#oMonster=oMonster)
          {
             Send(who,@MsgSendUser,#message_rsc=fail_to_understand,#parm1=Send(oMonster,@GetDef),#parm2=Send(oMonster,@GetName));
             return;
