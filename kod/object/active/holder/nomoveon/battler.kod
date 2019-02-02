@@ -370,6 +370,12 @@ messages:
          DeleteTimer(ptBleedTimer);
       }
       ptBleedTimer = $;
+      
+      if ptMinionControlCheck <> $
+      {
+         DeleteTimer(ptMinionControlCheck);
+      }
+      ptMinionControlCheck = $;
 
       % Clear minion control list. Delete each of our minions
       % unless they are reflections, which are handled separately.
@@ -2061,7 +2067,7 @@ messages:
    {
       if ptMinionControlCheck = $
       {
-         CreateTimer(self,@MinionControlCheck,2000);
+         ptMinionControlCheck = CreateTimer(self,@MinionControlCheck,2000);
       }
 
       plControlledMinions = Cons(minion,plControlledMinions);
@@ -2126,6 +2132,8 @@ messages:
    MinionControlCheck()
    {
       local i;
+      
+      ptMinionControlCheck = $;
 
       if Length(plControlledMinions) > 0
       {
@@ -2144,7 +2152,7 @@ messages:
                      #value=TRUE);
             }
          }
-         CreateTimer(self,@MinionControlCheck,2000);
+         ptMinionControlCheck = CreateTimer(self,@MinionControlCheck,2000);
       }
       else
       {
