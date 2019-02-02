@@ -45,6 +45,8 @@ messages:
    OnTimer()
    {
       local i;
+      
+      ptMaintenance = $;
 
       foreach i in plActiveEvents
       {
@@ -53,7 +55,7 @@ messages:
 
       if plActiveEvents <> $
       {
-         CreateTimer(self,@OnTimer,piMaintenanceInterval);
+         ptMaintenance = CreateTimer(self,@OnTimer,piMaintenanceInterval);
       }
 
       return;
@@ -474,7 +476,7 @@ messages:
          plActiveEvents = Cons(oEvent,plActiveEvents);
          if ptMaintenance = $
          {
-            CreateTimer(self,@OnTimer,piMaintenanceInterval);
+            ptMaintenance = CreateTimer(self,@OnTimer,piMaintenanceInterval);
          }
          
          switch(parm1)
