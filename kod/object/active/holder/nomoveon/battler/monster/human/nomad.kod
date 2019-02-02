@@ -385,13 +385,14 @@ messages:
          AND IsClass(poTarget,&user)
       {
          Send(poTarget,@SubtractFromMonsterChasers,
-              #level=viLevel);
+              #level=piAmountAddedToMonsterChasers);
       }
 
       poTarget = what;
       if IsClass(poTarget,&user)
       {
-         Send(poTarget,@AddToMonsterChasers,#level=viLevel);
+         piAmountAddedToMonsterChasers = piLevel;
+         Send(poTarget,@AddToMonsterChasers,#level=piAmountAddedToMonsterChasers);
       }
 
       piState = (piState & VSTATE_VALIDITY_MASK);

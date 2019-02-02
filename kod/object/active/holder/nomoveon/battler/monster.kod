@@ -613,6 +613,8 @@ properties:
    % Level of binding as a charmed monster
    piLoyalty = 0
    ptLoyaltyTimer = $
+   
+   piAmountAddedToMonsterChasers = 0
 
 messages:
 
@@ -1078,7 +1080,7 @@ messages:
          AND isClass(poTarget,&User)
       {
          Send(poTarget,@SubtractFromMonsterChasers,
-              #level=piLevel);
+              #level=piAmountAddedToMonsterChasers);
       }
 
       poTarget = $;
@@ -1096,7 +1098,7 @@ messages:
          AND isClass(poTarget,&user)
       {
          Send(poTarget,@SubtractFromMonsterChasers,
-              #level=piLevel);
+              #level=piAmountAddedToMonsterChasers);
       }
 
       poTarget = $;
@@ -1128,7 +1130,7 @@ messages:
          AND isClass(poTarget,&User)
       {
          Send(poTarget,@SubtractFromMonsterChasers,
-              #level=piLevel);
+              #level=piAmountAddedToMonsterChasers);
       }
 
       poTarget = $;
@@ -7872,13 +7874,14 @@ messages:
          AND IsClass(poTarget,&user)
       {
          Send(poTarget,@SubtractFromMonsterChasers,
-              #level=piLevel);
+              #level=piAmountAddedToMonsterChasers);
       }
 
       poTarget = what;
       if IsClass(poTarget,&user)
       {
-         Send(poTarget,@AddToMonsterChasers,#level=piLevel);
+         piAmountAddedToMonsterChasers = piLevel;
+         Send(poTarget,@AddToMonsterChasers,#level=piAmountAddedToMonsterChasers);
       }
 
       piState = (piState & VSTATE_VALIDITY_MASK);
