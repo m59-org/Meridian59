@@ -31,6 +31,8 @@ BOFS = anon.bof \
        touchatk.bof \
        greyghost.bof \
        singularfocus.bof \
-       waterbreathing.bof
+       waterbreathing.bof \
+       soothingpresence.bof \
+       toweringpresence.bof
 
 !include $(KODDIR)\kod.mak
