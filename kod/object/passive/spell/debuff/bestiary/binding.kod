@@ -31,10 +31,10 @@ resources:
       "paralysis for several seconds.  "
       "Requires two purple mushrooms to cast."
 
-   bind_circle_already_enchanted = "%s%s is already held."
-   bind_circle_caster = "%s%s is now held in place by a magical force."
-   bind_circle_on = "A magical tingling pulses through your body.  You are unable to move."
-   bind_circle_off = "The magical hold lifts and you are able to move once more."
+   bind_circle_already_enchanted = "%s%s is already bound to service."
+   bind_circle_caster = "%s%s is now bound to service."
+   bind_circle_on = "You have been bound to service."
+   bind_circle_off = "The binding lifts."
 
 classvars:
 
@@ -84,8 +84,8 @@ classvars:
 
 properties:
 
-   piBaseDuration = 2000 % Recommended value 2000.
-   piSpellPowerModifier = 40 % Recommended value 30.
+   piBaseDuration = 300000
+   piSpellPowerModifier = 60000 % Recommended value 30.
    piDeviation = 50 % Recommended value 10%.
    viCast_time = 0 % Recommended value 600 (milliseconds).
 
@@ -194,15 +194,6 @@ messages:
       Send(oTarget,@StartEnchantment,#what=self,#time=iDuration,#report=report,
             #state=report);
 
-      if IsClass(oTarget,&Monster)
-      {
-         Send(oTarget,@ResetBehaviorFlags);
-         if Send(oTarget,@GetOwner) <> $
-         {
-            Send(Send(oTarget,@GetOwner),@SomethingChanged,#what=oTarget);
-         }
-      }
-
       if report
       {
          Send(what,@MsgSendUser,#message_rsc=vrSuccess,
@@ -228,31 +219,6 @@ messages:
          AND IsClass(who,&Monster)
       {
          Send(who,@RemoveOverlay,#what=self);
-      }
-      
-      if IsClass(who,&Player)
-      {
-         % Don't override phasing hold.
-         if NOT Send(who,@CheckPlayerFlag,#flag=PFLAG_PHASED)
-         {
-            Send(who,@EffectSendUser,#what=self,#effect=EFFECT_PARALYZE_OFF);
-         }
-
-         Send(who,@EffectSendUser,#what=self,#effect=EFFECT_PARALYZE_OFF);
-         if state
-         {
-            Send(who,@MsgSendUser,#message_rsc=vrEnchantment_Off);
-         }
-      }
-      else  % class is &Monster
-      {
-         % This has to be done AFTER the enchantment is gone from the
-         % monster's ench list - Post it
-         Post(who,@ResetBehaviorFlags);
-         if Send(who,@GetOwner) <> $
-         {
-            Post(Send(who,@GetOwner),@SomethingChanged,#what=who);
-         }
       }
 
       return;

@@ -2607,6 +2607,7 @@ messages:
          {
             if NOT (IsClass(self,&Player) AND Send(self,@IsInCannotInteractMode))
                AND NOT (IsClass(self,&Player) AND NOT Send(self,@IsLoggedOn))
+               AND NOT (IsClass(self,&Monster) AND Send(self,@IsEnchanted,#byClass=&CreatureBinding))
             {
                iCharmedWearOff = Send(SETTINGS_OBJECT,
                                     @GetStatusEffectReductionAmount,

@@ -1,0 +1,91 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Convoke is Spell
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   convoke_name_rsc = "convoke"
+   convoke_icon_rsc = iflash.bgf
+   convoke_desc_rsc = \
+      "Teleports all of your minions to you."
+
+   convoke_sound = rflash.wav
+
+classvars:
+
+   vrSucceed_wav = convoke_sound
+
+   vrName = convoke_name_rsc
+   vrIcon = convoke_icon_rsc
+   vrDesc = convoke_desc_rsc
+
+   viSpell_num = SID_CONVOKE
+   viSchool = SS_BESTIARY
+   viSpell_level = 4
+   viMana = 15
+   viSpellExertion = 1
+   viChance_To_Increase = 15
+   viMeditate_ratio = 20
+
+   viOutlaw = FALSE
+   viHarmful = FALSE
+   
+   vbSafetyReport = FALSE
+   
+   viPrimaryStat = STAT_ID_INTELLECT
+   viSecondaryStat = 0
+
+properties:
+
+messages:
+
+   ResetReagents()
+   {
+      plReagents = $;
+
+      return;
+   }
+
+   GetNumSpellTargets()
+   {
+      return 0;
+   }
+
+   CastSpell(who=$, lTargets = $, iSpellPower=0)
+   {
+      local oRoom, i, iChance, lMinions;
+      
+      oRoom = Send(who,@GetOwner);
+
+      % What's our chance to affect the target?
+      iChance = 33 + ((2 * iSpellPower) / 3);
+      
+      lMinions = Send(who,@GetControlledMinions);
+      
+      foreach i in lMinions
+      {
+         Send(SYS,@UtilGoNearSquare,#what=i,
+                                    #where=Send(who,@GetOwner),
+                                    #new_row=Send(who,@GetRow),
+                                    #new_col=Send(who,@GetCol),
+                                    #fine_row=Send(who,@GetFineRow),
+                                    #fine_col=Send(who,@GetFineCol));
+      }
+
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

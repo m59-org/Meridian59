@@ -61,6 +61,7 @@ BOFS = animate.bof \
        walspell.bof \
        movementspell.bof \
        wavespell.bof \
-       creaholyshield.bof
+       creaholyshield.bof \
+       convoke.bof
 
 !include $(KODDIR)\kod.mak
