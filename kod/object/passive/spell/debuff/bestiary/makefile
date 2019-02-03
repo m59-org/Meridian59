@@ -9,6 +9,7 @@ BOFS = binding.bof \
        speak.bof \
        markofaggression.bof \
        studycreaturespells.bof \
-       releaseminion.bof
+       releaseminion.bof \
+       studycreatureresists.bof
 
 !include $(KODDIR)\kod.mak
