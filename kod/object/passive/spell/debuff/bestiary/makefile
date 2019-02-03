@@ -7,6 +7,7 @@
 DEPEND = ..\bestiary.bof
 BOFS = binding.bof \
        speak.bof \
-       markofaggression.bof
+       markofaggression.bof \
+       studycreaturespells.bof
 
 !include $(KODDIR)\kod.mak
