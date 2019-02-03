@@ -89,6 +89,9 @@ messages:
       local iAggroChange;
       iAggroChange = (iSpellPower+1)*5*-1;
 
+      % Let's not stack the presence spells.
+      Send(Target,@RemoveEnchantment,#what=Send(SYS,@FindSpellByNum,#num=SID_SOOTHING_PRESENCE));
+
       Send(Target,@AddToMonsterChasers,#level=iAggroChange);
 
       return iAggroChange;

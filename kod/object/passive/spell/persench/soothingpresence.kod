@@ -36,7 +36,7 @@ resources:
       "prevents weak creatures from becoming aggressive."
 
    soothing_presence_spell_intro = \
-      "Bestiary Lv. 1: Weak creatures won't become aggressive on you."
+      "Bestiary Lv. 2: Weak creatures won't become aggressive on you."
 
 classvars:
 
@@ -53,7 +53,7 @@ classvars:
    vrSpell_intro = soothing_presence_spell_intro
    viSpell_num = SID_SOOTHING_PRESENCE
    viSchool = SS_BESTIARY
-   viSpell_level = 1
+   viSpell_level = 2
    viMana = 5
 
    viChance_To_Increase = 30
@@ -89,7 +89,11 @@ messages:
       local iAggroChange;
       iAggroChange = (iSpellPower+1);
 
+      % Let's not stack the presence spells.
+      Send(Target,@RemoveEnchantment,#what=Send(SYS,@FindSpellByNum,#num=SID_TOWERING_PRESENCE));
+      
       Send(Target,@AddToMonsterChasers,#level=iAggroChange);
+
 
       return iAggroChange;
    }
