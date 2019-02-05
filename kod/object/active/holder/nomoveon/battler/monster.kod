@@ -563,8 +563,8 @@ properties:
    piSelfSpellChance = 10
    piOtherSpellChance = 10
    
-   % Let's limit monster casting to once a second to prevent classic Meridian spell spam.
-   piLastTimeCasted = 0
+   % Let's limit monster casting to prevent classic Meridian spell spam.
+   ptSpellCastTimer = $
    % Minimum time in MS between monster casts.
    piMonsterCastDelayMinimum = 1000
 
@@ -860,6 +860,12 @@ messages:
          Send(poApparitionOriginal,@RemoveApparition,#what=self);
          poApparitionOriginal = $;
          poApparitionCaster = $;
+      }
+      
+      if ptSpellCastTimer <> $
+      {
+         DeleteTimer(ptSpellCastTimer);
+         ptSpellCastTimer = $;
       }
 
       % Under rare conditions delete is called twice in succession
@@ -1410,14 +1416,15 @@ messages:
    RecordTimeCasted()
    "This records the last time the monster cast a spell."
    {
-      piLastTimeAttacked = GetTime();
+      ptSpellCastTimer = CreateTimer(self,@SpellCastTimer,piMonsterCastDelayMinimum);
 
       return;
    }
    
-   GetTimeCasted()
+   SpellCastTimer(timer=$)
    {
-      return piLastTimeCasted;
+      ptSpellCastTimer = $;
+      return;
    }
 
    GetLastAttacker()
@@ -5709,8 +5716,8 @@ messages:
       {
          return FALSE;
       }
-      
-      if (GetTime() - piLastTimeCasted) < piMonsterCastDelayMinimum
+
+      if ptSpellCastTimer <> $
       {
          % Hasn't been long enough. In MS.
          return FALSE;
@@ -8846,6 +8853,19 @@ messages:
    GetOtherSpellBook()
    {
       return plOtherSpellBook;
+   }
+
+   GainHealth(amount = $, precision = FALSE)
+   "Vamp drain & heal"
+   {
+      if NOT precision
+      {
+         amount = amount*100;
+      }
+
+      piHit_points = piHit_points + amount;
+
+      return;
    }
 
 end
