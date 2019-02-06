@@ -25,10 +25,12 @@ classvars:
 
    vrName = ziggurat_altar_room_name
 
-   viTeleport_row = 24
-   viTeleport_col = 24
+   viTeleport_row = 53
+   viTeleport_col = 30
 
    viTerrain_type = TERRAIN_MYSTICAL
+   
+   vbSpawnMonsters = TRUE
 
 properties:
 
@@ -43,6 +45,11 @@ messages:
    GetRegion()
    {
       return RID_DESERT;
+   }
+
+   GetPhaseMusic()
+   {
+      return ziggurat_altar_music;
    }
 
    RecalcBackgroundSkyGraphic(iSkyBox=0)
@@ -92,47 +99,19 @@ messages:
                    &HighSorcererAcid,
                    &HighSorcererDeath,
                    &HighSorcererLife];
+      
+      iMinRow = 13;
+      iMaxRow = 17;
+      iMinCol = 25;
+      iMaxCol = 35;
 
-      if viMaxSpawnRow = 0
-      {
-         iMaxRow = Send(self,@GetRoomRows)-1;
-      }
-      else
-      {
-         iMaxRow = viMaxSpawnRow;
-      }
-
-      if viMaxSpawnCol = 0
-      {
-         iMaxCol = Send(self,@GetRoomCols)-1;
-      }
-      else
-      {
-         iMaxCol = viMaxSpawnCol;
-      }
-
-      iChosenAngle = ANGLE_EAST;
-      switch(Random(1,4))
-      {
-         case 1:
-            iChosenAngle = ANGLE_WEST;
-            break;
-         case 2:
-            iChosenAngle = ANGLE_NORTH;
-            break;
-         case 3:
-            iChosenAngle = ANGLE_SOUTH;
-            break;
-         case 4:
-            iChosenAngle = ANGLE_EAST;
-            break;
-      }
+      iChosenAngle = ANGLE_SOUTH;
 
       foreach i in lMonsters
       {
          Send(self,@NewHold,#what=Create(i),
-               #new_row=Random(viMinSpawnRow,iMaxRow),
-               #new_col=Random(viMinSpawnCol,iMaxCol),
+               #new_row=Random(iMinRow,iMaxRow),
+               #new_col=Random(iMinCol,iMaxCol),
                #new_angle=iChosenAngle);
       }
 

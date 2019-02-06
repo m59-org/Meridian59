@@ -722,10 +722,15 @@ messages:
 
             return;
          }
-%         else
-%         {
-%            return;
-%         }
+         else if iRange > ((iOpt_range+(64*5)) * (iOpt_range+(64*5)))
+         {
+            Send(mob,@MoveTowards,#oTarget=target,#face_target=TRUE);
+            return;
+         }
+         else
+         {
+            return;
+         }
       }
 
       % Okay, at this point, we want the monster to move,
@@ -846,6 +851,11 @@ messages:
          {
             Send(mob,@MoveAway,#oTarget=target,#face_target=TRUE,#face_away=FALSE);
 
+            return;
+         }
+         else if iRange > ((iOpt_range+(64*5)) * (iOpt_range+(64*5)))
+         {
+            Send(mob,@MoveTowards,#oTarget=target,#face_target=TRUE);
             return;
          }
          else
