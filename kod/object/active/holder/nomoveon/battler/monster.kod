@@ -2042,6 +2042,13 @@ messages:
 
          return;
       }
+      
+      % Sometimes we don't know if target left, however.
+      if Send(oVictim,@GetOwner) <> Send(self,@GetOwner)
+      {
+         Send(self,@EnterStateWait);
+         return;
+      }
 
       % Victim phased out, is now in spectator mode, or hiding, break aggro.
       if IsClass(oVictim,&User)

@@ -111,7 +111,8 @@ messages:
 	            %% don't allow in happyland, unless the monster has no master.
 	            if send(SYS,@IsPKAllowed) or send(first(oMonster),@GetMaster) = $
 	            {
-                    if Send(who,@SquaredDistanceTo,#what=First(oMonster)) < (piBaitRange * piBaitRange)
+                    if Send(who,@GetOwner) = Send(First(oMonster),@GetOwner)
+                       AND Send(who,@SquaredDistanceTo,#what=First(oMonster)) < (piBaitRange * piBaitRange)
                     {
                        send(first(oMonster), @TargetSwitch, #what=who, #iHatred=100);
                        send(first(oMonster), @EnterStateChase, #target=who, #actnow=True);
