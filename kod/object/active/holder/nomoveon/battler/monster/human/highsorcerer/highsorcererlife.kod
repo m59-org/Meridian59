@@ -60,11 +60,11 @@ messages:
 
    Constructed()
    {
-      plMeleeSpellBook = [ [SID_DAZZLE,1,40,99],
-                           [SID_PURGE,1,90,99],
-                           [SID_HEX_VENGEANCE,1,100,99]];
+      plMeleeSpellBook = [ [SID_DAZZLE,1,90,99],
+                           [SID_PURGE,1,100,99]];
       plRangedSpellBook = [ [SID_DAZZLE,1,50,99],
                             [SID_PURGE,1,100,99]];
+      plAllySpellBook = [[SID_GROUP_HEAL,5,100,99]];
                             
       plResistances = [ [-ATCK_SPELL_UNHOLY, 75 ],
                         [-ATCK_SPELL_HOLY, 300 ],
@@ -138,6 +138,15 @@ messages:
          Send(poOwner,@SomethingChanged,#what=self);
       }
 
+      return;
+   }
+   
+   AllyReportsHealth(who=$, health_ratio=100)
+   {
+      if health_ratio <= 75
+      {
+         Post(self,@QueueSpellType,#type=CAST_TYPE_ALLY);
+      }
       return;
    }
 

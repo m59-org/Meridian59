@@ -555,6 +555,9 @@ properties:
    plAllySpellBook = $
    plOtherSpellBook = $
    
+   % Use to trigger actions that aren't instant
+   piQueuedSpellType = 0
+   
    % What are the monster's chances to cast spells each check?
    % Number is out of one hundred
    piMeleeSpellChance = 10
@@ -1730,7 +1733,13 @@ messages:
 
       return;
    }
-  
+
+   QueueSpellType(type=CAST_TYPE_ALLY)
+   {
+      piQueuedSpellType = type;
+      return;
+   }
+   
    AttemptSpell(type=CAST_TYPE_MELEE)
    {
       local lSpell, oSpell, iSpellPower, oAntiMagicAura, lRadiusState, iDistance, lTargets;
@@ -1739,6 +1748,14 @@ messages:
       {
          % Why are we casting if we have no enemy?
          return FALSE;
+      }
+      
+      if (type = CAST_TYPE_MELEE
+         OR type = CAST_TYPE_RANGED)
+            AND piQueuedSpellType <> 0
+      {
+         type = piQueuedSpellType;
+         piQueuedSpellType = 0;
       }
       
       lSpell = Send(self,@PickSpell,#type=type);
@@ -3069,6 +3086,9 @@ messages:
          Send(self,@ApplyElementalImbalance,#aspell=aspell,#power=Send(what,@GetElementalImbalancePower,#aspell=aspell));
       }
 
+      Post(self,@ReportHealthToAllies,#what=what,#damage=damage,#atype=atype,#aspell=aspell,#bonus=bonus,#scalefactor=scalefactor,
+         #absolute=absolute,#precision=precision,#bDoingBackstab=bDoingBackstab,#bSecondary=bSecondary);
+
       return iDamage;
    }
 
@@ -3423,7 +3443,7 @@ messages:
 
       % aiming towards a target or away from it
       if (NOT (poTarget = $)) AND (face_target OR face_away)
-      { 
+      {
          % build face towards (in fine-units)
          drow = (Send(poTarget,@GetRow) * FINENESS) + Send(poTarget,@GetFineRow);
          dcol = (Send(poTarget,@GetCol) * FINENESS) + Send(poTarget,@GetFineCol);
@@ -3432,7 +3452,7 @@ messages:
 
          % rotate 180??, if we face away
          if face_away
-         { 
+         {
             drow = -drow;
             dcol = -dcol;
          }
@@ -8872,6 +8892,35 @@ messages:
 
       piHit_points = piHit_points + amount;
 
+      return;
+   }
+
+   ReportHealthToAllies(what=$,damage=0,atype=0,aspell=0,bonus=0,scalefactor=1000,
+      absolute=FALSE,precision=FALSE,bDoingBackstab=FALSE,bSecondary=FALSE)
+   {
+      local i, oRoom;
+      
+      oRoom = Send(self,@GetOwner);
+      if oRoom <> $
+      {
+         foreach i in Send(oRoom,@GetHolderActive)
+         {
+            if First(i) <> self
+               AND IsClass(First(i),&Monster)
+               AND Send(self,@IsAlly,#target=First(i))
+            {
+               Send(First(i),@AllyReportsHealth,#who=self,#health_ratio=(Send(self,@GetHealth)*100)/Send(self,@GetMaxHealth),
+                                                #what=what,#damage=damage,#atype=atype,#aspell=aspell,#bonus=bonus,#scalefactor=scalefactor,
+                                                #absolute=absolute,#precision=precision,#bDoingBackstab=bDoingBackstab,#bSecondary=bSecondary);
+            }
+         }
+      }
+      return;
+   }
+   
+   AllyReportsHealth(who=$, health_ratio=100,what=$,damage=0,atype=0,aspell=0,bonus=0,scalefactor=1000,
+      absolute=FALSE,precision=FALSE,bDoingBackstab=FALSE,bSecondary=FALSE)
+   {
       return;
    }
 

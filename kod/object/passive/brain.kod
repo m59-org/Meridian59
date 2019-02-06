@@ -722,6 +722,10 @@ messages:
 
             return;
          }
+%         else
+%         {
+%            return;
+%         }
       }
 
       % Okay, at this point, we want the monster to move,
@@ -840,8 +844,12 @@ messages:
          iRange = Send(mob,@SquaredFineDistanceTo3D,#what=target);
          if iRange < (iOpt_range * iOpt_range)
          {
-            Send(mob,@MoveAway,#oTarget=target,#face_away=TRUE);
+            Send(mob,@MoveAway,#oTarget=target,#face_target=TRUE,#face_away=FALSE);
 
+            return;
+         }
+         else
+         {
             return;
          }
       }

@@ -37,7 +37,7 @@ classvars:
    viSpeed = SPEED_VERY_FAST
    viAttack_type = ATCK_WEAP_MAGIC+ATCK_WEAP_BLUDGEON+ATCK_WEAP_PIERCE
    viAttributes = 0
-   viDefault_behavior = AI_MOVE_REGROUP
+   viDefault_behavior = AI_MOVE_REGROUP | AI_FIGHT_SWITCHALOT | AI_FIGHT_LASHOUT | AI_FIGHT_WIZARD_KILLER | AI_FIGHT_AGGRESSIVE | AI_MOVE_OPTIMAL_RANGE
 
    viColorTranslate1 = XLAT_TO_ORANGE     % Shirt
    viColorTranslate2 = XLAT_TO_ORANGE   % Pants
@@ -48,7 +48,8 @@ classvars:
    viShieldShape = SHIELDSHAPE_SLASH
    viInsignia = $
 
-   viVisionDistance = 20
+   viVisionDistance = 60
+   viWimpy = 75
 
    viCashMin = 200
    viCashMax = 1600
@@ -78,6 +79,13 @@ properties:
    piOtherSpellChance = 10
 
    piMonsterCastDelayMinimum = 750
+   
+   piHexResistance = 75
+
+   % Is this Battler protected by a magical shield against projectiles?
+   pbMagicalShield = TRUE
+   % Fine units
+   piMagicalShieldRadius = 64 * 5
 
 messages:
 
@@ -96,6 +104,12 @@ messages:
       }
 
       propagate;
+   }
+
+   GetOptimalRange()
+   "For most monsters, this is the attack range."
+   {
+      return 8 * FINENESS;
    }
 
    SetClothes()

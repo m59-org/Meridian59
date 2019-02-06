@@ -37,6 +37,10 @@ resources:
       "She is a master of the element of Death and unholy spells. "
       "Kill her and put a stop to it once and for all."
    HighSorcererDeath_dead_name_rsc = "dead high sorcerer"
+   
+   HighSorcererDeath_paralyze_target_on = \
+      "As you meet %s%s's terrible gaze you feel your limbs stiffen "
+      "and freeze."
 
 classvars:
 
@@ -60,8 +64,7 @@ messages:
    {
       plMeleeSpellBook = [ [SID_HOLD,1,10,99],
                            [SID_BLIND,1,20,99],
-                           [SID_VAMPIRIC_DRAIN,1,95,99],
-                           [SID_HEX_CORRUPTION,1,100,99]];
+                           [SID_VAMPIRIC_DRAIN,1,100,99]];
       plRangedSpellBook = [ [SID_HOLD,1,50,99],
                             [SID_BLIND,1,100,99]];
                             
@@ -74,6 +77,28 @@ messages:
                         [-ATCK_SPELL_QUAKE, 75],
                         [-ATCK_SPELL_ALL, 75],
                         [ATCK_WEAP_ALL,75]];
+      propagate;
+   }
+   
+   AssessDamage(what=$,bSecondary=FALSE)
+   {
+      local iSpellpower, oSpell, iDuration;
+
+      if NOT bSecondary
+         AND what <> $
+         AND IsClass(what,&Player)
+      {
+         oSpell = Send(SYS,@FindSpellByNum,#num=SID_HOLD);
+         iSpellpower = 99;
+         iDuration = iSpellpower * Random(20,25);
+         iDuration = Bound(iDuration,500,2500);
+
+         Send(what,@MsgSendUser,#message_rsc=HighSorcererDeath_paralyze_target_on,
+               #parm1=Send(self,@GetDef),#parm2=Send(self,@GetName));
+
+         Send(oSpell,@DoSpell,#what=self,#oTarget=what,#iDuration=iDuration,#report=FALSE);
+      }
+
       propagate;
    }
 
