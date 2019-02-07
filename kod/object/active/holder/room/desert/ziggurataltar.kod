@@ -26,7 +26,7 @@ classvars:
    vrName = ziggurat_altar_room_name
 
    viTeleport_row = 53
-   viTeleport_col = 30
+   viTeleport_col = 28
 
    viTerrain_type = TERRAIN_MYSTICAL
    
@@ -61,37 +61,12 @@ messages:
    
    GetPhaseThreats()
    {
-      switch(Send(SYS,@GetDayPhase))
-      {
-         case DAY_PHASE_DAWN:
-            return [&ShockStorm, &ChaosThreat];
-         case DAY_PHASE_DAY:
-            if Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTRIVER2),
-                     @GetPrismOfFireDefeated)
-            {
-               return [&HeatStorm, &ChaosThreat];
-            }
-            return [&HeatThreat, &ChaosThreat];
-         case DAY_PHASE_DUSK:
-            if Send(Send(SYS,@FindRoomByNum,#num=RID_ACIDPATH),
-                     @GetPrismOfAcidDefeated)
-            {
-               return [&AcidStorm, &RainThreat, &ChaosThreat];
-            }
-            return [&AcidThreat,&RainThreat, &ChaosThreat];
-         case DAY_PHASE_NIGHT:
-            if Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTSANDBAR),@GetPrismOfIceDefeated)
-            {
-               return [&ColdStorm, &SnowThreat, &ChaosThreat];
-            }
-            return [&ColdThreat,&SnowThreat, &ChaosThreat];
-      }
-      return [&ShockStorm, &ChaosThreat];
+      return [&ChaosThreat];
    }
 
    PopulateArea()
    {
-      local i, iNumMonsters, oMonster, lMonsters, lClasses, iMinRow, iMinCol, iMaxRow, iMaxCol, iChosenAngle;
+      local i, lMonsters, iCol;
 
       lMonsters = [&HighSorcererFire,
                    &HighSorcererCold,
@@ -100,19 +75,16 @@ messages:
                    &HighSorcererDeath,
                    &HighSorcererLife];
       
-      iMinRow = 13;
-      iMaxRow = 17;
-      iMinCol = 25;
-      iMaxCol = 35;
-
-      iChosenAngle = ANGLE_SOUTH;
+      iCol = 23;
 
       foreach i in lMonsters
       {
          Send(self,@NewHold,#what=Create(i),
-               #new_row=Random(iMinRow,iMaxRow),
-               #new_col=Random(iMinCol,iMaxCol),
-               #new_angle=iChosenAngle);
+               #new_row=15,
+               #new_col=iCol,
+               #new_angle=ANGLE_SOUTH);
+         iCol++;
+         iCol++;
       }
 
       return;
