@@ -76,11 +76,8 @@ properties:
 
    % Most wisdom in the game
    plGreatestAdventurer = $
-   
-   % Most spells cast all time
+
    plGreatestWizard = $
-   
-   % Most boss kills all time
    plGreatestWarrior = $
    
    plWisestWithShal = $
@@ -89,7 +86,7 @@ properties:
    plWisestWithRiija = $
    plWisestWithJala = $
    plWisestWithKraanan = $
-   plWisestWithBanditry =$
+   plWisestWithBanditry = $
    plWisestWithWitchery = $
    plWisestWithSorcery = $
    plWisestWithKnightcraft = $
@@ -350,12 +347,55 @@ messages:
 
    Delete()
    {
+      % Get rid of renowned flags
+      Send(First(plGreatestAdventurer),@SetRenowned,#value=FALSE);
+      Send(First(plGreatestWarrior),@SetRenowned,#value=FALSE);
+      Send(First(plGreatestWizard),@SetRenowned,#value=FALSE);
+      Send(First(plWisestWithFaren),@SetRenowned,#value=FALSE);
+      Send(First(plWisestWithRiija),@SetRenowned,#value=FALSE);
+      Send(First(plWisestWithBanditry),@SetRenowned,#value=FALSE);
+      Send(First(plWisestWithWitchery),@SetRenowned,#value=FALSE);
+      Send(First(plWisestWithWeaponcraft),@SetRenowned,#value=FALSE);
+      Send(First(plWisestWithKnightcraft),@SetRenowned,#value=FALSE);
+      Send(First(plWisestWithJala),@SetRenowned,#value=FALSE);
+      Send(First(plWisestWithShal),@SetRenowned,#value=FALSE);
+      Send(First(plWisestWithQor),@SetRenowned,#value=FALSE);
+      Send(First(plWisestWithKraanan),@SetRenowned,#value=FALSE);
+      Send(First(plWisestWithAlchemy),@SetRenowned,#value=FALSE);
+      Send(First(plWisestWithSorcery),@SetRenowned,#value=FALSE);
+
+      % Delete crest items if we're being deleted
+      if plWisestWithShal <> $
+      {
+         Send(First(plWisestWithShal),@DeleteStatueCrest);
+      }
+      if plWisestWithQor <> $
+      {
+         Send(First(plWisestWithQor),@DeleteStatueCrest);
+      }
+
       plStatues = $;
       if ptUpdateTimer <> $
       {
          DeleteTimer(ptUpdateTimer);
          ptUpdateTimer = $;
       }
+
+      plGreatestAdventurer = $;
+      plGreatestWizard = $;
+      plGreatestWarrior = $;
+      plWisestWithShal = $;
+      plWisestWithQor = $;
+      plWisestWithFaren = $;
+      plWisestWithRiija = $;
+      plWisestWithJala = $;
+      plWisestWithKraanan = $;
+      plWisestWithBanditry = $;
+      plWisestWithWitchery = $;
+      plWisestWithSorcery = $;
+      plWisestWithKnightcraft = $;
+      plWisestWithWeaponcraft = $;
+      plWisestWithAlchemy = $;
 
       propagate;
    }
@@ -478,27 +518,27 @@ messages:
 
          if plGreatestWizard = $
          {
-            plGreatestWizard = [i,curWisdom,Send(i,@GetMaxMana),iMasteryCount];
+            plGreatestWizard = [i,curWisdom,Send(i,@GetMaxManaWithoutReservedPenalties),iMasteryCount];
          }
          else
          {
             % Greater level 6 masteries wins first.
             if iMasteryCount > Nth(plGreatestWizard,4)
             {
-               plGreatestWizard = [i,curWisdom,Send(i,@GetMaxMana),iMasteryCount];
+               plGreatestWizard = [i,curWisdom,Send(i,@GetMaxManaWithoutReservedPenalties),iMasteryCount];
                continue;
             }
             else if iMasteryCount = Nth(plGreatestWizard,4)
-               AND Send(i,@GetMaxMana) > Nth(plGreatestWizard,3)
+               AND Send(i,@GetMaxManaWithoutReservedPenalties) > Nth(plGreatestWizard,3)
             {
                % Max mana wins next.
-               plGreatestWizard = [i,curWisdom,Send(i,@GetMaxMana),iMasteryCount];
+               plGreatestWizard = [i,curWisdom,Send(i,@GetMaxManaWithoutReservedPenalties),iMasteryCount];
                continue;
             }
             else if curWisdom > Nth(plGreatestWizard,2)
             {
                % Lastly, wisdom.
-               plGreatestWizard = [i,curWisdom,Send(i,@GetMaxMana),iMasteryCount];
+               plGreatestWizard = [i,curWisdom,Send(i,@GetMaxManaWithoutReservedPenalties),iMasteryCount];
             }
          }
       }
@@ -585,8 +625,9 @@ messages:
 
    SetShalMaster()
    {
-      local i, curWisdom, oRandomUser;
+      local i, curWisdom, oRandomUser, oSaveLastMaster;
 
+      oSaveLastMaster = $;
       if plWisestWithShal = $
       {
          oRandomUser = Nth(Send(SYS,@GetUsers),Random(1,Length(Send(SYS,@GetUsers))));
@@ -594,12 +635,14 @@ messages:
       }
       else
       {
-         Send(First(plWisestWithShal),@SetRenowned,#value=FALSE);
+         oSaveLastMaster = First(plWisestWithShal);
+         Send(oSaveLastMaster,@SetRenowned,#value=FALSE);
       }
       
       foreach i in Send(SYS,@GetUsers)
       {
          if Send(i,@GetMaxHealth) < 100
+            OR Send(i,@IsUserInactive)
             OR IsClass(i,&DM)
             OR Send(i,@IsRenowned)
             OR NOT (Send(i,@HasSpell,#num=SID_BOND)
@@ -624,6 +667,23 @@ messages:
          }
       }
 
+      if oSaveLastMaster = $
+      {
+         % There was no previous master. Likely a recreate.
+         Send(First(plWisestWithShal),@NewHold,#what=Create(&ShalilleCrest));
+      }
+      else if First(plWisestWithShal) <> oSaveLastMaster
+      {
+         % There was a previous master, but not the one we just chose.
+         % We have a new master.
+         Send(oSaveLastMaster,@DeleteStatueCrest);
+         Send(First(plWisestWithShal),@NewHold,#what=Create(&ShalilleCrest));
+      }
+      else
+      {
+         % There was a previous master, and it WAS who we chose again. Do nothing.
+      }
+
       Send(First(plWisestWithShal),@SetRenowned,#value=TRUE);
 
       return;
@@ -631,8 +691,9 @@ messages:
 
    SetQorMaster()
    {
-      local i, curWisdom, oRandomUser;
+      local i, curWisdom, oRandomUser, oSaveLastMaster;
 
+      oSaveLastMaster = $;
       if plWisestWithQor = $
       {
          oRandomUser = Nth(Send(SYS,@GetUsers),Random(1,Length(Send(SYS,@GetUsers))));
@@ -640,12 +701,14 @@ messages:
       }
       else
       {
-         Send(First(plWisestWithQor),@SetRenowned,#value=FALSE);
+         oSaveLastMaster = First(plWisestWithQor);
+         Send(oSaveLastMaster,@SetRenowned,#value=FALSE);
       }
 
       foreach i in Send(SYS,@GetUsers)
       {
          if Send(i,@GetMaxHealth) < 100
+            OR Send(i,@IsUserInactive)
             OR IsClass(i,&DM)
             OR Send(i,@IsRenowned)
             OR NOT (Send(i,@HasSpell,#num=SID_GAZE_OF_THE_BASILISK)
@@ -667,6 +730,23 @@ messages:
             % Lastly, wisdom.
             plWisestWithQor = [i,curWisdom,Send(i,@GetKarma)];
          }
+      }
+
+      if oSaveLastMaster = $
+      {
+         % There was no previous master. Give them the crest.
+         Send(First(plWisestWithQor),@NewHold,#what=Create(&QorCrest));
+      }
+      else if First(plWisestWithQor) <> oSaveLastMaster
+      {
+         % There was a previous master, but not the one we just chose.
+         % We have a new master. Delete the old crest and give a new one.
+         Send(oSaveLastMaster,@DeleteStatueCrest);
+         Send(First(plWisestWithQor),@NewHold,#what=Create(&QorCrest));
+      }
+      else
+      {
+         % There was a previous master, and it WAS who we chose again. Do nothing.
       }
 
       Send(First(plWisestWithQor),@SetRenowned,#value=TRUE);
@@ -794,15 +874,15 @@ messages:
          curWisdom = Send(i,@GetAccumulatedWisdom);
 
          % Greater mana wins first.
-         if Send(i,@GetMaxMana) > Nth(plWisestWithJala,3)
+         if Send(i,@GetMaxManaWithoutReservedPenalties) > Nth(plWisestWithJala,3)
          {
-            plWisestWithJala = [i,curWisdom,Send(i,@GetMaxMana)];
+            plWisestWithJala = [i,curWisdom,Send(i,@GetMaxManaWithoutReservedPenalties)];
             continue;
          }
          else if curWisdom > Nth(plWisestWithJala,2)
          {
             % Lastly, wisdom.
-            plWisestWithJala = [i,curWisdom,Send(i,@GetMaxMana)];
+            plWisestWithJala = [i,curWisdom,Send(i,@GetMaxManaWithoutReservedPenalties)];
          }
       }
 

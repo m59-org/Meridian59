@@ -362,7 +362,24 @@ resources:
    player_dot = "."
 
    % Master fixed info resource.
-   player_fixed_info = "%r%r%r%r%s%r%r%s%q%r%r%r"
+   player_fixed_info = "%r%r%r%r%s%r%r%s%q%r%r%r%r"
+
+   % Mastery strings for hall of heroes statues
+   player_statue_greatest_adventurer = "%s is the greatest adventurer in the land."
+   player_statue_greatest_wizard = "%s is the greatest wizard in the land."
+   player_statue_greatest_warrior = "%s is the greatest warrior in the land."
+   player_statue_master_shal = "%s is the current master of Shal'ille."
+   player_statue_master_qor = "%s is the current master of Qor."
+   player_statue_master_riija = "%s is the current master of Riija."
+   player_statue_master_faren = "%s is the current master of Faren."
+   player_statue_master_kraanan = "%s is the current master of Kraanan."
+   player_statue_master_jala = "%s is the current master of Jala."
+   player_statue_master_weaponcraft = "%s is the current master of Weaponcraft."
+   player_statue_master_knightcraft = "%s is the current master of Knightcraft."
+   player_statue_master_banditry = "%s is the current master of Banditry."
+   player_statue_master_witchery = "%s is the current master of Witchery."
+   player_statue_master_sorcery = "%s is the current master of Sorcery."
+   player_statue_master_alchemy = "%s is the current master of Alchemy."
 
    % Hometown strings.
    player_hometown_rsc = "%s%s%s%q%s\n"
@@ -3891,6 +3908,19 @@ messages:
       if piMasteredSpell > 0
       {
          AddPacket(4,player_mastered_spell_num, 4,Send(self,@GetHeShe,#cap=True),4,Send(Send(SYS,@FindSpellByNum,#num=piMasteredSpell),@GetName));
+      }
+      else
+      {
+         AddPacket(4,system_blank_resource);
+      }
+      
+      if Send(self,@FindHolding,#class=&ShalilleCrest) <> $
+      {
+         AddPacket(4,player_statue_master_shal, 4,Send(self,@GetHeShe,#cap=TRUE));
+      }
+      else if Send(self,@FindHolding,#class=&QorCrest) <> $
+      {
+         AddPacket(4,player_statue_master_qor, 4,Send(self,@GetHeShe,#cap=TRUE));
       }
       else
       {
@@ -20721,6 +20751,19 @@ messages:
    GetHasBreath()
    {
       return pbHasBreath;
+   }
+   
+   DeleteStatueCrest()
+   {
+      local i, oCrest;
+      
+      oCrest = Send(self,@FindHolding,#class=&Crest);
+      
+      if oCrest <> $
+      {
+         Send(oCrest,@Delete);
+      }
+      return;
    }
 
 end

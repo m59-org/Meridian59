@@ -1,0 +1,102 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ShalilleCrest is Crest
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   Shalille_Crest_name_rsc = "Crest of the Healer"
+   Shalille_Crest_icon_rsc = shcharm.bgf
+   Shalille_Crest_desc_rsc = \
+      "You are the most spiritual and most wise among all of Shal'ille's followers. "
+      "This crest signifies that you are the master of her magics."
+
+   Shalille_Crest_learned_group_heal = \
+      "Shal'ille's blessing flows through the crest, enabling you to group heal."
+   Shalille_Crest_lost_group_heal = \
+      "Shal'ille's blessing leaves you, and with it goes the ability to group heal."
+
+classvars:
+
+   vrName = Shalille_Crest_name_rsc
+   vrIcon = Shalille_Crest_icon_rsc
+   vrDesc = Shalille_Crest_desc_rsc
+
+   viValue_average = 10
+
+   viBulk = 25
+   viWeight = 25
+
+   viGround_group = 2
+
+properties:
+   
+   pbIn_use = False
+
+   piItemLevel = 300
+
+messages:
+
+   Constructor()
+   {
+      propagate;
+   }
+
+   NewOwner()
+   {
+      propagate;
+   }
+
+   NewUsed(what = $)
+   {
+      if NOT Send(what,@HasSpell,#num=SID_GROUP_HEAL)
+      {
+         Send(what,@AddSpell,#num=SID_GROUP_HEAL,#iability=Send(what,@GetMysticism));
+         pbGrantedSpell = TRUE;
+      }
+      
+      propagate;
+   }
+
+   NewUnused(what = $)
+   {
+      if pbGrantedSpell
+      {
+         Send(what,@RemoveSpell,#num=SID_GROUP_HEAL);
+         pbGrantedSpell = FALSE;
+         
+         if Send(what,@IsLoggedOn)
+         {
+            Post(what,@ToCliSpells);
+         }
+      }
+      propagate;
+   }
+
+   DestroyDisposable()
+   {
+      return FALSE;
+   }
+
+   GetMinimapDotFlags()
+   {
+      % Special item, add minimap dot.
+      return MM_RARE_ITEM;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+

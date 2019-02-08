@@ -116,7 +116,7 @@ messages:
       if IsClass(who,&Player)
       {
          if Send(who,@CheckBattlerMinionCount)
-               >= Send(SETTINGS_OBJECT,@GetPlayerMinionLimit)
+               >= Send(SETTINGS_OBJECT,@GetPlayerMinionLimit) + (Send(who,@IsUsingA,#class=&QorCrest)*Send(SETTINGS_OBJECT,@GetPlayerMinionLimit))
          {
             Send(who,@MsgSendUser,#message_rsc=Animate_too_many_rsc);
 
