@@ -601,15 +601,26 @@ messages:
       return $;
    }
 
-   ResistanceCheck(atype = 0, aspell = 0)
+   ResistanceCheck(atype = 0, aspell = 0, what=$)
    "Given bitvectors of attack type and spell, find the resistance modifier "
    "which applies. Largest resistance plus worst weakness gives the modifier."
    {
       local j, iResType, iMaxRes, iMinRes, iResistance, resistance_list,
-         iWeaponResist, iMagicResist, iCombinedPrimaryResist, iFinalRes;
+         iWeaponResist, iMagicResist, iCombinedPrimaryResist, iFinalRes, bEleZero;
 
       iMaxRes = NO_RESISTANCE;
       iMinRes = NO_RESISTANCE;
+      
+      if what <> $
+         AND IsClass(what,&Player)
+         AND Send(what,@IsUsingA,#class=&SorceryCrest)
+      {
+         bEleZero = TRUE;
+      }
+      else
+      {
+         bEleZero = FALSE;
+      }
       
       resistance_list = Send(self,@GetCurrentResistances);
 
@@ -702,6 +713,15 @@ messages:
          {
             % It's a resistance to spell type
             iResType = -iResType;
+            
+            if bEleZero
+               AND (iResType = ATCK_SPELL_SHOCK
+                  OR iResType = ATCK_SPELL_FIRE
+                  OR iResType = ATCK_SPELL_COLD
+                  OR iResType = ATCK_SPELL_ACID)
+            {
+               continue;
+            }
             
             if iResType = ATCK_SPELL_ALL
                AND aspell <> 0
@@ -2381,7 +2401,16 @@ messages:
       }
       if aspell & ATCK_SPELL_ILLUSION
       {
-         Send(self,@AddStatusEffect,#value=iIllusionDamage,#type=STATUS_TRICKED);
+         if what <> $
+            AND IsClass(what,&Player)
+            AND Send(what,@IsUsingA,#class=&RiijaCrest)
+         {
+            % No healing back for riija crest user.
+         }
+         else
+         {
+            Send(self,@AddStatusEffect,#value=iIllusionDamage,#type=STATUS_TRICKED);
+         }
       }
       if aspell & ATCK_SPELL_DRAIN
       {

@@ -321,7 +321,17 @@ resources:
    holy_resistance_name = "holy resistance"
    unholy_resistance_name = "unholy resistance"
    quake_resistance_name = "quake resistance"
+   nerudite_resistance_name = "nerudite resistance"
+   silver_resistance_name = "silver resistance"
+   nonenchanted_resistance_name = "mundane resistance"
+   enchanted_resistance_name = "enchanted resistance"
    unknown_resistance_name = "unknown resistance"
+   whip_resistance_name = "whip resistance"
+   sting_resistance_name = "sting resistance"
+   bite_resistance_name = "bite resistance"
+   claw_resistance_name = "claw resistance"
+   punch_resistance_name = "punch resistance"
+   weap_acid_resistance_name = "corrosive resistance"
 
    weapon_empowerment_name = "increased weapon damage"
    pierce_empowerment_name = "increased pierce damage"
@@ -6038,8 +6048,21 @@ messages:
       plItemTemplates = cons(create(&QorCharm),plItemTemplates);
       plItemTemplates = cons(create(&Gift),plItemTemplates);
       
+      plItemTemplates = cons(create(&AdventurerCrest),plItemTemplates);
+      plItemTemplates = cons(create(&WizardCrest),plItemTemplates);
+      plItemTemplates = cons(create(&WarriorCrest),plItemTemplates);
       plItemTemplates = cons(create(&ShalilleCrest),plItemTemplates);
       plItemTemplates = cons(create(&QorCrest),plItemTemplates);
+      plItemTemplates = cons(create(&WeaponcraftCrest),plItemTemplates);
+      plItemTemplates = cons(create(&KnightcraftCrest),plItemTemplates);
+      plItemTemplates = cons(create(&BanditryCrest),plItemTemplates);
+      plItemTemplates = cons(create(&FarenCrest),plItemTemplates);
+      plItemTemplates = cons(create(&SorceryCrest),plItemTemplates);
+      plItemTemplates = cons(create(&JalaCrest),plItemTemplates);
+      plItemTemplates = cons(create(&WitcheryCrest),plItemTemplates);
+      plItemTemplates = cons(create(&RiijaCrest),plItemTemplates);
+      plItemTemplates = cons(create(&KraananCrest),plItemTemplates);
+      plItemTemplates = cons(create(&AlchemyCrest),plItemTemplates);
 
       % Scrolls
       plItemTemplates = cons(create(&DarknessScroll),plItemTemplates);
@@ -8506,15 +8529,43 @@ messages:
        }
        if type = ATCK_WEAP_NERUDITE
        {
-          return nerudite_damage_name;
+          return nerudite_resistance_name;
+       }
+       if type = ATCK_WEAP_SILVER
+       {
+          return silver_resistance_name;
        }
        if type = ATCK_WEAP_NONMAGIC
        {
-          return nonmagic_damage_name;
+          return nonenchanted_resistance_name;
        }
        if type = ATCK_WEAP_MAGIC
        {
-          return enchanted_damage_name;
+          return enchanted_resistance_name;
+       }
+       if type = ATCK_WEAP_WHIP
+       {
+          return whip_resistance_name;
+       }
+       if type = ATCK_WEAP_STING
+       {
+          return sting_resistance_name;
+       }
+       if type = ATCK_WEAP_BITE
+       {
+          return bite_resistance_name;
+       }
+       if type = ATCK_WEAP_CLAW
+       {
+          return claw_resistance_name;
+       }
+       if type = ATCK_WEAP_PUNCH
+       {
+          return punch_resistance_name;
+       }
+       if type = ATCK_WEAP_ACID
+       {
+          return weap_acid_resistance_name;
        }
        if type = -ATCK_SPELL_ALL
        {

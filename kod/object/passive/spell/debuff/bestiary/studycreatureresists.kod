@@ -32,7 +32,7 @@ resources:
    study_creature_resists_off = "You are no longer being studied."
 
    study_creature_resists = \
-      "%s%s resists %s damage by %i%%."
+      "%s%s has %i%% %s."
 
    not_capable_of_resisting = \
       "%s%s has no special resistances."
@@ -159,8 +159,8 @@ messages:
             Send(what,@MsgSendUser,#message_rsc=study_creature_resists,
                                    #parm1=Send(oTarget,@GetCapDef),
                                    #parm2=Send(oTarget,@GetName),
-                                   #parm3=Send(SYS,@GetResistanceName,#type=First(i)),
-                                   #parm4=Nth(i,2));
+                                   #parm3=Nth(i,2),
+                                   #parm4=Send(SYS,@GetResistanceName,#type=First(i)));
          }
          
          if NOT bFound

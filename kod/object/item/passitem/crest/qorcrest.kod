@@ -23,10 +23,10 @@ resources:
       "This crest signifies that you are the master of her magics. "
       "When wearing it, you are able to animate twice the number of minions total."
 
-   Qor_Crest_learned_group_heal = \
-      "Shal'ille's blessing flows through the crest, enabling you to group heal."
-   Qor_Crest_lost_group_heal = \
-      "Shal'ille's blessing leaves you, and with it goes the ability to group heal."
+   Qor_Crest_animate_doubled = \
+      "Qor's dark ego flows through you, allowing you to animate twice as many minions."
+   Qor_Crest_lost_animate_bonus = \
+      "Qor's dark ego leaves you."
 
 classvars:
 
@@ -49,35 +49,17 @@ properties:
 
 messages:
 
-   Constructor()
-   {
-      propagate;
-   }
-
-   NewOwner()
-   {
-      propagate;
-   }
-
    NewUsed(what = $)
-   {  
+   {
+      Send(what,@MsgSendUser,#message_rsc=Qor_Crest_animate_doubled);
+      
       propagate;
    }
 
    NewUnused(what = $)
    {
+      Send(what,@MsgSendUser,#message_rsc=Qor_Crest_lost_animate_bonus);
       propagate;
-   }
-
-   DestroyDisposable()
-   {
-      return FALSE;
-   }
-
-   GetMinimapDotFlags()
-   {
-      % Special item, add minimap dot.
-      return MM_RARE_ITEM;
    }
 
 end

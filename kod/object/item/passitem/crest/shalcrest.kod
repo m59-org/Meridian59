@@ -19,8 +19,9 @@ resources:
    Shalille_Crest_name_rsc = "Crest of the Healer"
    Shalille_Crest_icon_rsc = shcharm.bgf
    Shalille_Crest_desc_rsc = \
-      "You are the most spiritual and most wise among all of Shal'ille's followers. "
-      "This crest signifies that you are the master of her magics."
+      "You are the most good and most wise among all of Shal'ille's followers. "
+      "This crest signifies that you are the master of her magics. "
+      "While wearing it, you will have access to an extremely powerful form of healing."
 
    Shalille_Crest_learned_group_heal = \
       "Shal'ille's blessing flows through the crest, enabling you to group heal."
@@ -48,22 +49,13 @@ properties:
 
 messages:
 
-   Constructor()
-   {
-      propagate;
-   }
-
-   NewOwner()
-   {
-      propagate;
-   }
-
    NewUsed(what = $)
    {
       if NOT Send(what,@HasSpell,#num=SID_GROUP_HEAL)
       {
          Send(what,@AddSpell,#num=SID_GROUP_HEAL,#iability=Send(what,@GetMysticism));
          pbGrantedSpell = TRUE;
+         Send(what,@MsgSendUser,#message_rsc=Shalille_Crest_learned_group_heal);
       }
       
       propagate;
@@ -78,21 +70,11 @@ messages:
          
          if Send(what,@IsLoggedOn)
          {
+            Send(what,@MsgSendUser,#message_rsc=Shalille_Crest_lost_group_heal);
             Post(what,@ToCliSpells);
          }
       }
       propagate;
-   }
-
-   DestroyDisposable()
-   {
-      return FALSE;
-   }
-
-   GetMinimapDotFlags()
-   {
-      % Special item, add minimap dot.
-      return MM_RARE_ITEM;
    }
 
 end

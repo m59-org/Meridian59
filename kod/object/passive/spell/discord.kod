@@ -140,7 +140,9 @@ messages:
             OR Random(1,100) < iSpellPower)
             AND Send(Nth(i,1),@GetDiscordable)
             AND (Nth(i,3) <> $
-               AND IsClass(Nth(i,3),&Battler))
+               AND IsClass(Nth(i,3),&Battler)
+               AND NOT (IsClass(Nth(i,3),&Player)
+                        AND Send(Nth(i,3),@IsUsingA,#class=&JalaCrest)))
          {
             Send(Nth(i,1),@CancelRadiusEnchantment,#source=Nth(i,3),#event=EVENT_STEER);
          }

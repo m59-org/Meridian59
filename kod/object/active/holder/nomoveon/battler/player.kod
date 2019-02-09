@@ -3922,6 +3922,58 @@ messages:
       {
          AddPacket(4,player_statue_master_qor, 4,Send(self,@GetHeShe,#cap=TRUE));
       }
+      else if Send(self,@FindHolding,#class=&WeaponcraftCrest) <> $
+      {
+         AddPacket(4,player_statue_master_weaponcraft, 4,Send(self,@GetHeShe,#cap=TRUE));
+      }
+      else if Send(self,@FindHolding,#class=&KnightcraftCrest) <> $
+      {
+         AddPacket(4,player_statue_master_knightcraft, 4,Send(self,@GetHeShe,#cap=TRUE));
+      }
+      else if Send(self,@FindHolding,#class=&BanditryCrest) <> $
+      {
+         AddPacket(4,player_statue_master_banditry, 4,Send(self,@GetHeShe,#cap=TRUE));
+      }
+      else if Send(self,@FindHolding,#class=&SorceryCrest) <> $
+      {
+         AddPacket(4,player_statue_master_sorcery, 4,Send(self,@GetHeShe,#cap=TRUE));
+      }
+      else if Send(self,@FindHolding,#class=&WitcheryCrest) <> $
+      {
+         AddPacket(4,player_statue_master_witchery, 4,Send(self,@GetHeShe,#cap=TRUE));
+      }
+      else if Send(self,@FindHolding,#class=&JalaCrest) <> $
+      {
+         AddPacket(4,player_statue_master_jala, 4,Send(self,@GetHeShe,#cap=TRUE));
+      }
+      else if Send(self,@FindHolding,#class=&KraananCrest) <> $
+      {
+         AddPacket(4,player_statue_master_kraanan, 4,Send(self,@GetHeShe,#cap=TRUE));
+      }
+      else if Send(self,@FindHolding,#class=&FarenCrest) <> $
+      {
+         AddPacket(4,player_statue_master_faren, 4,Send(self,@GetHeShe,#cap=TRUE));
+      }
+      else if Send(self,@FindHolding,#class=&RiijaCrest) <> $
+      {
+         AddPacket(4,player_statue_master_riija, 4,Send(self,@GetHeShe,#cap=TRUE));
+      }
+      else if Send(self,@FindHolding,#class=&AlchemyCrest) <> $
+      {
+         AddPacket(4,player_statue_master_alchemy, 4,Send(self,@GetHeShe,#cap=TRUE));
+      }
+      else if Send(self,@FindHolding,#class=&AdventurerCrest) <> $
+      {
+         AddPacket(4,player_statue_greatest_adventurer, 4,Send(self,@GetHeShe,#cap=TRUE));
+      }
+      else if Send(self,@FindHolding,#class=&WizardCrest) <> $
+      {
+         AddPacket(4,player_statue_greatest_wizard, 4,Send(self,@GetHeShe,#cap=TRUE));
+      }
+      else if Send(self,@FindHolding,#class=&WarriorCrest) <> $
+      {
+         AddPacket(4,player_statue_greatest_warrior, 4,Send(self,@GetHeShe,#cap=TRUE));
+      }
       else
       {
          AddPacket(4,system_blank_resource);
@@ -4985,6 +5037,11 @@ messages:
       {
          iDifference = Send(Nth(i,2),@ModifyHealthRegenAmount,
                                  #state=Nth(i,3),#regen=iDifference);
+      }
+      
+      if Send(self,@IsUsingA,#class=&WeaponcraftCrest)
+      {
+         iDifference = iDifference*2;
       }
 
       % Don't regen below zero.
@@ -7907,7 +7964,7 @@ messages:
             damage = bound(damage + iCorrodeReduction*100,1,iDamagePreArmor);
          }
 
-         iResistance = Send(self,@ResistanceCheck,#atype=atype,#aspell=aspell);
+         iResistance = Send(self,@ResistanceCheck,#atype=atype,#aspell=aspell,#what=what);
 
          foreach i in plRadiusEnchantments
          {
@@ -19929,6 +19986,11 @@ messages:
          AND Send(oRunes,@DoSkill,#who=self)
       {
          iHexesMax = iHexesMax + Send(oRunes,@GetMaxHexesIncrease);
+      }
+      
+      if Send(self,@IsUsingA,#class=&WitcheryCrest)
+      {
+         iHexesMax++;
       }
                   
       return iHexesMax;

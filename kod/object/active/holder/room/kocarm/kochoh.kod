@@ -48,6 +48,10 @@ resources:
    hoh_best_knightcraft = "This is a statue of %q, master of Knightcraft."
    hoh_best_weaponcraft = "This is a statue of %q, master of Weaponcraft."
 
+   chosen_as_renowned = \
+      "~B~r[###] Congratulations! You have been chosen as a person of renown. "
+      "Check your inventory for a crest that will tell you more. Equip it to gain supreme abilities!"
+
 classvars:
 
    vrName = room_name_Kocatanhall
@@ -373,6 +377,58 @@ messages:
       {
          Send(First(plWisestWithQor),@DeleteStatueCrest);
       }
+      if plGreatestAdventurer <> $
+      {
+         Send(First(plGreatestAdventurer),@DeleteStatueCrest);
+      }
+      if plGreatestWarrior <> $
+      {
+         Send(First(plGreatestWarrior),@DeleteStatueCrest);
+      }
+      if plGreatestWizard <> $
+      {
+         Send(First(plGreatestWizard),@DeleteStatueCrest);
+      }
+      if plWisestWithFaren <> $
+      {
+         Send(First(plWisestWithFaren),@DeleteStatueCrest);
+      }
+      if plWisestWithRiija <> $
+      {
+         Send(First(plWisestWithRiija),@DeleteStatueCrest);
+      }
+      if plWisestWithBanditry <> $
+      {
+         Send(First(plWisestWithBanditry),@DeleteStatueCrest);
+      }
+      if plWisestWithWitchery <> $
+      {
+         Send(First(plWisestWithWitchery),@DeleteStatueCrest);
+      }
+      if plWisestWithWeaponcraft <> $
+      {
+         Send(First(plWisestWithWeaponcraft),@DeleteStatueCrest);
+      }
+      if plWisestWithKnightcraft <> $
+      {
+         Send(First(plWisestWithKnightcraft),@DeleteStatueCrest);
+      }
+      if plWisestWithJala <> $
+      {
+         Send(First(plWisestWithJala),@DeleteStatueCrest);
+      }
+      if plWisestWithKraanan <> $
+      {
+         Send(First(plWisestWithKraanan),@DeleteStatueCrest);
+      }
+      if plWisestWithAlchemy <> $
+      {
+         Send(First(plWisestWithAlchemy),@DeleteStatueCrest);
+      }
+      if plWisestWithSorcery <> $
+      {
+         Send(First(plWisestWithSorcery),@DeleteStatueCrest);
+      }
 
       plStatues = $;
       if ptUpdateTimer <> $
@@ -402,8 +458,9 @@ messages:
 
    SetHighestWisdom()
    {
-      local i, curWisdom, oRandomUser;
+      local i, curWisdom, oRandomUser, oSaveLastMaster;
 
+      oSaveLastMaster = $;
       if plGreatestAdventurer = $
       {
          oRandomUser = Nth(Send(SYS,@GetUsers),Random(1,Length(Send(SYS,@GetUsers))));
@@ -411,7 +468,8 @@ messages:
       }
       else
       {
-         Send(First(plGreatestAdventurer),@SetRenowned,#value=FALSE);
+         oSaveLastMaster = First(plGreatestAdventurer);
+         Send(oSaveLastMaster,@SetRenowned,#value=FALSE);
       }
 
       foreach i in Send(SYS,@GetUsers)
@@ -433,6 +491,35 @@ messages:
          }
       }
 
+      if oSaveLastMaster = $
+      {
+         % There was no previous master. Likely a recreate.
+         Send(First(plGreatestAdventurer),@NewHold,#what=Create(&AdventurerCrest,#level=300));
+         
+         % Notify them.
+         if Send(First(plGreatestAdventurer),@IsLoggedOn)
+         {
+            Send(First(plGreatestAdventurer),@MsgSendUser,#message_rsc=chosen_as_renowned);
+         }
+      }
+      else if First(plGreatestAdventurer) <> oSaveLastMaster
+      {
+         % There was a previous master, but not the one we just chose.
+         % We have a new master.
+         Send(oSaveLastMaster,@DeleteStatueCrest);
+         Send(First(plGreatestAdventurer),@NewHold,#what=Create(&AdventurerCrest,#level=300));
+         
+         % Notify them.
+         if Send(First(plGreatestAdventurer),@IsLoggedOn)
+         {
+            Send(First(plGreatestAdventurer),@MsgSendUser,#message_rsc=chosen_as_renowned);
+         }
+      }
+      else
+      {
+         % There was a previous master, and it WAS who we chose again. Do nothing.
+      }
+
       Send(First(plGreatestAdventurer),@SetRenowned,#value=TRUE);
 
       return;
@@ -440,8 +527,9 @@ messages:
 
    SetHighestWizard()
    {
-      local i, curWisdom, iMasteryCount, oRandomUser;
+      local i, curWisdom, iMasteryCount, oRandomUser, oSaveLastMaster;
 
+      oSaveLastMaster = $;
       if plGreatestWizard = $
       {
          oRandomUser = Nth(Send(SYS,@GetUsers),Random(1,Length(Send(SYS,@GetUsers))));
@@ -449,7 +537,8 @@ messages:
       }
       else
       {
-         Send(First(plGreatestWizard),@SetRenowned,#value=FALSE);
+         oSaveLastMaster = First(plGreatestWizard);
+         Send(oSaveLastMaster,@SetRenowned,#value=FALSE);
       }
       
       foreach i in Send(SYS,@GetUsers)
@@ -543,6 +632,35 @@ messages:
          }
       }
 
+      if oSaveLastMaster = $
+      {
+         % There was no previous master. Likely a recreate.
+         Send(First(plGreatestWizard),@NewHold,#what=Create(&WizardCrest));
+         
+         % Notify them.
+         if Send(First(plGreatestWizard),@IsLoggedOn)
+         {
+            Send(First(plGreatestWizard),@MsgSendUser,#message_rsc=chosen_as_renowned);
+         }
+      }
+      else if First(plGreatestWizard) <> oSaveLastMaster
+      {
+         % There was a previous master, but not the one we just chose.
+         % We have a new master.
+         Send(oSaveLastMaster,@DeleteStatueCrest);
+         Send(First(plGreatestWizard),@NewHold,#what=Create(&WizardCrest));
+         
+         % Notify them.
+         if Send(First(plGreatestWizard),@IsLoggedOn)
+         {
+            Send(First(plGreatestWizard),@MsgSendUser,#message_rsc=chosen_as_renowned);
+         }
+      }
+      else
+      {
+         % There was a previous master, and it WAS who we chose again. Do nothing.
+      }
+
       Send(First(plGreatestWizard),@SetRenowned,#value=TRUE);
 
       return;
@@ -550,8 +668,9 @@ messages:
 
    SetHighestWarrior()
    {
-      local i, curWisdom, iMasteryCount, oRandomUser;
+      local i, curWisdom, iMasteryCount, oRandomUser, oSaveLastMaster;
 
+      oSaveLastMaster = $;
       if plGreatestWarrior = $
       {
          oRandomUser = Nth(Send(SYS,@GetUsers),Random(1,Length(Send(SYS,@GetUsers))));
@@ -559,7 +678,8 @@ messages:
       }
       else
       {
-         Send(First(plGreatestWarrior),@SetRenowned,#value=FALSE);
+         oSaveLastMaster = First(plGreatestWarrior);
+         Send(oSaveLastMaster,@SetRenowned,#value=FALSE);
       }
       
       foreach i in Send(SYS,@GetUsers)
@@ -618,6 +738,35 @@ messages:
          }
       }
 
+      if oSaveLastMaster = $
+      {
+         % There was no previous master. Likely a recreate.
+         Send(First(plGreatestWarrior),@NewHold,#what=Create(&WarriorCrest));
+         
+         % Notify them.
+         if Send(First(plGreatestWarrior),@IsLoggedOn)
+         {
+            Send(First(plGreatestWarrior),@MsgSendUser,#message_rsc=chosen_as_renowned);
+         }
+      }
+      else if First(plGreatestWarrior) <> oSaveLastMaster
+      {
+         % There was a previous master, but not the one we just chose.
+         % We have a new master.
+         Send(oSaveLastMaster,@DeleteStatueCrest);
+         Send(First(plGreatestWarrior),@NewHold,#what=Create(&WarriorCrest));
+         
+         % Notify them.
+         if Send(First(plGreatestWarrior),@IsLoggedOn)
+         {
+            Send(First(plGreatestWarrior),@MsgSendUser,#message_rsc=chosen_as_renowned);
+         }
+      }
+      else
+      {
+         % There was a previous master, and it WAS who we chose again. Do nothing.
+      }
+
       Send(First(plGreatestWarrior),@SetRenowned,#value=TRUE);
 
       return;
@@ -671,6 +820,12 @@ messages:
       {
          % There was no previous master. Likely a recreate.
          Send(First(plWisestWithShal),@NewHold,#what=Create(&ShalilleCrest));
+         
+         % Notify them.
+         if Send(First(plWisestWithShal),@IsLoggedOn)
+         {
+            Send(First(plWisestWithShal),@MsgSendUser,#message_rsc=chosen_as_renowned);
+         }
       }
       else if First(plWisestWithShal) <> oSaveLastMaster
       {
@@ -678,6 +833,12 @@ messages:
          % We have a new master.
          Send(oSaveLastMaster,@DeleteStatueCrest);
          Send(First(plWisestWithShal),@NewHold,#what=Create(&ShalilleCrest));
+         
+         % Notify them.
+         if Send(First(plWisestWithShal),@IsLoggedOn)
+         {
+            Send(First(plWisestWithShal),@MsgSendUser,#message_rsc=chosen_as_renowned);
+         }
       }
       else
       {
@@ -736,6 +897,12 @@ messages:
       {
          % There was no previous master. Give them the crest.
          Send(First(plWisestWithQor),@NewHold,#what=Create(&QorCrest));
+         
+         % Notify them.
+         if Send(First(plWisestWithQor),@IsLoggedOn)
+         {
+            Send(First(plWisestWithQor),@MsgSendUser,#message_rsc=chosen_as_renowned);
+         }
       }
       else if First(plWisestWithQor) <> oSaveLastMaster
       {
@@ -743,6 +910,12 @@ messages:
          % We have a new master. Delete the old crest and give a new one.
          Send(oSaveLastMaster,@DeleteStatueCrest);
          Send(First(plWisestWithQor),@NewHold,#what=Create(&QorCrest));
+         
+         % Notify them.
+         if Send(First(plWisestWithQor),@IsLoggedOn)
+         {
+            Send(First(plWisestWithQor),@MsgSendUser,#message_rsc=chosen_as_renowned);
+         }
       }
       else
       {
@@ -756,8 +929,9 @@ messages:
 
    SetFarenMaster()
    {
-      local i, curWisdom, oRandomUser;
+      local i, curWisdom, oRandomUser, oSaveLastMaster;
 
+      oSaveLastMaster = $;
       if plWisestWithFaren = $
       {
          oRandomUser = Nth(Send(SYS,@GetUsers),Random(1,Length(Send(SYS,@GetUsers))));
@@ -765,7 +939,8 @@ messages:
       }
       else
       {
-         Send(First(plWisestWithFaren),@SetRenowned,#value=FALSE);
+         oSaveLastMaster = First(plWisestWithFaren);
+         Send(oSaveLastMaster,@SetRenowned,#value=FALSE);
       }
       
       foreach i in Send(SYS,@GetUsers)
@@ -796,6 +971,35 @@ messages:
          }
       }
 
+      if oSaveLastMaster = $
+      {
+         % There was no previous master. Give them the crest.
+         Send(First(plWisestWithFaren),@NewHold,#what=Create(&FarenCrest));
+         
+         % Notify them.
+         if Send(First(plWisestWithFaren),@IsLoggedOn)
+         {
+            Send(First(plWisestWithFaren),@MsgSendUser,#message_rsc=chosen_as_renowned);
+         }
+      }
+      else if First(plWisestWithFaren) <> oSaveLastMaster
+      {
+         % There was a previous master, but not the one we just chose.
+         % We have a new master. Delete the old crest and give a new one.
+         Send(oSaveLastMaster,@DeleteStatueCrest);
+         Send(First(plWisestWithFaren),@NewHold,#what=Create(&FarenCrest));
+         
+         % Notify them.
+         if Send(First(plWisestWithFaren),@IsLoggedOn)
+         {
+            Send(First(plWisestWithFaren),@MsgSendUser,#message_rsc=chosen_as_renowned);
+         }
+      }
+      else
+      {
+         % There was a previous master, and it WAS who we chose again. Do nothing.
+      }
+
       Send(First(plWisestWithFaren),@SetRenowned,#value=TRUE);
 
       return;
@@ -803,8 +1007,9 @@ messages:
 
    SetRiijaMaster()
    {
-      local i, curWisdom, oRandomUser;
+      local i, curWisdom, oRandomUser, oSaveLastMaster;
 
+      oSaveLastMaster = $;
       if plWisestWithRiija = $
       {
          oRandomUser = Nth(Send(SYS,@GetUsers),Random(1,Length(Send(SYS,@GetUsers))));
@@ -812,7 +1017,8 @@ messages:
       }
       else
       {
-         Send(First(plWisestWithRiija),@SetRenowned,#value=FALSE);
+         oSaveLastMaster = First(plWisestWithRiija);
+         Send(oSaveLastMaster,@SetRenowned,#value=FALSE);
       }
       
       foreach i in Send(SYS,@GetUsers)
@@ -842,6 +1048,35 @@ messages:
          }
       }
 
+      if oSaveLastMaster = $
+      {
+         % There was no previous master. Give them the crest.
+         Send(First(plWisestWithRiija),@NewHold,#what=Create(&RiijaCrest));
+         
+         % Notify them.
+         if Send(First(plWisestWithRiija),@IsLoggedOn)
+         {
+            Send(First(plWisestWithRiija),@MsgSendUser,#message_rsc=chosen_as_renowned);
+         }
+      }
+      else if First(plWisestWithRiija) <> oSaveLastMaster
+      {
+         % There was a previous master, but not the one we just chose.
+         % We have a new master. Delete the old crest and give a new one.
+         Send(oSaveLastMaster,@DeleteStatueCrest);
+         Send(First(plWisestWithRiija),@NewHold,#what=Create(&RiijaCrest));
+         
+         % Notify them.
+         if Send(First(plWisestWithRiija),@IsLoggedOn)
+         {
+            Send(First(plWisestWithRiija),@MsgSendUser,#message_rsc=chosen_as_renowned);
+         }
+      }
+      else
+      {
+         % There was a previous master, and it WAS who we chose again. Do nothing.
+      }
+
       Send(First(plWisestWithRiija),@SetRenowned,#value=TRUE);
 
       return;
@@ -849,8 +1084,9 @@ messages:
 
    SetJalaMaster()
    {
-      local i, curWisdom, oRandomUser;
+      local i, curWisdom, oRandomUser, oSaveLastMaster;
 
+      oSaveLastMaster = $;
       if plWisestWithJala = $
       {
          oRandomUser = Nth(Send(SYS,@GetUsers),Random(1,Length(Send(SYS,@GetUsers))));
@@ -858,7 +1094,8 @@ messages:
       }
       else
       {
-         Send(First(plWisestWithJala),@SetRenowned,#value=FALSE);
+         oSaveLastMaster = First(plWisestWithJala);
+         Send(oSaveLastMaster,@SetRenowned,#value=FALSE);
       }
       
       foreach i in Send(SYS,@GetUsers)
@@ -886,6 +1123,35 @@ messages:
          }
       }
 
+      if oSaveLastMaster = $
+      {
+         % There was no previous master. Give them the crest.
+         Send(First(plWisestWithJala),@NewHold,#what=Create(&JalaCrest));
+         
+         % Notify them.
+         if Send(First(plWisestWithJala),@IsLoggedOn)
+         {
+            Send(First(plWisestWithJala),@MsgSendUser,#message_rsc=chosen_as_renowned);
+         }
+      }
+      else if First(plWisestWithJala) <> oSaveLastMaster
+      {
+         % There was a previous master, but not the one we just chose.
+         % We have a new master. Delete the old crest and give a new one.
+         Send(oSaveLastMaster,@DeleteStatueCrest);
+         Send(First(plWisestWithJala),@NewHold,#what=Create(&JalaCrest));
+         
+         % Notify them.
+         if Send(First(plWisestWithJala),@IsLoggedOn)
+         {
+            Send(First(plWisestWithJala),@MsgSendUser,#message_rsc=chosen_as_renowned);
+         }
+      }
+      else
+      {
+         % There was a previous master, and it WAS who we chose again. Do nothing.
+      }
+
       Send(First(plWisestWithJala),@SetRenowned,#value=TRUE);
 
       return;
@@ -893,8 +1159,9 @@ messages:
 
    SetKraananMaster()
    {
-      local i, curWisdom, oRandomUser;
+      local i, curWisdom, oRandomUser, oSaveLastMaster;
 
+      oSaveLastMaster = $;
       if plWisestWithKraanan = $
       {
          oRandomUser = Nth(Send(SYS,@GetUsers),Random(1,Length(Send(SYS,@GetUsers))));
@@ -902,7 +1169,8 @@ messages:
       }
       else
       {
-         Send(First(plWisestWithKraanan),@SetRenowned,#value=FALSE);
+         oSaveLastMaster = First(plWisestWithKraanan);
+         Send(oSaveLastMaster,@SetRenowned,#value=FALSE);
       }
       
       foreach i in Send(SYS,@GetUsers)
@@ -931,6 +1199,35 @@ messages:
          }
       }
 
+      if oSaveLastMaster = $
+      {
+         % There was no previous master. Give them the crest.
+         Send(First(plWisestWithKraanan),@NewHold,#what=Create(&KraananCrest));
+         
+         % Notify them.
+         if Send(First(plWisestWithKraanan),@IsLoggedOn)
+         {
+            Send(First(plWisestWithKraanan),@MsgSendUser,#message_rsc=chosen_as_renowned);
+         }
+      }
+      else if First(plWisestWithKraanan) <> oSaveLastMaster
+      {
+         % There was a previous master, but not the one we just chose.
+         % We have a new master. Delete the old crest and give a new one.
+         Send(oSaveLastMaster,@DeleteStatueCrest);
+         Send(First(plWisestWithKraanan),@NewHold,#what=Create(&KraananCrest));
+         
+         % Notify them.
+         if Send(First(plWisestWithKraanan),@IsLoggedOn)
+         {
+            Send(First(plWisestWithKraanan),@MsgSendUser,#message_rsc=chosen_as_renowned);
+         }
+      }
+      else
+      {
+         % There was a previous master, and it WAS who we chose again. Do nothing.
+      }
+
       Send(First(plWisestWithKraanan),@SetRenowned,#value=TRUE);
 
       return;
@@ -938,8 +1235,9 @@ messages:
 
    SetWeaponcraftMaster()
    {
-      local i, curWisdom, oRandomUser;
+      local i, curWisdom, oRandomUser, oSaveLastMaster;
 
+      oSaveLastMaster = $;
       if plWisestWithWeaponcraft = $
       {
          oRandomUser = Nth(Send(SYS,@GetUsers),Random(1,Length(Send(SYS,@GetUsers))));
@@ -947,12 +1245,14 @@ messages:
       }
       else
       {
-         Send(First(plWisestWithWeaponcraft),@SetRenowned,#value=FALSE);
+         oSaveLastMaster = First(plWisestWithWeaponcraft);
+         Send(oSaveLastMaster,@SetRenowned,#value=FALSE);
       }
       
       foreach i in Send(SYS,@GetUsers)
       {
          if Send(i,@GetMaxHealth) < 100
+            OR Send(i,@IsUserInactive)
             OR IsClass(i,&DM)
             OR Send(i,@IsRenowned)
             OR NOT (Send(i,@HasSkill,#num=SKID_DISARM))
@@ -975,6 +1275,35 @@ messages:
          }
       }
 
+      if oSaveLastMaster = $
+      {
+         % There was no previous master. Give them the crest.
+         Send(First(plWisestWithWeaponcraft),@NewHold,#what=Create(&WeaponcraftCrest));
+         
+         % Notify them.
+         if Send(First(plWisestWithWeaponcraft),@IsLoggedOn)
+         {
+            Send(First(plWisestWithWeaponcraft),@MsgSendUser,#message_rsc=chosen_as_renowned);
+         }
+      }
+      else if First(plWisestWithWeaponcraft) <> oSaveLastMaster
+      {
+         % There was a previous master, but not the one we just chose.
+         % We have a new master. Delete the old crest and give a new one.
+         Send(oSaveLastMaster,@DeleteStatueCrest);
+         Send(First(plWisestWithWeaponcraft),@NewHold,#what=Create(&WeaponcraftCrest));
+         
+         % Notify them.
+         if Send(First(plWisestWithWeaponcraft),@IsLoggedOn)
+         {
+            Send(First(plWisestWithWeaponcraft),@MsgSendUser,#message_rsc=chosen_as_renowned);
+         }
+      }
+      else
+      {
+         % There was a previous master, and it WAS who we chose again. Do nothing.
+      }
+
       Send(First(plWisestWithWeaponcraft),@SetRenowned,#value=TRUE);
 
       return;
@@ -982,8 +1311,9 @@ messages:
 
    SetKnightcraftMaster()
    {
-      local i, curWisdom, oRandomUser;
+      local i, curWisdom, oRandomUser, oSaveLastMaster;
 
+      oSaveLastMaster = $;
       if plWisestWithKnightcraft = $
       {
          oRandomUser = Nth(Send(SYS,@GetUsers),Random(1,Length(Send(SYS,@GetUsers))));
@@ -991,7 +1321,8 @@ messages:
       }
       else
       {
-         Send(First(plWisestWithKnightcraft),@SetRenowned,#value=FALSE);
+         oSaveLastMaster = First(plWisestWithKnightcraft);
+         Send(oSaveLastMaster,@SetRenowned,#value=FALSE);
       }
       
       foreach i in Send(SYS,@GetUsers)
@@ -1020,6 +1351,35 @@ messages:
          }
       }
 
+      if oSaveLastMaster = $
+      {
+         % There was no previous master. Give them the crest.
+         Send(First(plWisestWithKnightcraft),@NewHold,#what=Create(&KnightcraftCrest));
+         
+         % Notify them.
+         if Send(First(plWisestWithKnightcraft),@IsLoggedOn)
+         {
+            Send(First(plWisestWithKnightcraft),@MsgSendUser,#message_rsc=chosen_as_renowned);
+         }
+      }
+      else if First(plWisestWithKnightcraft) <> oSaveLastMaster
+      {
+         % There was a previous master, but not the one we just chose.
+         % We have a new master. Delete the old crest and give a new one.
+         Send(oSaveLastMaster,@DeleteStatueCrest);
+         Send(First(plWisestWithKnightcraft),@NewHold,#what=Create(&KnightcraftCrest));
+         
+         % Notify them.
+         if Send(First(plWisestWithKnightcraft),@IsLoggedOn)
+         {
+            Send(First(plWisestWithKnightcraft),@MsgSendUser,#message_rsc=chosen_as_renowned);
+         }
+      }
+      else
+      {
+         % There was a previous master, and it WAS who we chose again. Do nothing.
+      }
+
       Send(First(plWisestWithKnightcraft),@SetRenowned,#value=TRUE);
 
       return;
@@ -1027,8 +1387,9 @@ messages:
 
    SetBanditryMaster()
    {
-      local i, curWisdom, oRandomUser;
+      local i, curWisdom, oRandomUser, oSaveLastMaster;
 
+      oSaveLastMaster = $;
       if plWisestWithBanditry = $
       {
          oRandomUser = Nth(Send(SYS,@GetUsers),Random(1,Length(Send(SYS,@GetUsers))));
@@ -1036,7 +1397,8 @@ messages:
       }
       else
       {
-         Send(First(plWisestWithBanditry),@SetRenowned,#value=FALSE);
+         oSaveLastMaster = First(plWisestWithBanditry);
+         Send(oSaveLastMaster,@SetRenowned,#value=FALSE);
       }
       
       foreach i in Send(SYS,@GetUsers)
@@ -1065,6 +1427,35 @@ messages:
          }
       }
 
+      if oSaveLastMaster = $
+      {
+         % There was no previous master. Give them the crest.
+         Send(First(plWisestWithBanditry),@NewHold,#what=Create(&BanditryCrest));
+         
+         % Notify them.
+         if Send(First(plWisestWithBanditry),@IsLoggedOn)
+         {
+            Send(First(plWisestWithBanditry),@MsgSendUser,#message_rsc=chosen_as_renowned);
+         }
+      }
+      else if First(plWisestWithBanditry) <> oSaveLastMaster
+      {
+         % There was a previous master, but not the one we just chose.
+         % We have a new master. Delete the old crest and give a new one.
+         Send(oSaveLastMaster,@DeleteStatueCrest);
+         Send(First(plWisestWithBanditry),@NewHold,#what=Create(&BanditryCrest));
+         
+         % Notify them.
+         if Send(First(plWisestWithBanditry),@IsLoggedOn)
+         {
+            Send(First(plWisestWithBanditry),@MsgSendUser,#message_rsc=chosen_as_renowned);
+         }
+      }
+      else
+      {
+         % There was a previous master, and it WAS who we chose again. Do nothing.
+      }
+
       Send(First(plWisestWithBanditry),@SetRenowned,#value=TRUE);
 
       return;
@@ -1072,8 +1463,9 @@ messages:
 
    SetSorceryMaster()
    {
-      local i, curWisdom, oRandomUser;
+      local i, curWisdom, oRandomUser, oSaveLastMaster;
 
+      oSaveLastMaster = $;
       if plWisestWithSorcery = $
       {
          oRandomUser = Nth(Send(SYS,@GetUsers),Random(1,Length(Send(SYS,@GetUsers))));
@@ -1081,7 +1473,8 @@ messages:
       }
       else
       {
-         Send(First(plWisestWithSorcery),@SetRenowned,#value=FALSE);
+         oSaveLastMaster = First(plWisestWithSorcery);
+         Send(oSaveLastMaster,@SetRenowned,#value=FALSE);
       }
       
       foreach i in Send(SYS,@GetUsers)
@@ -1109,6 +1502,35 @@ messages:
          }
       }
 
+      if oSaveLastMaster = $
+      {
+         % There was no previous master. Give them the crest.
+         Send(First(plWisestWithSorcery),@NewHold,#what=Create(&SorceryCrest));
+         
+         % Notify them.
+         if Send(First(plWisestWithSorcery),@IsLoggedOn)
+         {
+            Send(First(plWisestWithSorcery),@MsgSendUser,#message_rsc=chosen_as_renowned);
+         }
+      }
+      else if First(plWisestWithSorcery) <> oSaveLastMaster
+      {
+         % There was a previous master, but not the one we just chose.
+         % We have a new master. Delete the old crest and give a new one.
+         Send(oSaveLastMaster,@DeleteStatueCrest);
+         Send(First(plWisestWithSorcery),@NewHold,#what=Create(&SorceryCrest));
+         
+         % Notify them.
+         if Send(First(plWisestWithSorcery),@IsLoggedOn)
+         {
+            Send(First(plWisestWithSorcery),@MsgSendUser,#message_rsc=chosen_as_renowned);
+         }
+      }
+      else
+      {
+         % There was a previous master, and it WAS who we chose again. Do nothing.
+      }
+
       Send(First(plWisestWithSorcery),@SetRenowned,#value=TRUE);
 
       return;
@@ -1116,8 +1538,9 @@ messages:
 
    SetWitcheryMaster()
    {
-      local i, curWisdom, oRandomUser;
+      local i, curWisdom, oRandomUser, oSaveLastMaster;
 
+      oSaveLastMaster = $;
       if plWisestWithWitchery = $
       {
          oRandomUser = Nth(Send(SYS,@GetUsers),Random(1,Length(Send(SYS,@GetUsers))));
@@ -1125,7 +1548,8 @@ messages:
       }
       else
       {
-         Send(First(plWisestWithWitchery),@SetRenowned,#value=FALSE);
+         oSaveLastMaster = First(plWisestWithWitchery);
+         Send(oSaveLastMaster,@SetRenowned,#value=FALSE);
       }
       
       foreach i in Send(SYS,@GetUsers)
@@ -1154,6 +1578,35 @@ messages:
             % Lastly, wisdom.
             plWisestWithWitchery = [i,curWisdom,Send(i,@GetMysticism)];
          }
+      }
+
+      if oSaveLastMaster = $
+      {
+         % There was no previous master. Give them the crest.
+         Send(First(plWisestWithWitchery),@NewHold,#what=Create(&WitcheryCrest));
+         
+         % Notify them.
+         if Send(First(plWisestWithWitchery),@IsLoggedOn)
+         {
+            Send(First(plWisestWithWitchery),@MsgSendUser,#message_rsc=chosen_as_renowned);
+         }
+      }
+      else if First(plWisestWithWitchery) <> oSaveLastMaster
+      {
+         % There was a previous master, but not the one we just chose.
+         % We have a new master. Delete the old crest and give a new one.
+         Send(oSaveLastMaster,@DeleteStatueCrest);
+         Send(First(plWisestWithWitchery),@NewHold,#what=Create(&WitcheryCrest));
+         
+         % Notify them.
+         if Send(First(plWisestWithWitchery),@IsLoggedOn)
+         {
+            Send(First(plWisestWithWitchery),@MsgSendUser,#message_rsc=chosen_as_renowned);
+         }
+      }
+      else
+      {
+         % There was a previous master, and it WAS who we chose again. Do nothing.
       }
 
       Send(First(plWisestWithWitchery),@SetRenowned,#value=TRUE);
