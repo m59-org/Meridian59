@@ -15004,6 +15004,13 @@ messages:
 
       iTime = 1000 + (30* (51-Send(self,@getStamina)));
 
+      iTime = Bound(iTime,1000,$);
+      
+      if Send(self,@GetStamina) > 50
+      {
+         iTime = iTime - Send(self,@GetStamina)*2;
+      }
+
       if Send(self,@GetStance) <> $
       {
          iTime = Send(Send(self,@GetStance),@ModifyRestTime,#who=self,#iTime=iTime);
