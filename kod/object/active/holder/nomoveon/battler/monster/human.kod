@@ -1520,6 +1520,11 @@ messages:
    CreateTreasure(who = $, corpse = $)
    {
       local oUsedItem, oItemAtt;
+      
+      if IsClass(self,&HighSorcerer)
+      {
+         propagate;
+      }
 
       oItemAtt = Send(SYS,@FindItemAttByNum,#num=IA_CORPSEPOINTER);
 

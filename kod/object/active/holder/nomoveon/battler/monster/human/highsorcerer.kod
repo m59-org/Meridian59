@@ -32,7 +32,7 @@ classvars:
    vrDesc = HighSorcerer_desc_rsc
    vrDead_name = HighSorcerer_dead_name_rsc
 
-   viTreasure_type = TID_NONE
+   viTreasure_type = TID_HIGH_SORCERER
 
    viSpeed = SPEED_VERY_FAST
    viAttack_type = ATCK_WEAP_MAGIC+ATCK_WEAP_BLUDGEON+ATCK_WEAP_PIERCE
@@ -59,13 +59,20 @@ classvars:
    viIndefinite = ARTICLE_NONE
    viDefinite = ARTICLE_NONE
 
+   viBonusBaseTP = 5000
+   vbBonusXPGain = 10000
+
+   % between 1 and 10000
+   viCriticalHitRate = 500
+   vbCanCauseBleed = TRUE
+
 properties:
 
    prHead = high_sorcerer_head_male_icon
 
    piBaseLevel = 210
    piBaseDifficulty = 12
-   viLevel = 210
+   viLevel = 240
    viDifficulty = 12
 
    piElement = 0
@@ -211,8 +218,7 @@ messages:
 
       plUsing = $;
 
-      % Don't propagate.  We do everything here.
-      return;
+      propagate;
    }
 
    IsAlly(target = $, regroup = FALSE)

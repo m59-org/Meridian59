@@ -599,6 +599,34 @@ messages:
          return;
       }
 
+      if IsClass(oDefenseModifier,&ElfShield)
+      {
+         % Mob difficulty makes a huge difference for armor max sockets
+         iDifficultyBonus = (piDiff_seed - 5) * 10;
+      
+         iRandom = Random(1,1000);
+         if (iRandom + iDifficultyBonus) >= 1000
+         {
+            iNumSockets = 4;
+         }
+         if (iRandom + iDifficultyBonus) < 1000
+         {
+            iNumSockets = 3;
+         }
+         if (iRandom + iDifficultyBonus) < 950
+         {
+            iNumSockets = 2;
+         }
+         if (iRandom + iDifficultyBonus) < 666
+         {
+            iNumSockets = 1;
+         }
+         Create(&DefModSockets,#host_object=oDefenseModifier,
+               #num_sockets=iNumSockets);
+
+         return;
+      }
+
       % Knight's shields have a 10% chance for 1 socket.
       if IsClass(oDefenseModifier,&KnightShield)
       {

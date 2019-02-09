@@ -45,11 +45,17 @@ classvars:
    vrDesc = HighSorcererFire_desc_rsc
    vrDead_name = HighSorcererFire_dead_name_rsc
 
-   viTreasure_type = TID_NONE
+
+   viTreasure_type = TID_HIGH_SORCERER
    viAttack_spell = ATCK_SPELL_FIRE
 
    viColorTranslate1 = XLAT_TO_RED     % Shirt
    viColorTranslate2 = XLAT_TO_RED   % Pants
+
+   % between 1 and 10000
+   viCriticalHitRate = 1000
+   vbCanCauseBleed = TRUE
+   vbCanCauseKnockback = TRUE
 
 properties:
 
@@ -61,6 +67,11 @@ messages:
 
    Constructed()
    {
+      % Give Qua'Kornedrin more HP.
+      piMax_Hit_Points = piMax_Hit_Points * 3;
+      % piHit_Points uses high-precision numbers, so multiply by 100.
+      piHit_Points = piMax_Hit_Points * 100;
+
       plMeleeSpellBook = [ [SID_BLAST_OF_FIRE,1,100,99]];
       plRangedSpellBook = [ [SID_FIREBALL,1,90,99],
                             [SID_HEAT,1,100,99]];
@@ -76,6 +87,25 @@ messages:
                         [ATCK_WEAP_ALL,75]];
       Post(self,@AddChampionAbility,#ability=7,#value=10);
       propagate;
+   }
+
+   SetGender()
+   {
+      viGender = GENDER_MALE;
+      vrIcon = human_male_icon_rsc;
+      prHead = human_head_male_tattoo_1;
+      prEyes = human_eyes_kx_icon;
+      prMouth = human_mouth_kx_icon;
+      prNose = human_nose_kx_icon;
+      prToupee = human_hair_ca_icon;
+      prLegs = human_legs_b_rsc;
+      prRight_arm = human_rightarm_b_rsc;
+      prLeft_arm = human_leftarm_b_rsc;
+      vrDead_Icon = human_dead_male_icona_rsc;
+      vrDead_Legs = human_dead_male_iconb_rsc;
+      vrSound_death = human_male_sound_death;
+
+      return;
    }
 
    SetHair()

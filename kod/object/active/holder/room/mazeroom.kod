@@ -572,9 +572,13 @@ messages:
 
    RecalcBackgroundSkyGraphic(iSkyBox=0)
    {
-      prBackground = background_chaos_night;
+      if NOT Send(Send(SYS,@FindRoomByNum,#num=RID_ZIGGURAT_ALTAR),@GetHighSorcerersDefeated)
+      {
+         prBackground = background_chaos_night;
+         return;
+      }
 
-      return;
+      propagate;
    }
 
    CreateStandardObjects()

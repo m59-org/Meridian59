@@ -1742,7 +1742,7 @@ messages:
    
    AttemptSpell(type=CAST_TYPE_MELEE)
    {
-      local lSpell, oSpell, iSpellPower, oAntiMagicAura, lRadiusState, iDistance, lTargets;
+      local lSpell, oSpell, iSpellPower, oAntiMagicAura, lRadiusState, iDistance, lTargets, iRange;
       
       if poTarget = $
       {
@@ -1781,7 +1781,12 @@ messages:
             % Check LoS to target here so we don't waste mana casting
             % when we can't get our target.
 
-            if iDistance <= Send(oSpell,@GetRange) * Send(oSpell,@GetRange)
+            iRange = Send(oSpell,@GetRange);
+            if iRange = $
+            {
+               iRange = 9999;
+            }
+            if iDistance <= iRange * iRange
                AND Send(poOwner,@LineOfSight,#obj1=self,#obj2=poTarget)
                AND Send(poOwner,@ReqSomethingAttack,#what=self,#victim=poTarget,
                         #use_weapon=self)

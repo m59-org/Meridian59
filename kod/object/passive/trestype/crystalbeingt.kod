@@ -1,0 +1,43 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+CrystalBeingTreasure is TreasureType
+
+constants:
+
+   include blakston.khd
+
+classvars:
+
+   viTreasure_num = TID_CRYSTAL_BEING
+   
+   viBonusNumDrops = 120
+   vbGenerateSockets = TRUE
+
+properties:
+
+   piItem_att_chance = 10
+   piDiff_seed = 10
+
+messages:
+
+   Constructed()
+   {
+      plTreasure = [ [ &ShardEmpowerment, 25 ],
+                     [ &ShardReroll, 25 ],
+                     [ &ShardRemove, 25],
+                     [ &ShardReImbueMajor, 25]
+                   ];
+
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

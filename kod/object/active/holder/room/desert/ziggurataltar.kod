@@ -26,8 +26,17 @@ resources:
 %      "Kill the monstrous thing and take its eggs for your own!\""
  
    high_sorcerers_challenge_msg = \
-      "~kQua'Kornedrin, High Sorcerer of Fire, shouts, \"We are quite aware of you, barbarian. Set foot on our level, and we will obliterate you. Or, you can still flee.\""
-      
+      "~kQua'Kornedrin, High Sorcerer of Fire shouts, \"We are quite aware of you, barbarian. Set foot on our level, and we will obliterate you. Or, you can still flee.\""
+
+   high_sorcerers_slain = \
+      "~bThe sky clears, and the world softens."
+
+   high_sorcerer_fire_dies = \
+      "~kQua'Kornedrin, High Sorcerer of Fire whispers, \"You fool. You have no idea what forces you've imbalanced!\""
+
+   crystal_being_slain = \
+      "~kWith the death of the otherworldly crystalline entity, the land of Biskalane can finally begin healing."
+
 classvars:
 
    vrName = ziggurat_altar_room_name
@@ -46,6 +55,14 @@ properties:
    piRoom_num = RID_ZIGGURAT_ALTAR
 
    piBaseLight = LIGHT_NICE
+   
+   ptAfterCombatTimer = $
+   piAfterCombatDelay = 15000
+   ptRespawnTimer = $
+   piRespawnDelay = 1000 * 60 * 60 * 6
+   
+   pbHighSorcerersDefeated = FALSE
+   pbCrystalBeingKilled = FALSE
 
 messages:
 
@@ -78,9 +95,13 @@ messages:
 
    RecalcBackgroundSkyGraphic(iSkyBox=0)
    {
-      prBackground = background_chaos_night;
+      if NOT pbHighSorcerersDefeated
+      {
+         prBackground = background_chaos_night;
+         return;
+      }
 
-      return;
+      propagate;
    }
    
    GetPhaseThreats()
@@ -135,6 +156,7 @@ messages:
       if what <> $
          AND IsClass(what,&User)
 %         AND Send(what,@GetVeckaAdvice)
+         AND NOT pbHighSorcerersDefeated
       {
          Send(what,@MsgSendUser,#message_rsc=high_sorcerers_challenge_msg);
       }
@@ -145,6 +167,126 @@ messages:
       }
 
       propagate;
+   }
+
+   SomethingKilled(what=$,victim=$)
+   {
+      local i, n, each_obj;
+
+      if victim <> $
+         AND IsClass(victim,&Monster)
+      {
+         if IsClass(victim,&HighSorcererFire)
+         {
+            foreach i in Send(self,@GetHolderActive)
+            {
+               if IsClass(First(i),&Player)
+               {
+                  Send(First(i),@GroupSlayedMonster,#cClass=&HighSorcererFire);
+                  Send(First(i),@MsgSendUser,#message_rsc=high_sorcerers_slain);
+                  Send(First(i),@MsgSendUser,#message_rsc=high_sorcerer_fire_dies);
+               }
+            }
+            Send(self,@HighSorcerersKilled);
+            propagate;
+         }
+         if IsClass(victim,&CrystalBeing)
+         {
+            foreach i in Send(self,@GetHolderActive)
+            {
+               if IsClass(First(i),&Player)
+               {
+                  Send(First(i),@GroupSlayedMonster,#cClass=&CrystalBeing);
+                  Send(First(i),@MsgSendUser,#message_rsc=crystal_being_slain);
+               }
+            }
+            Send(self,@CrystalBeingKilled);
+            propagate;
+         }
+      }
+
+      propagate;
+   }
+   
+   HighSorcerersKilled()
+   {
+      pbHighSorcerersDefeated = TRUE;
+      Send(self,@RecalcLightAndWeather);
+      Send(self,@RecalculateRoomMusic);
+      
+      if ptAfterCombatTimer = $
+      {
+         ptAfterCombatTimer = CreateTimer(self,@SpawnSurprise,piAfterCombatDelay);
+      }
+      
+      ptRespawnTimer = CreateTimer(self,@RespawnHighSorcerers,piRespawnDelay);
+
+      return;
+   }
+   
+   RespawnHighSorcerers(timer=$)
+   {
+      ptRespawnTimer = $;
+      
+      pbHighSorcerersDefeated = FALSE;
+      return;
+   }
+
+   CrystalBeingKilled()
+   {
+      pbCrystalBeingKilled = TRUE;
+
+      return;
+   }
+   
+   SpawnSurprise(timer=$)
+   {
+      ptAfterCombatTimer = $;
+      
+      Send(self,@Rumble,#duration=2000);
+      
+      Send(self,@NewHold,#what=Create(&CrystalBeing),
+            #new_row=29,
+            #new_col=29,
+            #new_angle=ANGLE_SOUTH);
+      Send(self,@NewHold,#what=Create(&BurningOrb),
+            #new_row=5,
+            #new_col=5);
+      Send(self,@NewHold,#what=Create(&BurningOrb),
+            #new_row=5,
+            #new_col=52);
+      Send(self,@NewHold,#what=Create(&BurningOrb),
+            #new_row=52,
+            #new_col=5);
+      Send(self,@NewHold,#what=Create(&BurningOrb),
+            #new_row=52,
+            #new_col=52);
+      return;
+   }
+   
+   Delete()
+   {
+      if ptAfterCombatTimer <> $
+      {
+         DeleteTimer(ptAfterCombatTimer);
+         ptAfterCombatTimer = $;
+      }
+      if ptRespawnTimer <> $
+      {
+         DeleteTimer(ptRespawnTimer);
+         ptRespawnTimer = $;
+      }
+      propagate;
+   }
+
+   GetHighSorcerersDefeated()
+   {
+      return pbHighSorcerersDefeated;
+   }
+
+   GetCrystalBeingKilled()
+   {
+      return pbCrystalBeingKilled;
    }
 
 end
