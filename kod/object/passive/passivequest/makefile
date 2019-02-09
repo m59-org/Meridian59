@@ -71,7 +71,8 @@ BOFS = hp20pq1.bof \
        anyhpmazeexitpq1.bof \
        anyhpicedragonpq1.bof \
        shal6pq1.bof \
-       shal6pq2.bof
+       shal6pq2.bof \
+       anyhphighsorcerers.bof
       
 
 !include $(KODDIR)\kod.mak
