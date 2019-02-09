@@ -21,6 +21,13 @@ resources:
    ziggurat_altar_room_name = "Apex of the Ziggurat"
    ziggurat_altar_music = aamusic3.mp3
 
+%   high_sorcerers_challenge_msg = \
+%      "~kThe spirit of Vecka tells you, \"This is the nest of the beast. The ice dragon has taken many of our tribe over the years. "
+%      "Kill the monstrous thing and take its eggs for your own!\""
+ 
+   high_sorcerers_challenge_msg = \
+      "~kQua'Kornedrin, High Sorcerer of Fire, shouts, \"We are quite aware of you, barbarian. Set foot on our level, and we will obliterate you. Or, you can still flee.\""
+      
 classvars:
 
    vrName = ziggurat_altar_room_name
@@ -88,6 +95,23 @@ messages:
       }
 
       return;
+   }
+
+   NewHold(what=$)
+   {
+      if what <> $
+         AND IsClass(what,&User)
+%         AND Send(what,@GetVeckaAdvice)
+      {
+         Send(what,@MsgSendUser,#message_rsc=high_sorcerers_challenge_msg);
+      }
+ 
+      if IsClass(what,&Player)
+      {
+         Post(Send(SYS,@GetGameQuestMaintenance),@EvaluatePlayer,#who=what,#vbTriggered=TRUE);
+      }
+
+      propagate;
    }
 
 end
