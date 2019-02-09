@@ -6880,7 +6880,10 @@ messages:
       iRange = Send(stroke_obj,@GetRange,#weapon_used=use_weapon);
 
       % How big are enemies?
-      iRange = iRange + Send(what,@GetEnemyRangeBonus);
+      if IsClass(what,&Battler)
+      {
+         iRange = iRange + Send(what,@GetEnemyRangeBonus);
+      }
 
       % A little fudge factor to account for lag drift, etc.
       %  Don't fudge for ranged weapons.
@@ -7097,7 +7100,11 @@ messages:
       }
 
       oFinalTarget = oTarget;
-      iEnemyRangeBonus = Send(oFinalTarget,@GetEnemyRangeBonus);
+      iEnemyRangeBonus = 0;
+      if IsClass(oFinalTarget,&Battler)
+      {
+         iEnemyRangeBonus = Send(oFinalTarget,@GetEnemyRangeBonus);
+      }
 
       % Strange case of us targeting something that someone else is holding.
       % This cannot be owned by us, since we already checked that.

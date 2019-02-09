@@ -292,6 +292,11 @@ messages:
       {
          return hit_roll + piAttack_bonus;
       }
+      
+      if who = $
+      {
+         return hit_roll + piAttack_bonus;
+      }
 
       oWeapon = Send(who,@GetWeapon);
       if (oWeapon = $)
@@ -316,7 +321,12 @@ messages:
                         #damage=damage,#iState=Nth(i,2));
          }
       }
-      
+ 
+      if who = $
+      {
+         return damage + piDamage_bonus;
+      }
+ 
       % Add damage to non-ranged weapons (and punch)
       oWeapon = Send(who,@GetWeapon);
       if oWeapon = $
