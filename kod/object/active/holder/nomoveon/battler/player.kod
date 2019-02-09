@@ -353,6 +353,7 @@ resources:
    player_race_drow = "%s appears to be of drow ancestry.\n"
    player_race_dragon = "%s appears to be of draconian ancestry.\n"
    player_race_gnome = "%s appears to be of gnomish ancestry.\n"
+   player_race_automaton = "%s appears to be an artificial construct.\n"
 
    player_opt_out_pvp = \
       "%s is a dedicated practitioner of Shal'ille's peaceful path.\n"
@@ -1093,6 +1094,8 @@ resources:
       "You start holding your breath. You're certain you can hold it for %i seconds."
    undine_breath = \
       "Your undine side rejoices. You can hold your breath for %i seconds, but it doesn't matter. You can breathe underwater!"
+   automaton_breath = \
+      "As an automaton, you don't require air the same way others do, but after %i seconds you will still need to surface, or your internal systems will suffer."
    relief_take_breath = \
       "With relief, you take a breath of open air, and begin shaking off your drowning experience."
    take_breath = \
@@ -1753,7 +1756,7 @@ messages:
 
    AddAccumulatedWisdom(amount=0)
    {
-      local bHumanDoubler;
+      local bHumanDoubler,bAutomatonZeroer;
       
       if piAccumulatedWisdom = MAX_KOD_INT
       {
@@ -1780,120 +1783,129 @@ messages:
       {
          bHumanDoubler = 1;
       }
+      
+      if piPlayerRace = RACE_AUTOMATON
+      {
+         bAutomatonZeroer = 0;
+      }
+      else
+      {
+         bAutomatonZeroer = 1;
+      }
 
       if piReincarnations = 0
          AND piAccumulatedWisdom >= 10000
       {
          piReincarnations++;
-         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations*bHumanDoubler);
+         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations*bHumanDoubler*bAutomatonZeroer);
       }
       if piReincarnations = 1
          AND piAccumulatedWisdom >= 20000
       {
          piReincarnations++;
-         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations*bHumanDoubler);
+         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations*bHumanDoubler*bAutomatonZeroer);
       }
       if piReincarnations = 2
          AND piAccumulatedWisdom >= 30000
       {
          piReincarnations++;
-         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations*bHumanDoubler);
+         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations*bHumanDoubler*bAutomatonZeroer);
       }
       if piReincarnations = 3
          AND piAccumulatedWisdom >= 45000
       {
          piReincarnations++;
-         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations*bHumanDoubler);
+         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations*bHumanDoubler*bAutomatonZeroer);
       }
       if piReincarnations = 4
          AND piAccumulatedWisdom >= 80000
       {
          piReincarnations++;
-         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations*bHumanDoubler);
+         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations*bHumanDoubler*bAutomatonZeroer);
       }
       if piReincarnations = 5
          AND piAccumulatedWisdom >= 120000
       {
          piReincarnations++;
-         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations*bHumanDoubler);
+         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations*bHumanDoubler*bAutomatonZeroer);
       }
       if piReincarnations = 6
          AND piAccumulatedWisdom >= 165000
       {
          piReincarnations++;
-         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations*bHumanDoubler);
+         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations*bHumanDoubler*bAutomatonZeroer);
       }
       if piReincarnations = 7
          AND piAccumulatedWisdom >= 205000
       {
          piReincarnations++;
-         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations*bHumanDoubler);
+         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations*bHumanDoubler*bAutomatonZeroer);
       }
       if piReincarnations = 8
          AND piAccumulatedWisdom >= 260000
       {
          piReincarnations++;
-         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations*bHumanDoubler);
+         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations*bHumanDoubler*bAutomatonZeroer);
       }
       if piReincarnations = 9
          AND piAccumulatedWisdom >= 320000
       {
          piReincarnations++;
-         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment_ten_points,#parm1=piReincarnations*bHumanDoubler);
+         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment_ten_points,#parm1=piReincarnations*bHumanDoubler*bAutomatonZeroer);
       }
       if piReincarnations = 10
          AND piAccumulatedWisdom >= 1000000
       {
          piReincarnations++;
-         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations*bHumanDoubler);
+         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations*bHumanDoubler*bAutomatonZeroer);
       }
       if piReincarnations = 11
          AND piAccumulatedWisdom >= 4000000
       {
          piReincarnations++;
-         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations*bHumanDoubler);
+         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations*bHumanDoubler*bAutomatonZeroer);
       }
       if piReincarnations = 12
          AND piAccumulatedWisdom >= 8000000
       {
          piReincarnations++;
-         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations*bHumanDoubler);
+         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations*bHumanDoubler*bAutomatonZeroer);
       }
       if piReincarnations = 13
          AND piAccumulatedWisdom >= 13000000
       {
          piReincarnations++;
-         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations*bHumanDoubler);
+         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations*bHumanDoubler*bAutomatonZeroer);
       }
       if piReincarnations = 14
          AND piAccumulatedWisdom >= 19000000
       {
          piReincarnations++;
-         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations*bHumanDoubler);
+         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations*bHumanDoubler*bAutomatonZeroer);
       }
       if piReincarnations = 15
          AND piAccumulatedWisdom >= 26000000
       {
          piReincarnations++;
-         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations*bHumanDoubler);
+         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations*bHumanDoubler*bAutomatonZeroer);
       }
       if piReincarnations = 16
          AND piAccumulatedWisdom >= 40000000
       {
          piReincarnations++;
-         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations*bHumanDoubler);
+         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations*bHumanDoubler*bAutomatonZeroer);
       }
       if piReincarnations = 17
          AND piAccumulatedWisdom >= 60000000
       {
          piReincarnations++;
-         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations*bHumanDoubler);
+         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations*bHumanDoubler*bAutomatonZeroer);
       }
       if piReincarnations = 18
          AND piAccumulatedWisdom >= 90000000
       {
          piReincarnations++;
-         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations*bHumanDoubler);
+         Send(self,@MsgSendUser,#message_rsc=attained_enlightenment,#parm1=piReincarnations*bHumanDoubler*bAutomatonZeroer);
       }
       return;
    }
@@ -2033,6 +2045,9 @@ messages:
          case RACE_GNOME:
             lBaseEmpowerments = Cons([ATCK_WEAP_NERUDITE, 20],lBaseEmpowerments);
             break;
+         case RACE_AUTOMATON:
+            lBaseEmpowerments = $;
+            break;
       }
 
       if Nth(plPrismsDefeated,NTH_LIGHTNING_PRISM) = 1
@@ -2143,6 +2158,18 @@ messages:
                   [ATCK_WEAP_STING, 10],
                   [-ATCK_SPELL_FIRE, -25]];
       }
+
+      if race = RACE_AUTOMATON
+      {
+         return [ [-ATCK_SPELL_FIRE, -40 + piReincarnations],
+                  [-ATCK_SPELL_COLD, -40 + piReincarnations],
+                  [-ATCK_SPELL_ACID, -40 + piReincarnations],
+                  [-ATCK_SPELL_SHOCK, -40 + piReincarnations],
+                  [ATCK_WEAP_THRUST, 20 + piReincarnations],
+                  [ATCK_WEAP_SLASH, 20 + piReincarnations],
+                  [ATCK_WEAP_BLUDGEON, 20 + piReincarnations],
+                  [ATCK_WEAP_PIERCE, 20 + piReincarnations]];
+      }
       
       return $;
    }
@@ -2244,6 +2271,28 @@ messages:
             case ATCK_WEAP_BITE:
                return 2;
             case ATCK_WEAP_STING:
+               return 2;
+         }
+      }
+      if piPlayerRace = RACE_AUTOMATON
+      {
+         switch(type)
+         {
+            case -ATCK_SPELL_FIRE:
+               return -15;
+            case -ATCK_SPELL_COLD:
+               return -15;
+            case -ATCK_SPELL_SHOCK:
+               return -15;
+            case -ATCK_SPELL_ACID:
+               return -15;
+            case ATCK_WEAP_THRUST:
+               return 2;
+            case ATCK_WEAP_SLASH:
+               return 2;
+            case ATCK_WEAP_PIERCE:
+               return 2;
+            case ATCK_WEAP_BLUDGEON:
                return 2;
          }
       }
@@ -2499,6 +2548,30 @@ messages:
 
          piPlayerRace = race;
       }
+     
+      if race = RACE_AUTOMATON
+      {
+         Send(self,@SetSkinTranslation,#translation=PT_BLUE_TO_GRAY);
+         Send(self,@SetDefaultClothes,#shirt_color=XLAT_TO_GRAY,#pants_color=XLAT_TO_GRAY);
+         plResistances = Send(self,@GetRacialBaseResistances,#race=RACE_AUTOMATON);
+
+         piRacialMightMod = 50;
+         piRacialIntellectMod = 0;
+         piRacialStaminaMod = 50;
+         piRacialAgilityMod = 50;
+         piRacialMysticismMod = 0;
+         piRacialAimMod = 50;
+
+         piNaturalBreathTime = 120000;
+
+         piRacialVigorMod = 50;
+         piStomachMax = 1;
+         piVigor_rest_threshold = Send(self,@CalculateVigorThreshold);
+         piVigor = piVigor_rest_threshold;
+         Post(self,@NewVigor);
+
+         piPlayerRace = race;
+      }
       
       Post(self,@RecalcLight);
 
@@ -2618,6 +2691,12 @@ messages:
       if piPlayerRace = RACE_HUMAN
       {
          return 200 + piReincarnations*2;
+      }
+      
+      % Automatons get no extra points.
+      if piPlayerRace = RACE_AUTOMATON
+      {
+         return 200;
       }
       
       return 200 + piReincarnations;
@@ -3065,7 +3144,12 @@ messages:
 
       ptFortitude = $;
 
-      if Send(self,@HasSkill,#num=SKID_FORTITUDE)
+      if piPlayerRace = RACE_AUTOMATON
+      {
+         iRestAmount = -1000 + ((-9000 * piReincarnations)/20);
+         Send(self,@RestAddExertion,#amount=iRestAmount);
+      }
+      else if Send(self,@HasSkill,#num=SKID_FORTITUDE)
          AND NOT Send(self,@IsResting)
       {
          iRestAmount = -10000;
@@ -3680,6 +3764,10 @@ messages:
       else if i = RACE_GNOME
       {
          AddPacket(4,player_race_gnome,4,Send(self,@GetHeShe,#cap=TRUE));
+      }
+      else if i = RACE_AUTOMATON
+      {
+         AddPacket(4,player_race_automaton,4,Send(self,@GetHeShe,#cap=TRUE));
       }
       else
       {
@@ -15185,6 +15273,8 @@ messages:
             return 35;
          case RACE_GNOME:
             return 30;
+         case RACE_AUTOMATON:
+            return 5;
       }
       return 5;
    }
@@ -20357,6 +20447,9 @@ messages:
          case RACE_DRACONIAN:
             iRacialSizeBonus = 100;
             break;
+         case RACE_AUTOMATON:
+            iRacialSizeBonus = 30;
+            break;
       }
 
       return viBaseSize + iRacialSizeBonus;
@@ -20390,6 +20483,11 @@ messages:
 
    GetBleedPercentage()
    {
+      if piPlayerRace = RACE_AUTOMATON
+      {
+         % Automatons can't bleed.
+         return 0;
+      }
       return Bound(viBaseBleedPercentage - Send(self,@GetAgility)/2,0,$);
    }
 
@@ -20751,6 +20849,10 @@ messages:
          if piPlayerRace = RACE_HALF_UNDINE
          {
             Send(self,@MsgSendUser,#message_rsc=undine_breath,#parm1=iBreathTime/1000);
+         }
+         else if piPlayerRace = RACE_AUTOMATON
+         {
+            Send(self,@MsgSendUser,#message_rsc=automaton_breath,#parm1=iBreathTime/1000);
          }
          else
          {

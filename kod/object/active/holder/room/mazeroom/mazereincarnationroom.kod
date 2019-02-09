@@ -30,10 +30,12 @@ resources:
    genealogy_draconian_name = "One with the Primal"
    genealogy_drow_name = "Eyes in the Dark"
    genealogy_gnome_name = "Alchemical Artificers"
+   genealogy_automaton_name = "Immortal Regret"
 
    genealogy_choose_draconian_trigger = "I wish to reincarnate as draconian."
    genealogy_choose_drow_trigger = "I wish to reincarnate as drow."
    genealogy_choose_gnome_trigger = "I wish to reincarnate as gnomish."
+   genealogy_choose_automaton_trigger = "I wish to reconstruct as automaton."
    
    maze_not_ready_reincarnate = \
       "You cannot reincarnate until you have achieved enough potential "
@@ -256,6 +258,64 @@ resources:
       "and you will forget everything you have learned in this life. "
       "You will be as a newborn, save a little wiser for your experiences.\n"
 
+   genealogy_automaton = \
+      "Throughout the history of Biskalane, there have been many misguided attempts at immortality. "
+      "The first and most obvious was that of fusing one's soul to a constructed chassis that naturally never ages. "
+      "These automatons were mostly machine, and came with the drawbacks any learned mage might expect. "
+      "The machine can be constructed to nearly any physical specification, but takes on no extra attributes regardless "
+      "of the bonded soul's level of enlightenment. The truths of enlightenment are instead used in the construction of "
+      "the chassis itself, improving resistances and durability."
+      "\n\n"
+      "Automatons live what many consider to be a tortured existence. "
+      "They cannot experience many of the earthly pleasures of being alive, since they are not technically alive, "
+      "yet they are subject to most harmful forces, since they are not technically dead. "
+      "Numerous automaton shells remain stored away in the tombs and catacombs of the Sorcerers, "
+      "because the first few fools to undergo the recreation process rightfully warned the rest against following suit."
+      "\n\n"
+      "Those who remain trapped in automaton form are indeed ageless, but should be pitied. "
+      "Many are rusted solid and unmoving in dark spaces under the earth for all time."
+      "\n\n--¶"
+      "AUTOMATON TRAITS"
+      "\n"
+      "\nRacial Resistances & Empowerments:"
+      "\nResistance to pierce, thrust, slash, and bludgeon equal to 20% + 1% per Enlightenment"
+      "\nVulnerability to acid, cold, shock, and fire, equal to -40% + 1% per Enlightenment (-39%, -38%, etc...)"
+      "\nImmune to Bleeding"
+      "\nCannot eat"
+      "\nCannot drink"
+      "\nRegain vigor at Enlightenment-influenced rate without resting"
+      "\n"
+      "\nRacial Stat Maximums:"
+      "\n100 Might"
+      "\n50 Intellect"
+      "\n100 Stamina"
+      "\n100 Agility"
+      "\n50 Mysticism"
+      "\n100 Aim"
+      "\n\n"
+      "Automatons are artificial forms that cannot eat or drink. "
+      "They cannot rest, and gain vigor regularly "
+      "whether they are working, fighting, or standing still. Their rate of vigor regeneration is heavily influenced by their Enlightenments."  
+      "\n\n--¶"
+      "RECONSTRUCTION"
+      "\n\n"
+      "You will not have any additional stat points to distribute, regardless of enlightenment level. "
+      "When you reconstruct, you have a chance to choose your stats anew. "
+      "Should you fail to choose at the time of reconstruction, you will retain one free stat reset that you can use by going to an Elder and saying 'change stats'."
+      "\n\n"
+      "Your guardian angel will never return once you reconstruct."
+      "\n\n"
+      "Automatons are unlike any living being. It is up to you to determine whether this torturous path is right for you."
+      "\n\n--¶"
+      "RECONSTRUCTING AS AUTOMATON"
+      "\n\n"
+      "To reconstruct as an automaton, state thus:"
+      "\n\n"
+      "I wish to reconstruct as automaton."
+      "\n\nThis process will destroy all of your worn and held items, "
+      "and you will forget everything you have learned in this life. "
+      "You will be as a newborn, save a little wiser for your experiences.\n"
+
 classvars:
 
    vrName = room_maze_reincarnation_room_name
@@ -288,6 +348,11 @@ messages:
       Send(self,@NewHold,#what=oBook,
            #new_row=17,#new_col=17,#fine_col=26,#fine_row=52,
            #new_angle=ANGLE_SOUTH_EAST);
+      oBook = Create(&BookPedestal,#Name=genealogy_automaton_name,
+                     #Text=genealogy_automaton);
+      Send(self,@NewHold,#what=oBook,
+           #new_row=16,#new_col=18,#fine_col=43,#fine_row=34,
+           #new_angle=ANGLE_SOUTH);
 
       propagate;
    }
@@ -336,6 +401,12 @@ messages:
       {
          bTryReincarnate = TRUE;
          iReincarnateAsRace = RACE_GNOME;
+      }
+
+      if StringEqual(string,genealogy_choose_automaton_trigger)
+      {
+         bTryReincarnate = TRUE;
+         iReincarnateAsRace = RACE_AUTOMATON;
       }
 
       if bTryReincarnate
