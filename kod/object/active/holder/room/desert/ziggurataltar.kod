@@ -49,6 +49,23 @@ properties:
 
 messages:
 
+   SomethingTryGo(what = $,row = $,col = $,fine_row=$,fine_col=$)
+   {
+      if (row >= 135)
+         AND (row <= 137)
+         AND (col >= 26)
+         AND (col <= 31)
+      {
+         Send(SYS,@UtilGoNearSquare,#what=what,
+              #where=Send(SYS,@FindRoomByNum,#num=RID_PALACE_DUNGEON2),
+              #new_row=40,#new_col=44,#fine_row=60,#fine_col=61,#new_angle=ANGLE_WEST);
+
+         return TRUE;
+      }
+
+      propagate;
+   }
+
    GetRegion()
    {
       return RID_DESERT;
@@ -73,7 +90,17 @@ messages:
 
    PopulateArea()
    {
-      local i, lMonsters, iCol;
+      local i, lMonsters, iCol, each_obj;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         each_obj = Send(self,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&HighSorcerer)
+         {
+            % High sorcerers already present.
+            return;
+         }
+      }
 
       lMonsters = [&HighSorcererFire,
                    &HighSorcererCold,
@@ -94,6 +121,12 @@ messages:
          iCol++;
       }
 
+      return;
+   }
+   
+   DepopulateArea()
+   {
+      % Don't delete high sorcerers.      
       return;
    }
 

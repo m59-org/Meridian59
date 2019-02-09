@@ -101,7 +101,23 @@ messages:
       
       return;
    }
-   
+
+   FirstUserEntered()
+   {
+      ptLightsMoveTimer = CreateTimer(self,@MoveLights,piLightsMoveTime);
+      return;
+   }
+
+   LastUserLeft()
+   {
+      if ptLightsMoveTimer <> $
+      {
+         DeleteTimer(ptLightsMoveTimer);
+         ptLightsMoveTimer = $;
+      }
+      return;
+   }
+
    CreateStandardObjects()
    {
       Send(self,@PlaceLights);
@@ -319,9 +335,7 @@ messages:
          iLightCol = 10;
          iLightRow = iLightRow + 10;
       }
-   
-   
-      ptLightsMoveTimer = CreateTimer(self,@MoveLights,piLightsMoveTime);
+
       return;
    }
 
