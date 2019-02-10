@@ -2756,7 +2756,7 @@ messages:
       }
       
       % Check for Charmed status.
-      iDamage = iDamage - ((iDamage * Send(self,@GetStatusEffect,#type=STATUS_CHARMED))/Send(self,@GetHealth));
+      iDamage = iDamage - ((iDamage * Send(self,@GetStatusEffect,#type=STATUS_CHARMED))/Bound(Send(self,@GetHealth),1,$));
 
       foreach i in Send(self,@GetEnchantmentsByClass,#enchClass=&Hex)
       {
