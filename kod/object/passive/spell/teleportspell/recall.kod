@@ -135,6 +135,16 @@ messages:
 
             propagate;
          }
+         
+         % Teleport to Waylay Oasis if we're past it
+         if Send(oCurrentRoom,@GetRoomNum) >= RID_PALACE_DUNGEON_ENTRANCE
+            AND Send(oCurrentRoom,@GetRoomNum) <= RID_PALACE_DUNGEON_END
+         {
+            oTargetRoom = Send(SYS,@FindRoomByNum,#num=RID_WAYLAYOASIS);
+            Post(oTargetRoom,@Teleport,#what=who);
+
+            propagate;
+         }
 
          % Teleport to Cisterns if we're in the maze
          if Send(oCurrentRoom,@GetRoomNum) >= RID_MAZE_SEWER
