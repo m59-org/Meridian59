@@ -121,5 +121,43 @@ messages:
       return;
    }
 
+   DealDamage(timer=$)
+   {
+      local i, iDamageResult;
+
+      ptDamageTimer = $;
+
+      foreach i in Send(poHostObject,@GetHolderActive)
+      {
+         if IsClass(First(i),&User)
+            AND Send(self,@ReqDealDamage,#who=First(i))
+         {
+            Send(First(i),@MsgSendUser,#message_rsc=viThreatDamageMsg);
+            
+            % Some threats apply other effects.
+            Send(self,@ApplyDirectEffect,#who=First(i));
+            
+            Send(self,@PlayDamageSound,#who=First(i));
+            iDamageResult = Send(First(i),@AssessDamage,#what=self,
+                  #damage=Random(piDamageMin,piDamageMax),
+                  #atype=piDamageTypeAttack,
+                  #aspell=piDamageTypeSpell,#report=piReport,
+                  #bSecondary=TRUE);
+            
+            % We killed someone!
+            if iDamageResult = $
+            {
+               Send(First(i),@Killed);
+               Send(self,@SendDeathMessage,#who=First(i));
+            }
+         }
+      }
+
+      % Some threats change the time dynamically.
+      Send(self,@AlterDamageTime);
+      ptDamageTimer = CreateTimer(self,@DealDamage,piDamageTime);
+      return;
+   }
+
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

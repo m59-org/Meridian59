@@ -105,7 +105,7 @@ messages:
    FirstUserEntered()
    {
       ptLightsMoveTimer = CreateTimer(self,@MoveLights,piLightsMoveTime);
-      return;
+      propagate;
    }
 
    LastUserLeft()
@@ -115,7 +115,7 @@ messages:
          DeleteTimer(ptLightsMoveTimer);
          ptLightsMoveTimer = $;
       }
-      return;
+      propagate;
    }
 
    CreateStandardObjects()
@@ -345,16 +345,16 @@ messages:
 
       ptLightsMoveTimer = $;
       
-      if piWaterUp
-      {
-         piWaterUp = FALSE;
-         Post(self,@SetSector,#sector=WATER_SECTOR_ID,#animation=ANIMATE_CEILING_LIFT,#height=1970,#speed=10);
-      }
-      else
-      {
-         piWaterUp = TRUE;
-         Post(self,@SetSector,#sector=WATER_SECTOR_ID,#animation=ANIMATE_CEILING_LIFT,#height=2000,#speed=10);
-      }
+%      if piWaterUp
+%      {
+%         piWaterUp = FALSE;
+%         Post(self,@SetSector,#sector=WATER_SECTOR_ID,#animation=ANIMATE_CEILING_LIFT,#height=1970,#speed=10);
+%      }
+%      else
+%      {
+%         piWaterUp = TRUE;
+%         Post(self,@SetSector,#sector=WATER_SECTOR_ID,#animation=ANIMATE_CEILING_LIFT,#height=2000,#speed=10);
+%      }
 
       foreach i in plPassive
       {
