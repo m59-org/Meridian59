@@ -4601,7 +4601,7 @@ messages:
    ReincarnateCharacter()
    "Conditionally altered reset"
    {
-      local i, iBonusTPPercentage, iAccumulatedWisdom;
+      local i;
 
       Send(self,@RemoveAllEnchantments,#report=FALSE);
       Send(self,@ClearAllStatusEffects);
@@ -4634,9 +4634,7 @@ messages:
       }
       
       % THIS IS NOW WHERE WE GIVE BONUS TP / AW BASED ON HP
-      iBonusTPPercentage = 100 + Bound((piBase_Max_Health-75)/5,0,25);
-      iAccumulatedWisdom = Send(self,@GetAccumulatedWisdom);
-      Send(self,@AddAccumulatedWisdom,#amount=Bound(((iAccumulatedWisdom*iBonusTPPercentage)/100)-iAccumulatedWisdom,0,$));
+      Send(self,@AddAccumulatedWisdom,#amount=((Send(self,@GetAccumulatedWisdom)/100) * Bound((piBase_Max_Health-75)/5,0,25)));
 
       % Setup some stats
       piBase_max_health = 20;
