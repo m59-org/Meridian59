@@ -17,6 +17,7 @@ BOFS = blind.bof \
        eventhold.bof \
        stun.bof \
        bleed.bof \
-       bestiary.bof
+       bestiary.bof \
+       petrified.bof
 
 !include $(KODDIR)\kod.mak

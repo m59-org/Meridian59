@@ -3005,6 +3005,12 @@ messages:
 
       % Make sure we don't deal negative damage.
       iDamage = Bound(iDamage,0,$);
+
+      % Petrified monsters take no damage
+      if Send(self,@IsEnchanted,#byClass=&Petrified)
+      {
+         iDamage = 0;
+      }
       
       % I hate my target more if he hits me.
       if what = poTarget
@@ -8421,6 +8427,12 @@ messages:
          return;
       }
 
+      % Petrified gives off no light
+      if Send(self,@IsEnchanted,#byClass=&Petrified)
+      {
+         AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC),1,0, 2,LIGHT_WHITE);
+         return;
+      }
       % Hold gives off a purple glow
       if Send(self,@IsEnchanted,#byClass=&Hold)
       {

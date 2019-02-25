@@ -12430,7 +12430,7 @@ messages:
 
    GetExperienceNeeded()
    {
-      local iExperienceNeeded;
+      local iExperienceNeeded, iStamina, iExtraStamina;
       
       if piBase_Max_health >= 100+Send(self,@GetStamina)
       {
@@ -12447,11 +12447,20 @@ messages:
       % for example, 150 150-hp monsters to get your 150th hit point.
       % Monsters give experience equal to their level.
       iExperienceNeeded = (piBase_Max_health+1) * (piBase_Max_health+1);
-      
-      % Reduce experience needed by up to half at 50 stamina.
-      % No bound so that Staminas up to 70 still help.
-      iExperienceNeeded = iExperienceNeeded * (100-Send(self,@GetStamina))/100;
-      
+
+      % Asymptotic equations. Stamina at 100 was instant max, so rework.
+      % Higher reincarnations get some slowdown as well.
+      iStamina = Send(self,@GetStamina);
+      iExtraStamina = 0;
+      if iStamina > 50
+      {
+         iExtraStamina = iStamina - 50;
+         iStamina = 50;
+      }
+      iExperienceNeeded = (iExperienceNeeded * (100-(iStamina+(iExtraStamina/2))))/100;
+
+      iExperienceNeeded = iExperienceNeeded * Bound(piReincarnations/4,1,20);
+
       iExperienceNeeded = bound(iExperienceNeeded,1,$);
       
       return iExperienceNeeded;
@@ -17951,6 +17960,11 @@ messages:
       return (piDrawFX & DRAWFX_BLACK);
    }
 
+   IsPetrified()
+   {
+      return (piDrawfX & DRAWFX_SECONDTRANS);
+   }
+
    IsMorphed()
    {
       return (piFlags & PFLAG_MORPHED);
@@ -18624,6 +18638,19 @@ messages:
          iOverrideLightColor = Send(poOwner,@GetLightingColorOverride,#what=self);
       }
 
+      % Petrified gives off no light
+      if Send(self,@IsEnchanted,#byClass=&Petrified)
+      {
+         if bOverride
+         {
+            AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC),1,0, 2,iOverrideLightColor);
+         }
+         else
+         {
+            AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC),1,0, 2,LIGHT_WHITE);
+         }
+         return;
+      }
       % Hold gives off a purple glow
       if Send(self,@IsEnchanted,#byClass=&Hold)
       {

@@ -388,8 +388,9 @@ messages:
       Send(who,@SetPlayerFlag,#flag=PFLAG_PHASED,#value=FALSE);
       Send(who,@FreezePhaseTimer);
 
-      % Don't override Hold.
+      % Don't override Hold / Petrify.
       if NOT Send(who,@IsEnchanted,#byClass=&Hold)
+         AND NOT NOT Send(who,@IsEnchanted,#byClass=&Petrified)
          AND NOT Send(who,@IsEnchanted,#byClass=&DMHold)
       {
          Send(who,@EffectSendUser,#what=self,#effect=EFFECT_PARALYZE_OFF);
