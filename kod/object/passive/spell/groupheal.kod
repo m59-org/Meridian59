@@ -51,7 +51,7 @@ classvars:
    vrDesc = group_heal_desc_rsc
 
    viSpell_num = SID_GROUP_HEAL
-   viMana = 20
+   viMana = 9
    viSchool = SS_SHALILLE
    viSpell_level = 6
    viMeditate_ratio = 140
@@ -134,7 +134,7 @@ messages:
          return FALSE;
       }
       
-      iManaCost = Send(self,@GetManaCost,#who=who,#iSpellPower=iSpellPower,#lTargets=lTargets) * Length(lTargets);
+      iManaCost = Send(self,@GetManaCost,#who=who,#iSpellPower=iSpellPower,#lTargets=lTargets) + Length(lTargets);
       if IsClass(who,&Player)
          AND Send(who,@GetMana) < iManaCost
       {
@@ -197,7 +197,7 @@ messages:
          propagate;
       }
 
-      iManaCost = Send(self,@GetManaCost,#who=who,#iSpellPower=iSpellPower,#lTargets=lTargets) * Length(lTargets);
+      iManaCost = Send(self,@GetManaCost,#who=who,#iSpellPower=iSpellPower,#lTargets=lTargets) + Length(lTargets);
       if IsClass(who,&Player)
       {
          if Send(who,@GetMana) >= iManaCost
