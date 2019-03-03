@@ -106,9 +106,7 @@ messages:
          iHexAbilityOne = Send(oAttacker,@GetSpellAbility,#spell_num=iChosenHexOne);
          if iHexAbilityOne > 0
          {
-            % Iwodach battle witches can actually apply stronger hexes this way!
-            % Effects adds up to 33 + 33 + 33 + 33, so 132 'spellpower'
-            iEffect = (piBaseEffect + iHexAbilityOne/3 + iAbility/3 + iStat/3)/2;
+            iEffect = (piBaseEffect + iHexAbilityOne/3 + iAbility/3 + iStat/3)/3;
 
             oChosenHexOne = Send(SYS,@FindSpellByNum,#num=iChosenHexOne);
             
@@ -127,7 +125,7 @@ messages:
          iHexAbilityTwo = Send(oAttacker,@GetSpellAbility,#spell_num=iChosenHexTwo);
          if iHexAbilityTwo > 0
          {
-            iEffect = (piBaseEffect + iHexAbilityTwo/3 + iAbility/3 + iStat/3)/2;
+            iEffect = (piBaseEffect + iHexAbilityTwo/3 + iAbility/3 + iStat/3)/3;
 
             oChosenHexTwo = Send(SYS,@FindSpellByNum,#num=iChosenHexTwo);
             
@@ -156,7 +154,7 @@ messages:
       iAbility = Send(who,@GetSkillAbility,#Skill_num=viSkill_num);
       iStat = Send(self,@GetRequisiteStat,#who=who);
 
-      if (bound(iAbility-6,1,93) + iStat/10)/5 <= Random(1,100)
+      if bound(iAbility-6,1,93) + iStat/10 <= Random(1,100)
       {
          return FALSE;
       }
