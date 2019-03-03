@@ -476,7 +476,7 @@ messages:
 
       foreach i in Send(SYS,@GetUsers)
       {
-         if Send(i,@GetMaxHealth) < 100
+         if Send(i,@GetBaseMaxHealth) < 100 + Send(i,@GetStamina) - 5
             OR Send(i,@IsUserInactive)
             OR IsClass(i,&DM)
          {
@@ -546,7 +546,7 @@ messages:
       
       foreach i in Send(SYS,@GetUsers)
       {
-         if Send(i,@GetMaxHealth) < 100
+         if Send(i,@GetBaseMaxHealth) < 100 + Send(i,@GetStamina) - 5
             OR Send(i,@IsUserInactive)
             OR IsClass(i,&DM)
             OR Send(i,@IsRenowned)
@@ -557,56 +557,72 @@ messages:
          curWisdom = Send(i,@GetAccumulatedWisdom);
          iMasteryCount = 0;
 
-         if Send(i,@HasSpell,#num=SID_BOND)
-            OR Send(i,@HasSpell,#num=SID_PORTAL_OF_LIFE)
-            OR Send(i,@HasSpell,#num=SID_HOLY_SHIELD)
+         if Send(i,@HasSpell,#num=SID_PURGE)
+            OR Send(i,@HasSpell,#num=SID_MAJOR_HEAL)
+            OR Send(i,@HasSpell,#num=SID_REVEAL)
+            OR Send(i,@HasSpell,#num=SID_UMBRELLA)
+            OR Send(i,@HasSpell,#num=SID_RIGHTEOUS_INHERITANCE)
+            OR Send(i,@HasSpell,#num=SID_FINAL_RITES)
          {
             iMasteryCount++;
          }
 
-         if Send(i,@HasSpell,#num=SID_GAZE_OF_THE_BASILISK)
-            OR Send(i,@HasSpell,#num=SID_DEATH_RIFT)
+         if Send(i,@HasSpell,#num=SID_BLIND)
+            OR Send(i,@HasSpell,#num=SID_BLOOD_INHERITANCE)
+            OR Send(i,@HasSpell,#num=SID_DEATH_LINK)
+            OR Send(i,@HasSpell,#num=SID_INVISIBILITY)
+            OR Send(i,@HasSpell,#num=SID_NODEBURST)
+            OR Send(i,@HasSpell,#num=SID_SWAP)
          {
             iMasteryCount++;
          }
 
-         if Send(i,@HasSpell,#num=SID_LIGHTNING_WALL)
-            OR Send(i,@HasSpell,#num=SID_LIGHTNING_STRIKE)
-            OR Send(i,@HasSpell,#num=SID_SPORE_BURST)
-            OR Send(i,@HasSpell,#num=SID_SEISMIC_FIST)
+         if Send(i,@HasSpell,#num=SID_EARTHQUAKE)
+            OR Send(i,@HasSpell,#num=SID_LIGHTNING_BOLT)
+            OR Send(i,@HasSpell,#num=SID_RING_OF_FLAMES)
+            OR Send(i,@HasSpell,#num=SID_SANDSTORM)
+            OR Send(i,@HasSpell,#num=SID_SHATTER)
          {
             iMasteryCount++;
          }
 
-         if Send(i,@HasSpell,#num=SID_SHATTERLOCK)
-            OR Send(i,@HasSpell,#num=SID_ANTIMAGIC_AURA)
+         if Send(i,@HasSpell,#num=SID_ARTIFICE)
+            OR Send(i,@HasSpell,#num=SID_EVIL_TWIN)
+            OR Send(i,@HasSpell,#num=SID_MORPH)
+            OR Send(i,@HasSpell,#num=SID_REFLECTION)
          {
             iMasteryCount++;
          }
 
-         if Send(i,@HasSpell,#num=SID_ELUSION)
-            OR Send(i,@HasSpell,#num=SID_SEDUCE)
-            OR Send(i,@HasSpell,#num=SID_SINGULAR_FOCUS)
+         if Send(i,@HasSpell,#num=SID_BINDING_SONG)
+            OR Send(i,@HasSpell,#num=SID_MANA_CONVERGENCE)
+            OR Send(i,@HasSpell,#num=SID_REJUVENATE)
+            OR Send(i,@HasSpell,#num=SID_SPELLBANE)
          {
             iMasteryCount++;
          }
 
-         if Send(i,@HasSpell,#num=SID_CRYSTALIZE_MANA)
+         if Send(i,@HasSpell,#num=SID_HEX_FRAILTY)
+            OR Send(i,@HasSpell,#num=SID_HEX_VULNERABILITY)
+            OR Send(i,@HasSpell,#num=SID_HEX_SLOW)
+            OR Send(i,@HasSpell,#num=SID_HEX_SPIRIT_SHACKLES)
+            OR Send(i,@HasSkill,#num=SKID_AVERSION)
+            OR Send(i,@HasSkill,#num=SKID_UNHALLOWED_RUNES)
          {
             iMasteryCount++;
          }
 
-         if Send(i,@HasSpell,#num=SID_HEX_BLACK_MANTLE)
-            OR Send(i,@HasSkill,#num=SKID_OSTRACIZATION)
-            OR Send(i,@HasSkill,#num=SKID_BLOOD_RUNES)
-            OR Send(i,@HasSkill,#num=SKID_HERMITAGE)
+         if Send(i,@HasSkill,#num=SKID_LINK_FIVE)
+            OR Send(i,@HasSkill,#num=SKID_VOLATILE_FOCUS)
+            OR Send(i,@HasSkill,#num=SKID_INERT_FORM)
          {
             iMasteryCount++;
          }
-
-         if Send(i,@HasSkill,#num=SKID_EMPOWERMENT)
+         
+         if iMasteryCount < 3
          {
-            iMasteryCount++;
+            % Not a triple master wizard, skip
+            continue;
          }
 
          if plGreatestWizard = $
@@ -615,22 +631,8 @@ messages:
          }
          else
          {
-            % Greater level 6 masteries wins first.
-            if iMasteryCount > Nth(plGreatestWizard,4)
+            if curWisdom > Nth(plGreatestWizard,2)
             {
-               plGreatestWizard = [i,curWisdom,Send(i,@GetMaxManaWithoutReservedPenalties),iMasteryCount];
-               continue;
-            }
-            else if iMasteryCount = Nth(plGreatestWizard,4)
-               AND Send(i,@GetMaxManaWithoutReservedPenalties) > Nth(plGreatestWizard,3)
-            {
-               % Max mana wins next.
-               plGreatestWizard = [i,curWisdom,Send(i,@GetMaxManaWithoutReservedPenalties),iMasteryCount];
-               continue;
-            }
-            else if curWisdom > Nth(plGreatestWizard,2)
-            {
-               % Lastly, wisdom.
                plGreatestWizard = [i,curWisdom,Send(i,@GetMaxManaWithoutReservedPenalties),iMasteryCount];
             }
          }
@@ -688,7 +690,7 @@ messages:
       
       foreach i in Send(SYS,@GetUsers)
       {
-         if Send(i,@GetMaxHealth) < 100
+         if Send(i,@GetBaseMaxHealth) < 100 + Send(i,@GetStamina) - 5
             OR Send(i,@IsUserInactive)
             OR IsClass(i,&DM)
             OR Send(i,@IsRenowned)
@@ -699,46 +701,49 @@ messages:
          curWisdom = Send(i,@GetAccumulatedWisdom);
          iMasteryCount = 0;
 
-         if Send(i,@HasSkill,#num=SKID_DISARM)
+         if Send(i,@HasSkill,#num=SKID_CLEAVE)
+            OR Send(i,@HasSkill,#num=SKID_PROFICIENCY_BOW)
          {
             iMasteryCount++;
          }
 
-         if Send(i,@HasSkill,#num=SKID_ZEALOUS_FERVOR)
-            OR Send(i,@HasSkill,#num=SKID_WEAPONMASTER)
+         if Send(i,@HasSkill,#num=SKID_PIETY)
+            OR Send(i,@HasSkill,#num=SKID_CHARGE_ATTACK)
+            OR Send(i,@HasSkill,#num=SKID_BASH)
          {
             iMasteryCount++;
          }
 
-         if Send(i,@HasSkill,#num=SKID_SPY)
-            OR Send(i,@HasSkill,#num=SKID_RECKLESS_HEART)
+         if Send(i,@HasSkill,#num=SKID_BACKSTAB)
+            OR Send(i,@HasSkill,#num=SKID_TIGHT_GRIP)
+            OR Send(i,@HasSkill,#num=SKID_TRACK)
          {
             iMasteryCount++;
+         }
+
+         if Send(i,@HasSpell,#num=SID_ARMOR_OF_GORT)
+            OR Send(i,@HasSpell,#num=SID_HUNT)
+            OR Send(i,@HasSpell,#num=SID_KILLING_FIELDS)
+            OR Send(i,@HasSpell,#num=SID_RESIST_MAGIC)
+         {
+            iMasteryCount++;
+         }
+         
+         if iMasteryCount < 3
+         {
+            % Not a triple master warrior, skip
+            continue;
          }
 
          if plGreatestWarrior = $
          {
-            plGreatestWarrior = [i,curWisdom,Send(i,@GetMaxHealth),iMasteryCount];
+            plGreatestWarrior = [i,curWisdom,Send(i,@GetBaseMaxHealth),iMasteryCount];
          }
          else
          {
-            % Greater level 6 masteries wins first.
-            if iMasteryCount > Nth(plGreatestWarrior,4)
+            if curWisdom > Nth(plGreatestWarrior,2)
             {
-               plGreatestWarrior = [i,curWisdom,Send(i,@GetMaxHealth),iMasteryCount];
-               continue;
-            }
-            else if iMasteryCount = Nth(plGreatestWarrior,4)
-               AND Send(i,@GetMaxHealth) > Nth(plGreatestWarrior,3)
-            {
-               % Max health wins next.
-               plGreatestWarrior = [i,curWisdom,Send(i,@GetMaxHealth),iMasteryCount];
-               continue;
-            }
-            else if curWisdom > Nth(plGreatestWarrior,2)
-            {
-               % Lastly, wisdom.
-               plGreatestWarrior = [i,curWisdom,Send(i,@GetMaxHealth),iMasteryCount];
+               plGreatestWarrior = [i,curWisdom,Send(i,@GetBaseMaxHealth),iMasteryCount];
             }
          }
       }
@@ -795,28 +800,24 @@ messages:
       
       foreach i in Send(SYS,@GetUsers)
       {
-         if Send(i,@GetMaxHealth) < 100
+         if Send(i,@GetBaseMaxHealth) < 100 + Send(i,@GetStamina) - 5
             OR Send(i,@IsUserInactive)
             OR IsClass(i,&DM)
             OR Send(i,@IsRenowned)
-            OR NOT (Send(i,@HasSpell,#num=SID_BOND)
-               OR Send(i,@HasSpell,#num=SID_PORTAL_OF_LIFE)
-               OR Send(i,@HasSpell,#num=SID_HOLY_SHIELD))
+            OR NOT (Send(i,@HasSpell,#num=SID_PURGE)
+               OR Send(i,@HasSpell,#num=SID_MAJOR_HEAL)
+               OR Send(i,@HasSpell,#num=SID_REVEAL)
+               OR Send(i,@HasSpell,#num=SID_UMBRELLA)
+               OR Send(i,@HasSpell,#num=SID_RIGHTEOUS_INHERITANCE)
+               OR Send(i,@HasSpell,#num=SID_FINAL_RITES))
          {
             continue;
          }
 
          curWisdom = Send(i,@GetAccumulatedWisdom);
 
-         % Greater karma wins first.
-         if Send(i,@GetKarma) > Nth(plWisestWithShal,3)
+         if curWisdom > Nth(plWisestWithShal,2)
          {
-            plWisestWithShal = [i,curWisdom,Send(i,@GetKarma)];
-            continue;
-         }
-         else if curWisdom > Nth(plWisestWithShal,2)
-         {
-            % Lastly, wisdom.
             plWisestWithShal = [i,curWisdom,Send(i,@GetKarma)];
          }
       }
@@ -873,27 +874,24 @@ messages:
 
       foreach i in Send(SYS,@GetUsers)
       {
-         if Send(i,@GetMaxHealth) < 100
+         if Send(i,@GetBaseMaxHealth) < 100 + Send(i,@GetStamina) - 5
             OR Send(i,@IsUserInactive)
             OR IsClass(i,&DM)
             OR Send(i,@IsRenowned)
-            OR NOT (Send(i,@HasSpell,#num=SID_GAZE_OF_THE_BASILISK)
-               OR Send(i,@HasSpell,#num=SID_DEATH_RIFT))
+            OR NOT (Send(i,@HasSpell,#num=SID_BLIND)
+               OR Send(i,@HasSpell,#num=SID_BLOOD_INHERITANCE)
+               OR Send(i,@HasSpell,#num=SID_DEATH_LINK)
+               OR Send(i,@HasSpell,#num=SID_INVISIBILITY)
+               OR Send(i,@HasSpell,#num=SID_NODEBURST)
+               OR Send(i,@HasSpell,#num=SID_SWAP))
          {
             continue;
          }
 
          curWisdom = Send(i,@GetAccumulatedWisdom);
 
-         % Lesser karma wins first.
-         if Send(i,@GetKarma) < Nth(plWisestWithQor,3)
+         if curWisdom > Nth(plWisestWithQor,2)
          {
-            plWisestWithQor = [i,curWisdom,Send(i,@GetKarma)];
-            continue;
-         }
-         else if curWisdom > Nth(plWisestWithQor,2)
-         {
-            % Lastly, wisdom.
             plWisestWithQor = [i,curWisdom,Send(i,@GetKarma)];
          }
       }
@@ -950,29 +948,23 @@ messages:
       
       foreach i in Send(SYS,@GetUsers)
       {
-         if Send(i,@GetMaxHealth) < 100
+         if Send(i,@GetBaseMaxHealth) < 100 + Send(i,@GetStamina) - 5
             OR Send(i,@IsUserInactive)
             OR IsClass(i,&DM)
             OR Send(i,@IsRenowned)
-            OR NOT (Send(i,@HasSpell,#num=SID_LIGHTNING_WALL)
-               OR Send(i,@HasSpell,#num=SID_LIGHTNING_STRIKE)
-               OR Send(i,@HasSpell,#num=SID_SPORE_BURST)
-               OR Send(i,@HasSpell,#num=SID_SEISMIC_FIST))
+            OR NOT (Send(i,@HasSpell,#num=SID_EARTHQUAKE)
+               OR Send(i,@HasSpell,#num=SID_LIGHTNING_BOLT)
+               OR Send(i,@HasSpell,#num=SID_RING_OF_FLAMES)
+               OR Send(i,@HasSpell,#num=SID_SANDSTORM)
+               OR Send(i,@HasSpell,#num=SID_SHATTER))
          {
             continue;
          }
 
          curWisdom = Send(i,@GetAccumulatedWisdom);
 
-         % Greater Mysticism wins first.
-         if Send(i,@GetMysticism) > Nth(plWisestWithFaren,3)
+         if curWisdom > Nth(plWisestWithFaren,2)
          {
-            plWisestWithFaren = [i,curWisdom,Send(i,@GetMysticism)];
-            continue;
-         }
-         else if curWisdom > Nth(plWisestWithFaren,2)
-         {
-            % Lastly, wisdom.
             plWisestWithFaren = [i,curWisdom,Send(i,@GetMysticism)];
          }
       }
@@ -1029,28 +1021,22 @@ messages:
       
       foreach i in Send(SYS,@GetUsers)
       {
-         if Send(i,@GetMaxHealth) < 100
+         if Send(i,@GetBaseMaxHealth) < 100 + Send(i,@GetStamina) - 5
             OR Send(i,@IsUserInactive)
             OR IsClass(i,&DM)
             OR Send(i,@IsRenowned)
-            OR NOT (Send(i,@HasSpell,#num=SID_ELUSION)
-               OR Send(i,@HasSpell,#num=SID_SEDUCE)
-               OR Send(i,@HasSpell,#num=SID_SINGULAR_FOCUS))
+            OR NOT (Send(i,@HasSpell,#num=SID_ARTIFICE)
+               OR Send(i,@HasSpell,#num=SID_EVIL_TWIN)
+               OR Send(i,@HasSpell,#num=SID_MORPH)
+               OR Send(i,@HasSpell,#num=SID_REFLECTION))
          {
             continue;
          }
 
          curWisdom = Send(i,@GetAccumulatedWisdom);
 
-         % Greater Intellect wins first.
-         if Send(i,@GetIntellect) > Nth(plWisestWithRiija,3)
+         if curWisdom > Nth(plWisestWithRiija,2)
          {
-            plWisestWithRiija = [i,curWisdom,Send(i,@GetIntellect)];
-            continue;
-         }
-         else if curWisdom > Nth(plWisestWithRiija,2)
-         {
-            % Lastly, wisdom.
             plWisestWithRiija = [i,curWisdom,Send(i,@GetIntellect)];
          }
       }
@@ -1107,26 +1093,22 @@ messages:
       
       foreach i in Send(SYS,@GetUsers)
       {
-         if Send(i,@GetMaxHealth) < 100
+         if Send(i,@GetBaseMaxHealth) < 100 + Send(i,@GetStamina) - 5
             OR Send(i,@IsUserInactive)
             OR IsClass(i,&DM)
             OR Send(i,@IsRenowned)
-            OR NOT (Send(i,@HasSpell,#num=SID_CRYSTALIZE_MANA))
+            OR NOT (Send(i,@HasSpell,#num=SID_BINDING_SONG)
+               OR Send(i,@HasSpell,#num=SID_MANA_CONVERGENCE)
+               OR Send(i,@HasSpell,#num=SID_REJUVENATE)
+               OR Send(i,@HasSpell,#num=SID_SPELLBANE))
          {
             continue;
          }
 
          curWisdom = Send(i,@GetAccumulatedWisdom);
 
-         % Greater mana wins first.
-         if Send(i,@GetMaxManaWithoutReservedPenalties) > Nth(plWisestWithJala,3)
+         if curWisdom > Nth(plWisestWithJala,2)
          {
-            plWisestWithJala = [i,curWisdom,Send(i,@GetMaxManaWithoutReservedPenalties)];
-            continue;
-         }
-         else if curWisdom > Nth(plWisestWithJala,2)
-         {
-            % Lastly, wisdom.
             plWisestWithJala = [i,curWisdom,Send(i,@GetMaxManaWithoutReservedPenalties)];
          }
       }
@@ -1183,27 +1165,22 @@ messages:
       
       foreach i in Send(SYS,@GetUsers)
       {
-         if Send(i,@GetMaxHealth) < 100
+         if Send(i,@GetBaseMaxHealth) < 100 + Send(i,@GetStamina) - 5
             OR Send(i,@IsUserInactive)
             OR IsClass(i,&DM)
             OR Send(i,@IsRenowned)
-            OR NOT (Send(i,@HasSpell,#num=SID_SHATTERLOCK)
-            OR Send(i,@HasSpell,#num=SID_ANTIMAGIC_AURA))
+            OR NOT (Send(i,@HasSpell,#num=SID_ARMOR_OF_GORT)
+               OR Send(i,@HasSpell,#num=SID_HUNT)
+               OR Send(i,@HasSpell,#num=SID_KILLING_FIELDS)
+               OR Send(i,@HasSpell,#num=SID_RESIST_MAGIC))
          {
             continue;
          }
 
          curWisdom = Send(i,@GetAccumulatedWisdom);
 
-         % Greater stamina wins first.
-         if Send(i,@GetStamina) > Nth(plWisestWithKraanan,3)
+         if curWisdom > Nth(plWisestWithKraanan,2)
          {
-            plWisestWithKraanan = [i,curWisdom,Send(i,@GetStamina)];
-            continue;
-         }
-         else if curWisdom > Nth(plWisestWithKraanan,2)
-         {
-            % Lastly, wisdom.
             plWisestWithKraanan = [i,curWisdom,Send(i,@GetStamina)];
          }
       }
@@ -1260,26 +1237,20 @@ messages:
       
       foreach i in Send(SYS,@GetUsers)
       {
-         if Send(i,@GetMaxHealth) < 100
+         if Send(i,@GetBaseMaxHealth) < 100 + Send(i,@GetStamina) - 5
             OR Send(i,@IsUserInactive)
             OR IsClass(i,&DM)
             OR Send(i,@IsRenowned)
-            OR NOT (Send(i,@HasSkill,#num=SKID_DISARM))
+            OR NOT (Send(i,@HasSkill,#num=SKID_CLEAVE)
+               OR Send(i,@HasSkill,#num=SKID_PROFICIENCY_BOW))
          {
             continue;
          }
 
          curWisdom = Send(i,@GetAccumulatedWisdom);
 
-         % Greater agility wins first.
-         if Send(i,@GetAgility) > Nth(plWisestWithWeaponcraft,3)
+         if curWisdom > Nth(plWisestWithWeaponcraft,2)
          {
-            plWisestWithWeaponcraft = [i,curWisdom,Send(i,@GetAgility)];
-            continue;
-         }
-         else if curWisdom > Nth(plWisestWithWeaponcraft,2)
-         {
-            % Lastly, wisdom.
             plWisestWithWeaponcraft = [i,curWisdom,Send(i,@GetAgility)];
          }
       }
@@ -1336,27 +1307,21 @@ messages:
       
       foreach i in Send(SYS,@GetUsers)
       {
-         if Send(i,@GetMaxHealth) < 100
+         if Send(i,@GetBaseMaxHealth) < 100 + Send(i,@GetStamina) - 5
             OR Send(i,@IsUserInactive)
             OR IsClass(i,&DM)
             OR Send(i,@IsRenowned)
-            OR NOT (Send(i,@HasSkill,#num=SKID_ZEALOUS_FERVOR)
-               OR Send(i,@HasSkill,#num=SKID_WEAPONMASTER))
+            OR NOT (Send(i,@HasSkill,#num=SKID_PIETY)
+               OR Send(i,@HasSkill,#num=SKID_CHARGE_ATTACK)
+               OR Send(i,@HasSkill,#num=SKID_BASH))
          {
             continue;
          }
 
          curWisdom = Send(i,@GetAccumulatedWisdom);
 
-         % Greater might wins first.
-         if Send(i,@GetMight) > Nth(plWisestWithKnightcraft,3)
+         if curWisdom > Nth(plWisestWithKnightcraft,2)
          {
-            plWisestWithKnightcraft = [i,curWisdom,Send(i,@GetMight)];
-            continue;
-         }
-         else if curWisdom > Nth(plWisestWithKnightcraft,2)
-         {
-            % Lastly, wisdom.
             plWisestWithKnightcraft = [i,curWisdom,Send(i,@GetMight)];
          }
       }
@@ -1413,27 +1378,21 @@ messages:
       
       foreach i in Send(SYS,@GetUsers)
       {
-         if Send(i,@GetMaxHealth) < 100
+         if Send(i,@GetBaseMaxHealth) < 100 + Send(i,@GetStamina) - 5
             OR Send(i,@IsUserInactive)
             OR IsClass(i,&DM)
             OR Send(i,@IsRenowned)
-            OR NOT (Send(i,@HasSkill,#num=SKID_SPY)
-               OR Send(i,@HasSkill,#num=SKID_RECKLESS_HEART))
+            OR NOT (Send(i,@HasSkill,#num=SKID_BACKSTAB)
+               OR Send(i,@HasSkill,#num=SKID_TIGHT_GRIP)
+               OR Send(i,@HasSkill,#num=SKID_TRACK))
          {
             continue;
          }
 
          curWisdom = Send(i,@GetAccumulatedWisdom);
 
-         % Greater might wins first.
-         if Send(i,@GetAim) > Nth(plWisestWithBanditry,3)
+         if curWisdom > Nth(plWisestWithBanditry,2)
          {
-            plWisestWithBanditry = [i,curWisdom,Send(i,@GetAim)];
-            continue;
-         }
-         else if curWisdom > Nth(plWisestWithBanditry,2)
-         {
-            % Lastly, wisdom.
             plWisestWithBanditry = [i,curWisdom,Send(i,@GetAim)];
          }
       }
@@ -1490,26 +1449,21 @@ messages:
       
       foreach i in Send(SYS,@GetUsers)
       {
-         if Send(i,@GetMaxHealth) < 100
+         if Send(i,@GetBaseMaxHealth) < 100 + Send(i,@GetStamina) - 5
             OR Send(i,@IsUserInactive)
             OR IsClass(i,&DM)
             OR Send(i,@IsRenowned)
-            OR NOT (Send(i,@HasSkill,#num=SKID_EMPOWERMENT))
+            OR NOT (Send(i,@HasSkill,#num=SKID_LINK_FIVE)
+               OR Send(i,@HasSkill,#num=SKID_VOLATILE_FOCUS)
+               OR Send(i,@HasSkill,#num=SKID_INERT_FORM))
          {
             continue;
          }
 
          curWisdom = Send(i,@GetAccumulatedWisdom);
 
-         % Greater Mysticism wins first.
-         if Send(i,@GetMysticism) > Nth(plWisestWithSorcery,3)
+         if curWisdom > Nth(plWisestWithSorcery,2)
          {
-            plWisestWithSorcery = [i,curWisdom,Send(i,@GetMysticism)];
-            continue;
-         }
-         else if curWisdom > Nth(plWisestWithSorcery,2)
-         {
-            % Lastly, wisdom.
             plWisestWithSorcery = [i,curWisdom,Send(i,@GetMysticism)];
          }
       }
@@ -1566,29 +1520,24 @@ messages:
       
       foreach i in Send(SYS,@GetUsers)
       {
-         if Send(i,@GetMaxHealth) < 100
+         if Send(i,@GetBaseMaxHealth) < 100 + Send(i,@GetStamina) - 5
             OR Send(i,@IsUserInactive)
             OR IsClass(i,&DM)
             OR Send(i,@IsRenowned)
-            OR NOT (Send(i,@HasSpell,#num=SID_HEX_BLACK_MANTLE)
-               OR Send(i,@HasSkill,#num=SKID_OSTRACIZATION)
-               OR Send(i,@HasSkill,#num=SKID_BLOOD_RUNES)
-               OR Send(i,@HasSkill,#num=SKID_HERMITAGE))
+            OR NOT (Send(i,@HasSpell,#num=SID_HEX_FRAILTY)
+               OR Send(i,@HasSpell,#num=SID_HEX_VULNERABILITY)
+               OR Send(i,@HasSpell,#num=SID_HEX_SLOW)
+               OR Send(i,@HasSpell,#num=SID_HEX_SPIRIT_SHACKLES)
+               OR Send(i,@HasSkill,#num=SKID_AVERSION)
+               OR Send(i,@HasSkill,#num=SKID_UNHALLOWED_RUNES))
          {
             continue;
          }
 
          curWisdom = Send(i,@GetAccumulatedWisdom);
 
-         % Greater Mysticism wins first.
-         if Send(i,@GetMysticism) > Nth(plWisestWithWitchery,3)
+         if curWisdom > Nth(plWisestWithWitchery,2)
          {
-            plWisestWithWitchery = [i,curWisdom,Send(i,@GetMysticism)];
-            continue;
-         }
-         else if curWisdom > Nth(plWisestWithWitchery,2)
-         {
-            % Lastly, wisdom.
             plWisestWithWitchery = [i,curWisdom,Send(i,@GetMysticism)];
          }
       }
