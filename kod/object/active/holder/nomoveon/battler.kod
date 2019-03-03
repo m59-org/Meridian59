@@ -713,16 +713,7 @@ messages:
          {
             % It's a resistance to spell type
             iResType = -iResType;
-            
-            if bEleZero
-               AND (iResType = ATCK_SPELL_SHOCK
-                  OR iResType = ATCK_SPELL_FIRE
-                  OR iResType = ATCK_SPELL_COLD
-                  OR iResType = ATCK_SPELL_ACID)
-            {
-               continue;
-            }
-            
+
             if iResType = ATCK_SPELL_ALL
                AND aspell <> 0
             {
@@ -733,7 +724,18 @@ messages:
             if (aspell & iResType) <> 0
             {
                iResistance = Nth(j,2);
-               
+
+               if bEleZero
+                  AND (iResType = ATCK_SPELL_SHOCK
+                     OR iResType = ATCK_SPELL_FIRE
+                     OR iResType = ATCK_SPELL_COLD
+                     OR iResType = ATCK_SPELL_ACID
+                     OR iResType = ATCK_SPELL_HOLY
+                     OR iResType = ATCK_SPELL_UNHOLY)
+               {
+                  iResistance = iResistance - 25;
+               }
+
                if iResistance > iMaxRes
                {
                   iMaxRes = iResistance;

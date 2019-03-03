@@ -98,6 +98,12 @@ messages:
       {
          return FALSE;
       }
+      
+      if IsClass(oTarget,&Player)
+         AND Send(oTarget,@IsUsingA,#class=&ShalilleCrest)
+      {
+         return FALSE;
+      }
 
       % Check for spell called with $ iDuration, apply default time if so.
       if iDuration = $
@@ -181,9 +187,10 @@ messages:
    {
       local iDuration;
 
-      % 20 - 218 seconds
+      % 2000 - 21800 seconds
       iDuration = 20 + (iSpellPower*2);
       iDuration = iDuration * 1000;
+      iDuration = iDuration * 100;
 
       return iDuration;
    }
