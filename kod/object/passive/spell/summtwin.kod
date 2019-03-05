@@ -27,6 +27,9 @@ resources:
    summonEvilTwin_only_one = \
       "%s is already being pursued by an evil twin."
 
+   temporarily_disabled_evil_twin = \
+      "This spell has been temporarily disabled pending rework."
+
    summonEvilTwin_sound = rmirrimg.wav
 
 classvars:
@@ -89,7 +92,7 @@ messages:
       }
       
       if Send(oTarget,@GetOwner) = $
-         OR IsClass(oTarget,&SurvivalRoom)
+         OR IsClass(Send(oTarget,@GetOwner),&SurvivalRoom)
       {
          return FALSE;
       }
@@ -157,6 +160,15 @@ messages:
       {
          return;
       }
+      
+      if Send(First(lTargets),@GetOwner) = $
+         OR IsClass(Send(First(lTargets),@GetOwner),&SurvivalRoom)
+      {
+         return FALSE;
+      }
+      
+      Send(who,@MsgSendUser,#message_rsc=temporarily_disabled_evil_twin);
+      propagate;
 
       Send(who,@MsgSendUser,#message_rsc=summonEvilTwin_cast_rsc);
 
