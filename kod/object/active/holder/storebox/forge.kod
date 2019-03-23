@@ -62,6 +62,11 @@ resources:
    forge_category_choice_command_shock = "shock"
    forge_category_choice_command_holy = "holy"
    forge_category_choice_command_unholy = "unholy"
+   forge_category_choice_command_quake = "quake"
+   forge_category_choice_command_nerudite = "nerudite"
+   forge_category_choice_command_illusion = "illusion"
+   
+   forge_category_not_available_now = "Something much greater will be needed to access such arcane magics..."
    
    forge_mod_choice_fire_resistance = "fire resistance"
    forge_mod_choice_cold_resistance = "cold resistance"
@@ -410,6 +415,14 @@ messages:
          AND Send(self,@CanBeForged,#what=poHeldItem)
          AND type = SAY_NORMAL
       {
+         if StringEqual(String,forge_category_choice_command_quake)
+            OR StringEqual(String,forge_category_choice_command_nerudite)
+            OR StringEqual(String,forge_category_choice_command_illusion)
+         {
+            Post(what,@MsgSendUser,#message_rsc=forge_category_not_available_now);
+            return;
+         }
+
          if StringEqual(String,forge_category_choice_command_fire)
          {
             Post(what,@MsgSendUser,#message_rsc=fire_realm_contains);
