@@ -15,6 +15,18 @@ Forge is StorageBox
 constants:
 
    CHEST_ITEMS_MAX = 1
+   
+   TIER_ZERO_POWER = 0
+   TIER_ONE_POWER = 1
+   TIER_TWO_POWER = 2
+   TIER_THREE_POWER = 3
+   TIER_FOUR_POWER = 4
+   TIER_FIVE_POWER = 5
+   TIER_SIX_POWER = 6
+   TIER_SEVEN_POWER = 7
+   TIER_EIGHT_POWER = 8
+   TIER_NINE_POWER = 9
+   TIER_TEN_POWER = 10
 
    include blakston.khd
 
@@ -27,21 +39,18 @@ resources:
       "What magics the Adventurer's League have learned from "
       "its members may be imbued into items here by a process of "
       "forging and inlaying of runes."
-      "\n\nPlace the object inside to begin the forging process."
-
-
-   category_fire = "fire"
-   category_cold = "cold"
-   category_acid = "acid"
-   category_shock = "shock"
-   category_holy = "holy"
-   category_unholy = "unholy"
-   category_nerudite = "nerudite"
-   category_quake = "quake"
-   category_illusion = "illusion"
+      "\n\nPlace the object inside to begin the forging process. "
+      "\n\nWhile you are present in the area, your item "
+      "cannot be taken from the forge by anyone else."
    
    forge_powered_up_msg = \
       "The power of the forge grows by %i points in the realm of %s."
+
+   forge_active_item = \
+      "Your %s becomes surrounded in free-flowing magical energies! To strike while the iron is hot, choose a forging category by speaking one out loud. This forge "
+      "has the capability to smelt in the realms of: "
+   forge_category_prompt = \
+      "%s - tier %i"
 
 classvars:
 
@@ -166,6 +175,7 @@ messages:
       {
          poHeldItem = what;
          pbActive = TRUE;
+         Send(self,@InformRoomForgingReady);
          Post(poOwner,@SomethingChanged,#what=self);
       }
       propagate;
@@ -200,46 +210,39 @@ messages:
    InformRoomOfPowerUp(iAmount=0,iType=FORGE_FIRE)
    {
       local i, rString;
-      
-      rString = category_fire;
-      if iType = FORGE_COLD
-      {
-         rString = category_cold;
-      }
-      else if iType = FORGE_ACID
-      {
-         rString = category_acid;
-      }
-      else if iType = FORGE_SHOCK
-      {
-         rString = category_shock;
-      }
-      else if iType = FORGE_HOLY
-      {
-         rString = category_holy;
-      }
-      else if iType = FORGE_UNHOLY
-      {
-         rString = category_unholy;
-      }
-      else if iType = FORGE_NERUDITE
-      {
-         rString = category_nerudite;
-      }
-      else if iType = FORGE_QUAKE
-      {
-         rString = category_quake;
-      }
-      else if iType = FORGE_ILLUSION
-      {
-         rString = category_illusion;
-      }
-   
+
       foreach i in Send(poOwner,@GetHolderActive)
       {
          if IsClass(First(i),&Player)
          {
-            Send(First(i),@MsgSendUser,#message_rsc=forge_powered_up_msg,#parm1=iAmount,#parm2=rString);
+            Send(First(i),@MsgSendUser,#message_rsc=forge_powered_up_msg,#parm1=iAmount,#parm2=Send(SYS,@GetForgeCategory,#iType=iType));
+         }
+      }
+      return;
+   }
+   
+   InformRoomForgingReady()
+   {
+      local i, index, lForgePowers;
+      
+      lForgePowers = Send(SETTINGS_OBJECT,@GetLeagueForgePowers);
+
+      foreach i in Send(poOwner,@GetHolderActive)
+      {
+         if IsClass(First(i),&Player)
+         {
+            Send(First(i),@MsgSendUser,#message_rsc=forge_active_item,#parm1=Send(poHeldItem,@Getname));
+            index = FORGE_FIRE;
+            while index <= Length(lForgePowers)
+            {
+               if Nth(lForgePowers,index) > 0
+               {
+                  Send(First(i),@MsgSendUser,#message_rsc=forge_category_prompt,
+                                             #parm1=Send(SYS,@GetForgeCategory,#iType=index),
+                                             #parm2=Send(self,@CalculateTier,#iPower=Nth(lForgePowers,index)));
+               }
+               index++;
+            }
          }
       }
       return;
@@ -249,6 +252,7 @@ messages:
    {
       local i;
       
+      poForger = $;
       poHeldItem = $;
       pbActive = FALSE;
       Post(poOwner,@SomethingChanged,#what=self);
@@ -302,6 +306,63 @@ messages:
    SomeoneSaid(what=$,string=$,type=$)
    {
       return;
+   }
+
+   ReqTaker(what=$,taker=$)
+   {
+      if poForger <> $
+         AND poForger <> taker
+         AND Send(poForger,@GetOwner) = Send(self,@GetOwner)
+      {
+         return FALSE;
+      }
+
+      propagate;
+   }
+
+   CalculateTier(iPower=0)
+   {
+      if iPower > 1000000
+      {
+         return 10;
+      }
+      if iPower > 7500000
+      {
+         return 9;
+      }
+      if iPower > 4800000
+      {
+         return 8;
+      }
+      if iPower > 240000
+      {
+         return 7;
+      }
+      if iPower > 120000
+      {
+         return 6;
+      }
+      if iPower > 60000
+      {
+         return 5;
+      }
+      if iPower > 30000
+      {
+         return 4;
+      }
+      if iPower > 15000
+      {
+         return 3;
+      }
+      if iPower > 5000
+      {
+         return 2;
+      }
+      if iPower > 0
+      {
+         return 1;
+      }
+      return 0;
    }
 
 end
