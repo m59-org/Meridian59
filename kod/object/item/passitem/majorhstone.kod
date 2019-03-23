@@ -67,12 +67,16 @@ properties:
    ptRespawn = $           % Time until dropped stone respawns.
    
    viObject_flags = OF_APPLYABLE | OF_GETTABLE
+   
+   piForgeValue = 1500
 
 messages:
 
    Constructor()
    {
       piItem_flags = Send(SYS,@EncodeTwoColorXLAT,#color1=viColor);
+      
+      piForgeValue = Random(1000,2500);
 
       propagate;
    }
@@ -404,6 +408,16 @@ messages:
       }
 
       return UNKNOWN_ERROR;
+   }
+   
+   GetForgeValue()
+   {
+      return piForgeValue;
+   }
+   
+   GetForgeType()
+   {
+      return FORGE_FIRE;
    }
 
 end

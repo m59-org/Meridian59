@@ -404,6 +404,9 @@ properties:
    % Does the server have an issue with TOF mules? Turn this on
    pbBootLowbiesFromGuildsUponDying = FALSE
 
+   % Of the format [fire, cold, acid, shock, holy, unholy, nerudite, quake, illusion, unknown, unknown, unknown]
+   plLeagueForgePowers = $
+
 messages:
 
    Constructor()
@@ -1122,6 +1125,29 @@ messages:
    BootLowbiesFromGuildsUponDeath()
    {
       return pbBootLowbiesFromGuildsUponDying;
+   }
+
+   SetupLeaguePowers()
+   {
+      if plLeagueForgePowers = $
+      {
+         plLeagueForgePowers = [0,0,0,0,0,0,0,0,0,0,0,0];
+      }
+      return;
+   }
+
+   GetLeagueForgePowers()
+   {
+      return plLeagueForgePowers;
+   }
+   
+   AddLeagueForgePower(iAmount=0,iType=FORGE_FIRE)
+   {
+      if plLeagueForgePowers <> $
+      {
+         SetNth(plLeagueForgePowers,iType,Nth(plLeagueForgePowers,iType)+iAmount);
+      }
+      return;
    }
 
 end

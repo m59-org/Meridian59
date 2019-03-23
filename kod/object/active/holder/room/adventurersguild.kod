@@ -70,7 +70,7 @@ resources:
       "whatever Meridian's adventurers make of it. "
       "The buildings and facilities that make up the League shall expand over time "
       "to match the needs and contributions of its members."
-      
+
 classvars:
 
    vrName = room_name_adventurers_guild
@@ -109,6 +109,15 @@ messages:
 
    SomeoneSaid(what=$,string=$,type=$)
    {
+      local i;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&Forge)
+         {
+            Send(First(i),@SomeoneSaid,#what=what,#string=string,#type=type);
+         }
+      }
       propagate;
    }
 

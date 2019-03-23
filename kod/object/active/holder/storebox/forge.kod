@@ -29,6 +29,20 @@ resources:
       "forging and inlaying of runes."
       "\n\nPlace the object inside to begin the forging process."
 
+
+   category_fire = "fire"
+   category_cold = "cold"
+   category_acid = "acid"
+   category_shock = "shock"
+   category_holy = "holy"
+   category_unholy = "unholy"
+   category_nerudite = "nerudite"
+   category_quake = "quake"
+   category_illusion = "illusion"
+   
+   forge_powered_up_msg = \
+      "The power of the forge grows by %i points in the realm of %s."
+
 classvars:
 
    vrName = Forge_name_rsc
@@ -43,6 +57,7 @@ properties:
    pbActive = FALSE
    
    poHeldItem = $
+   poForger = $
 
 messages:
 
@@ -65,6 +80,8 @@ messages:
       if what <> $
       {
          if IsClass(what,&ElementalChunk)
+            OR IsClass(what,&MajorHeartStone)
+            OR IsClass(what,&HeartStone)
          {
             return TRUE;
          }
@@ -80,7 +97,35 @@ messages:
          return FALSE;
       }
 
+      if NOT Send(self,@CanPowerUpForge,#lItems=[what])
+         AND NOT NOT Send(self,@CanBeForged,#lItems=[what])
+      {
+         return FALSE;
+      }
+
+      Post(self,@RegisterForger,#what=what,#who=who);
       propagate;
+   }
+
+   RegisterForger(what=$,who=$)
+   {
+      if who <> $
+      {
+         poForger = who;
+      }
+      return;
+   }
+   
+   UnregisterForger()
+   {
+      if poHeldItem <> $
+         AND poForger <> $
+      {
+         Send(poForger,@NewHold,#what=poHeldItem);
+         poHeldItem = $;
+      }
+      poForger = $;
+      return;
    }
 
    CanDepositItems(lItems = $)
@@ -95,8 +140,12 @@ messages:
       plItemsStored = Send(self,@GetHolderPassive);
       if plItemsStored <> $
          AND (Length(plItemsStored) + Length(lItems)) > CHEST_ITEMS_MAX
-         AND NOT (Length(lItems) = 1
-            AND IsClass(First(lItems),&NumberItem))
+      {
+         return FALSE;
+      }
+      
+      if (IsClass(First(lItems),&NumberItem)
+         AND NOT IsClass(First(lItems),&HeartStone))
       {
          return FALSE;
       }
@@ -106,7 +155,13 @@ messages:
 
    NewHold(what=$)
    {
-      local i;
+      if Send(self,@CanPowerUpForge,#what=what)
+      {
+         Send(self,@PowerUpForge,#what=what);
+         Post(what,@Delete);
+         propagate;
+      }
+
       if Send(self,@CanBeForged,#what=what)
       {
          poHeldItem = what;
@@ -114,6 +169,80 @@ messages:
          Post(poOwner,@SomethingChanged,#what=self);
       }
       propagate;
+   }
+
+   PowerUpForge(what=$)
+   {
+      if what <> $
+      {
+         if IsClass(what,&ElementalChunk)
+         {
+            Send(SETTINGS_OBJECT,@AddLeagueForgePower,#iAmount=Send(what,@GetForgeValue),#iType=Send(what,@GetForgeType));
+            Send(self,@InformRoomOfPowerUp,#iAmount=Send(what,@GetForgeValue),#iType=Send(what,@GetForgeType));
+            return;
+         }
+         if IsClass(what,&MajorHeartStone)
+         {
+            Send(SETTINGS_OBJECT,@AddLeagueForgePower,#iAmount=Send(what,@GetForgeValue),#iType=Send(what,@GetForgeType));
+            Send(self,@InformRoomOfPowerUp,#iAmount=Send(what,@GetForgeValue),#iType=Send(what,@GetForgeType));
+            return;
+         }
+         if IsClass(what,&HeartStone)
+         {
+            Send(SETTINGS_OBJECT,@AddLeagueForgePower,#iAmount=Send(what,@GetForgeValue)*Send(what,@GetNumber),#iType=Send(what,@GetForgeType));
+            Send(self,@InformRoomOfPowerUp,#iAmount=Send(what,@GetForgeValue),#iType=Send(what,@GetForgeType));
+            return;
+         }
+      }
+      return;
+   }
+   
+   InformRoomOfPowerUp(iAmount=0,iType=FORGE_FIRE)
+   {
+      local i, rString;
+      
+      rString = category_fire;
+      if iType = FORGE_COLD
+      {
+         rString = category_cold;
+      }
+      else if iType = FORGE_ACID
+      {
+         rString = category_acid;
+      }
+      else if iType = FORGE_SHOCK
+      {
+         rString = category_shock;
+      }
+      else if iType = FORGE_HOLY
+      {
+         rString = category_holy;
+      }
+      else if iType = FORGE_UNHOLY
+      {
+         rString = category_unholy;
+      }
+      else if iType = FORGE_NERUDITE
+      {
+         rString = category_nerudite;
+      }
+      else if iType = FORGE_QUAKE
+      {
+         rString = category_quake;
+      }
+      else if iType = FORGE_ILLUSION
+      {
+         rString = category_illusion;
+      }
+   
+      foreach i in Send(poOwner,@GetHolderActive)
+      {
+         if IsClass(First(i),&Player)
+         {
+            Send(First(i),@MsgSendUser,#message_rsc=forge_powered_up_msg,#parm1=iAmount,#parm2=rString);
+         }
+      }
+      return;
    }
 
    LeaveHold(what=$)
@@ -134,7 +263,7 @@ messages:
       {
          AddPacket(2,LIGHT_FLAG_ON);
          % Intensity (out of 255)
-         AddPacket(1,255);
+         AddPacket(1,1);
          % Color
          AddPacket(2,LIGHT_BRED);
          return;
@@ -168,6 +297,11 @@ messages:
    GetActive()
    {
       return pbActive;
+   }
+
+   SomeoneSaid(what=$,string=$,type=$)
+   {
+      return;
    }
 
 end
