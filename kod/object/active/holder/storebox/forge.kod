@@ -97,6 +97,14 @@ resources:
    forge_mod_choice_holy_damage = "holy damage"
    forge_mod_choice_unholy_damage = "unholy damage"
    
+   forge_mod_choice_bludgeon_damage = "bludgeon damage"
+   forge_mod_choice_thrust_damage = "thrust damage"
+   forge_mod_choice_slash_damage = "slash damage"
+   forge_mod_choice_pierce_damage = "pierce damage"
+   forge_mod_choice_weapon_damage = "weapon damage"
+   
+   forge_mod_choice_magic_damage = "magic damage"
+   
    forge_mod_choice_defense = "defense"
    forge_mod_choice_armor = "armor"
    forge_mod_choice_bludgeon_resistance = "bludgeon resistance"
@@ -116,7 +124,11 @@ resources:
       "~BSpeak the name of an enchantment to attempt to forge it.~B The available enchantments from the realm of holiness are:"
    unholy_realm_contains = \
       "~BSpeak the name of an enchantment to attempt to forge it.~B The available enchantments from the realm of unholiness are:"
-
+   quake_realm_contains = \
+      "~BSpeak the name of an enchantment to attempt to forge it.~B The available enchantments from the realm of kinetic energies are:"
+   illusion_realm_contains = \
+      "~BSpeak the name of an enchantment to attempt to forge it.~B The available enchantments from the realm of unbridled magic are:"
+      
    already_has_a_mod_of_that_type = \
       "The item already has an enchantment of that type!"
    cannot_generate_that_mod = \
@@ -415,14 +427,59 @@ messages:
          AND Send(self,@CanBeForged,#what=poHeldItem)
          AND type = SAY_NORMAL
       {
-         if StringEqual(String,forge_category_choice_command_quake)
-            OR StringEqual(String,forge_category_choice_command_nerudite)
+         if StringEqual(String,forge_category_choice_command_nerudite)
             OR StringEqual(String,forge_category_choice_command_illusion)
          {
             Post(what,@MsgSendUser,#message_rsc=forge_category_not_available_now);
             return;
          }
 
+         if StringEqual(String,forge_category_choice_command_illusion)
+         {
+            Post(what,@MsgSendUser,#message_rsc=illusion_realm_contains);
+            iCalculatedTier = Send(self,@CalculateTier,#iPower=Nth(Send(SETTINGS_OBJECT,@GetLeagueForgePowers),FORGE_ILLUSION));
+            if iCalculatedTier = 0
+            {
+               Post(what,@MsgSendUser,#message_rsc=need_to_init_category);
+               return;
+            }
+            if iCalculatedTier >= 9
+            {
+               Post(what,@MsgSendUser,#message_rsc=forge_mod_choice_magic_damage);
+            }
+            return;
+         }
+         if StringEqual(String,forge_category_choice_command_quake)
+         {
+            Post(what,@MsgSendUser,#message_rsc=quake_realm_contains);
+            iCalculatedTier = Send(self,@CalculateTier,#iPower=Nth(Send(SETTINGS_OBJECT,@GetLeagueForgePowers),FORGE_QUAKE));
+            if iCalculatedTier = 0
+            {
+               Post(what,@MsgSendUser,#message_rsc=need_to_init_category);
+               return;
+            }
+            if iCalculatedTier >= 1
+            {
+               Post(what,@MsgSendUser,#message_rsc=forge_mod_choice_bludgeon_damage);
+            }
+            if iCalculatedTier >= 3
+            {
+               Post(what,@MsgSendUser,#message_rsc=forge_mod_choice_thrust_damage);
+            }
+            if iCalculatedTier >= 5
+            {
+               Post(what,@MsgSendUser,#message_rsc=forge_mod_choice_slash_damage);
+            }
+            if iCalculatedTier >= 7
+            {
+               Post(what,@MsgSendUser,#message_rsc=forge_mod_choice_pierce_damage);
+            }
+            if iCalculatedTier >= 9
+            {
+               Post(what,@MsgSendUser,#message_rsc=forge_mod_choice_weapon_damage);
+            }
+            return;
+         }
          if StringEqual(String,forge_category_choice_command_fire)
          {
             Post(what,@MsgSendUser,#message_rsc=fire_realm_contains);
@@ -608,6 +665,86 @@ messages:
                Post(what,@MsgSendUser,#message_rsc=forge_mod_choice_unholy_damage);
             }
             return;
+         }
+
+         if StringEqual(String,forge_mod_choice_bludgeon_damage)
+         {
+            if Send(self,@CalculateTier,#iPower=Nth(Send(SETTINGS_OBJECT,@GetLeagueForgePowers),FORGE_QUAKE)) >= 1
+            {
+               Post(self,@AttemptForging,#who=what,#oItem=poHeldItem,#cClass=&BludgeonEmpowermentMod,#iType=FORGE_QUAKE);
+               return;
+            }
+            else
+            {
+               Post(what,@MsgSendUser,#message_rsc=need_higher_tier,#parm1=1);
+               return;
+            }
+         }
+         if StringEqual(String,forge_mod_choice_thrust_damage)
+         {
+            if Send(self,@CalculateTier,#iPower=Nth(Send(SETTINGS_OBJECT,@GetLeagueForgePowers),FORGE_QUAKE)) >= 3
+            {
+               Post(self,@AttemptForging,#who=what,#oItem=poHeldItem,#cClass=&ThrustEmpowermentMod,#iType=FORGE_QUAKE);
+               return;
+            }
+            else
+            {
+               Post(what,@MsgSendUser,#message_rsc=need_higher_tier,#parm1=3);
+               return;
+            }
+         }
+         if StringEqual(String,forge_mod_choice_slash_damage)
+         {
+            if Send(self,@CalculateTier,#iPower=Nth(Send(SETTINGS_OBJECT,@GetLeagueForgePowers),FORGE_QUAKE)) >= 5
+            {
+               Post(self,@AttemptForging,#who=what,#oItem=poHeldItem,#cClass=&SlashEmpowermentMod,#iType=FORGE_QUAKE);
+               return;
+            }
+            else
+            {
+               Post(what,@MsgSendUser,#message_rsc=need_higher_tier,#parm1=5);
+               return;
+            }
+         }
+         if StringEqual(String,forge_mod_choice_pierce_damage)
+         {
+            if Send(self,@CalculateTier,#iPower=Nth(Send(SETTINGS_OBJECT,@GetLeagueForgePowers),FORGE_QUAKE)) >= 7
+            {
+               Post(self,@AttemptForging,#who=what,#oItem=poHeldItem,#cClass=&PierceEmpowermentMod,#iType=FORGE_QUAKE);
+               return;
+            }
+            else
+            {
+               Post(what,@MsgSendUser,#message_rsc=need_higher_tier,#parm1=7);
+               return;
+            }
+         }
+         if StringEqual(String,forge_mod_choice_weapon_damage)
+         {
+            if Send(self,@CalculateTier,#iPower=Nth(Send(SETTINGS_OBJECT,@GetLeagueForgePowers),FORGE_QUAKE)) >= 9
+            {
+               Post(self,@AttemptForging,#who=what,#oItem=poHeldItem,#cClass=&WeaponEmpowermentMod,#iType=FORGE_QUAKE);
+               return;
+            }
+            else
+            {
+               Post(what,@MsgSendUser,#message_rsc=need_higher_tier,#parm1=9);
+               return;
+            }
+         }
+         
+         if StringEqual(String,forge_mod_choice_magic_damage)
+         {
+            if Send(self,@CalculateTier,#iPower=Nth(Send(SETTINGS_OBJECT,@GetLeagueForgePowers),FORGE_ILLUSION)) >= 9
+            {
+               Post(self,@AttemptForging,#who=what,#oItem=poHeldItem,#cClass=&MagicEmpowermentMod,#iType=FORGE_ILLUSION);
+               return;
+            }
+            else
+            {
+               Post(what,@MsgSendUser,#message_rsc=need_higher_tier,#parm1=9);
+               return;
+            }
          }
 
          if StringEqual(String,forge_mod_choice_fire_resistance)
