@@ -24,9 +24,9 @@ resources:
    item_this = "This "
    item_blank_template = "%q"
 
-   % item_desc_template is vrDesc, item attributes, object attributes,
+   % item_desc_template is vrDesc, item attributes, object attributes, magic mods,
    % variable item appends, item stats, item condition.
-   item_desc_template = "%r%r%r%r%r%r%r"
+   item_desc_template = "%r%r%r%r%r%r%r%r%r"
    resource_blank = ""
 
    item_try_use_cursed_rsc = \
@@ -56,7 +56,7 @@ resources:
    item_condition_broken = " is covered in filth and ripped beyond use."
    item_cond_master = "\n%s%s%s (%i/%i)"
    special_properties_header = \
-      "\n\nThis item has the following properties:\n"
+      "\n\nThis item has the following overall properties:\n"
    item_stats_range = "%i range\n"
    item_stats_offense = "%i melee offense rating bonus\n"
    item_stats_ranged_offense = "%i ranged offense rating bonus\n"
@@ -100,13 +100,54 @@ resources:
    item_stats_hex_resistance_add = "%i%% hex resistance\n"
    enchanted_gear_indestructible = "\nThis enchanted %s is indestructible."
    enchanted_gear_plural_indestructible = "\nThese enchanted %s are indestructible."
+   
+   weapon_agility_mod = "\n+%i Agility"
+   weapon_might_mod = "\n+%i Might"
+   weapon_aim_mod = "\n+%i Aim"
+   caster_int_mod_desc = "\n+%i Intellect"
+   caster_myst_mod_desc = "\n+%i Mysticism"
+   caster_stam_mod_desc = "\n+%i Stamina"
+   health_mod_desc = "\n+%i Health"
+   mana_mod_desc = "\n+%i Mana"
+   vigor_mod_desc = "\n+%i Vigor"
+   offense_mod_desc = "\n+%i offense rating"
+   ranged_offense_mod_desc = "\n+%i ranged offense rating"
+   melee_weapon_damage_mod_desc = "\n+%i melee weapon base damage"
+   fire_resist_mod_desc = "\n+%i\% fire resistance"
+   cold_resist_mod_desc = "\n+%i\% cold resistance"
+   acid_resist_mod_desc = "\n+%i\% acid resistance"
+   shock_resist_mod_desc = "\n+%i\% shock resistance"
+   holy_resist_mod_desc = "\n+%i\% holy resistance"
+   unholy_resist_mod_desc = "\n+%i\% unholy resistance"
+   quake_resist_mod_desc = "\n+%i\% quake resistance"
+   slash_resist_mod_desc = "\n+%i\% slash resistance"
+   thrust_resist_mod_desc = "\n+%i\% thrust resistance"
+   pierce_resist_mod_desc = "\n+%i\% pierce resistance"
+   bludgeon_resist_mod_desc = "\n+%i\% bludgeon resistance"
+   armor_mod_desc = "\n+%i\% weapon resistance"
+   defense_mod_desc = "\n+%i defense rating"
+   fire_empowerment_mod_desc = "\n+%i\% fire damage"
+   cold_empowerment_mod_desc = "\n+%i\% cold damage"
+   shock_empowerment_mod_desc = "\n+%i\% shock damage"
+   acid_empowerment_mod_desc = "\n+%i\% acid damage"
+   holy_empowerment_mod_desc = "\n+%i\% holy damage"
+   unholy_empowerment_mod_desc = "\n+%i\% unholy damage"
+   pierce_empowerment_mod_desc = "\n+%i\% pierce damage"
+   thrust_empowerment_mod_desc = "\n+%i\% thrust damage"
+   slash_empowerment_mod_desc = "\n+%i\% slash damage"
+   bludgeon_empowerment_mod_desc = "\n+%i\% bludgeon damage"
+   weapon_empowerment_mod_desc = "\n+%i\% weapon damage"
+   magic_empowerment_mod_desc = "\n+%i\% magic damage"
+ 
+   enchantment_mods_attribute_rsc = \
+      "\n\nThis %s has %i %s."
+   enchantment_mods_sing = "enchantment"
+   enchantment_mods_plur = "enchantments"
 
    item_level_master = \
-      "\n\nIt has an item level of %i and has been imbued "
-      "with %i magical modifications."
+      "\n\nIt has an item level of %i."
    item_level_gauntlets = \
-      "\n\nThey have an item level of %i and have been imbued "
-      "with %i magical modifications."
+      "\n\nThey have an item level of %i."
    shard_applying = \
       "The %s acquires a magical bonus of %i %s!"
    shard_armor_mod_percentage = \
@@ -1253,6 +1294,21 @@ messages:
             Send(i,@AttributeDesc);
          }
       }
+      
+      if plEnchantmentMods = $
+      {
+         AddPacket(4,system_blank_resource);
+      }
+      else
+      {
+         % Support for displaying up to 6 magic mods.
+         if Length(plEnchantmentMods) > 1
+         {
+            AddPacket(4,Send(SYS,@AddResourceTemplate,
+                              #iNum=Length(plEnchantmentMods)));
+         }
+         Send(self,@EnchantmentModsDesc,#lEnchantmentMods=plEnchantmentMods);
+      }
 
       % Special things for number items, etc.
       Send(self,@AppendDesc);
@@ -1341,13 +1397,12 @@ messages:
          OR IsClass(self,&DefenseModifier)
          OR IsClass(self,&Ring)
       {
-         AddPacket(4,item_level_master, 4,piItemLevel,
-                   4,Send(self,@GetMagicModsNumber));
+         AddPacket(4,item_level_master, 4,piItemLevel);
       }
       else if IsClass(self,&Gauntlet)
+         OR IsClass(self,&Glove)
       {
-         AddPacket(4,item_level_gauntlets, 4,piItemLevel,
-                   4,Send(self,@GetMagicModsNumber));
+         AddPacket(4,item_level_gauntlets, 4,piItemLevel);
       }
       else
       {
@@ -3476,6 +3531,175 @@ messages:
    GetBleedResistance()
    {
       return 0;
+   }
+   
+   EnchantmentModsDesc(lEnchantmentMods=$)
+   {
+      local lMod;
+
+      if Length(lEnchantmentMods) = 1
+      {
+         AddPacket(4,enchantment_mods_attribute_rsc, 4,Send(self,@GetName),
+                   4,Length(lEnchantmentMods), 4,enchantment_mods_sing);
+      }
+      else
+      {
+         AddPacket(4,enchantment_mods_attribute_rsc, 4,Send(self,@GetName),
+                   4,Length(lEnchantmentMods), 4,enchantment_mods_plur);
+      }
+
+      foreach lMod in lEnchantmentMods
+      {
+         if First(lMod) = &WeaponAgilityMod
+         {
+            AddPacket(4,weapon_agility_mod, 4, Nth(lMod,2));
+         }
+         else if First(lMod) = &WeaponMightMod
+         {
+            AddPacket(4,weapon_might_mod, 4, Nth(lMod,2));
+         }
+         else if First(lMod) = &WeaponAimMod
+         {
+            AddPacket(4,weapon_aim_mod, 4, Nth(lMod,2));
+         }
+         else if First(lMod) = &HealthMod
+         {
+            AddPacket(4,health_mod_desc, 4, Nth(lMod,2));
+         }
+         else if First(lMod) = &ManaMod
+         {
+            AddPacket(4,mana_mod_desc, 4, Nth(lMod,2));
+         }
+         else if First(lMod) = &VigorMod
+         {
+            AddPacket(4,vigor_mod_desc, 4, Nth(lMod,2));
+         }
+         else if First(lMod) = &CasterIntMod
+         {
+            AddPacket(4,caster_int_mod_desc, 4, Nth(lMod,2));
+         }
+         else if First(lMod) = &CasterStamMod
+         {
+            AddPacket(4,caster_stam_mod_desc, 4, Nth(lMod,2));
+         }
+         else if First(lMod) = &CasterMystMod
+         {
+            AddPacket(4,caster_myst_mod_desc, 4, Nth(lMod,2));
+         }
+         else if First(lMod) = &OffenseMod
+         {
+            AddPacket(4,offense_mod_desc, 4, Nth(lMod,2));
+         }
+         else if First(lMod) = &RangedOffenseMod
+         {
+            AddPacket(4,ranged_offense_mod_desc, 4, Nth(lMod,2));
+         }
+         else if First(lMod) = &WeaponDamageMod
+         {
+            AddPacket(4,melee_weapon_damage_mod_desc, 4, Nth(lMod,2));
+         }
+         else if First(lMod) = &FireResistanceMod
+         {
+            AddPacket(4,fire_resist_mod_desc, 4, Nth(lMod,2));
+         }
+         else if First(lMod) = &ColdResistanceMod
+         {
+            AddPacket(4,cold_resist_mod_desc, 4, Nth(lMod,2));
+         }
+         else if First(lMod) = &AcidResistanceMod
+         {
+            AddPacket(4,acid_resist_mod_desc, 4, Nth(lMod,2));
+         }
+         else if First(lMod) = &ShockResistanceMod
+         {
+            AddPacket(4,shock_resist_mod_desc, 4, Nth(lMod,2));
+         }
+         else if First(lMod) = &HolyResistanceMod
+         {
+            AddPacket(4,holy_resist_mod_desc, 4, Nth(lMod,2));
+         }
+         else if First(lMod) = &QuakeResistanceMod
+         {
+            AddPacket(4,quake_resist_mod_desc, 4, Nth(lMod,2));
+         }
+         else if First(lMod) = &SlashResistanceMod
+         {
+            AddPacket(4,slash_resist_mod_desc, 4, Nth(lMod,2));
+         }
+         else if First(lMod) = &BludgeonResistanceMod
+         {
+            AddPacket(4,bludgeon_resist_mod_desc, 4, Nth(lMod,2));
+         }
+         else if First(lMod) = &ThrustResistanceMod
+         {
+            AddPacket(4,thrust_resist_mod_desc, 4, Nth(lMod,2));
+         }
+         else if First(lMod) = &PierceResistanceMod
+         {
+            AddPacket(4,pierce_resist_mod_desc, 4, Nth(lMod,2));
+         }
+         else if First(lMod) = &ArmorMod
+         {
+            AddPacket(4,armor_mod_desc, 4, Nth(lMod,2));
+         }
+         else if First(lMod) = &DefenseMod
+         {
+            AddPacket(4,defense_mod_desc, 4, Nth(lMod,2));
+         }
+         else if First(lMod) = &FireEmpowermentMod
+         {
+            AddPacket(4,fire_empowerment_mod_desc, 4, Nth(lMod,2));
+         }
+         else if First(lMod) = &ColdEmpowermentMod
+         {
+            AddPacket(4,cold_empowerment_mod_desc, 4, Nth(lMod,2));
+         }
+         else if First(lMod) = &ShockEmpowermentMod
+         {
+            AddPacket(4,shock_empowerment_mod_desc, 4, Nth(lMod,2));
+         }
+         else if First(lMod) = &AcidEmpowermentMod
+         {
+            AddPacket(4,acid_empowerment_mod_desc, 4, Nth(lMod,2));
+         }
+         else if First(lMod) = &HolyEmpowermentMod
+         {
+            AddPacket(4,holy_empowerment_mod_desc, 4, Nth(lMod,2));
+         }
+         else if First(lMod) = &UnholyEmpowermentMod
+         {
+            AddPacket(4,unholy_empowerment_mod_desc, 4, Nth(lMod,2));
+         }
+         else if First(lMod) = &PierceEmpowermentMod
+         {
+            AddPacket(4,pierce_empowerment_mod_desc, 4, Nth(lMod,2));
+         }
+         else if First(lMod) = &ThrustEmpowermentMod
+         {
+            AddPacket(4,thrust_empowerment_mod_desc, 4, Nth(lMod,2));
+         }
+         else if First(lMod) = &SlashEmpowermentMod
+         {
+            AddPacket(4,slash_empowerment_mod_desc, 4, Nth(lMod,2));
+         }
+         else if First(lMod) = &BludgeonEmpowermentMod
+         {
+            AddPacket(4,bludgeon_empowerment_mod_desc, 4, Nth(lMod,2));
+         }
+         else if First(lMod) = &WeaponEmpowermentMod
+         {
+            AddPacket(4,weapon_empowerment_mod_desc, 4, Nth(lMod,2));
+         }
+         else if First(lMod) = &MagicEmpowermentMod
+         {
+            AddPacket(4,magic_empowerment_mod_desc, 4, Nth(lMod,2));
+         }
+         else
+         {
+            AddPacket(4, system_blank_resource);
+         }
+      }
+      return;
    }
 
 end
