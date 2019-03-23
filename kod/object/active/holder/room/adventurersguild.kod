@@ -39,7 +39,7 @@ constants:
 resources:
 
    room_adventurers_guild = adventurersguild.roo
-   room_name_adventurers_guild = "Adventurer's Guild of Meridian"
+   room_name_adventurers_guild = "Adventurer's League of Meridian"
    adventurers_guild_music = bridge.mp3
 
    adventurers_guild_highest_health = \
@@ -64,6 +64,13 @@ resources:
    adventurers_guild_highest_damage_spell = \
       "This is a statue of %q, the record holder for highest damage spell, at %i damage."
 
+   adventurers_guild_intro = \
+      "Welcome to the Headquarters of the Adventurer's League. "
+      "Given official charter by Princess Kateriina, the League is, and shall be, "
+      "whatever Meridian's adventurers make of it. "
+      "The buildings and facilities that make up the League shall expand over time "
+      "to match the needs and contributions of its members."
+      
 classvars:
 
    vrName = room_name_adventurers_guild
@@ -86,6 +93,8 @@ messages:
 
    CreateStandardObjects()
    {
+      Send(self,@NewHold,#what=Create(&Forge),
+           #new_row=19,#new_col=40,#fine_row=16,#fine_col=32);
       propagate;
    }
 
@@ -93,6 +102,7 @@ messages:
    {
       plExits = $;
 
+      plExits = Cons([ 25, 48, RID_CORNOTH, 21, 17, ROTATE_NONE ],plExits);
 
       return;
    }
@@ -110,6 +120,15 @@ messages:
    GetRegion()
    {
       return RID_DEFAULT;
+   }
+   
+   NewHold(what=$)
+   {
+      if IsClass(what,&Player)
+      {
+         Post(what,@MsgSendUser,#message_rsc=adventurers_guild_intro);
+      }
+      propagate;
    }
 
 end

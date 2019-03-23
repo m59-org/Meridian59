@@ -1,0 +1,174 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Forge is StorageBox
+
+% 
+
+constants:
+
+   CHEST_ITEMS_MAX = 1
+
+   include blakston.khd
+
+resources:
+
+   Forge_name_rsc = "magical forge"
+   Forge_icon_rsc = anvil.bgf
+
+   Forge_desc_rsc = \
+      "What magics the Adventurer's League have learned from "
+      "its members may be imbued into items here by a process of "
+      "forging and inlaying of runes."
+      "\n\nPlace the object inside to begin the forging process."
+
+classvars:
+
+   vrName = Forge_name_rsc
+   vrIcon = Forge_icon_rsc
+   vrDesc = Forge_desc_rsc
+
+   viBulk_hold_max = $
+   viWeight_hold_max = $
+
+properties:
+
+   pbActive = FALSE
+   
+   poHeldItem = $
+
+messages:
+
+   CanBeForged(what=$)
+   {
+      if what <> $
+      {
+         if IsClass(what,&DefenseModifier)
+            OR IsClass(what,&Weapon)
+         {
+            return TRUE;
+         }
+      }
+
+      return FALSE;
+   }
+
+   CanPowerUpForge(what=$)
+   {
+      if what <> $
+      {
+         if IsClass(what,&ElementalChunk)
+         {
+            return TRUE;
+         }
+      }
+
+      return FALSE;
+   }
+
+   ReqNewHold(what = $, who = $)
+   {
+      if NOT Send(self,@CanDepositItems,#lItems=[what])
+      {
+         return FALSE;
+      }
+
+      propagate;
+   }
+
+   CanDepositItems(lItems = $)
+   {
+      local plItemsStored;
+
+      if lItems = $
+      {
+         return FALSE;
+      }
+
+      plItemsStored = Send(self,@GetHolderPassive);
+      if plItemsStored <> $
+         AND (Length(plItemsStored) + Length(lItems)) > CHEST_ITEMS_MAX
+         AND NOT (Length(lItems) = 1
+            AND IsClass(First(lItems),&NumberItem))
+      {
+         return FALSE;
+      }
+
+      return TRUE;
+   }
+
+   NewHold(what=$)
+   {
+      local i;
+      if Send(self,@CanBeForged,#what=what)
+      {
+         poHeldItem = what;
+         pbActive = TRUE;
+         Post(poOwner,@SomethingChanged,#what=self);
+      }
+      propagate;
+   }
+
+   LeaveHold(what=$)
+   {
+      local i;
+      
+      poHeldItem = $;
+      pbActive = FALSE;
+      Post(poOwner,@SomethingChanged,#what=self);
+
+      propagate;
+   }
+
+   % Give forge a glow when active.
+   SendLightingInformation()
+   {
+      if pbActive
+      {
+         AddPacket(2,LIGHT_FLAG_ON);
+         % Intensity (out of 255)
+         AddPacket(1,255);
+         % Color
+         AddPacket(2,LIGHT_BRED);
+         return;
+      }
+
+      propagate;
+   }
+
+   SendAnimation()
+   {
+      AddPacket(1,ANIMATE_NONE,2,1);
+
+      return;
+   }
+   
+   GetForgingItem()
+   {
+      return poHeldItem;
+   }
+   
+   Delete()
+   {
+      if poHeldItem <> $
+      {
+         Send(poHeldItem,@Delete);
+      }
+      poHeldItem = $;
+      propagate;
+   }
+
+   GetActive()
+   {
+      return pbActive;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
