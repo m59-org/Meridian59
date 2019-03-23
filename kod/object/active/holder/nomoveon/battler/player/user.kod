@@ -5379,7 +5379,7 @@ messages:
             % First use case
             if plNoxiousStrikeChosenHexes = $
             {
-               plNoxiousStrikeChosenHexes = [$,$];
+               plNoxiousStrikeChosenHexes = [$,$,$];
             }
             StringSubstitute(String,"I wish my noxious strikes to hex my enemy with ","");
             iSpellNum = Send(SYS,@FindSpellNumByString,#string=String);
@@ -5400,12 +5400,12 @@ messages:
          }
          if StringContain(String,"I wish my noxious strikes to also hex my enemy with ")
             AND Send(self,@HasSkill,#num=SKID_VILE_TOUCH)
-            AND Send(self,@HasSkill,#num=SKID_BLOOD_RUNES)
+            AND Send(self,@GetCasterMaxHexes) > 1
          {
             % First use case
             if plNoxiousStrikeChosenHexes = $
             {
-               plNoxiousStrikeChosenHexes = [$,$];
+               plNoxiousStrikeChosenHexes = [$,$,$];
             }
             StringSubstitute(String,"I wish my noxious strikes to also hex my enemy with ","");
             iSpellNum = Send(SYS,@FindSpellNumByString,#string=String);
@@ -5420,6 +5420,40 @@ messages:
             else
             {
                SetNth(plNoxiousStrikeChosenHexes,2,iSpellNum);
+               Send(self,@MsgSendUser,#message_rsc=vile_touch_choice_two_made,#parm1=Send(Send(SYS,@FindSpellByNum,#num=iSpellNum),@GetName));
+            }
+            return;
+         }
+         if StringContain(String,"I wish to use my witchery crest to empower my noxious strikes to hex my enemy with ")
+            AND Send(self,@HasSkill,#num=SKID_VILE_TOUCH)
+            AND Send(self,@GetCasterMaxHexes) > 1
+         {
+            if Length(plNoxiousStrikeChosenHexes) = 2
+            {
+               plNoxiousStrikeChosenHexes = Cons($,plNoxiousStrikeChosenHexes);
+               SetNth(plNoxiousStrikeChosenHexes,1,Nth(plNoxiousStrikeChosenHexes,2));
+               SetNth(plNoxiousStrikeChosenHexes,2,Nth(plNoxiousStrikeChosenHexes,3));
+               SetNth(plNoxiousStrikeChosenHexes,3,$);
+            }
+
+            % First use case
+            if plNoxiousStrikeChosenHexes = $
+            {
+               plNoxiousStrikeChosenHexes = [$,$,$];
+            }
+            StringSubstitute(String,"I wish to use my witchery crest to empower my noxious strikes to hex my enemy with ","");
+            iSpellNum = Send(SYS,@FindSpellNumByString,#string=String);
+
+            if iSpellNum = 0
+               OR Send(SYS,@FindSpellByNum,#num=iSpellNum) = $
+               OR NOT IsClass(Send(SYS,@FindSpellByNum,#num=iSpellNum),&Hex)
+               OR NOT Send(self,@HasSpell,#num=iSpellNum)
+            {
+               Send(self,@MsgSendUser,#message_rsc=vile_touch_spell_not_found);
+            }
+            else
+            {
+               SetNth(plNoxiousStrikeChosenHexes,3,iSpellNum);
                Send(self,@MsgSendUser,#message_rsc=vile_touch_choice_two_made,#parm1=Send(Send(SYS,@FindSpellByNum,#num=iSpellNum),@GetName));
             }
             return;
@@ -5439,6 +5473,10 @@ messages:
             if Nth(plNoxiousStrikeChosenHexes,2) <> $
             {
                Send(self,@MsgSendUser,#message_rsc=vile_touch_choice_two_will_cast,#parm1=Send(Send(SYS,@FindSpellByNum,#num=Nth(plNoxiousStrikeChosenHexes,2)),@GetName));
+            }
+            if Nth(plNoxiousStrikeChosenHexes,3) <> $
+            {
+               Send(self,@MsgSendUser,#message_rsc=vile_touch_choice_two_will_cast,#parm1=Send(Send(SYS,@FindSpellByNum,#num=Nth(plNoxiousStrikeChosenHexes,3)),@GetName));
             }
 
             return;
@@ -11954,6 +11992,16 @@ messages:
       }
       return Nth(plNoxiousStrikeChosenHexes,2);
    }
+
+   GetChosenHexThree()
+   {
+      if plNoxiousStrikeChosenHexes = $
+      {
+         return $;
+      }
+      return Nth(plNoxiousStrikeChosenHexes,3);
+   }
+
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
