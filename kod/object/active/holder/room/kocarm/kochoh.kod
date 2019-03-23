@@ -296,6 +296,23 @@ messages:
          return;
       }
 
+      % Get rid of renowned flags
+      Send(First(plGreatestAdventurer),@SetRenowned,#value=FALSE);
+      Send(First(plGreatestWarrior),@SetRenowned,#value=FALSE);
+      Send(First(plGreatestWizard),@SetRenowned,#value=FALSE);
+      Send(First(plWisestWithFaren),@SetRenowned,#value=FALSE);
+      Send(First(plWisestWithRiija),@SetRenowned,#value=FALSE);
+      Send(First(plWisestWithBanditry),@SetRenowned,#value=FALSE);
+      Send(First(plWisestWithWitchery),@SetRenowned,#value=FALSE);
+      Send(First(plWisestWithWeaponcraft),@SetRenowned,#value=FALSE);
+      Send(First(plWisestWithKnightcraft),@SetRenowned,#value=FALSE);
+      Send(First(plWisestWithJala),@SetRenowned,#value=FALSE);
+      Send(First(plWisestWithShal),@SetRenowned,#value=FALSE);
+      Send(First(plWisestWithQor),@SetRenowned,#value=FALSE);
+      Send(First(plWisestWithKraanan),@SetRenowned,#value=FALSE);
+      Send(First(plWisestWithAlchemy),@SetRenowned,#value=FALSE);
+      Send(First(plWisestWithSorcery),@SetRenowned,#value=FALSE);
+
       Send(self,@SetHighestWisdom);
       Send(Nth(plStatues,1),@SetStatue,#original=First(plGreatestAdventurer));
       
@@ -479,6 +496,7 @@ messages:
          if Send(i,@GetBaseMaxHealth) < 100 + Send(i,@GetStamina) - 5
             OR Send(i,@IsUserInactive)
             OR IsClass(i,&DM)
+            OR Send(i,@IsRenowned)
          {
             continue;
          }
