@@ -5378,6 +5378,7 @@ messages:
          {
             % First use case
             if plNoxiousStrikeChosenHexes = $
+               OR Length(plNoxiousStrikeChosenHexes) < 3
             {
                plNoxiousStrikeChosenHexes = [$,$,$];
             }
@@ -5404,6 +5405,7 @@ messages:
          {
             % First use case
             if plNoxiousStrikeChosenHexes = $
+               OR Length(plNoxiousStrikeChosenHexes) < 3
             {
                plNoxiousStrikeChosenHexes = [$,$,$];
             }
@@ -5428,7 +5430,7 @@ messages:
             AND Send(self,@HasSkill,#num=SKID_VILE_TOUCH)
             AND Send(self,@GetCasterMaxHexes) > 1
          {
-            if Length(plNoxiousStrikeChosenHexes) = 2
+            if Length(plNoxiousStrikeChosenHexes) < 3
             {
                plNoxiousStrikeChosenHexes = Cons($,plNoxiousStrikeChosenHexes);
                SetNth(plNoxiousStrikeChosenHexes,1,Nth(plNoxiousStrikeChosenHexes,2));
@@ -5438,6 +5440,7 @@ messages:
 
             % First use case
             if plNoxiousStrikeChosenHexes = $
+               OR Length(plNoxiousStrikeChosenHexes) < 3
             {
                plNoxiousStrikeChosenHexes = [$,$,$];
             }
@@ -5466,15 +5469,19 @@ messages:
             {
                Send(self,@MsgSendUser,#message_rsc=vile_touch_no_hexes);
             }
-            if Nth(plNoxiousStrikeChosenHexes,1) <> $
+            if plNoxiousStrikeChosenHexes <> $
+               AND Nth(plNoxiousStrikeChosenHexes,1) <> $
             {
                Send(self,@MsgSendUser,#message_rsc=vile_touch_choice_one_will_cast,#parm1=Send(Send(SYS,@FindSpellByNum,#num=Nth(plNoxiousStrikeChosenHexes,1)),@GetName));
             }
-            if Nth(plNoxiousStrikeChosenHexes,2) <> $
+            if plNoxiousStrikeChosenHexes <> $
+               AND Nth(plNoxiousStrikeChosenHexes,2) <> $
             {
                Send(self,@MsgSendUser,#message_rsc=vile_touch_choice_two_will_cast,#parm1=Send(Send(SYS,@FindSpellByNum,#num=Nth(plNoxiousStrikeChosenHexes,2)),@GetName));
             }
-            if Nth(plNoxiousStrikeChosenHexes,3) <> $
+            if plNoxiousStrikeChosenHexes <> $
+               AND Length(plNoxiousStrikeChosenHexes) > 2
+               AND Nth(plNoxiousStrikeChosenHexes,3) <> $
             {
                Send(self,@MsgSendUser,#message_rsc=vile_touch_choice_two_will_cast,#parm1=Send(Send(SYS,@FindSpellByNum,#num=Nth(plNoxiousStrikeChosenHexes,3)),@GetName));
             }
@@ -11995,7 +12002,8 @@ messages:
 
    GetChosenHexThree()
    {
-      if plNoxiousStrikeChosenHexes = $
+      if Length(plNoxiousStrikeChosenHexes) < 3
+         OR plNoxiousStrikeChosenHexes = $
       {
          return $;
       }
