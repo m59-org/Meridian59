@@ -7709,7 +7709,7 @@ messages:
       iDamage = iDamage + iDamageBonus;
       
       % Check for Charmed status.
-      iDamage = iDamage - ((iDamage * Send(self,@GetStatusEffect,#type=STATUS_CHARMED))/Send(self,@GetHealth));
+      iDamage = iDamage - ((iDamage * Send(self,@GetStatusEffect,#type=STATUS_CHARMED))/Bound(Send(self,@GetHealth),1,$));
 
       return iDamage;
    }
@@ -8932,6 +8932,7 @@ messages:
       }
 
       if IsClass(what,&Monster)
+         AND NOT IsClass(what,&Marauder)
       {
          if damage <> $
          {
@@ -9030,6 +9031,7 @@ messages:
             Send(poOwner,@SomethingWaveRoom,#what=self,#wave_rsc=rSound);
 
             if IsClass(what,&Player)
+               OR IsClass(what,&Marauder)
             {
                Send(poOwner,@SomethingWaveRoom,#what=what,
                      #wave_rsc=Send(what,@GetOuchSound));
@@ -9060,6 +9062,7 @@ messages:
             Send(poOwner,@SomethingWaveRoom,#what=self,#wave_rsc=rSound);
 
             if IsClass(what,&Player)
+               OR IsClass(what,&Marauder)
             {
                Send(poOwner,@SomethingWaveRoom,#what=what,
                      #wave_rsc=Send(what,@GetOuchSound));
@@ -9089,6 +9092,7 @@ messages:
       Send(poOwner,@SomethingWaveRoom,#what=self,#wave_rsc=rSound);
 
       if IsClass(what,&Player)
+         OR IsClass(what,&Marauder)
       {
          Send(poOwner,@SomethingWaveRoom,#what=what,#wave_rsc=Send(what,@GetOuchSound));
       }

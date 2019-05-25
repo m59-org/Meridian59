@@ -116,6 +116,7 @@ messages:
       {
          skin_color = XLAT_TO_SKIN2;
       }
+
       XLAT = Send(SYS,@EncodeTwoColorXLAT,#color1=translation,#color2=skin_color);
       Send(self,@SetPaletteTranslation,#translation=XLAT);
 
@@ -127,6 +128,12 @@ messages:
          }
 
          if IsClass(poOwner,&User)
+         {
+            Send(poOwner,@SomethingChanged,#what=self);
+            Send(self,@DoPlayerArt);
+         }
+         
+         if IsClass(poOwner,&Monster)
          {
             Send(poOwner,@SomethingChanged,#what=self);
             Send(self,@DoPlayerArt);
@@ -158,14 +165,76 @@ messages:
          return;
       }
 
-      foreach i in Send(poOwner,@GetSpellList)
+      if IsClass(poOwner,&Player)
       {
-         oSpell = Send(SYS,@FindSpellByNum,#num=Send(poOwner,@DecodespellNum,#compound=i));
-         if piSchool = Send(oSpell,@GetSchool)
+         foreach i in Send(poOwner,@GetSpellList)
          {
-            if Send(oSpell,@GetLevel) > iHigh_level
+            oSpell = Send(SYS,@FindSpellByNum,#num=Send(poOwner,@DecodespellNum,#compound=i));
+            if piSchool = Send(oSpell,@GetSchool)
             {
-               iHigh_Level = Send(oSpell,@GetLevel);
+               if Send(oSpell,@GetLevel) > iHigh_level
+               {
+                  iHigh_Level = Send(oSpell,@GetLevel);
+               }
+            }
+         }
+      }
+      
+      if IsClass(poOwner,&Monster)
+      {
+         foreach i in Send(poOwner,@GetMeleeSpellBook)
+         {
+            oSpell = Send(SYS,@FindSpellByNum,#num=First(i));
+            if piSchool = Send(oSpell,@GetSchool)
+            {
+               if Send(oSpell,@GetLevel) > iHigh_level
+               {
+                  iHigh_Level = Send(oSpell,@GetLevel);
+               }
+            }
+         }
+         foreach i in Send(poOwner,@GetRangedSpellBook)
+         {
+            oSpell = Send(SYS,@FindSpellByNum,#num=First(i));
+            if piSchool = Send(oSpell,@GetSchool)
+            {
+               if Send(oSpell,@GetLevel) > iHigh_level
+               {
+                  iHigh_Level = Send(oSpell,@GetLevel);
+               }
+            }
+         }
+         foreach i in Send(poOwner,@GetSelfSpellBook)
+         {
+            oSpell = Send(SYS,@FindSpellByNum,#num=First(i));
+            if piSchool = Send(oSpell,@GetSchool)
+            {
+               if Send(oSpell,@GetLevel) > iHigh_level
+               {
+                  iHigh_Level = Send(oSpell,@GetLevel);
+               }
+            }
+         }
+         foreach i in Send(poOwner,@GetAllySpellBook)
+         {
+            oSpell = Send(SYS,@FindSpellByNum,#num=First(i));
+            if piSchool = Send(oSpell,@GetSchool)
+            {
+               if Send(oSpell,@GetLevel) > iHigh_level
+               {
+                  iHigh_Level = Send(oSpell,@GetLevel);
+               }
+            }
+         }
+         foreach i in Send(poOwner,@GetAllySpellBook)
+         {
+            oSpell = Send(SYS,@FindSpellByNum,#num=First(i));
+            if piSchool = Send(oSpell,@GetSchool)
+            {
+               if Send(oSpell,@GetLevel) > iHigh_level
+               {
+                  iHigh_Level = Send(oSpell,@GetLevel);
+               }
             }
          }
       }

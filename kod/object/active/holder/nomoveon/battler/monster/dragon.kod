@@ -196,7 +196,8 @@ messages:
       Switch(piTravelState)
       {
          case CHANGING_HEIGHTS:
-            piSpeed = SPEED_NONE;
+            piAttackSpeed = SPEED_NONE;
+            piMoveSpeed = SPEED_NONE;
             piBehavior = AI_NOMOVE | AI_NOFIGHT;
 
             % Dragon cannot be hurt during height changes
@@ -209,7 +210,8 @@ messages:
             Send(poOwner,@SomethingWaveRoom,#what=self,#wave_rsc=dragon_fly_new_height);
             break;
          case ON_THE_GROUND:
-            piSpeed = SPEED_FAST;
+            piAttackSpeed = SPEED_FAST;
+            piMoveSpeed = SPEED_FAST;
             piBehavior = AI_FIGHT_AGGRESSIVE | AI_FIGHT_SWITCHALOT;
             piSpellChance = 20;
             piAttackRange = viAttackRange*2;
@@ -231,7 +233,8 @@ messages:
             piRangedSpellChance = 10;
             break;
          case IN_THE_AIR:
-            piSpeed = SPEED_FASTER;
+            piAttackSpeed = SPEED_FASTER;
+            piMoveSpeed = SPEED_FASTER;
             piBehavior = AI_MOVE_OPTIMAL_RANGE | AI_FIGHT_AGGRESSIVE;
             piSpellChance = 4;
 
@@ -253,7 +256,8 @@ messages:
             piAttackRange = viAttackRange;
             break;
          case FLYING_TOO_HIGH:
-            piSpeed = SPEED_VERY_FAST;
+            piAttackSpeed = SPEED_VERY_FAST;
+            piMoveSpeed = SPEED_VERY_FAST;
             piBehavior = AI_MOVE_OPTIMAL_RANGE | AI_FIGHT_AGGRESSIVE;
             piSpellChance = 1;
 

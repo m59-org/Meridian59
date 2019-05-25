@@ -172,6 +172,7 @@ resources:
    champion_nothing = \
       ""
    
+   monster_blank_level = ""
    monster_desc_level = "This monster is level %i."
    Lm_condition_healthy = "%s\n\n%r%r"
    Lm_condition_good = \
@@ -318,6 +319,11 @@ resources:
    minion_breaks_free = \
       "~B%s%s is no longer under your control!"
 
+   monster_spell_build_1_sound = monsterspellbuild1.wav
+   monster_spell_build_2_sound = monsterspellbuild2.wav
+   monster_spell_build_3_sound = monsterspellbuild3.wav
+   monster_spell_build_4_sound = monsterspellbuild4.wav
+   
 classvars:
 
    vrKocName = monster_koc_name
@@ -599,7 +605,16 @@ properties:
    plChampionAbilities = $
    
    % Usually taken from monster's viSpeed
-   piSpeed = 0
+   piAttackSpeed = $
+   piMoveSpeed = $
+
+   % 6 = 4000 ms, 8 = 3000 ms, 12 = 2000 ms, 24 = 1000 ms
+   piCastSpeed = 6
+   ptCastingAnimationTimer = $
+   piCastPower = 0
+   piCastingSID = 0
+   piCastingRequiredPower = 240
+   piCastingColor = 0
 
    % some monsters are created on the fly (ex: avar) we may need to set this at
    % runtime
@@ -635,7 +650,16 @@ messages:
       piSpellChance = viSpellChance;
       piVisionDistance = viVisionDistance + piSurvivalLevel;
       piBoostedLevel = piSurvivalLevel;
-      piSpeed = viSpeed;
+      
+      if piAttackSpeed = $
+      {
+         piAttackSpeed = viSpeed;
+      }
+      
+      if piMoveSpeed = $
+      {
+         piMoveSpeed = viSpeed;
+      }
 
       if Send(self,@MobIsSeller)
       {
@@ -869,6 +893,12 @@ messages:
       {
          DeleteTimer(ptSpellCastTimer);
          ptSpellCastTimer = $;
+      }
+      
+      if ptCastingAnimationTimer <> $
+      {
+         DeleteTimer(ptCastingAnimationTimer);
+         ptCastingAnimationTimer = $;
       }
 
       % Under rare conditions delete is called twice in succession
@@ -2418,7 +2448,7 @@ messages:
                Send(poOwner,@SomethingMoved,#what=self,
                      #new_row=iNew_row,#new_col=iNew_col,
                      #fine_row=iNew_finerow,#fine_col=iNew_finecol,
-                     #speed=(0x80|piSpeed),#non_monsters_only=TRUE);
+                     #speed=(0x80|piMoveSpeed),#non_monsters_only=TRUE);
             }
          }
       }
@@ -3532,7 +3562,7 @@ messages:
                  #new_finerow=iFineRow,#new_finecol=iFineCol,
                  #face_target=face_target,#face_away=face_away);
 		
-            Send(poOwner,@SomethingMoved,#what=self,#speed=piSpeed,
+            Send(poOwner,@SomethingMoved,#what=self,#speed=piMoveSpeed,
                  #new_row=iRow,#new_col=iCol,
                  #fine_row=iFineRow,#fine_col=iFineCol,
                  #non_monsters_only=TRUE);
@@ -4580,6 +4610,8 @@ messages:
       }
 
       Send(self,@ClearAllStatusEffects);
+
+      Send(self,@CancelCastingAnimation);
 
       if (viDefault_behavior & AI_NPC)
       {
@@ -5811,6 +5843,7 @@ messages:
          each_obj = First(i);
          if IsClass(each_obj,&User)
             AND Send(each_obj,@GetKillTarget) = self
+            AND NOT IsClass(self,&Marauder)
          {
             Post(each_obj,@MsgSendUser,#what=self,#message_rsc=rDamage_report,
                   #parm1=Send(self,@GetCapDef),#parm2=Send(self,@GetName));
@@ -5960,6 +5993,12 @@ messages:
          }
          else
          {
+            if IsClass(self,&Marauder)
+            {
+               AddPacket(4,vrCondition_healthy, 4,vrDesc, 4,monster_blank_level,
+                         4,rChampionStatus);
+            }
+
             if piChampionStatus = 0
             {
                AddPacket(4,vrCondition_healthy, 4,vrDesc, 4,monster_desc_level,
@@ -5998,6 +6037,12 @@ messages:
       }
       else
       {
+         if IsClass(self,&Marauder)
+         {
+            AddPacket(4,vrCondition_healthy, 4,vrDesc, 4,monster_blank_level,
+                      4,rChampionStatus);
+         }
+
          if piChampionStatus = 0
          {
             AddPacket(4,rMonster_Condition, 4,vrDesc, 4,monster_desc_level,
@@ -6285,7 +6330,7 @@ messages:
    {
       local i, iWait;
 
-      iWait = Bound(Send(self,@Fuzzy,#num=MOB_ATTACK_TIMER_WAIT) + 3500-70*(3*viDifficulty+piSpeed),250,$);
+      iWait = Bound(Send(self,@Fuzzy,#num=MOB_ATTACK_TIMER_WAIT) + 3500-70*(3*viDifficulty+piAttackSpeed),250,$);
 
       foreach i in Send(self,@GetEnchantmentsByClass,#enchClass=&Hex)
       {
@@ -6315,10 +6360,10 @@ messages:
       % avoid division by zero, if objects teleport
       % objects with viSpeed = 0 don't need seamless movements in the client
       % so we just assume it is enough to teleport them once a second
-      if piSpeed > 0
+      if piMoveSpeed > 0
       {
          % see formula above  
-         iTime = 10000 / (piSpeed * 4);
+         iTime = 10000 / (piMoveSpeed * 4);
 
          % finally we reduce the timer a bit (right now it's exact at ms)
          % why? the client should get a new position before the last destination
@@ -8272,7 +8317,8 @@ messages:
       if iType = CHAMPION_SWIFT
          OR iType = CHAMPION_INDOMITABLE
       {
-         piSpeed = viSpeed * 2;
+         piMoveSpeed = viSpeed * 2;
+         piAttackSpeed = viSpeed * 2;
       }
       
       if iType = CHAMPION_TOUGH
@@ -8300,7 +8346,8 @@ messages:
       
       if iType = CHAMPION_LEGENDARY
       {
-         piSpeed = viSpeed * 3;
+         piAttackSpeed = viSpeed * 3;
+         piMoveSpeed = viSpeed * 3;
          
          Send(self,@AddRandomChampionAbility);
          Send(self,@AddRandomChampionAbility);
@@ -8397,7 +8444,8 @@ messages:
                          + piBoostedLevel*viDifficulty;
       piHit_points = piMax_hit_points*100;
       
-      piSpeed = viSpeed;
+      piAttackSpeed = viSpeed;
+      piMoveSpeed = viSpeed;
       
       if poOwner <> $
       {
@@ -8409,6 +8457,17 @@ messages:
 
    SendLightingInformation()
    {
+      if piCastPower > 0
+      {
+         AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC));
+         % cast power intensity
+         AddPacket(1,piCastPower);
+         AddPacket(2,LIGHT_DRED);
+         
+         % Can we slide up the color scale?
+         return;
+      }
+
       if piChampionStatus > 0
          AND poOwner <> $
          AND Send(poOwner,@LightingColorOverride)
@@ -8498,7 +8557,7 @@ messages:
          AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC));
          % 125 out of 255 intensity of light
          AddPacket(1,125);
-         % Gold 'we're all gonna die' glow.
+         % Purple 'we're all gonna die' glow.
          AddPacket(2,LIGHT_BPURPLE);
          return;
       }
@@ -8943,6 +9002,122 @@ messages:
    AllyReportsHealth(who=$, health_ratio=100,what=$,damage=0,atype=0,aspell=0,bonus=0,scalefactor=1000,
       absolute=FALSE,precision=FALSE,bDoingBackstab=FALSE,bSecondary=FALSE)
    {
+      return;
+   }
+
+   CancelCastingAnimation()
+   {
+      if ptCastingAnimationTimer <> $
+      {
+         DeleteTimer(ptCastingAnimationTimer);
+         ptCastingAnimationTimer = $;
+      }
+      piCastPower = 0;
+      Send(self,@UpdateCastingLightLevel);
+      return;
+   }
+
+   CastingAnimationStep(timer=$)
+   {
+      ptCastingAnimationTimer = $;
+      
+      piCastPower = piCastPower + piCastSpeed;
+      
+      if piCastPower >= piCastingRequiredPower
+      {
+         Send(self,@CastingComplete);
+         return;
+      }
+      else
+      {
+         Send(self,@UpdateCastingLightLevel);
+      }
+
+      ptCastingAnimationTimer = CreateTimer(self,@CastingAnimationStep,100);
+      return;
+   }
+
+   CastingComplete()
+   {
+      local oSpell;
+      if poTarget <> $
+         AND Send(poTarget,@GetOwner) = poOwner
+         AND isClass(poTarget,&User)
+      {
+         oSpell = Send(SYS,@FindSpellByNum,#num=SID_BLAST_OF_FIRE);
+                  Send(oSpell,@CastSpell,#who=self,#lTargets=[poTarget],
+                        #iSpellPower=90);
+      }
+      Debug("cast success!");
+      piCastPower = 0;
+      Send(self,@UpdateCastingLightLevel);
+      return;
+   }
+
+   CastingTest()
+   {
+      % How long is our casting step?
+      % We go from 0 to 240 light level at 100 ms per step
+      % 1000 ms casting time = 10 steps of 24
+      % 2000 ms casting time = 20 steps of 12
+      % 3000 ms casting time = 30 steps of 8
+      % 4000 ms casting time = 40 steps of 6
+      
+      piCastPower = 0;
+      piCastingSID = SID_BLAST_OF_FIRE;
+      piCastingColor = LIGHT_RED;
+      piCastingRequiredPower = 240;
+      
+      if ptCastingAnimationTimer <> $
+      {
+         DeleteTimer(ptCastingAnimationTimer);
+         ptCastingAnimationTimer = $;
+      }
+
+      Send(self,@PlayCastingSound,#sound_num=4);
+      ptCastingAnimationTimer = CreateTimer(self,@CastingAnimationStep,100);
+      
+      return;
+   }
+
+   UpdateCastingLightLevel()
+   {
+      if poOwner <> $
+      {
+         Send(poOwner,@SomethingChanged,#what=self);
+      }
+      return;
+   }
+
+   PlayCastingSound(sound_num=1)
+   {
+      local i;
+
+      switch(sound_num)
+      {
+         case 1:
+            i = monster_spell_build_1_sound;
+            break;
+         case 2:
+            i = monster_spell_build_2_sound;
+            break;
+         case 3:
+            i = monster_spell_build_3_sound;
+            break;
+         case 4:
+            i = monster_spell_build_4_sound;
+            break;
+      }
+      if poOwner <> $
+         AND IsClass(poOwner,&Room)
+      {
+         Send(poOwner,@SomethingWaveRoom,#what=self,#wave_rsc=i);
+      }
+      if poTarget <> $
+         AND IsClass(poTarget,&User)
+      {
+         Send(poTarget,@WaveSendUser,#what=self,#wave_rsc=i);
+      }
       return;
    }
 

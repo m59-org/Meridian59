@@ -169,6 +169,9 @@ classvars:
 
    viCashMin = 200
    viCashMax = 600
+   
+   viMinSkinColor = 1
+   viMaxSkinColor = 4
 
 properties:
 
@@ -228,7 +231,7 @@ messages:
       Send(self,@SetGender);
       Send(self,@SetHair);
       Send(self,@SetFace);
-      Send(self,@SetSkinColor,#color=Random(1,4));
+      Send(self,@SetSkinColor,#color=Random(viMinSkinColor,viMaxSkinColor));
 
       % Sets random clothes for humans.
       Send(self,@SetClothes);
@@ -241,11 +244,22 @@ messages:
 
    Constructed()
    {
+      local i;
+
       % Have to set attack range for mobs with weapon.
       piAttackRange = Send(self,@GetAttackRange);
 
       plCreatureTypes = Cons(CREATURE_TYPE_INTELLIGENT,plCreatureTypes);
       plCreatureTypes = Cons(CREATURE_TYPE_HUMANOID,plCreatureTypes);
+      
+      % Let any robes know what schools we are.
+      foreach i in plUsing
+      {
+         if IsClass(i,&DiscipleRobe)
+         {
+            Post(i,@ResetColors);
+         }
+      }
 
       propagate;
    }
