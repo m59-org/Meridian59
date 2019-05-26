@@ -33,6 +33,7 @@ resources:
    prDunesOasis = desertdunesoasis.roo
    prDunesAltar1 = desertdunesaltar1.roo
    prDunesAltar2 = desertdunesaltar2.roo
+   prDunesZiggurat = desertdunesziggurat.roo
 
    cannot_fight_oasis_msg = \
       "The fragment of a once mighty Equalization Obelisk still has enough residual power "
@@ -77,6 +78,13 @@ resources:
    altar_curse_lose_food = \
       "Phantoms assault you, stealing your food!"
 
+   ancient_ziggurat_approach_msg = \
+      "Buried by time and sand alike, the top of this ancient broken ziggurat "
+      "still towers above the dunes. Curiously, there are no signs of nomad passage here, "
+      "as if they purposely avoid this place..." 
+   enter_ziggurat_msg = \
+      "You slide the sand-laden door aside and enter the underhalls of the ancient ziggurat."
+
 classvars:
 
    vrName = DesertDunesRoom_name
@@ -93,6 +101,10 @@ classvars:
    viAltar1StatueFineRow = 36
    viAltar1StatueFineCol = 23
    viAltar1StatueAngle = ANGLE_SOUTH
+   
+   viZigguratSpecialEntrance_row = 60
+   viZigguratSpecialEntrance_col_going_east = 32
+   viZigguratSpecialEntrance_col_going_west = 171
 
    vbSpawnMonsters = TRUE
 
@@ -159,6 +171,14 @@ messages:
             prRoom = prDunesAltar2;
             piConfiguration = 6;
             break;
+         case 7:
+            if Send(Send(SYS,@GetDesertRoomMaintenance),@GetZiggurat) = $
+            {
+               % Only one ziggurat can exist at a time
+               prRoom = prDunesZiggurat;
+               piConfiguration = 7;
+            }
+            break;
       }
       
       Send(self,@RecalcLightAndWeather);
@@ -199,7 +219,8 @@ messages:
             bSpawnCelegorm, i, bHasCelegorm, bHasIwodach;
 
       bSpawnCelegorm = FALSE;            
-      if Random(1,Send(Send(SYS,@GetDesertRoomMaintenance),@GetCelegormSpawnOutOf)) = 1
+      if piConfiguration <> 7
+         AND Random(1,Send(Send(SYS,@GetDesertRoomMaintenance),@GetCelegormSpawnOutOf)) = 1
       {
          bSpawnCelegorm = TRUE;
       }
@@ -241,7 +262,8 @@ messages:
       
       % Nomad bands can spawn here.
       bSpawnNomads = FALSE;
-      if Random(1,Send(Send(SYS,@GetDesertRoomMaintenance),@GetNomadsSpawnOutOf)) = 1
+      if piConfiguration <> 7
+         AND Random(1,Send(Send(SYS,@GetDesertRoomMaintenance),@GetNomadsSpawnOutOf)) = 1
       {
          bSpawnNomads = TRUE;
       }
@@ -503,6 +525,20 @@ messages:
             AND Send(what,@GetHeightAtObject) < 0
          {
             Send(what,@MsgSendUser,#message_rsc=get_closer_water_oasis);
+            return TRUE;
+         }
+      }
+      if piConfiguration = 7
+      {
+         if row = 100
+         {
+            if col >= 98
+               AND col <= 101
+            {
+               Send(what,@MsgSendUser,#message_rsc=enter_ziggurat_msg);
+               %Send(Send(SYS,@GetDesertRoomMaintenance),@CreateAncientTomb,#who=what);
+            }
+
             return TRUE;
          }
       }
@@ -798,6 +834,10 @@ messages:
          {
             Send(what,@MsgSendUser,#message_rsc=stable_calm_entrance_msg);
          }
+         if piConfiguration = 7
+         {
+            Send(what,@MsgSendUser,#message_rsc=ancient_ziggurat_approach_msg);
+         }
       }
       
       propagate;
@@ -814,6 +854,10 @@ messages:
             case ANGLE_WEST:
                 return viOasisTeleportGoingWest_row;
          }
+      }
+      else if piConfiguration = 7
+      {
+         return viZigguratSpecialEntrance_row;
       }
       else
       {
@@ -833,6 +877,16 @@ messages:
                return viOasisTeleportGoingEast_col;
             case ANGLE_WEST:
                return viOasisTeleportGoingWest_col;
+         }
+      }
+      else if piConfiguration = 7
+      {
+         switch(direction)
+         {
+            case ANGLE_EAST:
+               return viZigguratSpecialEntrance_col_going_east;
+            case ANGLE_WEST:
+               return viZigguratSpecialEntrance_col_going_west;
          }
       }
       else
