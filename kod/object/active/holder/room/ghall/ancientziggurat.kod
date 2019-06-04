@@ -23,7 +23,7 @@ constants:
    ENTRANCE_DOOR = 100
    ENTRANCE_CLOSE_TIME = 18000
 
-   SECRET_DOOR = 101
+   SECRET_DOOR = 450
    SECRET_CLOSE_TIME = 5000
    
    PORTAL_ROOM_TO_PUBLIC_ROOM_FALL_SECTOR = 901
@@ -103,65 +103,65 @@ classvars:
    viPortalOneDestAngle = ANGLE_NORTH_WEST
    vsPortalOneDesc = ancientziggurat_portal_desc
    
-   viReliquaryOneRow = 3
-   viReliquaryOneCol = 29
-   viReliquaryOneFineRow = 32
+   viReliquaryOneRow = 26
+   viReliquaryOneCol = 58
+   viReliquaryOneFineRow = 16
    viReliquaryOneFineCol = 0
    
-   viReliquaryTwoRow = 23
-   viReliquaryTwoCol = 7
-   viReliquaryTwoFineRow = 32
+   viReliquaryTwoRow = 29
+   viReliquaryTwoCol = 58
+   viReliquaryTwoFineRow = 16
    viReliquaryTwoFineCol = 0
    
-   viReliquaryThreeRow = 30
-   viReliquaryThreeCol = 14
-   viReliquaryThreeFineRow = 32
-   viReliquaryThreeFineCol = 32
+   viReliquaryThreeRow = 32
+   viReliquaryThreeCol = 58
+   viReliquaryThreeFineRow = 16
+   viReliquaryThreeFineCol = 0
    
-   viReliquaryFourRow = 27
-   viReliquaryFourCol = 22
-   viReliquaryFourFineRow = 0
-   viReliquaryFourFineCol = 32
+   viReliquaryFourRow = 26
+   viReliquaryFourCol = 62
+   viReliquaryFourFineRow = 16
+   viReliquaryFourFineCol = 0
    
-   viReliquaryFiveRow = 32
-   viReliquaryFiveCol = 29
-   viReliquaryFiveFineRow = 46
-   viReliquaryFiveFineCol = 14
+   viReliquaryFiveRow = 29
+   viReliquaryFiveCol = 62
+   viReliquaryFiveFineRow = 16
+   viReliquaryFiveFineCol = 0
    
-   viReliquarySixRow = 16
-   viReliquarySixCol = 18
-   viReliquarySixFineRow = 32
+   viReliquarySixRow = 32
+   viReliquarySixCol = 62
+   viReliquarySixFineRow = 16
    viReliquarySixFineCol = 0
    
    % Fusing device rates go from 8 (worst) to 4 (best) 
-   viShardFusingDeviceRow = 13
-   viShardFusingDeviceCol = 27
-   viShardFusingDeviceFineRow = 0
+   viShardFusingDeviceRow = 14
+   viShardFusingDeviceCol = 57
+   viShardFusingDeviceFineRow = 48
    viShardFusingDeviceFineCol = 0
    viShardFusingDeviceRate = 4
    
    % Shattering device rates go from 2 (worst) to 4 (best) 
-   viShardShatteringDeviceRow = 12
-   viShardShatteringDeviceCol = 31
-   viShardShatteringDeviceFineRow = 32
-   viShardShatteringDeviceFineCol = 32
+   viShardShatteringDeviceRow = 19
+   viShardShatteringDeviceCol = 57
+   viShardShatteringDeviceFineRow = 48
+   viShardShatteringDeviceFineCol = 0
    viShardShatteringDeviceRate = 4
    
-   viFociOneRow = 15
-   viFociOneCol = 29
+   viFociOneRow = 39
+   viFociOneCol = 15
    viFociOneFineRow = 0
    viFociOneFineCol = 0
-   viFociOnePower = 150
-   viFociOneRange = 5
+   viFociOnePower = 99
+   viFociOneRange = 50
    viFociOneSpellNum = SID_REJUVENATE
    
-   viFociTwoRow = 15
-   viFociTwoCol = 29
+   viFociTwoRow = 39
+   viFociTwoCol = 15
    viFociTwoFineRow = 0
    viFociTwoFineCol = 0
-   viFociTwoPower = 150
-   viFociTwoRange = 5
-   viFociTwoSpellNum = SID_RESTORATE
+   viFociTwoPower = 99
+   viFociTwoRange = 50
+   viFociTwoSpellNum = SID_MELANCHOLY
 
 properties:
 
@@ -246,7 +246,7 @@ messages:
       if ptSecretDoor = $
       {
          Send(self,@SomethingWaveRoom,#wave_rsc=ancientziggurat_sound);
-         Send(self,@SetSector,#sector=SECRET_DOOR,#animation=ANIMATE_CEILING_LIFT,#height=690,#speed=45);
+         Send(self,@SetSector,#sector=SECRET_DOOR,#animation=ANIMATE_FLOOR_LIFT,#height=1800,#speed=15);
          ptSecretDoor = CreateTimer(self,@CloseSecretDoor,SECRET_CLOSE_TIME);
       }
 
@@ -267,7 +267,7 @@ messages:
    {
       ptSecretDoor = $;
       Send(self,@SomethingWaveRoom,#wave_rsc=ancientziggurat_sound);
-      Send(self,@SetSector,#sector=SECRET_DOOR,#animation=ANIMATE_CEILING_LIFT,#height=600,#speed=45);
+      Send(self,@SetSector,#sector=SECRET_DOOR,#animation=ANIMATE_FLOOR_LIFT,#height=1850,#speed=15);
 
       return;
    }
