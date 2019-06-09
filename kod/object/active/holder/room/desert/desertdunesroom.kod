@@ -138,8 +138,7 @@ messages:
 
       % Default.
       prRoom = prDunesNoTomb;
-      %iRandomizedEncounter = Random(1,Send(Send(SYS,@GetDesertRoomMaintenance),@GetEncountersSpawnOutOf));
-      iRandomizedEncounter = 7;
+      iRandomizedEncounter = Random(1,Send(Send(SYS,@GetDesertRoomMaintenance),@GetEncountersSpawnOutOf));
       switch(iRandomizedEncounter)
       {
          case 1:
@@ -537,7 +536,7 @@ messages:
                AND col <= 101
             {
                Send(what,@MsgSendUser,#message_rsc=enter_ziggurat_msg);
-               %Send(Send(SYS,@GetDesertRoomMaintenance),@CreateAncientTomb,#who=what);
+               Send(Send(SYS,@FindRoomByNum,#num=RID_ANCIENT_ZIGGURAT),@Teleport,#what=what);
             }
 
             return TRUE;
