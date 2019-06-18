@@ -95,43 +95,43 @@ classvars:
    viLongitude = 3050
    viLatitude = 3051
 
-   viNews_row = 55
-   viNews_col = 36
-   viNews_finerow = 0
-   viNews_finecol = 0
+   viNews_row = 19
+   viNews_col = 62
+   viNews_finerow = 32
+   viNews_finecol = 32
 
    viTeleport_row = 82
-   viTeleport_col = 37
+   viTeleport_col = 36
 
    viFoyer_north = 1
    viFoyer_south = 13
    viFoyer_east = 32
    viFoyer_west = 5
 
-   viLever_row = 8
-   viLever_col = 11
-   viLever_fine_row = 32
+   viLever_row = 40
+   viLever_col = 15
+   viLever_fine_row = 0
    viLever_fine_col = 32
 
-   viInner_teleport_row = 55
-   viInner_teleport_col = 34
+   viInner_teleport_row = 41
+   viInner_teleport_col = 59
 
    viQuality = 14
    viTerrain_type = TERRAIN_CITY | TERRAIN_GUILDHALL | TERRAIN_CAVES
    viSeconds_til_close = 18
    
-   viPortalOneRow = 53
-   viPortalOneCol = 32
-   viPortalOneFineRow = 0
-   viPortalOneFineCol = 0
-   viPortalOneAngle = ANGLE_SOUTH
-   viPortalOneDestRID = 0
-   viPortalOneDestRow = 42
-   viPortalOneDestCol = 48
-   viPortalOneDestFineRow = 8
-   viPortalOneDestFineCol = 37
-   viPortalOneDestAngle = ANGLE_NORTH_WEST
-   vsPortalOneDesc = ancientziggurat_portal_desc
+%   viPortalOneRow = 18
+%   viPortalOneCol = 50
+%   viPortalOneFineRow = 56
+%   viPortalOneFineCol = 24
+%   viPortalOneAngle = ANGLE_SOUTH
+%   viPortalOneDestRID = RID_TOS
+%   viPortalOneDestRow = 25
+%   viPortalOneDestCol = 25
+%   viPortalOneDestFineRow = 8
+%   viPortalOneDestFineCol = 37
+%   viPortalOneDestAngle = ANGLE_NORTH_WEST
+%   vsPortalOneDesc = ancientziggurat_portal_desc
    
    viReliquaryOneRow = 26
    viReliquaryOneCol = 58
@@ -177,21 +177,29 @@ classvars:
    viShardShatteringDeviceFineCol = 0
    viShardShatteringDeviceRate = 4
    
-   viFociOneRow = 39
+   viFociOneRow = 40
    viFociOneCol = 15
    viFociOneFineRow = 0
-   viFociOneFineCol = 0
+   viFociOneFineCol = 32
    viFociOnePower = 99
-   viFociOneRange = 50
+   viFociOneRange = 5
    viFociOneSpellNum = SID_REJUVENATE
    
    viFociTwoRow = 39
    viFociTwoCol = 15
    viFociTwoFineRow = 0
    viFociTwoFineCol = 0
-   viFociTwoPower = 99
+   viFociTwoPower = 198
    viFociTwoRange = 50
    viFociTwoSpellNum = SID_MELANCHOLY
+   
+   viFociThreeRow = 57
+   viFociThreeCol = 38
+   viFociThreeFineRow = 0
+   viFociThreeFineCol = 0
+   viFociThreePower = 297
+   viFociThreeRange = 5
+   viFociThreeSpellNum = SID_SPELLBANE
 
 properties:
 
@@ -217,6 +225,17 @@ properties:
    piPulseDirection = -1
    ptPortalRoomLightPulse = $
    poPortalRoomLight = $
+   
+   piActivePortalDest = 1
+   
+   piLastDeathRID = RID_DESERTSHORE3
+   piLastDeathRow = 72
+   piLastDeathCol = 50
+   piLastDeathFineRow = 25
+   piLastDeathFineCol = 55
+   piLastDeathAngle = ANGLE_WEST
+   
+   poLastToDie = $
 
 messages:
 
@@ -243,17 +262,6 @@ messages:
    {
       Post(self,@DeleteSpectrals);
       propagate;
-   }
-
-   CheckPortals()
-   {
-      return;
-   }
-
-   SetUpPortal(portal_at_row=0, oItem = $)
-   {
-      
-      return;
    }
 
    OpenEntranceDoor()
@@ -561,7 +569,6 @@ messages:
       {
          each_obj = Send(self,@HolderExtractObject,#data=i);
          if IsClass(each_obj,&DynamicLight)
-            AND Send(each_obj,@GetColor) = LIGHT_DPURPLE
          {
             Post(each_obj,@Delete);
          }
@@ -651,9 +658,64 @@ messages:
          AND iSection <= 607
       {
          Send(self,@InitiatePortalRoomLight);
+         
+         if iSection = 607
+         {
+            Send(self,@DoSpecialGuildHallTeleport,#who=what);
+         }
       }
 
       propagate;
+   }
+   
+   PlayerKilled(who=$, killer=$)
+   {
+      Post(self,@RecordLastToDie,#who=who);
+      return;
+   }
+   
+   RecordLastToDie(who=$, killer=$)
+   {
+      if who <> $
+      {
+         poLastToDie = who;
+      }
+      return;
+   }
+   
+   DoSpecialGuildHallTeleport(who=$)
+   {
+      local oRoom, oCorpse;
+
+      if poLastToDie <> $
+      {
+         oCorpse = Send(poLastToDie,@GetLastCorpse);
+         if oCorpse <> $
+         {
+            oRoom = Send(oCorpse,@GetOwner);
+            if oRoom <> $
+            {
+               Post(SYS,@UtilGoNearSquare,#what=who,
+                    #where=oRoom,
+                    #new_row=Send(oCorpse,@GetRow),
+                    #new_col=Send(oCorpse,@GetCol),
+                    #fine_row=Send(oCorpse,@GetFineRow),
+                    #fine_col=Send(oCorpse,@GetFineCol),
+                    #new_angle=ANGLE_NORTH);
+               return;
+            }
+         }
+      }
+
+      Post(SYS,@UtilGoNearSquare,#what=who,
+           #where=Send(SYS,@FindRoomByNum,#num=RID_TOS_GRAVEYARD),
+           #new_row=15,
+           #new_col=8,
+           #fine_row=28,
+           #fine_col=24,
+           #new_angle=ANGLE_SOUTH_EAST);
+
+      return;
    }
 
    NewHold(what=$)
@@ -961,6 +1023,8 @@ messages:
    Delete()
    {
       local i, oThing;
+
+      poLastToDie = $;
 
       if ptEntrance <> $
       {
