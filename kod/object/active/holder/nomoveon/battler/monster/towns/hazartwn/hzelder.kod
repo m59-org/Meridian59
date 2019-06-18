@@ -29,11 +29,15 @@ resources:
       "ask him about a school of magic if you need help with freeing your "
       "mind from its teachings, so that you may be more successful in "
       "learning others."
-      "\n\nHe can also help you change your stats with training. "
+      "\n\nHe can also help you change your stats with training "
+      "if you are a newbie, if you are holding an Ancient Trinket, or "
+      "if you have a free stat reset from recently reincarnating. "
       "First, reset all your stats to one by saying 'reset stats'. "
       "Then, you may say 'train might', for example, to train a point of Might. "
       "You can also say 'train five might' or 'train ten might.' "
-      "The same is true for intellect, stamina, agility, mysticism, and aim."
+      "The same is true for intellect, stamina, agility, mysticism, and aim. "
+      "Once you begin this process, finish it before you leave the area. "
+      "Your free stat reset or Ancient Trinket will be consumed when you leave. "
 
    HzEl_entry_welcome = \
       "Welcome, my child. Have you come to learn some magicks?"
@@ -73,6 +77,10 @@ resources:
       "You seem to have full command of your potential in that stat. I cannot train you further."
    elder_teach_msg = \
       "You may have heard this tale of wisdom, but I'll tell it again."
+   elder_clear_stats_first_msg = \
+      "You must say 'reset stats' first to clear your stats. "
+      "That will begin the training process. Once it has started, "
+      "do not leave before you finish training."
 
 classvars:
 
@@ -123,10 +131,20 @@ messages:
 
       if what <> $
          AND IsClass(what,&User)
+         AND (Send(what,@FindHolding,#class=&StatsResetToken) <> $
+            OR (Send(what,@GetBaseMaxHealth)
+               <= Send(SETTINGS_OBJECT,@GetFreeStatsResetCap))
+            OR Send(what,@HasReincarnationStatsReset))
       {
          if StringContain(string,"reset stats")
          {
             Send(what,@ClearStats);
+            return;
+         }
+         
+         if NOT Send(what,@ClearedStatsRecently)
+         {
+            Send(self,@SayToOne,#target=what,#message_rsc=elder_clear_stats_first_msg);
             return;
          }
 
