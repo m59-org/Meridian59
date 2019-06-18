@@ -4,8 +4,8 @@
 
 !include $(TOPDIR)\common.mak
 
-DEPEND = ..\bestiaryskill.bof
-BOFS = clanguage.bof \
-       minionlimitboost.bof
+DEPEND = ..\minionlimitboost.bof
+BOFS = willpower.bof \
+       domination.bof
 
 !include $(KODDIR)\kod.mak

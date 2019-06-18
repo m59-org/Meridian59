@@ -21119,5 +21119,76 @@ messages:
       return pbClearedStatsRecently;
    }
 
+   CanControlNewMinion(oMonster=$, iHypotheticalHitPoints=0)
+   {
+      local iControlledHealth, oActive, iLimit, iWillpowerBonus, iSoulDominationBonus, iMonsterHealth;
+      
+      iControlledHealth = 0;
+      foreach oActive in plControlledMinions
+      {
+         if IsClass(oActive,&Monster)
+            AND Send(oActive,@GetMaster) = self
+         {
+            iControlledHealth = iControlledHealth + Send(oActive,@GetMaxHitPoints);
+         }
+      }
+      
+      iLimit = (Send(self,@GetBaseMaxHealth)*2)/3;
+      
+      if iHypotheticalHitPoints > 0
+      {
+         iMonsterHealth = iHypotheticalHitPoints;
+      }
+      else
+      {
+         iMonsterHealth = Send(oMonster,@GetMaxHitPoints);
+      }
+      
+      if Send(oMonster,@IsUndead)
+         AND Send(self,@IsUsingA,#class=&QorCrest)
+      {
+         iLimit = iLimit*2;
+      }
+
+      % We check this now to see if booster skills are required.
+      if iControlledHealth + iMonsterHealth <= iLimit
+      {
+         return TRUE;
+      }
+
+      iWillpowerBonus = 0;
+      if Send(self,@HasSkill,#num=SKID_WILLPOWER)
+      {
+         iWillpowerBonus = Send(Send(SYS,@FindSkillByNum,#num=SKID_WILLPOWER),@GetMinionLimitBoost,#who=self,#oMonster=oMonster);
+         
+         % Up to double
+         iLimit = (iLimit * iWillpowerBonus)/100;
+      }
+
+      % Check this again to see if soul domination is required.
+      if iControlledHealth + iMonsterHealth <= iLimit
+      {
+         return TRUE;
+      }
+
+      iSoulDominationBonus = 0;
+      if Send(self,@HasSkill,#num=SKID_SOUL_DOMINATION)
+      {
+         iSoulDominationBonus = Send(Send(SYS,@FindSkillByNum,#num=SKID_SOUL_DOMINATION),@GetMinionLimitBoost,#who=self,#oMonster=oMonster);
+         
+         % Can double again
+         iLimit = (iLimit * iSoulDominationBonus)/100;
+      }
+
+      % Can we control the monster now with both willpower and soul domination?
+      if iControlledHealth + iMonsterHealth <= iLimit
+      {
+         return TRUE;
+      }
+      
+      % We're over our limit.
+      return FALSE;
+   }
+
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

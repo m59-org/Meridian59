@@ -113,25 +113,6 @@ messages:
          return FALSE;
       }
 
-      if IsClass(who,&Player)
-      {
-         if Send(who,@CheckBattlerMinionCount)
-               >= Send(SETTINGS_OBJECT,@GetPlayerMinionLimit) + (Send(who,@IsUsingA,#class=&QorCrest)*Send(SETTINGS_OBJECT,@GetPlayerMinionLimit))
-         {
-            Send(who,@MsgSendUser,#message_rsc=Animate_too_many_rsc);
-
-            return FALSE;
-         }
-      }
-      else
-      {
-         if Send(who,@CheckBattlerMinionCount)
-            >= Send(SETTINGS_OBJECT,@GetMonsterMinionLimit)
-         {
-            return FALSE;
-         }
-      }
-
       propagate;
    }
 
@@ -220,15 +201,22 @@ messages:
          }
       }
 
-      % Add this creature to your minion list
-      Send(who,@NewControlledMinion,#minion=oRisen);
+      if Send(who,@CanControlNewMinion,#oMonster=oRisen)
+      {
+         % Add this creature to your minion list
+         Send(who,@NewControlledMinion,#minion=oRisen);
 
-      % Set initial minion behavior
-      Send(oRisen,@ResetBehaviorFlags);
-      Send(self,@ModifyMonsterBehavior,#mob=oRisen);
+         % Set initial minion behavior
+         Send(oRisen,@ResetBehaviorFlags);
+         Send(self,@ModifyMonsterBehavior,#mob=oRisen);
 
-      % Post this due to it needing to be done after the minion is placed.
-      Post(oRisen,@SetMaster,#oMaster=who);
+         % Post this due to it needing to be done after the minion is placed.
+         Post(oRisen,@SetMaster,#oMaster=who);
+      }
+      else
+      {
+         Send(who,@MsgSendUser,#message_rsc=Animate_too_many_rsc);
+      }
 
       % Place the minion
       Send(oRoom,@NewHold,#what=oRisen,#new_row=iRow,#new_col=iCol,
