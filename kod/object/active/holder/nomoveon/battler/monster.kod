@@ -1748,7 +1748,7 @@ messages:
 
       % Are we attacking or casting a melee spell?
       if NOT (Send(self,@MonsterCanCastSpell)
-            AND Random(1,100) <= piMeleeSpellChance
+            AND (Random(1,100) <= piMeleeSpellChance OR (poTarget <> $ AND Send(poTarget,@IsEnchanted,#byClass=&MarkOfMagic)))
             AND Send(self,@AttemptSpell,#type=CAST_TYPE_MELEE))
       {
          % AttemptSpell returns TRUE if everything works out. If not, we attack.
@@ -2127,7 +2127,7 @@ messages:
 
       bCast = FALSE;
       if Send(self,@MonsterCanCastSpell)
-         AND Random(1,100) <= piRangedSpellChance
+         AND (Random(1,100) <= piRangedSpellChance OR (poTarget <> $ AND Send(poTarget,@IsEnchanted,#byClass=&MarkOfMagic)))
       {
          bCast = Send(self,@AttemptSpell,#type=CAST_TYPE_RANGED);
       }

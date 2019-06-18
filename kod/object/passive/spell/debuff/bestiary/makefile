@@ -10,6 +10,7 @@ BOFS = binding.bof \
        markofaggression.bof \
        studycreaturespells.bof \
        releaseminion.bof \
-       studycreatureresists.bof
+       studycreatureresists.bof \
+       markofmagic.bof
 
 !include $(KODDIR)\kod.mak
