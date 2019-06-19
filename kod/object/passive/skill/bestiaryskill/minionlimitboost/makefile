@@ -6,6 +6,6 @@
 
 DEPEND = ..\minionlimitboost.bof
 BOFS = willpower.bof \
-       domination.bof
+       souldomination.bof
 
 !include $(KODDIR)\kod.mak

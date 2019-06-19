@@ -27,13 +27,17 @@ resources:
    bind_circle_name_rsc = "bind creature"
    bind_circle_icon_rsc = ihold.bgf
    bind_circle_desc_rsc = \
-      "Binds a charmed creature so that it will serve you indefinitely.  "
+      "Binds a charmed creature so that it will serve you for a much longer period "
+      "of time. "
       "Requires two purple mushrooms to cast."
 
    bind_circle_already_enchanted = "%s%s is already bound to service."
    bind_circle_caster = "%s%s is now bound to service."
    bind_circle_on = "You have been bound to service."
    bind_circle_off = "The binding lifts."
+   
+   not_your_minion_no_binding = \
+      "That is not your minion, and cannot be bound."
 
 classvars:
 
@@ -48,15 +52,15 @@ classvars:
 
    viSchool = SS_BESTIARY
    viSpell_num = SID_CREATURE_BINDING
-   viSpell_level = 4
+   viSpell_level = 3
 
    viFlash = FLASH_BAD
 
-   viSpellExertion = 2
-   viMana = 15
+   viSpellExertion = 11
+   viMana = 7
 
    viChance_To_Increase = 10
-   viMeditate_ratio = 50
+   viMeditate_ratio = 60
 
    vrSucceed_wav = CreatureBinding_sound
    
@@ -96,6 +100,17 @@ messages:
       plReagents = Cons([&Emerald,1],plReagents);
 
       return;
+   }
+
+   CanPayCosts(who = $, lTargets = $)
+   {
+      if Send(First(lTargets),@GetMaster) <> who
+      {
+         Send(who,@MsgSendUser,#message_rsc=not_your_minion_no_binding);
+         return FALSE;
+      }
+
+      propagate;
    }
 
    CastSpell(who=$,wielder=$,lTargets=$,iSpellpower=0,report=TRUE,oDeflectImpact=$,bDeflectCast=FALSE)
@@ -214,11 +229,12 @@ messages:
 
    EndEnchantment(who=$,report=TRUE,state=$)
    {
-      if who <> $
-         AND IsClass(who,&Monster)
-      {
-         Send(who,@RemoveOverlay,#what=self);
-      }
+% Not doing this yet
+%      if who <> $
+%         AND IsClass(who,&Monster)
+%      {
+%         Send(who,@RemoveOverlay,#what=self);
+%      }
 
       return;
    }

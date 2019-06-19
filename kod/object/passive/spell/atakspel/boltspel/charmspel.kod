@@ -32,6 +32,8 @@ resources:
       "%s%s recognizes your karmically positive spirit as nothing but an enemy."
    wrong_karma_humanoid = \
       "%s%s senses your karmically negative spirit and refuses to be swayed."
+   cannot_charm_at_limit = \
+      "You push to bring %s%s under your control, but fail!"
 
 classvars:
 
@@ -83,18 +85,25 @@ messages:
 
             if Send(victim,@GetStatusEffect,#type=STATUS_CHARMED) >= Send(victim,@GetHealth)
             {
-               Send(who,@MsgSendUser,#message_rsc=charmed_final,#parm1=Send(victim,@GetCapDef),#parm2=Send(victim,@GetName));
+               if Send(who,@CanControlNewMinion,#oMonster=victim)
+               {
+                  Send(who,@MsgSendUser,#message_rsc=charmed_final,#parm1=Send(victim,@GetCapDef),#parm2=Send(victim,@GetName));
 
-               % Add this creature to your minion list
-               Send(who,@NewControlledMinion,#minion=victim);
+                  % Add this creature to your minion list
+                  Send(who,@NewControlledMinion,#minion=victim);
 
-               % Set initial minion behavior
-               Send(victim,@ResetBehaviorFlags);
-               Send(self,@ModifyMonsterBehavior,#mob=victim);
-               Send(victim,@SetMaster,#oMaster=who);
+                  % Set initial minion behavior
+                  Send(victim,@ResetBehaviorFlags);
+                  Send(self,@ModifyMonsterBehavior,#mob=victim);
+                  Send(victim,@SetMaster,#oMaster=who);
 
-               % Start them off with Loyalty equal to how much charmed is on them
-               Send(victim,@AddLoyalty,#amount=Send(victim,@GetStatusEffect,#type=STATUS_CHARMED));
+                  % Start them off with Loyalty equal to how much charmed is on them
+                  Send(victim,@AddLoyalty,#amount=Send(victim,@GetStatusEffect,#type=STATUS_CHARMED));
+               }
+               else
+               {
+                  Send(who,@MsgSendUser,#message_rsc=cannot_charm_at_limit,#parm1=Send(victim,@GetDef),#parm2=Send(victim,@GetName));
+               }
             }
             else if Send(victim,@GetStatusEffect,#type=STATUS_CHARMED) >= Send(victim,@GetHealth)*3/4
             {

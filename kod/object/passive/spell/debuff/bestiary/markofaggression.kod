@@ -23,7 +23,9 @@ resources:
    mark_of_aggression_desc_rsc = \
       "Marks the target as an object of aggression "
       "for your minions, who will attack the victim "
-      "regardless of any other concerns. "
+      "regardless of any other concerns. The only "
+      "command that can override a mark of aggression is "
+      "another mark. "
       "Requires two purple mushrooms to cast. "
 
    mark_of_aggression_already_enchanted = "%s%s is already marked for aggression."
@@ -63,10 +65,10 @@ classvars:
 
 properties:
 
-   piBaseDuration = 2000 % Recommended value 2000.
-   piSpellPowerModifier = 40 % Recommended value 30.
-   piDeviation = 50 % Recommended value 10%.
-   viCast_time = 0 % Recommended value 600 (milliseconds).
+   piBaseDuration = 5000
+   piSpellPowerModifier = 500
+   piDeviation = 50
+   viCast_time = 0
 
 messages:
 
@@ -115,12 +117,14 @@ messages:
       Send(oTarget,@StartEnchantment,#what=self,#time=iDuration,#report=report,
             #state=report);
 
-      lMinions = Send(what,@GetControlledMinions);
-      foreach i in lMinions
-      {
-         Send(i,@TargetSwitch,#what=oTarget,#iHatred=iSpellPower*3);
-         Send(i,@EnterStateChase,#target=oTarget,#actnow=True);
-      }
+      Send(what,@CommandMinionAttack,#oMaster=what,#oTarget=oTarget);
+      
+%      lMinions = Send(what,@GetControlledMinions);
+%      foreach i in lMinions
+%      {
+%         Send(i,@TargetSwitch,#what=oTarget,#iHatred=iSpellPower*3);
+%         Send(i,@EnterStateChase,#target=oTarget,#actnow=True);
+%      }
 
       if report
       {

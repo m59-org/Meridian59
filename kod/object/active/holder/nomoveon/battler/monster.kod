@@ -7912,6 +7912,11 @@ messages:
          if poMaster <> $
          {
             Send(poMaster,@RemoveControlledMinion,#what=self);
+            
+            if Send(self,@IsEnchanted,#byClass=&CreatureBinding)
+            {
+               Send(self,@RemoveEnchantment,#what=Send(SYS,@FindSpellByNum,#num=SID_CREATURE_BINDING));
+            }
 
             % After the honeymoon is over, go after the master!
             Send(self,@SetBehaviorFlag,#flag=AI_MOVE_FOLLOW_MASTER,

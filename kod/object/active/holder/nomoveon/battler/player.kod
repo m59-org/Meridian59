@@ -19192,6 +19192,9 @@ messages:
             if IsClass(oActive,&Monster)
                AND Send(oActive,@GetMaster) = self
                AND Send(oActive,@GetTarget) <> oTarget
+               AND NOT (Send(oActive,@GetTarget) <> $
+                        AND Send(Send(oActive,@GetTarget),@IsEnchanted,#byClass=&MarkofAggression)
+                        AND NOT Send(oTarget,@IsEnchanted,#byClass=&MarkofAggression))
             {
                Send(oActive,@SetBehaviorFlag,
                      #flag=AI_MOVE_FOLLOW_MASTER,#value=FALSE);
@@ -21133,7 +21136,7 @@ messages:
          }
       }
       
-      iLimit = (Send(self,@GetBaseMaxHealth)*2)/3;
+      iLimit = Send(self,@GetBaseMaxHealth);
       
       if iHypotheticalHitPoints > 0
       {
@@ -21143,7 +21146,7 @@ messages:
       {
          iMonsterHealth = Send(oMonster,@ReturnMaxHitPoints);
       }
-      
+
       if Send(oMonster,@IsUndead)
          AND Send(self,@IsUsingA,#class=&QorCrest)
       {
