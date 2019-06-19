@@ -24,6 +24,9 @@ resources:
       "a creature's mystical abilities may reveal what magics "
       "they can employ for allies. They must have "
       "the proper line of sight, mana, and knowledge to aid you. "
+      "They may also resist spending their mana aiding you, "
+      "so more skilled bestiary mages will have more success "
+      "commanding their minions. "
       "Requires two sapphires to cast."
 
    mark_of_defense_cast = "%s%s makes a mystical sign of protection!"
@@ -104,7 +107,10 @@ messages:
       {
          if Send(i,@GetAllySpellBook) <> $
          {
-            Post(i,@AttemptSpell,#type=CAST_TYPE_ALLY);
+            if Random(1,99) <= iSpellpower
+            {
+               Post(i,@AttemptSpell,#type=CAST_TYPE_ALLY);
+            }
          }
       }
 
