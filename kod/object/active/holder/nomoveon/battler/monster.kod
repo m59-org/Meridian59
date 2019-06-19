@@ -5736,6 +5736,34 @@ messages:
       return 0;
    }
 
+   GainHealthNormalAndReportGained(amount = $, precision = FALSE)
+   {
+      local iMantled, iMantledDivisor, iInitial;
+
+      if amount = $
+      {
+         return 0;
+      }
+
+      if NOT precision
+      {
+         amount = amount * 100;
+      }
+
+      iMantled = Send(self,@GetStatusEffect,#type=STATUS_MANTLED);
+      if iMantled > 0
+      {
+         iMantledDivisor = Send(SETTINGS_OBJECT,
+                            @GetElementalMultiple,#type=STATUS_MANTLED);
+         amount = amount - (iMantled/iMantledDivisor)*100;
+      }
+
+      iInitial = piHit_points;
+      piHit_points = Bound(piHit_points+amount,1,piMax_hit_points*100);
+
+      return piHit_points - iInitial;
+   }
+
    LoseHealth(amount = $, decay = FALSE, precision = FALSE)
    {
       if NOT precision
