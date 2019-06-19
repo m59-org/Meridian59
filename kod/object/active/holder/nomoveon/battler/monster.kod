@@ -1773,11 +1773,13 @@ messages:
    
    AttemptSpell(type=CAST_TYPE_MELEE)
    {
-      local lSpell, oSpell, iSpellPower, oAntiMagicAura, lRadiusState, iDistance, lTargets, iRange;
+      local lSpell, oSpell, iSpellPower, oAntiMagicAura, lRadiusState, iDistance, lTargets, iRange, oTarget;
       
       if poTarget = $
+         AND (type = CAST_TYPE_MELEE
+            OR type = CAST_TYPE_RANGED)
       {
-         % Why are we casting if we have no enemy?
+         % Why are we casting offensively if we have no enemy?
          return FALSE;
       }
       
@@ -1790,9 +1792,20 @@ messages:
       }
       
       lSpell = Send(self,@PickSpell,#type=type);
+      
+      if type = CAST_TYPE_ALLY
+         AND poMaster <> $
+      {
+         oTarget = poMaster;
+      }
+      else
+      {
+         oTarget = poTarget;
+      }
 
       if lSpell <> $
          AND piMana >= Nth(lSpell,2)
+         AND oTarget <> $
       {
          oSpell = Send(SYS,@FindSpellByNum,#num=Nth(lSpell,1));
          if oSpell <> $
@@ -1807,7 +1820,7 @@ messages:
             }
 
             % Get distance to target.
-            iDistance = Send(self,@SquaredFineDistanceTo3D,#what=poTarget);
+            iDistance = Send(self,@SquaredFineDistanceTo3D,#what=oTarget);
 
             % Check LoS to target here so we don't waste mana casting
             % when we can't get our target.
@@ -1818,15 +1831,15 @@ messages:
                iRange = 9999;
             }
             if iDistance <= iRange * iRange
-               AND Send(poOwner,@LineOfSight,#obj1=self,#obj2=poTarget)
-               AND Send(poOwner,@ReqSomethingAttack,#what=self,#victim=poTarget,
+               AND Send(poOwner,@LineOfSight,#obj1=self,#obj2=oTarget)
+               AND Send(poOwner,@ReqSomethingAttack,#what=self,#victim=oTarget,
                         #use_weapon=self)
             {
                piMana = piMana - Nth(lSpell,2);
                Send(self,@NewMana);
          
-               % Find the valid targets, defaulting to poTarget.
-               lTargets = [poTarget];
+               % Find the valid targets.
+               lTargets = [oTarget];
                lTargets = Send(oSpell,@GetTargets,#who=self,#lTargets=lTargets);
 
                % See if we can cast the spell here.
