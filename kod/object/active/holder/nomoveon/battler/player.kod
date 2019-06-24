@@ -21130,9 +21130,18 @@ messages:
       foreach oActive in plControlledMinions
       {
          if IsClass(oActive,&Monster)
+            AND NOT IsClass(oActive,&Reflection)
             AND Send(oActive,@GetMaster) = self
          {
-            iControlledHealth = iControlledHealth + Send(oActive,@ReturnMaxHitPoints);
+            if Send(oActive,@IsUndead)
+               AND Send(self,@IsUsingA,#class=&QorCrest)
+            {
+               iControlledHealth = iControlledHealth + Send(oActive,@ReturnMaxHitPoints)/2;
+            }
+            else
+            {
+               iControlledHealth = iControlledHealth + Send(oActive,@ReturnMaxHitPoints);
+            }
          }
       }
       
@@ -21150,7 +21159,8 @@ messages:
       if Send(oMonster,@IsUndead)
          AND Send(self,@IsUsingA,#class=&QorCrest)
       {
-         iLimit = iLimit*2;
+         % Qor Master can control double the undead.
+         iMonsterHealth = iMonsterHealth/2;
       }
 
       % We check this now to see if booster skills are required.

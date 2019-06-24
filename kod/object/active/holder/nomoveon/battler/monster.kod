@@ -174,14 +174,14 @@ resources:
    
    monster_blank_level = ""
    monster_desc_level = "This monster is level %i."
-   Lm_condition_healthy = "%s\n\n%r%r"
+   Lm_condition_healthy = "%r%s\n\n%r%r"
    Lm_condition_good = \
-      "%s\n\n%r\n\n%s%s is injured, but is still relatively strong.%r"
+      "%r%s\n\n%r\n\n%s%s is injured, but is still relatively strong.%r"
    Lm_condition_fair = \
-      "%s\n\n%r\n\n%s%s is wounded, but is still relatively strong.%r"
-   Lm_condition_poor = "%s\n\n%r\n\n%s%s is suffering from deep wounds.%r"
+      "%r%s\n\n%r\n\n%s%s is wounded, but is still relatively strong.%r"
+   Lm_condition_poor = "%r%s\n\n%r\n\n%s%s is suffering from deep wounds.%r"
    Lm_condition_bad = \
-      "%s\n\n%r\n\n%s%s is weak and seems unlikely to survive much longer.%r"
+      "%r%s\n\n%r\n\n%s%s is weak and seems unlikely to survive much longer.%r"
 
    Lm_cant_remove_item = "You can't give %s%s away right now."
    Lm_mrcnt_not_selling = "You tried to buy something that is not being sold."
@@ -318,6 +318,36 @@ resources:
 
    minion_breaks_free = \
       "~B%s%s is no longer under your control!"
+      
+   minion_breaks_bind_level_high = \
+      "~B%s%s seems a little restless."
+   minion_breaks_bind_level_low = \
+      "~B%s%s seems to be breaking free of your control!"
+
+   minion_bind_level_blank = \
+      ""
+   minion_bind_level_10 = \
+      "%s%s is permanently bound as a minion of %s%s.\n\n"
+   minion_bind_level_9 = \
+      "%s%s is a fanatical minion of %s%s.\n\n"
+   minion_bind_level_8 = \
+      "%s%s is a minion of %s%s.\n\n"
+   minion_bind_level_7 = \
+      "%s%s is an eager servant of %s%s.\n\n"
+   minion_bind_level_6 = \
+      "%s%s is a servant of %s%s.\n\n"
+   minion_bind_level_5 = \
+      "%s%s is strongly bound to fight for %s%s.\n\n"
+   minion_bind_level_4 = \
+      "%s%s is bound to fight for %s%s.\n\n"
+   minion_bind_level_3 = \
+      "%s%s is bound to fight alongside %s%s.\n\n"
+   minion_bind_level_2 = \
+      "%s%s is compelled to aid %s%s.\n\n"
+   minion_bind_level_1 = \
+      "%s%s is lightly compelled to aid %s%s.\n\n"
+   minion_bind_level_nothing = \
+      "%s%s%s%s"
 
    monster_spell_build_1_sound = monsterspellbuild1.wav
    monster_spell_build_2_sound = monsterspellbuild2.wav
@@ -633,6 +663,13 @@ properties:
    ptLoyaltyTimer = $
    
    piAmountAddedToMonsterChasers = 0
+   
+   % How strongly is this monster bound as a minion?
+   % 10 never breaks binding
+   % creature binding goes up to to 9
+   % storebought comes at 5
+   % charm spells start off at 1
+   piBindingLevel = 0
 
 messages:
 
@@ -5989,7 +6026,8 @@ messages:
    ShowDesc(iHitPoint_Percent = $)
    "Adds max HP that can be gained from monster, followed by its condition."
    {
-      local iHit_Percent, rMonster_condition, rChampionStatus;
+      local iHit_Percent, rMonster_condition, rChampionStatus, rBindingLevel,
+            rMobDef, rMobName, rMasterIndef, rMasterName;
 
       if iHitPoint_Percent = $
       {
@@ -5998,6 +6036,61 @@ messages:
       else
       {
          iHit_Percent = iHitPoint_Percent;
+      }
+      
+      if poMaster = $
+         OR piBindingLevel = 0
+      {
+         rMobDef = minion_bind_level_blank;
+         rMobName = minion_bind_level_blank;
+         rMasterIndef = minion_bind_level_blank;
+         rMasterName = minion_bind_level_blank;
+         % Error reset
+         piBindingLevel = 0;
+      }
+      else
+      {
+         rMobDef = Send(self,@GetDef);
+         rMobName = Send(self,@GetName);
+         rMasterIndef = Send(poMaster,@GetIndef);
+         rMasterName = Send(poMaster,@GetName);
+      }
+
+      switch(piBindingLevel)
+      {
+         case 0:
+            rBindingLevel = minion_bind_level_nothing;
+            break;
+         case 1:
+            rBindingLevel = minion_bind_level_1;
+            break;
+         case 2:
+            rBindingLevel = minion_bind_level_2;
+            break;
+         case 3:
+            rBindingLevel = minion_bind_level_3;
+            break;
+         case 4:
+            rBindingLevel = minion_bind_level_4;
+            break;
+         case 5:
+            rBindingLevel = minion_bind_level_5;
+            break;
+         case 6:
+            rBindingLevel = minion_bind_level_6;
+            break;
+         case 7:
+            rBindingLevel = minion_bind_level_7;
+            break;
+         case 8:
+            rBindingLevel = minion_bind_level_8;
+            break;
+         case 9:
+            rBindingLevel = minion_bind_level_9;
+            break;
+         case 10:
+            rBindingLevel = minion_bind_level_10;
+            break;
       }
 
       if piChampionStatus <> 0
@@ -6032,24 +6125,32 @@ messages:
       {
          if piBehavior & AI_NPC
          {
-            AddPacket(4,vrCondition_healthy, 4,vrDesc, 4,monster_nothing, 4,rChampionStatus);
+            AddPacket(4,vrCondition_healthy,
+                      4,rBindingLevel, 4,rMobDef, 4,rMobName, 4,rMasterIndef, 4,rMasterName,
+                      4,vrDesc, 4,monster_nothing, 4,rChampionStatus);
          }
          else
          {
             if IsClass(self,&Marauder)
             {
-               AddPacket(4,vrCondition_healthy, 4,vrDesc, 4,monster_blank_level,
+               AddPacket(4,vrCondition_healthy,
+                         4,rBindingLevel, 4,rMobDef, 4,rMobName, 4,rMasterIndef, 4,rMasterName,
+                         4,vrDesc, 4,monster_blank_level,
                          4,rChampionStatus);
             }
 
             if piChampionStatus = 0
             {
-               AddPacket(4,vrCondition_healthy, 4,vrDesc, 4,monster_desc_level,
+               AddPacket(4,vrCondition_healthy,
+                         4,rBindingLevel, 4,rMobDef, 4,rMobName, 4,rMasterIndef, 4,rMasterName,
+                         4,vrDesc, 4,monster_desc_level,
                          4,piLevel, 4,rChampionStatus);
             }
             else
             {
-               AddPacket(4,vrCondition_healthy, 4,vrDesc, 4,monster_desc_level,
+               AddPacket(4,vrCondition_healthy,
+                         4,rBindingLevel, 4,rMobDef, 4,rMobName, 4,rMasterIndef, 4,rMasterName,
+                         4,vrDesc, 4,monster_desc_level,
                          4,piLevel, 4,rChampionStatus, 4, Send(self,@GetName));
             }
          }
@@ -6075,26 +6176,34 @@ messages:
 
       if piBehavior & AI_NPC
       {
-         AddPacket(4,rMonster_Condition, 4,vrDesc, 4,monster_nothing,
-                   4,Send(self,@GetCapDef), 4,Send(self,@GetName), 4,rChampionStatus);
+         AddPacket(4,rMonster_Condition,
+                      4,rBindingLevel, 4,rMobDef, 4,rMobName, 4,rMasterIndef, 4,rMasterName,
+                      4,vrDesc, 4,monster_nothing,
+                      4,Send(self,@GetCapDef), 4,Send(self,@GetName), 4,rChampionStatus);
       }
       else
       {
          if IsClass(self,&Marauder)
          {
-            AddPacket(4,vrCondition_healthy, 4,vrDesc, 4,monster_blank_level,
+            AddPacket(4,vrCondition_healthy,
+                      4,rBindingLevel, 4,rMobDef, 4,rMobName, 4,rMasterIndef, 4,rMasterName,
+                      4,vrDesc, 4,monster_blank_level,
                       4,rChampionStatus);
          }
 
          if piChampionStatus = 0
          {
-            AddPacket(4,rMonster_Condition, 4,vrDesc, 4,monster_desc_level,
+            AddPacket(4,rMonster_Condition,
+                      4,rBindingLevel, 4,rMobDef, 4,rMobName, 4,rMasterIndef, 4,rMasterName,
+                      4,vrDesc, 4,monster_desc_level,
                       4,piLevel, 4,Send(self,@GetCapDef),
                       4,Send(self,@GetName), 4,rChampionStatus);
          }
          else
          {
-            AddPacket(4,rMonster_Condition, 4,vrDesc, 4,monster_desc_level,
+            AddPacket(4,rMonster_Condition,
+                      4,rBindingLevel, 4,rMobDef, 4,rMobName, 4,rMasterIndef, 4,rMasterName,
+                      4,vrDesc, 4,monster_desc_level,
                       4,piLevel, 4,Send(self,@GetCapDef),
                       4,Send(self,@GetName), 4,rChampionStatus, 4,Send(Self,@GetName));
          }
