@@ -9,6 +9,7 @@ BOFS = mayurasana.bof \
        sirsasana.bof \
        salabhasana.bof \
        padmasana.bof \
-       vrikshasana.bof
+       vrikshasana.bof \
+       matsyasana.bof
 
 !include $(KODDIR)\kod.mak
