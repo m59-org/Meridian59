@@ -1769,20 +1769,27 @@ messages:
    {
       local bHumanDoubler,bAutomatonZeroer;
       
-      if piAccumulatedWisdom = MAX_KOD_INT
+      if piAccumulatedWisdom = MAX_SUPER_SAFE_INT
       {
          return;
       }
 
-      if piAccumulatedWisdom + amount >= MAX_KOD_INT
+      if piAccumulatedWisdom + amount >= MAX_SUPER_SAFE_INT
       {
-         piAccumulatedWisdom = MAX_KOD_INT;
+         piAccumulatedWisdom = MAX_SUPER_SAFE_INT;
          Send(self,@MsgSendUser,#message_rsc=max_accumulated_wisdom_achieved);
+         piReincarnations = 20;
          return;
       }
       else
       {
          piAccumulatedWisdom = piAccumulatedWisdom + amount;
+         
+         if piAccumulatedWisdom < -1000000
+         {
+            piAccumulatedWisdom = MAX_SUPER_SAFE_INT;
+            piReincarnations = 20;
+         }
          Post(self,@DrawAccumulatedWisdom);
       }
       
