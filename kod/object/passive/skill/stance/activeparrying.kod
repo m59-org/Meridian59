@@ -28,7 +28,8 @@ resources:
       "While in this stance, "
       "a warrior will attempt to parry melee attacks coming from the front, but cannot himself attack. "
       "Successful parries open up the opponent to a counterattack which knocks back and stuns them. "
-      "The counterattack motions then drop the stance so that the knight may press his advantage."
+      "The counterattack motions then drop the stance so that the knight may press his advantage. "
+      "Turning the tide of battle in this way can also free a paralyzed warrior from the holding magics of Qor. "
       "\n\nFocusing all one's attention on the front comes with a risk: "
       "attacks from behind are extremely difficult to avoid."
       "\n\nLastly, wielding a sword of any type is required to actively parry. "
@@ -133,6 +134,12 @@ messages:
       if Random(1,100) <= iParryChance
       {
          Send(who,@MsgSendUser,#message_rsc=ActiveParry_you,#parm1=Send(what,@GetDef),#parm2=Send(what,@GetName));
+         
+         % Break Hold if we're held! Surprise!
+         if Send(who,@IsEnchanted,#byClass=&Hold)
+         {
+            Send(who,@RemoveEnchantment,#what=Send(SYS,@FindSpellByNum,#num=SID_HOLD));
+         }
          
          if IsClass(what,&Player)
          {

@@ -72,6 +72,8 @@ classvars:
 
    vrProjectile_Icon = bind_circle_projectile_rsc
 
+   viHarmful = FALSE
+   viOutlaw = FALSE
    vbIsRangedAttack = FALSE
 
    viProjectileFlag = PROJ_FLAG_LIGHT_SOURCE
@@ -87,8 +89,8 @@ classvars:
 
 properties:
 
-   piBaseDuration = 300000
-   piSpellPowerModifier = 60000 % Recommended value 30.
+   piBaseDuration = 3000
+   piSpellPowerModifier = 1000 % Recommended value 30.
    piDeviation = 50 % Recommended value 10%.
    viCast_time = 0 % Recommended value 600 (milliseconds).
 
@@ -179,17 +181,18 @@ messages:
 
       % Spell effects.
       Send(self,@DoSpell,#what=who,#oTarget=oTarget,#report=report,
-            #iDuration=Send(self,@GetDuration,#iSpellPower=iSpellPower));
+            #iDuration=Send(self,@GetDuration,#iSpellPower=iSpellPower),#iSpellPower=iSpellPower);
 
       propagate;
    }
 
-   DoSpell(what=$,oTarget=$,iDuration=$,report=TRUE)
+   DoSpell(what=$,oTarget=$,iDuration=$,report=TRUE,iSpellPower=0)
    "Holds target for duration seconds."
    {
-      local i, oSpell;
+      local i, oSpell, iIntellect;
 
       if oTarget = $
+         OR NOT IsClass(oTarget,&Monster)
       {
          return FALSE;
       }
@@ -205,6 +208,16 @@ messages:
       {
          iDuration = 5000;
       }
+      
+      iIntellect = 0;
+      if what <> $
+         AND IsClass(what,&Player)
+      {
+         iIntellect = Send(what,@GetIntellect);
+      }
+
+      Send(oTarget,@AddLoyalty,#amount=(iSpellPower+1+iIntellect)*(LOYALTY_PER_BINDING_LEVEL/20),
+                               #cap_at=MAX_CREATURE_BINDING_LOYALTY);
 
       Send(oTarget,@StartEnchantment,#what=self,#time=iDuration,#report=report,
             #state=report);
@@ -239,35 +252,6 @@ messages:
 
       return;
    }
-
-%   CastSpell(who=$,lTargets=$,iSpellPower=0)
-%   {
-%      local oTarget;
-%
-%      oTarget = First(lTargets);
-%
-%      % Spell effects
-%      Send(self,@DoSpell,#what=who,#oTarget=oTarget,#iSpellPower=iSpellPower);
-
-%      propagate;
-%   }
-
-%   DoSpell(what=$,oTarget=$,iSpellPower=0)
-%   {
-%      if IsClass(oTarget,&Player)
- %     {
-%      }
-%      else
-%      {
-%         Send(oTarget,@AddLoyalty,#amount=iSpellPower);
-%         Send(oTarget,@SetDedicatedMinion,#value=TRUE);
-%            
-%         Send(what,@MsgSendUser,#message_rsc=CreatureBinding_success,
-%               #parm1=Send(oTarget,@GetDef),#parm2=Send(oTarget,@GetName));
-%      }
-%
-%      propagate;
-%   }
 
    GetLayer()
    {

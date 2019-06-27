@@ -54,5 +54,21 @@ properties:
 
 messages:
 
+   CanPayCosts(who=$,oTarget=$)
+   {
+      % No blocking if you aren't moving.
+      if Send(who,@CheckPlayerFlag,#flag=PFLAG_NO_MOVE)
+      {
+         return 0;
+      }
+
+      if Send(who,@IsResting)
+      {
+         return 0;
+      }
+
+      propagate;
+   }
+
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

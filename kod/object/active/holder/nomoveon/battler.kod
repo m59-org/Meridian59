@@ -970,6 +970,13 @@ messages:
 
       if piMana < piMax_mana
       {
+         if IsClass(self,&Player)
+            AND Send(self,@IsResting)
+            AND Send(self,@HasSkill,#num=SKID_SIRSASANA)
+         {
+            Send(self,@GainMana,#amount=Send(Send(SYS,@FindSkillByNum,#num=SKID_SIRSASANA),@ModifyRejuvenation,#who=self,#iAmount=1),#bCapped=TRUE);
+            return;
+         }
          Send(self,@GainMana,#amount=1);
       }
       else
@@ -1103,6 +1110,7 @@ messages:
       iChanceToHit = bound(iChanceToHit,125,2000);
 
       if IsClass(what,&Player)
+         AND NOT Send(what,@IsResting)
          AND Send(what,@GetStance) <> $
          AND (IsClass(Send(what,@GetStance),&ActiveBlockingStance)
             OR IsClass(Send(what,@GetStance),&ActiveParryingStance))
@@ -1158,6 +1166,7 @@ messages:
              AND Send(self,@GetSkillAbility,#skill_num=SKID_BACKSTAB) > 0
              AND Send(Send(SYS,@FindSkillByNum,#num=SKID_BACKSTAB),
                        @TryAutomaticHit,#who=self,#what=what))
+         OR (IsClass(what,&Player) AND Send(what,@IsResting))
       {
          % We hit!
          iDamage = Send(self,@GetDamage,#what=what,#stroke_obj=stroke_obj);
@@ -2638,7 +2647,6 @@ messages:
          {
             if NOT (IsClass(self,&Player) AND Send(self,@IsInCannotInteractMode))
                AND NOT (IsClass(self,&Player) AND NOT Send(self,@IsLoggedOn))
-               AND NOT (IsClass(self,&Monster) AND Send(self,@IsEnchanted,#byClass=&CreatureBinding))
             {
                iCharmedWearOff = Send(SETTINGS_OBJECT,
                                     @GetStatusEffectReductionAmount,

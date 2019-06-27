@@ -1376,6 +1376,9 @@ properties:
    % piTimeAttackedByPlayer records the last time we were attacked by a player.
    piTimeAttackedByPlayer = 0
    
+   % records the last time we were hit
+   piTimeLastHitByBattler = 0
+   
    % piDeathcost is used to tell the underworld what percent of normal
    %  penalties to apply when the players leaves.  FALSE means no penalties.
    piDeathCost = 100
@@ -3267,6 +3270,11 @@ messages:
       {
          iAmount = 3 * Amount;
       }
+      
+      if Send(self,@HasSkill,#num=SKID_SALABHASANA)
+      {
+         iAmount = Send(Send(SYS,@FindSkillByNum,#num=SKID_SALABHASANA),@ModifyRestAddExertion,#who=self,#iAmount=iAmount);
+      }
 
       piExertion = piExertion + iAmount;
       if abs(piExertion) > MIN_VIGOR_CHANGE
@@ -5142,6 +5150,12 @@ messages:
 
       iDifference = bound(Send(self,@GetMaxHealth)*100 - piHealth,-100,100);
       ptHealth = $;
+      
+      if Send(self,@IsResting)
+         AND Send(self,@HasSkill,#num=SKID_MAYURASANA)
+      {
+         iDifference = Send(Send(SYS,@FindSkillByNum,#num=SKID_MAYURASANA),@ModifyRegeneration,#who=self,#iAmount=iDifference);
+      }
 
       foreach i in Send(self,@GetEnchantmentsByClass,#enchClass=&Hex)
       {
@@ -7459,6 +7473,11 @@ messages:
    {
       local i, oWeapon, oShield, iParry, iDodge, iBlock, iAgility,
             iDefense, oMonster, iShocked;
+            
+      if Send(self,@IsResting)
+      {
+         return 1;
+      }
 
       % Morphed?
       oMonster = Send(self,@GetIllusionForm);
@@ -7928,6 +7947,8 @@ messages:
       {
          Send(self,@SetPlayerFlag,#flag=PFLAG_TOOK_DAMAGE,#value=TRUE);
       }
+
+      piTimeLastHitByBattler = GetTime();
 
       % bSecondary flags this as secondary damage such as burning,
       %    which skips quite a few damage adds. I.e. the primary damage
@@ -15007,6 +15028,21 @@ messages:
       {
          return;
       }
+      
+      if Send(self,@HasSkill,#num=SKID_MAYURASANA)
+      {
+         Send(Send(SYS,@FindSkillByNum,#num=SKID_MAYURASANA),@StartedResting,#who=self);
+      }
+      
+      if Send(self,@HasSkill,#num=SKID_SIRSASANA)
+      {
+         Send(Send(SYS,@FindSkillByNum,#num=SKID_SIRSASANA),@StartedResting,#who=self);
+      }
+      
+      if Send(self,@HasSkill,#num=SKID_SALABHASANA)
+      {
+         Send(Send(SYS,@FindSkillByNum,#num=SKID_SALABHASANA),@StartedResting,#who=self);
+      }
 
       Send(self,@CancelFortitude);
 
@@ -15074,6 +15110,21 @@ messages:
       {
          DeleteTimer(ptRest);
          ptRest = $;
+      }
+      
+      if Send(self,@HasSkill,#num=SKID_MAYURASANA)
+      {
+         Send(Send(SYS,@FindSkillByNum,#num=SKID_MAYURASANA),@StoppedResting,#who=self);
+      }
+      
+      if Send(self,@HasSkill,#num=SKID_SIRSASANA)
+      {
+         Send(Send(SYS,@FindSkillByNum,#num=SKID_SIRSASANA),@StoppedResting,#who=self);
+      }
+      
+      if Send(self,@HasSkill,#num=SKID_SALABHASANA)
+      {
+         Send(Send(SYS,@FindSkillByNum,#num=SKID_SALABHASANA),@StoppedResting,#who=self);
       }
 
       Send(self,@StartFortitude);
@@ -19531,6 +19582,25 @@ messages:
       ptCanPhaseTimer = $;
 
       return;
+   }
+
+   GetLastHitByBattler()
+   {
+      return piTimeLastHitByBattler;
+   }
+   
+   WasHitRecently()
+   {
+      if piTimeLastHitByBattler = 0
+      {
+         return FALSE;
+      }
+      else if piTimeLastHitByBattler < GetTime() - DURATION_RECENTLY_SECONDS
+      {
+         return FALSE;
+      }
+
+      return TRUE;
    }
 
    GetLastPvpWarned()

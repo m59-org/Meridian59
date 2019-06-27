@@ -1,0 +1,90 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Sirsasana is Breath
+
+constants:
+
+   include blakston.khd
+   include protocol.khd   
+
+resources:
+
+   Sirsasana_name_rsc = "sirsasana"
+   Sirsasana_icon_rsc = irejuven.bgf
+   Sirsasana_desc_rsc = \
+      "An intermediate breath technique that increases mana regeneration. "
+      "In the sirsasana pose, an intermediate monk bends their elbows "
+      "and performs a headstand, pointing their legs straight into the air. The pose benefits "
+      "mana regeneration greatly."
+   
+   Sirsasana_begin = "You breathe rapidly and lightly."
+   Sirsasana_end = "You stop breathing rapidly and lightly."
+   
+   Sirsasana_start_resting = "You bend your elbows and do a headstand, pointing your legs straight up in a sirsasana pose."
+   Sirsasana_stop_resting = "You return to your feet."
+
+   Sirsasana_intro = \
+      "Shadowcraft Lv. 4: Increase mana recovery while resting."
+
+classvars:
+
+   vrName = Sirsasana_name_rsc
+   vrIcon = Sirsasana_icon_rsc
+   vrDesc = Sirsasana_desc_rsc
+
+   breath_achieved_msg = Sirsasana_begin
+   breath_end_msg = Sirsasana_end
+   breath_start_resting = Sirsasana_start_resting
+   breath_end_resting = Sirsasana_stop_resting
+
+   vrSkill_intro = Sirsasana_intro
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+
+   viSkill_num = SKID_SIRSASANA
+   viSchool = SKS_SHADOWCRAFT
+   viSkill_Level = 4
+   viChance_to_Increase = 4
+   viMeditate_ratio = 0
+
+   viSkillExertion = 0
+   vbCheck_exertion = FALSE
+
+   vbAutomatic = TRUE
+   
+   viPrimaryStat = STAT_ID_STAMINA
+   viSecondaryStat = 0
+
+properties:
+
+messages:
+
+   ModifyRejuvenation(who=$,iAmount=0)
+   {
+      local iSirsasanaAbility, iStat;
+
+      iSirsasanaAbility = Send(who,@GetSkillAbility,#skill_num=viSkill_num);
+      iStat = Send(self,@GetRequisiteStat,#who=who);
+
+      Send(self,@ImproveAbility,#who=who);
+
+      if NOT Send(who,@IsResting)
+         OR Send(who,@WasHitRecently)
+      {
+         return iAmount;
+      }
+
+      return iAmount + (iAmount*2*(iSirsasanaAbility+(iStat/4)))/100;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

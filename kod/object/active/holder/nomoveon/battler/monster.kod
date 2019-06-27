@@ -44,6 +44,11 @@ constants:
    %CHAMPION_ABIL_ELEMENTAL_DAMAGE_TYPE = 5
    %CHAMPION_ABIL_PURGE = 6
    %CHAMPION_ABIL_DISARM = 7
+   
+   % Every 20 loyalty is 1 minute on an average monster
+   % So 200 loyalty is 10 minutes per binding level
+   % Binding level 9 is roughly 90 minutes
+   % LOYALTY_PER_BINDING_LEVEL = 200
 
 resources:
 
@@ -663,13 +668,6 @@ properties:
    ptLoyaltyTimer = $
    
    piAmountAddedToMonsterChasers = 0
-   
-   % How strongly is this monster bound as a minion?
-   % 10 never breaks binding
-   % creature binding goes up to to 9
-   % storebought comes at 5
-   % charm spells start off at 1
-   piBindingLevel = 0
 
 messages:
 
@@ -6026,7 +6024,7 @@ messages:
    ShowDesc(iHitPoint_Percent = $)
    "Adds max HP that can be gained from monster, followed by its condition."
    {
-      local iHit_Percent, rMonster_condition, rChampionStatus, rBindingLevel,
+      local iHit_Percent, rMonster_condition, rChampionStatus, iBindingLevel, rBindingLevel,
             rMobDef, rMobName, rMasterIndef, rMasterName;
 
       if iHitPoint_Percent = $
@@ -6038,25 +6036,24 @@ messages:
          iHit_Percent = iHitPoint_Percent;
       }
       
+      iBindingLevel = (piLoyalty+100)/LOYALTY_PER_BINDING_LEVEL;
       if poMaster = $
-         OR piBindingLevel = 0
+         OR iBindingLevel = 0
       {
          rMobDef = minion_bind_level_blank;
          rMobName = minion_bind_level_blank;
          rMasterIndef = minion_bind_level_blank;
          rMasterName = minion_bind_level_blank;
-         % Error reset
-         piBindingLevel = 0;
       }
       else
       {
-         rMobDef = Send(self,@GetDef);
+         rMobDef = Send(self,@GetCapDef);
          rMobName = Send(self,@GetName);
          rMasterIndef = Send(poMaster,@GetIndef);
          rMasterName = Send(poMaster,@GetName);
       }
 
-      switch(piBindingLevel)
+      switch(iBindingLevel)
       {
          case 0:
             rBindingLevel = minion_bind_level_nothing;
@@ -6089,6 +6086,9 @@ messages:
             rBindingLevel = minion_bind_level_9;
             break;
          case 10:
+            rBindingLevel = minion_bind_level_10;
+            break;
+         case 11:
             rBindingLevel = minion_bind_level_10;
             break;
       }
@@ -8983,9 +8983,9 @@ messages:
       return piLoyalty;
    }
 
-   AddLoyalty(amount=0)
+   AddLoyalty(amount=0, cap_at=MAX_LOYALTY)
    {
-      piLoyalty = piLoyalty + amount;
+      piLoyalty = Bound(piLoyalty + amount, 0, cap_at);
       
       if piLoyalty > 0
          AND ptLoyaltyTimer = $
@@ -8998,6 +8998,8 @@ messages:
 
    LoyaltyTimer(timer=$)
    {
+      local iPreviousLoyalty;
+
       ptLoyaltyTimer = $;
       
       if poMaster = $
@@ -9005,6 +9007,14 @@ messages:
          Send(self,@BreakAllegiance);
          return;
       }
+      
+      if piLoyalty >= 10 * LOYALTY_PER_BINDING_LEVEL
+      {
+         % We're a permanent minion.
+         return;
+      }
+      
+      iPreviousLoyalty = piLoyalty;
       
       if Send(self,@HasCreatureType,#type=CREATURE_TYPE_INTELLIGENT)
       {
@@ -9036,6 +9046,19 @@ messages:
       }
       else
       {
+         if poMaster <> $
+            AND IsClass(poMaster,&Player)
+            AND iPreviousLoyalty/LOYALTY_PER_BINDING_LEVEL <> piLoyalty/LOYALTY_PER_BINDING_LEVEL
+         {
+            if piLoyalty/LOYALTY_PER_BINDING_LEVEL > 2
+            {
+               Send(poMaster,@MsgSendUser,#message_rsc=minion_breaks_bind_level_high,#parm1=Send(self,@GetCapDef),#parm2=Send(self,@GetName));
+            }
+            else
+            {
+               Send(poMaster,@MsgSendUser,#message_rsc=minion_breaks_bind_level_low,#parm1=Send(self,@GetCapDef),#parm2=Send(self,@GetName));
+            }
+         }
          ptLoyaltyTimer = CreateTimer(self,@LoyaltyTimer,3000);
       }
       

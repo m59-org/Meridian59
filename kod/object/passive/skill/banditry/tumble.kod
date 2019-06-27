@@ -77,6 +77,11 @@ messages:
             % Player does not have the skill!
             return 0;
          }
+         if Send(who,@IsResting)
+         {
+            % Can't tumble while resting.
+            return 0;
+         }
          
          if Send(who,@FindHolding,#class=&BanditryCrest) <> $
          {
