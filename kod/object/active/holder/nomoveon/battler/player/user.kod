@@ -2912,8 +2912,9 @@ messages:
       iFlags = Send(what,@GetObjectFlags,#what=self);
       % If we can see the invisible object, remove its invis drawing flag
       % and set it to flash instead (in object flags).
-      if (piFlags2 & PFLAG2_DETECT_INVIS)
-         AND (iDrawingFlags & DRAWFX_MASK) = DRAWFX_INVISIBLE
+      if (iDrawingFlags & DRAWFX_MASK) = DRAWFX_INVISIBLE
+         AND ((piFlags2 & PFLAG2_DETECT_INVIS)
+            OR (Send(self,@HasSkill,#num=SKID_VRIKSHASANA) AND Send(self,@IsResting) AND NOT Send(self,@WasHitRecently)))
       {
          iDrawingFlags = (iDrawingFlags & (~DRAWFX_MASK));
          iFlags = (iFlags & (~OF_FLICKERING));
@@ -3045,7 +3046,8 @@ messages:
       if IsClass(what,&User)
       {
          if Send(what,@IsInCannotInteractMode)
-            OR Send(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@IsHiding,#who=what)
+            OR (Send(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@IsHiding,#who=what)
+                AND NOT (Send(self,@HasSkill,#num=SKID_VRIKSHASANA) AND Send(self,@IsResting) AND NOT Send(self,@WasHitRecently)))
          {
             return MM_NONE;
          }

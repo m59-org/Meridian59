@@ -1,0 +1,89 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Sanctification is ShadowcraftSkill
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   sanctification_name_rsc = "sanctification"
+   sanctification_icon_rsc = iresmagc.bgf
+   sanctification_desc_rsc = \
+      "By filtering incoming destructive energies with the inner energy of one's "
+      "very spirit, a master monk can change the very nature of a mystical attack. "
+      "If successful, unholy attacks and spells hitting the monk will become holy instead, "
+      "while acid attacks and spells will become shock, and cold attacks and spells will become fire."
+   sanctification_mastered_desc_rsc = \
+      "\n\n"
+      "You possess exceptional mastery of this skill."
+
+classvars:
+
+   vrName = sanctification_name_rsc
+   vrIcon = sanctification_icon_rsc
+   vrDesc = sanctification_desc_rsc
+   vrMasteredDesc = sanctification_mastered_desc_rsc
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+
+   viSkill_num = SKID_SANCTIFICATION
+   viSchool = SKS_SHADOWCRAFT
+   viSkill_Level = 5
+   viChance_to_Increase = 12
+   viMeditate_ratio = 0
+
+   viSkillExertion = 0
+   vbCheck_exertion = FALSE
+   
+   viPrimaryStat = STAT_ID_STAMINA
+   viSecondaryStat = 0
+
+properties:
+
+   % Base reduction of status effects
+   piInertFormPercentage = 10
+
+messages:
+
+   GetRequisiteStat(who=$)
+   {
+      return Send(who,@GetStamina);
+   }
+
+   ConvertDamageTypes(who=$)
+   {
+      local iAbility, iStat, bMasteryBonus;
+
+      iAbility = Send(who,@GetSkillAbility,#Skill_num=viSkill_num);
+      iStat = Send(self,@GetRequisiteStat,#who=who);
+
+      Send(self,@DoSkill,#who=who);
+      
+      bMasteryBonus = 1;
+      if Send(who,@HasMasteredThisSkill,#num=viSkill_num)
+      {
+         bMasteryBonus = 3;
+      }
+
+      % 10 + up to 20 from skill + up to 7ish from stamina
+      return Bound((((piInertFormPercentage+((iAbility+1)/5)+(iStat/10))*100)*bMasteryBonus)/100,0,100);
+   }
+
+   DoSkill(who=$)
+   {
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

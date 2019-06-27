@@ -15036,6 +15036,17 @@ messages:
       {
          return;
       }
+
+      Send(self,@CancelFortitude);
+
+      if Send(self,@GetSkillAbility,#skill_num=SKID_TRACK) > 0
+      {
+         Send(Send(SYS,@FindSkillByNum,#num=SKID_TRACK),@StopTracking,#who=self);
+      }
+
+      Send(self,@BreakTrance,#event=EVENT_REST);
+      ptRest = CreateTimer(self,@RestTimer,Send(self,@GetRestTime));
+      Send(self,@ResetPlayerFlagList);
       
       if Send(self,@HasSkill,#num=SKID_MAYURASANA)
       {
@@ -15051,17 +15062,6 @@ messages:
       {
          Send(Send(SYS,@FindSkillByNum,#num=SKID_SALABHASANA),@StartedResting,#who=self);
       }
-
-      Send(self,@CancelFortitude);
-
-      if Send(self,@GetSkillAbility,#skill_num=SKID_TRACK) > 0
-      {
-         Send(Send(SYS,@FindSkillByNum,#num=SKID_TRACK),@StopTracking,#who=self);
-      }
-
-      Send(self,@BreakTrance,#event=EVENT_REST);
-      ptRest = CreateTimer(self,@RestTimer,Send(self,@GetRestTime));
-      Send(self,@ResetPlayerFlagList);
 
       return;
    }
@@ -15114,6 +15114,11 @@ messages:
       {
          Send(Send(SYS,@FindSkillByNum,#num=SKID_PADMASANA),@ClearDebuffs,#who=self);
       }
+      
+      if Send(self,@HasSkill,#num=SKID_VRIKSHASANA)
+      {
+         Send(Send(SYS,@FindSkillByNum,#num=SKID_VRIKSHASANA),@SenseHiddenAndInvisible,#who=self);
+      }
 
       return;
    }
@@ -15139,6 +15144,11 @@ messages:
       if Send(self,@HasSkill,#num=SKID_SALABHASANA)
       {
          Send(Send(SYS,@FindSkillByNum,#num=SKID_SALABHASANA),@StoppedResting,#who=self);
+      }
+      
+      if Send(self,@HasSkill,#num=SKID_VRIKSHASANA)
+      {
+         Send(Send(SYS,@FindSkillByNum,#num=SKID_VRIKSHASANA),@StoppedResting,#who=self);
       }
 
       Send(self,@StartFortitude);
