@@ -2774,10 +2774,11 @@ messages:
          }
       }
 
-      return 80 + iItemVigorBonus
-                + piRacialVigorMod
-                + ((Send(self,@GetSkillAbility,#Skill_num=SKID_SECOND_WIND) + 1) / 5)
-                + 40 * Send(self,@HasMasteredThisSkill,#num=SKID_FORTITUDE);
+      return bound(80 + iItemVigorBonus
+                      + piRacialVigorMod
+                      + ((Send(self,@GetSkillAbility,#Skill_num=SKID_SECOND_WIND) + 1) / 5)
+                      + ((Send(self,@GetSkillAbility,#Skill_num=SKID_SALABHASANA) + 1) / 5)
+                      + 40 * Send(self,@HasMasteredThisSkill,#num=SKID_FORTITUDE),0,200);
    }
 
    %%% Player flags
@@ -15100,6 +15101,12 @@ messages:
       }
 
       ptRest = CreateTimer(self,@RestTimer,Send(self,@GetRestTime));
+      
+      if Send(self,@HasSkill,#num=SKID_PADMASANA)
+         AND Send(self,@IsEnchanted,#byClass=&Debuff)
+      {
+         Send(Send(SYS,@FindSkillByNum,#num=SKID_PADMASANA),@ClearDebuffs,#who=self);
+      }
 
       return;
    }

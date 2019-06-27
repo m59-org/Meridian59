@@ -1,0 +1,96 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Padmasana is Breath
+
+constants:
+
+   include blakston.khd
+   include protocol.khd   
+
+resources:
+
+   Padmasana_name_rsc = "padmasana"
+   Padmasana_icon_rsc = ipurify.bgf
+   Padmasana_desc_rsc = \
+      "An intermediate breath technique that clears negative energies from the body. "
+      "In the padmasana pose, an intermediate monk crosses their legs and lowers their arms, "
+      "forming a lotus. The pose helps eat away at debuffs, poisons, and diseases."
+   
+   attempt_padmasana = \
+      "You attempt to cleanse the negative energies from your body."
+   
+   Padmasana_begin = "You breathe rapidly and lightly."
+   Padmasana_end = "You stop breathing rapidly and lightly."
+   
+   Padmasana_start_resting = "You cross your legs and lower your arms, becoming one with the lotus in a padmasana pose."
+   Padmasana_stop_resting = "You return to your feet."
+
+   Padmasana_intro = \
+      "Shadowcraft Lv. 3: Clear debuffs while resting."
+
+classvars:
+
+   vrName = Padmasana_name_rsc
+   vrIcon = Padmasana_icon_rsc
+   vrDesc = Padmasana_desc_rsc
+
+   breath_achieved_msg = Padmasana_begin
+   breath_end_msg = Padmasana_end
+   breath_start_resting = Padmasana_start_resting
+   breath_end_resting = Padmasana_stop_resting
+
+   vrSkill_intro = Padmasana_intro
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+
+   viSkill_num = SKID_PADMASANA
+   viSchool = SKS_SHADOWCRAFT
+   viSkill_Level = 3
+   viChance_to_Increase = 5
+   viMeditate_ratio = 0
+
+   viSkillExertion = 0
+   vbCheck_exertion = FALSE
+
+   vbAutomatic = TRUE
+   
+   viPrimaryStat = STAT_ID_STAMINA
+   viSecondaryStat = 0
+
+properties:
+
+messages:
+
+   ClearDebuffs(who=$)
+   {
+      local iPadmasanaAbility, iStat;
+
+      iPadmasanaAbility = Send(who,@GetSkillAbility,#skill_num=viSkill_num);
+      iStat = Send(self,@GetRequisiteStat,#who=who);
+
+      if NOT Send(who,@IsResting)
+         OR Send(who,@WasHitRecently)
+      {
+         return;
+      }
+
+      Send(self,@ImproveAbility,#who=who);
+      
+      Send(who,@MsgSendUser,#message_rsc=attempt_padmasana);
+      
+      Send(Send(SYS,@FindSpellByNum,#num=SID_PURIFY),@DoPurify,#who=who,#iChance=(iPadmasanaAbility+iStat)/5);
+
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

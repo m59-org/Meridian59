@@ -7,6 +7,7 @@
 DEPEND = ..\breath.bof
 BOFS = mayurasana.bof \
        sirsasana.bof \
-       salabhasana.bof
+       salabhasana.bof \
+       padmasana.bof
 
 !include $(KODDIR)\kod.mak

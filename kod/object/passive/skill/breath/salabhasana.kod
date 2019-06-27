@@ -23,7 +23,8 @@ resources:
       "A novice breath technique that increases vigor regeneration. "
       "In the salabhasana pose, a novice monk lies on their stomach and lifts "
       "both their head and legs into the air in a curve. The pose benefits "
-      "vigor regeneration greatly."
+      "vigor regeneration greatly, and regular practitioners of salabhasana "
+      "may even find benefits to their maximum vigor."
    
    Salabhasana_begin = "You breathe in the middle of your chest."
    Salabhasana_end = "You stop breathing in the middle of your chest."
@@ -75,13 +76,13 @@ messages:
       iSalabhasanaAbility = Send(who,@GetSkillAbility,#skill_num=viSkill_num);
       iStat = Send(self,@GetRequisiteStat,#who=who);
 
-      Send(self,@ImproveAbility,#who=who);
-
       if NOT Send(who,@IsResting)
          OR Send(who,@WasHitRecently)
       {
          return iAmount;
       }
+
+      Send(self,@ImproveAbility,#who=who);
 
       return iAmount + (iAmount*2*(iSalabhasanaAbility+(iStat/4)))/100;
    }
