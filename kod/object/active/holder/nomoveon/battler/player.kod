@@ -7955,6 +7955,18 @@ messages:
       }
 
       piTimeLastHitByBattler = GetTime();
+      
+      if what <> $
+         AND IsClass(what,&Player)
+         AND Send(what,@HasSkill,#num=SKID_DESECRATION)
+      {
+         aspell = Send(Send(SYS,@FindSkillByNum,#num=SKID_DESECRATION),@ConvertDamageTypes,#who=what,#aspell=aspell);
+      }
+      
+      if Send(self,@HasSkill,#num=SKID_SANCTIFICATION)
+      {
+         aspell = Send(Send(SYS,@FindSkillByNum,#num=SKID_SANCTIFICATION),@ConvertDamageTypes,#who=self,#aspell=aspell);
+      }
 
       % bSecondary flags this as secondary damage such as burning,
       %    which skips quite a few damage adds. I.e. the primary damage

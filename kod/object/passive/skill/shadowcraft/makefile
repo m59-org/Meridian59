@@ -7,6 +7,7 @@
 DEPEND = ..\shadowcraft.bof
 BOFS = sanctification.bof \
        flowingcloth.bof \
-       ironweave.bof
+       ironweave.bof \
+       desecration.bof
 
 !include $(KODDIR)\kod.mak

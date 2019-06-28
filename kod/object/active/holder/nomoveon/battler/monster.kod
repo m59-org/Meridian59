@@ -2904,6 +2904,13 @@ messages:
    {
       local iDamage, iResist, iPercentClass, i, each_obj,
             iCorrode, iCorrodeMultiple, iCorrodeReduction, iEmpowermentPercentage;
+      
+      if what <> $
+         AND IsClass(what,&Player)
+         AND Send(what,@HasSkill,#num=SKID_DESECRATION)
+      {
+         aspell = Send(Send(SYS,@FindSkillByNum,#num=SKID_DESECRATION),@ConvertDamageTypes,#who=what,#aspell=aspell);
+      }
 
       % Check for stat steals
       foreach i in Send(self,@GetEnchantmentsByClass,#enchClass=&DrainHex)

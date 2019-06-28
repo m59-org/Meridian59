@@ -8,7 +8,7 @@
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Sanctification is ShadowcraftSkill
+Desecration is ShadowcraftSkill
 
 constants:
 
@@ -16,28 +16,28 @@ constants:
 
 resources:
 
-   sanctification_name_rsc = "sanctification"
-   sanctification_icon_rsc = iresmagc.bgf
-   sanctification_desc_rsc = \
-      "By filtering incoming destructive energies with the inner strength of one's "
+   Desecration_name_rsc = "desecration"
+   Desecration_icon_rsc = idefile.bgf
+   Desecration_desc_rsc = \
+      "By filtering outgoing destructive energies with the inner strength of one's "
       "spirit, a master monk can change the very nature of a mystical attack. "
-      "If successful, unholy attacks and spells hitting the monk will become holy instead, "
-      "while acid attacks and spells will become shock, and cold attacks and spells will become fire."
-   sanctification_mastered_desc_rsc = \
+      "If successful, holy attacks and spells hitting enemies will become unholy instead, "
+      "while shock attacks and spells will become acid, and fire attacks and spells will become cold."
+   Desecration_mastered_desc_rsc = \
       "\n\n"
       "You possess exceptional mastery of this skill."
 
 classvars:
 
-   vrName = sanctification_name_rsc
-   vrIcon = sanctification_icon_rsc
-   vrDesc = sanctification_desc_rsc
-   vrMasteredDesc = sanctification_mastered_desc_rsc
+   vrName = Desecration_name_rsc
+   vrIcon = Desecration_icon_rsc
+   vrDesc = Desecration_desc_rsc
+   vrMasteredDesc = Desecration_mastered_desc_rsc
 
    viIndefinite = ARTICLE_NONE
    viDefinite = ARTICLE_NONE
 
-   viSkill_num = SKID_SANCTIFICATION
+   viSkill_num = SKID_DESECRATION
    viSchool = SKS_SHADOWCRAFT
    viSkill_Level = 5
    viChance_to_Increase = 12
@@ -68,20 +68,20 @@ messages:
       if iAbility + iStat/10 > Random(1,100)
       {
          Send(self,@DoSkill,#who=who);
-         if aspell & ATCK_SPELL_UNHOLY
+         if aspell & ATCK_SPELL_HOLY
          {
-            aspell = aspell & ~ATCK_SPELL_UNHOLY;
-            aspell = aspell | ATCK_SPELL_HOLY;
+            aspell = aspell & ~ATCK_SPELL_HOLY;
+            aspell = aspell | ATCK_SPELL_UNHOLY;
          }
-         if aspell & ATCK_SPELL_ACID
+         if aspell & ATCK_SPELL_SHOCK
          {
-            aspell = aspell & ~ATCK_SPELL_ACID;
-            aspell = aspell | ATCK_SPELL_SHOCK;
+            aspell = aspell & ~ATCK_SPELL_SHOCK;
+            aspell = aspell | ATCK_SPELL_ACID;
          }
-         if aspell & ATCK_SPELL_COLD
+         if aspell & ATCK_SPELL_FIRE
          {
-            aspell = aspell & ~ATCK_SPELL_COLD;
-            aspell = aspell | ATCK_SPELL_FIRE;
+            aspell = aspell & ~ATCK_SPELL_FIRE;
+            aspell = aspell | ATCK_SPELL_COLD;
          }
       }
       return aspell;
