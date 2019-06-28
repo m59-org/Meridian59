@@ -114,6 +114,17 @@ messages:
       }
 
       iArmorSkillBonus = 0;
+      if IsClass(self,&RobeBase)
+         AND who <> $
+         AND IsClass(who,&Player)
+         AND Send(who,@HasSkill,#num=SKID_FLOWING_CLOTH)
+      {
+         oArmorSkill = Send(SYS,@FindSkillByNum,#num=SKID_FLOWING_CLOTH);
+         if oArmorSkill <> $
+         {
+            iArmorSkillBonus = Send(oArmorSkill,@GetArmorSkillBonus,#who=who);
+         }
+      }
       if (IsClass(self,&PlateArmor)
          OR IsClass(self,&NeruditeArmor))
          AND who <> $
@@ -145,6 +156,18 @@ messages:
    {
       local iDamageReduce, oAttribute, i, sum, oArmorMod, oArmorSkill;
       sum = 0;
+
+      if IsClass(self,&RobeBase)
+         AND who <> $
+         AND IsClass(who,&Player)
+         AND Send(who,@HasSkill,#num=SKID_IRON_WEAVE)
+      {
+         oArmorSkill = Send(SYS,@FindSkillByNum,#num=SKID_IRON_WEAVE);
+         if oArmorSkill <> $
+         {
+            Send(oArmorSkill,@TookAHit,#who=who);
+         }
+      }
 
       if (IsClass(self,&PlateArmor)
          OR IsClass(self,&NeruditeArmor))
@@ -296,6 +319,18 @@ messages:
          }
       }
 
+      iArmorSkillBonus = 0;
+      if IsClass(self,&RobeBase)
+         AND who <> $
+         AND IsClass(who,&Player)
+         AND Send(who,@HasSkill,#num=SKID_FLOWING_CLOTH)
+      {
+         oArmorSkill = Send(SYS,@FindSkillByNum,#num=SKID_FLOWING_CLOTH);
+         if oArmorSkill <> $
+         {
+            iArmorSkillBonus = Send(oArmorSkill,@GetArmorSkillBonus,#who=who);
+         }
+      }
       iArmorSkillBonus = 0;
       if (IsClass(self,&PlateArmor)
          OR IsClass(self,&NeruditeArmor))

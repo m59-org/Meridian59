@@ -147,6 +147,7 @@ messages:
 
    GetResistanceModifiers()
    {
+      local iResist;
       if Send(SETTINGS_OBJECT,@GetDirectArmorEnabled)
       {
          return [ [ ATCK_WEAP_ALL, -10],
@@ -155,8 +156,17 @@ messages:
                 ];
       }
       
-      return [ [ATCK_WEAP_ALL,-10],
-               [-ATCK_SPELL_ALL,-10]
+      iResist = -10;
+      
+      if poOwner <> $
+         AND IsClass(poOwner,&Player)
+         AND Send(poOwner,@HasSkill,#num=SKID_IRON_WEAVE)
+      {
+         iResist = Send(Send(SYS,@FindSkillByNum,#num=SKID_IRON_WEAVE),@GetRobeResists,#who=poOwner,#iResist=iResist);
+      }
+      
+      return [ [ATCK_WEAP_ALL,iResist],
+               [-ATCK_SPELL_ALL,iResist]
              ];
    }
 
