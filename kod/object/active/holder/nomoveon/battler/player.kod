@@ -1091,11 +1091,11 @@ resources:
       "You can also summon your corpse by saying 'summon' to Priestess Xiana."
 
    start_holding_breath = \
-      "You start holding your breath. You're certain you can hold it for %i seconds."
+      "You start holding your breath."
    undine_breath = \
-      "Your undine side rejoices. You can hold your breath for %i seconds, but it doesn't matter. You can breathe underwater!"
+      "Your undine side rejoices. You can breathe underwater!"
    automaton_breath = \
-      "As an automaton, you don't require air the same way others do, but after %i seconds you will still need to surface, or your internal systems will suffer."
+      "As an automaton, you don't require air the same way others do."
    relief_take_breath = \
       "With relief, you take a breath of open air, and begin shaking off your drowning experience."
    take_breath = \
@@ -1489,12 +1489,10 @@ properties:
    
    % Underwater or areas with no air
    ptBreathTimer = $
-   % Some races can hold their breath longer than others
+   piBreathTime = 1000
+   piBreathRemaining = 60000
    piNaturalBreathTime = 60000
-   
-   % Is this person drowning?
-   pbHasBreath = TRUE
-   
+
    % Is the person engaged in backup stat changing?
    pbClearedStatsRecently = FALSE
 
@@ -21094,79 +21092,90 @@ messages:
    
    BeginHoldingBreath()
    {
-      local iBreathTime;
       if ptBreathTimer = $
       {
-         iBreathTime = Send(self,@GetBreathTime);
+         piBreathRemaining = piNaturalBreathTime;
          
          if piPlayerRace = RACE_HALF_UNDINE
          {
-            Send(self,@MsgSendUser,#message_rsc=undine_breath,#parm1=iBreathTime/1000);
+            Send(self,@MsgSendUser,#message_rsc=undine_breath);
          }
          else if piPlayerRace = RACE_AUTOMATON
          {
-            Send(self,@MsgSendUser,#message_rsc=automaton_breath,#parm1=iBreathTime/1000);
+            Send(self,@MsgSendUser,#message_rsc=automaton_breath);
          }
          else
          {
-            Send(self,@MsgSendUser,#message_rsc=start_holding_breath,#parm1=iBreathTime/1000);
+            Send(self,@MsgSendUser,#message_rsc=start_holding_breath);
          }
-         ptBreathTimer = CreateTimer(self,@RunOutOfBreath,iBreathTime);
+         ptBreathTimer = CreateTimer(self,@BreathLoss,piBreathTime);
       }
       return;
    }
    
-   GetBreathTime()
+   BreathLoss(timer=$)
    {
-      local iBreathTime, oWaterBreathing;
+      local oWaterBreathing, iBreathLoss;
+
+      ptBreathTimer = $;
+      
+      iBreathLoss = 1000;
       
       oWaterBreathing = Send(SYS,@FindSpellByNum,#num=SID_WATER_BREATHING);
       if oWaterBreathing <> $
          AND Send(self,@IsEnchanted,#what=oWaterBreathing)
       {
-         return Send(oWaterBreathing,@ModifyBreathTime,
-                                     #who=self,
-                                     #iBreathTime=piNaturalBreathTime,
-                                     #iSpellPower=Send(self,@GetEnchantedState,#what=oWaterBreathing));
+         iBreathLoss =  Send(oWaterBreathing,@ModifyBreathLoss,
+                                             #who=self,
+                                             #iBreathLoss=iBreathLoss,
+                                             #iSpellPower=Send(self,@GetEnchantedState,#what=oWaterBreathing));
       }
       
-      return piNaturalBreathTime;
-   }
-
-   RunOutOfBreath(timer=$)
-   {
-      ptBreathTimer = $;
+      if Send(self,@HasSkill,#num=SKID_MATSYASANA)
+      {
+         iBreathLoss = Send(Send(SYS,@FindSkillByNum,#num=SKID_MATSYASANA),@ModifyBreathLoss,#who=self,#iBreathLoss=iBreathLoss);
+      }
       
-      pbHasBreath = FALSE;
+      piBreathRemaining = Bound(piBreathRemaining - iBreathLoss,0,piNaturalBreathTime);
+      
+      if piPlayerRace = RACE_HALF_UNDINE
+         OR piPlayerRace = RACE_AUTOMATON
+      {
+         piBreathRemaining = piNaturalBreathTime;
+      }
+
+      ptBreathTimer = CreateTimer(self,@BreathLoss,piBreathTime);
       
       return;
    }
 
-   SetHasBreath(value=TRUE)
+   TakeABreath()
    {
-      if value = TRUE
+      if piBreathRemaining > 0
          AND ptBreathTimer <> $
       {
          DeleteTimer(ptBreathTimer);
          ptBreathTimer = $;
          Send(self,@MsgSendUser,#message_rsc=take_breath);
-         pbHasBreath = value;
-         return;
       }
-      if value = TRUE
-         AND NOT Send(self,@GetHasBreath)
+      else if piBreathRemaining = 0
+         AND ptBreathTimer <> $
       {
+         DeleteTimer(ptBreathTimer);
+         ptBreathTimer = $;
          Send(self,@MsgSendUser,#message_rsc=relief_take_breath);
-         pbHasBreath = value;
-         return;
       }
-      pbHasBreath = value;
+      piBreathRemaining = 60000;
       return;
    }
 
    GetHasBreath()
    {
-      return pbHasBreath;
+      if piBreathRemaining = 0
+      {
+         return FALSE;
+      }
+      return TRUE;
    }
    
    DeleteStatueCrest()

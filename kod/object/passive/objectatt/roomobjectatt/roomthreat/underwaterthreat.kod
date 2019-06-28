@@ -18,7 +18,7 @@ constants:
 
 resources:
 
-   underwater_threat_name_rsc = "underwater"
+   underwater_threat_name_rsc = "Underwater"
    underwater_threat_icon_rsc = underwatericon.bgf
    underwater_threat_desc_rsc = \
       "You are underwater! Move with purpose and keep your time "
@@ -94,7 +94,9 @@ messages:
          AND IsClass(who,&Player)
       {
          % Undine are part water spirit, never hit them.
+         % Automatons don't breathe.
          if Send(who,@GetPlayerRace) = RACE_HALF_UNDINE
+            OR Send(who,@GetPlayerRace) = RACE_AUTOMATON
             OR Send(who,@GetHasBreath)
          {
             return FALSE;

@@ -75,14 +75,14 @@ messages:
    {
       local iSalabhasanaAbility, iStat;
 
-      iSalabhasanaAbility = Send(who,@GetSkillAbility,#skill_num=viSkill_num);
-      iStat = Send(self,@GetRequisiteStat,#who=who);
-
       if NOT Send(who,@IsResting)
          OR Send(who,@WasHitRecently)
       {
          return iAmount;
       }
+
+      iSalabhasanaAbility = Send(who,@GetSkillAbility,#skill_num=viSkill_num);
+      iStat = Send(self,@GetRequisiteStat,#who=who);
 
       Send(self,@ImproveAbility,#who=who);
 

@@ -95,9 +95,9 @@ messages:
       return iDuration;
    }
 
-   ModifyBreathTime(who=$,iBreathTime=0,iSpellPower=0)
+   ModifyBreathLoss(who=$,iBreathLoss=0,iSpellPower=0)
    {
-      return iBreathTime * (iSpellPower/100);
+      return Bound(iBreathLoss - ((iBreathLoss * iSpellPower)/132),0,1000);
    }
 
    OfferToNewCharacters()
