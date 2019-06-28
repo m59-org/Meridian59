@@ -71,6 +71,7 @@ properties:
    viXLAT_kraanan_master = XLAT_TO_BLUE
    viXLAT_riija_master = XLAT_TO_PURPLE
    viXLAT_jala_master = XLAT_TO_GREEN
+   viXLAT_shadowcraft_master = XLAT_TO_DGREEN
    piSchool = SS_RIIJA
    piLevel = 0
    prInsignia_male =  disciplerobe_riija_male
@@ -95,9 +96,19 @@ messages:
 
    GetBaseSpellModifier(oSpell=$)
    {
-      if Send(oSpell,@GetSchool) = piSchool
+      local iShadowcraftBonus;
+      
+      iShadowcraftBonus = 0;
+      if poOwner <> $
+         AND IsClass(poOwner,&Player)
+         AND Send(poOwner,@HasSkill,#num=SKID_UNIFIED_BLAZON)
       {
-         return Bound(4 * piLevel,5,20);
+         iShadowcraftBonus = Send(Send(SYS,@FindSkillByNum,#num=SKID_UNIFIED_BLAZON),@GetSpellPowerBonus,#who=poOwner);
+      }
+      if Send(oSpell,@GetSchool) = piSchool
+         OR iShadowcraftBonus > 0
+      {
+         return Bound(4 * piLevel + iShadowcraftBonus,5,20);
       }
 
       return 5;
@@ -167,6 +178,11 @@ messages:
 
       if IsClass(poOwner,&Player)
       {
+         if Send(poOwner,@HasSkill,#num=SKID_UNIFIED_BLAZON)
+         {
+            Send(self,@SetXLATTranslation,#translation=viXLAT_shadowcraft_master);
+            return;
+         }
          foreach i in Send(poOwner,@GetSpellList)
          {
             oSpell = Send(SYS,@FindSpellByNum,#num=Send(poOwner,@DecodespellNum,#compound=i));

@@ -8,7 +8,7 @@
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Bash is KnightcraftSkill
+TouchOfDeath is ShadowcraftSkill
 
 constants:
 
@@ -17,24 +17,27 @@ constants:
 
 resources:
 
-   Bash_name_rsc = "verge mastery"
-   Bash_icon_rsc = maceico.bgf
-   Bash_desc_rsc = "Increases the critical strike rate of maces and hammers."
+   Touch_Of_Death_name_rsc = "touch of death"
+   Touch_Of_Death_icon_rsc = punchico.bgf
+   Touch_Of_Death_desc_rsc = \
+      "Once trained in the use of pressure points, novice monks "
+      "train lethal hand-to-hand arts that "
+      "allow them to score severely damaging blows on an enemy with their bare hands."
 
 classvars:
 
-   vrName = Bash_name_rsc
-   vrIcon = Bash_icon_rsc
-   vrDesc = Bash_desc_rsc
+   vrName = Touch_Of_Death_name_rsc
+   vrIcon = Touch_Of_Death_icon_rsc
+   vrDesc = Touch_Of_Death_desc_rsc
 
    viIndefinite = ARTICLE_NONE
    viDefinite = ARTICLE_NONE
 
-   viSkill_num = SKID_BASH
-   viSchool = SKS_KNIGHTCRAFT
-   viSkill_Level = 5
-   viChance_to_Increase = 7
-   viMeditate_ratio = 50
+   viSkill_num = SKID_TOUCH_OF_DEATH
+   viSchool = SKS_SHADOWCRAFT
+   viSkill_Level = 3
+   viChance_to_Increase = 5
+   viMeditate_ratio = 0
 
    viSkillExertion = 0
    vbCheck_exertion = FALSE
@@ -51,19 +54,6 @@ messages:
    GetRequisiteStat(who=$)
    {
       return Send(who,@GetMight);
-   }
-
-   ModifyBaseCritRate(who=$,iBaseCritRate=0)
-   {
-      local iStat, iAbility;
-      
-      iStat = Send(self,@GetRequisiteStat,#who=who);
-      iAbility = Send(who,@GetSkillAbility,#skill_num=viSkill_num);
-
-      Send(self,@ImproveAbility,#who=who);  
-
-      % Up to 5% from skill and another 5% from stat to bring Maces up to 15% crit rate
-      return iBaseCritRate + (iAbility+1)*5 + iStat*5;
    }
 
 end

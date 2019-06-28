@@ -7376,7 +7376,7 @@ messages:
             else
             {
                % Unarmed
-               iStroke = Send(self,@GetSkillAbility,#skill_num=SKID_PUNCH);
+               iStroke = Send(self,@GetSkillAbility,#skill_num=SKID_PUNCH) + Send(self,@GetSkillAbility,#skill_num=SKID_WAY_OF_THE_SERPENT);
                iProficiency = Send(self,@GetSkillAbility,#skill_num=SKID_BRAWLING);
             }
          }
@@ -7675,6 +7675,15 @@ messages:
             {
                % It's a spell, use it as the stroke object.
                oStroke = oWeapon;
+            }
+         }
+         
+         if oStroke <> $
+            AND IsClass(oStroke,&Punch)
+         {
+            if Send(self,@HasSkill,#num=SKID_PRESSURE_POINTS)
+            {
+               Post(Send(SYS,@FindSkillByNum,#num=SKID_PRESSURE_POINTS),@AttemptCriticalHit,#who=self,#target=what);
             }
          }
 
@@ -8843,6 +8852,8 @@ messages:
       if piGender = GENDER_MALE
       {
          if iHealthFraction > 75
+            OR (Send(self,@HasSkill,#num=SKID_WOUND_MASK)
+               AND Send(Send(SYS,@FindSkillByNum,#num=SKID_WOUND_MASK),@OverrideScream,#who=self))
          {
             return player_sound_male_ouch1;
          }
@@ -8861,6 +8872,8 @@ messages:
       }
 
       if iHealthFraction > 75
+         OR (Send(self,@HasSkill,#num=SKID_WOUND_MASK)
+            AND Send(Send(SYS,@FindSkillByNum,#num=SKID_WOUND_MASK),@OverrideScream,#who=self))
       {
          return player_sound_female_ouch1;
       }

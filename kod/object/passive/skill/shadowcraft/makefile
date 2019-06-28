@@ -8,6 +8,10 @@ DEPEND = ..\shadowcraft.bof
 BOFS = sanctification.bof \
        flowingcloth.bof \
        ironweave.bof \
-       desecration.bof
+       desecration.bof \
+       woundmask.bof \
+       pressurepoints.bof \
+       touchofdeath.bof \
+       unifiedblazon.bof
 
 !include $(KODDIR)\kod.mak
