@@ -12,6 +12,7 @@ BOFS = sanctification.bof \
        woundmask.bof \
        pressurepoints.bof \
        touchofdeath.bof \
-       unifiedblazon.bof
+       unifiedblazon.bof \
+       flickerstrike.bof
 
 !include $(KODDIR)\kod.mak

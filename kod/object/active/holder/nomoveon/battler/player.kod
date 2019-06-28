@@ -7171,6 +7171,11 @@ messages:
       {
          plDelayedAdditionalAttacks = Cons([CreateTimer(self,@CheckDelayedAdditionalAttacks,450),what,use_weapon,stroke_obj],plDelayedAdditionalAttacks);
       }
+      else if NOT bAdditionalAttack
+         AND Send(self,@GetWeapon) = $
+      {
+         plDelayedAdditionalAttacks = Cons([CreateTimer(self,@CheckDelayedAdditionalAttacks,450),what,use_weapon,stroke_obj],plDelayedAdditionalAttacks);
+      }
 
       propagate;
    }
@@ -7755,6 +7760,12 @@ messages:
             OR IsClass(poStance,&LightAttackStance))
       {
          iDamage = Send(poStance,@ModifyAttackDamage,#who=self,#damage=iDamage,#stroke_obj=stroke_obj);
+      }
+      
+      if Send(self,@GetWeapon) = $
+         AND Send(self,@HasSkill,#num=SKID_FLICKER_STRIKE)
+      {
+         iDamage = Send(Send(SYS,@FindSkillByNum,#num=SKID_FLICKER_STRIKE),@ModifyAttackDamage,#who=self,#damage=iDamage,#stroke_obj=stroke_obj);
       }
 
       foreach i in Send(self,@GetEnchantmentsByClass,#enchClass=&Hex)
@@ -20742,6 +20753,8 @@ messages:
             iStanceBonus = 300;
          }
          if IsClass(poStance,&LightAttackStance)
+            OR (Send(self,@GetWeapon) = $
+               AND Send(self,@HasSkill,#num=SKID_FLICKER_STRIKE))
          {
             iStanceBonus = 50;
          }
@@ -20762,6 +20775,8 @@ messages:
             iStanceBonus = 300;
          }
          if IsClass(poStance,&LightAttackStance)
+            OR (Send(self,@GetWeapon) = $
+               AND Send(self,@HasSkill,#num=SKID_FLICKER_STRIKE))
          {
             iStanceBonus = 50;
          }
