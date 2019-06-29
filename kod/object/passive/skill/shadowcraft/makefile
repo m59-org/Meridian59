@@ -13,6 +13,7 @@ BOFS = sanctification.bof \
        pressurepoints.bof \
        touchofdeath.bof \
        unifiedblazon.bof \
-       flickerstrike.bof
+       flickerstrike.bof \
+       wayofthebird.bof
 
 !include $(KODDIR)\kod.mak

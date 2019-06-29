@@ -7516,7 +7516,7 @@ messages:
    "This returns the battler's ability to avoid being hit. "
    "Ranges from 1 to 2000."
    {
-      local i, oWeapon, oShield, iParry, iDodge, iBlock, iAgility,
+      local i, iParry, iDodge, iBlock, iAgility, iWayOfTheBird,
             iDefense, oMonster, iShocked;
             
       if Send(self,@IsResting)
@@ -7547,10 +7547,16 @@ messages:
          iBlock = Send(self,@GetBlockAbility,#stroke_obj=stroke_obj);
 
          iDodge = Send(self,@GetDodgeAbility,#stroke_obj=stroke_obj);
+         
+         iWayOfTheBird = 0;
+         if Send(self,@HasSkill,#num=SKID_WAY_OF_THE_BIRD)
+         {
+            iWayOfTheBird = Send(Send(SYS,@FindSkillByNum,#num=SKID_WAY_OF_THE_BIRD),@GetDefense,#who=self);
+         }
 
          iAgility = Send(self,@GetAgility);
 
-         iDefense = iParry + iBlock + (iDodge*2) + (iAgility*8)
+         iDefense = iParry + iBlock + (iDodge*2) + (iWayOfTheBird*2) + (iAgility*8)
                      + (200 * piBase_Max_Health)/(100 + Send(self,@GetStamina));
       }
 
@@ -12346,6 +12352,13 @@ messages:
             AND Send(self,@GetSkillAbility,#skill_num=SKID_PARRY) < 99
          {
             oSkill=Send(SYS,@FindSkillByNum,#num=SKID_PARRY);
+            Send(oSkill,@ImproveAbility,#who=self,#target=poKill_Target);
+         }
+         if Send(self,@GetWeapon) = $
+            AND Send(self,@HasSkill,#num=SKID_WAY_OF_THE_BIRD)
+            AND Send(self,@GetSkillAbility,#skill_num=SKID_WAY_OF_THE_BIRD) < 99
+         {
+            oSkill=Send(SYS,@FindSkillByNum,#num=SKID_WAY_OF_THE_BIRD);
             Send(oSkill,@ImproveAbility,#who=self,#target=poKill_Target);
          }
 
