@@ -67,6 +67,7 @@ BOFS = animate.bof \
        stonetoflesh.bof \
        giftofspirit.bof \
        giftofvitality.bof \
-       markofdefense.bof
+       markofdefense.bof \
+       douse.bof
 
 !include $(KODDIR)\kod.mak
