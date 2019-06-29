@@ -8,6 +8,7 @@ DEPEND = ..\alchemy.bof
 BOFS = mechanizedquiver.bof \
        elementalimbalance.bof \
        maintenance.bof \
-       ringsustainment.bof
+       ringsustainment.bof \
+       transmogrification.bof
 
 !include $(KODDIR)\kod.mak

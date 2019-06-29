@@ -68,13 +68,12 @@ messages:
 
    SomethingSaidDuringTrance(who=$,string=$)
    {
-      local i, iSpellPower, iCount,isWeaponCreateable, oWeapon, oItemAtt,iSpellPercent;
+      local i, iSpellPower, iCount,isWeaponCreateable, oWeapon, oItemAtt;
 
       iCount = 0;
       isWeaponCreateable = false;
 
       iSpellPower = Send(self,@GetSpellPower,#who=who);
-      iSpellPercent = Send(who,@GetSpellAbility,#spell_num=SID_CREATE_SHIELD);
 
       foreach i in Send(SYS,@GetItemTemplates)
       {
@@ -86,7 +85,7 @@ messages:
             }
 
             if(NOT Send(self,@CanCreateShield,#sWeapon=Send(i,@GetName),
-                  #iSpellPower=iSpellPower,#iSpellPercent=iSpellPercent))
+                  #iSpellPower=iSpellPower,#who=who))
             {
                return;
             }
@@ -127,30 +126,33 @@ messages:
       return;
    }
 
-   CanCreateShield(sWeapon=$,iSpellPower=$,iSpellPercent=$)
+   CanCreateShield(sWeapon=$,iSpellPower=$,who=$)
    {
+      local iSpellAbility;
+      
+      iSpellAbility = Send(who,@GetSpellAbility,#spell_num=SID_CREATE_SHIELD);
 
-      if(StringEqual("small round shield",sWeapon) AND iSpellPercent > 0)
+      if(StringEqual("small round shield",sWeapon) AND iSpellAbility > 0)
       {
          return true;
       }
-      if(StringEqual("gold round shield",sWeapon) AND iSpellPercent >= 30)
+      if(StringEqual("gold round shield",sWeapon) AND iSpellAbility >= 30)
       {
          return true;
       }
-      if(StringEqual("knight's shield",sWeapon) AND iSpellPercent >= 45)
+      if(StringEqual("knight's shield",sWeapon) AND iSpellAbility >= 45)
       {
          return true;
       }
-      if(StringEqual("nomad shield",sWeapon) AND iSpellPercent >= 55)
+      if(StringEqual("nomad shield",sWeapon) AND iSpellAbility >= 55)
       {
          return true;
       }
-      if(StringEqual("sylvan shield",sWeapon) AND iSpellPercent >= 95)
+      if(StringEqual("sylvan shield",sWeapon) AND iSpellAbility >= 95)
       {
          return true;
       }
-      if(StringEqual("mug of beer",sWeapon) AND iSpellPercent >= 98)
+      if(StringEqual("mug of beer",sWeapon) AND iSpellAbility >= 98)
       {
          return true;
       }

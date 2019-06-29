@@ -70,6 +70,8 @@ BOFS = animate.bof \
        markofdefense.bof \
        douse.bof \
        creahelmet.bof \
-       creashield.bof
+       creashield.bof \
+       crearing.bof \
+       creascroll.bof
 
 !include $(KODDIR)\kod.mak

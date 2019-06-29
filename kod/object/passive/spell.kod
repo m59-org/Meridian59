@@ -1715,7 +1715,14 @@ messages:
                      {
                         if IsClass(oUserObject,&NumberItem)
                         {
-                           Send(oUserObject,@SubtractNumber,#number=iNumNeeded);
+                           if Send(who,@HasSkill,#num=SKID_TRANSMOGRIFICATION)
+                              AND Send(Send(SYS,@FindSkillByNum,#num=SKID_TRANSMOGRIFICATION),@DoSkill,#who=who,#oReagent=oUserObject)
+                           {
+                           }
+                           else
+                           {
+                              Send(oUserObject,@SubtractNumber,#number=iNumNeeded);
+                           }
                            iNumNeeded = 0;
 
                            break;
