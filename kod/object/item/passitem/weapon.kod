@@ -734,7 +734,17 @@ messages:
       % 75% chance to be damaged, currently.
       if random(1,100) < WEAPON_TAKE_DAMAGE_PCT
       {
-         piHits = piHits - 1;
+         if poOwner <> $
+            AND IsClass(poOwner,&Player)
+            AND Send(poOwner,@HasSkill,#num=SKID_MAINTENANCE)
+            AND Send(Send(SYS,@FindSkillByNum,#num=SKID_MAINTENANCE),@DoSkill,#who=poOwner,#oEquipment=self)
+         {
+            return;
+         }
+         else
+         {
+            piHits = piHits - 1;
+         }
       }
 
       if piHits <= 0

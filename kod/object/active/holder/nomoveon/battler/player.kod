@@ -5308,13 +5308,13 @@ messages:
    }
 
    StartEnchantment(what=$,who=$,time=$,state=$,lastcall=TRUE,
-                     addicon=TRUE,ltype=$,bItemCast=FALSE,iSpellPower=0)
+                     addicon=TRUE,ltype=$,bItemCast=FALSE,iSpellPower=0,bSustainedByItem=FALSE)
    "Adds <what> to our enchantments, and creates a timer that will cause it "
    "to end."
    {
       local oTimer, lNew_enchantment;
 
-      if time = $ OR time = SPELL_INDEFINITE_DURATION 
+      if time = $ OR time = SPELL_INDEFINITE_DURATION OR bSustainedByItem 
       {
          oTimer = $;
       }

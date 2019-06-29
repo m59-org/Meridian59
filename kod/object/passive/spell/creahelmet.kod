@@ -68,13 +68,12 @@ messages:
 
    SomethingSaidDuringTrance(who=$,string=$)
    {
-      local i, iSpellPower, iCount,isWeaponCreateable, oWeapon, oItemAtt,iSpellPercent;
+      local i, iSpellPower, iCount,isWeaponCreateable, oWeapon, oItemAtt;
 
       iCount = 0;
       isWeaponCreateable = false;
 
       iSpellPower = Send(self,@GetSpellPower,#who=who);
-      iSpellPercent = Send(who,@GetSpellAbility,#spell_num=SID_CREATE_HELMET);
 
       foreach i in Send(SYS,@GetItemTemplates)
       {
@@ -85,8 +84,7 @@ messages:
                return;
             }
 
-            if(NOT Send(self,@Cancreate_helmet,#sWeapon=Send(i,@GetName),
-                  #iSpellPower=iSpellPower,#iSpellPercent=iSpellPercent))
+            if NOT Send(self,@CanCreateHelmet,#sWeapon=Send(i,@GetName),#iSpellPower=iSpellPower,#who=who)
             {
                return;
             }
@@ -127,22 +125,25 @@ messages:
       return;
    }
 
-   Cancreate_helmet(sWeapon=$,iSpellPower=$,iSpellPercent=$)
+   CanCreateHelmet(sWeapon=$,iSpellPower=$,who=$)
    {
+      local iSpellAbility;
+      
+      iSpellAbility = Send(who,@GetSpellAbility,#spell_num=SID_CREATE_HELMET);
 
-      if(StringEqual("helm",sWeapon) AND iSpellPercent > 0)
+      if(StringEqual("helm",sWeapon) AND iSpellAbility > 0)
       {
          return true;
       }
-      if(StringEqual("spiked helm",sWeapon) AND iSpellPercent >=35)
+      if(StringEqual("spiked helm",sWeapon) AND iSpellAbility >=35)
       {
          return true;
       }
-      if(StringEqual("runed helm",sWeapon) AND iSpellPercent >= 65)
+      if(StringEqual("runed helm",sWeapon) AND iSpellAbility >= 65)
       {
          return true;
       }
-      if(StringEqual("knight's helm",sWeapon) AND iSpellPercent >= 95)
+      if(StringEqual("knight's helm",sWeapon) AND iSpellAbility >= 95)
       {
          return true;
       }

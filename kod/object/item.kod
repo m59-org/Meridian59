@@ -1812,7 +1812,17 @@ messages:
       % Set to 75% currently
       if random(1,100) < ARMOR_TAKE_DAMAGE_PCT   
       {
-         piHits = piHits - 1;
+         if who <> $
+            AND IsClass(who,&Player)
+            AND Send(who,@HasSkill,#num=SKID_MAINTENANCE)
+            AND Send(Send(SYS,@FindSkillByNum,#num=SKID_MAINTENANCE),@DoSkill,#who=who,#oEquipment=self)
+         {
+            return;
+         }
+         else
+         {
+            piHits = piHits - 1;
+         }
       }
       
       if piHits <= 0
