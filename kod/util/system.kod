@@ -500,6 +500,7 @@ properties:
    poDesertRoomMaintenance = $
    poMazeRoomMaintenance = $
    poLanguageMaintenance = $
+   poLeagueMaintenance = $
 
    % Singleton object that keeps track of various game statistics
    poStatistics = $
@@ -669,6 +670,7 @@ messages:
       Send(self,@RecreateDesertRoomMaintenance);
       Send(self,@RecreateMazeRoomMaintenance);
       Send(self,@RecreateLanguageMaintenance);
+      Send(self,@RecreateLeagueMaintenance);
 
       Send(self,@RecreateAllSpells,#figure_totals=FALSE);
       Send(self,@RecreateAllSkills,#figure_totals=FALSE);
@@ -783,6 +785,7 @@ messages:
       Send(self,@RecreateDesertRoomMaintenance);
       Send(self,@RecreateMazeRoomMaintenance);
       Send(self,@RecreateLanguageMaintenance);
+      Send(self,@RecreateLeagueMaintenance);
       Send(self,@RecreateWarEvent);
 
       % These don't need to be done here.
@@ -1561,6 +1564,7 @@ messages:
       Send(poRentableRoomMaintenance,@NewDay);
       Send(poDesertRoomMaintenance,@NewDay);
       Send(poLanguageMaintenance,@NewDay);
+      Send(poLeagueMaintenance,@NewDay);
       Send(poMazeRoomMaintenance,@NewDay);
       Send(&SoldierShield,@NewDay);
 
@@ -4605,6 +4609,11 @@ messages:
          Send(poLanguageMaintenance,@NewGameHour);
       }
 
+      if poLeagueMaintenance <> $
+      {
+         Send(poLeagueMaintenance,@NewGameHour);
+      }
+
       if poMazeRoomMaintenance <> $
       {
          Send(poMazeRoomMaintenance,@NewGameHour);
@@ -5570,6 +5579,11 @@ messages:
       return poLanguageMaintenance;
    }
 
+   GetLeagueMaintenance()
+   {
+      return poLeagueMaintenance;
+   }
+
    GetMazeRoomMaintenance()
    {
       return poMazeRoomMaintenance;
@@ -5670,6 +5684,19 @@ messages:
          poDesertRoomMaintenance = Create(&DesertRoomMaintenance);
       }
 
+      return TRUE;
+   }
+
+   RecreateLeagueMaintenance()
+   {
+      if poLeagueMaintenance <> $
+      {
+         Send(poLeagueMaintenance,@Recreate);
+      }
+      else
+      {
+         poLeagueMaintenance = Create(&LeagueMaintenance);
+      }
       return TRUE;
    }
 

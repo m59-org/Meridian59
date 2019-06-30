@@ -12,6 +12,7 @@ BOFS = system.bof library.bof parlia.bof assgame.bof questengine.bof lore.bof \
        mazemaint.bof \
        gamequestmaint.bof \
        dailyquestmaint.bof \
-       languagemaint.bof
+       languagemaint.bof \
+       leaguemaint.bof
 
 !include $(KODDIR)\kod.mak

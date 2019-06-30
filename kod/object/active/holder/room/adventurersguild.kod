@@ -38,7 +38,7 @@ constants:
 
 resources:
 
-   room_adventurers_guild = adventurersguild.roo
+   room_adventurers_guild = adventurersguildwithjail.roo
    room_name_adventurers_guild = "Adventurer's League of Meridian"
    adventurers_guild_music = bridge.mp3
 
@@ -78,8 +78,8 @@ classvars:
    viTeleport_row = 16
    viTeleport_col = 8
 
-   viPermanent_flags = ROOM_NO_COMBAT | ROOM_SAFELOGOFF
-   viTerrain_type = TERRAIN_MYSTICAL
+   viTerrain_Type = TERRAIN_CITY | TERRAIN_SHOP
+   viPermanent_flags = ROOM_NO_COMBAT | ROOM_SANCTUARY | ROOM_SAFELOGOFF
 
 properties:
 
@@ -96,6 +96,12 @@ messages:
       Send(self,@NewHold,#what=Create(&Forge),
            #new_row=19,#new_col=40,#fine_row=16,#fine_col=32);
       Send(SETTINGS_OBJECT,@SetupLeaguePowers);
+
+      Send(self,@NewHold,#what=Create(&AdventurersLeagueJailer),
+            #new_row=34,#new_col=21,#new_angle=ANGLE_EAST);
+
+      Send(self,@NewHold,#what=Create(&LeagueDonations),
+            #new_row=27,#new_col=37,#fine_row=29,#fine_col=63,#new_angle=ANGLE_EAST);
 
       propagate;
    }
