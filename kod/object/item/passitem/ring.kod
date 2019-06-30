@@ -66,6 +66,13 @@ messages:
 
    ReqUseSomething(what = $)
    {
+      if poOwner <> $
+         AND IsClass(poOwner,&Player)
+         AND Send(poOwner,@HasSkill,#num=SKID_HARMONICS)
+      {
+         propagate;
+      }
+
       if IsClass(what, &Ring)
       {
          if Send(poOwner, @TryUnuseItem, #what = self)
@@ -273,7 +280,10 @@ messages:
 
    DefendingHit()
    {
-      % Return here so we don't damage the ring!
+      if Send(poOwner,@HasSkill,#num=SKID_HARMONICS)
+      {
+         Send(Send(SYS,@FindSkillByNum,#num=SKID_HARMONICS),@DoSkill,#who=poOwner,#oEquipment=self);
+      }
       return;
    }
 

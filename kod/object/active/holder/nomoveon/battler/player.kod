@@ -8288,6 +8288,11 @@ messages:
          {
             bonus = Send(Nth(i,2),@ModifyDamageTaken,#who=self,#bonus=bonus,#power=Nth(i,3));
          }
+         
+         if Send(self,@HasSkill,#num=SKID_HARMONICS)
+         {
+            bonus = bonus + Send(Send(SYS,@FindSkillByNum,#num=SKID_HARMONICS),@GetIncreasedDamageTaken,#who=self);
+         }
       }
 
       % Add attmods AFTER resistance/suscep mods.

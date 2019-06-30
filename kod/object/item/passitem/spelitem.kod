@@ -433,6 +433,13 @@ messages:
       % Cast the spell specific to the Spellitem
       Send(self,@CastSpell,#what=what,#apply_on=apply_on);
 
+      if IsClass(self,&Potion)
+         AND Send(apply_on,@HasSkill,#num=SKID_POTION_PRESERVATION)
+         AND Send(Send(SYS,@FindSkillByNum,#num=SKID_POTION_PRESERVATION),@DoSkill,#who=apply_on,#oPotion=self)
+      {
+         return;
+      }
+
       Send(self,@SetHits,#number=piHits - 1);
 
       return;

@@ -9,6 +9,8 @@ BOFS = mechanizedquiver.bof \
        elementalimbalance.bof \
        maintenance.bof \
        ringsustainment.bof \
-       transmogrification.bof
+       transmogrification.bof \
+       harmonics.bof \
+       potionpreservation.bof
 
 !include $(KODDIR)\kod.mak
