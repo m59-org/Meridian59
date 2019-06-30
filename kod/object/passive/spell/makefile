@@ -74,6 +74,7 @@ BOFS = animate.bof \
        crearing.bof \
        creascroll.bof \
        detonate.bof \
-       firebomb.bof
+       firebomb.bof \
+       shockbomb.bof
 
 !include $(KODDIR)\kod.mak

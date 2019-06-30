@@ -22,13 +22,18 @@ resources:
       "Stay back! It's an alchemy-enhanced bag of infused reagents - a bomb!"
 
    fire_bomb_projectile_icon = woflame.bgf
+   shock_bomb_projectile_icon = wolightn.bgf
 
    bomb_explode_no_burning = \
       "Your bomb explodes harmlessly."
    bomb_explode_applied_burning = \
       "Your alchemical bomb explodes, applying ~B~r%i~n burning to nearby enemies!"
+      
+   bomb_explode_applied_shock = \
+      "Your alchemical bomb explodes, applying ~B~c%i~n shock to nearby enemies!"
 
-   detonation_sound = ffirebal.wav
+   fire_detonation_sound = ffirebal.wav
+   shock_detonation_sound = Fzap.wav
 
 classvars:
 
@@ -43,7 +48,11 @@ classvars:
    viProjectileLightColor = LIGHT_RED
    viProjectileSpeed = 4
    
+   viShockProjectile_icon = shock_bomb_projectile_icon
+   viShockProjectileLightColor = LIGHT_LIGHTNING
+   
    viFireBombElement = ATCK_SPELL_FIRE
+   viShockBombElement = ATCK_SPELL_SHOCK
 
 properties:
    
@@ -53,7 +62,7 @@ properties:
    pbDetonating = FALSE
    piType = BOMB_FIRE
    piBombPower = 0
-   pibFireBombRadius = 64
+   piBombRadius = 64
 
 messages:
 
@@ -63,7 +72,7 @@ messages:
       piType = iType;
       pbProximityTrigger = bProximityTrigger;
       piBombPower = iBombPower;
-      pibFireBombRadius = iBombPower * 5;
+      piBombRadius = iBombPower * 5;
 
       if poCreator = $
       {
@@ -74,6 +83,97 @@ messages:
    }
    
    Detonate()
+   {
+      switch(piType)
+      {
+         case BOMB_FIRE:
+            Send(self,@DetonateFire);
+            return;
+         case BOMB_SHOCK:
+            Send(self,@DetonateShock);
+            return;
+      }
+      return;
+   }
+   
+   DetonateShock()
+   {
+      local oOwner, i, each_obj, lSplashTargets, lBattlers, iShockDealt, iTotalShock,
+            oShockElement, iElements, oDazzle;
+      
+      oOwner = Send(self,@GetOwner);
+      lBattlers = $;
+      
+      % Create random fire.
+      
+      iElements = Random(3,6);
+      
+      while iElements > 0
+      {
+         oShockElement = Create(&WallofLightning,#MaxDamage=piBombPower/6,#Caster=poCreator,
+                           #Duration=piBombPower/3,#Illusionary=FALSE);
+         Send(oOwner,@NewHold,#what=oShockElement,
+              #new_row=Bound(Send(self,@GetRow) + Random(-piBombRadius/64,piBombRadius/64),0,Send(oOwner,@GetRoomRows)),
+              #new_col=Bound(Send(self,@GetCol) + Random(-piBombRadius/64,piBombRadius/64),0,Send(oOwner,@GetRoomCols)),
+              #fine_row=Random(0,64),
+              #fine_col=Random(0,64));
+         iElements--;
+      }
+
+      % For our splash targets, we find all battlers in range of the target
+      %    that aren't the caster or target and which the caster can attack
+
+      foreach i in Send(oOwner,@GetHolderActive)
+      {
+         each_obj = Send(oOwner,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&Battler)
+            AND each_obj <> poCreator
+            AND Send(oOwner,@LineOfSight,#obj1=self,#obj2=each_obj)
+            AND Send(poCreator,@AllowPlayerAttack,#victim=each_obj,#report=FALSE,#actual=FALSE)
+            AND Send(each_obj,@SquaredFineDistanceTo3D,#what=self) <= piBombRadius*piBombRadius
+         {
+            lBattlers = Cons(each_obj,lBattlers);
+         }
+      }
+
+      iTotalShock = 0;
+      oDazzle = Send(SYS,@FindSpellByNum,#num=SID_DAZZLE);
+      % Show bolt from target to new targets
+      if lBattlers <> $
+      {
+         foreach i in lBattlers
+         {
+            Send(oOwner,@SomethingShot,#who=self,
+                                       #target=i,
+                                       #projectile=self,
+                                       #flags=viProjectileFlag);
+            if NOT Send(i,@IsEnchanted,#what=oDazzle)
+            {
+               Send(oDazzle,@DoSpell,#what=poCreator,#oTarget=i,#iDuration=1500 + (piBombPower+1)*45);
+            }
+            iShockDealt = Send(i,@ApplyElementalStatusEffects,
+                                   #damage=Bound((piBombPower*Random(7,13))/10,1,$),
+                                   #bSecondary=FALSE,
+                                   #aspell=viShockBombElement,
+                                   #what=poCreator);
+            iTotalShock = iTotalShock + iShockDealt;
+         }
+
+         if iTotalShock <= 0
+         {
+            Send(poCreator,@MsgSendUser,#message_rsc=bomb_explode_no_burning);
+         }
+         else
+         {
+            Send(poCreator,@MsgSendUser,#message_rsc=bomb_explode_applied_shock,#parm1=iTotalShock);
+         }
+      }
+      Post(self,@PlaySpellSound,#sound_type=piType);
+      Post(self,@Delete);
+      return;
+   }
+   
+   DetonateFire()
    {
       local oOwner, i, each_obj, lSplashTargets, lBattlers, iBurningDealt, iTotalBurning, iDealtDamage,
             oFireElement, iFireElements;
@@ -90,8 +190,8 @@ messages:
          oFireElement = Create(&WallOfFire,#MaxDamage=piBombPower/6,#Caster=poCreator,
                            #Duration=piBombPower/3,#Illusionary=FALSE);
          Send(oOwner,@NewHold,#what=oFireElement,
-              #new_row=Bound(Send(self,@GetRow) + Random(-pibFireBombRadius/64,pibFireBombRadius/64),0,Send(oOwner,@GetRoomRows)),
-              #new_col=Bound(Send(self,@GetCol) + Random(-pibFireBombRadius/64,pibFireBombRadius/64),0,Send(oOwner,@GetRoomCols)),
+              #new_row=Bound(Send(self,@GetRow) + Random(-piBombRadius/64,piBombRadius/64),0,Send(oOwner,@GetRoomRows)),
+              #new_col=Bound(Send(self,@GetCol) + Random(-piBombRadius/64,piBombRadius/64),0,Send(oOwner,@GetRoomCols)),
               #fine_row=Random(0,64),
               #fine_col=Random(0,64));
          iFireElements--;
@@ -107,7 +207,7 @@ messages:
             AND each_obj <> poCreator
             AND Send(oOwner,@LineOfSight,#obj1=self,#obj2=each_obj)
             AND Send(poCreator,@AllowPlayerAttack,#victim=each_obj,#report=FALSE,#actual=FALSE)
-            AND Send(each_obj,@SquaredFineDistanceTo3D,#what=self) <= pibFireBombRadius*pibFireBombRadius
+            AND Send(each_obj,@SquaredFineDistanceTo3D,#what=self) <= piBombRadius*piBombRadius
          {
             lBattlers = Cons(each_obj,lBattlers);
          }
@@ -149,7 +249,7 @@ messages:
             Send(poCreator,@MsgSendUser,#message_rsc=bomb_explode_applied_burning,#parm1=iTotalBurning);
          }
       }
-      Post(self,@PlaySpellSound);
+      Post(self,@PlaySpellSound,#sound_type=piType);
       Post(self,@Delete);
       return;
    }
@@ -184,6 +284,13 @@ messages:
 
    GetProjectileIcon()
    {
+      switch(piType)
+      {
+         case BOMB_FIRE:
+            return vrProjectile_icon;
+         case BOMB_SHOCK:
+            return viShockProjectile_icon;
+      }
       return vrProjectile_icon;
    }
 
@@ -194,6 +301,13 @@ messages:
 
    GetProjectileLightColor()
    {
+      switch(piType)
+      {
+         case BOMB_FIRE:
+            return viProjectileLightColor;
+         case BOMB_SHOCK:
+            return viShockProjectileLightColor;
+      }
       return viProjectileLightColor;
    }
 
@@ -218,11 +332,19 @@ messages:
       return viProjectileLightIntensity;
    }
 
-   PlaySpellSound()
+   PlaySpellSound(sound_type=BOMB_FIRE)
    {
       if poOwner <> $
       {
-         Send(poOwner,@SomethingWaveRoom,#what=self,#wave_rsc=detonation_sound);
+         switch(sound_type)
+         {
+            case BOMB_FIRE:
+               Send(poOwner,@SomethingWaveRoom,#what=self,#wave_rsc=fire_detonation_sound);
+               return;
+            case BOMB_SHOCK:
+               Send(poOwner,@SomethingWaveRoom,#what=self,#wave_rsc=shock_detonation_sound);
+               return;
+         }
       }
       return;
    }

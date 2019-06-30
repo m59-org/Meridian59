@@ -8,7 +8,7 @@
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-FireBomb is Spell
+ShockBomb is Spell
 
 constants:
 
@@ -16,36 +16,37 @@ constants:
 
 resources:
 
-   Fire_Bomb_name_rsc = "fire bomb"
-   Fire_Bomb_icon_rsc = iflash.bgf
-   Fire_Bomb_desc_rsc = \
-      "Silently lays a prepared bag of magically-enhanced explosive powder. "
-      "The first and most common of an alchemist's weapons is fire, "
-      "and the basic fire bomb will certainly deliver that. "
-      "When laid, it is harmless until the alchemist casts 'detonate bombs.' "
+   Shock_Bomb_name_rsc = "lightning bomb"
+   Shock_Bomb_icon_rsc = iflash.bgf
+   Shock_Bomb_desc_rsc = \
+      "Silently lays a prepared bag of magically-enhanced electrochemical catalysts. "
+      "On their journey to mastery of the alchemical talents, "
+      "alchemists often discover the many and varied uses of electricity. "
+      "The first thing most do, of course, is create a new type of bomb. "
+      "When laid, a lightning bomb is harmless until the alchemist casts 'detonate bombs.' "
       "Once that is done, the triggered explosion will cause everything "
-      "nearby to burn, including patches of ground. Monsters will take the full damage of the flames, "
-      "but alchemists should be aware that other adventurers "
-      "can only be afflicted with a certain amount of burning at once."
+      "nearby to become electrocuted, and some patches of ground will become imbued with electrical charge. "
+      "The explosion itself is also "
+      "bright enough to dazzle victims for a time. "
       "\n\nThe bag and the elements for the bomb are transmuted "
       "directly from gold, so only shillings are required."
       "\n\nOnly a certain number of bombs can be magically controlled "
       "at once. Any above this limit are designed to harmlessly defuse, "
       "so that no innocents wander past and get harmed."
 
-   Fire_Bomb_sound = rflash.wav
+   Shock_Bomb_sound = Fzap.wav
 
 classvars:
 
-   vrSucceed_wav = Fire_Bomb_sound
+   vrSucceed_wav = Shock_Bomb_sound
 
-   vrName = Fire_Bomb_name_rsc
-   vrIcon = Fire_Bomb_icon_rsc
-   vrDesc = Fire_Bomb_desc_rsc
+   vrName = Shock_Bomb_name_rsc
+   vrIcon = Shock_Bomb_icon_rsc
+   vrDesc = Shock_Bomb_desc_rsc
 
-   viSpell_num = SID_CREATE_FIRE_BOMB
+   viSpell_num = SID_CREATE_SHOCK_BOMB
    viSchool = SKS_ALCHEMY
-   viSpell_level = 3
+   viSpell_level = 4
    viMana = 7
    viSpellExertion = 1
    viChance_To_Increase = 15
@@ -84,7 +85,7 @@ messages:
       if oRoom <> $
          AND IsClass(oRoom,&Room)
       {
-         oBomb = Create(&AlchemyBomb,#oCreator=who,#iType=BOMB_FIRE,#bProximityTrigger=FALSE,#iBombPower=iSpellPower);
+         oBomb = Create(&AlchemyBomb,#oCreator=who,#iType=BOMB_SHOCK,#bProximityTrigger=FALSE,#iBombPower=iSpellPower);
          Send(who,@AddBomb,#oBomb=oBomb);
          Send(oRoom,@NewHold,#what=oBomb,
                              #new_row=Send(who,@GetRow),
