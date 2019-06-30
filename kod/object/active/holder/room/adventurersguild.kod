@@ -41,6 +41,7 @@ resources:
    room_adventurers_guild = adventurersguild.roo
    room_adventurers_guild_with_jailer = adventurersguildwithjail.roo
    room_adventurers_guild_with_ad_hall = adventurersguildwithadhall.roo
+   room_adventurers_guild_with_seer = adventurersguildwithseer.roo
    room_name_adventurers_guild = "Adventurer's League of Meridian"
    adventurers_guild_music = bridge.mp3
 
@@ -127,6 +128,71 @@ messages:
          case 2:
             prRoom = room_adventurers_guild_with_ad_hall;
             break;
+         case 3:
+            prRoom = room_adventurers_guild_with_seer;
+            break;
+      }
+
+      propagate;
+   }
+   
+   FirstUserEntered()
+   {
+      local iFundingLevel, lRandomMonsters;
+
+      if Send(SYS,@GetLeagueMaintenance) = $
+      {
+         iFundingLevel = 0;
+      }
+      else
+      {
+         iFundingLevel = Send(Send(SYS,@GetLeagueMaintenance),@GetFundingLevel);
+      }
+
+      if iFundingLevel >= 1
+      {
+         lRandomMonsters = [&Avar,
+                            &Lupogg,
+                            &Thrasher,
+                            &Centipede,
+                            &Frogman,
+                            &Bunny,
+                            &Kriipa,
+                            &NarthylWorm,
+                            &CaveOrc,
+                            &SnowRat];
+         Send(self,@NewHold,#what=Create(Nth(lRandomMonsters,Random(1,Length(lRandomMonsters)))),
+              #new_row=29,#new_col=21,#fine_row=0,#fine_col=32);
+         Send(self,@NewHold,#what=Create(Nth(lRandomMonsters,Random(1,Length(lRandomMonsters)))),
+              #new_row=25,#new_col=21,#fine_row=0,#fine_col=32);
+         Send(self,@NewHold,#what=Create(Nth(lRandomMonsters,Random(1,Length(lRandomMonsters)))),
+              #new_row=21,#new_col=21,#fine_row=0,#fine_col=32);
+      }
+      propagate;
+   }
+   
+   LastUserLeft()
+   {
+      local iFundingLevel, i;
+
+      if Send(SYS,@GetLeagueMaintenance) = $
+      {
+         iFundingLevel = 0;
+      }
+      else
+      {
+         iFundingLevel = Send(Send(SYS,@GetLeagueMaintenance),@GetFundingLevel);
+      }
+
+      if iFundingLevel >= 1
+      {
+         foreach i in Send(self,@GetHolderActive)
+         {
+            if IsClass(First(i),&Monster)
+            {
+               Send(First(i),@Delete);
+            }
+         }
       }
 
       propagate;
@@ -222,6 +288,23 @@ messages:
               
          Send(self,@NewHold,#what=Create(&SetLeagueHometown),
               #new_row=34,#new_col=37,#fine_row=32,#fine_col=0,#new_angle=ANGLE_EAST);
+      }
+      
+      if iFundingLevel >= 3
+      {
+         Send(self,@NewHold,#what=Create(&DukeGuard),
+              #new_row=30,#new_col=43,#fine_row=32,#fine_col=32,#new_angle=ANGLE_EAST);
+         Send(self,@NewHold,#what=Create(&PrincessGuard),
+              #new_row=42,#new_col=47,#fine_row=32,#fine_col=32,#new_angle=ANGLE_SOUTH);
+         Send(self,@NewHold,#what=Create(&PrincessGuard),
+              #new_row=40,#new_col=47,#fine_row=32,#fine_col=32,#new_angle=ANGLE_SOUTH);
+         Send(self,@NewHold,#what=Create(&PrincessGuard),
+              #new_row=40,#new_col=43,#fine_row=32,#fine_col=32,#new_angle=ANGLE_SOUTH);
+         Send(self,@NewHold,#what=Create(&PrincessGuard),
+              #new_row=41,#new_col=45,#fine_row=32,#fine_col=32,#new_angle=ANGLE_SOUTH);
+              
+         Send(self,@NewHold,#what=Create(&AdventurersLeagueSeer),
+              #new_row=42,#new_col=22,#fine_row=0,#fine_col=0,#new_angle=ANGLE_SOUTH);
       }
 
       propagate;

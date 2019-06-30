@@ -1,0 +1,79 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+AdventurersLeagueSeer is CornothTown
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   adventurers_league_seer_name_rsc = "The Seer"
+   adventurers_league_seer_icon_rsc = kcrjgirl.bgf
+   adventurers_league_seer_desc_rsc = \
+      "Nobody knows the Seer's real name. The only thing they know "
+      "about her is that she can see things others cannot. "
+      "From whence she hails, or what her agenda might be, "
+      "she has said little. For a price, however, she will "
+      "speak at length about her visions."
+
+classvars:
+
+   vrName = adventurers_league_seer_name_rsc
+   vrIcon = adventurers_league_seer_icon_rsc
+   vrDesc = adventurers_league_seer_desc_rsc
+   viAttributes = \
+      MOB_NOFIGHT | MOB_SELLER | MOB_BUYER | MOB_NOMOVE \
+      | MOB_RANDOM | MOB_LISTEN | MOB_COND_SELLER
+   viOccupation = MOB_ROLE_MERCHANT
+   viMerchant_markup = MERCHANT_RIPOFF
+
+properties:
+
+messages:
+
+   AffectMood(what=$,why=$)
+   {
+
+      return;
+   }
+
+   SetForSale()
+   {
+%      plFor_sale = [
+%         [  
+%
+%            Create(&Avar)
+%         ],
+%         $,$,$];
+
+      return;
+   }
+
+   ObjectDesired(what=$)
+   {
+
+      return FALSE;
+   }
+
+   InitCondSale()
+   {
+      return;
+   }
+
+   UserEntered(who=$)
+   {
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+

@@ -6,6 +6,6 @@
 
 DEPEND = ..\crnthtwn.bof
 BOFS  = cnurchin.bof cngrocer.bof cnsarge.bof cninnk.bof cntailor.bof \
-        advleaguejailer.bof
+        advleaguejailer.bof advleagueseer.bof
 
 !include $(KODDIR)\kod.mak
