@@ -124,10 +124,19 @@ messages:
    CheckForNextFundingLevel()
    {
       % 60 million for seer
-      if piFundingLevel = 1
+      if piFundingLevel = 2
          AND piTotalDonatedShillings >= 60000000
       {
+         piFundingLevel = 3;
+         Send(Send(SYS,@FindRoomByNum,#num=RID_ADVENTURERS_GUILD),@UpgradeBuilding);
+         return;
+      }
+      % 30 million for hangout room
+      if piFundingLevel = 1
+         AND piTotalDonatedShillings >= 10000000
+      {
          piFundingLevel = 2;
+         Send(Send(SYS,@FindRoomByNum,#num=RID_ADVENTURERS_GUILD),@UpgradeBuilding);
          return;
       }
       % 10 million for jailer
@@ -135,9 +144,15 @@ messages:
          AND piTotalDonatedShillings >= 10000000
       {
          piFundingLevel = 1;
+         Send(Send(SYS,@FindRoomByNum,#num=RID_ADVENTURERS_GUILD),@UpgradeBuilding);
          return;
       }
       return;
+   }
+   
+   GetFundingLevel()
+   {
+      return piFundingLevel;
    }
 
 end
