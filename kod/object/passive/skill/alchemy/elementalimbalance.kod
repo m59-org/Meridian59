@@ -33,6 +33,7 @@ resources:
       "The same is true of a more skilled alchemist, who might strike with acid damage "
       "and raise his opponent's acid resistance by 25\%, but lower fire, cold, and shock "
       "resistances by an equal 25\%."
+      "\n\nThe imbalance never affects the hit that causes it."
       "\n\nIt is possible for this imbalance to lower resistances below zero."
       "\n\nStriking with holy or unholy damage will not have any effect, "
       "for alchemy involves science, not faith."
@@ -98,22 +99,22 @@ messages:
       {
          if (aspell & ATCK_SPELL_FIRE) <> 0
          {
-            Post(who,@MsgSendUser,#message_rsc=elemental_imbalance_worked_fire_msg,
+            Send(who,@MsgSendUser,#message_rsc=elemental_imbalance_worked_fire_msg,
                                   #parm1=iElementalImbalancePower);
          }
          if (aspell & ATCK_SPELL_SHOCK) <> 0
          {
-            Post(who,@MsgSendUser,#message_rsc=elemental_imbalance_worked_shock_msg,
+            Send(who,@MsgSendUser,#message_rsc=elemental_imbalance_worked_shock_msg,
                                   #parm1=iElementalImbalancePower);
          }
          if (aspell & ATCK_SPELL_COLD) <> 0
          {
-            Post(who,@MsgSendUser,#message_rsc=elemental_imbalance_worked_cold_msg,
+            Send(who,@MsgSendUser,#message_rsc=elemental_imbalance_worked_cold_msg,
                                   #parm1=iElementalImbalancePower);
          }
          if (aspell & ATCK_SPELL_ACID) <> 0
          {
-            Post(who,@MsgSendUser,#message_rsc=elemental_imbalance_worked_acid_msg,
+            Send(who,@MsgSendUser,#message_rsc=elemental_imbalance_worked_acid_msg,
                                   #parm1=iElementalImbalancePower);
          }
          Send(self,@ImproveAbility,#who=who);
