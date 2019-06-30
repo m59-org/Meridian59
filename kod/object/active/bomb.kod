@@ -72,7 +72,7 @@ messages:
       piType = iType;
       pbProximityTrigger = bProximityTrigger;
       piBombPower = iBombPower;
-      piBombRadius = iBombPower * 5;
+      piBombRadius = 64 * 5;
 
       if poCreator = $
       {
@@ -82,6 +82,11 @@ messages:
       propagate;
    }
    
+   GetCreator()
+   {
+      return poCreator;
+   }
+
    Detonate()
    {
       switch(piType)
@@ -92,7 +97,83 @@ messages:
          case BOMB_SHOCK:
             Send(self,@DetonateShock);
             return;
+         case BOMB_SPELL:
+            Send(self,@DetonateSpell);
+            return;
       }
+      return;
+   }
+   
+   DetonateSpell()
+   {
+      local oOwner, i, each_obj, lSplashTargets, lBattlers, lSpellList, oChosenTarget, oChosenSpell, iChosenSpellAbility;
+      
+      oOwner = Send(self,@GetOwner);
+      lBattlers = $;
+
+      % For our splash targets, we find all battlers in range of the target
+      %    that aren't the caster or target and which the caster can attack
+
+      foreach i in Send(oOwner,@GetHolderActive)
+      {
+         each_obj = Send(oOwner,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&Battler)
+            AND each_obj <> poCreator
+            AND Send(oOwner,@LineOfSight,#obj1=self,#obj2=each_obj)
+            AND Send(poCreator,@AllowPlayerAttack,#victim=each_obj,#report=FALSE,#actual=FALSE)
+            AND Send(each_obj,@SquaredFineDistanceTo3D,#what=self) <= piBombRadius*piBombRadius
+         {
+            lBattlers = Cons(each_obj,lBattlers);
+         }
+      }
+
+      if lBattlers <> $
+      {
+         lSpellList = $;
+         
+         if Send(poCreator,@HasSpell,#num=SID_BLAST_OF_FIRE)
+         {
+            lSpellList = Cons(Send(SYS,@FindSpellByNum,#num=SID_BLAST_OF_FIRE),lSpellList);
+         }
+         
+         if Send(poCreator,@HasSpell,#num=SID_EXPLOSIVE_FROST)
+         {
+            lSpellList = Cons(Send(SYS,@FindSpellByNum,#num=SID_EXPLOSIVE_FROST),lSpellList);
+         }
+         
+         if Send(poCreator,@HasSpell,#num=SID_SHOCKING_FURY)
+         {
+            lSpellList = Cons(Send(SYS,@FindSpellByNum,#num=SID_SHOCKING_FURY),lSpellList);
+         }
+
+         if Send(poCreator,@HasSpell,#num=SID_SPLASH_OF_ACID)
+         {
+            lSpellList = Cons(Send(SYS,@FindSpellByNum,#num=SID_SPLASH_OF_ACID),lSpellList);
+         }
+         
+         if lSpellList = $
+         {
+            % Alchemist knows no spells? Try to cast at the alchemist instead.
+            lSpellList = Cons(Send(SYS,@FindSpellByNum,#num=SID_LIGHTNING),lSpellList);
+            lSpellList = Cons(Send(SYS,@FindSpellByNum,#num=SID_FIREBALL),lSpellList);
+            Send(Nth(lSpellList,Random(1,Length(lSpellList))),@CastSpell,#who=self,#lTargets=[poCreator],#iSpellPower=Random(1,99));
+            Post(self,@Delete);
+            return;
+         }
+         
+         oChosenTarget = Nth(lBattlers,Random(1,Length(lBattlers)));
+         if Send(oChosenTarget,@GetOwner) = Send(poCreator,@GetOwner)
+         {
+            oChosenSpell = Nth(lSpellList,Random(1,Length(lSpellList)));
+            iChosenSpellAbility = Send(poCreator,@GetSpellAbility,#Spell_num=Send(oChosenSpell,@GetSpellNum));
+            Send(oChosenSpell,@CastSpell,#who=self,#lTargets=[oChosenTarget],#iSpellPower=(piBombPower+iChosenSpellAbility)/2);
+         }
+      }
+      else
+      {
+         Send(poCreator,@MsgSendUser,#message_rsc=bomb_explode_no_burning);
+      }
+      Post(self,@Delete);
       return;
    }
    
@@ -103,8 +184,6 @@ messages:
       
       oOwner = Send(self,@GetOwner);
       lBattlers = $;
-      
-      % Create random fire.
       
       iElements = Random(3,6);
       
@@ -258,6 +337,9 @@ messages:
    {
       if pbProximityTrigger
          AND NOT pbDetonating
+         AND poCreator <> $
+         AND what <> poCreator
+         AND Send(poCreator,@AllowPlayerAttack,#victim=what,#report=FALSE,#actual=FALSE)
          AND IsClass(what,&NoMoveOn)
          AND Send(what,@SquaredFineDistanceTo,#what=self) <= piTriggerRadius * piTriggerRadius
       {
@@ -347,6 +429,28 @@ messages:
          }
       }
       return;
+   }
+
+   AssessHit(what=$, damage=$, use_weapon=$)
+   {
+      Send(poCreator,@AssessHit,#what=what,#damage=damage,#use_weapon=use_weapon);
+      return;
+   }
+
+   KilledSomething(what=$, use_weapon=$)
+   {
+      Send(poCreator,@KilledSomething,#what=what,#use_weapon=use_weapon);
+      return;
+   }
+
+   GetCurrentEmpowerments()
+   {
+      return Send(poCreator,@GetCurrentEmpowerments);
+   }
+
+   GetSkillAbility(skill_num=0)
+   {
+      return Send(poCreator,@GetSkillAbility,#skill_num=skill_num);
    }
 
 end

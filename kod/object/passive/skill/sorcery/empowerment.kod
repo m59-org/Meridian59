@@ -64,6 +64,11 @@ messages:
    GetEmpowermentMultiplier(who=$)
    {
       local iAbility, iStat;
+      
+      if IsClass(who,&AlchemyBomb)
+      {
+         who = Send(who,@GetCreator);
+      }
 
       iAbility = Send(who,@GetSkillAbility,#Skill_num=viSkill_num);
       iStat = Send(self,@GetRequisiteStat,#who=who);

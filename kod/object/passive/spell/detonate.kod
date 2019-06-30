@@ -23,6 +23,9 @@ resources:
       "abilities. Requires nothing but a grim intent."
 
    Detonate_sound = rflash.wav
+   
+   no_bombs_to_detonate = \
+      "You don't have any bombs to detonate!"
 
 classvars:
 
@@ -58,6 +61,16 @@ messages:
       plReagents = $;
 
       return;
+   }
+   
+   CanPayCosts(who=$)
+   {
+      if Send(who,@GetBombs) = $
+      {
+         Send(who,@MsgSendUser,#message_rsc=no_bombs_to_detonate);
+         return FALSE;
+      }
+      propagate;
    }
 
    GetNumSpellTargets()

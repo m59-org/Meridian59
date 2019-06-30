@@ -2362,7 +2362,7 @@ messages:
       iCharmDamage = Bound(damage - ((damage * Send(self,@GetCharmResistance))/100),0,$);
 
       if what <> $
-         AND IsClass(what,&Player)
+         AND (IsClass(what,&Player) OR IsClass(what,&AlchemyBomb))
          AND Send(SETTINGS_OBJECT,@GetSorcerySchoolExpansion)
          AND Send(what,@GetSkillAbility,#skill_num=SKID_EMPOWERMENT) > 0
          AND NOT bSecondary
