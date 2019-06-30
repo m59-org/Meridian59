@@ -72,6 +72,8 @@ BOFS = animate.bof \
        creahelmet.bof \
        creashield.bof \
        crearing.bof \
-       creascroll.bof
+       creascroll.bof \
+       detonate.bof \
+       firebomb.bof
 
 !include $(KODDIR)\kod.mak

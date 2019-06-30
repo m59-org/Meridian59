@@ -2351,7 +2351,7 @@ messages:
       if absolute
       {
          % Special damage doesn't apply status effects.
-         return;
+         return 0;
       }
 
       % Illusion damage is not altered by Sorcery.
@@ -2383,7 +2383,7 @@ messages:
 
       if damage <= 0
       {
-         return;
+         return 0;
       }
 
       if aspell & ATCK_SPELL_SHOCK
@@ -2431,7 +2431,7 @@ messages:
       {
          Send(self,@AddStatusEffect,#value=iCharmDamage,#type=STATUS_CHARMED);
       }
-      return;
+      return damage;
    }
 
    AddStatusEffect(value=10,type=STATUS_SHOCKED)

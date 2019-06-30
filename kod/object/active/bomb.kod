@@ -1,0 +1,231 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+AlchemyBomb is ActiveObject
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   AlchemyBomb_name_rsc = "alchemical bomb"
+   AlchemyBomb_icon_rsc = baghold.bgf
+   AlchemyBomb_desc_rsc = \
+      "Stay back! It's an alchemy-enhanced bag of infused reagents - a bomb!"
+
+   fire_bomb_projectile_icon = woflame.bgf
+
+   bomb_explode_no_burning = \
+      "Your bomb explodes harmlessly."
+   bomb_explode_applied_burning = \
+      "Your alchemical bomb explodes, applying ~B~r%i~n burning to nearby enemies!"
+
+   detonation_sound = ffirebal.wav
+
+classvars:
+
+   vrName = AlchemyBomb_name_rsc
+   vrIcon = AlchemyBomb_icon_rsc
+   vrDesc = AlchemyBomb_desc_rsc
+
+   vrProjectile_icon = fire_bomb_projectile_icon
+   viProjectileFlag = PROJ_FLAG_LIGHT_SOURCE
+   viProjectileLightFlags = LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC
+   viProjectileLightIntensity = 100
+   viProjectileLightColor = LIGHT_RED
+   viProjectileSpeed = 4
+   
+   viFireBombElement = ATCK_SPELL_FIRE
+
+properties:
+   
+   poCreator = $
+   piTriggerRadius = 64
+   pbProximityTrigger = FALSE
+   pbDetonating = FALSE
+   piType = BOMB_FIRE
+   piBombPower = 0
+   pibFireBombRadius = 64
+
+messages:
+
+   Constructor(oCreator=$, iType=BOMB_FIRE, bProximityTrigger=FALSE, iBombPower=0)
+   {
+      poCreator = oCreator;
+      piType = iType;
+      pbProximityTrigger = bProximityTrigger;
+      piBombPower = iBombPower;
+      pibFireBombRadius = iBombPower * 5;
+
+      if poCreator = $
+      {
+         Post(self,@Delete);
+      }
+      
+      propagate;
+   }
+   
+   Detonate()
+   {
+      local oOwner, i, each_obj, lSplashTargets, lBattlers, iBurningDealt, iTotalBurning, iDealtDamage,
+            oFireElement, iFireElements;
+      
+      oOwner = Send(self,@GetOwner);
+      lBattlers = $;
+      
+      % Create random fire.
+      
+      iFireElements = Random(3,6);
+      
+      while iFireElements > 0
+      {
+         oFireElement = Create(&WallOfFire,#MaxDamage=piBombPower/6,#Caster=poCreator,
+                           #Duration=piBombPower/3,#Illusionary=FALSE);
+         Send(oOwner,@NewHold,#what=oFireElement,
+              #new_row=Bound(Send(self,@GetRow) + Random(-pibFireBombRadius/64,pibFireBombRadius/64),0,Send(oOwner,@GetRoomRows)),
+              #new_col=Bound(Send(self,@GetCol) + Random(-pibFireBombRadius/64,pibFireBombRadius/64),0,Send(oOwner,@GetRoomCols)),
+              #fine_row=Random(0,64),
+              #fine_col=Random(0,64));
+         iFireElements--;
+      }
+
+      % For our splash targets, we find all battlers in range of the target
+      %    that aren't the caster or target and which the caster can attack
+
+      foreach i in Send(oOwner,@GetHolderActive)
+      {
+         each_obj = Send(oOwner,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&Battler)
+            AND each_obj <> poCreator
+            AND Send(oOwner,@LineOfSight,#obj1=self,#obj2=each_obj)
+            AND Send(poCreator,@AllowPlayerAttack,#victim=each_obj,#report=FALSE,#actual=FALSE)
+            AND Send(each_obj,@SquaredFineDistanceTo3D,#what=self) <= pibFireBombRadius*pibFireBombRadius
+         {
+            lBattlers = Cons(each_obj,lBattlers);
+         }
+      }
+
+      iTotalBurning = 0;
+      % Show bolt from target to new targets
+      if lBattlers <> $
+      {
+         foreach i in lBattlers
+         {
+            Send(oOwner,@SomethingShot,#who=self,
+                                       #target=i,
+                                       #projectile=self,
+                                       #flags=viProjectileFlag);
+            % Deal damage
+            %iDealtDamage = Send(i,@AssessDamage,#what=poCreator,
+            %                     #damage=Bound(Random((piBombPower+1)/20,(piBombPower+1)/10),5,10),
+            %                     #aspell=viFireBombElement);
+            %if iDealtDamage = $
+            %{
+               % Killed somebody!
+            %}
+            iBurningDealt = Send(i,@ApplyElementalStatusEffects,
+                                   #damage=Bound((piBombPower*Random(7,13))/10,1,$),
+                                   #bSecondary=FALSE,
+                                   #aspell=viFireBombElement,
+                                   #what=poCreator);
+            Send(i,@AddHurtMeRecently,#who=poCreator,#amount=iBurningDealt);
+            iTotalBurning = iTotalBurning + iBurningDealt;
+         }
+
+         if iTotalBurning <= 0
+         {
+            Send(poCreator,@MsgSendUser,#message_rsc=bomb_explode_no_burning);
+         }
+         else
+         {
+            Send(poCreator,@MsgSendUser,#message_rsc=bomb_explode_applied_burning,#parm1=iTotalBurning);
+         }
+      }
+      Post(self,@PlaySpellSound);
+      Post(self,@Delete);
+      return;
+   }
+
+   SomethingMoved(what = $,new_row = $,new_col = $)
+   {
+      if pbProximityTrigger
+         AND NOT pbDetonating
+         AND IsClass(what,&NoMoveOn)
+         AND Send(what,@SquaredFineDistanceTo,#what=self) <= piTriggerRadius * piTriggerRadius
+      {
+         pbDetonating = TRUE;
+         Post(self,@Detonate);
+      }
+
+      return;
+   }
+
+   ReqNewOwner(what = $)
+   {
+      return IsClass(what,&Room);
+   }
+   
+   Delete()
+   {
+      if poCreator <> $
+      {
+         Send(poCreator,@RemoveBomb,#oBomb=self);
+      }
+      propagate;
+   }
+
+   GetProjectileIcon()
+   {
+      return vrProjectile_icon;
+   }
+
+   GetProjectileFlag()
+   {
+      return viProjectileFlag;
+   }
+
+   GetProjectileLightColor()
+   {
+      return viProjectileLightColor;
+   }
+
+   SendProjectileAnimation()
+   {
+      AddPacket(1,ANIMATE_CYCLE, 4,random(100,140), 2,1, 2,5);
+      return;
+   }
+   
+   GetProjectileSpeed()
+   {
+      return viProjectileSpeed;
+   }
+   
+   GetProjectileLightFlags()
+   {
+      return viProjectileLightFlags;
+   }
+   
+   GetProjectileLightIntensity()
+   {
+      return viProjectileLightIntensity;
+   }
+
+   PlaySpellSound()
+   {
+      if poOwner <> $
+      {
+         Send(poOwner,@SomethingWaveRoom,#what=self,#wave_rsc=detonation_sound);
+      }
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
