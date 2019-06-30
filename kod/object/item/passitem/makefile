@@ -16,6 +16,7 @@ BOFS = arsenic.bof attmod.bof betap.bof bosshead.bof \
    token.bof totem.bof warjoin.bof weapon.bof bardnote.bof qormasgift.bof \
    easteregg.bof lorebook.bof elechunk.bof sorcererscrap.bof \
    resurrectiongem.bof majorhstone.bof relic.bof \
-   dyebottle.bof crest.bof bestiaryspellbook.bof bestiaryskillbook.bof
+   dyebottle.bof crest.bof bestiaryspellbook.bof bestiaryskillbook.bof \
+   alchemyskillbook.bof alchemyspellbook.bof
 
 !include $(KODDIR)\kod.mak

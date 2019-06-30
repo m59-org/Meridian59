@@ -92,7 +92,7 @@ messages:
       iFilling = viFilling;
       if Send(apply_on,@HasSkill,#num=SKID_POTION_PRESERVATION)
       {
-         iFilling = (iFilling * (Send(apply_on,@GetSkillAbility,#skill_num=SKID_POTION_PRESERVATION)+1)) / 100;
+         iFilling = (iFilling * (99-Send(apply_on,@GetSkillAbility,#skill_num=SKID_POTION_PRESERVATION))) / 100;
       }
       
       if NOT Send(apply_on,@ReqEatSomething,#filling=iFilling)
@@ -145,7 +145,7 @@ messages:
       iFilling = viFilling;
       if Send(apply_on,@HasSkill,#num=SKID_POTION_PRESERVATION)
       {
-         iFilling = (iFilling * (Send(apply_on,@GetSkillAbility,#skill_num=SKID_POTION_PRESERVATION)+1)) / 100;
+         iFilling = (iFilling * (99-Send(apply_on,@GetSkillAbility,#skill_num=SKID_POTION_PRESERVATION))) / 100;
       }
 
       Send(apply_on,@EatSomething,#nutrition=0,#filling=iFilling);

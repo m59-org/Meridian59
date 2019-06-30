@@ -23,7 +23,7 @@ resources:
       "On their journey to mastery of the alchemical talents, "
       "alchemists often discover the many and varied uses of electricity. "
       "The first thing most do, of course, is create a new type of bomb. "
-      "When laid, a lightning bomb is harmless until the alchemist casts 'detonate bombs.' "
+      "When laid, a lightning bomb is harmless until stepped on or until the alchemist casts 'detonate bombs.' "
       "Once that is done, the triggered explosion will cause everything "
       "nearby to become electrocuted, and some patches of ground will become imbued with electrical charge. "
       "The explosion itself is also "
@@ -86,7 +86,7 @@ messages:
       if oRoom <> $
          AND IsClass(oRoom,&Room)
       {
-         oBomb = Create(&AlchemyBomb,#oCreator=who,#iType=BOMB_SHOCK,#bProximityTrigger=FALSE,#iBombPower=iSpellPower);
+         oBomb = Create(&AlchemyBomb,#oCreator=who,#iType=BOMB_SHOCK,#bProximityTrigger=TRUE,#iBombPower=iSpellPower);
          Send(who,@AddBomb,#oBomb=oBomb);
          Send(oRoom,@NewHold,#what=oBomb,
                              #new_row=Send(who,@GetRow),

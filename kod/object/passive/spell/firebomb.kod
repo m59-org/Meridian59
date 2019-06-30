@@ -22,7 +22,7 @@ resources:
       "Silently lays a prepared bag of magically-enhanced explosive powder. "
       "The first and most common of an alchemist's weapons is fire, "
       "and the basic fire bomb will certainly deliver that. "
-      "When laid, it is harmless until the alchemist casts 'detonate bombs.' "
+      "When laid, it is harmless until stepped on or until the alchemist casts 'detonate bombs.' "
       "Once that is done, the triggered explosion will cause everything "
       "nearby to burn, including patches of ground. Monsters will take the full damage of the flames, "
       "but alchemists should be aware that other adventurers "
@@ -85,7 +85,7 @@ messages:
       if oRoom <> $
          AND IsClass(oRoom,&Room)
       {
-         oBomb = Create(&AlchemyBomb,#oCreator=who,#iType=BOMB_FIRE,#bProximityTrigger=FALSE,#iBombPower=iSpellPower);
+         oBomb = Create(&AlchemyBomb,#oCreator=who,#iType=BOMB_FIRE,#bProximityTrigger=TRUE,#iBombPower=iSpellPower);
          Send(who,@AddBomb,#oBomb=oBomb);
          Send(oRoom,@NewHold,#what=oBomb,
                              #new_row=Send(who,@GetRow),
