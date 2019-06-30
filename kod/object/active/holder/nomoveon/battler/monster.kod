@@ -359,6 +359,11 @@ resources:
    monster_spell_build_3_sound = monsterspellbuild3.wav
    monster_spell_build_4_sound = monsterspellbuild4.wav
    
+   monster_jailer_you_cannot_control_it = \
+      "Can't sell you that one. It'd turn on you in a second. Try a weaker one maybe, or getting rid of some existing minions..."
+   monster_jailer_sold_to_you = \
+      "Good luck with that one..."
+   
 classvars:
 
    vrKocName = monster_koc_name
@@ -5736,13 +5741,46 @@ messages:
             if IsClass(i,&Skill)
             {
                Send(what,@AddSkill,#num=Send(i,@GetSkillNum));
+               Send(oMoney,@SubtractNumber,#number=iPrice);
             }
-            else
+            else if IsClass(i,&Spell)
             {
                Send(what,@AddSpell,#num=Send(i,@GetSpellNum));
                Send(self,@TaughtPlayerSpell,#who=what,#num=Send(i,@GetSpellNum));
+               Send(oMoney,@SubtractNumber,#number=iPrice);
             }
-            Send(oMoney,@SubtractNumber,#number=iPrice);
+            else if IsClass(i,&Monster)
+            {
+               if Send(what,@CanControlNewMinion,#oMonster=i)
+               {
+                  SetNth(plFor_Sale,1,DelListElem(First(plFor_Sale),i));
+                  Send(poOwner,@NewHold,#what=i,
+                                        #new_row=Send(what,@GetRow),
+                                        #new_col=Send(what,@GetCol),
+                                        #fine_row=Send(what,@GetFineRow),
+                                        #fine_col=Send(what,@GetFineCol));
+                                     
+                     % Add this creature to their minion list
+                     Send(what,@NewControlledMinion,#minion=i);
+
+                     % Set initial minion behavior
+                     Send(i,@ResetBehaviorFlags);
+                     Send(i,@SetMaster,#oMaster=what);
+                     Send(i,@SetBehaviorFlag,#flag=AI_MOVE_FOLLOW_MASTER,#value=TRUE);
+                     Send(i,@SetBehaviorFlag,#flag=AI_FIGHT_AGGRESSIVE,#value=FALSE);
+                     Send(i,@SetBehaviorFlag,#flag=AI_FIGHT_NEWBIESAFE);
+                     Send(i,@SetBehaviorFlag,#flag=AI_FIGHT_MONSTERS);
+                     Send(Send(SYS,@FindSpellByNum,#num=SID_CREATURE_BINDING),@DoSpell,#what=what,
+                                                                                       #oTarget=i,
+                                                                                       #iDuration=$,#report=FALSE,#iSpellPower=15);
+                     Send(oMoney,@SubtractNumber,#number=iPrice);
+                     Post(poOwner,@SomeoneSaid,#what=self,#string=monster_jailer_sold_to_you,#type=SAY_RESOURCE);
+               }
+               else
+               {
+                  Post(poOwner,@SomeoneSaid,#what=self,#string=monster_jailer_you_cannot_control_it,#type=SAY_RESOURCE);
+               }
+            }
          }
       }
 

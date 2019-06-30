@@ -51,7 +51,9 @@ messages:
       plFor_sale = [
          [  
 
-            Create(&Avar)
+            Create(&Avar),
+            Create(&Lupogg),
+            Create(&Centipede)
          ],
          $,$,$];
 
@@ -72,6 +74,44 @@ messages:
    UserEntered(who=$)
    {
       propagate;
+   }
+   
+   GetPrice(what = $, who = $)
+   "Custom for a mob jailer"
+   {
+      local i, x, y;
+
+      if plFor_sale <> $ AND Length(plFor_sale) = 4
+      {
+         foreach i in Nth(plFor_sale,4)
+         {
+            if what=First(i)
+            {
+               return Nth(i,2);
+            }
+         }
+      }
+
+      if IsClass(what,&Item) 
+      {
+         x = Send(what,@GetInitValue) * (100 + 20*viMerchant_markup) / 100;
+         y = Send(Send(SYS,@GetParliament),@GetFactionPriceBonus,#who=who,
+                  #buying=TRUE);
+         return Bound(x*y/100, 1, $);
+      }
+
+      if IsClass(what,&Spell) OR IsClass(what,&Skill)
+      {
+         return Send(what,@GetValue);
+      }
+
+      if IsClass(what,&Monster)
+      {
+         return Send(what,@ReturnMaxHitPoints)*100;
+      }
+      Debug("Strange item",what,":",Send(what,@GetName),"in GetPrice");
+
+      return 0;
    }
 
 end
