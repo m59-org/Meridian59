@@ -13,6 +13,9 @@ AdventurersLeagueJailer is CornothTown
 constants:
 
    include blakston.khd
+   RANDOM_GENERATE_MONSTER_TIME = 3600000
+   MAX_RANDOM_FILL_MONSTERS = 10
+   MAX_MONSTERS_IN_JAIL = 50
 
 resources:
 
@@ -20,10 +23,15 @@ resources:
    adventurers_league_jailer_icon_rsc = jsmerch.bgf
    adventurers_league_jailer_desc_rsc = \
       "Torin B'hob, cousin of the Jasper Grocer, "
-      "is not nearly as industrious. He has monsters to sell, "
+      "is not nearly as industrious as his counterpart. He has monsters to sell, "
       "and may purchase your companions, but he'd rather you leave him alone."
+      "\n\nIf you really must bother him by selling a monster, "
+      "simply cast 'release minion' on it. He will have the guards take "
+      "it from there. It can then be purchased back if necessary."
 
    Jailer_welcome = "Make it fast."
+   monster_jailer_bought_from_you = \
+      "We'll take that monster off your hands. Here are %i shillings for it."
 
 classvars:
 
@@ -38,7 +46,28 @@ classvars:
 
 properties:
 
+   plRandomMonsterClasses = $
+   ptGenerateNewMonsterTimer = $
+
 messages:
+
+   Constructed()
+   {
+      plRandomMonsterClasses = [&Lupogg,
+                                &Centipede,
+                                &Ant,
+                                &Frogman,
+                                &FungusBeast,
+                                &Orc,
+                                &Elephant,
+                                &GiantRat,
+                                &Scorpion,
+                                &SpiderBaby,
+                                &SpectralMummy,
+                                &Spider];
+      ptGenerateNewMonsterTimer = CreateTimer(self,@GenerateNewMonsterForSale,RANDOM_GENERATE_MONSTER_TIME);
+      propagate;
+   }
 
    AffectMood(what=$,why=$)
    {
@@ -48,15 +77,74 @@ messages:
 
    SetForSale()
    {
-      plFor_sale = [
-         [  
+      plFor_sale = [$,$,$,$];
 
-            Create(&Avar),
-            Create(&Lupogg),
-            Create(&Centipede)
-         ],
-         $,$,$];
+      return;
+   }
+   
+   GenerateNewMonsterForSale()
+   {
+      local oMonster, cClass;
+      
+      ptGenerateNewMonsterTimer = $;
+      
+      if plFor_Sale = $
+      {
+         Send(self,@SetForSale);
+         ptGenerateNewMonsterTimer = CreateTimer(self,@GenerateNewMonsterForSale,RANDOM_GENERATE_MONSTER_TIME);
+         return;
+      }
+      
+      if Nth(plFor_sale,1) = $
+         OR Length(Nth(plFor_sale,1)) < MAX_RANDOM_FILL_MONSTERS
+      {
+         cClass = Nth(plRandomMonsterClasses,Random(1,Length(plRandomMonsterClasses)));
+         oMonster = Create(cClass);
+         SetNth(plFor_sale,1,Cons(oMonster,Nth(plFor_sale,1)));
+      }
+      
+      ptGenerateNewMonsterTimer = CreateTimer(self,@GenerateNewMonsterForSale,RANDOM_GENERATE_MONSTER_TIME);
+      return;
+   }
 
+   SellMonster(what=$,oPreviousMaster=$)
+   {
+      local oMoney, oNewMonster, iChampStatus;
+
+      if what <> $
+         AND IsClass(what,&Monster)
+      {
+         if Nth(plFor_sale,1) <> $
+            AND Length(Nth(plFor_sale,1)) >= MAX_MONSTERS_IN_JAIL
+         {
+            % Delete oldest mob
+            SetNth(plFor_sale,1,DelListElem(First(plFor_Sale),Nth(First(plFor_Sale),MAX_MONSTERS_IN_JAIL)));
+         }
+         
+         iChampStatus = Send(what,@GetChampStatus);
+         oNewMonster = Create(GetClass(what));
+         SetNth(plFor_sale,1,Cons(oNewMonster,Nth(plFor_sale,1)));
+         Send(oNewMonster,@GainChampionStatus,#iType=iChampStatus,#bJailed=TRUE);
+         
+         if oPreviousMaster <> $
+            AND IsClass(oPreviousMaster,&Player)
+         {
+            Post(poOwner,@SomeoneSaid,#what=self,#string=monster_jailer_bought_from_you,#type=SAY_RESOURCE,#parm1=Send(what,@ReturnMaxHitPoints)*100/2);
+            
+            oMoney = Create(&Money,#number=Send(what,@ReturnMaxHitPoints)*100/2);
+         
+            if Send(oPreviousMaster,@ReqNewHold,#what=oMoney)
+            {
+               Send(oPreviousMaster,@NewHold,#what=oMoney);
+               Send(Send(SYS,@GetStatistics),@MoneyCreated,#amount=Send(oMoney,@GetNumber));
+            }
+            else
+            {
+               Send(oMoney,@Delete);
+            }
+         }
+         Send(what,@Delete);
+      }
       return;
    }
 
@@ -74,6 +162,22 @@ messages:
    UserEntered(who=$)
    {
       propagate;
+   }
+   
+   ClearMonsterList()
+   {
+      local i;
+
+      if plFor_Sale <> $
+         AND First(plFor_Sale) <> $
+      {
+         foreach i in First(plFor_Sale)
+         {
+            Send(i,@Delete);
+         }
+         SetNth(plFor_Sale,1,$);
+      }
+      return;
    }
    
    GetPrice(what = $, who = $)
@@ -112,6 +216,12 @@ messages:
       Debug("Strange item",what,":",Send(what,@GetName),"in GetPrice");
 
       return 0;
+   }
+   
+   Delete()
+   {
+      Send(self,@ClearMonsterList);
+      propagate;
    }
 
 end

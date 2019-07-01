@@ -21,7 +21,7 @@ resources:
    release_minion_name_rsc = "release minion"
    release_minion_icon_rsc = ifreeact.bgf
    release_minion_desc_rsc = \
-      "Releases a minion from your control. Requires a blue mushroom to cast."
+      "Releases a minion from your control. Requires nothing but a moment of disdain."
 
    release_minion_already_enchanted = "%s%s has already been released."
    release_minion_caster = "%s%s is no longer under your control."
@@ -59,6 +59,8 @@ classvars:
    viPrimaryStat = STAT_ID_INTELLECT
    viSecondaryStat = 0
 
+   viHarmful = FALSE
+   viOutlaw = FALSE
    vbIsRangedAttack = FALSE
 
 properties:
@@ -73,7 +75,6 @@ messages:
    ResetReagents()
    {
       plReagents = $;
-      plReagents = Cons([&BlueMushroom,1],plReagents);
 
       return;
    }
@@ -134,23 +135,14 @@ messages:
 
       if IsClass(oTarget,&Monster)
       {
-         if Send(oTarget,@GetMaster) = what
-         {
-            Send(oTarget,@SetMaster,#oMaster=$);
-         }
-
-         Send(oTarget,@ResetBehaviorFlags);
-         if Send(oTarget,@GetOwner) <> $
-         {
-            Send(Send(oTarget,@GetOwner),@SomethingChanged,#what=oTarget);
-         }
+        Send(oTarget,@BreakAllegiance);
       }
 
-      if report
-      {
-         Send(what,@MsgSendUser,#message_rsc=vrSuccess,
-               #parm1=Send(oTarget,@GetCapDef),#parm2=Send(oTarget,@GetName));
-      }
+%      if report
+%      {
+%         Send(what,@MsgSendUser,#message_rsc=vrSuccess,
+%               #parm1=Send(oTarget,@GetCapDef),#parm2=Send(oTarget,@GetName));
+%      }
 
       propagate;
    }

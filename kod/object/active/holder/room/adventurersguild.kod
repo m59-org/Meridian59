@@ -359,5 +359,23 @@ messages:
       return;
    }
 
+   MonsterBrokeAllegiance(what=$,oPreviousMaster=$)
+   {
+      local i;
+      
+      if Send(Send(SYS,@GetLeagueMaintenance),@GetFundingLevel) >= 1
+      {
+         foreach i in Send(self,@GetHolderActive)
+         {
+            if IsClass(First(i),&AdventurersLeagueJailer)
+            {
+               Send(First(i),@SellMonster,#what=what,#oPreviousMaster=oPreviousMaster);
+               return;
+            }
+         }
+      }
+      return;
+   }
+
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

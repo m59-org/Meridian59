@@ -351,8 +351,10 @@ resources:
       "%s%s is compelled to aid %s%s.\n\n"
    minion_bind_level_1 = \
       "%s%s is lightly compelled to aid %s%s.\n\n"
-   minion_bind_level_nothing = \
+   minion_bind_level_0 = \
       "%s%s is barely compelled to aid %s%s.\n\n"
+   minion_bind_level_nothing = \
+      "%s%s%s%s"
 
    monster_spell_build_1_sound = monsterspellbuild1.wav
    monster_spell_build_2_sound = monsterspellbuild2.wav
@@ -362,7 +364,7 @@ resources:
    monster_jailer_you_cannot_control_it = \
       "Can't sell you that one. It'd turn on you in a second. Try a weaker one maybe, or getting rid of some existing minions..."
    monster_jailer_sold_to_you = \
-      "Good luck with that one..."
+      "Good luck with that one... we gave it a complementary creature binding for you, but you never know..."
    
 classvars:
 
@@ -1724,7 +1726,7 @@ messages:
       % sanity checks
       if poOwner = $
       {
-         Debug("Unreachable. Null Owner");
+         %Debug("Unreachable. Null Owner");
          Send(self,@EnterStateLimbo);
 
          return;
@@ -5756,6 +5758,7 @@ messages:
                if Send(what,@CanControlNewMinion,#oMonster=i)
                {
                   SetNth(plFor_Sale,1,DelListElem(First(plFor_Sale),i));
+                  Send(i,@SetMaster,#oMaster=what);
                   Send(poOwner,@NewHold,#what=i,
                                         #new_row=Send(what,@GetRow),
                                         #new_col=Send(what,@GetCol),
@@ -5767,7 +5770,6 @@ messages:
 
                      % Set initial minion behavior
                      Send(i,@ResetBehaviorFlags);
-                     Send(i,@SetMaster,#oMaster=what);
                      Send(i,@SetBehaviorFlag,#flag=AI_MOVE_FOLLOW_MASTER,#value=TRUE);
                      Send(i,@SetBehaviorFlag,#flag=AI_FIGHT_AGGRESSIVE,#value=FALSE);
                      Send(i,@SetBehaviorFlag,#flag=AI_FIGHT_NEWBIESAFE);
@@ -6084,8 +6086,9 @@ messages:
          iHit_Percent = iHitPoint_Percent;
       }
       
-      iBindingLevel = (piLoyalty+100)/LOYALTY_PER_BINDING_LEVEL;
+      iBindingLevel = piLoyalty/LOYALTY_PER_BINDING_LEVEL;
       if poMaster = $
+         OR piLoyalty = 0
       {
          rMobDef = minion_bind_level_blank;
          rMobName = minion_bind_level_blank;
@@ -6103,7 +6106,14 @@ messages:
       switch(iBindingLevel)
       {
          case 0:
-            rBindingLevel = minion_bind_level_nothing;
+            if piLoyalty = 0
+            {
+               rBindingLevel = minion_bind_level_nothing;
+            }
+            else
+            {
+               rBindingLevel = minion_bind_level_0;
+            }
             break;
          case 1:
             rBindingLevel = minion_bind_level_1;
@@ -8435,6 +8445,10 @@ messages:
             Send(who,@NewHold,#what=oMoney);
             Send(Send(SYS,@GetStatistics),@MoneyCreated,#amount=Send(oMoney,@GetNumber));
          }
+         else
+         {
+            Send(oMoney,@Delete);
+         }
       }
       
       return;
@@ -8503,11 +8517,12 @@ messages:
       return piChampionStatus;
    }
    
-   GainChampionStatus(iType=0)
+   GainChampionStatus(iType=0, bJailed=FALSE)
    {
       local i, each_obj;
 
       if poOwner = $
+         AND NOT bJailed
       {
          return;
       }
@@ -8537,13 +8552,16 @@ messages:
          Send(self,@AddRandomChampionAbility);
          Send(self,@AddRandomChampionAbility);
 
-         foreach i in Send(poOwner,@GetHolderActive)
+         if NOT bJailed
          {
-            each_obj = Send(poOwner,@HolderExtractObject,#data=i);
-            if IsClass(each_obj,&Player)
+            foreach i in Send(poOwner,@GetHolderActive)
             {
-               Send(each_obj,@MsgSendUser,#message_rsc=indomitable_arrived,
-                                          #parm1=Send(self,@GetName));
+               each_obj = Send(poOwner,@HolderExtractObject,#data=i);
+               if IsClass(each_obj,&Player)
+               {
+                  Send(each_obj,@MsgSendUser,#message_rsc=indomitable_arrived,
+                                             #parm1=Send(self,@GetName));
+               }
             }
          }
       }
@@ -8557,18 +8575,24 @@ messages:
          Send(self,@AddRandomChampionAbility);
          Send(self,@AddRandomChampionAbility);
 
-         foreach i in Send(poOwner,@GetHolderActive)
+         if NOT bJailed
          {
-            each_obj = Send(poOwner,@HolderExtractObject,#data=i);
-            if IsClass(each_obj,&Player)
+            foreach i in Send(poOwner,@GetHolderActive)
             {
-               Send(each_obj,@MsgSendUser,#message_rsc=legendary_arrived,
-                                          #parm1=Send(self,@GetName));
+               each_obj = Send(poOwner,@HolderExtractObject,#data=i);
+               if IsClass(each_obj,&Player)
+               {
+                  Send(each_obj,@MsgSendUser,#message_rsc=legendary_arrived,
+                                             #parm1=Send(self,@GetName));
+               }
             }
          }
       }
 
-      Send(poOwner,@SomethingChanged,#what=self);
+      if NOT bJailed
+      {
+         Send(poOwner,@SomethingChanged,#what=self);
+      }
 
       return;
    }
@@ -9130,11 +9154,25 @@ messages:
 
    BreakAllegiance()
    {
+      local oPreviousMaster;
+
       if poMaster <> $
       {
          Send(poMaster,@MsgSendUser,#message_rsc=minion_breaks_free,#parm1=Send(self,@GetCapDef),#parm2=Send(self,@GetName));
+         oPreviousMaster = poMaster;
       }
       Send(self,@SetMaster,#oMaster=$);
+      Send(self,@ResetBehaviorFlags);
+      if poOwner <> $
+      {
+         if IsClass(poOwner,&AdventurersGuild)
+            AND Send(Send(SYS,@GetLeagueMaintenance),@GetFundingLevel) >= 1
+         {
+            Send(poOwner,@MonsterBrokeAllegiance,#what=self,#oPreviousMaster=oPreviousMaster);
+            return;
+         }
+         Send(poOwner,@SomethingChanged,#what=self);
+      }
       return;
    }
    
