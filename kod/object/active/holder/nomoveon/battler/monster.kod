@@ -9292,9 +9292,9 @@ messages:
       {
          DeleteTimer(ptCastingAnimationTimer);
          ptCastingAnimationTimer = $;
+         piCastPower = 0;
+         Send(self,@UpdateCastingLightLevel);
       }
-      piCastPower = 0;
-      Send(self,@UpdateCastingLightLevel);
       return;
    }
 
@@ -9329,7 +9329,6 @@ messages:
                   Send(oSpell,@CastSpell,#who=self,#lTargets=[poTarget],
                         #iSpellPower=90);
       }
-      Debug("cast success!");
       piCastPower = 0;
       Send(self,@UpdateCastingLightLevel);
       return;
