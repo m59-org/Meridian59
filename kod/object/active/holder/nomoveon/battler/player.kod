@@ -1107,6 +1107,9 @@ resources:
    consumed_ancient_token_reset = \
       "Your Ancient Trinket vanishes."
 
+   master_is_phased_out_cannot_attack = \
+      "Minions of an inaccessible player cannot be attacked."
+
 classvars:
 
    viHand_space = 2
@@ -6997,6 +7000,16 @@ messages:
       % Holding a token?  Then don't let them attack
       if send(self,@FindHolding,#class=&Token) <> $
       {
+         return FALSE;
+      }
+      
+      if IsClass(what,&Monster)
+         AND Send(what,@GetMaster) <> $
+         AND IsClass(Send(what,@GetMaster),&Player)
+         AND Send(Send(what,@GetMaster),@IsInCannotInteractMode)
+      {
+         % Monsters whose masters are phased out cannot be attacked
+         Send(self,@MsgSendUser,#message_rsc=master_is_phased_out_cannot_attack);
          return FALSE;
       }
 

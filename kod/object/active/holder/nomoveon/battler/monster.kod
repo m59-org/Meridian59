@@ -352,7 +352,7 @@ resources:
    minion_bind_level_1 = \
       "%s%s is lightly compelled to aid %s%s.\n\n"
    minion_bind_level_nothing = \
-      "%s%s%s%s"
+      "%s%s is barely compelled to aid %s%s.\n\n"
 
    monster_spell_build_1_sound = monsterspellbuild1.wav
    monster_spell_build_2_sound = monsterspellbuild2.wav
@@ -1553,15 +1553,7 @@ messages:
          if iRow <> 0 AND iCol <> 0
             AND Send(poMaster,@GetOwner) <> $
          {
-            if ((piRow - iRow) <= 3
-               AND (piCol - iCol) <= 3
-               AND NOT (IsClass(self,&EvilTwin)
-                  AND (NOT Send(self,@IsEnchanted,#byClass=&Seduce))))
-               OR IsClass(self,&Reflection) % Flecs follow.
-               OR vbIsUndead % So do undead (Animate).
-            {
-               Post(self,@GotoMaster);
-            }
+            Post(self,@GotoMaster);
          }
 
          % Seduced minions and dragonfly queens are loyal,
@@ -1601,10 +1593,11 @@ messages:
          return;
       }
 
-      if (Send(oNewRoom,@CountMonsters,#mastered=TRUE) < 25)
+      if (Send(oNewRoom,@CountMonsters,#mastered=TRUE) < 50)
       {
          Send(oNewRoom,@NewHold,#what=self,
                #new_row=Send(poMaster,@GetRow),#new_col=Send(poMaster,@GetCol),
+               #fine_row=Send(poMaster,@GetFineRow),#fine_col=Send(poMaster,@GetFineCol),
                #new_angle=Send(poMaster,@GetAngle));
       }
 
@@ -2643,6 +2636,15 @@ messages:
       % Seduced and Animated monsters here. If the master can't attack,
       % we can't either. If they can, we treat it as if they personally
       % attacked the target.
+      
+      if IsClass(what,&Monster)
+         AND Send(what,@GetMaster) <> $
+         AND IsClass(Send(what,@GetMaster),&Player)
+         AND Send(Send(what,@GetMaster),@IsInCannotInteractMode)
+      {
+         % Monsters whose masters are phased out cannot be attacked
+         return FALSE;
+      }
 
       if poMaster <> $
          AND IsClass(poMaster,&Player)
@@ -6084,7 +6086,6 @@ messages:
       
       iBindingLevel = (piLoyalty+100)/LOYALTY_PER_BINDING_LEVEL;
       if poMaster = $
-         OR iBindingLevel = 0
       {
          rMobDef = minion_bind_level_blank;
          rMobName = minion_bind_level_blank;
@@ -9057,6 +9058,22 @@ messages:
       if piLoyalty >= 10 * LOYALTY_PER_BINDING_LEVEL
       {
          % We're a permanent minion.
+         ptLoyaltyTimer = CreateTimer(self,@LoyaltyTimer,60000);
+         return;
+      }
+      
+      if poOwner <> $
+         AND Send(poOwner,@CheckRoomFlag,#flag=ROOM_NO_COMBAT)
+      {
+         % No loyalty loss in safe areas.
+         ptLoyaltyTimer = CreateTimer(self,@LoyaltyTimer,60000);
+         return;
+      }
+      
+      if IsClass(poMaster,&Player)
+         AND Send(poMaster,@IsInCannotInteractMode)
+      {
+         ptLoyaltyTimer = CreateTimer(self,@LoyaltyTimer,60000);
          return;
       }
       
@@ -9345,6 +9362,21 @@ messages:
          Send(poTarget,@WaveSendUser,#what=self,#wave_rsc=i);
       }
       return;
+   }
+
+   GetMoveOnType()
+   {
+      local iFlags;
+
+      iFlags = viMoveOn_type;
+
+      % Minions cannot block other players.
+      if poMaster <> $
+      {
+         iFlags = (iFlags & ~MOVEON_NO);
+      }
+
+      return iFlags;
    }
 
 end
