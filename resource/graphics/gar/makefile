@@ -75,7 +75,8 @@ BGFS = igreyinvis.bgf isitting.bgf itransferitem.bgf iexplosion.bgf irift.bgf \
        spikedhelm.bgf \
        shades.bgf \
        watercentipede.bgf \
-       underwatericon.bgf
+       underwatericon.bgf \
+       monk.bgf
        
 
 DIRS = 

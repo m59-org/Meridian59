@@ -86,11 +86,11 @@ messages:
       {
          if (IsClass(what,&Player))
          {
-            if Send(self,@CheckRoomFlag,#flag=ROOM_SNOWING)
-               AND pbSnowGroundTexture
-            {
+           % if Send(self,@CheckRoomFlag,#flag=ROOM_SNOWING)
+           %    AND pbSnowGroundTexture
+           % {
                oTargetRoom = Send(SYS,@FindRoomByNum,#num=RID_D3);
-               Send(what,@MsgSendUser,#message_rsc=E1_icewalk);
+           %    Send(what,@MsgSendUser,#message_rsc=E1_icewalk);
                Send(SYS,@UtilGoNearSquare,#what=what,
                     #where=oTargetRoom,
                     #new_row=70,
@@ -98,11 +98,11 @@ messages:
                     #fine_row=0,
                     #fine_col=0,
                     #new_angle=Send(what,@GetAngle));
-            }
-            else
-            {
-               Send(what,@MsgSendUser,#message_rsc=E1_oceanwalk);
-            }
+           % }
+           % else
+           % {
+           %    Send(what,@MsgSendUser,#message_rsc=E1_oceanwalk);
+           % }
          }
 
          return;

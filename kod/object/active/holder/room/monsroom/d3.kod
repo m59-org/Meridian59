@@ -59,6 +59,8 @@ properties:
 
    piInit_count_min = 2
    piInit_count_max = 5
+   
+   ptSecretTimer = $
 
 messages:
 
@@ -68,6 +70,8 @@ messages:
 
 %      plGenerators = [ [40, 6], [45, 13], [58, 28], [34, 34], [32, 53],
 %                       [53, 50], [40, 67], [14, 66], [15, 46], [4, 68] ];
+
+      Post(self,@CreateReward);
 
       propagate;
    }
@@ -79,6 +83,31 @@ messages:
 
       propagate;
    }
+   
+   CreateReward()
+   {
+      local i;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&AlchemySkillBook)
+            OR IsClass(First(i),&AlchemySpellBook)
+         {
+            ptSecretTimer = CreateTimer(self,@CreateReward,60000 * 60 * 12 + Random(-300000,300000));
+            return;
+         }
+      }
+      if Random(1,2) = 1
+      {
+         Send(self,@NewHold,#what=Create(&AlchemySkillBook),#new_row=25,#new_col=45,#fine_row=29,#fine_col=4);
+      }
+      else
+      {
+         Send(self,@NewHold,#what=Create(&AlchemySpellBook),#new_row=25,#new_col=45,#fine_row=29,#fine_col=4);
+      }
+      ptSecretTimer = CreateTimer(self,@CreateReward,60000 * 60 * 12 + Random(-300000,300000));
+      return;
+   }
 
    StandardLeaveDir(what = $,dir = $,pos = $,new_room_num = $)
    {
@@ -88,11 +117,11 @@ messages:
       {
          if (IsClass(what,&Player))
          {
-            if Send(self,@CheckRoomFlag,#flag=ROOM_SNOWING)
-               AND pbSnowGroundTexture
-            {
+         %   if Send(self,@CheckRoomFlag,#flag=ROOM_SNOWING)
+         %      AND pbSnowGroundTexture
+         %   {
                oTargetRoom = Send(SYS,@FindRoomByNum,#num=RID_E1);
-               Send(what,@MsgSendUser,#message_rsc=D3_icewalk);
+         %      Send(what,@MsgSendUser,#message_rsc=D3_icewalk);
                Send(SYS,@UtilGoNearSquare,#what=what,
                     #where=oTargetRoom,
                     #new_row=4,
@@ -100,11 +129,11 @@ messages:
                     #fine_row=0,
                     #fine_col=0,
                     #new_angle=Send(what,@GetAngle));
-            }
-            else
-            {
-               Send(what,@MsgSendUser,#message_rsc=D3_oceanwalk);
-            }
+         %   }
+         %   else
+         %   {
+         %      Send(what,@MsgSendUser,#message_rsc=D3_oceanwalk);
+         %   }
          }
 
          return;
@@ -120,9 +149,18 @@ messages:
 
    CreateStandardObjects()
    {
-      %Send(self,@NewHold,#what=Create(&Tree,#top=TREE_PINE,#bottom=TREE_PINE),
-      %     #new_row=58,#new_col=33);
+	   Send(self,@NewHold,#what=Create(&OrnamentalObject,#type=OO_BONES),#new_row=25,#new_col=42,#fine_row=29,#fine_col=9,#angle=ANGLE_EAST);
 
+      propagate;
+   }
+   
+   Delete()
+   {
+      if ptSecretTimer <> $
+      {
+         DeleteTimer(ptSecretTimer);
+         ptSecretTimer = $;
+      }
       propagate;
    }
 
