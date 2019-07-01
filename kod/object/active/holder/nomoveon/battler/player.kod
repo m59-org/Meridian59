@@ -15829,7 +15829,7 @@ messages:
       return count;
    }
 
-   PlayerCanLearn(spell_num=0,skill_num=0,scryer=$)
+   PlayerCanLearn(spell_num=0,skill_num=0)
    "New routine as of 14 June 97. Intended to allow for more schools, "
    "odd numbers of spells at a spell level and easier understanding."
    "The proverbial trick is that players have to know WHY they aren't "
@@ -15838,9 +15838,9 @@ messages:
    {
       local obj, iHave, prev_level,
             aHigh, bHigh, cHigh, iBase, i, temp,
-            nObj, nSID, index, iNeed, nSchool, nLevel, msg, bKnowOne,
+            nObj, nSID, index, iNeed, nSchool, nLevel, bKnowOne,
             iWeapon, iKraanan, iShalille, iQor, iFaren, iRiija, iJala,
-            iKnightcraft, iBanditry, iSorcery, iWitchery, iAlchemy, iPoints;
+            iKnightcraft, iBanditry, iSorcery, iWitchery, iAlchemy, iShadowcraft, iBestiary;
       % This function is close to parameter limit.
 
       % Phase one. Assert our data. Be sure we have been fed a valid spell
@@ -15978,6 +15978,8 @@ messages:
       iFaren = 0;
       iRiija = 0;
       iJala = 0;
+      iShadowcraft = 0;
+      iBestiary = 0;
 
       foreach i in plSkills
       {
@@ -16054,6 +16056,16 @@ messages:
                AND nLevel > iAlchemy
             {
                iAlchemy = nLevel;
+            }
+            if nSchool = SKS_SHADOWCRAFT
+               AND nLevel > iShadowcraft
+            {
+               iShadowcraft = nLevel;
+            }
+            if nSchool = SS_BESTIARY
+               AND nLevel > iBestiary
+            {
+               iBestiary = nLevel;
             }
          }
       }
@@ -16167,6 +16179,18 @@ messages:
             {
                iAlchemy = nLevel;
             }
+            
+            if nSchool = SKS_SHADOWCRAFT
+               AND nLevel > iShadowcraft
+            {
+               iShadowcraft = nLevel;
+            }
+            
+            if nSchool = SS_BESTIARY
+               AND nLevel > iBestiary
+            {
+               iBestiary = nLevel;
+            }
          }
       }
 
@@ -16187,12 +16211,6 @@ messages:
 
       if NOT Send(obj,@KarmaCheck,#who=self)
       {
-         if scryer <> $
-         {
-            Send(scryer,@MsgSendUser,#message_rsc=player_Debug_noKarma,
-                 #parm1=Send(self,@GetTrueName),#parm2=Send(obj,@GetName));
-         }
-         
          return PLAYER_LEARN_KARMA;
       }
 
@@ -16205,12 +16223,14 @@ messages:
 
       % We have done all the information gathering, so now, lets compute:
 
-      iPoints =  Send(SYS,@GetLevelLearnPoints,#level=iWeapon)
+      temp =  Send(SYS,@GetLevelLearnPoints,#level=iWeapon)
                + Send(SYS,@GetLevelLearnPoints,#level=iKnightcraft)
                + Send(SYS,@GetLevelLearnPoints,#level=iBanditry)
                + Send(SYS,@GetLevelLearnPoints,#level=iSorcery)
                + Send(SYS,@GetLevelLearnPoints,#level=iWitchery)
                + Send(SYS,@GetLevelLearnPoints,#level=iAlchemy)
+               + Send(SYS,@GetLevelLearnPoints,#level=iShadowcraft)
+               + Send(SYS,@GetLevelLearnPoints,#level=iBestiary)
                + Send(SYS,@GetLevelLearnPoints,#level=iKraanan)
                + Send(SYS,@GetLevelLearnPoints,#level=iShalille)
                + Send(SYS,@GetLevelLearnPoints,#level=iQor)
@@ -16223,7 +16243,7 @@ messages:
       %  knowledge.  Add points.
       if not bKnowOne
       {
-         iPoints = iPoints + Send(SYS,@GetLevelLearnPoints,#level=Send(obj,@GetLevel))
+         temp = temp + Send(SYS,@GetLevelLearnPoints,#level=Send(obj,@GetLevel))
                            - Send(SYS,@GetLevelLearnPoints,#level=(Send(obj,@GetLevel)-1));
       }
 
@@ -16234,7 +16254,7 @@ messages:
       %  (3*99), so when your points equals max points, you've maxxed out.  
       %  Intellect gives you a bonus to learning, currently about 20 points
       %  for 50 Intellect (approximately mastering 2 extra schools)
-      iNeed =   (iPoints * POINTS_SLOPE)
+      iNeed =   (temp * POINTS_SLOPE)
               + (297 - (Send(SETTINGS_OBJECT, @GetMaxLearnPoints) * POINTS_SLOPE))
               - ((Send(self,@GetRawIntellect) * 2 * POINTS_SLOPE) / 5);
 
@@ -16244,120 +16264,16 @@ messages:
       % Bound iNeed to a reasonable low level so people can't just rush in and
       %  get high level with very little work.
       iNeed = bound(iNeed,MIN_NEEDED_TO_ADVANCE,$);
-      
-      if scryer <> $
-      {
-         % nSchool will equal how much the intended school's points added.
-         if skill_num <> 0
-         {
-            if Send(obj,@GetSchool) = SKS_FENCING
-            {
-               nSchool = iWeapon;
-            }
-            if Send(obj,@GetSchool) = SKS_KNIGHTCRAFT
-            {
-               nSchool = iKnightcraft;
-            }
-            if Send(obj,@GetSchool) = SKS_BANDITRY
-            {
-               nSchool = iBanditry;
-            }
-            if Send(obj,@GetSchool) = SKS_SORCERY
-            {
-               nSchool = iSorcery;
-            }
-            if Send(obj,@GetSchool) = SS_WITCHERY
-            {
-               nSchool = iWitchery;
-            }
-            if Send(obj,@GetSchool) = SKS_ALCHEMY
-            {
-               nSchool = iAlchemy;
-            }
-         }
-         else
-         {
-            if Send(obj,@GetSchool) = SS_KRAANAN
-            {
-               nSchool = iKraanan;
-            }
-
-            if Send(obj,@GetSchool) = SS_SHALILLE
-            {
-               nSchool = iShalille;
-            }
-
-            if Send(obj,@GetSchool) = SS_QOR
-            {
-               nSchool = iQor;
-            }
-
-            if Send(obj,@GetSchool) = SS_FAREN
-            {
-               nSchool = iFaren;
-            }
-
-            if Send(obj,@GetSchool) = SS_RIIJA
-            {
-               nSchool = iRiija;
-            }
-
-            if Send(obj,@GetSchool) = SS_JALA
-            {
-               nSchool = iJala;
-            }
-
-            if Send(obj,@GetSchool) = SKS_KNIGHTCRAFT
-            {
-               nSchool = iKnightcraft;
-            }
-
-            if Send(obj,@GetSchool) = SS_WITCHERY
-            {
-               nSchool = iWitchery;
-            }
-
-            if Send(obj,@GetSchool) = SKS_ALCHEMY
-            {
-               nSchool = iAlchemy;
-            }
-         }
-
-         % Bring the points back down to the original total, before learning.
-         if NOT bKnowOne
-         {
-            iPoints = iPoints - Send(SYS,@GetLevelLearnPoints,#level=Send(obj,@GetLevel))
-                              + Send(SYS,@GetLevelLearnPoints,#level=(Send(obj,@GetLevel)-1));
-         }
-
-         Send(scryer,@MsgSendUser,#message_rsc=player_Debug_playercanlearn,
-              #parm1=Send(self,@GetName),#parm2=Send(obj,@GetLevel),
-              #parm3=Send(obj,@GetSchoolStr),#parm4=iPoints,#parm5=nSchool,
-              #parm6=((Send(self,@GetRawIntellect) * 2 * POINTS_SLOPE) / 5),
-              #parm7=iNeed,#parm8=iHave);
-      }
 
       % If the previous level has fewer than three spells, help them out.
       if prev_level = 1
       {
          iNeed= iNeed / 3;
-         if scryer <> $
-         {
-            Send(scryer,@MsgSendUser,
-                  #message_rsc=player_Debug_playercanlearn_scarcity,
-                  #parm1=iNeed);
-         }
       }
 
       if prev_level = 2
       {
          iNeed = (iNeed*2)/3;
-         if scryer <> $
-         {
-            Send(scryer,@MsgSendUser,
-                  #message_rsc=player_Debug_playercanlearn_scarcity,
-                  #parm1=iNeed);
-         }
       }
 
       if iHave >= iNeed
@@ -16376,12 +16292,6 @@ messages:
       % three spells are a special instance.
       if iNeed > (99*(bound(prev_level,1,3)))
       {
-         if scryer <> $
-         {
-            Send(scryer,@MsgSendUser,#message_rsc=player_Debug_noway,
-                 #parm1=Send(self,@GetTrueName),#parm2=Send(obj,@GetName));
-         }
-
          return PLAYER_LEARN_IMPOSSIBLE;
       }
 

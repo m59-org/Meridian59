@@ -57,6 +57,9 @@ resources:
    Meditate_cast_finished = \
       "You wake from your trance and feel your mental energies refreshed!"
 
+   cannot_meditate_new_schools = \
+      "It seems we don't know how to meditate this school just yet. Looks like you'll have to improve it the old fashioned way!"
+
 classvars:
 
    vrName = Meditate_name_rsc
@@ -145,6 +148,16 @@ messages:
          if StringEqual(string,sSpell)
          {
             bFound = TRUE;
+            
+            if (Send(oSpell,@GetSchool) = SKS_ALCHEMY
+               OR Send(oSpell,@GetSchool) = SKS_SHADOWCRAFT
+               OR Send(oSpell,@GetSchool) = SS_BESTIARY)
+               AND NOT Send(SETTINGS_OBJECT,@GetAllowMeditatingNewSchools)
+            {
+               Send(who,@MsgSendUser,#message_rsc=cannot_meditate_new_schools);
+               return;
+            }
+            
             iPercent = Send(oSpell,@GetAbility,#who=who);
             iRatio = Send(oSpell,@GetMeditateRatio);
 
@@ -231,6 +244,16 @@ messages:
          if StringEqual(string,sSkill)
          {
             bFound = TRUE;
+            
+            if (Send(oSkill,@GetSchool) = SKS_ALCHEMY
+               OR Send(oSkill,@GetSchool) = SKS_SHADOWCRAFT
+               OR Send(oSkill,@GetSchool) = SS_BESTIARY)
+               AND NOT Send(SETTINGS_OBJECT,@GetAllowMeditatingNewSchools)
+            {
+               Send(who,@MsgSendUser,#message_rsc=cannot_meditate_new_schools);
+               return;
+            }
+            
             iPercent = Send(oSkill,@GetAbility,#who=who);
             iRatio = Send(oSkill,@GetMeditateRatio);
 
