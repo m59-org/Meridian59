@@ -7442,6 +7442,10 @@ messages:
                % Unarmed
                iStroke = Send(self,@GetSkillAbility,#skill_num=SKID_PUNCH) + Send(self,@GetSkillAbility,#skill_num=SKID_WAY_OF_THE_SERPENT);
                iProficiency = Send(self,@GetSkillAbility,#skill_num=SKID_BRAWLING);
+               if what <> $
+               {
+                  Send(Send(SYS,@FindSkillByNum,#num=SKID_WAY_OF_THE_SERPENT),@ImproveAbility,#who=self);
+               }
             }
          }
 
@@ -12383,6 +12387,12 @@ messages:
             AND Send(self,@GetSkillAbility,#skill_num=SKID_PARRY) < 99
          {
             oSkill=Send(SYS,@FindSkillByNum,#num=SKID_PARRY);
+            Send(oSkill,@ImproveAbility,#who=self,#target=poKill_Target);
+         }
+         if Send(self,@HasSkill,#num=SKID_FLOWING_CLOTH)
+            AND Send(self,@GetSkillAbility,#skill_num=SKID_FLOWING_CLOTH) < 99
+         {
+            oSkill=Send(SYS,@FindSkillByNum,#num=SKID_FLOWING_CLOTH);
             Send(oSkill,@ImproveAbility,#who=self,#target=poKill_Target);
          }
          if Send(self,@GetWeapon) = $
