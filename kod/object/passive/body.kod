@@ -29,6 +29,9 @@ resources:
    deadbody_assassinated_rsc = \
       "Here lies %q, slain by an unknown assassin."
 
+   corpse_looting_max_reached = \
+      "The maximum looting of singular items has been reached for this corpse."   
+   
 classvars:
 
    vrDesc = deadbody_desc_rsc
@@ -71,6 +74,8 @@ properties:
    
    ptSummonDelayTimer = $
    piSummonable = FALSE
+   
+   piNumSingularItemsTaken = 0
 
 messages:
 
@@ -420,8 +425,17 @@ messages:
       }
 
       if taker = poDearlyDeparted
+         OR (Send(poDearlyDeparted,@GetGuild) <> $
+            AND Send(poDearlyDeparted,@GetGuild) = Send(taker,@GetGuild))
       {
          return TRUE;
+      }
+
+      if NOT IsClass(what,&NumberItem)
+         AND piNumSingularItemsTaken = Send(SETTINGS_OBJECT,@GetSingularItemsLootMax)
+      {
+         Send(taker,@MsgSendUser,#message_rsc=corpse_looting_max_reached);
+         return FALSE;
       }
 
       if poPlayerKiller <> $
@@ -484,6 +498,10 @@ messages:
          if i = what
          {
             plCorpseContents = DelListElem(plCorpseContents,i);
+            if NOT IsClass(what,&NumberItem)
+            {
+               piNumSingularItemsTaken++;
+            }
          }
       }
 
