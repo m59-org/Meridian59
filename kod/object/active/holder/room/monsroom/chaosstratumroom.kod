@@ -1,0 +1,184 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ChaosStratumRoom is MonsterRoom
+
+% Players enter a Chaos Stratum from the Undersea Palace.
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   ChaosStratumRoom_name = "Chaos Stratum"
+   chaos_stratum_welcome_message = \
+      "With each step closer to evil, reality becomes less coherent, "
+      "but the scrying crystal has brought you to an island of stability... "
+      "be warned, for death is very real here."
+
+classvars:
+
+   vrName = ChaosStratumRoom_name
+   viTeleport_row = 1
+   viTeleport_col = 1
+   viPermanent_flags = ROOM_SAFELOGOFF
+
+properties:
+
+   poBaseRoom = $
+   prRoom = $
+   piRoom_num = $
+   piOverridesDeathFunction = TRUE
+   pbNoReagents = FALSE
+
+   piGen_time = 5000
+   piGen_percent = 100
+
+   piInit_count_min = 0
+   piInit_count_max = 0
+   piMonster_count_max = 30
+
+   piChaosZone = TRUE
+
+   plFixedRewards = $
+
+messages:
+
+   Constructor(iRID=RID_CHAOS_STRATA_START,base_room=$,iPvP=TRUE)
+   {
+      poBaseRoom = base_room;
+      prRoom = Send(poBaseRoom,@GetRoomResource);
+      piRoom_num = iRID;
+
+      if iPvP
+      {
+         piChaosZone = TRUE;
+      }
+      else
+      {
+         Post(self,@SetRoomFlag,#flag=ROOM_NO_PK,#value=TRUE);
+      }
+
+      piBaseLight = Send(poBaseRoom,@GetBaseLight);
+      piOutside_factor = Send(poBaseRoom,@GetOutsideFactor);
+      piDirectional_percent = Send(poBaseRoom,@GetDirectionalPercent);
+
+      prMusic = Send(poBaseRoom,@GetMusic);
+
+      plGenerators = Send(poBaseRoom,@GetGenerators);
+
+      plFixedRewards = [[&AntMask,10],
+                        [&RatMask,15],
+                        [&MummyMask,20],
+                        [&SkullMask,25],
+                        [&TrollMask,30],
+                        [&ShrunkenHeadMask,35],
+                        [&DaemonMask,40],
+                        [&FeyMask,45],
+                        [&XeoMask,50],
+                        [&KriipaMask,55],
+                        [&CowMask,75],
+                        [&KraananCharm,100]];
+
+      Send(self,@RecalcLightAndWeather);
+
+      propagate;
+   }
+
+   Delete()
+   {
+      Send(self,@BootAllUsers);
+
+      Send(Send(SYS,@GetChaosStrataMaintenance),@RoomDeleted,#what=self);
+
+      propagate;
+   }
+   
+
+   GetTeleportRow()
+   {
+      if IsClass(poBaseRoom,&SurvivalRoom)
+      {
+         return viTeleport_row;
+      }
+
+      return Send(poBaseRoom,@GetTeleportRow);
+   }
+
+   GetTeleportCol()
+   {
+      if IsClass(poBaseRoom,&SurvivalRoom)
+      {
+         return viTeleport_col;
+      }
+
+      return Send(poBaseRoom,@GetTeleportCol);
+   }
+
+   GetTeleportAngle()
+   {
+      if IsClass(poBaseRoom,&SurvivalRoom)
+      {
+         return 0;
+      }
+
+      return Send(poBaseRoom,@GetTeleportAngle);
+   }
+
+   GetTerrainType()
+   {
+      if IsClass(poBaseRoom,&SurvivalRoom)
+      {
+         return 0;
+      }
+
+      return Send(poBaseRoom,@GetTerrainType);
+   }
+
+   GetBaseRoom()
+   {
+      return poBaseRoom;
+   }
+
+   GetLevel()
+   {
+      return piLevel;
+   }
+
+   ReqSpellCast(who = $, oSpell = $, lItems = $)
+   {
+      if IsClass(oSpell,&Elusion)
+         OR IsClass(oSpell,&Rescue)
+         OR IsClass(oSpell,&DeathRift)
+         OR IsClass(oSpell,&Truce)
+         OR IsClass(oSpell,&Jig)
+         OR IsClass(oSpell,&SporeBurst)
+         OR IsClass(oSpell,&SummonWeb)
+         OR IsClass(oSpell,&GuildHallRecall)
+         OR IsClass(oSpell,&Recall)
+         OR IsClass(oSpell,&SummonEvilTwin)
+         OR (IsClass(oSpell,&Earthquake)
+            AND IsClass(who,&Monster))
+         OR (IsClass(oSpell,&MonsterEarthquake)
+            AND IsClass(who,&Monster))
+      {
+         % We have to provide the fail message here.
+         %Send(who,@MsgSendUser,#message_rsc=survival_no_cast_rsc,
+         %      #parm1=Send(oSpell,@GetName));
+
+         return FALSE;
+      }
+
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
