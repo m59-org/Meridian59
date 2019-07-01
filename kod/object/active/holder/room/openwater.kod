@@ -8,7 +8,7 @@
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-WaterTest is Room
+OpenWater is Room
 
 %
 % Use depth overrides to simulate different swimming heights
@@ -52,34 +52,34 @@ constants:
 
 resources:
 
-   room_watertest = watertest.roo
-   room_name_watertest = "Under the Waters of the Great Ocean"
+   room_open_water = openwater.roo
+   room_name_open_water = "Under the Waters of the Great Ocean"
 
-   water_test_music = aatitle.mp3
+   open_water_music = aatitle.mp3
 
 classvars:
 
-   vrName = room_name_watertest
+   vrName = room_name_open_water
 
-   viTeleport_row = 80
-   viTeleport_col = 47
+   viTeleport_row = 72
+   viTeleport_col = 61
 
    viTerrain_type = TERRAIN_BEACH
 
    viClientFlags = ROOM_OVERRIDE_DEPTH1 | ROOM_OVERRIDE_DEPTH2 | ROOM_OVERRIDE_DEPTH3
-   viOverrideDepth1 = 1900
-   viOverrideDepth2 = 1900
-   viOverrideDepth3 = 1900
+   viOverrideDepth1 = 820
+   viOverrideDepth2 = 820
+   viOverrideDepth3 = 1200
 
    viLongitude = 11
-   viLatitude = 10
+   viLatitude = 9
 
 properties:
 
-   prRoom = room_watertest
-   piRoom_num = RID_WATER_TEST
+   prRoom = room_open_water
+   piRoom_num = RID_OPEN_WATER
 
-   prMusic = water_test_music
+   prMusic = open_water_music
 
    piBaseLight = LIGHT_MIN
    piOutside_factor = 0
@@ -94,13 +94,6 @@ properties:
    pbIsUnderwater = TRUE
 
 messages:
-
-   CreateStandardExits()
-   {
-      plEdge_exits = $;
-      
-      return;
-   }
 
    FirstUserEntered()
    {
@@ -130,22 +123,10 @@ messages:
 
       if IsClass(what,&Player)
       {
-         if new_row < 3
-         {
-            Post(SYS,@UtilGoNearSquare,#what=what,
-                 #where=Send(SYS,@FindRoomByNum,#num=RID_OPEN_WATER),
-                 #new_row=86,
-                 #new_col=new_col,
-                 #fine_row=0,
-                 #fine_col=0,
-                 #new_angle=Send(what,@GetAngle));
-            return;
-         }
-         
          if new_row > Send(self,@GetRoomRows)-13
          {
             Post(SYS,@UtilGoNearSquare,#what=what,
-                 #where=Send(SYS,@FindRoomByNum,#num=RID_E2),
+                 #where=Send(SYS,@FindRoomByNum,#num=RID_WATER_TEST),
                  #new_row=5,
                  #new_col=new_col,
                  #fine_row=0,
@@ -189,6 +170,7 @@ messages:
          Send(self,@NewHold,#what=Create(&FogCloud,#Duration=$,#bGrounded=TRUE),#new_row=Random(iMinRow,iUpperBound),
                #new_col=Random(iMinCol,iUpperBound));
       }
+
       Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
         #iIntensity=50),#new_row=71,#new_col=15);
       Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
@@ -276,64 +258,6 @@ messages:
       Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
         #iIntensity=150),#new_row=81,#new_col=80);
         
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_LIGHTNING,
-        #iIntensity=200),#new_row=86,#new_col=15);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_LIGHTNING,
-        #iIntensity=200),#new_row=86,#new_col=20);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_LIGHTNING,
-        #iIntensity=200),#new_row=86,#new_col=25);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_LIGHTNING,
-        #iIntensity=200),#new_row=86,#new_col=30);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_LIGHTNING,
-        #iIntensity=200),#new_row=86,#new_col=35);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_LIGHTNING,
-        #iIntensity=200),#new_row=86,#new_col=40);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_LIGHTNING,
-        #iIntensity=200),#new_row=86,#new_col=45);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_LIGHTNING,
-        #iIntensity=200),#new_row=86,#new_col=50);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_LIGHTNING,
-        #iIntensity=200),#new_row=86,#new_col=55);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_LIGHTNING,
-        #iIntensity=200),#new_row=86,#new_col=60);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_LIGHTNING,
-        #iIntensity=200),#new_row=86,#new_col=65);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_LIGHTNING,
-        #iIntensity=200),#new_row=86,#new_col=70);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_LIGHTNING,
-        #iIntensity=200),#new_row=86,#new_col=75);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_LIGHTNING,
-        #iIntensity=200),#new_row=86,#new_col=80);
-        
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_WHITE,
-        #iIntensity=255),#new_row=93,#new_col=15);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_WHITE,
-        #iIntensity=255),#new_row=93,#new_col=20);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_WHITE,
-        #iIntensity=255),#new_row=93,#new_col=25);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_WHITE,
-        #iIntensity=255),#new_row=93,#new_col=30);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_WHITE,
-        #iIntensity=255),#new_row=93,#new_col=35);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_WHITE,
-        #iIntensity=255),#new_row=93,#new_col=40);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_WHITE,
-        #iIntensity=255),#new_row=93,#new_col=45);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_WHITE,
-        #iIntensity=255),#new_row=93,#new_col=50);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_WHITE,
-        #iIntensity=255),#new_row=93,#new_col=55);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_WHITE,
-        #iIntensity=255),#new_row=93,#new_col=60);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_WHITE,
-        #iIntensity=255),#new_row=93,#new_col=65);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_WHITE,
-        #iIntensity=255),#new_row=93,#new_col=70);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_WHITE,
-        #iIntensity=255),#new_row=93,#new_col=75);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_WHITE,
-        #iIntensity=255),#new_row=93,#new_col=80);
-        
       iLightRow = 10;
       iLightCol = 10;
       while iLightRow < Send(self,@GetRoomRows)-10
@@ -401,6 +325,18 @@ messages:
          DeleteTimer(ptLightsMoveTimer);
          ptLightsMoveTimer = $;
       }
+      propagate;
+   }
+
+   CreateStandardExits()
+   {
+      plExits = $;
+
+      plExits = Cons([ 35, 24, RID_UNDERSEA_PALACE, 2, 3, ROTATE_NONE ],plExits);
+      plExits = Cons([ 35, 25, RID_UNDERSEA_PALACE, 2, 3, ROTATE_NONE ],plExits);
+      plExits = Cons([ 35, 26, RID_UNDERSEA_PALACE, 2, 3, ROTATE_NONE ],plExits);
+      
+
       propagate;
    }
 
