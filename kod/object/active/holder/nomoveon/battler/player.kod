@@ -16337,7 +16337,8 @@ messages:
    GetTotalLearnPoints(except = $)
    {
       local iSpell, iSID, oSpellObj, iSchool, iLevel, iKraanan, iShalille, iSkill, oSkillObj,
-            iQor, iFaren, iRiija, iJala, iWeapon, iBanditry, iSorcery, iWitchery, iKnightcraft, iAlchemy, iTotalLearnPoints;
+            iQor, iFaren, iRiija, iJala, iWeapon, iBanditry, iSorcery, iWitchery, iKnightcraft, iAlchemy, 
+            iShadowcraft, iBestiary, iTotalLearnPoints;
 
       iKraanan = 0;
       iShalille = 0;
@@ -16351,6 +16352,8 @@ messages:
       iSorcery = 0;
       iWitchery = 0;
       iAlchemy = 0;
+      iShadowcraft = 0;
+      iBestiary = 0;
 
       foreach iSpell in plSpells
       {
@@ -16425,6 +16428,18 @@ messages:
             {
                iAlchemy = iLevel;
             }
+
+            if iSchool = SKS_SHADOWCRAFT
+               AND iLevel > iShadowcraft
+            {
+               iShadowcraft = iLevel;
+            }
+
+            if iSchool = SS_BESTIARY
+               AND iLevel > iBestiary
+            {
+               iBestiary = iLevel;
+            }
          }
       }
 
@@ -16481,6 +16496,18 @@ messages:
             {
                iAlchemy = iLevel;
             }
+
+            if iSchool = SKS_SHADOWCRAFT
+               AND iLevel > iShadowcraft
+            {
+               iShadowcraft = iLevel;
+            }
+
+            if iSchool = SS_BESTIARY
+               AND iLevel > iBestiary
+            {
+               iBestiary = iLevel;
+            }
          }
       }
 
@@ -16524,6 +16551,20 @@ messages:
       {
          Debug("iAlchemy");
          Debug(iAlchemy);
+      }
+
+      if iShadowcraft = $
+         OR iShadowcraft > 6
+      {
+         Debug("iShadowcraft");
+         Debug(iShadowcraft);
+      }
+
+      if iBestiary = $
+         OR iBestiary > 6
+      {
+         Debug("iBestiary");
+         Debug(iBestiary);
       }
 
       if iKraanan = $
@@ -16574,6 +16615,8 @@ messages:
                          + Send(SYS,@GetLevelLearnPoints,#level=iSorcery)
                          + Send(SYS,@GetLevelLearnPoints,#level=iWitchery)
                          + Send(SYS,@GetLevelLearnPoints,#level=iAlchemy)
+                         + Send(SYS,@GetLevelLearnPoints,#level=iShadowcraft)
+                         + Send(SYS,@GetLevelLearnPoints,#level=iBestiary)
                          + Send(SYS,@GetLevelLearnPoints,#level=iKraanan)
                          + Send(SYS,@GetLevelLearnPoints,#level=iShalille)
                          + Send(SYS,@GetLevelLearnPoints,#level=iQor)
@@ -17796,7 +17839,8 @@ messages:
    GetSkillSchoolLevels(include_cant_forget=FALSE)
    {
       local i, lSchoolLevels, oSkill, iLevel, iWeaponCraftLevel, iCanForget, iSchool,
-            iKnightcraftLevel, iBanditryLevel, iSorceryLevel, iWitcheryLevel, iAlchemyLevel;
+            iKnightcraftLevel, iBanditryLevel, iSorceryLevel, iWitcheryLevel, iAlchemyLevel,
+            iShadowcraftLevel, iBestiaryLevel;
 
       iWeaponCraftLevel = 0;
       iKnightcraftLevel = 0;
@@ -17804,6 +17848,8 @@ messages:
       iSorceryLevel = 0;
       iWitcheryLevel = 0;
       iAlchemyLevel = 0;
+      iShadowcraftLevel = 0;
+      iBestiaryLevel = 0;
       iLevel = 0;
       iCanForget = TRUE;
 
@@ -17857,6 +17903,20 @@ messages:
                if iLevel > iAlchemyLevel
                {
                   iAlchemyLevel = iLevel;
+               }
+            }
+            if iSchool = SKS_SHADOWCRAFT
+            {
+               if iLevel > iShadowcraftLevel
+               {
+                  iShadowcraftLevel = iLevel;
+               }
+            }
+            if iSchool = SS_BESTIARY
+            {
+               if iLevel > iBestiaryLevel
+               {
+                  iBestiaryLevel = iLevel;
                }
             }
          }
