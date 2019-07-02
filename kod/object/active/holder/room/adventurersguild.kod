@@ -138,7 +138,7 @@ messages:
    
    FirstUserEntered()
    {
-      local iFundingLevel, lRandomMonsters;
+      local iFundingLevel, lRandomMonsters, i;
 
       if Send(SYS,@GetLeagueMaintenance) = $
       {
@@ -151,6 +151,15 @@ messages:
 
       if iFundingLevel >= 1
       {
+         foreach i in Send(self,@GetHolderActive)
+         {
+            if IsClass(First(i),&Monster)
+               AND Send(First(i),@GetMaster) = $
+            {
+               propagate;
+            }
+         }
+
          lRandomMonsters = [&Avar,
                             &Lupogg,
                             &Thrasher,
