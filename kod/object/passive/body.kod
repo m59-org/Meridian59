@@ -431,11 +431,19 @@ messages:
          return TRUE;
       }
 
-      if NOT IsClass(what,&NumberItem)
-         AND piNumSingularItemsTaken = Send(SETTINGS_OBJECT,@GetSingularItemsLootMax)
+      if taker <> $
+         AND IsClass(taker,&Player)
+         AND NOT IsClass(what,&NumberItem)
       {
-         Send(taker,@MsgSendUser,#message_rsc=corpse_looting_max_reached);
-         return FALSE;
+         if piNumSingularItemsTaken >= Send(SETTINGS_OBJECT,@GetSingularItemsLootMax)
+         {
+            Send(taker,@MsgSendUser,#message_rsc=corpse_looting_max_reached);
+            return FALSE;
+         }
+         else
+         {
+            piNumSingularItemsTaken++;
+         }
       }
 
       if poPlayerKiller <> $
@@ -498,10 +506,6 @@ messages:
          if i = what
          {
             plCorpseContents = DelListElem(plCorpseContents,i);
-            if NOT IsClass(what,&NumberItem)
-            {
-               piNumSingularItemsTaken++;
-            }
          }
       }
 
