@@ -98,6 +98,7 @@ resources:
    forge_mod_choice_unholy_damage = "unholy damage"
    
    forge_mod_choice_bludgeon_damage = "bludgeon damage"
+   forge_mod_choice_punch_damage = "punch damage"
    forge_mod_choice_thrust_damage = "thrust damage"
    forge_mod_choice_slash_damage = "slash damage"
    forge_mod_choice_pierce_damage = "pierce damage"
@@ -462,6 +463,10 @@ messages:
             {
                Post(what,@MsgSendUser,#message_rsc=forge_mod_choice_bludgeon_damage);
             }
+            if iCalculatedTier >= 2
+            {
+               Post(what,@MsgSendUser,#message_rsc=forge_mod_choice_punch_damage);
+            }
             if iCalculatedTier >= 3
             {
                Post(what,@MsgSendUser,#message_rsc=forge_mod_choice_thrust_damage);
@@ -677,6 +682,19 @@ messages:
             else
             {
                Post(what,@MsgSendUser,#message_rsc=need_higher_tier,#parm1=1);
+               return;
+            }
+         }
+         if StringEqual(String,forge_mod_choice_punch_damage)
+         {
+            if Send(self,@CalculateTier,#iPower=Nth(Send(SETTINGS_OBJECT,@GetLeagueForgePowers),FORGE_QUAKE)) >= 2
+            {
+               Post(self,@AttemptForging,#who=what,#oItem=poHeldItem,#cClass=&PunchEmpowermentMod,#iType=FORGE_QUAKE);
+               return;
+            }
+            else
+            {
+               Post(what,@MsgSendUser,#message_rsc=need_higher_tier,#parm1=2);
                return;
             }
          }
