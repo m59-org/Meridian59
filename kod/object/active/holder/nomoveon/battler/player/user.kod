@@ -5131,6 +5131,14 @@ messages:
       {
          Send(what,@PickedUp,#by=self);
       }
+      
+      if oOldOwner <> $
+         AND IsClass(oOldOwner,&DeadBody)
+         AND what <> $
+         AND NOT IsClass(what,&NumberItem)
+      {
+         Send(oOldOwner,@TookASingularItem);
+      }
 
       Send(self,@NewHold,#what=what,#bFromReagentBag=bFromReagentBag);
 

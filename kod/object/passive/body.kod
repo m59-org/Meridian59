@@ -440,10 +440,6 @@ messages:
             Send(taker,@MsgSendUser,#message_rsc=corpse_looting_max_reached);
             return FALSE;
          }
-         else
-         {
-            piNumSingularItemsTaken++;
-         }
       }
 
       if poPlayerKiller <> $
@@ -453,6 +449,12 @@ messages:
       }
 
       return TRUE;
+   }
+   
+   TookASingularItem()
+   {
+      piNumSingularItemsTaken++;
+      return;
    }
 
    ReqNewHold(what = $, who = $)
