@@ -73,6 +73,12 @@ classvars:
 
    viLongitude = 11
    viLatitude = 10
+   
+   vbSpawnMonsters = TRUE
+   viMinSpawnRow = 1
+   viMaxSpawnRow = 0
+   viMinSpawnCol = 1
+   viMaxSpawnCol = 0
 
 properties:
 
@@ -105,6 +111,11 @@ messages:
    FirstUserEntered()
    {
       ptLightsMoveTimer = CreateTimer(self,@MoveLights,piLightsMoveTime);
+      if vbSpawnMonsters
+      {
+         Post(self,@PopulateArea);
+      }
+
       propagate;
    }
 
@@ -115,7 +126,89 @@ messages:
          DeleteTimer(ptLightsMoveTimer);
          ptLightsMoveTimer = $;
       }
+      if vbSpawnMonsters
+      {
+         Post(self,@DepopulateArea);
+      }
       propagate;
+   }
+
+   PopulateArea()
+   {
+      local i, iNumMonsters, oMonster, lMonsters, lClasses, iMinRow, iMinCol, iMaxRow, iMaxCol, iChosenAngle;
+
+      lClasses = [&WaterCentipede];
+
+      iNumMonsters = Random(5,15);
+      lMonsters = $;
+
+      while iNumMonsters > 0
+      {
+         lMonsters = Cons(Nth(lClasses,Random(1,Length(lClasses))),lMonsters);
+         --iNumMonsters;
+      }
+
+      if viMaxSpawnRow = 0
+      {
+         iMaxRow = Send(self,@GetRoomRows)-1;
+      }
+      else
+      {
+         iMaxRow = viMaxSpawnRow;
+      }
+
+      if viMaxSpawnCol = 0
+      {
+         iMaxCol = Send(self,@GetRoomCols)-1;
+      }
+      else
+      {
+         iMaxCol = viMaxSpawnCol;
+      }
+
+      iChosenAngle = ANGLE_EAST;
+      switch(Random(1,4))
+      {
+         case 1:
+            iChosenAngle = ANGLE_WEST;
+            break;
+         case 2:
+            iChosenAngle = ANGLE_NORTH;
+            break;
+         case 3:
+            iChosenAngle = ANGLE_SOUTH;
+            break;
+         case 4:
+            iChosenAngle = ANGLE_EAST;
+            break;
+      }
+
+      foreach i in lMonsters
+      {
+         Send(self,@NewHold,#what=Create(i),
+               #new_row=Random(viMinSpawnRow,iMaxRow),
+               #new_col=Random(viMinSpawnCol,iMaxCol),
+               #new_angle=iChosenAngle);
+      }
+
+      return;
+   }
+   
+   DepopulateArea()
+   {
+      local i, each_obj;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         each_obj = Send(self,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&Monster)
+            AND NOT IsClass(each_obj,&Towns) % don't delete NPCs
+         {
+            Send(each_obj,@Delete);
+         }
+      }
+      
+      return;
    }
 
    CreateStandardObjects()
@@ -134,8 +227,8 @@ messages:
          {
             Post(SYS,@UtilGoNearSquare,#what=what,
                  #where=Send(SYS,@FindRoomByNum,#num=RID_OPEN_WATER),
-                 #new_row=86,
-                 #new_col=new_col,
+                 #new_row=131,
+                 #new_col=172,
                  #fine_row=0,
                  #fine_col=0,
                  #new_angle=Send(what,@GetAngle));

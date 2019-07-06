@@ -21,7 +21,7 @@ constants:
    AREA_INSIDE = 1
 
    ENTRANCE_DOOR = 100
-   ENTRANCE_CLOSE_TIME = 18000
+   ENTRANCE_CLOSE_TIME = 8000
    ENTRANCE_DOOR_TRIGGER_SECTOR = 101
    ENTRANCE_DOOR_INSIDE_TRIGGER_SECTOR = 102
    ENTRANCE_WALL = 230
@@ -65,7 +65,7 @@ constants:
 resources:
 
    room_name_ancientziggurat = "Ancient Ziggurat"
-   room_ancientziggurat = ancientziggurat.roo
+   room_ancientziggurat = ancientzigguratw.roo
 
    ancientziggurat_sound = stoneup2.wav
 
@@ -89,6 +89,9 @@ resources:
       "You move the slab and exit the ziggurat."
    main_door_exit_ziggurat_does_not_exist = \
       "You move the slab and wander into the desert."
+
+   main_door_exit_ziggurat_in_water = \
+      "You fight pouring water to squeeze out into the ocean."
 
 classvars:
 
@@ -238,6 +241,8 @@ properties:
    piLastDeathAngle = ANGLE_WEST
    
    poLastToDie = $
+   
+   pbInDesert = FALSE
 
 messages:
 
@@ -320,51 +325,64 @@ messages:
       
       if iSection = GO_OUTSIDE
       {
-         oZiggurat = Send(Send(SYS,@GetDesertRoomMaintenance),@GetZiggurat);
+         if pbInDesert
+         {
+            oZiggurat = Send(Send(SYS,@GetDesertRoomMaintenance),@GetZiggurat);
             
-         if oZiggurat <> $
-         {
-            Send(what,@MsgSendUser,#message_rsc=main_door_exit_ziggurat_exists);
-            Send(SYS,@UtilGoNearSquare,#what=what,
-                 #where=oZiggurat,
-                 #new_row=107,
-                 #new_col=99,
-                 #new_angle=Send(what,@GetAngle));
-            return;
-         }
+            if oZiggurat <> $
+            {
+               Send(what,@MsgSendUser,#message_rsc=main_door_exit_ziggurat_exists);
+               Send(SYS,@UtilGoNearSquare,#what=what,
+                    #where=oZiggurat,
+                    #new_row=107,
+                    #new_col=99,
+                    #new_angle=Send(what,@GetAngle));
+               return;
+            }
             
-         % Ziggurat doesn't exist, go elsewhere
-            
-         iRandom = Random(1,3);
-         Send(what,@MsgSendUser,#message_rsc=main_door_exit_ziggurat_does_not_exist);
-         if iRandom = 1
-         {
-            Send(SYS,@UtilGoNearSquare,#what=what,
-                 #where=Send(Send(SYS,@GetDesertRoomMaintenance),@GetDesertDunes1),
-                 #new_row=60,
-                 #new_col=102,
-                 #new_angle=Send(what,@GetAngle));
-            return;
+            % Ziggurat doesn't exist, go elsewhere
+               
+            iRandom = Random(1,3);
+            Send(what,@MsgSendUser,#message_rsc=main_door_exit_ziggurat_does_not_exist);
+            if iRandom = 1
+            {
+               Send(SYS,@UtilGoNearSquare,#what=what,
+                    #where=Send(Send(SYS,@GetDesertRoomMaintenance),@GetDesertDunes1),
+                    #new_row=60,
+                    #new_col=102,
+                    #new_angle=Send(what,@GetAngle));
+               return;
+            }
+            if iRandom = 2
+            {
+               Send(SYS,@UtilGoNearSquare,#what=what,
+                    #where=Send(Send(SYS,@GetDesertRoomMaintenance),@GetDesertDunes2),
+                    #new_row=60,
+                    #new_col=102,
+                    #new_angle=Send(what,@GetAngle));
+               return;
+            }
+            if iRandom = 3
+            {
+               Send(SYS,@UtilGoNearSquare,#what=what,
+                    #where=Send(Send(SYS,@GetDesertRoomMaintenance),@GetDesertDunes3),
+                    #new_row=60,
+                    #new_col=102,
+                    #new_angle=Send(what,@GetAngle));
+               return;
+            }
+            return TRUE;
          }
-         if iRandom = 2
+         else
          {
+            % We're in open water.
+            Send(what,@MsgSendUser,#message_rsc=main_door_exit_ziggurat_in_water);
             Send(SYS,@UtilGoNearSquare,#what=what,
-                 #where=Send(Send(SYS,@GetDesertRoomMaintenance),@GetDesertDunes2),
-                 #new_row=60,
-                 #new_col=102,
+                 #where=Send(SYS,@FindRoomByNum,#num=RID_OPEN_WATER),
+                 #new_row=102,
+                 #new_col=100,
                  #new_angle=Send(what,@GetAngle));
-            return;
          }
-         if iRandom = 3
-         {
-            Send(SYS,@UtilGoNearSquare,#what=what,
-                 #where=Send(Send(SYS,@GetDesertRoomMaintenance),@GetDesertDunes3),
-                 #new_row=60,
-                 #new_col=102,
-                 #new_angle=Send(what,@GetAngle));
-            return;
-         }
-         return TRUE;
       }
       
       if iSection = ENTRANCE_DOOR_INSIDE_TRIGGER_SECTOR
@@ -403,6 +421,9 @@ messages:
       Send(self,@NewHold,#what=Create(&Chest),#new_row=15,#new_col=68,
             #fine_row=16,#fine_col=16,#new_angle=ANGLE_WEST);
 
+      Send(self,@NewHold,#what=Create(&ScryingDevice),#new_row=28,#new_col=36,
+           #fine_row=28,#fine_col=48);
+           
 %      Send(self,@NewHold,#what=Create(&Brazier),#new_row=70,#new_col=34,
 %            #fine_row=16,#fine_col=48);
 %      Send(self,@NewHold,#what=Create(&Brazier),#new_row=70,#new_col=39,
@@ -630,51 +651,64 @@ messages:
       {
          if new_col >= 69
          {
-            oZiggurat = Send(Send(SYS,@GetDesertRoomMaintenance),@GetZiggurat);
-            
-            if oZiggurat <> $
+            if pbInDesert
             {
+               oZiggurat = Send(Send(SYS,@GetDesertRoomMaintenance),@GetZiggurat);
+            
+               if oZiggurat <> $
+               {
+                  Send(what,@MsgSendUser,#message_rsc=exit_ziggurat_exists);
+                  Send(SYS,@UtilGoNearSquare,#what=what,
+                       #where=oZiggurat,
+                       #new_row=60,
+                       #new_col=102,
+                       #new_angle=Send(what,@GetAngle));
+                  return;
+               }
+            
+               % Ziggurat doesn't exist, go elsewhere
+            
+               iRandom = Random(1,3);
+               Send(what,@MsgSendUser,#message_rsc=exit_ziggurat_does_not_exist);
+               if iRandom = 1
+               {
+                  Send(SYS,@UtilGoNearSquare,#what=what,
+                       #where=Send(Send(SYS,@GetDesertRoomMaintenance),@GetDesertDunes1),
+                       #new_row=60,
+                       #new_col=102,
+                       #new_angle=Send(what,@GetAngle));
+                 return;
+               }
+               if iRandom = 2
+               {
+                  Send(SYS,@UtilGoNearSquare,#what=what,
+                       #where=Send(Send(SYS,@GetDesertRoomMaintenance),@GetDesertDunes2),
+                       #new_row=60,
+                       #new_col=102,
+                       #new_angle=Send(what,@GetAngle));
+                  return;
+               }
+               if iRandom = 3
+               {
+                  Send(SYS,@UtilGoNearSquare,#what=what,
+                       #where=Send(Send(SYS,@GetDesertRoomMaintenance),@GetDesertDunes3),
+                       #new_row=60,
+                       #new_col=102,
+                       #new_angle=Send(what,@GetAngle));
+                  return;
+               }
+               return;
+            }
+            else
+            {
+               % We're in open water.
                Send(what,@MsgSendUser,#message_rsc=exit_ziggurat_exists);
                Send(SYS,@UtilGoNearSquare,#what=what,
-                    #where=oZiggurat,
-                    #new_row=60,
-                    #new_col=102,
+                    #where=Send(SYS,@FindRoomByNum,#num=RID_OPEN_WATER),
+                    #new_row=49,
+                    #new_col=99,
                     #new_angle=Send(what,@GetAngle));
-               return;
             }
-            
-            % Ziggurat doesn't exist, go elsewhere
-            
-            iRandom = Random(1,3);
-            Send(what,@MsgSendUser,#message_rsc=exit_ziggurat_does_not_exist);
-            if iRandom = 1
-            {
-               Send(SYS,@UtilGoNearSquare,#what=what,
-                    #where=Send(Send(SYS,@GetDesertRoomMaintenance),@GetDesertDunes1),
-                    #new_row=60,
-                    #new_col=102,
-                    #new_angle=Send(what,@GetAngle));
-               return;
-            }
-            if iRandom = 2
-            {
-               Send(SYS,@UtilGoNearSquare,#what=what,
-                    #where=Send(Send(SYS,@GetDesertRoomMaintenance),@GetDesertDunes2),
-                    #new_row=60,
-                    #new_col=102,
-                    #new_angle=Send(what,@GetAngle));
-               return;
-            }
-            if iRandom = 3
-            {
-               Send(SYS,@UtilGoNearSquare,#what=what,
-                    #where=Send(Send(SYS,@GetDesertRoomMaintenance),@GetDesertDunes3),
-                    #new_row=60,
-                    #new_col=102,
-                    #new_angle=Send(what,@GetAngle));
-               return;
-            }
-            return;
          }
       }
       

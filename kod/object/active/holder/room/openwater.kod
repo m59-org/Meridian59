@@ -52,7 +52,7 @@ constants:
 
 resources:
 
-   room_open_water = openwater.roo
+   room_open_water = openwaterziggurat.roo
    room_name_open_water = "Under the Waters of the Great Ocean"
 
    open_water_music = aatitle.mp3
@@ -67,12 +67,18 @@ classvars:
    viTerrain_type = TERRAIN_BEACH
 
    viClientFlags = ROOM_OVERRIDE_DEPTH1 | ROOM_OVERRIDE_DEPTH2 | ROOM_OVERRIDE_DEPTH3
-   viOverrideDepth1 = 820
-   viOverrideDepth2 = 820
-   viOverrideDepth3 = 1200
+   viOverrideDepth1 = 1150
+   viOverrideDepth2 = 1150
+   viOverrideDepth3 = 1620
 
    viLongitude = 11
    viLatitude = 9
+   
+   vbSpawnMonsters = TRUE
+   viMinSpawnRow = 1
+   viMaxSpawnRow = 0
+   viMinSpawnCol = 1
+   viMaxSpawnCol = 0
 
 properties:
 
@@ -98,6 +104,11 @@ messages:
    FirstUserEntered()
    {
       ptLightsMoveTimer = CreateTimer(self,@MoveLights,piLightsMoveTime);
+      if vbSpawnMonsters
+      {
+         Post(self,@PopulateArea);
+      }
+
       propagate;
    }
 
@@ -108,7 +119,89 @@ messages:
          DeleteTimer(ptLightsMoveTimer);
          ptLightsMoveTimer = $;
       }
+      if vbSpawnMonsters
+      {
+         Post(self,@DepopulateArea);
+      }
       propagate;
+   }
+
+   PopulateArea()
+   {
+      local i, iNumMonsters, oMonster, lMonsters, lClasses, iMinRow, iMinCol, iMaxRow, iMaxCol, iChosenAngle;
+
+      lClasses = [&WaterCentipede];
+
+      iNumMonsters = Random(5,15);
+      lMonsters = $;
+
+      while iNumMonsters > 0
+      {
+         lMonsters = Cons(Nth(lClasses,Random(1,Length(lClasses))),lMonsters);
+         --iNumMonsters;
+      }
+
+      if viMaxSpawnRow = 0
+      {
+         iMaxRow = Send(self,@GetRoomRows)-1;
+      }
+      else
+      {
+         iMaxRow = viMaxSpawnRow;
+      }
+
+      if viMaxSpawnCol = 0
+      {
+         iMaxCol = Send(self,@GetRoomCols)-1;
+      }
+      else
+      {
+         iMaxCol = viMaxSpawnCol;
+      }
+
+      iChosenAngle = ANGLE_EAST;
+      switch(Random(1,4))
+      {
+         case 1:
+            iChosenAngle = ANGLE_WEST;
+            break;
+         case 2:
+            iChosenAngle = ANGLE_NORTH;
+            break;
+         case 3:
+            iChosenAngle = ANGLE_SOUTH;
+            break;
+         case 4:
+            iChosenAngle = ANGLE_EAST;
+            break;
+      }
+
+      foreach i in lMonsters
+      {
+         Send(self,@NewHold,#what=Create(i),
+               #new_row=Random(viMinSpawnRow,iMaxRow),
+               #new_col=Random(viMinSpawnCol,iMaxCol),
+               #new_angle=iChosenAngle);
+      }
+
+      return;
+   }
+   
+   DepopulateArea()
+   {
+      local i, each_obj;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         each_obj = Send(self,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&Monster)
+            AND NOT IsClass(each_obj,&Towns) % don't delete NPCs
+         {
+            Send(each_obj,@Delete);
+         }
+      }
+      
+      return;
    }
 
    CreateStandardObjects()
@@ -170,93 +263,6 @@ messages:
          Send(self,@NewHold,#what=Create(&FogCloud,#Duration=$,#bGrounded=TRUE),#new_row=Random(iMinRow,iUpperBound),
                #new_col=Random(iMinCol,iUpperBound));
       }
-
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
-        #iIntensity=50),#new_row=71,#new_col=15);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
-        #iIntensity=50),#new_row=71,#new_col=20);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
-        #iIntensity=50),#new_row=71,#new_col=25);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
-        #iIntensity=50),#new_row=71,#new_col=30);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
-        #iIntensity=50),#new_row=71,#new_col=35);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
-        #iIntensity=50),#new_row=71,#new_col=40);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
-        #iIntensity=50),#new_row=71,#new_col=45);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
-        #iIntensity=50),#new_row=71,#new_col=50);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
-        #iIntensity=50),#new_row=71,#new_col=55);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
-        #iIntensity=50),#new_row=71,#new_col=60);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
-        #iIntensity=50),#new_row=71,#new_col=65);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
-        #iIntensity=50),#new_row=71,#new_col=70);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
-        #iIntensity=50),#new_row=71,#new_col=75);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
-        #iIntensity=50),#new_row=71,#new_col=80);
-
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
-        #iIntensity=100),#new_row=76,#new_col=15);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
-        #iIntensity=100),#new_row=76,#new_col=20);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
-        #iIntensity=100),#new_row=76,#new_col=25);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
-        #iIntensity=100),#new_row=76,#new_col=30);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
-        #iIntensity=100),#new_row=76,#new_col=35);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
-        #iIntensity=100),#new_row=76,#new_col=40);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
-        #iIntensity=100),#new_row=76,#new_col=45);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
-        #iIntensity=100),#new_row=76,#new_col=50);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
-        #iIntensity=100),#new_row=76,#new_col=55);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
-        #iIntensity=100),#new_row=76,#new_col=60);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
-        #iIntensity=100),#new_row=76,#new_col=65);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
-        #iIntensity=100),#new_row=76,#new_col=70);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
-        #iIntensity=100),#new_row=76,#new_col=75);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
-        #iIntensity=100),#new_row=76,#new_col=80);
-
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
-        #iIntensity=150),#new_row=81,#new_col=15);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
-        #iIntensity=150),#new_row=81,#new_col=20);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
-        #iIntensity=150),#new_row=81,#new_col=25);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
-        #iIntensity=150),#new_row=81,#new_col=30);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
-        #iIntensity=150),#new_row=81,#new_col=35);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
-        #iIntensity=150),#new_row=81,#new_col=40);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
-        #iIntensity=150),#new_row=81,#new_col=45);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
-        #iIntensity=150),#new_row=81,#new_col=50);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
-        #iIntensity=150),#new_row=81,#new_col=55);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
-        #iIntensity=150),#new_row=81,#new_col=60);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
-        #iIntensity=150),#new_row=81,#new_col=65);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
-        #iIntensity=150),#new_row=81,#new_col=70);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
-        #iIntensity=150),#new_row=81,#new_col=75);
-      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
-        #iIntensity=150),#new_row=81,#new_col=80);
         
       iLightRow = 10;
       iLightCol = 10;
@@ -332,9 +338,10 @@ messages:
    {
       plExits = $;
 
-      plExits = Cons([ 35, 24, RID_UNDERSEA_PALACE, 2, 3, ROTATE_NONE ],plExits);
-      plExits = Cons([ 35, 25, RID_UNDERSEA_PALACE, 2, 3, ROTATE_NONE ],plExits);
-      plExits = Cons([ 35, 26, RID_UNDERSEA_PALACE, 2, 3, ROTATE_NONE ],plExits);
+      plExits = Cons([ 100, 98, RID_ANCIENT_ZIGGURAT, 82, 36, ROTATE_NONE ],plExits);
+      plExits = Cons([ 100, 99, RID_ANCIENT_ZIGGURAT, 82, 36, ROTATE_NONE ],plExits);
+      plExits = Cons([ 100, 100, RID_ANCIENT_ZIGGURAT, 82, 36, ROTATE_NONE ],plExits);
+      plExits = Cons([ 100, 101, RID_ANCIENT_ZIGGURAT, 82, 36, ROTATE_NONE ],plExits);
       
 
       propagate;

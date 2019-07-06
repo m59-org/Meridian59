@@ -253,6 +253,9 @@ resources:
    user_someone_logoff = "~B~U~k[###]~n ~B~vAu revoir to %s."
    user_guildmate_logon = "~IHail your guildmate %s!"
    user_guildmate_logoff = "~IYour guildmate %s has just departed."
+   
+   user_ally_logon = "~IHail your guild ally %s!"
+   user_ally_logoff = "~IYour guild ally %s has just departed."
 
    user_safety_on = \
       "~B~U~k[###]~n ~B~vYour safety is now ~I~gON~n~B:  You can no longer "
@@ -1295,6 +1298,10 @@ messages:
             Send(self,@MsgSendUser,#message_rsc=user_guildmate_logon,
                  #parm1=rName);
          }
+         if what <> self AND poGuild <> $ AND Send(SETTINGS_OBJECT,@GetShareGuildAllyMessages) AND Send(what,@GetGuild) <> $ AND Send(poGuild,@IsAlly,#otherguild=Send(what,@GetGuild))
+         {
+            Send(self,@MsgSendUser,#message_rsc=user_ally_logon,#parm1=rName);
+         }
       }
 
       return;
@@ -1319,6 +1326,10 @@ messages:
          {
             Send(self,@MsgSendUser,#message_rsc=user_guildmate_logoff,
                  #parm1=rName);
+         }
+         if what <> self AND poGuild <> $ AND Send(SETTINGS_OBJECT,@GetShareGuildAllyMessages) AND Send(what,@GetGuild) <> $ AND Send(poGuild,@IsAlly,#otherguild=Send(what,@GetGuild))
+         {
+            Send(self,@MsgSendUser,#message_rsc=user_ally_logoff,#parm1=rName);
          }
 
          AddPacket(1,BP_PLAYER_REMOVE,4,what);
@@ -6192,7 +6203,7 @@ messages:
 
    UserSayGuild(string = $)
    {
-      local i,lUsers,each_obj;
+      local i,lUsers,each_obj, n;
 
       if poGuild = $
       {
@@ -6208,6 +6219,21 @@ messages:
          if each_obj <> self and Send(each_obj,@IsLoggedOn)
          {
             lUsers = Cons(each_obj,lUsers);
+         }
+      }
+         
+      if Send(SETTINGS_OBJECT,@GetShareGuildAllyMessages)
+      {
+         foreach n in Send(poGuild,@GetDeclaredAllyList)
+         {
+            foreach i in Send(n,@GetMemberList)
+            {
+               each_obj = First(i);
+               if each_obj <> self and Send(each_obj,@IsLoggedOn)
+               {
+                  lUsers = Cons(each_obj,lUsers);
+               }
+            }
          }
       }
 
