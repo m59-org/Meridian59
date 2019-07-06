@@ -13648,6 +13648,7 @@ messages:
    DoWindowOverlayFistAttack()
    {
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          AddPacket(1,BP_PLAYER_OVERLAY);
          AddPacket(1,HS_SE);
@@ -13668,6 +13669,7 @@ messages:
       local i,iGroup;
 
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          iGroup = 0;
          foreach i in plWindow_overlays
@@ -13712,6 +13714,7 @@ messages:
    "in plWindow_overlays."
    {
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          AddPacket(1,BP_PLAYER_OVERLAY);
          AddPacket(1,Send(what,@GetWindowOverlayHotspot));
@@ -18643,14 +18646,22 @@ messages:
 
    ResetPlayerView()
    {
-      AddPacket(1,BP_RESET_VIEW);
-      SendPacket(poSession);
+      if Send(self,@GetSession) <> $
+      {
+         AddPacket(1,BP_RESET_VIEW);
+         SendPacket(poSession);
+      }
 
       return;
    }
 
    SetPlayerView(what = $, iFlags = 0, iHeight = 0, iLight = 0)
    {
+      if Send(self,@GetSession) = $
+      {
+         return;
+      }
+
       if what = $
       {
          Send(self,@ResetPlayerView);

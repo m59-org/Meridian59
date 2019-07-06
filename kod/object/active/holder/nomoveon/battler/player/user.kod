@@ -994,11 +994,14 @@ messages:
          }
       }
 
-      RecordStat(STAT_PLAYER, poSession, Send(self,@GetTrueName), Send(oHRoom,@GetName), Send(oBRoom,@GetName), 
-                  sGuild, Send(self,@GetBaseMaxHealth), piMax_mana, Send(self,@GetRawMight), 
-                  Send(self,@GetRawIntellect), Send(self,@GetRawMysticism), Send(self,@GetRawStamina), Send(self,@GetRawAgility), 
-                  Send(self,@GetRawAim));
-      
+      if Send(self,@GetSession) <> $
+      {
+         RecordStat(STAT_PLAYER, poSession, Send(self,@GetTrueName), Send(oHRoom,@GetName), Send(oBRoom,@GetName), 
+                     sGuild, Send(self,@GetBaseMaxHealth), piMax_mana, Send(self,@GetRawMight), 
+                     Send(self,@GetRawIntellect), Send(self,@GetRawMysticism), Send(self,@GetRawStamina), Send(self,@GetRawAgility), 
+                     Send(self,@GetRawAim));%
+      }
+
       % Ok, we're logged in and good to go. Let's check our passive quest status.
       Send(Send(SYS,@GetGameQuestMaintenance),@EvaluatePlayer,#who=self);
 
@@ -1179,7 +1182,7 @@ messages:
          }
       }
 
-      poSession = $;
+      poSession = $;%
 
       return;
    }
@@ -1268,6 +1271,7 @@ messages:
       rName = Send(what,@GetTrueName);
 
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          AddPacket(1,BP_PLAYER_ADD);
          AddPacket(4,what,4,rName);
@@ -1303,6 +1307,7 @@ messages:
       rName = Send(what,@GetTrueName);
 
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          if IsClass(self,&Admin) AND IsClass(what,&Admin)
          {
@@ -1911,12 +1916,16 @@ messages:
       piLogoffPenaltyCount = -1;
 
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          AddPacket(1,BP_USERCOMMAND,1,UC_SEND_QUIT);
          SendPacket(poSession);
       }
 
-      RecordStat(STAT_PLAYERSUICIDE, poSession, Send(self,@GetTrueName));
+      if Send(self,@GetSession) <> $
+      {
+         RecordStat(STAT_PLAYERSUICIDE, poSession, Send(self,@GetTrueName));%
+      }
 
       % Change the name to a unique placeholder one.
       ClearTempString();
@@ -2165,8 +2174,11 @@ messages:
    UserSendPreferences()
    "Sends the player's stored preferences to the client."
    {
-      AddPacket(1,BP_USERCOMMAND, 1,UC_RECEIVE_PREFERENCES, 4,piPreferences);
-      SendPacket(poSession);
+      if Send(self,@GetSession) <> $
+      {
+         AddPacket(1,BP_USERCOMMAND, 1,UC_RECEIVE_PREFERENCES, 4,piPreferences);
+         SendPacket(poSession);
+      }
 
       return;
    }
@@ -2309,6 +2321,7 @@ messages:
          case UC_REQ_RESCUE:
             if poOwner <> $
                AND Send(poOwner,@GetRoomNum) = Send(self,@GetHomeroom)
+               AND Send(self,@GetSession) <> $
             {
                AddPacket(1,BP_USERCOMMAND,1,UC_SEND_QUIT);
                SendPacket(poSession);
@@ -2500,6 +2513,11 @@ messages:
    UserGuildSendInfo()
    {
       local i,lRank_names,lMembers,lHall;
+      
+      if Send(self,@GetSession) = $
+      {
+         return;
+      }
 
       if poGuild = $
       {
@@ -2574,6 +2592,7 @@ messages:
       }
 
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          AddPacket(1,BP_USERCOMMAND,1,UC_GUILD_LIST);
 
@@ -2626,6 +2645,7 @@ messages:
       if poGuild <> $
       {
          if pbLogged_on
+            AND Send(self,@GetSession) <> $
          {
             AddPacket(1,BP_USERCOMMAND,1,UC_GUILD_SHIELDS);
 
@@ -2669,6 +2689,7 @@ messages:
 
       % Note this is Sending THIS user some info about ANY guild's shield.
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          AddPacket(1,BP_USERCOMMAND,1,UC_GUILD_SHIELD);
          if owner <> $
@@ -2696,10 +2717,13 @@ messages:
    {
       Send(self,@CancelIfOffer);
 
-      Send(self,@SysMsgSendUser,#message_rsc=user_garbage_collecting);
+      if Send(self,@GetSession) <> $
+      {
+         Send(self,@SysMsgSendUser,#message_rsc=user_garbage_collecting);
 
-      AddPacket(1,BP_WAIT);
-      SendPacket(poSession);
+         AddPacket(1,BP_WAIT);
+         SendPacket(poSession);
+      }
 
       return;
    }
@@ -2710,6 +2734,7 @@ messages:
    "info."
    {
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          AddPacket(1,BP_INVALIDATE_DATA);
          SendPacket(poSession);
@@ -2734,8 +2759,11 @@ messages:
          Send(self,@MsgSendUser,#message_rsc=user_safety_on);
       }
 
-      AddPacket(1,BP_UNWAIT);
-      SendPacket(poSession);
+      if Send(self,@GetSession) <> $
+      {
+         AddPacket(1,BP_UNWAIT);
+         SendPacket(poSession);
+      }
 
       Send(self,@SendUserAllWindowOverlays);
 
@@ -2797,15 +2825,18 @@ messages:
 
    UserLoadModule(module = $)
    {
-      AddPacket(1,BP_LOAD_MODULE,4,module);
-      SendPacket(poSession);
-
+      if Send(self,@GetSession) <> $
+      {
+         AddPacket(1,BP_LOAD_MODULE,4,module);
+         SendPacket(poSession);
+      }
       return;
    }
 
    UserUnloadModule(module = $)
    {
       if NOT pbLogged_on
+         OR Send(self,@GetSession) = $
       {
          return;
       }
@@ -2818,9 +2849,12 @@ messages:
 
    UserGameStart(game = $, player_num = 1)
    {
-      AddPacket(1,BP_USERCOMMAND,1,UC_MINIGAME_START);
-      AddPacket(4,game,1,player_num);
-      SendPacket(poSession);
+      if Send(self,@GetSession) <> $
+      {
+         AddPacket(1,BP_USERCOMMAND,1,UC_MINIGAME_START);
+         AddPacket(4,game,1,player_num);
+         SendPacket(poSession);
+      }
 
       return;
    }
@@ -3196,39 +3230,42 @@ messages:
    ToCliPlayer()
    {
       local rMusic, iLight, rBackground;
-
-      AddPacket(1,BP_PLAYER,4,self,4,vrIcon,4,vrName,4,poOwner);
-      AddPacket(4,Send(poOwner,@GetRoomResource),4,Send(poOwner,@GetName));
-      AddPacket(4,Send(poOwner,@GetRoomSecurity));
-
-      AddPacket(1,Send(poOwner,@GetRoomLight));
-      AddPacket(1,bound(piLight,0,255));
-
-      rBackground = Send(poOwner,@GetRoomBackground);
-      if rBackground <> $
+      
+      if Send(self,@GetSession) <> $
       {
-         AddPacket(4,rBackground);
+         AddPacket(1,BP_PLAYER,4,self,4,vrIcon,4,vrName,4,poOwner);
+         AddPacket(4,Send(poOwner,@GetRoomResource),4,Send(poOwner,@GetName));
+         AddPacket(4,Send(poOwner,@GetRoomSecurity));
+
+         AddPacket(1,Send(poOwner,@GetRoomLight));
+         AddPacket(1,bound(piLight,0,255));
+
+         rBackground = Send(poOwner,@GetRoomBackground);
+         if rBackground <> $
+         {
+            AddPacket(4,rBackground);
+         }
+         else
+         {
+            AddPacket(4,0);
+         }
+
+         Send(poOwner,@SendExtraRoomInfo);
+
+         SendPacket(poSession);
+
+         Send(poOwner,@SendLoopingSounds,#who=self);
+
+         Send(self,@ToCliShading);
+         Send(poOwner,@SendSectorChanges,#who=self);
+         Send(poOwner,@SendSectorFlagChanges,#who=self);
+         Send(poOwner,@SendSectorLightChanges,#who=self);
+         Send(poOwner,@SendWallChanges,#who=self);
+         Send(poOwner,@SendTextureChanges,#who=self);
+         Send(self,@SendUserAllWindowOverlays);
+         % Check weather here also.
+         Send(self,@WeatherChanged);
       }
-      else
-      {
-         AddPacket(4,0);
-      }
-
-      Send(poOwner,@SendExtraRoomInfo);
-
-      SendPacket(poSession);
-
-      Send(poOwner,@SendLoopingSounds,#who=self);
-
-      Send(self,@ToCliShading);
-      Send(poOwner,@SendSectorChanges,#who=self);
-      Send(poOwner,@SendSectorFlagChanges,#who=self);
-      Send(poOwner,@SendSectorLightChanges,#who=self);
-      Send(poOwner,@SendWallChanges,#who=self);
-      Send(poOwner,@SendTextureChanges,#who=self);
-      Send(self,@SendUserAllWindowOverlays);
-      % Check weather here also.
-      Send(self,@WeatherChanged);
 
       return;
    }
@@ -3236,6 +3273,7 @@ messages:
    ToCliShading()
    {
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          AddPacket(1,BP_LIGHT_SHADING);
          AddPacket(1,Send(poOwner,@GetDirectionalLightIntensity));
@@ -3252,6 +3290,11 @@ messages:
    "resource id, and actual string of the resource (since it's a dynarsc)."
    {
       local i, lUsers, rName, bVisible;
+      
+      if Send(self,@GetSession) = $
+      {
+         return;
+      }
 
       lUsers = $;
 
@@ -3314,6 +3357,7 @@ messages:
       local i, objs, oThing;
 
       if NOT pbLogged_On
+         OR Send(self,@GetSession) = $
       {
          return;
       }
@@ -3394,6 +3438,11 @@ messages:
    ToCliInventory()
    {
       local i,each_obj;
+      
+      if Send(self,@GetSession) = $
+      {
+         return;
+      }
 
       AddPacket(1,BP_INVENTORY, 2,Length(plActive)+Length(plPassive));
 
@@ -3418,6 +3467,11 @@ messages:
    ToCliUseList()
    {
       local i;
+      
+      if Send(self,@GetSession) = $
+      {
+         return;
+      }
 
       AddPacket(1,BP_USE_LIST, 2,Length(plUsing));
 
@@ -3436,6 +3490,7 @@ messages:
       local i, oSpell, oSkill, iCount, lCurrentResistances, iQLength;
 
       if NOT pbLogged_on
+         OR Send(self,@GetSession) = $
       {
          return;
       }
@@ -3615,6 +3670,11 @@ messages:
    SendPassiveQuestData(iCount=1)
    {
       local i, iQTemplate, oQE, oQObj, rQuestName;
+      
+      if Send(self,@GetSession) = $
+      {
+         return;
+      }
 
       foreach i in plPassiveQuests
       {
@@ -3632,6 +3692,11 @@ messages:
    "Returns the current index count."
    {
       local i, iQTemplate, oQE, oQObj, rQuestName;
+      
+      if Send(self,@GetSession) = $
+      {
+         return;
+      }
 
       oQE = Send(SYS,@GetQuestEngine);
 
@@ -3664,6 +3729,11 @@ messages:
    "Returns the current index count."
    {
       local i, iQTemplate, oQE, oQObj, rQuestName;
+      
+      if Send(self,@GetSession) = $
+      {
+         return;
+      }
 
       oQE = Send(SYS,@GetQuestEngine);
 
@@ -3705,6 +3775,10 @@ messages:
 
    ToCliStatGroups()
    {
+      if Send(self,@GetSession) = $
+      {
+         return;
+      }
       AddPacket(1,BP_STAT_GROUPS);
       % 5 stat groups
       AddPacket(1,5);
@@ -3721,6 +3795,11 @@ messages:
    ToCliSpellSchools()
    {
       local num_schools;
+
+      if Send(self,@GetSession) = $
+      {
+         return;
+      }
 
       AddPacket(1,BP_USERCOMMAND, 1,UC_SPELL_SCHOOLS);
       num_schools = 9;
@@ -3748,6 +3827,7 @@ messages:
       local i, oSpell;
 
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          AddPacket(1,BP_SPELLS, 2,Length(plSpells));
 
@@ -3772,6 +3852,7 @@ messages:
       local i, oSkill;
 
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          AddPacket(1, BP_SKILLS,2,Length(plSkills));
          foreach i in plSkills
@@ -3791,6 +3872,7 @@ messages:
    ToCliAddSpell(oSpell = $)
    {
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          AddPacket(1, BP_SPELL_ADD);
          
@@ -3809,6 +3891,7 @@ messages:
    ToCliRemoveSpell(oSpell = $)
    {
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          AddPacket(1, BP_SPELL_REMOVE);
          AddPacket(4, oSpell);
@@ -3821,6 +3904,7 @@ messages:
    ToCliAddSkill(oSkill = $)
    {
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          Send(self,@ToCliStats,#group=4);
       }
@@ -3831,6 +3915,7 @@ messages:
    ToCliRemoveSkill(oSkill = $)
    {
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          Send(self,@ToCliStats,#group=4);
       }
@@ -3841,6 +3926,7 @@ messages:
    ToCliAddBackgroundOverlay(what = $)
    {
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          AddPacket(1,BP_ADD_BG_OVERLAY);
          Send(self,@ToCliBackgroundOverlay,#what=what);
@@ -3852,6 +3938,7 @@ messages:
    ToCliChangeBackgroundOverlay(what = $)
    {
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          AddPacket(1,BP_CHANGE_BG_OVERLAY);
          Send(self,@ToCliBackgroundOverlay,#what=what);
@@ -3862,6 +3949,11 @@ messages:
 
    ToCliBackgroundOverlay(what = $)
    {
+      if Send(self,@GetSession) = $
+      {
+         return;
+      }
+
       AddPacket(4,what);
       AddPacket(4,Send(what,@GetIcon));
       AddPacket(4,Send(what,@GetName));
@@ -4402,6 +4494,7 @@ messages:
          AND IsString(sCallback)
          AND what <> $
          AND pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          AddPacket(1,BP_MESSAGE);
 
@@ -4432,6 +4525,7 @@ messages:
    {
       if pbLogged_on
          AND report
+         AND Send(self,@GetSession) <> $
       {
          AddPacket(1,BP_MESSAGE,4,message_rsc);
 
@@ -4478,6 +4572,7 @@ messages:
                   parm5 = $,parm6 = $,parm7 = $,parm8 = $)
    {
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          AddPacket(1,BP_SYS_MESSAGE,4,message_rsc);
          if parm1 <> $
@@ -4530,7 +4625,7 @@ messages:
    %  For looping sounds, cutoff_radius and max_volume are used set
    %  attenuation parameters
    {
-      if (wave_rsc <> $) and (pbLogged_on)
+      if (wave_rsc <> $) and (pbLogged_on) AND (Send(self,@GetSession) <> $)
       {
          AddPacket(1,BP_PLAY_WAVE, 4,wave_rsc, 4,source_obj, 1,flags,
                    4,row, 4,col, 4,cutoff_radius, 4,max_volume);
@@ -4543,7 +4638,7 @@ messages:
    WaveSendUserStop(wave_rsc = $, source_obj = 0)
    % Sends a message to the client to stop playing a wav using the resource ID.
    {
-      if (wave_rsc <> $) and (pbLogged_on)
+      if (wave_rsc <> $) and (pbLogged_on) AND (Send(self,@GetSession) <> $)
       {
          AddPacket(1,BP_STOP_WAVE, 4,wave_rsc, 4,source_obj);
          SendPacket(poSession);
@@ -4555,6 +4650,7 @@ messages:
    SendRoomMusic(music_rsc = $)
    {
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          AddPacket(1,BP_PLAY_MUSIC);
          if music_rsc = $
@@ -4574,7 +4670,7 @@ messages:
 
    MidiSendUser(midi_rsc = $)
    {
-      if (midi_rsc <> $) AND (pbLogged_on)
+      if (midi_rsc <> $) AND (pbLogged_on) AND (Send(self,@GetSession) <> $)
       {
          AddPacket(1,BP_PLAY_MIDI);
          if midi_rsc = $
@@ -4666,6 +4762,7 @@ messages:
    EffectSendUser(what = $,effect = $)
    {
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          AddPacket(1,BP_EFFECT,2,effect);
          Send(what,@SendEffectData,#what=self);
@@ -4679,6 +4776,7 @@ messages:
    EffectSendUserXLat(what = $, xlat = 0)
    {
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          AddPacket(1,BP_EFFECT);
          AddPacket(2,EFFECT_XLATOVERRIDE,4,xlat);
@@ -4692,6 +4790,7 @@ messages:
    EffectSendUserDuration(what = $, effect = $, duration = 1000)
    {
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          AddPacket(1,BP_EFFECT,2,effect);
          AddPacket(4,duration);
@@ -4705,6 +4804,7 @@ messages:
                                  xlat = 0)
    {
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          AddPacket(1,BP_EFFECT, 2,effect, 4,duration, 4,xlat);
          SendPacket(poSession);
@@ -4717,6 +4817,7 @@ messages:
    "Sent by room when one of its sectors changes."
    {
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          AddPacket(1,BP_SECTOR_MOVE,1,animation,2,sector,2,height,1,speed);
          SendPacket(poSession);
@@ -4729,6 +4830,7 @@ messages:
    "Sent by room when one of its sector lights changes."
    {
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          AddPacket(1,BP_SECTOR_LIGHT,2,sector,1,light_effect);
          SendPacket(poSession);
@@ -4743,6 +4845,7 @@ messages:
    "alone."
    {
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          AddPacket(1,BP_WALL_ANIMATE,2,wall);
 
@@ -4783,6 +4886,7 @@ messages:
    "Sent by room when one of its textures changes."
    {
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          AddPacket(1,BP_CHANGE_TEXTURE,2,id,2,new_texture,1,flags);
 
@@ -4798,6 +4902,7 @@ messages:
    "other protocols already handle animation and textures."
    {
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          AddPacket(1,BP_SECTOR_CHANGE,2,sector,1,depth,1,scrollSpeed);
 
@@ -4811,6 +4916,7 @@ messages:
    "Sends game state to player"
    {
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          AddPacket(1, BP_USERCOMMAND, 1, UC_MINIGAME_MOVE);
          AddPacket(4, game);
@@ -4835,6 +4941,7 @@ messages:
    "Sends game player name to player (for minigames, like chess)"
    {
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          AddPacket(1,BP_USERCOMMAND, 1,UC_MINIGAME_PLAYER, 1,num,
                    STRING_RESOURCE,Send(who,@GetTrueName));
@@ -5274,6 +5381,11 @@ messages:
    UserObjectContents(what = $)
    {
       local i, iObjs, oThing, lHolding1, lHolding2;
+
+      if Send(self,@GetSession) = $
+      {
+         return;
+      }
 
       if NOT IsClass(what,&Holder)
          AND NOT IsClass(what,&ReagentBag)
@@ -6127,25 +6239,28 @@ messages:
       %  do TrySayGroup on guild Sends to eliminate mana costs.
       if no_tell OR Send(self,@TrySayGroup,#users=users)
       {
-         AddPacket(1,BP_SAID,4,self,4,vrName,1,SAY_GROUP);
-         if Length(users) = 1 AND NOT no_tell
+         if Send(self,@GetSession) <> $
          {
-            AddPacket(4,user_send_single_echo_str,
-                      4,Send(First(users),@GetTrueName), 0,string);
-         }
-         else
-         {
-            AddPacket(4,user_send_echo_str, 0,string);
-         }
+            AddPacket(1,BP_SAID,4,self,4,vrName,1,SAY_GROUP);
+            if Length(users) = 1 AND NOT no_tell
+            {
+               AddPacket(4,user_send_single_echo_str,
+                         4,Send(First(users),@GetTrueName), 0,string);
+            }
+            else
+            {
+               AddPacket(4,user_send_echo_str, 0,string);
+            }
          
-         SendPacket(poSession);
+            SendPacket(poSession);
          
-         if IsClass(self,&DM)
-            AND Send(self,@IsHidden)
-            AND NOT IsClass(First(users),&Admin)
-         {
-            % The admin is hidden, warn them about that.
-            Send(self,@MsgSendUser,#message_rsc=user_no_respond);
+            if IsClass(self,&DM)
+               AND Send(self,@IsHidden)
+               AND NOT IsClass(First(users),&Admin)
+            {
+               % The admin is hidden, warn them about that.
+               Send(self,@MsgSendUser,#message_rsc=user_no_respond);
+            }
          }
 
          type = SAY_GROUP;
@@ -6192,6 +6307,7 @@ messages:
       local byInscription, oOwner;
 
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          if what <> $
             AND NOT IsObject(what)
@@ -6266,6 +6382,7 @@ messages:
    SendLookNews(what = $)
    {
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
          AND (Send(what,@GetNewsPermission,#what=self) & NEWS_PERMISSION_READ)
       {
          AddPacket(1,BP_LOOK_NEWSGROUP);
@@ -6315,6 +6432,7 @@ messages:
    SendLookPlayer(what = $)
    {
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          if Send(what,@checkplayerflag,#flag=PFLAG_MORPHED)
             OR Send(what,@IsEnchanted,
@@ -6381,11 +6499,14 @@ messages:
    UserLookupNames(amount = $,string = $)
    "Sent by client to resolve a string of mail destination into object IDs."
    {
-      AddPacket(1,BP_LOOKUP_NAMES);
-      AddPacket(2,amount);
+      if Send(self,@GetSession) <> $
+      {
+         AddPacket(1,BP_LOOKUP_NAMES);
+         AddPacket(2,amount);
 
-      ParseString(string,",",@UserLookupEachName);
-      SendPacket(poSession);
+         ParseString(string,",",@UserLookupEachName);
+         SendPacket(poSession);
+      }
 
       return;
    }
@@ -6548,6 +6669,11 @@ messages:
    UserGetNewMail()
    {
       local i, j, lNew_mail, iNum, iIndex, lMail_strings;
+
+      if Send(self,@GetSession) = $
+      {
+         return;
+      }
 
       if plNew_mail = $
       {
@@ -7122,13 +7248,16 @@ messages:
          return;
       }
 
-      AddPacket(1,BP_OFFERED,2,Length(plOffer_items));
-      foreach i in plOffer_items
+      if Send(self,@GetSession) <> $
       {
-         Send(self,@ToCliObject,#what=i);
-      }
+         AddPacket(1,BP_OFFERED,2,Length(plOffer_items));
+         foreach i in plOffer_items
+         {
+            Send(self,@ToCliObject,#what=i);
+         }
 
-      SendPacket(poSession);
+         SendPacket(poSession);
+      }
 
       Send(what,@Offer,#what=self,#item_list=plOffer_items);
 
@@ -7202,13 +7331,16 @@ messages:
          return;
       }
 
-      AddPacket(1,BP_OFFERED,2,Length(plOffer_items));
-      foreach i in plOffer_items
+      if Send(self,@GetSession) <> $
       {
-         Send(self,@ToCliObject,#what=i);
-      }
+         AddPacket(1,BP_OFFERED,2,Length(plOffer_items));
+         foreach i in plOffer_items
+         {
+            Send(self,@ToCliObject,#what=i);
+         }
 
-      SendPacket(poSession);
+         SendPacket(poSession);
+      }
 
       Send(what,@Offer,#what=self,#item_list=plOffer_items);
 
@@ -7337,16 +7469,19 @@ messages:
       Send(self,@SysMsgSendUser,#message_rsc=user_got_offer,
            #parm1=Send(poOffer_who,@GetDef),#parm2=Send(poOffer_who,@GetName));
 
-      AddPacket(1,BP_OFFER);
-      Send(self,@ToCliObject,#what=what);
-      AddPacket(2,Length(item_list));
-
-      foreach i in item_list
+      if Send(self,@GetSession) <> $
       {
-         Send(self,@ToCliObject,#what=i);
-      }
+         AddPacket(1,BP_OFFER);
+         Send(self,@ToCliObject,#what=what);
+         AddPacket(2,Length(item_list));
 
-      SendPacket(poSession);
+         foreach i in item_list
+         {
+            Send(self,@ToCliObject,#what=i);
+         }
+
+         SendPacket(poSession);
+      }
 
       return;
    }
@@ -7397,6 +7532,7 @@ messages:
       Send(self,@CleanupCancelOffer);
 
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          AddPacket(1,BP_OFFER_CANCELED);
          SendPacket(poSession);
@@ -7409,8 +7545,11 @@ messages:
    {
       if poOffer_who <> $
       {
-         AddPacket(1,BP_OFFER_CANCELED);
-         SendPacket(poSession);
+         if Send(self,@GetSession) <> $
+         {
+            AddPacket(1,BP_OFFER_CANCELED);
+            SendPacket(poSession);
+         }
 
          Send(poOffer_who,@OfferCanceled);
 
@@ -7486,19 +7625,26 @@ messages:
          lObjects = Cons(i,lObjects);
       }
 
-      AddPacket(1,BP_COUNTEROFFERED, 2,Length(plOffer_items));
-      foreach i in plOffer_items
+      if Send(self,@GetSession) <> $
       {
-         Send(self,@ToCliObject,#what=i);
+         AddPacket(1,BP_COUNTEROFFERED, 2,Length(plOffer_items));
+         foreach i in plOffer_items
+         {
+            Send(self,@ToCliObject,#what=i);
+         }
+
+         SendPacket(poSession);
       }
 
-      SendPacket(poSession);
       if NOT Send(poOffer_who,@CounterOffer,#item_list=plOffer_items)
       {
          Send(self,@CleanupCancelOffer);
 
-         AddPacket(1,BP_OFFER_CANCELED);
-         SendPacket(poSession);
+         if Send(self,@GetSession) <> $
+         {
+            AddPacket(1,BP_OFFER_CANCELED);
+            SendPacket(poSession);
+         }
 
          % Send something here?
       }
@@ -7515,13 +7661,16 @@ messages:
          return FALSE;
       }
 
-      AddPacket(1,BP_COUNTEROFFER,2,Length(item_list));
-      foreach i in item_list
+      if Send(self,@GetSession) <> $
       {
-         Send(self,@ToCliObject,#what=i);
-      }
+         AddPacket(1,BP_COUNTEROFFER,2,Length(item_list));
+         foreach i in item_list
+         {
+            Send(self,@ToCliObject,#what=i);
+         }
 
-      SendPacket(poSession);
+         SendPacket(poSession);
+      }
 
       pbOffer_OtherAccepted = TRUE;
 
@@ -7790,9 +7939,12 @@ messages:
       poOffer_who = $;
       plOffer_items = $;
 
-      % Send a "cancelled" to make dialog go away
-      AddPacket(1,BP_OFFER_CANCELED);
-      SendPacket(poSession);
+      if Send(self,@GetSession) <> $
+      {
+         % Send a "cancelled" to make dialog go away
+         AddPacket(1,BP_OFFER_CANCELED);
+         SendPacket(poSession);
+      }
 
       return TRUE;
    }
@@ -7835,6 +7987,11 @@ messages:
    {
       local i,lSaleItems;
 
+      if Send(self,@GetSession) = $
+      {
+         return;
+      }
+
       lSaleItems = $;
       lSaleItems = Send(what,@GetForSale,#who=self);
       if lSaleItems = $
@@ -7873,6 +8030,11 @@ messages:
    {
       local i,lSaleItems;
 
+      if Send(self,@GetSession) = $
+      {
+         return;
+      }
+
       lSaleItems = $;
       lSaleItems = Send(what,@GetForSale,#who=self);
       if lSaleItems = $
@@ -7903,6 +8065,7 @@ messages:
       local i,lHalls,iAvailable;
 
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          lHalls = Send(SYS,@GetGuildHalls);
          iAvailable = 0;
@@ -7935,6 +8098,7 @@ messages:
    SendCreateGuild()
    {
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          AddPacket(1,BP_USERCOMMAND, 1,UC_GUILD_ASK,
                    4,Send(SYS,@GetGuildPrice),
@@ -8072,6 +8236,11 @@ messages:
    {
       local oNews, plMessages, len, message, part, parts, count, max, article;
 
+      if Send(self,@GetSession) = $
+      {
+         return;
+      }
+
       oNews = Send(SYS,@FindNewsByNum,#num=nid);
       if oNews = $
       {
@@ -8127,6 +8296,11 @@ messages:
    UserGetNewsArticle(nid = $,num = $)
    {
       local oNews,sBody;
+
+      if Send(self,@GetSession) = $
+      {
+         return;
+      }
 
       oNews = Send(SYS,@FindNewsByNum,#num=nid);
       if oNews = $
@@ -8211,6 +8385,7 @@ messages:
    NewHoldObject(what = $)
    {
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          AddPacket(1,BP_INVENTORY_ADD);
          Send(self,@ToCliObject,#what=what,#show_type=SHOW_INVENTORY);
@@ -8226,6 +8401,7 @@ messages:
    LeaveHold(what = $)
    {
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          AddPacket(1,BP_INVENTORY_REMOVE,4,what);
          SendPacket(poSession);
@@ -8415,6 +8591,7 @@ messages:
       }
 
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          AddPacket(1,BP_CREATE);
          Send(self,@ToCliObject,#what=what);
@@ -8439,6 +8616,7 @@ messages:
       }
 
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          AddPacket(1,BP_REMOVE,4,what);
          SendPacket(poSession);
@@ -8467,6 +8645,7 @@ messages:
       }
 
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          if what <> self OR cause <> CAUSE_USER_INPUT
          {
@@ -8509,6 +8688,7 @@ messages:
       }
 
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          % Need to set new angle of object somewhere
          if (what <> self or cause <> CAUSE_USER_INPUT)
@@ -8532,6 +8712,11 @@ messages:
                  iLightIntensity=0, iLightColor=0, bUseAlternates=FALSE, iDeflectSpeed=$)
    {
       local iValue, iProjectileLightColor, iProjectileSpeed, iDistance;
+
+      if Send(self,@GetSession) = $
+      {
+         return;
+      }
 
       % This happened in the past.  Ignore this, because Sending nil in a
       %  packet is bad.
@@ -8638,6 +8823,11 @@ messages:
    {
       local iCount, iValue, iAngle;
 
+      if Send(self,@GetSession) = $
+      {
+         return;
+      }
+
       AddPacket(1,BP_RADIUS_SHOOT,4,Send(projectile,@GetProjectileIcon));
       Send(projectile,@SendProjectileAnimation);
     
@@ -8693,6 +8883,7 @@ messages:
       local rSay_format,rName;
 
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          % if it's a say resource, it's from a monster or object probably.
          % otherwise, string is the tempstring.
@@ -8987,6 +9178,7 @@ messages:
       }
 
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          AddPacket(1,BP_CHANGE);
          if Send(what,@GetOwner) = self
@@ -9016,6 +9208,7 @@ messages:
       local rName,rIcon;
 
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          AddPacket(1,BP_USE,4,what);
          SendPacket(poSession);
@@ -9032,6 +9225,7 @@ messages:
    NewUnusing(what = $)
    {
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          AddPacket(1,BP_UNUSE,4,what);
          SendPacket(poSession);
@@ -9080,6 +9274,7 @@ messages:
       local oWeapon;
 
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          AddPacket(1,BP_STAT,1,1);
          Send(self,@SendStatHealth);
@@ -9111,6 +9306,7 @@ messages:
    DrawMana()
    {
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          AddPacket(1,BP_STAT,1,1);
          Send(self,@SendStatMana);
@@ -9149,6 +9345,7 @@ messages:
    DrawMight()
    {
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          AddPacket(1,BP_STAT,1,2);
          Send(self,@SendStatMight);
@@ -9170,6 +9367,7 @@ messages:
    DrawIntellect()
    {
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          AddPacket(1,BP_STAT,1,2);
          Send(self,@SendStatIntellect);
@@ -9191,6 +9389,7 @@ messages:
    DrawAgility()
    {
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          AddPacket(1,BP_STAT,1,2);
          Send(self,@SendStatAgility);
@@ -9212,6 +9411,7 @@ messages:
    DrawStamina()
    {
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          AddPacket(1,BP_STAT,1,2);
          Send(self,@SendStatStamina);
@@ -9233,6 +9433,7 @@ messages:
    DrawMysticism()
    {
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          AddPacket(1,BP_STAT,1,2);
          Send(self,@SendStatMysticism);
@@ -9254,6 +9455,7 @@ messages:
    DrawAim()
    {
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          AddPacket(1,BP_STAT,1,2);
          Send(self,@SendStatAim);
@@ -9275,6 +9477,7 @@ messages:
    DrawKarma()
    {
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          AddPacket(1,BP_STAT,1,2);
          Send(self,@SendStatKarma);
@@ -9301,6 +9504,7 @@ messages:
    DrawTraining()
    {
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          AddPacket(1,BP_STAT,1,2);
          Send(self,@SendStatTraining);
@@ -9325,6 +9529,7 @@ messages:
    DrawCapacity()
    {
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          AddPacket(1,BP_STAT,1,2);
          Send(self,@SendStatCapacity);
@@ -9359,6 +9564,7 @@ messages:
    DrawBulk()
    {
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          AddPacket(1,BP_STAT,1,2);
          Send(self,@SendStatBulk);
@@ -9393,6 +9599,7 @@ messages:
    DrawOffense()
    {
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          AddPacket(1,BP_STAT,1,2);
          Send(self,@SendStatOffense);
@@ -9417,6 +9624,7 @@ messages:
    DrawDefense()
    {
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          AddPacket(1,BP_STAT,1,2);
          Send(self,@SendStatDefense);
@@ -9441,6 +9649,7 @@ messages:
    DrawArmor()
    {
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          AddPacket(1,BP_STAT,1,2);
          Send(self,@SendStatArmor);
@@ -9690,6 +9899,7 @@ messages:
       lCurrentResistances = Send(self,@GetCurrentResistances);
       
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          while i < 14
          {
@@ -9752,6 +9962,7 @@ messages:
    DrawHPChance()
    {
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          AddPacket(1,BP_STAT, 1,1);
          Send(self,@SendStatHPChance);
@@ -9764,6 +9975,7 @@ messages:
    DrawUnboundEnergy()
    {
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          %AddPacket(1,BP_STAT,1,2);
          Send(self,@SendStatUnboundEnergy);
@@ -9788,6 +10000,7 @@ messages:
    DrawAccumulatedWisdom()
    {
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          AddPacket(1,BP_STAT,1,2);
          Send(self,@SendStatAccumulatedWisdom);
@@ -9809,6 +10022,7 @@ messages:
    DrawVigor()
    {
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          AddPacket(1,BP_STAT, 1,1);
          Send(self,@SendStatVigor);
@@ -9829,6 +10043,7 @@ messages:
    DrawStatSpell(index = $)
    {
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          AddPacket(1,BP_STAT,1,3);
          Send(self,@SendStatSpell,#index=index);
@@ -9856,6 +10071,7 @@ messages:
    DrawStatSkill(index = $)
    {
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          AddPacket(1,BP_STAT,1,4);
          Send(self,@SendStatSkill,#index=index);
@@ -9913,6 +10129,7 @@ messages:
    SourceLightChanged()
    {
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          AddPacket(1,BP_LIGHT_PLAYER,1,bound(piLight,0,255));
          SendPacket(poSession);
@@ -9924,6 +10141,7 @@ messages:
    AmbientLightChanged()
    {
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          AddPacket(1,BP_LIGHT_AMBIENT);
          AddPacket(1,Send(poOwner,@GetRoomLight));
@@ -9936,6 +10154,7 @@ messages:
    BackgroundChanged()
    {
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          AddPacket(1,BP_BACKGROUND);
          AddPacket(4,Send(poOwner,@GetRoomBackground));
@@ -9948,6 +10167,7 @@ messages:
    WeatherChanged()
    {
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          % First clear whichever effect we have.
          AddPacket(1,BP_EFFECT,2,EFFECT_CLEARWEATHER);
@@ -9974,6 +10194,7 @@ messages:
    ShowAddEnchantment(what = $,type = $)
    {
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          if Send(what,@ShowEnchantmentIcon,#type=type)
          {
@@ -9990,6 +10211,7 @@ messages:
    ShowRemoveEnchantment(what = $,type = $)
    {
       if pbLogged_on
+         AND Send(self,@GetSession) <> $
       {
          if Send(what,@ShowEnchantmentIcon,#type=type)
          {
@@ -11038,6 +11260,7 @@ messages:
       local rFrom;
       
       if NOT pbLogged_on
+         OR Send(self,@GetSession) = $
       {
          propagate;
       }
@@ -11079,6 +11302,10 @@ messages:
 
    GetIdleTime()
    {
+      if Send(self,@GetSession) = $
+      {
+         return 0;
+      }
       return GetInactiveTime(poSession);
    }
 
@@ -11312,6 +11539,11 @@ messages:
    "Sends a stat change request to the client"
    {
       local lSchoolLevels;
+      
+      if Send(self,@GetSession) = $
+      {
+         return;
+      }
 
       % if stats reset is turned off, ignore the request
       if NOT Send(SETTINGS_OBJECT,@GetStatsResetEnabled)
@@ -12023,7 +12255,6 @@ messages:
       }
       return Nth(plNoxiousStrikeChosenHexes,3);
    }
-
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
