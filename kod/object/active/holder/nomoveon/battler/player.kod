@@ -21378,12 +21378,6 @@ messages:
          iMonsterHealth = iMonsterHealth/2;
       }
 
-      % We check this now to see if booster skills are required.
-      if iControlledHealth + iMonsterHealth <= iLimit
-      {
-         return TRUE;
-      }
-
       iWillpowerBonus = 0;
       if Send(self,@HasSkill,#num=SKID_WILLPOWER)
       {
@@ -21391,12 +21385,6 @@ messages:
          
          % Up to double
          iLimit = (iLimit * iWillpowerBonus)/100;
-      }
-
-      % Check this again to see if soul domination is required.
-      if iControlledHealth + iMonsterHealth <= iLimit
-      {
-         return TRUE;
       }
 
       iSoulDominationBonus = 0;
