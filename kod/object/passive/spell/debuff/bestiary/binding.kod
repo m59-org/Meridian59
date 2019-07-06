@@ -107,7 +107,10 @@ messages:
 
    CanPayCosts(who = $, lTargets = $)
    {
-      if Send(First(lTargets),@GetMaster) <> who
+      if lTargets <> $
+         AND First(lTargets) <> $
+         AND IsClass(First(lTargets),&Battler)
+         AND Send(First(lTargets),@GetMaster) <> who
       {
          Send(who,@MsgSendUser,#message_rsc=not_your_minion_no_binding);
          return FALSE;

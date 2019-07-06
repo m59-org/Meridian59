@@ -153,8 +153,9 @@ messages:
       {
          foreach i in Send(self,@GetHolderActive)
          {
+            % Avoid duplicates if they somehow happen
             if IsClass(First(i),&Monster)
-               AND Send(First(i),@GetMaster) = $
+               AND NOT Send(First(i),@GetBehavior) & AI_NPC
             {
                propagate;
             }
