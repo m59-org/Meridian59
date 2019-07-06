@@ -1,0 +1,85 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ForgetPotionShadowcraft is ForgetPotion
+
+constants:
+
+   MESSAGE_DELAY = 3000    %% three seconds
+
+   include blakston.khd
+
+resources:
+
+   forgetpotionshadowcraft_desc_rsc = \
+      "Drink this potion to reject the disciplined life of the monk, "
+      "thereby forgetting all shadowcraft skills."
+
+   forgetpotionshadowcraft_forget_skill = "The art of '%s' slips from your mind!"
+   forgetpotionshadowcraft_vulnerable = "You suddenly feel more vulnerable!"
+
+classvars:
+
+   vrDesc = forgetpotionshadowcraft_desc_rsc
+   viForget_school = SKS_SHADOWCRAFT
+
+properties:
+
+messages:
+
+   QuaffTimer()
+   {
+      local i, skills, oSkill, iSkillnum, howmuch;
+
+      ptQuaff = $;
+      Skills = Send(poApply_target,@GetSkillList);
+      piCount = 0;
+
+      foreach i in Skills
+      {
+         iSkillNum = Send(poApply_target,@DecodeSkillNum,#compound=i);
+
+         oSkill = Send(SYS,@FindSkillByNum,#num=iSkillNum);
+
+         if Send(oSkill,@GetSchool) <> viForget_school
+            OR Send(oSkill,@IsUtilitySkill)
+         {
+            continue;
+         }
+
+         % Delete all skills!
+         Send(poApply_target,@RemoveSkill,#num=iSkillNum);
+         Send(poApply_target,@MsgSendUser,
+               #message_rsc=forgetpotionshadowcraft_forget_skill,
+               #parm1=Send(oSkill,@GetName));
+         piCount = piCount + 1;
+      }
+
+      if piCount = 0
+      {
+         Send(poApply_target,@MsgSendUser,
+               #message_rsc=forgetpotion_nothing_happens);
+      }
+      else
+      {
+         Send(poApply_target,@MsgSendUser,
+               #message_rsc=forgetpotionshadowcraft_vulnerable);
+
+         Send(self,@DoSideEffects);
+         Send(poApply_target,@ToCliStats,#group=2);
+      }
+
+      Send(self,@Delete);
+
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
