@@ -21337,7 +21337,7 @@ messages:
       return pbClearedStatsRecently;
    }
 
-   CanControlNewMinion(oMonster=$, iHypotheticalHitPoints=0)
+   CanControlNewMinion(oMonster=$, iHypotheticalHitPoints=0, bCharming=TRUE)
    {
       local iControlledHealth, oActive, iLimit, iWillpowerBonus, iSoulDominationBonus, iMonsterHealth;
       
@@ -21381,7 +21381,7 @@ messages:
       iWillpowerBonus = 0;
       if Send(self,@HasSkill,#num=SKID_WILLPOWER)
       {
-         iWillpowerBonus = Send(Send(SYS,@FindSkillByNum,#num=SKID_WILLPOWER),@GetMinionLimitBoost,#who=self,#oMonster=oMonster);
+         iWillpowerBonus = Send(Send(SYS,@FindSkillByNum,#num=SKID_WILLPOWER),@GetMinionLimitBoost,#who=self,#oMonster=oMonster,#bCharming=bCharming);
          
          % Up to double
          iLimit = (iLimit * iWillpowerBonus)/100;
@@ -21390,7 +21390,7 @@ messages:
       iSoulDominationBonus = 0;
       if Send(self,@HasSkill,#num=SKID_SOUL_DOMINATION)
       {
-         iSoulDominationBonus = Send(Send(SYS,@FindSkillByNum,#num=SKID_SOUL_DOMINATION),@GetMinionLimitBoost,#who=self,#oMonster=oMonster);
+         iSoulDominationBonus = Send(Send(SYS,@FindSkillByNum,#num=SKID_SOUL_DOMINATION),@GetMinionLimitBoost,#who=self,#oMonster=oMonster,#bCharming=bCharming);
          
          % Can double again
          iLimit = (iLimit * iSoulDominationBonus)/100;
