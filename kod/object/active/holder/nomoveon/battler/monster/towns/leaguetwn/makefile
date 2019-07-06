@@ -4,7 +4,7 @@
 
 !include $(TOPDIR)\common.mak
 
-DEPEND = ..\crnthtwn.bof
-BOFS  = cnurchin.bof cngrocer.bof cnsarge.bof cninnk.bof cntailor.bof
+DEPEND = ..\leaguetwn.bof
+BOFS  = advleaguejailer.bof advleagueseer.bof advleaguemonk.bof
 
 !include $(KODDIR)\kod.mak
