@@ -136,6 +136,7 @@ resources:
    thrust_empowerment_mod_desc = "\n+%i\% thrust damage"
    slash_empowerment_mod_desc = "\n+%i\% slash damage"
    bludgeon_empowerment_mod_desc = "\n+%i\% bludgeon damage"
+   punch_empowerment_mod_desc = "\n+%i\% punch damage"
    weapon_empowerment_mod_desc = "\n+%i\% weapon damage"
    magic_empowerment_mod_desc = "\n+%i\% magic damage"
  
@@ -3692,6 +3693,10 @@ messages:
          else if First(lMod) = &BludgeonEmpowermentMod
          {
             AddPacket(4,bludgeon_empowerment_mod_desc, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
+         else if First(lMod) = &PunchEmpowermentMod
+         {
+            AddPacket(4,punch_empowerment_mod_desc, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
          }
          else if First(lMod) = &WeaponEmpowermentMod
          {

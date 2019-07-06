@@ -16,6 +16,7 @@ BOFS = pierceemp.bof \
        acidemp.bof \
        shockemp.bof \
        coldemp.bof \
-       fireemp.bof
+       fireemp.bof \
+       punchemp.bof
 
 !include $(KODDIR)\kod.mak

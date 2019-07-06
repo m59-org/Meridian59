@@ -337,6 +337,7 @@ resources:
    pierce_empowerment_name = "increased pierce damage"
    slash_empowerment_name = "increased slash damage"
    bludgeon_empowerment_name = "increased bludgeon damage"
+   punch_empowerment_name = "increased punch damage"
    thrust_empowerment_name = "increased thrust damage"
    magic_empowerment_name = "increased magic damage"
    fire_empowerment_name = "increased fire damage"
@@ -367,6 +368,7 @@ resources:
    silver_damage_name = "silver"
    unknown_damage_name = "unknown"
    illusion_damage_name = "illusion"
+   punch_damage_name = "punch"
 
    inventory_weapon_class_name = "weapons"
    inventory_armor_class_name = "armors"
@@ -6683,6 +6685,7 @@ messages:
       plMagicMods = Cons(Create(&ThrustEmpowermentMod),plMagicMods);
       plMagicMods = Cons(Create(&MagicEmpowermentMod),plMagicMods);
       plMagicMods = Cons(Create(&WeaponEmpowermentMod),plMagicMods);
+      plMagicMods = Cons(Create(&PunchEmpowermentMod),plMagicMods);
       
       plMagicMods = Cons(Create(&ArmorMod),plMagicMods);
       plMagicMods = Cons(Create(&DefenseMod),plMagicMods);
@@ -6802,6 +6805,7 @@ messages:
          OR class = &PierceEmpowermentMod
          OR class = &UnholyEmpowermentMod
          OR class = &HolyEmpowermentMod
+         OR class = &PunchEmpowermentMod
       {
          return GROUP_EMPOWERMENT;
       }
@@ -8803,6 +8807,10 @@ messages:
        {
           return bludgeon_empowerment_name;
        }
+       if type = ATCK_WEAP_PUNCH
+       {
+          return punch_empowerment_name;
+       }
        if type = -ATCK_SPELL_ALL
        {
           return magic_empowerment_name;
@@ -8876,6 +8884,10 @@ messages:
        if type = ATCK_WEAP_BLUDGEON
        {
           return bludgeon_damage_name;
+       }
+       if type = ATCK_WEAP_PUNCH
+       {
+          return punch_damage_name;
        }
        
        return unknown_damage_name;
