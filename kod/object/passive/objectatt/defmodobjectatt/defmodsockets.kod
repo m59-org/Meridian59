@@ -167,6 +167,13 @@ messages:
    Delete()
    {
       local i;
+      
+      if plSocketed <> $
+         AND poOwner <> $
+         AND IsClass(poOwner,&Player)
+      {
+         Send(self,@RemoveGems,#who=poOwner);
+      }
 
       foreach i in plSocketed
       {
