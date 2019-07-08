@@ -61,7 +61,7 @@ messages:
 
    ConvertDamageTypes(who=$,aspell=0)
    {
-      local iAbility, iStat;
+      local iAbility, iStat, bFound;
 
       iAbility = Send(who,@GetSkillAbility,#Skill_num=viSkill_num);
       iStat = Send(self,@GetRequisiteStat,#who=who);
@@ -70,21 +70,29 @@ messages:
 
       if iAbility + iStat/10 > Random(1,100)
       {
-         Send(self,@DoSkill,#who=who);
+         bFound = FALSE;
          if aspell & ATCK_SPELL_UNHOLY
          {
             aspell = aspell & ~ATCK_SPELL_UNHOLY;
             aspell = aspell | ATCK_SPELL_HOLY;
+            bFound = TRUE;
          }
          if aspell & ATCK_SPELL_ACID
          {
             aspell = aspell & ~ATCK_SPELL_ACID;
             aspell = aspell | ATCK_SPELL_SHOCK;
+            bFound = TRUE;
          }
          if aspell & ATCK_SPELL_COLD
          {
             aspell = aspell & ~ATCK_SPELL_COLD;
             aspell = aspell | ATCK_SPELL_FIRE;
+            bFound = TRUE;
+         }
+         
+         if bFound
+         {
+            Send(self,@DoSkill,#who=who);
          }
       }
       return aspell;
