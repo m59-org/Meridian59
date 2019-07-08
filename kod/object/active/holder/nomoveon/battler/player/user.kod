@@ -546,6 +546,12 @@ resources:
 
    say_to_allies_keyword = \
       "+tellallies"
+   hall_permission_keyword = \
+      "+hallpermission"
+   hall_revoke_keyword = \
+      "-hallpermission"
+   hall_revoke_all_keyword = \
+      "-clearhallpermissions"
 
 classvars:
 
@@ -6248,7 +6254,7 @@ messages:
          }
       }
 
-      foreach n in Send(poGuild,@GetDeclaredAllyList)
+      foreach n in Send(poGuild,@GetAllyList)
       {
          foreach i in Send(n,@GetMemberList)
          {
@@ -6360,6 +6366,28 @@ messages:
          if Length(users) = 1 AND NOT no_tell
          {
             type = SAY_GROUP_ONE;
+            
+            if poGuild <> $
+               AND Send(poGuild,@GetRank,#who=self) >= 4
+            {
+               if StringContain(string,hall_permission_keyword)
+               {
+                  Send(poGuild,@GrantAllyAccess,#granter=self,#who=First(users),#string=string);
+                  return;
+               }
+               else if StringContain(string,hall_revoke_keyword)
+               {
+                  Send(poGuild,@RevokeAllyAccess,#granter=self,#who=First(users),#string=string);
+                  return;
+               }
+               
+               if First(users) = self
+                  AND StringContain(string,hall_revoke_all_keyword)
+               {
+                  Send(poGuild,@ClearAllyAccess,#granter=self);
+                  return;
+               }
+            }
          }
 
          if NOT Send(poOwner,@RoomReqCommunication,#type=type,#string=string,

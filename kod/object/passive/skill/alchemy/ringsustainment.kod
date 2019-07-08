@@ -30,6 +30,8 @@ resources:
       "More skilled alchemists can consume less gold with each transmutation."
       "\n\nThe more charges the ring has, the better chance of resisting depletion. "
       "If the ring starts to drain, its charge may dissipate rapidly."
+      "\n\nOnce fully mastered, ring sustainment can be maintained "
+      "in non-combat areas at no shilling cost."
 
    not_enough_shillings_ring_sustainment = \
       "You don't have the %i shillings required to resist charge loss!"
@@ -92,6 +94,15 @@ messages:
       }
       
       % We succeeded! Or, rather, didn't fail. Shilling cost time.
+      
+      % No cost in safe zones at 99%.
+      if Send(who,@GetOwner) <> $
+         AND IsClass(Send(who,@GetOwner),&Room)
+         AND Send(Send(who,@GetOwner),@CheckRoomFlag,#flag=ROOM_NO_COMBAT)
+         AND iAbility = 99
+      {
+         propagate;
+      }
 
       oMoney = Send(who,@GetMoneyObject);
       if oMoney = $

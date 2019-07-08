@@ -411,6 +411,43 @@ resources:
    guild_motd_too_short = "Your members expect a bit more eloquence from their leaders. Perhaps the message could be longer."
    guild_motd_test = "MOTD: %q"
    guild_motd_message = "The Guild Message of the Day from your esteemed %q, %q:\n\"%q~n\""
+   
+   ally_hall_access_granted = \
+      "~B%s has granted you access to their guild's hall!"
+   ally_hall_access_revoked = \
+      "~B%s has revoked your access to their guild's hall!"
+   
+   you_granted_access = \
+      "~BYou grant hall access to %q."
+   you_revoked_access = \
+      "~BYou revoke hall access for %q."
+
+   cannot_grant_yourself_hall_access = \
+      "You happily allow yourself access your own hall."
+   cannot_revoke_yourself_hall_access = \
+      "You angrily ban yourself from your own hall!"
+   no_player_found_for_hall_access = \
+      "No adventurer by that name exists."
+   no_guild_hall_for_ally_to_access = \
+      "Your guild does not own a hall to which access can be granted."
+   not_high_enough_rank_to_grant_access = \
+      "You are not high enough rank to grant hall access to an ally!"
+   not_high_enough_rank_to_revoke_access = \
+      "You are not high enough rank to revoke hall access from an ally!"
+   not_an_ally_hall_access = \
+      "%q is not a member of an allied guild!"
+   already_has_hall_access = \
+      "%q already has access to your hall!"
+   did_not_have_ally_access = \
+      "%q does not have access to your hall."
+   you_cleared_access = \
+      "The ally access list has been cleared."
+   list_of_access_header = \
+      "These adventurers have access to your guild hall:"
+   list_of_access_line = \
+      "%q"
+   list_of_access_too_long = \
+      "... and %i more."
 
 classvars:
 
@@ -511,6 +548,10 @@ properties:
    
    % Guilds can purchase more effective meditation rates inside their guild hall.
    piMeditatioRatio = 100
+   
+   % Which allies can access the hall?
+   % form [character]
+   plHallAllyAccess = $
 
 messages:
 
@@ -2714,6 +2755,8 @@ messages:
 
       ptMaintenance = $;
       
+      plHallAllyAccess = $;
+      
       plEnemies = $;
       plAllies = $;
       plEnemiesOf = $;
@@ -2955,6 +2998,164 @@ messages:
    SetExperienceRatio(value=100)
    {
       piExperienceRatio = value;
+      return;
+   }
+   
+   GetAllyHallAcccess()
+   {
+      return plHallAllyAccess;
+   }
+
+   GrantAllyAccess(granter=$, who=$, string=$)
+   {
+      local oUser, sWhoString;
+
+      if granter <> $
+         AND who <> $
+      {
+         if Send(self,@GetGuildHall) = $
+         {
+            Send(granter,@MsgSendUser,#message_rsc=no_guild_hall_for_ally_to_access);
+            return;
+         }
+
+         if Send(self,@GetRank,#who=granter) < 4
+         {
+            Send(granter,@MsgSendUser,#message_rsc=not_high_enough_rank_to_grant_access);
+            return;
+         }
+         
+         if granter = who
+            AND string <> $
+         {
+            % This is a self-tell to grant hall permission to offline players.
+            StringSubstitute(string,"+hallpermission ","");
+            oUser = Send(SYS,@FindUserByString,#string=string);
+            if oUser <> $
+            {
+               if oUser <> who
+               {
+                  Send(self,@GrantAllyAccess,#granter=granter,#who=oUser,#string=$);
+               }
+               else
+               {
+                  Send(granter,@MsgSendUser,#message_rsc=cannot_grant_yourself_hall_access);
+               }
+            }
+            else
+            {
+               Send(granter,@MsgSendUser,#message_rsc=no_player_found_for_hall_access);
+            }
+            return;
+         }
+         
+         sWhoString = CreateString();
+         SetString(sWhoString,Send(who,@GetTrueName));
+
+         if Send(who,@GetGuild) <> $
+            AND Send(self,@IsAlly,#otherguild=Send(who,@GetGuild))
+         {
+            if plHallAllyAccess <> $
+               AND FindListElem(plHallAllyAccess,who) <> 0
+            {
+               Send(granter,@MsgSendUser,#message_rsc=already_has_hall_access,#parm1=sWhoString);
+               return;
+            }
+            else
+            {
+               plHallAllyAccess = Cons(who,plHallAllyAccess);
+               Send(granter,@MsgSendUser,#message_rsc=you_granted_access,#parm1=sWhoString);
+               
+               if Send(who,@IsLoggedOn)
+               {
+                  Send(who,@MsgSendUser,#message_rsc=ally_hall_access_granted,#parm1=Send(granter,@GetTrueName));
+               }
+               return;
+            }
+         }
+         else
+         {
+            Send(granter,@MsgSendUser,#message_rsc=not_an_ally_hall_access,#parm1=sWhoString);
+            return;
+         }
+      }
+      return;
+   }
+
+   RevokeAllyAccess(granter=$, who=$, string=$)
+   {
+      local oUser, sWhoString;
+
+      if granter <> $
+         AND who <> $
+      {
+         if Send(self,@GetRank,#who=granter) < 4
+         {
+            Send(granter,@MsgSendUser,#message_rsc=not_high_enough_rank_to_revoke_access);
+            return;
+         }
+         
+         if granter = who
+            AND string <> $
+         {
+            % This is a self-tell to revoke hall permission to offline players.
+            StringSubstitute(string,"-hallpermission ","");
+            oUser = Send(SYS,@FindUserByString,#string=string);
+            if oUser <> $
+            {
+               if oUser <> who
+               {
+                  Send(self,@RevokeAllyAccess,#granter=granter,#who=oUser,#string=$);
+               }
+               else
+               {
+                  Send(granter,@MsgSendUser,#message_rsc=cannot_revoke_yourself_hall_access);
+               }
+            }
+            else
+            {
+               Send(granter,@MsgSendUser,#message_rsc=no_player_found_for_hall_access);
+            }
+            return;
+         }
+         
+         sWhoString = CreateString();
+         SetString(sWhoString,Send(who,@GetTrueName));
+
+         if plHallAllyAccess <> $
+            AND FindListElem(plHallAllyAccess,who) <> 0
+         {
+            Send(granter,@MsgSendUser,#message_rsc=you_revoked_access,#parm1=sWhoString);
+            
+            if Send(who,@IsLoggedOn)
+            {
+               Send(who,@MsgSendUser,#message_rsc=ally_hall_access_revoked,#parm1=Send(granter,@GetTrueName));
+            }
+            plHallAllyAccess = DelListElem(plHallAllyAccess,who);
+            return;
+         }
+         else
+         {
+            Send(granter,@MsgSendUser,#message_rsc=did_not_have_ally_access,#parm1=sWhoString);
+            return;
+         }
+      }
+      return;
+   }
+
+   ClearAllyAccess(granter=$)
+   {
+      if granter <> $
+      {
+         if Send(self,@GetRank,#who=granter) < 4
+         {
+            Send(granter,@MsgSendUser,#message_rsc=not_high_enough_rank_to_revoke_access);
+            return;
+         }
+
+         Send(granter,@MsgSendUser,#message_rsc=you_cleared_access);
+         plHallAllyAccess = $;
+      }
       return;
    }
 
