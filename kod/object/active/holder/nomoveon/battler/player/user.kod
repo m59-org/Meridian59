@@ -552,6 +552,10 @@ resources:
       "-hallpermission"
    hall_revoke_all_keyword = \
       "-clearhallpermissions"
+   notify_ally_logon_keyword = \
+      "+notifyallylogon"
+   turn_off_notify_ally_logon_keyword = \
+      "-notifyallylogon"
 
 classvars:
 
@@ -1314,7 +1318,7 @@ messages:
             Send(self,@MsgSendUser,#message_rsc=user_guildmate_logon,
                  #parm1=rName);
          }
-         if what <> self AND poGuild <> $ AND Send(SETTINGS_OBJECT,@GetShareGuildAllyMessages) AND Send(what,@GetGuild) <> $ AND Send(poGuild,@IsAlly,#otherguild=Send(what,@GetGuild))
+         if what <> self AND poGuild <> $ AND Send(what,@GetGuild) <> $ AND Send(poGuild,@GetNotifyAllyLogon) AND Send(Send(what,@GetGuild),@IsAlly,#otherguild=poGuild)
          {
             Send(self,@MsgSendUser,#message_rsc=user_ally_logon,#parm1=rName);
          }
@@ -1343,7 +1347,7 @@ messages:
             Send(self,@MsgSendUser,#message_rsc=user_guildmate_logoff,
                  #parm1=rName);
          }
-         if what <> self AND poGuild <> $ AND Send(SETTINGS_OBJECT,@GetShareGuildAllyMessages) AND Send(what,@GetGuild) <> $ AND Send(poGuild,@IsAlly,#otherguild=Send(what,@GetGuild))
+         if what <> self AND poGuild <> $ AND Send(what,@GetGuild) <> $ AND Send(poGuild,@GetNotifyAllyLogon) AND Send(Send(what,@GetGuild),@IsAlly,#otherguild=poGuild)
          {
             Send(self,@MsgSendUser,#message_rsc=user_ally_logoff,#parm1=rName);
          }
@@ -6382,9 +6386,19 @@ messages:
                }
                
                if First(users) = self
-                  AND StringContain(string,hall_revoke_all_keyword)
                {
-                  Send(poGuild,@ClearAllyAccess,#granter=self);
+                  if StringContain(string,hall_revoke_all_keyword)
+                  {
+                     Send(poGuild,@ClearAllyAccess,#granter=self);
+                  }
+                  else if StringContain(string,notify_ally_logon_keyword)
+                  {
+                     Send(poGuild,@TurnOnNotifyAllyLogon,#granter=self);
+                  }
+                  else if StringContain(string,turn_off_notify_ally_logon_keyword)
+                  {
+                     Send(poGuild,@TurnOffNotifyAllyLogon,#granter=self);
+                  }
                   return;
                }
             }

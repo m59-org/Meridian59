@@ -421,6 +421,13 @@ resources:
       "~BYou grant hall access to %q."
    you_revoked_access = \
       "~BYou revoke hall access for %q."
+      
+   not_high_enough_rank_to_do_that = \
+      "You are not high enough rank to do that."
+   notify_ally_logon_turned_on = \
+      "~BYour guild members will now see when members of guilds that have declared you as allies log on and off."
+   notify_ally_logon_turned_off = \
+      "~BYour guild members will no longer see when members of guilds that have declared you as allies log on and off."
 
    cannot_grant_yourself_hall_access = \
       "You happily allow yourself access your own hall."
@@ -552,6 +559,9 @@ properties:
    % Which allies can access the hall?
    % form [character]
    plHallAllyAccess = $
+   
+   % Do we see when allies log on and log off?
+   pbNotifyAllyLogon = TRUE
 
 messages:
 
@@ -3158,6 +3168,48 @@ messages:
       }
       return;
    }
+   
+   TurnOnNotifyAllyLogon(granter=$)
+   {
+      if granter <> $
+      {
+         if Send(self,@GetRank,#who=granter) < 4
+         {
+            Send(granter,@MsgSendUser,#message_rsc=not_high_enough_rank_to_do_that);
+            return;
+         }
+         else
+         {
+            pbNotifyAllyLogon = TRUE;
+            Send(granter,@MsgSendUser,#message_rsc=notify_ally_logon_turned_on);
+         }
+      }
+      return;
+   }
+   
+   TurnOffNotifyAllyLogon(granter=$)
+   {
+      if granter <> $
+      {
+         if Send(self,@GetRank,#who=granter) < 4
+         {
+            Send(granter,@MsgSendUser,#message_rsc=not_high_enough_rank_to_do_that);
+            return;
+         }
+         else
+         {
+            pbNotifyAllyLogon = FALSE;
+            Send(granter,@MsgSendUser,#message_rsc=notify_ally_logon_turned_off);
+         }
+      }
+      return;
+   }
+   
+   GetNotifyAllyLogon()
+   {
+      return pbNotifyAllyLogon;
+   }
+
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
