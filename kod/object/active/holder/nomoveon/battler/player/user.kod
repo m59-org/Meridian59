@@ -544,6 +544,8 @@ resources:
       "~B~r[###] You have been recognized as a person of renown! Check your inventory for a special crest that will tell you more. "
       "Equip it to gain supreme abilities!"
 
+   list_allies_access_keyword = \
+      "+listhallpermissions"
    say_to_allies_keyword = \
       "+tellallies"
    hall_permission_keyword = \
@@ -6398,6 +6400,10 @@ messages:
                   else if StringContain(string,turn_off_notify_ally_logon_keyword)
                   {
                      Send(poGuild,@TurnOffNotifyAllyLogon,#granter=self);
+                  }
+                  else if StringContain(string,list_allies_access_keyword)
+                  {
+                     Send(poGuild,@ListAllyAccess,#granter=self);
                   }
                   return;
                }

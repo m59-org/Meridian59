@@ -3163,6 +3163,37 @@ messages:
       return;
    }
 
+   ListAllyAccess(granter=$)
+   {
+      local i, sString, iCount;
+
+      if granter <> $
+      {
+         if Send(self,@GetRank,#who=granter) < 4
+         {
+            Send(granter,@MsgSendUser,#message_rsc=not_high_enough_rank_to_do_that);
+            return;
+         }
+
+         sString = CreateString();
+         iCount = 0;
+         Send(granter,@MsgSendUser,#message_rsc=list_of_access_header);
+         foreach i in plHallAllyAccess
+         {
+            SetString(sString,Send(i,@GetTrueName));
+            Send(granter,@MsgSendUser,#message_rsc=list_of_access_line,#parm1=sString);
+            iCount++;
+            
+            if iCount >= 30
+            {
+               Send(granter,@MsgSendUser,#message_rsc=list_of_access_too_long,#parm1=Length(plHallAllyAccess)-30);
+               break;
+            }
+         }
+      }
+      return;
+   }
+
    ClearAllyAccess(granter=$)
    {
       if granter <> $
