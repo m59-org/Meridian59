@@ -1470,6 +1470,14 @@ messages:
       {
          return TRUE;
       }
+      
+      if Send(who,@GetGuild) <> $
+         AND Send(poGuild_Owner,@IsAlly,#otherguild=Send(who,@GetGuild))
+         AND Send(Send(who,@GetGuild),@GetRank,#who=who) >= RANK_SIR
+         AND Send(poGuild_Owner,@UserHasAllyHallAccess,#who=who)
+      {
+         return TRUE;
+      }
 
       return FALSE;
    }
