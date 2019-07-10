@@ -10,6 +10,16 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 ScryingCrystal is PassiveItem
 
+%
+% Scrying Crystals have:
+% 
+% A base room based on tier
+% 
+% Up to 6 mods that make the area more difficult but increase drop rates of more scrying crystals
+% Mods can be added or altered with shards
+%
+% areas have red sky
+
 constants:
 
    include blakston.khd
@@ -18,23 +28,79 @@ resources:
 
    ScryingCrystal_icon_rsc = teardrop.bgf
    ScryingCrystal_name_rsc = "scrying crystal"
-   ScryingCrystal_desc_rsc = \
+   ScryingCrystal_desc_base_rsc = \
       "Through the chaos deep below the earth, you see a small span of solid ground... "
-      "it is but one step, yet a great journey."
+      "a single step away, yet a great journey into a realm of dreams and madness. "
+
+   ScryingCrystal_desc_with_room_rsc = \
+      "Through the chaos deep below the earth, you see a small span of solid ground... "
+      "a single step away, yet a great journey into a realm of dreams and madness. "
+      "The crystal shows a shifting and twisted reflection of %s."
 
 classvars:
    
    vrName = ScryingCrystal_name_rsc
-   vrDesc = ScryingCrystal_desc_rsc
+   vrDesc = ScryingCrystal_desc_base_rsc
    vrIcon = ScryingCrystal_icon_rsc
 
    viValue_average = 1500
    viWeight = 50
    viBulk = 50
 
-properties:  
+properties:
 
-messages:   
+   pRidBaseRoom = RID_TOS_CRYPT
+   poBaseRoom = $
+   plScryMods = $
+
+messages:
+
+   Constructor(iTier=1)
+   {
+      local lMapChoices;
+
+      switch(iTier)
+      {
+         case 1:
+            lMapChoices = [RID_TOS_GRAVEYARD];
+            break;
+      }
+      
+      if lMapChoices <> $
+      {
+         pRidBaseRoom = Nth(lMapChoices,Random(1,Length(lMapChoices)));
+      }
+      
+      propagate;
+   }
+   
+   GetRidBaseRoom()
+   {
+      return pRidBaseRoom;
+   }
+   
+   GetScryMods()
+   {
+      return plScryMods;
+   }
+
+   ShowDesc()
+   {
+      local oRoom;
+      
+      oRoom = Send(SYS,@FindRoomByNum,#num=pRidBaseRoom);
+      
+      if oRoom <> $
+      {
+         AddPacket(4, ScryingCrystal_desc_with_room_rsc, 4,Send(oRoom,@GetName));
+      }
+      else
+      {
+         AddPacket(4, ScryingCrystal_desc_base_rsc);  
+      }
+
+      return;
+   }
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

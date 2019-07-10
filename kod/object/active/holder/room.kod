@@ -3806,7 +3806,7 @@ messages:
 
    StandardLeaveDir(what = $,dir = $,pos = $,new_room_num = $)
    {
-      local i ,iAngle, iRoom, iRow, iCol;
+      local i ,iAngle, iRoom, iRow, iCol, oRoom, oChaosStrata;
 
       iRoom = 0;
       iRow = 0;
@@ -3898,9 +3898,24 @@ messages:
          iAngle = Send(self,@TranslateAngleChange,#iAngle=Send(what,@GetAngle),
                        #iAngle_Change=Nth(i,5));
 
-         Send(SYS,@UtilGoNearSquare,#what=what,
-              #where=Send(SYS,@FindRoomByNum,#num=iRoom),
-              #new_row=iRow,#new_col=iCol,#new_angle=iAngle);
+         oRoom = Send(SYS,@FindRoomByNum,#num=iRoom);
+         oChaosStrata = Send(SYS,@FindRoomByNum,#num=RID_CHAOS_STRATA_START);
+         
+         if Send(oChaosStrata,@IsActive)
+            AND Send(oChaosStrata,@GetBaseRoom) = oRoom
+            AND IsClass(what,&User)
+            AND Send(what,@GetNumReincarnations) >= Send(SETTINGS_OBJECT,@GetMinChaosStrataReincarnations)
+         {
+            Send(SYS,@UtilGoNearSquare,#what=what,
+                 #where=oChaosStrata,
+                 #new_row=iRow,#new_col=iCol,#new_angle=iAngle);
+         }
+         else
+         {
+            Send(SYS,@UtilGoNearSquare,#what=what,
+                 #where=oRoom,
+                 #new_row=iRow,#new_col=iCol,#new_angle=iAngle);
+         }
 
          return;
       }
@@ -3932,7 +3947,7 @@ messages:
 
    SomethingTryGo(what = $,row = $,col = $)
    {
-      local i, iAngle;
+      local i, iAngle, oRoom, oChaosStrata;
 
       foreach i in plExits
       {
@@ -3971,9 +3986,22 @@ messages:
                Send(what,@WaveSendUser,#wave_rsc=Send(self,@GetDoorSound));
             }
 
-            Send(SYS,@UtilGoNearSquare,#what=what,
-                 #where=Send(SYS,@FindRoomByNum,#num=Nth(i,3)),
+            oRoom = Send(SYS,@FindRoomByNum,#num=Nth(i,3));
+            oChaosStrata = Send(SYS,@FindRoomByNum,#num=RID_CHAOS_STRATA_START);
+            if Send(oChaosStrata,@IsActive)
+               AND Send(oChaosStrata,@GetBaseRoom) = oRoom
+               AND Send(what,@GetNumReincarnations) >= Send(SETTINGS_OBJECT,@GetMinChaosStrataReincarnations)
+            {
+               Send(SYS,@UtilGoNearSquare,#what=what,
+                 #where=oChaosStrata,
                  #new_row=Nth(i,4),#new_col=Nth(i,5),#new_angle=iAngle);
+            }
+            else
+            {
+               Send(SYS,@UtilGoNearSquare,#what=what,
+                 #where=oRoom,
+                 #new_row=Nth(i,4),#new_col=Nth(i,5),#new_angle=iAngle);
+            }
 
             return TRUE;
          }

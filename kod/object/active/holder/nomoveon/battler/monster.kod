@@ -8803,6 +8803,15 @@ messages:
          AddPacket(2,LIGHT_BPURPLE);
          return;
       }
+      
+      if poOwner <> $
+         AND IsClass(poOwner,&ChaosStratumRoom)
+      {
+         AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC));
+         AddPacket(1,20);
+         AddPacket(2,LIGHT_DRED);
+         return;
+      }
 
       propagate;
    }

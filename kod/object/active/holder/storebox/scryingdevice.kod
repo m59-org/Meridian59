@@ -47,12 +47,13 @@ messages:
 
    ReqNewHold(what = $, who = $)
    {
-      if NOT Send(self,@CanDepositItems,#lItems=[what])
+      if Send(self,@CanDepositItems,#lItems=[what])
       {
-         return FALSE;
+         Post(self,@OpenChaosStratum,#what=what,#who=who,#oCrystal=what);
+         return TRUE;
       }
       
-      Post(self,@OpenChaosStratum,#what=what,#who=who,#oCrystal=what);
+      
 
       propagate;
    }
@@ -85,7 +86,7 @@ messages:
 
    OpenChaosStratum(what=$,who=$,oCrystal=$)
    {
-      local i, each_obj, iCount, oLeagueMaint;
+      local i, each_obj, iCount, oLeagueMaint, oPortal, oRoom;
 
       foreach i in Send(poOwner,@GetHolderActive)
       {
@@ -101,8 +102,18 @@ messages:
          }
       }
 
-      oLeagueMaint = Send(SYS,@GetChaosStrataMaintenance);
-      Send(oLeagueMaint,@CreateNewChaosStratum,#oCrystal=oCrystal);
+         oRoom = Send(SYS,@FindRoomByNum,#num=RID_CHAOS_STRATA_START);
+         oPortal = Create(&NecropolisPortal,#lLocation=[RID_CHAOS_STRATA_START, Send(oRoom,@GetTeleportRow), Send(oRoom,@GetTeleportCol), 32, 32]);
+         Send(oPortal,@SetDestination,#dest_room_num=RID_CHAOS_STRATA_START,#dest_angle=0,
+                                                                            #dest_row=Send(oRoom,@GetTeleportRow),
+                                                                            #dest_col=Send(oRoom,@GetTeleportCol),
+                                                                            #dest_fine_row=0,
+                                                                            #dest_fine_col=0,
+                                                                            #glow_color=LIGHT_BPURPLE);
+         Send(poOwner,@NewHold,#what=oPortal,#new_row=25,#new_col=36);
+
+      %oLeagueMaint = Send(SYS,@GetChaosStrataMaintenance);
+      %Send(oLeagueMaint,@CreateNewChaosStratum,#oCrystal=oCrystal);
       
       Send(oCrystal,@Delete);
 

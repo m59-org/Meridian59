@@ -11,8 +11,17 @@
 ChaosStratumRoom is MonsterRoom
 
 % Players enter a Chaos Stratum from the Undersea Palace.
-% It's not dynamic like rented rooms, survival, etc.
-% It's always the same room, but changes its layout and monsters.
+%
+% It is then also present in the 'real world', complete with entrances and exits.
+%    Murderers, Soldiers, and players over 100 hp will enter the Chaos Stratum
+%    instead of the real world version.
+%
+% It functions as a normal monster room with elevated dangers
+%    until a boss spawns.
+%
+%
+% Todo: looping sounds from constructed
+% spawn monsters
 
 constants:
 
@@ -25,6 +34,7 @@ resources:
       "With each step closer to evil, reality becomes less coherent, "
       "but the scrying crystal has brought you to an island of stability... "
       "be warned, for death is very real here."
+   ChaosStratum_music = nec02.mp3
 
 classvars:
 
@@ -37,28 +47,35 @@ properties:
 
    poBaseRoom = $
    prRoom = $
-   piRoom_num = $
-   piOverridesDeathFunction = TRUE
+   piRoom_num = RID_CHAOS_STRATA_START
+   piOverridesDeathFunction = FALSE
    pbNoReagents = FALSE
 
    piGen_time = 5000
    piGen_percent = 100
 
-   piInit_count_min = 0
-   piInit_count_max = 0
-   piMonster_count_max = 30
+   piInit_count_min = 15
+   piInit_count_max = 40
+   piMonster_count_max = 100
 
    piChaosZone = TRUE
 
    plFixedRewards = $
+   
+   pbActive = FALSE
+
+   piBaseLight = LIGHT_MIN
+   piOutside_Factor = OUTDOORS_NONE
+
+   prMusic = ChaosStratum_music
 
 messages:
 
    Constructor(iRID=RID_CHAOS_STRATA_START,base_room=$,iPvP=TRUE)
    {
-      poBaseRoom = base_room;
+      poBaseRoom = Send(SYS,@FindRoomByNum,#num=RID_TOS_CRYPT);
       prRoom = Send(poBaseRoom,@GetRoomResource);
-      piRoom_num = iRID;
+      %piRoom_num = iRID;
 
       if iPvP
       {
@@ -69,11 +86,9 @@ messages:
          Post(self,@SetRoomFlag,#flag=ROOM_NO_PK,#value=TRUE);
       }
 
-      piBaseLight = Send(poBaseRoom,@GetBaseLight);
-      piOutside_factor = Send(poBaseRoom,@GetOutsideFactor);
-      piDirectional_percent = Send(poBaseRoom,@GetDirectionalPercent);
-
-      prMusic = Send(poBaseRoom,@GetMusic);
+%      piBaseLight = Send(poBaseRoom,@GetBaseLight);
+%      piOutside_factor = Send(poBaseRoom,@GetOutsideFactor);
+%      piDirectional_percent = Send(poBaseRoom,@GetDirectionalPercent);
 
       plGenerators = Send(poBaseRoom,@GetGenerators);
 
@@ -90,16 +105,97 @@ messages:
                         [&CowMask,75],
                         [&KraananCharm,100]];
 
+      Send(self,@SetExits);
+
       Send(self,@RecalcLightAndWeather);
 
       propagate;
    }
 
+   ChaosShift()
+   {
+      local i, oTempHolder;
+
+      poBaseRoom = Send(SYS,@FindRoomByNum,#num=RID_TOS_GRAVEYARD);
+      prRoom = Send(poBaseRoom,@GetRoomResource);
+
+      Send(self,@RemoveLights);
+      plGenerators = Send(poBaseRoom,@GetGenerators);
+      Send(self,@PlaceLights);
+
+      Send(self,@SetExits);
+      Send(self,@LoadRoomData);
+      
+      oTempHolder = Send(SYS,@FindRoomByNum,#num=RID_TOS);
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&User)
+         {
+            Send(oTempHolder,@Teleport,#what=First(i));
+            Post(self,@Teleport,#what=First(i));
+         }
+      }
+      return;
+   }
+   
+   RemoveLights()
+   {
+      local i;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&DynamicLight)
+         {
+            Send(First(i),@Delete);
+         }
+      }
+      return;
+   }
+   
+   PlaceLights()
+   {
+      local i;
+      
+      foreach i in plGenerators
+      {
+         Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_DRED,#iIntensity=255),#new_row=Nth(i,1),#new_col=Nth(i,2));
+      }
+      return;
+   }
+   
+   LightingColorOverride()
+   {
+      % No colors if we can help it.
+      return TRUE;
+   }
+   
+   GetLightingColorOverride(what=$)
+   {
+      return LIGHT_DRED;
+   }
+
+   RecalcBackgroundSkyGraphic(iSkyBox=0)
+   {
+      prBackground = background_chaos_night;
+      return;
+   }
+
+   SetExits()
+   {
+      if poBaseRoom <> $
+      {
+         plExits = Send(poBaseRoom,@GetStandardExits);
+         plEdge_Exits = Send(poBaseRoom,@GetEdgeExits);
+      }
+      return;
+   }
+
    Delete()
    {
-      Send(self,@BootAllUsers);
+    %  Send(self,@BootAllUsers);
 
-      Send(Send(SYS,@GetChaosStrataMaintenance),@RoomDeleted,#what=self);
+     % Send(Send(SYS,@GetChaosStrataMaintenance),@RoomDeleted,#what=self);
 
       propagate;
    }
@@ -157,29 +253,17 @@ messages:
 
    ReqSpellCast(who = $, oSpell = $, lItems = $)
    {
-      if IsClass(oSpell,&Elusion)
-         OR IsClass(oSpell,&Rescue)
-         OR IsClass(oSpell,&DeathRift)
-         OR IsClass(oSpell,&Truce)
-         OR IsClass(oSpell,&Jig)
-         OR IsClass(oSpell,&SporeBurst)
-         OR IsClass(oSpell,&SummonWeb)
-         OR IsClass(oSpell,&GuildHallRecall)
-         OR IsClass(oSpell,&Recall)
-         OR IsClass(oSpell,&SummonEvilTwin)
-         OR (IsClass(oSpell,&Earthquake)
-            AND IsClass(who,&Monster))
-         OR (IsClass(oSpell,&MonsterEarthquake)
-            AND IsClass(who,&Monster))
-      {
-         % We have to provide the fail message here.
-         %Send(who,@MsgSendUser,#message_rsc=survival_no_cast_rsc,
-         %      #parm1=Send(oSpell,@GetName));
-
-         return FALSE;
-      }
-
       propagate;
+   }
+
+   CanHavePlayerPortal(who = $)
+   {
+      return FALSE;
+   }
+   
+   IsActive()
+   {
+      return pbActive;
    }
 
 end
