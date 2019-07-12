@@ -698,10 +698,18 @@ messages:
                          + piSurvivalLevel*viDifficulty
                          + iChaosLevel * Send(Send(SYS,@GetChaosStrataMaintenance),@GetChaosDifficulty);
       piHit_points = piMax_hit_points*100;
-      piMana = piMax_mana;
+      
+      if iChaosLevel > 0
+      {
+         piMana = Bound(piMax_mana,20,$) + iChaosLevel;
+      }
+      else
+      {
+         piMana = piMax_mana;
+      }
       piAttackRange = viAttackRange;
       piSpellChance = viSpellChance;
-      piVisionDistance = viVisionDistance + piSurvivalLevel;
+      piVisionDistance = viVisionDistance + piSurvivalLevel + iChaosLevel;
       piBoostedLevel = piSurvivalLevel;
       piChaosLevel = iChaosLevel;
       
@@ -791,12 +799,22 @@ messages:
 
       if piSurvivalLevel > 0
       {
-         piOffense = Send(self,@GetOffense) + piSurvivalLevel*viDifficulty;
-         piDefense = Send(self,@GetDefense) + piSurvivalLevel*viDifficulty;
-         piMinDamage = piLevel/15 + piSurvivalLevel/2;
-         piMaxDamage = piLevel/10 + piSurvivalLevel/2;
-         piArmor = piSurvivalLevel/5;
+         piOffense = Send(self,@GetOffense) + piSurvivalLevel*viDifficulty + piChaosLevel*Send(Send(SYS,@GetChaosStrataMaintenance),@GetChaosDifficulty);
+         piDefense = Send(self,@GetDefense) + piSurvivalLevel*viDifficulty + piChaosLevel*Send(Send(SYS,@GetChaosStrataMaintenance),@GetChaosDifficulty);
+         piMinDamage = piLevel/15 + piSurvivalLevel/2 + piChaosLevel/2;
+         piMaxDamage = piLevel/10 + piSurvivalLevel/2 + piChaosLevel/2;
+         piArmor = piSurvivalLevel/5 + piChaosLevel/5;
       }
+
+      if piChaosLevel > 0
+      {
+         piOffense = Send(self,@GetOffense) + piChaosLevel*Send(Send(SYS,@GetChaosStrataMaintenance),@GetChaosDifficulty);
+         piDefense = Send(self,@GetDefense) + piChaosLevel*Send(Send(SYS,@GetChaosStrataMaintenance),@GetChaosDifficulty);
+         piMinDamage = piLevel/15 + piChaosLevel/2;
+         piMaxDamage = piLevel/10 + piChaosLevel/2;
+         piArmor = piChaosLevel/5;
+      }
+
 
       if viBonusBaseTP <> 0
       {
@@ -816,7 +834,21 @@ messages:
    
    Constructed()
    {
+      local lSpells;
       Post(self,@AddChampionAbility,#ability=CHAMPION_ABIL_EAGLE_EYES,#value=piLevel/4);
+      
+      if piChaosLevel > 0
+      {
+         lSpells = [SID_BLAST_OF_FIRE,
+                    SID_EXPLOSIVE_FROST,
+                    SID_SPLASH_OF_ACID,
+                    SID_ILLUSIONARY_WOUNDS,
+                    SID_PURGE,
+                    SID_HOLD,
+                    SID_HEX_FRAILTY,
+                    SID_HEX_VULNERABILITY];
+         Send(self,@CreateMeleeSpellBookIfNew,#iSID=Nth(lSpells,Random(1,Length(lSpells))),#iManaCost=Random(2,5),#iChance=100,#iSpellpower=piChaosLevel);
+      }
       propagate;
    }
 
@@ -8757,25 +8789,53 @@ messages:
       % Petrified gives off no light
       if Send(self,@IsEnchanted,#byClass=&Petrified)
       {
-         AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC),1,0, 2,LIGHT_WHITE);
+         if Send(poOwner,@LightingColorOverride)
+         {
+            AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC),1,0, 2,Send(poOwner,@GetLightingColorOverride,#what=self));
+         }
+         else
+         {
+            AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC),1,0, 2,LIGHT_WHITE);
+         }
          return;
       }
       % Hold gives off a purple glow
       if Send(self,@IsEnchanted,#byClass=&Hold)
       {
-         AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC),1,100, 2,LIGHT_BPURPLE);
+         if Send(poOwner,@LightingColorOverride)
+         {
+            AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC),1,100, 2,Send(poOwner,@GetLightingColorOverride,#what=self));
+         }
+         else
+         {
+            AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC),1,100, 2,LIGHT_BPURPLE);
+         }
          return;
       }
       % Blind gives off a dim green glow
       if Send(self,@IsEnchanted,#byClass=&Blind)
       {
-         AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC),1,50, 2,LIGHT_BGREEN);
+         if Send(poOwner,@LightingColorOverride)
+         {
+            AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC),1,50, 2,Send(poOwner,@GetLightingColorOverride,#what=self));
+         }
+         else
+         {
+            AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC),1,50, 2,LIGHT_BGREEN);
+         }
          return;
       }
       % Dazzle is blazing white
       if Send(self,@IsEnchanted,#byClass=&Dazzle)
       {
-         AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC),1,255, 2,LIGHT_WHITE);
+         if Send(poOwner,@LightingColorOverride)
+         {
+            AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC),1,255, 2,Send(poOwner,@GetLightingColorOverride,#what=self));
+         }
+         else
+         {
+            AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC),1,255, 2,LIGHT_WHITE);
+         }
          return;
       }
 
@@ -9458,6 +9518,15 @@ messages:
       }
 
       return iFlags;
+   }
+   
+   CreateMeleeSpellBookIfNew(iSID = 0, iManaCost = 0, iChance = 100, iSpellpower = 0)
+   {
+      if plMeleeSpellBook = $
+      {
+         plMeleeSpellBook = [[iSID, iManaCost,iChance,iSpellpower]];
+      }
+      return;
    }
 
 end
