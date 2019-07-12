@@ -53,6 +53,7 @@ properties:
    poBaseRoom = $
    plScryMods = $
    piChaosLevel = 40
+   piTier = 1
 
 messages:
 
@@ -61,14 +62,29 @@ messages:
       local lMapChoices;
 
       piChaosLevel = iChaosLevel;
+      piTier = iTier;
       
       switch(iTier)
       {
          case 1:
+            % The five main gates
             lMapChoices = [RID_H6,RID_I3,RID_G4,RID_C5,RID_F8];
             break;
          case 2:
-            lMapChoices = [RID_TOS_GRAVEYARD];
+            % Tos GY, Valley of Ileria, Faronath, Outskirts of Tos, Flatlands
+            lMapChoices = [RID_TOS_GRAVEYARD, RID_D4, RID_C7, RID_I6, RID_H4];
+            break;
+         case 3:
+            % Druid hills, the great ocean, Twisted wood, Tos Crypt, Source of the river ille
+            lMapChoices = [RID_B6, RID_E2, RID_I7, RID_TOS_CRYPT, RID_F3];
+            break;
+         case 4:
+            % East Cragged Mountains, West cragged mountains, Icky, the Hills, sandy shores of the great ocean
+            lMapChoices = [RID_I8, RID_G8, RID_CAVE2, RID_A6, RID_F2];
+            break;
+         case 5:
+            % Winding caverns, Ukgoth, Ugol's Warren, Seafarer's Peak, Bar sewers 1
+            lMapChoices = [RID_NECROAREA1, RID_I9, RID_ORC_CAVE1, RID_A5, RID_BAR_SEWER];
             break;
       }
       
@@ -111,6 +127,22 @@ messages:
    GetChaosLevel()
    {
       return piChaosLevel;
+   }
+   
+   GetTier()
+   {
+      return piTier;
+   }
+
+   GetMinimapDotFlags()
+   {
+      % Special item, add minimap dot.
+      return MM_RARE_ITEM;
+   }
+   
+   DestroyDisposable()
+   {
+      return FALSE;
    }
 
 end

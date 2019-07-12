@@ -42,6 +42,9 @@ resources:
    
    the_chaos_stratum_ends = \
       "Reality ripples and returns to normal around you as the nightmare ends... for now."
+      
+   chaos_stratum_boss_appeared = \
+      "~BNightmare coalesces into the form of a much more dangerous monster!"
 
 classvars:
 
@@ -85,6 +88,11 @@ properties:
    poScryingDevice = $
    
    piKillsRemaining = 150
+   
+   % How dangerous is this strata? Boosted by mods on the crystal that makes it
+   piQuality = 0
+   
+   piTier = 1
 
 messages:
 
@@ -92,7 +100,6 @@ messages:
    {
       poBaseRoom = Send(SYS,@FindRoomByNum,#num=RID_TOS_CRYPT);
       prRoom = Send(poBaseRoom,@GetRoomResource);
-      %piRoom_num = iRID;
 
       if iPvP
       {
@@ -102,10 +109,6 @@ messages:
       {
          Post(self,@SetRoomFlag,#flag=ROOM_NO_PK,#value=TRUE);
       }
-
-%      piBaseLight = Send(poBaseRoom,@GetBaseLight);
-%      piOutside_factor = Send(poBaseRoom,@GetOutsideFactor);
-%      piDirectional_percent = Send(poBaseRoom,@GetDirectionalPercent);
 
       plGenerators = Send(poBaseRoom,@GetGenerators);
 
@@ -135,7 +138,7 @@ messages:
                         [&XeoMask,90],
                         [&KriipaMask,95],
                         [&CowMask,125],
-                        [&KraananCharm,140]];
+                        [&QorCharm,140]];
 
       Send(self,@SetExits);
 
@@ -143,8 +146,14 @@ messages:
 
       propagate;
    }
+   
+   Constructed()
+   {
+      Post(self,@ChaosShift,#iRID=RID_TOS_CRYPT,#boost_chaos_level=40,#iTier=1,#iQuality=0);
+      propagate;
+   }
 
-   ChaosShift(iRID=0, boost_chaos_level=0)
+   ChaosShift(iRID=0, boost_chaos_level=0, iTier=1, iQuality=0)
    {
       local i, oTempHolder;
 
@@ -170,6 +179,9 @@ messages:
       
       piKillsRemaining = 60 + piBoostChaosLevel;
       pbBossSpawned = FALSE;
+      
+      piQuality = iQuality;
+      piTier = iTier;
       
       foreach i in Send(self,@GetHolderActive)
       {
@@ -228,9 +240,33 @@ messages:
       return TRUE;
    }
    
-   BossKilled(who=$)
+   BossKilled(who=$,what=$)
    {
-      local i;
+      local i, oCrystal, iRoll;
+
+      if piBoostChaosLevel = 140
+      {
+         oCrystal = Create(&QorCharm);
+         Send(who,@NewHold,#what=oCrystal);
+      }
+      else if Random(1,100) <= 33 + piQuality
+      {
+         oCrystal = Create(&ScryingCrystal,#iTier=Bound(piTier+Random(-1,1),1,5),#iChaosLevel=piBoostChaosLevel+1);
+         Send(who,@NewHold,#what=oCrystal);
+      
+         if piQuality >= 100
+            AND Random(1,100) <= piQuality - 100
+         {
+            oCrystal = Create(&ScryingCrystal,#iTier=Bound(piTier+Random(-1,1),1,5),#iChaosLevel=piBoostChaosLevel+1);
+            Send(who,@NewHold,#what=oCrystal);
+         }
+      }
+
+      if Random(1,100) <= Send(SETTINGS_OBJECT,@GetDyeChance)
+      {
+         Send(SETTINGS_OBJECT,@DyeDropped);
+         Send(who,@NewHold,#what=Create(&DyeBottle));
+      }
       
       foreach i in Send(self,@GetHolderActive)
       {
@@ -409,6 +445,8 @@ messages:
          }
          else if NOT pbBossSpawned
          {
+            SendListByClass(plActive,1,&User,@MsgSendUser,#message_rsc=chaos_stratum_boss_appeared);
+                     
             pbBossSpawned = TRUE;
             iRandomGen = Random(1,Length(plGenerators));
             Send(self,@NewHold,#what=Create(Nth(plBosses,Random(1,Length(plBosses))),

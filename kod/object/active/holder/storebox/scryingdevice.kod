@@ -124,7 +124,10 @@ messages:
       }
 
       poChaosStratumRoom = Send(SYS,@FindRoomByNum,#num=RID_CHAOS_STRATA_START);
-      Send(poChaosStratumRoom,@ChaosShift,#iRID=Send(oCrystal,@GetRidBaseRoom),#boost_chaos_level=Send(oCrystal,@GetChaosLevel));
+      Send(poChaosStratumRoom,@ChaosShift,#iRID=Send(oCrystal,@GetRidBaseRoom),
+                                          #boost_chaos_level=Send(oCrystal,@GetChaosLevel),
+                                          #iTier=Send(oCrystal,@GetTier),
+                                          #iQuality=Send(self,@CalculateQuality,#oCrystal=oCrystal));
       poCurrentPortal = Create(&ChaosStratumPortal,#lLocation=[RID_CHAOS_STRATA_START, Send(poChaosStratumRoom,@GetTeleportRow), Send(poChaosStratumRoom,@GetTeleportCol), 32, 32],#glow_intensity=255);
       Send(poCurrentPortal,@SetDestination,#dest_room_num=RID_CHAOS_STRATA_START,#dest_angle=0,
                                                                             #dest_row=Send(poChaosStratumRoom,@GetTeleportRow),
@@ -148,6 +151,12 @@ messages:
       Send(oCrystal,@Delete);
 
       return;
+   }
+   
+   CalculateQuality(oCrystal=$)
+   {
+      Debug("quality calculation not done");
+      return 0;
    }
    
    ChaosStratumRoomEnded()
