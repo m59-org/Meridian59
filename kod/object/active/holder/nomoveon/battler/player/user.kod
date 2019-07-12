@@ -3233,6 +3233,14 @@ messages:
                return MM_BOSS;
             }
          }
+         if IsClass(poOwner,&ChaosStratumRoom)
+         {
+            % Chaos stratum room specific dots.
+            if Send(poOwner,@IsBoss,#what=what)
+            {
+               return MM_BOSS;
+            }
+         }
 
          if Send(what,@GetChampStatus) > 0
          {

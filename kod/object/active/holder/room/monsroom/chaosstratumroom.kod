@@ -67,6 +67,7 @@ properties:
 
    piChaosZone = TRUE
 
+   plBosses = $
    plFixedRewards = $
    
    pbActive = TRUE
@@ -82,6 +83,8 @@ properties:
    piBoostChaosLevel = 0
    
    poScryingDevice = $
+   
+   piKillsRemaining = 150
 
 messages:
 
@@ -106,18 +109,33 @@ messages:
 
       plGenerators = Send(poBaseRoom,@GetGenerators);
 
-      plFixedRewards = [[&AntMask,10],
-                        [&RatMask,15],
-                        [&MummyMask,20],
-                        [&SkullMask,25],
-                        [&TrollMask,30],
-                        [&ShrunkenHeadMask,35],
-                        [&DaemonMask,40],
-                        [&FeyMask,45],
-                        [&XeoMask,50],
-                        [&KriipaMask,55],
-                        [&CowMask,75],
-                        [&KraananCharm,100]];
+      plBosses = [&EarthElementalChampion,
+                  &FireElementalChampion,
+                  &IceElementalChampion,
+                  &NeruElementalChampion,
+                  &Yeti,
+                  &DarkAngel,
+                 %&Thrasher,
+                  &Ghost,
+                 %&GroundWormQueen,
+                 %&OrcPitBoss,
+                 %&DragonFlyQueen,
+                 %&Shadowbeast,
+                 %&SpiderQueen,
+                  &GiantRatKing];
+
+      plFixedRewards = [[&AntMask,50],
+                        [&RatMask,55],
+                        [&MummyMask,60],
+                        [&SkullMask,65],
+                        [&TrollMask,70],
+                        [&ShrunkenHeadMask,75],
+                        [&DaemonMask,80],
+                        [&FeyMask,85],
+                        [&XeoMask,90],
+                        [&KriipaMask,95],
+                        [&CowMask,125],
+                        [&KraananCharm,140]];
 
       Send(self,@SetExits);
 
@@ -144,11 +162,14 @@ messages:
       
 %      Send(self,@StartChaosRealm);
       
-      oTempHolder = Send(SYS,@FindRoomByNum,#num=RID_TOS);
+      oTempHolder = Send(SYS,@FindRoomByNum,#num=RID_HERMIT_HUT);
       
       plMonsters = Send(poBaseRoom,@GetMonsterList);
       
       piBoostChaosLevel = boost_chaos_level;
+      
+      piKillsRemaining = 60 + piBoostChaosLevel;
+      pbBossSpawned = FALSE;
       
       foreach i in Send(self,@GetHolderActive)
       {
@@ -351,6 +372,72 @@ messages:
    {
       poScryingDevice = oScryingDevice;
       return;
+   }
+
+   SomethingKilled(what=$,victim=$)
+   {
+      local i, cDeadClass, oTarget, mob, oMonster, iGoal, iKills, iRandomGen;
+
+      if IsClass(victim,&User)
+      {
+         propagate;
+      }
+
+      if IsClass(victim,&Monster)
+      {
+         % These kills don't count towards the room goals.
+         if Send(victim,@IsMinion)
+            OR IsClass(victim,&Brambles)
+         {
+            propagate;
+         }
+
+         cDeadClass = GetClass(victim);
+
+         foreach i in plBosses
+         {
+            if i = cDeadClass
+            {
+               Post(self,@BossKilled,#who=what,#what=victim);
+               propagate;
+            }
+         }
+         
+         if piKillsRemaining > 0
+         {
+            piKillsRemaining--;
+         }
+         else if NOT pbBossSpawned
+         {
+            pbBossSpawned = TRUE;
+            iRandomGen = Random(1,Length(plGenerators));
+            Send(self,@NewHold,#what=Create(Nth(plBosses,Random(1,Length(plBosses))),
+                                            #iChaosLevel=piBoostChaosLevel),
+                               #new_row=Nth(Nth(plGenerators,iRandomGen),1),
+                               #new_col=Nth(Nth(plGenerators,iRandomGen),2));
+         }
+      }
+
+      propagate;
+   }
+
+   IsBoss(what=$)
+   {
+      local i, cMob;
+
+      if what <> $
+      {
+         cMob = GetClass(what);
+         foreach i in plBosses
+         {
+            if cMob = i
+            {
+               return TRUE;
+            }
+         }
+      }
+
+      return FALSE;
    }
 
 end
