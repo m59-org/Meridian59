@@ -34,7 +34,7 @@ resources:
 
    ScryingCrystal_desc_with_room_rsc = \
       "Through the chaos deep below the earth, you see a small span of solid ground... "
-      "a single step away, yet a great journey into a realm of dreams and madness. "
+      "only %i steps away, yet a great journey into a realm of dreams and madness. "
       "The crystal shows a shifting and twisted reflection of %s."
 
 classvars:
@@ -52,16 +52,22 @@ properties:
    pRidBaseRoom = RID_TOS_CRYPT
    poBaseRoom = $
    plScryMods = $
+   piChaosLevel = 40
 
 messages:
 
-   Constructor(iTier=1)
+   Constructor(iTier=1, iChaosLevel=40)
    {
       local lMapChoices;
 
+      piChaosLevel = iChaosLevel;
+      
       switch(iTier)
       {
          case 1:
+            lMapChoices = [RID_H6,RID_I3,RID_G4,RID_C5,RID_F8];
+            break;
+         case 2:
             lMapChoices = [RID_TOS_GRAVEYARD];
             break;
       }
@@ -92,7 +98,7 @@ messages:
       
       if oRoom <> $
       {
-         AddPacket(4, ScryingCrystal_desc_with_room_rsc, 4,Send(oRoom,@GetName));
+         AddPacket(4, ScryingCrystal_desc_with_room_rsc, 4, piChaosLevel, 4,Send(oRoom,@GetName));
       }
       else
       {
@@ -100,6 +106,11 @@ messages:
       }
 
       return;
+   }
+   
+   GetChaosLevel()
+   {
+      return piChaosLevel;
    }
 
 end

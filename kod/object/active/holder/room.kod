@@ -4513,6 +4513,55 @@ messages:
       return;
    }
 
+   StartChaosRealm(bOnGround=TRUE)
+   {
+      % Check if we can have weather effects here.
+      if NOT pbWeatherEffects
+      {
+         return;
+      }
+
+      % If there's a sandstorm effect here, clear it.
+      if Send(self,@CheckRoomFlag,#flag=ROOM_SANDSTORM)
+      {
+         Send(self,@EndSandstorm);
+      }
+
+      if bOnGround
+      {
+         if pbSnowGroundTexture
+         {
+            % try 09684
+            % Turn any water to blood. Water tagged as ID 10.
+            % Water sidedefs tagged as ID 11.
+            Send(self,@ChangeTexture,#id=10,#new_texture=09700,
+                  #flags=CTF_FLOOR);
+            % Change texture.
+            Send(self,@ChangeTexture,#id=11,#new_texture=09700,
+                  #flags=CTF_BELOWWALL);
+         }
+      }
+
+      Send(self,@WeatherChanged);
+
+      return;
+   }
+
+   EndChaosRealm(override=FALSE)
+   "Use override if rooms have manually placed textures."
+   {
+      Send(self,@WeatherChanged);
+
+      if pbSnowGroundTexture
+         OR override
+      {
+         Send(self,@RemoveTextureChange,#id=10);
+         Send(self,@RemoveTextureChange,#id=11);
+      }
+
+      return;
+   }
+
    StartSnow(bOnGround=TRUE)
    {
       % Check if we can have weather effects here.

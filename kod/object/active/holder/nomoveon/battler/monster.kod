@@ -639,6 +639,9 @@ properties:
    % Was this monster boosted by a Survival Room?
    piBoostedLevel = 0
 
+   % Was this monster boosted by a Chaos Stratum?
+   piChaosLevel = 0
+   
    piLastTimeAttacked = 0
    poLastAttacker = $
 
@@ -678,20 +681,29 @@ properties:
 
 messages:
 
-   Constructor(template=FALSE, color=0, piSurvivalLevel=0, iBrain = 0)
+   Constructor(template=FALSE, color=0, piSurvivalLevel=0, iBrain = 0, iChaosLevel = 0)
    "Simple enough, we create a monster. If they are questworthy, we note it."
    {
       local iStatPoints, iMin, iMax;
 
-      piLevel = viLevel;
+      if iChaosLevel > 0
+      {
+         piLevel = Bound(200 + iChaosLevel/2,20,250);
+      }
+      else
+      {
+         piLevel = viLevel;
+      }
       piMax_Hit_points = Send(Self,@Fuzzy,#num=Send(self,@GetMaxHitPoints))
-                         + piSurvivalLevel*viDifficulty;
+                         + piSurvivalLevel*viDifficulty
+                         + iChaosLevel * Send(Send(SYS,@GetChaosStrataMaintenance),@GetChaosDifficulty);
       piHit_points = piMax_hit_points*100;
       piMana = piMax_mana;
       piAttackRange = viAttackRange;
       piSpellChance = viSpellChance;
       piVisionDistance = viVisionDistance + piSurvivalLevel;
       piBoostedLevel = piSurvivalLevel;
+      piChaosLevel = iChaosLevel;
       
       if piAttackSpeed = $
       {
@@ -7298,7 +7310,8 @@ messages:
       lTreasureItems = Send(oTreasure_Type,@CreateMobTreasure,#mob=self,
                               #who=who,#level=piLevel,#difficulty=viDifficulty,
                               #corpse=corpse,#attributes=viAttributes,
-                              #boostedlevel=piBoostedLevel);
+                              #boostedlevel=piBoostedLevel,
+                              #iChaosLevel=piChaosLevel);
 
       % Add in our inventory
       foreach i in plActive
@@ -7325,7 +7338,8 @@ messages:
          }
 
          oMoney = Create(&Money,#corpse=corpse,#number=(iRandomCashAmount + (piBoostedLevel
-                     * Send(Send(SYS,@GetSurvivalRoomMaintenance),@GetSurvivalCash)))
+                     * Send(Send(SYS,@GetSurvivalRoomMaintenance),@GetSurvivalCash)) + (piChaosLevel
+                     * Send(Send(SYS,@GetChaosStrataMaintenance),@GetChaosCash)))
                      * Send(self,@GetChampionRewardMultiplier));
 
          Send(Send(SYS,@GetStatistics),@MoneyCreated,#amount=Send(oMoney,@GetNumber));
@@ -8484,6 +8498,11 @@ messages:
    {
       return piBoostedLevel;
    }
+   
+   GetChaosLevel()
+   {
+      return piChaosLevel;
+   }
 
    % GainLight and LoseLight here so (some) mobs can use touch spells.
    GainLight()
@@ -8544,7 +8563,8 @@ messages:
       piChampionStatus = iType;
 
       piMax_Hit_points = Send(Self,@Fuzzy,#num=Send(self,@GetMaxHitPoints))
-                         + piBoostedLevel*viDifficulty;
+                         + piBoostedLevel*viDifficulty
+                         + piChaosLevel * Send(Send(SYS,@GetChaosStrataMaintenance),@GetChaosDifficulty);
       piHit_points = piMax_hit_points*100;
       
       if iType = CHAMPION_SWIFT
@@ -8683,7 +8703,8 @@ messages:
       plChampionAbilities = $;
 
       piMax_Hit_points = Send(Self,@Fuzzy,#num=Send(self,@GetMaxHitPoints))
-                         + piBoostedLevel*viDifficulty;
+                         + piBoostedLevel*viDifficulty
+                         + piChaosLevel * Send(Send(SYS,@GetChaosStrataMaintenance),@GetChaosDifficulty);
       piHit_points = piMax_hit_points*100;
       
       piAttackSpeed = viSpeed;
@@ -8808,8 +8829,8 @@ messages:
          AND IsClass(poOwner,&ChaosStratumRoom)
       {
          AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC));
-         AddPacket(1,20);
-         AddPacket(2,LIGHT_DRED);
+         AddPacket(1,50);
+         AddPacket(2,LIGHT_BRED);
          return;
       }
 

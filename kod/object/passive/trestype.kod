@@ -244,10 +244,10 @@ messages:
    }
 
    CreateMobTreasure(mob = $, who = $, level = 1, corpse = $, attributes = 0,
-                     boostedlevel = 0, difficulty = 0)
+                     boostedlevel = 0, difficulty = 0, iChaosLevel = 0)
    {
       local i, iNumberItems, tokengen, iSurvivalLoot, oTreasure, iSafetyCntr,
-            lTreasureItems;
+            lTreasureItems, iChaosLoot;
 
       lTreasureItems = $;
 
@@ -332,10 +332,12 @@ messages:
       % that may be dropped.
       iSurvivalLoot = boostedlevel
         / Send(Send(SYS,@GetSurvivalRoomMaintenance),@GetSurvivalLoot);
+      
+      iChaosLoot = iChaosLevel / Send(Send(SYS,@GetChaosStrataMaintenance),@GetChaosLoot);
 
       iNumberItems = 1 + (level/55) + Random(0,difficulty/3)
-                        + iSurvivalLoot + viBonusNumDrops;
-      iNumberItems = Bound(iNumberItems,$,6 + iSurvivalLoot+ viBonusNumDrops);
+                        + iSurvivalLoot + iChaosLoot + viBonusNumDrops;
+      iNumberItems = Bound(iNumberItems,$,6 + iSurvivalLoot + iChaosLoot + viBonusNumDrops);
       iNumberItems = (Send(SETTINGS_OBJECT,@GetItemFactor)*iNumberItems)/100;
       iNumberItems = Bound(iNumberItems,1,$);
 

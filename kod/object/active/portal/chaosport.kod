@@ -1,0 +1,97 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ChaosStratumPortal is Portal
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   ChaosStratumPortal_icon_rsc = teleport.bgf
+
+   ChaosStratumPortal_closing = "The portal flickers and begins to draw imperceptibly in on itself."
+   ChaosStratumPortal_closed = "The portal disappears."
+
+classvars:
+
+   viMoveOn_type = MOVEON_TELEPORTER
+
+   viMaxDistance = 0
+
+properties:
+
+   vrIcon = ChaosStratumPortal_icon_rsc
+
+   pbAnimate = TRUE
+   
+   piGlowIntensity = 255
+
+messages:
+
+   Constructor(lLocation=$)
+   {
+      Send(self, @SetTarget, #lTarget = lLocation);
+      propagate;
+   }
+   
+   SetTarget(lTarget = $)
+   {
+      if lTarget = $
+      {
+         debug("Chaos portal got empty target");
+         return;
+      }
+      piDest_room = Nth(lTarget,1);
+      piDest_row = Nth(lTarget,2);
+      piDest_col = Nth(lTarget,3);
+      piDest_fine_row = Nth(lTarget,4);
+      piDest_fine_col = Nth(lTarget,5);
+
+      return;
+   }
+
+   SomethingMoved(what = $,new_row = $,new_col = $)
+   {
+      % Don't allow monsters to escape through these portals
+      if (NOT IsClass(what, &Player)) 
+      {
+         return;
+      }
+
+      propagate;
+   }
+
+   ClosePortal()
+   {
+      local oPlayer;
+
+      foreach oPlayer in send(poOwner,@GetHolderActive)
+      {
+         if IsClass(first(oPlayer),&Player)
+         {
+            Send(first(oPlayer),@MsgSendUser,#message_rsc=ChaosStratumPortal_closed);
+         }
+      }
+
+      send(self,@Delete);
+
+      return;
+   }
+
+   Delete()
+   {
+
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

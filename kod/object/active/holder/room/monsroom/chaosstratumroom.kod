@@ -13,12 +13,16 @@ ChaosStratumRoom is MonsterRoom
 % Players enter a Chaos Stratum from the Undersea Palace.
 %
 % It is then also present in the 'real world', complete with entrances and exits.
-%    Murderers, Soldiers, and players over 100 hp will enter the Chaos Stratum
+%    Players 5 reincs and over will enter the Chaos Stratum
 %    instead of the real world version.
 %
 % It functions as a normal monster room with elevated dangers
 %    until a boss spawns.
 %
+%
+% Drops:
+%  Scrying crystals, roughly one per room
+%  Very rarely dye bottles
 %
 % Todo: looping sounds from constructed
 % spawn monsters
@@ -62,12 +66,17 @@ properties:
 
    plFixedRewards = $
    
-   pbActive = FALSE
+   pbActive = TRUE
 
    piBaseLight = LIGHT_MIN
    piOutside_Factor = OUTDOORS_NONE
 
    prMusic = ChaosStratum_music
+   
+   piMonstersSpawned = 0
+   piStratumMaxMonstersSpawn = 50
+   pbBossSpawned = FALSE
+   piBoostChaosLevel = 0
 
 messages:
 
@@ -112,21 +121,29 @@ messages:
       propagate;
    }
 
-   ChaosShift()
+   ChaosShift(iRID=0, boost_chaos_level=0)
    {
       local i, oTempHolder;
 
-      poBaseRoom = Send(SYS,@FindRoomByNum,#num=RID_TOS_GRAVEYARD);
-      prRoom = Send(poBaseRoom,@GetRoomResource);
-
+      Send(self,@RemoveMonsters);
       Send(self,@RemoveLights);
+%      Send(self,@EndChaosRealm);
+      poBaseRoom = Send(SYS,@FindRoomByNum,#num=iRID);
+      prRoom = Send(poBaseRoom,@GetRoomResource);
+      Send(self,@LoadRoomData);
+
       plGenerators = Send(poBaseRoom,@GetGenerators);
       Send(self,@PlaceLights);
 
       Send(self,@SetExits);
-      Send(self,@LoadRoomData);
+      
+%      Send(self,@StartChaosRealm);
       
       oTempHolder = Send(SYS,@FindRoomByNum,#num=RID_TOS);
+      
+      plMonsters = Send(poBaseRoom,@GetMonsterList);
+      
+      piBoostChaosLevel = boost_chaos_level;
       
       foreach i in Send(self,@GetHolderActive)
       {
@@ -134,6 +151,21 @@ messages:
          {
             Send(oTempHolder,@Teleport,#what=First(i));
             Post(self,@Teleport,#what=First(i));
+         }
+      }
+      return;
+   }
+   
+   RemoveMonsters()
+   {
+      local i;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&Monster)
+            AND Send(First(i),@GetMaster) = $
+         {
+            Send(First(i),@Delete);
          }
       }
       return;
@@ -159,7 +191,7 @@ messages:
       
       foreach i in plGenerators
       {
-         Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_DRED,#iIntensity=255),#new_row=Nth(i,1),#new_col=Nth(i,2));
+         Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BRED,#iIntensity=255),#new_row=Nth(i,1),#new_col=Nth(i,2));
       }
       return;
    }
