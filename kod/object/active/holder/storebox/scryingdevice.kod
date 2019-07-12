@@ -84,6 +84,12 @@ messages:
       {
          return FALSE;
       }
+      
+      if poChaosStratumRoom <> $
+         AND Send(poChaosStratumRoom,@IsActive)
+      {
+         return FALSE;
+      }
 
       plItemsStored = Send(self,@GetHolderPassive);
       if plItemsStored <> $
@@ -126,6 +132,7 @@ messages:
                                                                             #dest_fine_row=0,
                                                                             #dest_fine_col=0,
                                                                             #glow_color=LIGHT_BPURPLE);
+      Send(poChaosStratumRoom,@SetScryingDevice,#oScryingDevice=self);
 
       if poAnimTarget <> $
       {
@@ -140,6 +147,15 @@ messages:
       
       Send(oCrystal,@Delete);
 
+      return;
+   }
+   
+   ChaosStratumRoomEnded()
+   {
+      if poCurrentPortal <> $
+      {
+         Send(poCurrentPortal,@Delete);
+      }
       return;
    }
    

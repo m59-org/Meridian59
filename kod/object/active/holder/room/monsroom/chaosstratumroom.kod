@@ -39,6 +39,9 @@ resources:
       "but the scrying crystal has brought you to an island of stability... "
       "be warned, for death is very real here."
    ChaosStratum_music = nec02.mp3
+   
+   the_chaos_stratum_ends = \
+      "Reality ripples and returns to normal around you as the nightmare ends... for now."
 
 classvars:
 
@@ -77,6 +80,8 @@ properties:
    piStratumMaxMonstersSpawn = 50
    pbBossSpawned = FALSE
    piBoostChaosLevel = 0
+   
+   poScryingDevice = $
 
 messages:
 
@@ -202,6 +207,45 @@ messages:
       return TRUE;
    }
    
+   BossKilled(who=$)
+   {
+      local i;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&Player)
+         {
+            Send(poBaseRoom,@NewHold,#what=First(i),#new_row=Send(First(i),@GetRow),
+                                                    #new_col=Send(First(i),@GetCol),
+                                                    #fine_row=Send(First(i),@GetFineRow),
+                                                    #fine_col=Send(First(i),@GetFineCol),
+                                                    #new_angle=Send(First(i),@GetAngle));
+            Send(First(i),@MsgSendUser,#message_rsc=the_chaos_stratum_ends);
+         }
+      }
+      
+      foreach i in Send(self,@GetHolderPassive)
+      {
+         if IsClass(First(i),&Item)
+            OR IsClass(First(i),&DeadBody)
+         {
+            Send(poBaseRoom,@NewHold,#what=First(i),#new_row=Send(First(i),@GetRow),
+                                                    #new_col=Send(First(i),@GetCol),
+                                                    #fine_row=Send(First(i),@GetFineRow),
+                                                    #fine_col=Send(First(i),@GetFineCol),
+                                                    #merge=FALSE);
+         }
+      }
+      
+      pbActive = FALSE;
+      if poScryingDevice <> $
+      {
+         Send(poScryingDevice,@ChaosStratumRoomEnded);
+      }
+
+      return;
+   }
+   
    GetLightingColorOverride(what=$)
    {
       return LIGHT_DRED;
@@ -228,7 +272,12 @@ messages:
     %  Send(self,@BootAllUsers);
 
      % Send(Send(SYS,@GetChaosStrataMaintenance),@RoomDeleted,#what=self);
-
+     
+      if poScryingDevice <> $
+      {
+         Send(poScryingDevice,@ChaosStratumRoomEnded);
+      }
+      poScryingDevice = $;
       propagate;
    }
    
@@ -296,6 +345,12 @@ messages:
    IsActive()
    {
       return pbActive;
+   }
+   
+   SetScryingDevice(oScryingDevice=$)
+   {
+      poScryingDevice = oScryingDevice;
+      return;
    }
 
 end
