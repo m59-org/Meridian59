@@ -2893,6 +2893,13 @@ messages:
          iMultiplier = 3;
       }
       
+      if poMaster = $
+         AND poOwner <> $
+         AND IsClass(poOwner,&ChaosStratumRoom)
+      {
+         iDamage = (iDamage * (100+Send(poOwner,@GetAddedMonsterDamage)))/100;
+      }
+      
       % Check for Charmed status.
       iDamage = iDamage - ((iDamage * Send(self,@GetStatusEffect,#type=STATUS_CHARMED))/Bound(Send(self,@GetHealth),1,$));
 
@@ -2932,6 +2939,14 @@ messages:
          {
             return Nth(i,2);
          }
+      }
+      
+      if poMaster = $
+         AND poOwner <> $
+         AND IsClass(poOwner,&ChaosStratumRoom)
+         AND Send(poOwner,@GetMonsterElements) <> $
+      {
+         return Nth(Send(poOwner,@GetMonsterElements),Random(1,Length(Send(poOwner,@GetMonsterElements))));
       }
 
       return viAttack_spell;

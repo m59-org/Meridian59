@@ -99,6 +99,14 @@ properties:
    piQuality = 0
    
    piTier = 1
+   
+   % What elements do monsters deal here?
+   plMonsterElements = $
+   piAddedDamage = 0
+   
+   % What boosts?
+   piMonsterPercentHealthBoost = 0
+   piMonsterResistanceBoost = 0
 
 messages:
 
@@ -159,7 +167,7 @@ messages:
       propagate;
    }
 
-   ChaosShift(iRID=0, boost_chaos_level=0, iTier=1, iQuality=0)
+   ChaosShift(iRID=0, boost_chaos_level=0, iTier=1, iQuality=0, iAddedDamage=0, lElements=$, iMonsterPercentHealthBoost=0, iMonsterResistanceBoost=0)
    {
       local i, oTempHolder;
 
@@ -188,6 +196,11 @@ messages:
       
       piQuality = iQuality;
       piTier = iTier;
+   
+      piAddedDamage = iAddedDamage;
+      plMonsterElements = lElements;
+      piMonsterPercentHealthBoost = iMonsterPercentHealthBoost;
+      piMonsterResistanceBoost = iMonsterResistanceBoost;
       
       foreach i in Send(self,@GetHolderActive)
       {
@@ -198,6 +211,26 @@ messages:
          }
       }
       return;
+   }
+   
+   GetMonsterPercentHealthBoost()
+   {
+      return piMonsterPercentHealthBoost;
+   }
+   
+   GetMonsterResistanceBoost()
+   {
+      return piMonsterResistanceBoost;
+   }
+   
+   GetMonsterElements()
+   {
+      return plMonsterElements;
+   }
+   
+   GetAddedMonsterDamage()
+   {
+      return piAddedDamage;
    }
    
    RemoveMonsters()
@@ -486,5 +519,15 @@ messages:
       return FALSE;
    }
 
+   ChaosModifyResistance(resistance_list=$)
+   {
+      local i;
+      
+      foreach i in resistance_list
+      {
+         SetNth(i,2,Nth(i,2)+piMonsterResistanceBoost);
+      }
+      return resistance_list;
+   }
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

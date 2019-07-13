@@ -482,6 +482,13 @@ messages:
             oGuild, oGuildHall, oRelic, lElementalImbalance;
 
       lCurResist = ListCopy(Send(self,@GetBaseResistances));
+      
+      if IsClass(self,&Monster)
+         AND poOwner <> $
+         AND IsClass(poOwner,&ChaosStratumRoom)
+      {
+         lCurResist = Send(poOwner,@ChaosModifyResistance,#resistance_list=lCurResist);
+      }
 
       foreach lElementalImbalance in Send(self,@GetElementalImbalance)
       {
