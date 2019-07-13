@@ -36,6 +36,8 @@ resources:
       "Through the chaos deep below the earth, you see a small span of solid ground... "
       "only %i steps away, yet a great journey into a realm of dreams and madness. "
       "The crystal shows a shifting and twisted reflection of %s."
+      "\n\nThe extreme danger of the area provides a %i%% chance of finding more "
+      "scrying crystals within, so that the journey toward the heart of the void may continue."
 
 classvars:
    
@@ -96,6 +98,15 @@ messages:
       propagate;
    }
    
+   Constructed()
+   {
+      if Send(self,@GetItemLevel) < 180
+      {
+         Send(self,@SetItemLevel,#iLevel=180+piChaosLevel);
+      }
+      propagate;
+   }
+   
    GetRidBaseRoom()
    {
       return pRidBaseRoom;
@@ -106,7 +117,7 @@ messages:
       return plScryMods;
    }
 
-   ShowDesc()
+   DoBaseDesc()
    {
       local oRoom;
       
@@ -114,7 +125,7 @@ messages:
       
       if oRoom <> $
       {
-         AddPacket(4, ScryingCrystal_desc_with_room_rsc, 4, piChaosLevel, 4,Send(oRoom,@GetName));
+         AddPacket(4, ScryingCrystal_desc_with_room_rsc, 4, piChaosLevel, 4,Send(oRoom,@GetName), 4, Send(Send(SYS,@GetChaosStrataMaintenance),@GetBaseScryingCrystalDropChance) + Send(self,@CalculateQuality));
       }
       else
       {
@@ -143,6 +154,31 @@ messages:
    DestroyDisposable()
    {
       return FALSE;
+   }
+
+   GetPrefixes()
+   {
+      return [[&MobFireDamage,100],
+              [&MobColdDamage,100],
+              [&MobShockDamage,50]];
+   }
+
+   GetSuffixes()
+   {
+      return [[&MobHealth,100],
+              [&MobResists,100]];
+   }
+   
+   CalculateQuality()
+   {
+      local i, iQuality;
+      
+      iQuality = 0;
+      foreach i in Send(self,@GetMagicMods)
+      {
+         iQuality = iQuality + Nth(i,2);
+      }
+      return iQuality;
    }
 
 end

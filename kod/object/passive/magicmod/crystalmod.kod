@@ -1,0 +1,64 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ScryingCrystalMod is MagicMod
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   scrying_crystal_default_name = "increased risk and reward"
+
+classvars:
+
+   viModName = scrying_crystal_default_name
+
+   viElement = ATCK_SPELL_FIRE
+   viModType = MOD_PREFIX
+   viModGroup = GROUP_MOBS_ELEMENTAL_DAMAGE
+
+   viModRangeMin = 1
+   viModRangeMax = 15
+   
+   viPowerDivisor = 20
+
+properties:
+
+   piNumerator = 1
+   piDivisor = 1
+
+messages:
+
+   ModifyElement(aspell=0,iState=0)
+   {
+      if piDivisor = 0
+      {
+         % Avoid div errors
+         piDivisor = 1;
+      }
+      
+      return aspell;
+   }
+
+   GetNumber(iPower=0)
+   {
+      if piDivisor = 0
+      {
+         % Avoid div errors
+         piDivisor = 1;
+      }
+
+      return bound((iPower*piNumerator)/piDivisor,1,$);
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

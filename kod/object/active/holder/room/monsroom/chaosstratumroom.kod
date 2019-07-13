@@ -46,6 +46,12 @@ resources:
    chaos_stratum_boss_appeared = \
       "~BNightmare coalesces into the form of a much more dangerous monster!"
 
+   you_got_a_crystal = \
+      "~BYou find a scrying crystal showing an island of stability %i steps into madness..."
+      
+   you_got_a_dye_bottle = \
+      "~BAn essence of color itself coalesces out of nightmare and into your hands!"
+
 classvars:
 
    vrName = ChaosStratumRoom_name
@@ -249,16 +255,17 @@ messages:
          oCrystal = Create(&QorCharm);
          Send(who,@NewHold,#what=oCrystal);
       }
-      else if Random(1,100) <= 33 + piQuality
+      else if Random(1,100) <= Send(Send(SYS,@GetChaosStrataMaintenance),@GetBaseScryingCrystalDropChance) + piQuality
       {
-         oCrystal = Create(&ScryingCrystal,#iTier=Bound(piTier+Random(-1,1),1,5),#iChaosLevel=piBoostChaosLevel+1);
+         oCrystal = Create(&ScryingCrystal,#iTier=Bound(piTier+Random(-1,1),1,5),#iChaosLevel=piBoostChaosLevel+1,#level=180+piBoostChaosLevel);
          Send(who,@NewHold,#what=oCrystal);
       
          if piQuality >= 100
             AND Random(1,100) <= piQuality - 100
          {
-            oCrystal = Create(&ScryingCrystal,#iTier=Bound(piTier+Random(-1,1),1,5),#iChaosLevel=piBoostChaosLevel+1);
+            oCrystal = Create(&ScryingCrystal,#iTier=Bound(piTier+Random(-1,1),1,5),#iChaosLevel=piBoostChaosLevel+1,#level=180+piBoostChaosLevel);
             Send(who,@NewHold,#what=oCrystal);
+            Send(who,@MsgSendUser,#message_rsc=you_got_a_crystal,#parm1=Send(oCrystal,@GetChaosLevel));
          }
       }
 
@@ -266,6 +273,7 @@ messages:
       {
          Send(SETTINGS_OBJECT,@DyeDropped);
          Send(who,@NewHold,#what=Create(&DyeBottle));
+         Send(who,@MsgSendUser,#message_rsc=you_got_a_dye_bottle);
       }
       
       foreach i in Send(self,@GetHolderActive)

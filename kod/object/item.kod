@@ -139,6 +139,11 @@ resources:
    punch_empowerment_mod_desc = "\n+%i\% punch damage"
    weapon_empowerment_mod_desc = "\n+%i\% weapon damage"
    magic_empowerment_mod_desc = "\n+%i\% magic damage"
+   mob_fire_damage_desc = "\n+%i%% percent monster damage as fire"
+   mob_cold_damage_desc = "\n+%i%% percent monster damage as cold"
+   mob_shock_damage_desc = "\n+%i%% percent monster damage as shock"
+   mob_health_mod_desc = "\nMonsters have +%i%% health"
+   mob_resists_mod_desc = "\nMonsters have +%i%% resistances"
  
    enchantment_mods_attribute_rsc = \
       "\n\nThis %s has %i %s."
@@ -3705,6 +3710,26 @@ messages:
          else if First(lMod) = &MagicEmpowermentMod
          {
             AddPacket(4,magic_empowerment_mod_desc, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
+         else if First(lMod) = &MobFireDamage
+         {
+            AddPacket(4,mob_fire_damage_desc, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
+         else if First(lMod) = &MobColdDamage
+         {
+            AddPacket(4,mob_cold_damage_desc, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
+         else if First(lMod) = &MobShockDamage
+         {
+            AddPacket(4,mob_shock_damage_desc, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
+         else if First(lMod) = &MobHealth
+         {
+            AddPacket(4,mob_health_mod_desc, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
+         else if First(lMod) = &MobResists
+         {
+            AddPacket(4,mob_resists_mod_desc, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
          }
          else
          {

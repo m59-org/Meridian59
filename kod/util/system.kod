@@ -6709,6 +6709,12 @@ messages:
       plMagicMods = Cons(Create(&HealthMod),plMagicMods);
       plMagicMods = Cons(Create(&ManaMod),plMagicMods);
       plMagicMods = Cons(Create(&VigorMod),plMagicMods);
+      
+      plMagicMods = Cons(Create(&MobFireDamage),plMagicMods);
+      plMagicMods = Cons(Create(&MobColdDamage),plMagicMods);
+      plMagicMods = Cons(Create(&MobShockDamage),plMagicMods);
+      plMagicMods = Cons(Create(&MobHealth),plMagicMods);
+      plMagicMods = Cons(Create(&MobResists),plMagicMods);
 
       return;
    }
@@ -6812,6 +6818,19 @@ messages:
          OR class = &PunchEmpowermentMod
       {
          return GROUP_EMPOWERMENT;
+      }
+      
+      if class = &MobFireDamage
+         OR class = &MobColdDamage
+         OR class = &MobShockDamage
+      {
+         return GROUP_MOBS_ELEMENTAL_DAMAGE;
+      }
+      
+      if class = &MobHealth
+         OR class = &MobResists
+      {
+         return GROUP_MOBS_DEFENSES;
       }
 
       return $;
