@@ -160,7 +160,9 @@ messages:
    {
       return [[&MobFireDamage,100],
               [&MobColdDamage,100],
-              [&MobShockDamage,50]];
+              [&MobShockDamage,100],
+              [&MobAttackSpeed,100],
+              [&MobMoveSpeed,100]];
    }
 
    GetSuffixes()
@@ -176,7 +178,14 @@ messages:
       iQuality = 0;
       foreach i in Send(self,@GetMagicMods)
       {
-         iQuality = iQuality + Nth(i,2);
+         if Send(SYS,@GetGroupOfClassMod,#class=Nth(i,1)) = GROUP_MOBS_SPEED
+         {
+            iQuality = iQuality + Nth(i,2)/10;
+         }
+         else
+         {
+            iQuality = iQuality + Nth(i,2)*2;
+         }
       }
       return iQuality;
    }

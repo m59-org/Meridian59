@@ -6710,6 +6710,8 @@ messages:
       plMagicMods = Cons(Create(&ManaMod),plMagicMods);
       plMagicMods = Cons(Create(&VigorMod),plMagicMods);
       
+      plMagicMods = Cons(Create(&MobAttackSpeed),plMagicMods);
+      plMagicMods = Cons(Create(&MobMoveSpeed),plMagicMods);
       plMagicMods = Cons(Create(&MobFireDamage),plMagicMods);
       plMagicMods = Cons(Create(&MobColdDamage),plMagicMods);
       plMagicMods = Cons(Create(&MobShockDamage),plMagicMods);
@@ -6831,6 +6833,12 @@ messages:
          OR class = &MobResists
       {
          return GROUP_MOBS_DEFENSES;
+      }
+      
+      if class = &MobAttackSpeed
+         OR class = &MobMoveSpeed
+      {
+         return GROUP_MOBS_SPEED;
       }
 
       return $;

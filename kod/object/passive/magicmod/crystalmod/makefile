@@ -9,6 +9,8 @@ BOFS = mobfiredamage.bof \
        mobcolddamage.bof \
        mobshockdamage.bof \
        mobhealth.bof \
-       mobresists.bof
+       mobresists.bof \
+       mobattackspeed.bof \
+       mobmovespeed.bof
 
 !include $(KODDIR)\kod.mak

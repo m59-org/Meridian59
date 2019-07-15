@@ -107,6 +107,9 @@ properties:
    % What boosts?
    piMonsterPercentHealthBoost = 0
    piMonsterResistanceBoost = 0
+   
+   piMonsterAttackSpeed = 0
+   piMonsterMoveSpeed = 0
 
 messages:
 
@@ -206,7 +209,8 @@ messages:
       return [&ChaosThreat];
    }
 
-   ChaosShift(iRID=0, boost_chaos_level=0, iTier=1, iQuality=0, iAddedDamage=0, lElements=$, iMonsterPercentHealthBoost=0, iMonsterResistanceBoost=0)
+   ChaosShift(iRID=0, boost_chaos_level=0, iTier=1, iQuality=0, iAddedDamage=0, lElements=$, iMonsterPercentHealthBoost=0, iMonsterResistanceBoost=0,
+              iMonsterAttackSpeed=0, iMonsterMoveSpeed=0)
    {
       local i, oTempHolder;
 
@@ -239,6 +243,8 @@ messages:
       plMonsterElements = lElements;
       piMonsterPercentHealthBoost = iMonsterPercentHealthBoost;
       piMonsterResistanceBoost = iMonsterResistanceBoost;
+      piMonsterAttackSpeed = iMonsterAttackSpeed;
+      piMonsterMoveSpeed = iMonsterMoveSpeed;
       
       foreach i in Send(self,@GetHolderActive)
       {
@@ -249,6 +255,16 @@ messages:
          }
       }
       return;
+   }
+   
+   GetMonsterAttackSpeed()
+   {
+      return piMonsterAttackSpeed;
+   }
+   
+   GetMonsterMoveSpeed()
+   {
+      return piMonsterMoveSpeed;
    }
    
    GetMonsterPercentHealthBoost()

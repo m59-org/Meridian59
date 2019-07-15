@@ -105,7 +105,8 @@ messages:
 
    OpenChaosStratum(what=$,who=$,oCrystal=$)
    {
-      local i, each_obj, iCount, oLeagueMaint, oPortal, oRoom, oAnimTarget, lElements, iHealthBoost, iResistanceBoost, iAddedDamage;
+      local i, each_obj, iCount, oLeagueMaint, oPortal, oRoom, oAnimTarget, lElements, iHealthBoost, iResistanceBoost, iAddedDamage,
+            iMonsterAttackSpeed, iMonsterMoveSpeed;
 
       piPortalCharge = 0;
 
@@ -127,6 +128,8 @@ messages:
       iHealthBoost = 0;
       iResistanceBoost = 0;
       iAddedDamage = 0;
+      iMonsterAttackSpeed = 0;
+      iMonsterMoveSpeed = 0;
       foreach i in Send(oCrystal,@GetMagicMods)
       {
          if First(i) = &MobHealth
@@ -152,6 +155,14 @@ messages:
             lElements = Cons(ATCK_SPELL_SHOCK,lElements);
             iAddedDamage = iAddedDamage + Nth(i,2);
          }
+         if First(i) = &MobAttackSpeed
+         {
+            iMonsterAttackSpeed = Send(Send(SYS,@GetMagicMod,#class=First(i)),@GetNumber,#iPower=Nth(i,2));
+         }
+         if First(i) = &MobMoveSpeed
+         {
+            iMonsterMoveSpeed = Send(Send(SYS,@GetMagicMod,#class=First(i)),@GetNumber,#iPower=Nth(i,2));
+         }
       }
 
       poChaosStratumRoom = Send(SYS,@FindRoomByNum,#num=RID_CHAOS_STRATA_START);
@@ -162,7 +173,9 @@ messages:
                                           #iAddedDamage=iAddedDamage,
                                           #lElements=lElements,
                                           #iMonsterPercentHealthboost=iHealthBoost,
-                                          #iMonsterResistanceBoost=iResistanceBoost);
+                                          #iMonsterResistanceBoost=iResistanceBoost,
+                                          #iMonsterAttackSpeed=iMonsterAttackSpeed,
+                                          #iMonsterMoveSpeed=iMonsterMoveSpeed);
       poCurrentPortal = Create(&ChaosStratumPortal,#lLocation=[RID_CHAOS_STRATA_START, Send(poChaosStratumRoom,@GetTeleportRow), Send(poChaosStratumRoom,@GetTeleportCol), 32, 32],#glow_intensity=255);
       Send(poCurrentPortal,@SetDestination,#dest_room_num=RID_CHAOS_STRATA_START,#dest_angle=0,
                                                                             #dest_row=Send(poChaosStratumRoom,@GetTeleportRow),

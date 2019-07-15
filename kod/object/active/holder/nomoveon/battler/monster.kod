@@ -1365,6 +1365,19 @@ messages:
 
       Send(poBrain,@NewOwner,#mob=self,#state=piState,#what=what);
       
+      if what <> $
+         AND IsClass(what,&ChaosStratumRoom)
+      {
+         if Send(what,@GetMonsterAttackSpeed) > 0
+         {
+            piAttackSpeed = (piAttackSpeed * (100+Send(what,@GetMonsterAttackSpeed)))/100;
+         }
+         if Send(what,@GetMonsterMoveSpeed) > 0
+         {
+            piMoveSpeed = (piMoveSpeed * (100+Send(what,@GetMonsterMoveSpeed)))/100;
+         }
+      }
+      
       if NOT ((piBehavior & AI_NOFIGHT) OR (piBehavior & AI_NPC))
          AND viCanSpawnAsChampion
          AND IsClass(what,&Room)

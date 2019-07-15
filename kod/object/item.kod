@@ -139,9 +139,11 @@ resources:
    punch_empowerment_mod_desc = "\n+%i\% punch damage"
    weapon_empowerment_mod_desc = "\n+%i\% weapon damage"
    magic_empowerment_mod_desc = "\n+%i\% magic damage"
-   mob_fire_damage_desc = "\n+%i%% percent monster damage as fire"
-   mob_cold_damage_desc = "\n+%i%% percent monster damage as cold"
-   mob_shock_damage_desc = "\n+%i%% percent monster damage as shock"
+   mob_fire_damage_desc = "\n+%i%% monster damage as fire"
+   mob_cold_damage_desc = "\n+%i%% monster damage as cold"
+   mob_shock_damage_desc = "\n+%i%% monster damage as shock"
+   mob_attack_speed_desc = "\n+%i%% monster attack speed"
+   mob_move_speed_desc = "\n+%i%% monster move speed"
    mob_health_mod_desc = "\nMonsters have +%i%% health"
    mob_resists_mod_desc = "\nMonsters have +%i%% resistances"
  
@@ -3730,6 +3732,14 @@ messages:
          else if First(lMod) = &MobResists
          {
             AddPacket(4,mob_resists_mod_desc, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
+         else if First(lMod) = &MobAttackSpeed
+         {
+            AddPacket(4,mob_attack_speed_desc, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
+         else if First(lMod) = &MobMoveSpeed
+         {
+            AddPacket(4,mob_move_speed_desc, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
          }
          else
          {
