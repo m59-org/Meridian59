@@ -74,7 +74,7 @@ properties:
    piInit_count_max = 40
    piMonster_count_max = 100
 
-   piChaosZone = TRUE
+   piChaosZone = FALSE
 
    plBosses = $
    plFixedRewards = $
@@ -115,14 +115,14 @@ messages:
       poBaseRoom = Send(SYS,@FindRoomByNum,#num=RID_TOS_CRYPT);
       prRoom = Send(poBaseRoom,@GetRoomResource);
 
-      if iPvP
-      {
-         piChaosZone = TRUE;
-      }
-      else
-      {
-         Post(self,@SetRoomFlag,#flag=ROOM_NO_PK,#value=TRUE);
-      }
+%      if iPvP
+%      {
+%         piChaosZone = TRUE;
+%      }
+%      else
+%      {
+%         Post(self,@SetRoomFlag,#flag=ROOM_NO_PK,#value=TRUE);
+%      }
 
       plGenerators = Send(poBaseRoom,@GetGenerators);
 
@@ -166,6 +166,11 @@ messages:
       Post(self,@ChaosShift,#iRID=RID_TOS_CRYPT,#boost_chaos_level=40,#iTier=1,#iQuality=0);
       propagate;
    }
+   
+   GetPhaseThreats()
+   {
+      return [&ChaosThreat];
+   }
 
    ChaosShift(iRID=0, boost_chaos_level=0, iTier=1, iQuality=0, iAddedDamage=0, lElements=$, iMonsterPercentHealthBoost=0, iMonsterResistanceBoost=0)
    {
@@ -191,7 +196,7 @@ messages:
       
       piBoostChaosLevel = boost_chaos_level;
       
-      piKillsRemaining = 60 + piBoostChaosLevel;
+      piKillsRemaining = piBoostChaosLevel;
       pbBossSpawned = FALSE;
       
       piQuality = iQuality;
