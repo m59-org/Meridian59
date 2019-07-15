@@ -162,12 +162,27 @@ messages:
 
    SomethingMoved(what = $,new_row = $, new_col = $)
    {
+      local oChaosStrata, oRoom;
+
       if (new_row > 83) and (new_col > 48)
       {
-         Send(SYS,@UtilGoNearSquare,#what=what,
-              #where=Send(SYS,@FindRoomByNum,#num=RID_C5),
+         oRoom = Send(SYS,@FindRoomByNum,#num=RID_C5);
+         
+         oChaosStrata = Send(SYS,@FindRoomByNum,#num=RID_CHAOS_STRATA_START);
+         if Send(oChaosStrata,@IsActive)
+            AND Send(oChaosStrata,@GetBaseRoom) = oRoom
+            AND Send(what,@GetNumReincarnations) >= Send(SETTINGS_OBJECT,@GetMinChaosStrataReincarnations)
+         {
+            Send(SYS,@UtilGoNearSquare,#what=what,
+              #where=oChaosStrata,
               #new_row=3,#new_col=23,#new_angle=ANGLE_SOUTH_WEST);
-              
+         }
+         else
+         {
+            Send(SYS,@UtilGoNearSquare,#what=what,
+                 #where=oRoom,
+                 #new_row=3,#new_col=23,#new_angle=ANGLE_SOUTH_WEST);
+         }
          return;
       }
 
