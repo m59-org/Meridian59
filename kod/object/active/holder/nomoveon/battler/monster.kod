@@ -7507,6 +7507,126 @@ messages:
          }
       }
 
+      % Add shards to chaos stratum treasure
+      if piChaosLevel > 0
+      {
+         iNumShards = Random(-5,piChaosLevel/40);
+         
+         if poOwner <> $
+            AND Send(poOwner,@IsBoss,#what=self)
+         {
+            iNumShards = 4 + piChaosLevel/40;
+         }
+
+         if Send(self,@GetLevel) < 50
+         {
+            --iNumShards;
+         }
+         if Send(self,@GetLevel) < 100
+         {
+            --iNumShards;
+         }
+         if Send(self,@GetLevel) < 150
+         {
+            --iNumShards;
+         }
+         while iNumShards > 0
+         {
+            iRand = Random(1,Send(SETTINGS_OBJECT,@GetEmpowerShardProbability)/100);
+            if iRand = 1
+            {
+               oShard = Create(&ShardEmpowerment);
+            }
+            else
+            {
+               iRand = Random(1,Send(SETTINGS_OBJECT,@GetMajorShardProbability)/100);
+               if iRand = 1
+               {
+                  oShard = Create(&ShardImbueMajor);
+               }
+               else
+               {
+                  iRand = Random(1,Send(SETTINGS_OBJECT,@GetDrainShardProbability)/100);
+                  if iRand = 1
+                  {
+                     oShard = Create(&ShardRemove);
+                  }
+                  else
+                  {
+                     iRand = Random(1,Send(SETTINGS_OBJECT,@GetAugmentShardProbability)/100);
+                     if iRand = 1
+                     {
+                        oShard = Create(&ShardAugment);
+                     }
+                     else
+                     {
+                        if IsClass(poOwner,&DesertRoom)
+                           OR IsClass(poOwner,&MinotaurMazeRoom)
+                           OR IsClass(poOwner,&AncientTomb1)
+                        {
+                           iRand = Random(1,Send(SETTINGS_OBJECT,@GetInstillingShardProbability)/10);
+                           if iRand = 1
+                           {
+                              oShard = Create(&ShardReroll);
+                           }
+                           else
+                           {
+                              iRand = Random(1,Send(SETTINGS_OBJECT,@GetImprovementShardProbability)/10);
+                              if iRand = 1
+                              {
+                                 oShard = Create(&ShardImprovement);
+                              }
+                              else
+                              {
+                                 iRand = Random(1,Send(SETTINGS_OBJECT,@GetDisruptionShardProbability)/10);
+                                 if iRand = 1
+                                 {
+                                    oShard = Create(&ShardReImbueMajor);
+                                 }
+                                 else
+                                 {
+                                    oShard = Create(&ShardReImbueMinor);
+                                 }
+                              }
+                           }
+                        }
+                        else
+                        {
+                           oShard = Create(&ShardImbueMinor);
+                        }
+                     }
+                  }
+               }
+            }
+            
+            lTreasureItems = Cons(oShard,lTreasureItems);
+            --iNumShards;
+         }
+         
+         if poOwner <> $
+            AND Send(poOwner,@IsBoss,#what=self)
+         {
+            if piChaosLevel = 140
+            {
+               lTreasureItems = Cons(Create(&QorCharm),lTreasureItems);
+            }
+            else if Random(1,100) <= Send(Send(SYS,@GetChaosStrataMaintenance),@GetBaseScryingCrystalDropChance) + Send(poOwner,@GetQuality)
+            {
+               lTreasureItems = Cons(Create(&ScryingCrystal,#iTier=Bound(Send(poOwner,@GetTier)+Random(-1,1),1,5),
+                                                            #iChaosLevel=piChaosLevel+1,
+                                                            #level=180+piChaosLevel),lTreasureItems);
+      
+               if Send(poOwner,@GetQuality) >= 100
+                  AND Random(1,100) <= Send(poOwner,@GetQuality) - 100
+               {
+                  lTreasureItems = Cons(Create(&ScryingCrystal,#iTier=Bound(Send(poOwner,@GetTier)+Random(-1,1),1,5),
+                                                               #iChaosLevel=piChaosLevel+1,
+                                                               #level=180+piChaosLevel),lTreasureItems);
+               }
+            }
+         }
+      }
+
       iNumberOfItemsDropped = 0;
       iNumberOfItemsLooted = 0;
       bCapacityFailure = FALSE;
@@ -8903,6 +9023,7 @@ messages:
       
       if poOwner <> $
          AND IsClass(poOwner,&ChaosStratumRoom)
+         AND NOT IsClass(poOwner,&OutdoorsF8)
       {
          AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC));
          AddPacket(1,50);

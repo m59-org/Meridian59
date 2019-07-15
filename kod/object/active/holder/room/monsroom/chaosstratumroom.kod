@@ -153,6 +153,40 @@ messages:
                         [&KriipaMask,95],
                         [&CowMask,125],
                         [&QorCharm,140]];
+      
+      plMonsters = $;
+      plMonsters = Cons([&GiantRat,3],plMonsters);
+      plMonsters = Cons([&XeoHoly,2],plMonsters);
+      plMonsters = Cons([&Centipede,3],plMonsters);
+      plMonsters = Cons([&EvilFairy,2],plMonsters);
+      plMonsters = Cons([&FungusBeast,2],plMonsters);
+      plMonsters = Cons([&SpectralMummy,2],plMonsters);
+      plMonsters = Cons([&Slime,2],plMonsters);
+      plMonsters = Cons([&Zombie,2],plMonsters);
+      plMonsters = Cons([&Spider,2],plMonsters);
+      plMonsters = Cons([&Scorpion,2],plMonsters);
+      plMonsters = Cons([&BatteredSkeleton,2],plMonsters);
+      plMonsters = Cons([&Skeleton,2],plMonsters);
+      plMonsters = Cons([&RedAnt,2],plMonsters);
+      plMonsters = Cons([&Troll,2],plMonsters);
+      plMonsters = Cons([&GroundWorm,2],plMonsters);
+      plMonsters = Cons([&CaveOrc,2],plMonsters);
+      plMonsters = Cons([&OrcWizard,2],plMonsters);
+      plMonsters = Cons([&XeoFire,2],plMonsters);
+      plMonsters = Cons([&TuskedSkeleton,2],plMonsters);
+      plMonsters = Cons([&Lupogg,2],plMonsters);
+      plMonsters = Cons([&DeathSpider,2],plMonsters);
+      plMonsters = Cons([&DragonFly,2],plMonsters);
+      plMonsters = Cons([&Avar,2],plMonsters);
+      plMonsters = Cons([&DuskRat,2],plMonsters);
+      plMonsters = Cons([&EvilEnt,2],plMonsters);
+      plMonsters = Cons([&Iceperson,2],plMonsters);
+      plMonsters = Cons([&MolluskMonster,2],plMonsters);
+      plMonsters = Cons([&NarthylWorm,2],plMonsters);
+      plMonsters = Cons([&DaemonSkeleton,2],plMonsters);
+      plMonsters = Cons([&AvarChieftain,2],plMonsters);
+      plMonsters = Cons([&GiantRatSoldier,2],plMonsters);
+      plMonsters = Cons([&StoneTroll,2],plMonsters);
 
       Send(self,@SetExits);
 
@@ -191,8 +225,6 @@ messages:
 %      Send(self,@StartChaosRealm);
       
       oTempHolder = Send(SYS,@FindRoomByNum,#num=RID_HERMIT_HUT);
-      
-      plMonsters = Send(poBaseRoom,@GetMonsterList);
       
       piBoostChaosLevel = boost_chaos_level;
       
@@ -287,26 +319,7 @@ messages:
    
    BossKilled(who=$,what=$)
    {
-      local i, oCrystal, iRoll;
-
-      if piBoostChaosLevel = 140
-      {
-         oCrystal = Create(&QorCharm);
-         Send(who,@NewHold,#what=oCrystal);
-      }
-      else if Random(1,100) <= Send(Send(SYS,@GetChaosStrataMaintenance),@GetBaseScryingCrystalDropChance) + piQuality
-      {
-         oCrystal = Create(&ScryingCrystal,#iTier=Bound(piTier+Random(-1,1),1,5),#iChaosLevel=piBoostChaosLevel+1,#level=180+piBoostChaosLevel);
-         Send(who,@NewHold,#what=oCrystal);
-      
-         if piQuality >= 100
-            AND Random(1,100) <= piQuality - 100
-         {
-            oCrystal = Create(&ScryingCrystal,#iTier=Bound(piTier+Random(-1,1),1,5),#iChaosLevel=piBoostChaosLevel+1,#level=180+piBoostChaosLevel);
-            Send(who,@NewHold,#what=oCrystal);
-            Send(who,@MsgSendUser,#message_rsc=you_got_a_crystal,#parm1=Send(oCrystal,@GetChaosLevel));
-         }
-      }
+      local i;
 
       if Random(1,100) <= Send(SETTINGS_OBJECT,@GetDyeChance)
       {
@@ -535,5 +548,16 @@ messages:
       }
       return resistance_list;
    }
+   
+   GetQuality()
+   {
+      return piQuality;
+   }
+   
+   GetTier()
+   {
+      return piTier;
+   }
+
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
