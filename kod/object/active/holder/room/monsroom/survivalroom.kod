@@ -165,6 +165,7 @@ properties:
 
    % of the form [player,timer]
    plCrashProtection = $
+   ptCrashedOutTimer = $
 
    % Combat has not yet begun
    piHasBegun = FALSE
@@ -1252,6 +1253,11 @@ messages:
          DeleteTimer(ptRespawnMiniBossTimer);
          ptRespawnMiniBossTimer = $;
       }
+      if ptCrashedOutTimer <> $
+      {
+         DeleteTimer(ptCrashedOutTimer);
+         ptCrashedOutTimer = $;
+      }
       
       plLivesPerPlayer = $;
 
@@ -1596,6 +1602,12 @@ messages:
    FirstUserEntered()
    {
       local i;
+      
+      if ptCrashedOutTimer <> $
+      {
+         DeleteTimer(ptCrashedOutTimer);
+         ptCrashedOutTimer = $;
+      }
 
       if piPublic
       {
@@ -1619,9 +1631,25 @@ messages:
 
    LastUserLeft()
    {
-      Post(self,@Delete);
+      if piLives > 0
+         AND piLevel > 20
+      {
+      }
+      else
+      {
+         Post(self,@Delete);
+      }
 
       propagate;
+   }
+   
+   CrashedOut(timer=$)
+   {
+      ptCrashedOutTimer = $;
+      
+      Post(self,@Delete);
+      
+      return;
    }
 
    CanHavePlayerPortal(who = $)
