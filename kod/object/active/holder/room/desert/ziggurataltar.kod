@@ -110,7 +110,18 @@ messages:
    
    GetPhaseThreats()
    {
-      return [&ChaosThreat];
+      return [&ChaosThreat, &PhaseThreat];
+   }
+   
+   SpecialPhaseConditionsSatisfied(sector=0)
+   {
+      % Special Phase conditions
+      if pbCrystalBeingKilled
+      {
+         return TRUE;
+      }
+
+      return FALSE;
    }
 
    PopulateArea()
