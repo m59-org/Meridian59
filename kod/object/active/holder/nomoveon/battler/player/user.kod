@@ -647,6 +647,9 @@ properties:
 
    % Players can choose hexes to deliver with attacks if they are Iwodach 4, Noxious Strike
    plNoxiousStrikeChosenHexes = $
+   
+   % Of the form [monster class, loyalty, health min, health max, champion status]
+   plSavedMinions = $
 
 messages:
 
@@ -1049,6 +1052,8 @@ messages:
       {
          Send(self,@MsgSendUser,#message_rsc=master_while_offline);
       }
+      
+      Post(self,@LoadMinionsOnLogOn);
 
       return;
    }
@@ -1209,6 +1214,61 @@ messages:
 
       poSession = $;%
 
+      return;
+   }
+
+   SaveMinionOnLogoff(oMonster=$)
+   {
+      plSavedMinions = Cons([GetClass(oMonster),
+                             Send(oMonster,@GetLoyalty),
+                             Send(oMonster,@GetExactHealth),
+                             Send(oMonster,@ReturnMaxHitPoints),
+                             Send(oMonster,@GetChampStatus)],plSavedMinions);
+   % Of the form [monster class, loyalty, health min, health max, champion status]
+      return;
+   }
+   
+   ReportSavedMinions()
+   {
+      local lMonsterData;
+      
+      foreach lMonsterData in plSavedMinions
+      {
+         Debug(Nth(lMonsterData,1));
+         Debug(Nth(lMonsterData,2));
+         Debug(Nth(lMonsterData,3));
+         Debug(Nth(lMonsterData,4));
+         Debug(Nth(lMonsterData,5));
+      }
+      return;
+   }
+
+   LoadMinionsOnLogOn()
+   {
+      local lMonsterData, oMonster;
+      
+      foreach lMonsterData in plSavedMinions
+      {
+         oMonster = Create(Nth(lMonsterData,1));
+         Send(oMonster,@SetMaster,#oMaster=self);
+         Send(poOwner,@NewHold,#what=oMonster,#new_row=Send(self,@GetRow),
+                                          #new_col=Send(self,@GetCol),
+                                          #fine_row=Send(self,@GetFineRow),
+                                          #fine_col=Send(self,@GetFineCol));
+         Send(oMonster,@GainChampionStatus,#iType=Nth(lMonsterData,5));
+         Send(oMonster,@SetMaxHitPoints,#amount=Nth(lMonsterData,4));
+         Send(oMonster,@SetHealth,#amount=Nth(lMonsterData,3));
+         Send(oMonster,@AddLoyalty,#amount=Nth(lMonsterData,2));
+
+         % Set initial minion behavior
+         Send(oMonster,@ResetBehaviorFlags);
+         Send(oMonster,@SetBehaviorFlag,#flag=AI_MOVE_FOLLOW_MASTER,#value=TRUE);
+         Send(oMonster,@SetBehaviorFlag,#flag=AI_FIGHT_AGGRESSIVE,#value=FALSE);
+         Send(oMonster,@SetBehaviorFlag,#flag=AI_FIGHT_NEWBIESAFE);
+         Send(oMonster,@SetBehaviorFlag,#flag=AI_FIGHT_MONSTERS);
+      }
+      
+      plSavedMinions = $;
       return;
    }
 

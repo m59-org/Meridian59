@@ -1623,9 +1623,11 @@ messages:
             if IsClass(poMaster,&Player)
                AND NOT Send(poMaster,@IsLoggedOn)
             {
+               Send(poMaster,@SaveMinionOnLogoff,#oMonster=self);
                % Send this rather than post, otherwise the master's
                % piMonsterChasers isn't updated properly.
                Send(self,@SetMaster,#oMaster=$);
+               Post(self,@Delete);
             }
          }
       }
@@ -6398,6 +6400,12 @@ messages:
       return;
    }
 
+   SetHealth(amount=0)
+   {
+      piHit_points = amount;
+      return;
+   }
+
    % Returns the number of remaining hit points.
    GetHealth()
    {
@@ -9409,6 +9417,14 @@ messages:
    BreakAllegiance()
    {
       local oPreviousMaster;
+      
+      if ptLoyaltyTimer <> $
+      {
+         DeleteTimer(ptLoyaltyTimer);
+         ptLoyaltyTimer = $;
+      }
+      
+      piLoyalty = 0;
 
       if poMaster <> $
       {
