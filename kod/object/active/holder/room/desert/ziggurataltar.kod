@@ -175,10 +175,18 @@ messages:
    {
       if what <> $
          AND IsClass(what,&User)
-%         AND Send(what,@GetVeckaAdvice)
-         AND NOT pbHighSorcerersDefeated
       {
-         Send(what,@MsgSendUser,#message_rsc=high_sorcerers_challenge_msg);
+         if NOT pbHighSorcerersDefeated
+         {
+            Send(what,@MsgSendUser,#message_rsc=high_sorcerers_challenge_msg);
+         }
+         if NOT pbCrystalBeingKilled
+         {
+            if Send(what,@GetOwner) = $
+            {
+               Post(Send(SYS,@FindRoomByNum,#num=RID_PALACE_DUNGEON_ENTRANCE),@Teleport,#what=what);
+            }
+         }
          Send(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@StopHiding,#who=what);
          Send(Send(SYS,@FindSkillByNum,#num=SKID_SNEAK),@StopSneaking,#who=what);
          Send(Send(SYS,@FindSkillByNum,#num=SKID_SPY),@StopSpying,#who=what);
