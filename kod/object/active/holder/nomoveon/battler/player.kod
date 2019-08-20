@@ -6477,7 +6477,11 @@ messages:
                   #parm2=Send(victim,@GetName));
          }
 
-         return FALSE;
+
+         if NOT IsClass(oRoom,&GuildHall)
+         {
+            return FALSE;
+         }
       }
       
       if IsClass(victim,&Player)
@@ -17486,8 +17490,7 @@ messages:
       }
 
       if IsClass(oRoom,&GuildHall)
-         AND (NOT (piFlags & PFLAG_PKILL_ENABLE)
-            OR (piFlags & PFLAG_TEMPSAFE))
+         AND (NOT (piFlags & PFLAG_PKILL_ENABLE))
       {
          Send(self,@MsgSendUser,#message_rsc=player_no_enter);
 
