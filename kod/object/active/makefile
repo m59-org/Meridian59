@@ -8,7 +8,7 @@ DEPEND = ..\active.bof
 BOFS = holder.bof portal.bof poscache.bof spidtree.bof logghost.bof hotplate.bof \
 	listener.bof flag.bof wallelem.bof radiustotem.bof radiustotempassive.bof \
    radiustotemguildhall.bof waveelem.bof moveghost.bof bomb.bof \
-   invisibleobject.bof
+   invisibleobject.bof questmarker.bof pathmarker.bof
 
 
 !include $(KODDIR)\kod.mak
