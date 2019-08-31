@@ -5,6 +5,6 @@
 !include $(TOPDIR)\common.mak
 
 DEPEND = ..\mace.bof
-BOFS = flail.bof
+BOFS = flail.bof castermace.bof
 
 !include $(KODDIR)\kod.mak

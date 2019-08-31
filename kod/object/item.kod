@@ -139,6 +139,8 @@ resources:
    punch_empowerment_mod_desc = "\n+%i\% punch damage"
    weapon_empowerment_mod_desc = "\n+%i\% weapon damage"
    magic_empowerment_mod_desc = "\n+%i\% magic damage"
+   illusion_empowerment_mod_desc = "\n+%i\% illusion damage"
+   charm_empowerment_mod_desc = "\n+%i\% charm damage"
    mob_fire_damage_desc = "\n+%i%% monster damage as fire"
    mob_cold_damage_desc = "\n+%i%% monster damage as cold"
    mob_shock_damage_desc = "\n+%i%% monster damage as shock"
@@ -3712,6 +3714,14 @@ messages:
          else if First(lMod) = &MagicEmpowermentMod
          {
             AddPacket(4,magic_empowerment_mod_desc, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
+         else if First(lMod) = &IllusionEmpowermentMod
+         {
+            AddPacket(4,illusion_empowerment_mod_desc, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
+         else if First(lMod) = &CharmEmpowermentMod
+         {
+            AddPacket(4,charm_empowerment_mod_desc, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
          }
          else if First(lMod) = &MobFireDamage
          {

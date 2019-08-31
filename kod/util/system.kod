@@ -348,6 +348,8 @@ resources:
    unholy_empowerment_name = "increased unholy damage"
    quake_empowerment_name = "increased quake damage"
    unknown_empowerment_name = "increased unknown damage"
+   illusion_empowerment_name = "increased illusion damage"
+   charm_empowerment_name = "increased charm damage"
 
    weapon_damage_name = "weapon"
    pierce_damage_name = "pierce"
@@ -368,6 +370,7 @@ resources:
    silver_damage_name = "silver"
    unknown_damage_name = "unknown"
    illusion_damage_name = "illusion"
+   charm_damage_name = "charm"
    punch_damage_name = "punch"
 
    inventory_weapon_class_name = "weapons"
@@ -6511,6 +6514,7 @@ messages:
       plItemTemplates = cons(create(&Maul),plItemTemplates);
       plItemTemplates = cons(create(&Mace),plItemTemplates);
       plItemTemplates = cons(create(&Flail),plItemTemplates);
+      plItemTemplates = cons(create(&CasterMace),plItemTemplates);
       plItemTemplates = cons(create(&BanditScimitar),plItemTemplates);
       plItemTemplates = cons(create(&ResurrectionGem),plItemTemplates);
 
@@ -6690,6 +6694,8 @@ messages:
       plMagicMods = Cons(Create(&MagicEmpowermentMod),plMagicMods);
       plMagicMods = Cons(Create(&WeaponEmpowermentMod),plMagicMods);
       plMagicMods = Cons(Create(&PunchEmpowermentMod),plMagicMods);
+      plMagicMods = Cons(Create(&IllusionEmpowermentMod),plMagicMods);
+      plMagicMods = Cons(Create(&CharmEmpowermentMod),plMagicMods);
       
       plMagicMods = Cons(Create(&ArmorMod),plMagicMods);
       plMagicMods = Cons(Create(&DefenseMod),plMagicMods);
@@ -6818,6 +6824,8 @@ messages:
          OR class = &UnholyEmpowermentMod
          OR class = &HolyEmpowermentMod
          OR class = &PunchEmpowermentMod
+         OR class = &IllusionEmpowermentMod
+         OR class = &CharmEmpowermentMod
       {
          return GROUP_EMPOWERMENT;
       }
@@ -8874,6 +8882,14 @@ messages:
        {
           return quake_empowerment_name;
        }
+       if type = -ATCK_SPELL_ILLUSION
+       {
+          return illusion_empowerment_name;
+       }
+       if type = -ATCK_SPELL_CHARM
+       {
+          return charm_empowerment_name;
+       }
        
        return unknown_resistance_name;
     }
@@ -8958,6 +8974,14 @@ messages:
        {
           return quake_damage_name;
        }
+       if type = ATCK_SPELL_ILLUSION
+       {
+          return illusion_damage_name;
+       }
+       if type = ATCK_SPELL_CHARM
+       {
+          return charm_damage_name;
+       }
        
        return unknown_damage_name;
     }
@@ -8989,6 +9013,9 @@ messages:
        lDamageTypes = Cons(ATCK_SPELL_SHOCK,lDamageTypes);
        lDamageTypes = Cons(ATCK_SPELL_COLD,lDamageTypes);
        lDamageTypes = Cons(ATCK_SPELL_FIRE,lDamageTypes);
+       lDamageTypes = Cons(ATCK_SPELL_ILLUSION,lDamageTypes);
+       lDamageTypes = Cons(ATCK_SPELL_CHARM,lDamageTypes);
+       lDamageTypes = Cons(ATCK_SPELL_DRAIN,lDamageTypes);
        lDamageTypes = Cons(ATCK_SPELL_ALL,lDamageTypes);
        
        return lDamageTypes;

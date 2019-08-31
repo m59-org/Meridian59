@@ -17,6 +17,8 @@ BOFS = pierceemp.bof \
        shockemp.bof \
        coldemp.bof \
        fireemp.bof \
-       punchemp.bof
+       punchemp.bof \
+       illusionemp.bof \
+       charmemp.bof
 
 !include $(KODDIR)\kod.mak
