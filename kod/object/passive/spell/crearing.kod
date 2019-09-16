@@ -372,7 +372,8 @@ messages:
          return;
       }
 
-      if Send(oTarget,@GetPotionClass) = $
+      if NOT IsClass(oTarget,&PersonalEnchantment)
+         OR NOT Send(oTarget,@CanBeImbuedToRing)
       {
          Send(who,@MsgSendUser,#message_rsc=Create_Ring_bad_spell);
 

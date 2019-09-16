@@ -254,6 +254,26 @@ messages:
 
       return;
    }
+   
+   ValidityCheck()
+   {
+      local oSpell;
+      % In case existing rings need to change because allowed spells change
+      
+      oSpell = Send(SYS,@FindSpellByNum,#num=pidBuff);
+      if oSpell = $
+      {
+         return;
+      }
+      
+      if NOT IsClass(oSpell,&PersonalEnchantment)
+         OR NOT Send(oSpell,@CanBeImbuedToRing)
+      {
+         pidBuff = SID_BLESS;
+      }
+      
+      return;
+   }
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
