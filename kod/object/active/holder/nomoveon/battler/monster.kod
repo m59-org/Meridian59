@@ -684,10 +684,17 @@ messages:
    Constructor(template=FALSE, color=0, piSurvivalLevel=0, iBrain = 0, iChaosLevel = 0)
    "Simple enough, we create a monster. If they are questworthy, we note it."
    {
-      local iStatPoints, iMin, iMax;
+      local iStatPoints, iMin, iMax, oChaosMaint, iChaosDiff;
 
+      iChaosDiff = 0;
       if iChaosLevel > 0
       {
+         oChaosMaint = Send(SYS,@GetChaosStrataMaintenance);
+      
+         if oChaosMaint <> $
+         {
+            iChaosDiff = Send(oChaosMaint,@GetChaosDifficulty);
+         }
          piLevel = Bound(180 + iChaosLevel/2,20,250);
       }
       else
@@ -696,7 +703,8 @@ messages:
       }
       piMax_Hit_points = Send(Self,@Fuzzy,#num=Send(self,@GetMaxHitPoints))
                          + piSurvivalLevel*viDifficulty
-                         + iChaosLevel * Send(Send(SYS,@GetChaosStrataMaintenance),@GetChaosDifficulty);
+                         + (iChaosLevel * iChaosDiff);
+      
       piHit_points = piMax_hit_points*100;
       
       if iChaosLevel > 0
@@ -799,8 +807,8 @@ messages:
 
       if piSurvivalLevel > 0
       {
-         piOffense = Send(self,@GetOffense) + piSurvivalLevel*viDifficulty + piChaosLevel*Send(Send(SYS,@GetChaosStrataMaintenance),@GetChaosDifficulty);
-         piDefense = Send(self,@GetDefense) + piSurvivalLevel*viDifficulty + piChaosLevel*Send(Send(SYS,@GetChaosStrataMaintenance),@GetChaosDifficulty);
+         piOffense = Send(self,@GetOffense) + piSurvivalLevel*viDifficulty + piChaosLevel*iChaosDiff;
+         piDefense = Send(self,@GetDefense) + piSurvivalLevel*viDifficulty + piChaosLevel*iChaosDiff;
          piMinDamage = piLevel/15 + piSurvivalLevel/2 + piChaosLevel/2;
          piMaxDamage = piLevel/10 + piSurvivalLevel/2 + piChaosLevel/2;
          piArmor = piSurvivalLevel/5 + piChaosLevel/5;
@@ -808,8 +816,8 @@ messages:
 
       if piChaosLevel > 0
       {
-         piOffense = Send(self,@GetOffense) + piChaosLevel*Send(Send(SYS,@GetChaosStrataMaintenance),@GetChaosDifficulty);
-         piDefense = Send(self,@GetDefense) + piChaosLevel*Send(Send(SYS,@GetChaosStrataMaintenance),@GetChaosDifficulty);
+         piOffense = Send(self,@GetOffense) + piChaosLevel*iChaosDiff;
+         piDefense = Send(self,@GetDefense) + piChaosLevel*iChaosDiff;
          piMinDamage = piLevel/15 + piChaosLevel/2;
          piMaxDamage = piLevel/10 + piChaosLevel/2;
          piArmor = piChaosLevel/5;
@@ -1335,7 +1343,7 @@ messages:
    "Monster just entered this room. Right now, thats only possible on a"
    "creation. So, lets pause for a few beats if we got users."
    {
-      local iRand, i, iOverrideChampion, iLevelChange, bOverride;
+      local iRand, i, iOverrideChampion, iLevelChange, bOverride, bSettingsChampionSpawnEnabled;
 
       if what = $
       {
