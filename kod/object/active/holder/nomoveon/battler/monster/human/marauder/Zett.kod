@@ -1,0 +1,150 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+MarauderZett is Marauder
+
+% Zett is a human Qor bower PK.
+% He is supposed to use a bow. However, that functionality doesn't seem to work. 
+% He's also shadow formed.
+
+constants:
+
+   include blakston.khd
+
+   HUMAN_TRANSLATION2_HAIR_MASK = 0xff
+   HUMAN_TRANSLATION2_HAIR_MUL = 1
+
+resources:
+
+   MarauderZett_name_rsc = "Zett"
+   MarauderZett_desc_rsc = \
+      "Dedicated Priest of Qor. This zealot seeks to promote her "
+      "dark balance in all things. That includes killing you! Defend yourself. "
+   MarauderZett_dead_name_rsc = "dead male body"
+
+   MarauderZett_url = "http://wiki.openmeridian.org/index.php/Main_Page"
+   
+   Zett_hair_bb_icon = ptbb.bgf
+
+classvars:
+
+   vrName = MarauderZett_name_rsc
+   vrDesc = MarauderZett_desc_rsc
+   vrDead_name = MarauderZett_dead_name_rsc
+
+   % Zett's a half-demon.
+   viMinSkinColor = 1
+   viMaxSkinColor = 1
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+
+   viColorTranslate1 = XLAT_TO_BLUE     % Shirt
+   viColorTranslate2 = XLAT_TO_BLUE     % Pants
+
+
+
+properties:
+
+   piBaseLevel = 150
+   piBaseDifficulty = 7
+   viLevel = 150
+   viDifficulty = 7
+
+   piMana = 120
+   piMax_Mana = 120
+   
+   % What are the monster's chances to cast spells each check?
+   % Number is out of one hundred
+   piMeleeSpellChance = 100
+   piRangedSpellChance = 100
+
+   piMonsterCastDelayMinimum = 1500
+
+   piDrawFx = DRAWFX_BLACK
+
+
+messages:
+
+   SetGender()
+   {
+      return;
+   }
+
+   Constructed()
+   {
+      local i;
+
+      % Qor PK
+      plMeleeSpellBook = [ [SID_HOLD,6,100,90]];
+      plRangedSpellBook = [ [SID_DARKNESS,13,40,90],
+                            [SID_BLIND,14,50,90],
+                            [SID_KILLING_FIELDS,12,10,40]];
+
+      
+      plResistances = [];
+                        
+      psUrl = MarauderZett_url;
+      propagate;
+   }
+
+
+
+   SetEquipment()
+   {
+      local oEquipmentItem, iBonusModifier, oSpell;
+
+      oEquipmentItem = Create(&LongBow,#level=viLevel);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+	  poArrow = Create(&NeruditeArrow);
+      iBonusModifier = 4;
+
+      oEquipmentItem = Create(&DiscipleRobe,#level=viLevel,#school=SS_QOR);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      oEquipmentItem = Create(&Gauntlet,#level=viLevel);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      oEquipmentItem = Create(&SkullMask,#level=viLevel);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      return;
+   }
+
+   SetHair()
+   % Sets the hairdo, color.
+   {
+      local iTranslation;
+
+      prToupee = human_hair_ac_icon;
+      iTranslation = PT_GRAY_TO_BLACK;
+
+      piBody_translations2 = piBody_translations2 & ~HUMAN_TRANSLATION2_HAIR_MASK;
+      piBody_translations2 = piBody_translations2
+                                 | (iTranslation * HUMAN_TRANSLATION2_HAIR_MUL);
+
+      return;
+   }
+
+   SetFace()
+   {
+      prEyes = human_eyes_cx_icon;
+      prNose = human_nose_cx_icon;
+      prMouth = human_mouth_bx_icon;
+
+      return;
+   }
+
+   GetBaseSize()
+   {
+      % Human
+      return 200;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
