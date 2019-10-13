@@ -1,0 +1,77 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ElfShield is Shield
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   elfshield_name_rsc = "sylvan shield"
+   elfshield_icon_rsc = elfshield.bgf
+   elfshield_desc_rsc = \
+      "The fey elhai and the various spirits that call the forest home "
+      "have not been idle in their long war with the fey dirhai. "
+      "This shield is the first of their new creations."
+
+   elfshield_window_overlay_rsc = povelfshield.bgf
+
+classvars:
+
+   vrName = elfshield_name_rsc
+   vrIcon = elfshield_icon_rsc
+   vrDesc = elfshield_desc_rsc
+
+   viHits_init_min = 250
+   viHits_init_max = 300
+
+   % Being silver, it's worth much more than your average shield, but it's much heavier too
+   viValue_average = 400
+   viWeight = 185
+   viBulk = 185
+
+   vrShield_window_overlay = elfshield_window_overlay_rsc
+   vrShield_overlay = elfshield_icon_rsc
+
+   viGround_group = 3
+   viInventory_group = 1
+   viBroken_group = 4
+
+   viDefense_base = 150
+   viDamage_base = 1
+
+properties:
+
+messages:
+
+   GetResistanceModifiers()
+   {
+      if Send(SETTINGS_OBJECT,@GetDirectArmorEnabled)
+      { 
+         return [ [ATCK_WEAP_SLASH,10],
+                  [ATCK_WEAP_BLUDGEON,10],
+                  [ATCK_WEAP_THRUST,10]
+                ];
+      }
+      
+      return [ [ATCK_WEAP_ALL,2],
+               [-ATCK_SPELL_ALL,2]
+               ];
+   }
+
+   GetKnockbackResistance()
+   {
+      return 10;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -45,6 +45,29 @@ classvars:
    viGoodSpellUseMsg = default_good_spell_use_msg
 
    viDeathMsg = default_death_msg
+   
+   vbDampenElement = FALSE
+   viDampenElement = 0
+   viDampenPercentage = 0
+   
+   vbBoostElement = FALSE
+   viBoostElement = 0
+   viBoostPercentage = 0
+   
+   % Do we report general messages as a class?
+   vbReportMessages = TRUE
+   
+   % What percent exertion of normal? 100 = normal
+   viModifyExertionRatio = 100
+   
+   % What type of champion does this threat make all monsters if able?
+   viOverrideChampionType = 0
+   
+   % Do we add monster levels?
+   viAddMonsterLevel = 0
+   
+   % Do we block shard drops (so that we aren't mass producing shards via champions)?
+   vbBlockShardDrops = FALSE
 
 properties:
 
@@ -103,8 +126,40 @@ messages:
       {
          if IsClass(First(i),&User)
             AND report
+            AND vbReportMessages
          {
             Send(First(i),@MsgSendUser,#message_rsc=viThreatBeginMsg);
+         }
+         
+         if IsClass(First(i),&Monster)
+            AND viOverrideChampionType <> 0
+         {
+            if NOT ((Send(First(i),@GetBehavior) & AI_NOFIGHT) OR (Send(First(i),@GetBehavior) & AI_NPC))
+               AND Send(First(i),@GetCanSpawnAsChampion)
+               AND IsClass(host_object,&Room)
+               AND Send(host_object,@GetCanSpawnChampions)
+               AND Send(SETTINGS_OBJECT,@GetChampionSpawnsEnabled)
+               AND Send(First(i),@GetMaster) = $
+               AND NOT Send(First(i),@IsIllusion)
+            {
+               Post(First(i),@LoseChampionStatus);
+               Post(First(i),@GainChampionStatus,#iType=viOverrideChampionType);
+            }
+         }
+         
+         if IsClass(First(i),&Monster)
+            AND viAddMonsterLevel <> 0
+         {
+            if NOT ((Send(First(i),@GetBehavior) & AI_NOFIGHT) OR (Send(First(i),@GetBehavior) & AI_NPC))
+               AND Send(First(i),@GetCanSpawnAsChampion)
+               AND IsClass(host_object,&Room)
+               AND Send(host_object,@GetCanSpawnChampions)
+               AND Send(SETTINGS_OBJECT,@GetChampionSpawnsEnabled)
+               AND Send(First(i),@GetMaster) = $
+               AND NOT Send(First(i),@IsIllusion)
+            {
+               Send(First(i),@AddLevel,#value=viAddMonsterLevel);
+            }
          }
       }
  
@@ -137,6 +192,7 @@ messages:
             % Some threats apply other effects.
             Send(self,@ApplyDirectEffect,#who=First(i));
             
+            Send(self,@PlayDamageSound,#who=First(i));
             iDamageResult = Send(First(i),@AssessDamage,#what=self,
                   #damage=Random(piDamageMin,piDamageMax),
                   #atype=piDamageTypeAttack,
@@ -157,9 +213,22 @@ messages:
       return;
    }
 
+   PlayDamageSound(who=$)
+   {
+      return;
+   }
+
    ReqDealDamage(who=$)
    {
       % Alter this to create exemptions to the threat.
+      
+      if who <> $
+         AND IsClass(who,&Player)
+         AND Send(who,@IsInCannotInteractMode)
+      {
+         return FALSE;
+      }
+
       return TRUE;
    }
 
@@ -190,8 +259,39 @@ messages:
       foreach i in Send(poHostObject,@GetHolderActive)
       {
          if IsClass(First(i),&User)
+            AND vbReportMessages
          {
             Send(First(i),@MsgSendUser,#message_rsc=viThreatEndMsg);
+         }
+         
+         if IsClass(First(i),&Monster)
+            AND viOverrideChampionType <> 0
+         {
+            if NOT ((Send(First(i),@GetBehavior) & AI_NOFIGHT) OR (Send(First(i),@GetBehavior) & AI_NPC))
+               AND Send(First(i),@GetCanSpawnAsChampion)
+               AND IsClass(poHostObject,&Room)
+               AND Send(poHostObject,@GetCanSpawnChampions)
+               AND Send(SETTINGS_OBJECT,@GetChampionSpawnsEnabled)
+               AND Send(First(i),@GetMaster) = $
+               AND NOT Send(First(i),@IsIllusion)
+            {
+               Post(First(i),@LoseChampionStatus);
+            }
+         }
+
+         if IsClass(First(i),&Monster)
+            AND viAddMonsterLevel <> 0
+         {
+            if NOT ((Send(First(i),@GetBehavior) & AI_NOFIGHT) OR (Send(First(i),@GetBehavior) & AI_NPC))
+               AND Send(First(i),@GetCanSpawnAsChampion)
+               AND IsClass(poHostObject,&Room)
+               AND Send(poHostObject,@GetCanSpawnChampions)
+               AND Send(SETTINGS_OBJECT,@GetChampionSpawnsEnabled)
+               AND Send(First(i),@GetMaster) = $
+               AND NOT Send(First(i),@IsIllusion)
+            {
+               Send(First(i),@AddLevel,#value=-viAddMonsterLevel);
+            }
          }
       }
 
@@ -261,6 +361,53 @@ messages:
                #parm1=Send(who,@GetName));
       }
 
+      return;
+   }
+   
+   KilledSomething()
+   {
+      return;
+   }
+   
+   ThreatModifyDamage(damage=0, atype=0, aspell=0)
+   {
+      if vbDampenElement
+         AND (aspell & viDampenElement) <> 0
+      {
+         damage = (damage * (100 - viDampenPercentage))/100;
+      }
+      
+      if vbBoostElement
+         AND (aspell & viBoostElement) <> 0
+      {
+         damage = (damage * (100 + viBoostPercentage))/100;
+      }
+
+      return damage;
+   }
+   
+   ModifyExertion(amount=0)
+   {
+      return (amount * viModifyExertionRatio)/100;
+   }
+
+   GetOverrideChampion()
+   {
+      return viOverrideChampionType;
+   }
+
+   GetMonsterLevelChange()
+   {
+      return viAddMonsterLevel;
+   }
+   
+   AlterShardDrops(iNumShards=0)
+   {
+      return iNumShards;
+   }
+
+   SomethingMoved(what=$)
+   {
       return;
    }
 

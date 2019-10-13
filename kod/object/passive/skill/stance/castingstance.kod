@@ -1,0 +1,86 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+CastingStance is Stance
+
+constants:
+
+   include blakston.khd
+   include protocol.khd   
+
+resources:
+
+   CastingStance_name_rsc = "spirit linking stance"
+   CastingStance_icon_rsc = iminorlink.bgf
+   CastingStance_desc_rsc = \
+      "While in this stance, personal enchantments you cast will be reserved on mana "
+      "if you have mastered the appropriate level of spirit link."
+   
+   CastingStance_begin = "You alter the flow of mana through your body."
+   CastingStance_end = "The flow of mana through your body returns to normal."
+   CastingStance_mantra = "Potestas Aeterna"
+
+classvars:
+
+   vrName = CastingStance_name_rsc
+   vrIcon = CastingStance_icon_rsc
+   vrDesc = CastingStance_desc_rsc
+   
+   stance_begin_msg = CastingStance_begin
+   stance_end_msg = CastingStance_end
+   
+   vsStanceMantra = CastingStance_mantra
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+
+   viSkill_num = SKID_CASTING_STANCE
+   viSchool = SKS_SORCERY
+   viSkill_Level = 1
+   viChance_to_Increase = 0
+   viMeditate_ratio = 0
+
+   viSkillExertion = 0
+   vbCheck_exertion = FALSE
+
+   vbAutomatic = TRUE
+   
+   viPrimaryStat = STAT_ID_MYSTICISM
+   viSecondaryStat = 0
+
+properties:
+
+messages:
+
+   GetRequisiteStat(who=$)
+   {
+      return Send(who,@GetMysticism);
+   }
+
+   BeginStance(who=$)
+   {
+      % Changes nature of targeting for certain spells.
+      Post(who,@ToCliSpells);
+      propagate;
+   }
+
+   EndStance(who=$)
+   {
+      Post(who,@ToCliSpells);
+      propagate;
+   }
+
+   OfferToNewCharacters()
+   {
+      return FALSE;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

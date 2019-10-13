@@ -21,8 +21,13 @@ resources:
    truth_name_rsc = "truth"
    truth_icon_rsc = itruth.bgf
    truth_desc_rsc = \
-      "This song hinders the spells of the master of the illusionary arts, Riija.  "
+      "This song weaves a mystical circle of physicality, protecting those within "
+      "from the illusionary magics of Riija. "
       "A ruby and some rainbow ferns are required to begin performing this song."
+
+   truth_resist_rsc = \
+      "\n\nIn addition to hindering the magics of Riija, the song of Truth currently affecting "
+      "you adds %i\% illusion resistance."
 
    truth_song = song.mp3
 
@@ -42,6 +47,10 @@ classvars:
 
    viHinderedSchool = SS_RIIJA
 
+   viResistOne = -ATCK_SPELL_ILLUSION
+
+   viDivisorOne = 3
+
 properties:
 
    prMusic = truth_song
@@ -55,6 +64,39 @@ messages:
       plReagents = Cons([&RainbowFern,2],plReagents);
 
       return;
+   }
+
+   SendStatsDesc(who=$)
+   {
+      if who <> $
+         AND IsClass(who,&User)
+         AND Send(who,@GetMostPowerfulRadiusEnchantmentState,#byClass=&Truth) <> $
+      {
+         Send(self,@EffectDesc,#who=who);
+
+         return;
+      }
+
+      propagate;
+   }
+
+   EffectDesc(who=$)
+   {
+      local lState, iDivisorOne;
+      
+      lState = Send(who,@GetMostPowerfulRadiusEnchantmentState,#byClass=&Truth);
+
+      if lState <> $
+      {
+         iDivisorOne = viDivisorOne;
+         if iDivisorOne = 0
+         {
+            iDivisorOne = 1;
+         }
+         AddPacket(4,truth_resist_rsc, 4,Nth(lState,2)/iDivisorOne);
+      }
+
+      propagate;
    }
 
 end

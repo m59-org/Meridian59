@@ -1,0 +1,393 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+AdventurersGuild is Room
+
+% Adventurer's Guild contains:
+%
+% A prison to buy and sell monsters
+%
+% A library to deposite Treatises & Grimoires and learn spells
+%
+% A record of things that happened on the server
+%
+% A bounty board
+%
+% A seer?
+%
+% A resistance buff giver
+%
+% Archives of highest backstab, highest dmg, highest spell
+%
+% Highest health character, highest int, myst, etc
+%
+%
+% Hire humans with skills and spellsets to go with you
+% as minions
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   room_adventurers_guild = adventurersguild.roo
+   room_adventurers_guild_with_jailer = adventurersguildwithjail.roo
+   room_adventurers_guild_with_ad_hall = adventurersguildwithadhall.roo
+   room_adventurers_guild_with_seer = adventurersguildwithseer.roo
+   room_name_adventurers_guild = "Adventurer's League of Meridian"
+   adventurers_guild_music = bridge.mp3
+
+   adventurers_guild_highest_health = \
+      "This is a statue of %q, the record holder for highest Health, with %i."
+   adventurers_guild_highest_mana = \
+      "This is a statue of %q, the record holder for highest Mana, with %i."
+   adventurers_guild_highest_might = \
+      "This is a statue of %q, the record holder for highest Might, with %i."
+   adventurers_guild_highest_intellect = \
+      "This is a statue of %q, the record holder for highest Intellect, with %i."
+   adventurers_guild_highest_stamina = \
+      "This is a statue of %q, the record holder for highest Stamina, with %i."
+   adventurers_guild_highest_agility = \
+      "This is a statue of %q, the record holder for highest Agility, with %i."
+   adventurers_guild_highest_mysticism = \
+      "This is a statue of %q, the record holder for highest Mysticism, with %i."
+   adventurers_guild_highest_aim = \
+      "This is a statue of %q, the record holder for highest Aim, with %i."
+      
+   adventurers_guild_highest_damage_attack = \
+      "This is a statue of %q, the record holder for highest damage attack, at %i damage."
+   adventurers_guild_highest_damage_spell = \
+      "This is a statue of %q, the record holder for highest damage spell, at %i damage."
+
+   adventurers_guild_intro = \
+      "Welcome to the Headquarters of the Adventurer's League. "
+      "Given official charter by Princess Kateriina, the League is, and shall be, "
+      "whatever Meridian's adventurers make of it. "
+      "The buildings and facilities that make up the League shall expand over time "
+      "to match the needs and contributions of its members."
+      
+
+   we_are_upgrading = \
+      "~BWe've reached a new funding level, and it's time to upgrade! Mind waiting "
+      "in the Adventurer's Hall? Thanks!"
+   server_we_are_upgrading = \
+      "~BThe Adventurer's Hall in Cor Noth has reached a new level of construction."
+
+   news_adv_guild = "League Link"
+   news_adv_guild_desc = "Watch the world go by from League headquarters!"
+
+classvars:
+
+   vrName = room_name_adventurers_guild
+
+   viTeleport_row = 24
+   viTeleport_col = 43
+
+   viTerrain_Type = TERRAIN_CITY | TERRAIN_SHOP
+   viPermanent_flags = ROOM_NO_COMBAT | ROOM_SANCTUARY | ROOM_SAFELOGOFF | ROOM_HOMETOWN
+
+properties:
+
+   prRoom = room_adventurers_guild
+   prMusic = adventurers_guild_music
+   piRoom_num = RID_ADVENTURERS_GUILD
+
+   piBaseLight = LIGHT_NICE
+
+messages:
+
+   Constructor()
+   {
+      local iFundingLevel;
+
+      if Send(SYS,@GetLeagueMaintenance) = $
+      {
+         iFundingLevel = 0;
+      }
+      else
+      {
+         iFundingLevel = Send(Send(SYS,@GetLeagueMaintenance),@GetFundingLevel);
+      }
+      
+      switch(iFundingLevel)
+      {
+         case 0:
+            prRoom = room_adventurers_guild;
+            break;
+         case 1:
+            prRoom = room_adventurers_guild_with_jailer;
+            break;
+         case 2:
+            prRoom = room_adventurers_guild_with_ad_hall;
+            break;
+         case 3:
+            prRoom = room_adventurers_guild_with_seer;
+            break;
+      }
+
+      propagate;
+   }
+   
+   FirstUserEntered()
+   {
+      local iFundingLevel, lRandomMonsters, i;
+
+      if Send(SYS,@GetLeagueMaintenance) = $
+      {
+         iFundingLevel = 0;
+      }
+      else
+      {
+         iFundingLevel = Send(Send(SYS,@GetLeagueMaintenance),@GetFundingLevel);
+      }
+
+      if iFundingLevel >= 1
+      {
+         foreach i in Send(self,@GetHolderActive)
+         {
+            % Avoid duplicates if they somehow happen
+            if IsClass(First(i),&Monster)
+               AND NOT Send(First(i),@GetBehavior) & AI_NPC
+            {
+               propagate;
+            }
+         }
+
+         lRandomMonsters = [&Avar,
+                            &Lupogg,
+                            &Thrasher,
+                            &Centipede,
+                            &Frogman,
+                            &Bunny,
+                            &Kriipa,
+                            &NarthylWorm,
+                            &CaveOrc,
+                            &SnowRat];
+         Send(self,@NewHold,#what=Create(Nth(lRandomMonsters,Random(1,Length(lRandomMonsters)))),
+              #new_row=29,#new_col=21,#fine_row=0,#fine_col=32);
+         Send(self,@NewHold,#what=Create(Nth(lRandomMonsters,Random(1,Length(lRandomMonsters)))),
+              #new_row=25,#new_col=21,#fine_row=0,#fine_col=32);
+         Send(self,@NewHold,#what=Create(Nth(lRandomMonsters,Random(1,Length(lRandomMonsters)))),
+              #new_row=21,#new_col=21,#fine_row=0,#fine_col=32);
+      }
+      propagate;
+   }
+   
+   LastUserLeft()
+   {
+      local iFundingLevel, i;
+
+      if Send(SYS,@GetLeagueMaintenance) = $
+      {
+         iFundingLevel = 0;
+      }
+      else
+      {
+         iFundingLevel = Send(Send(SYS,@GetLeagueMaintenance),@GetFundingLevel);
+      }
+
+      if iFundingLevel >= 1
+      {
+         foreach i in Send(self,@GetHolderActive)
+         {
+            if IsClass(First(i),&Monster)
+               AND NOT Send(First(i),@GetBehavior) & AI_NPC
+            {
+               Send(First(i),@Delete);
+            }
+         }
+      }
+
+      propagate;
+   }
+
+   CreateStandardObjects()
+   {
+      local iFundingLevel, oNews;
+
+      Send(self,@NewHold,#what=Create(&Forge),
+           #new_row=19,#new_col=40,#fine_row=16,#fine_col=32);
+      Send(SETTINGS_OBJECT,@SetupLeaguePowers);
+
+      Send(self,@NewHold,#what=Create(&LeagueDonations),
+            #new_row=27,#new_col=37,#fine_row=29,#fine_col=63,#new_angle=ANGLE_EAST);
+      Send(self,@NewHold,#what=Create(&AdventurersLeagueMonk),
+            #new_row=17,#new_col=47,#fine_row=0,#fine_col=0,#new_angle=ANGLE_EAST);
+
+      if Send(SYS,@GetLeagueMaintenance) = $
+      {
+         iFundingLevel = 0;
+      }
+      else
+      {
+         iFundingLevel = Send(Send(SYS,@GetLeagueMaintenance),@GetFundingLevel);
+      }
+
+      if iFundingLevel >= 1
+      {
+         Send(self,@NewHold,#what=Create(&AdventurersLeagueJailer),
+               #new_row=34,#new_col=21,#new_angle=ANGLE_EAST);
+
+         Send(self,@NewHold,#what=Create(&PrincessGuard),
+              #new_row=21,#new_col=25,#fine_row=22,#fine_col=51,#new_angle=ANGLE_SOUTH);
+         Send(self,@NewHold,#what=Create(&PrincessGuard),
+              #new_row=27,#new_col=25,#fine_row=4,#fine_col=51,#new_angle=ANGLE_SOUTH);
+      }
+      
+      if iFundingLevel >= 2
+      {
+         oNews = Create(&Newslink,#nid=NID_TOS_HALL,#name=news_adv_guild,#desc=news_adv_guild_desc);
+         Send(self,@NewHold,#what=oNews,#new_row=30,#new_col=50,#fine_row=32,#fine_col=0);
+      
+         oNews = Send(SYS,@FindNewsByNum,#num=NID_ADVENTURE);
+         if oNews = $
+         {
+            oNews = Create(&NewsAdventure,#nid=NID_ADVENTURE);
+         }
+         Send(self,@NewHold,#what=oNews,#new_row=42,#new_col=50,
+              #fine_row=32,#fine_col=0,#new_angle=ANGLE_NORTH_WEST);
+
+         Send(self,@NewHold,#what=Create(&GuildHallBartender),#new_row=31,
+                                                     #new_col=37,
+                                                     #fine_row=0,
+                                                     #fine_col=32);
+
+         Send(self,@NewHold,#what=Create(&Table),
+              #new_row=41,#new_col=38,#fine_row=32,#fine_col=32,#new_angle=ANGLE_EAST);
+         Send(self,@NewHold,#what=Create(&Stool),
+              #new_row=42,#new_col=38,#fine_row=32,#fine_col=32,#new_angle=ANGLE_EAST);
+         Send(self,@NewHold,#what=Create(&Stool),
+              #new_row=41,#new_col=39,#fine_row=32,#fine_col=32,#new_angle=ANGLE_EAST);
+         Send(self,@NewHold,#what=Create(&PrincessGuard),
+              #new_row=41,#new_col=37,#fine_row=32,#fine_col=20,#new_angle=ANGLE_EAST);
+         Send(self,@NewHold,#what=Create(&PrincessGuard),
+              #new_row=40,#new_col=38,#fine_row=45,#fine_col=37,#new_angle=ANGLE_SOUTH);
+              
+         Send(self,@NewHold,#what=Create(&Table),
+              #new_row=41,#new_col=41,#fine_row=32,#fine_col=32,#new_angle=ANGLE_EAST);
+         Send(self,@NewHold,#what=Create(&Stool),
+              #new_row=42,#new_col=41,#fine_row=32,#fine_col=32,#new_angle=ANGLE_EAST);
+         Send(self,@NewHold,#what=Create(&Stool),
+              #new_row=40,#new_col=41,#fine_row=32,#fine_col=32,#new_angle=ANGLE_EAST);
+              
+         Send(self,@NewHold,#what=Create(&Table),
+              #new_row=41,#new_col=44,#fine_row=32,#fine_col=32,#new_angle=ANGLE_EAST);
+         Send(self,@NewHold,#what=Create(&Stool),
+              #new_row=42,#new_col=45,#fine_row=32,#fine_col=32,#new_angle=ANGLE_EAST);
+         Send(self,@NewHold,#what=Create(&Stool),
+              #new_row=41,#new_col=43,#fine_row=32,#fine_col=32,#new_angle=ANGLE_EAST);
+              
+         Send(self,@NewHold,#what=Create(&Table),
+              #new_row=41,#new_col=47,#fine_row=32,#fine_col=32,#new_angle=ANGLE_EAST);
+         Send(self,@NewHold,#what=Create(&Stool),
+              #new_row=41,#new_col=48,#fine_row=32,#fine_col=32,#new_angle=ANGLE_EAST);
+         Send(self,@NewHold,#what=Create(&Stool),
+              #new_row=41,#new_col=46,#fine_row=32,#fine_col=32,#new_angle=ANGLE_EAST);
+              
+         Send(self,@NewHold,#what=Create(&Table),
+              #new_row=31,#new_col=43,#fine_row=32,#fine_col=32,#new_angle=ANGLE_EAST);
+         Send(self,@NewHold,#what=Create(&Stool),
+              #new_row=32,#new_col=43,#fine_row=32,#fine_col=32,#new_angle=ANGLE_EAST);
+         Send(self,@NewHold,#what=Create(&Stool),
+              #new_row=31,#new_col=44,#fine_row=32,#fine_col=32,#new_angle=ANGLE_EAST);
+              
+         Send(self,@NewHold,#what=Create(&SetLeagueHometown),
+              #new_row=34,#new_col=37,#fine_row=32,#fine_col=0,#new_angle=ANGLE_EAST);
+      }
+      
+      if iFundingLevel >= 3
+      {
+         Send(self,@NewHold,#what=Create(&DukeGuard),
+              #new_row=30,#new_col=43,#fine_row=32,#fine_col=32,#new_angle=ANGLE_EAST);
+         Send(self,@NewHold,#what=Create(&PrincessGuard),
+              #new_row=42,#new_col=47,#fine_row=32,#fine_col=32,#new_angle=ANGLE_SOUTH);
+         Send(self,@NewHold,#what=Create(&PrincessGuard),
+              #new_row=40,#new_col=47,#fine_row=32,#fine_col=32,#new_angle=ANGLE_SOUTH);
+         Send(self,@NewHold,#what=Create(&PrincessGuard),
+              #new_row=40,#new_col=43,#fine_row=32,#fine_col=32,#new_angle=ANGLE_SOUTH);
+         Send(self,@NewHold,#what=Create(&PrincessGuard),
+              #new_row=41,#new_col=45,#fine_row=32,#fine_col=32,#new_angle=ANGLE_SOUTH);
+              
+         Send(self,@NewHold,#what=Create(&AdventurersLeagueSeer),
+              #new_row=42,#new_col=22,#fine_row=0,#fine_col=0,#new_angle=ANGLE_SOUTH);
+      }
+
+      propagate;
+   }
+
+   CreateStandardExits()
+   {
+      plExits = $;
+
+      plExits = Cons([ 25, 48, RID_CORNOTH, 21, 17, ROTATE_NONE ],plExits);
+
+      return;
+   }
+
+   GetRegion()
+   {
+      return RID_DEFAULT;
+   }
+   
+   NewHold(what=$)
+   {
+      if IsClass(what,&Player)
+      {
+         Post(what,@MsgSendUser,#message_rsc=adventurers_guild_intro);
+      }
+      propagate;
+   }
+   
+   UpgradeBuilding()
+   {
+      local i;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&Forge)
+         {
+            Send(First(i),@KickItem);
+         }
+         if IsClass(First(i),&Player)
+         {
+            Send(First(i),@MsgSendUser,#message_rsc=we_are_upgrading);
+         }
+      }
+      
+      foreach i in Send(SYS,@GetUsersLoggedOn)
+      {
+         Send(i,@MsgSendUser,#message_rsc=server_we_are_upgrading);
+      }
+      Send(self,@HustleUsersOutOfRoom,#new_rid=RID_COR_HALL,#new_row=6,#new_col=5);
+      Send(self,@Recreate);
+      return;
+   }
+
+   MonsterBrokeAllegiance(what=$,oPreviousMaster=$)
+   {
+      local i;
+      
+      if Send(Send(SYS,@GetLeagueMaintenance),@GetFundingLevel) >= 1
+      {
+         foreach i in Send(self,@GetHolderActive)
+         {
+            if IsClass(First(i),&AdventurersLeagueJailer)
+            {
+               Send(First(i),@SellMonster,#what=what,#oPreviousMaster=oPreviousMaster);
+               return;
+            }
+         }
+      }
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

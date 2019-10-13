@@ -32,6 +32,9 @@ resources:
    chalice_combine = "You pour the water from one Chalice into the other."
    chalice_cant_use_pkill = "Only innocents may partake of the chalice."
 
+   cant_escape_eternal_wastes_chalice = \
+      "You're dead. You don't have a mouth to drink from the Chalice of Rain with!"
+
 classvars:
 
    vrName = chalice_name_rsc
@@ -114,6 +117,16 @@ messages:
 
    ReqNewApply(what = $, apply_on = $)
    {
+      local oRoom;
+      
+      oRoom = Send(what,@GetOwner);
+      
+      if IsClass(oRoom,&DesertAfterlife)
+      {
+         Send(what,@MsgSendUser,#message_rsc=cant_escape_eternal_wastes_chalice);
+         return FALSE;
+      }
+
       if (IsClass(what,&Player))
       {
          % Prevent use if you're red.  This is because player killers

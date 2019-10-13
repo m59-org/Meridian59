@@ -26,10 +26,20 @@ resources:
       "defines the slow grace of a seasoned hunter. Noted for his keen ear, "
       "some say he can hear those things that make no noise, like a frown or "
       "a doubting thought."
+      "\n\nIf you are a student with room to grow, he may help you improve "
+      "your aim if you ask him to 'train' you."
 
    KocatanWeaponsMaster_orcteeth_sale = \
       "You want %s%s?  Yes, yes, I have a few old trophies that "
       "you can buy from me."
+
+   cannot_train_aim_msg = \
+      "You seem to have full command of your body's potential. I cannot train you further."
+   teach_aim_msg = \
+      "I suppose I've still got some teaching left in this old body. Pick up that old bow and face the targets behind me. I shall train you. "
+      "Stand back a bit. Right there. "
+      "Good form, but it could use some work. Adjust your grip like so, and focus your sight. No, not your eyesight. Aim is all about "
+      "envisioning where the target will be rather than where it is. Good. Now hit each of the kriipa targets without thinking."
 
 classvars:
 
@@ -88,6 +98,31 @@ messages:
             KocatanWeaponsMaster_orcteeth_sale]);
 
       return;
+   }
+
+   SomeoneSaid(what = $,type = $,string = $)
+   {
+      local iResult;
+
+      if what <> $
+         AND IsClass(what,&User)
+         AND StringContain(string,"train")
+      {
+         
+         iResult = Send(what,@AttemptTrainStatPoint,#type=STAT_ID_AIM);
+
+         if iResult
+         {
+            Send(self,@SayToOne,#target=what,#message_rsc=teach_aim_msg);
+         }
+         else
+         {
+            Send(self,@SayToOne,#target=what,#message_rsc=cannot_train_aim_msg);
+         }
+         return;
+      }
+      
+      propagate;
    }
 
 end

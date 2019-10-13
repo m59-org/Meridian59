@@ -38,6 +38,14 @@ resources:
       "You sense that a evil twin you summoned has gotten you "
       "into some trouble..."
 
+   evil_twin_failsafe_icon_rsc = amoeba.bgf
+   evil_twin_failsafe_desc_rsc = \
+   "A mass of quivering goo, the slime inches forward "
+   "leaving a sickly trail behind.  The remains of its last "
+   "victim are visible within its transparent innards."
+
+   evil_twin_failsafe_dead_name_rsc = "dead slime"
+
 classvars:
 
    viIndefinite = ARTICLE_NONE
@@ -71,6 +79,8 @@ classvars:
       | AI_FIGHT_NEWBIESAFE | AI_FIGHT_AGGRESSIVE
    
    viCanSpawnAsChampion = FALSE
+
+   viBaseSize = 5
 
 properties:
 
@@ -210,56 +220,101 @@ messages:
 
    GetApparentName()
    {
+      if poOriginal = $
+      {
+         return Send(self,@GetApparentName);
+      }
       return Send(poOriginal,@GetApparentName);
    }
 
    GetName(cap=FALSE)
    {
+      if poOriginal = $
+      {
+         return Send(self,@GetName,#cap=cap);
+      }
       return Send(poOriginal,@GetName,#cap=cap);
    }
 
    GetDef()
    {
+      if poOriginal = $
+      {
+         return Send(self,@GetDef);
+      }
       return Send(poOriginal,@GetDef);
    }
 
    GetCapDef()
    {
+      if poOriginal = $
+      {
+         return Send(self,@GetCapDef);
+      }
       return Send(poOriginal,@GetCapDef);
    }
 
    GetIndef()
    {
+      if poOriginal = $
+      {
+         return Send(self,@GetIndef);
+      }
       return Send(poOriginal,@GetIndef);
    }
 
    GetCapIndef()
    {
+      if poOriginal = $
+      {
+         return Send(self,@GetCapIndef);
+      }
+
       return Send(poOriginal,@GetCapIndef);
    }
 
    GetHisHer(cap=FALSE)
    {
+      if poOriginal = $
+      {
+         return Send(self,@GetHisHer,#cap=cap);
+      }
       return Send(poOriginal,@GetHisHer,#cap=cap);
    }
 
    GetHeShe(cap=FALSE)
    {
+      if poOriginal = $
+      {
+         return Send(self,@GetHeShe,#cap=cap);
+      }
       return Send(poOriginal,@GetHeShe,#cap=cap);
    }
 
    GetLordLady(cap=FALSE)
    {
+      if poOriginal = $
+      {
+         return Send(self,@GetLordLady,#cap=cap);
+      }
       return Send(poOriginal,@GetLordLady,#cap=cap);
    }
 
    GetHisHers(cap=FALSE)
    {
+      if poOriginal = $
+      {
+         return Send(self,@GetHisHers,#cap=cap);
+      }
       return Send(poOriginal,@GetHisHers,#cap=cap);
    }
 
    GetHimHer(cap=FALSE)
    {
+      if poOriginal = $
+      {
+         return Send(self,@GetHimHer,#cap=cap);
+      }
       return Send(poOriginal,@GetHimHer,#cap=cap);
    }
 
@@ -528,12 +583,20 @@ messages:
    % This returns the battler's ability to-hit.
    GetOffense(what = $, stroke_obj=$)
    {
+      if poOriginal = $
+      {
+         return 1000;
+      }
       return Send(poOriginal,@GetOffense,#what=what,#stroke_obj=stroke_obj);
    }
 
    % This returns the battler's ability to avoid being hit.
    GetDefense(what = $, stroke_obj=$)
    {
+      if poOriginal = $
+      {
+         return 1000;
+      }
       return Send(poOriginal,@GetDefense,#what=what,#stroke_obj=stroke_obj);
    }
 
@@ -558,26 +621,21 @@ messages:
 
    GetDamageType(what=$,use_weapon=$)
    {
-      if poOriginal = $
-      {
-         return viAttack_type;
-      }
-
-      return Send(poOriginal,@GetDamageType,#what=what,#use_weapon=use_weapon);
+      return 0;
    }
 
    GetSpellType(what=$,use_weapon=$)
    {
-      if poOriginal = $
-      {
-         return viAttack_spell;
-      }
-
-      return Send(poOriginal,@GetSpellType,#what=what,#use_weapon=use_weapon);
+      return ATCK_SPELL_ILLUSION;
    }
 
    GetKarma(detect=FALSE)
    {
+      if poOriginal = $
+      {
+         return 0;
+      }
+
       if detect
       {
          return Send(poOriginal,@GetKarma);
@@ -668,6 +726,10 @@ messages:
 
    GetIcon()
    {
+      if poOriginal = $
+      {
+         return evil_twin_failsafe_icon_rsc;
+      }
       return Send(poOriginal,@GetIcon);
    }
 
@@ -684,16 +746,28 @@ messages:
    % skills.  Used in player for defense, used in battler for defense messages.
    GetParryAbility(stroke_obj=$)
    {
+      if poOriginal = $
+      {
+         return 0;
+      }
       return Send(poOriginal,@GetParryAbility,#stroke_obj=stroke_obj);
    }
 
    GetBlockAbility(stroke_obj=$)
    {
+      if poOriginal = $
+      {
+         return 0;
+      }
       return Send(poOriginal,@GetBlockAbility,#stroke_obj=stroke_obj);
    }
 
    GetDodgeAbility(stroke_obj=$)
    {
+      if poOriginal = $
+      {
+         return 0;
+      }
       return Send(poOriginal,@GetDodgeAbility,#stroke_obj=stroke_obj);
    }
 
@@ -769,6 +843,20 @@ messages:
 
    ShowDesc()
    {
+      local oMonster;
+      
+      if poOriginal = $
+      {
+         foreach oMonster in Send(SYS,@GetMonsterTemplates)
+         {
+            if IsClass(oMonster,&Slime)
+            {
+               Send(oMonster,@ShowDesc);
+               return;
+            }
+         }
+      }
+
       Send(poOriginal,@ShowDesc);
 
       return;
@@ -776,6 +864,20 @@ messages:
 
    SendMoveAnimation()
    {
+      local oMonster;
+      
+      if poOriginal = $
+      {
+         foreach oMonster in Send(SYS,@GetMonsterTemplates)
+         {
+            if IsClass(oMonster,&Slime)
+            {
+               Send(oMonster,@SendMoveAnimation);
+               return;
+            }
+         }
+      }
+
       % Make it look like EvilTwin is walking
 
       Send(poOriginal,@SendMoveAnimation);
@@ -785,6 +887,19 @@ messages:
 
    SendMoveOverlays()
    {
+      local oMonster;
+      
+      if poOriginal = $
+      {
+         foreach oMonster in Send(SYS,@GetMonsterTemplates)
+         {
+            if IsClass(oMonster,&Slime)
+            {
+               Send(oMonster,@SendMoveOverlays);
+               return;
+            }
+         }
+      }
       Send(poOriginal,@SendMoveOverlays);
 
       return;
@@ -792,6 +907,19 @@ messages:
 
    SendAnimation()
    {
+      local oMonster;
+      
+      if poOriginal = $
+      {
+         foreach oMonster in Send(SYS,@GetMonsterTemplates)
+         {
+            if IsClass(oMonster,&Slime)
+            {
+               Send(oMonster,@SendAnimation,#iAnimation=piAnimation);
+               return;
+            }
+         }
+      }
       Send(poOriginal,@SendAnimation,#iAnimation=piAnimation);
 
       return;
@@ -799,6 +927,19 @@ messages:
 
    SendOverlays()
    {
+      local oMonster;
+      
+      if poOriginal = $
+      {
+         foreach oMonster in Send(SYS,@GetMonsterTemplates)
+         {
+            if IsClass(oMonster,&Slime)
+            {
+               Send(oMonster,@SendOverlays,#iAnimation=piAnimation);
+               return;
+            }
+         }
+      }
       Send(poOriginal,@SendOverlays,#iAnimation=piAnimation);
 
       return;
@@ -806,6 +947,18 @@ messages:
 
    GetIllusionForm()
    {
+      local oMonster;
+      
+      if poOriginal = $
+      {
+         foreach oMonster in Send(SYS,@GetMonsterTemplates)
+         {
+            if IsClass(oMonster,&Slime)
+            {
+               return oMonster;
+            }
+         }
+      }
       return poOriginal;
    }
 

@@ -22,12 +22,14 @@ resources:
    Bond_name_rsc = "bond"
    Bond_icon_rsc = ibond.bgf
    Bond_desc_rsc = \
-      "Infuses an item with a soft white light.  However, the "
-      "bond requires terrific amounts of energy to form.  A heartstone and "
-      "dozens of polished serphym and diamonds must be crushed to amplify "
-      "the caster's mystical energy, which must then be focused through a "
-      "prism.  The item to be bonded must be targetted.  Once the casting "
-      "is complete the item will follow its owner to hell itself."
+      "The new arts of Sorcery being brought back from the land of Biskalane "
+      "have powerful applications. The High Sorcerers' pursuit of immortality "
+      "through the mastery of the six elements has given Shal'ille masters "
+      "ideas of their own, resulting in the creation of the spell Bond. "
+      "By focusing energies through a prism and drawing upon the reagent power "
+      "of a major heartstone of each of the six elements, a master of "
+      "Shal'ille can imbue an item with an eternal nature that will cause it "
+      "to follow its master to hell itself."
    
    Bond_sound = sbond.wav
 
@@ -68,6 +70,9 @@ classvars:
 
    % In ms.
    viCast_time = 0    
+   
+   viPrimaryStat = STAT_ID_MYSTICISM
+   viSecondaryStat = STAT_ID_KARMA
 
 properties:                     
 
@@ -79,9 +84,12 @@ messages:
    ResetReagents()
    {
       plReagents = $;
-      plReagents = Cons([&PolishedSeraphym,50],plReagents);
-      plReagents = Cons([&Diamond,50],plReagents);
-      plReagents = Cons([&Heartstone,1],plReagents);
+      plReagents = Cons([&MajorRedHeartstone,1],plReagents);
+      plReagents = Cons([&MajorBlueHeartstone,1],plReagents);
+      plReagents = Cons([&MajorSkyHeartstone,1],plReagents);
+      plReagents = Cons([&MajorGreenHeartstone,1],plReagents);
+      plReagents = Cons([&MajorBlackHeartstone,1],plReagents);
+      plReagents = Cons([&MajorWhiteHeartstone,1],plReagents);
 
       return;
    }

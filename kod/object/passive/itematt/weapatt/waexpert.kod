@@ -71,11 +71,18 @@ messages:
       local oWeapon, iProf, iPower;
 
       if wielder = $
+         OR NOT IsClass(wielder,&Player)
       {
          return damage;
       }
 
       oWeapon = Send(wielder,@LookUpPlayerWeapon);
+
+      if oWeapon = $
+      {
+         return damage;
+      }
+
       iProf = Send(oWeapon,@GetProf,#who=wielder);
 
       iPower = Send(self,@TranslatePowerFromCompound,#iCompound=First(lData));
@@ -108,11 +115,18 @@ messages:
       local oWeapon, iProf, iPower;
 
       if wielder = $
+         OR NOT IsClass(wielder,&Player)
       {
          return hitroll;
       }
 
       oWeapon = Send(wielder,@LookUpPlayerWeapon);
+      
+      if oWeapon = $
+      {
+         return hitroll;
+      }
+
       iProf = Send(oWeapon,@GetProf,#who=wielder);
 
       iPower = Send(self,@TranslatePowerFromCompound,#iCompound=First(lData));

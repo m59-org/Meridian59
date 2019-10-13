@@ -49,6 +49,17 @@ classvars:
    viAffectsGuildmates = TRUE
    viAffectsEnemies = TRUE
 
+   viResistOne = 0
+   viResistTwo = 0
+   viResistThree = 0
+
+   viDivisorOne = 1
+   viDivisorTwo = 1
+   viDivisorThree = 1
+   
+   % What amount of mana does a Necklace-bound Jala song reserve?
+   viFlatManaReservation = 45
+
 properties:
 
 messages:
@@ -69,6 +80,41 @@ messages:
 
       % Don't worry about bounding, that's done the level above us.
       return iAltChance;
+   }
+
+   ModifyResistances(resistance_list=$, lRadiusState=0)
+   {
+      local iDivisorOne, iDivisorTwo, iDivisorThree;
+      
+      iDivisorOne = viDivisorOne;
+      if iDivisorOne = 0
+      {
+         iDivisorOne = 1;
+      }
+      iDivisorTwo = viDivisorTwo;
+      if iDivisorTwo = 0
+      {
+         iDivisorTwo = 1;
+      }
+      iDivisorThree = viDivisorThree;
+      if iDivisorThree = 0
+      {
+         iDivisorThree = 1;
+      }
+
+      if viResistOne <> 0
+      {
+         resistance_list = Send(SYS,@AddResistance,#resistance_list=resistance_list,#what=viResistOne,#value=Nth(lRadiusState,2)/iDivisorOne);
+      }
+      if viResistTwo <> 0
+      {
+         resistance_list = Send(SYS,@AddResistance,#resistance_list=resistance_list,#what=viResistTwo,#value=Nth(lRadiusState,2)/iDivisorTwo);
+      }
+      if viResistThree <> 0
+      {
+         resistance_list = Send(SYS,@AddResistance,#resistance_list=resistance_list,#what=viResistThree,#value=Nth(lRadiusState,2)/iDivisorThree);
+      }
+      return resistance_list;
    }
 
 end

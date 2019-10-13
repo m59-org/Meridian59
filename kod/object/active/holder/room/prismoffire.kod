@@ -1,0 +1,968 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+PrismOfFire is Room
+
+constants:
+
+   include blakston.khd
+   
+   INITIAL_PLATFORM = 1
+   PLATFORM_TWO = 2
+   PLATFORM_THREE = 3
+   PLATFORM_FOUR = 4
+   PLATFORM_FIVE = 5
+   BOSS_PLATFORM_ONE = 6
+   PLATFORM_SIX = 7
+   PLATFORM_SEVEN = 8
+   PLATFORM_EIGHT = 9
+   BOSS_PLATFORM_TWO = 10
+   PLATFORM_NINE = 11
+   PLATFORM_TEN = 12
+   PLATFORM_ELEVEN = 13
+   PLATFORM_TWELVE = 14 
+   PLATFORM_THIRTEEN = 15
+   PLATFORM_FOURTEEN = 16
+   PLATFORM_FIFTEEN = 17
+   BOSS_PLATFORM_THREE = 18 
+   
+   LAVA_AREA_TWO = 19       % down to height 1000
+   
+   RING_ONE = 20
+   RING_TWO = 21
+   
+   FALLING_LAVA_SECTORS = 100
+
+   CAVE_STONE_4_TEX = 01604
+   LAVA_TEX = 03203
+
+resources:
+
+   room_prismoffire = prismoffire.roo
+   room_name_prismoffire = "Prism of Fire"
+
+   prismoffire_music = castle.mp3
+
+   lava_step_sound = frying.wav
+   fire_quake_sound = earthquake03.wav
+   
+   players_gathering_msg = \
+      "A small pocket of mortal reality has formed here in the primordial rock. "
+      "As planes clash, you sense that this pocket will expand shortly."
+   
+   players_have_gathered_msg = \
+      "Your incursion of livable reality expands further into the elemental plane of fire."
+
+   killed_first_boss_msg = \
+      "~BAs %s lands a lethal blow on %s%s, the elemental fires react violently! "
+      "You delve slightly deeper into this exotic plane, and your pocket of "
+      "livable reality expands. Your enemy reforms, stronger than before!"
+   killed_second_boss_msg = \
+      "~BAs %s deals a fatal blow, %s%s falls. The earth and flames tremble "
+      "around you. Your incursion grows deeper, and you can finally see "
+      "out into the plane of fire and earth at large. Your enemy reforms, "
+      "now empowered by pure elemental energies!"
+   killed_third_boss_msg = \
+      "~B%s has slain %s%s! Pillars of lava fall as eruptions explode around "
+      "you! The imbalance caused by the slaying of one of its incarnations has "
+      "brought catastrophic damage, and the elemental essence of fire convulses and "
+      "retracts. You concentrate your thoughts on home before the mortal realm becomes "
+      "unreachable..."
+
+classvars:
+
+   vrName = room_name_prismoffire
+
+   viTeleport_row = 107
+   viTeleport_col = 151
+
+   vrWading_Sound = lava_step_sound
+
+   viTerrain_type = TERRAIN_LAVA
+
+properties:
+
+   prMusic = prismoffire_music
+
+   prRoom = room_prismoffire
+   piRoom_num = RID_PRISM_OF_FIRE
+
+   piSpawnTime = 60000  % Shrinks by five seconds each iteration
+   ptSpawnTimer = $
+   
+   ptPlayersGathering = $
+   
+   ptRaiseFirstAreaPlatforms = $
+   ptSecondAreaScrollTimer = $
+   ptThirdAreaScrollTimer = $
+   
+   ptVictoryTimer = $
+
+   piOverridesDeathFunction = TRUE
+
+messages:
+
+   Constructed()
+   {
+      plLooping_sounds = Cons([ room_lava_sound, 107, 151, 300, 100 ],
+                                 plLooping_sounds);
+      propagate;
+   }
+
+   StartThreat(cClasses=$,report=TRUE)
+   {
+      local i;
+
+      % Don't start same threat if one already exists.
+      % Don't start threats with no players present.
+      if pbUser_in_room
+         AND cClasses <> $
+      {
+         foreach i in cClasses
+         {
+            if NOT Send(self,@HasObjectAttribute,#cClass=i)
+            {
+               Create(i,#host_object=self,#iDuration=$,#report=report);
+            }
+         }
+      }
+
+      return;
+   }
+
+   EndThreat(cClass=&ShockStorm)
+   {
+      if Send(self,@HasObjectAttribute,#cClass=cClass)
+      {
+         Send(Send(self,@GetObjectAttribute,#cClass=cClass),@Delete);
+      }
+      return;
+   }
+   
+   EndAllThreats()
+   {
+      local i;
+      
+      foreach i in plObject_attributes
+      {
+         if IsClass(i,&RoomThreat)
+            OR IsClass(i,&RoomStorm)
+         {
+            Send(i,@Delete);
+         }
+      }
+
+      return;
+   }
+
+   FirstUserEntered()
+   {
+      local i;
+
+      Post(self,@StartThreat,#cClasses=[&MagmaThreat,&PhaseThreat]);
+      
+      if ptPlayersGathering = $
+      {
+         ptPlayersGathering = CreateTimer(self,@PlayersHaveGathered,60000);
+      }
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&Player)
+         {
+            Post(First(i),@MsgSendUser,#message_rsc=players_gathering_msg);
+         }
+      }
+      
+      propagate;
+   }
+
+   PlayersHaveGathered()
+   {
+      local i;
+      ptPlayersGathering = $;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&Player)
+         {
+            Send(First(i),@MsgSendUser,#message_rsc=players_have_gathered_msg);
+         }
+      }
+
+      Post(self,@LowerInitialPlatform);
+      return;
+   }
+
+   LastUserLeft()
+   {
+      local i;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&Monster)
+         {
+            Send(First(i),@Delete);
+         }
+      }
+      
+      foreach i in Send(self,@GetHolderPassive)
+      {
+         if IsClass(First(i),&DynamicLight)
+         {
+            Send(First(i),@Delete);
+         }
+      }
+
+      Post(self,@EndAllThreats);
+      Post(self,@ResetAll);
+      propagate;
+   }
+   
+   QuakeSoundToPlayers()
+   {
+      local i;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&Player)
+         {
+            Send(First(i),@WaveSendUser,#wave_rsc=fire_quake_sound);
+         }
+      }
+      return;
+   }
+
+   LowerInitialPlatform()
+   {
+      Send(self,@QuakeSoundToPlayers);
+      Send(self,@PlaceFirstLights);
+      Post(self,@SetSector,#sector=INITIAL_PLATFORM,
+            #animation=ANIMATE_FLOOR_LIFT,#height=1100,#speed=100);
+
+      ptRaiseFirstAreaPlatforms = CreateTimer(self,@RaiseFirstAreaPlatforms,12000);
+      return;
+   }
+
+   RaiseFirstAreaPlatforms()
+   {
+      ptRaiseFirstAreaPlatforms = $;
+
+      Send(self,@ChangeTexture,#id=PLATFORM_TWO,#new_texture=CAVE_STONE_4_TEX,#flags=CTF_FLOOR);
+      Send(self,@ChangeTexture,#id=PLATFORM_THREE,#new_texture=CAVE_STONE_4_TEX,#flags=CTF_FLOOR);
+      Send(self,@ChangeTexture,#id=PLATFORM_FOUR,#new_texture=CAVE_STONE_4_TEX,#flags=CTF_FLOOR);
+      Send(self,@ChangeTexture,#id=PLATFORM_FIVE,#new_texture=CAVE_STONE_4_TEX,#flags=CTF_FLOOR);
+      Send(self,@ChangeTexture,#id=BOSS_PLATFORM_ONE,#new_texture=CAVE_STONE_4_TEX,#flags=CTF_FLOOR);
+
+      Send(self,@SetSectorFlags,#sector=PLATFORM_TWO,#depth=SF_DEPTH0,#scrollSpeed=SCROLL_NONE);
+      Send(self,@SetSectorFlags,#sector=PLATFORM_THREE,#depth=SF_DEPTH0,#scrollSpeed=SCROLL_NONE);
+      Send(self,@SetSectorFlags,#sector=PLATFORM_FOUR,#depth=SF_DEPTH0,#scrollSpeed=SCROLL_NONE);
+      Send(self,@SetSectorFlags,#sector=PLATFORM_FIVE,#depth=SF_DEPTH0,#scrollSpeed=SCROLL_NONE);
+      Send(self,@SetSectorFlags,#sector=BOSS_PLATFORM_ONE,#depth=SF_DEPTH0,#scrollSpeed=SCROLL_NONE);
+
+      Send(self,@QuakeSoundToPlayers);
+      Send(self,@Rumble,#duration=4000);
+
+      Post(self,@SetSector,#sector=PLATFORM_TWO,#animation=ANIMATE_FLOOR_LIFT,#height=1007,#speed=7/4);
+      Post(self,@SetSector,#sector=PLATFORM_THREE,#animation=ANIMATE_FLOOR_LIFT,#height=1014,#speed=14/4);
+      Post(self,@SetSector,#sector=PLATFORM_FOUR,#animation=ANIMATE_FLOOR_LIFT,#height=1021,#speed=21/4);
+      Post(self,@SetSector,#sector=PLATFORM_FIVE,#animation=ANIMATE_FLOOR_LIFT,#height=1028,#speed=28/4);
+      Post(self,@SetSector,#sector=BOSS_PLATFORM_ONE,#animation=ANIMATE_FLOOR_LIFT,#height=1035,#speed=35/4);
+
+      Post(self,@SetSector,#sector=INITIAL_PLATFORM,#animation=ANIMATE_CEILING_LIFT,#height=1400,#speed=150);
+   
+      Send(self,@PlaceFirstBoss);
+
+      return;
+   }
+   
+   PlaceFirstBoss()
+   {
+      ptSpawnTimer = CreateTimer(self,@SpawnThreats,piSpawnTime);
+
+      Send(self,@NewHold,#what=Create(&FireElemental,#piSurvivalLevel=Send(Send(SYS,@GetDesertRoomMaintenance),@GetFireBoost)),#new_row=95,#new_col=144,#fine_row=55,#fine_col=28);
+      Send(self,@NewHold,#what=Create(&FireElemental,#piSurvivalLevel=Send(Send(SYS,@GetDesertRoomMaintenance),@GetFireBoost)),#new_row=100,#new_col=137,#fine_row=14,#fine_col=48);
+      
+      Send(self,@NewHold,#what=Create(&XeoBossFire),#new_row=90,#new_col=139,#fine_row=3,#fine_col=5);
+      return;
+   }
+   
+   PlaceSecondBoss()
+   {
+      Send(self,@NewHold,#what=Create(&FireElementalChampion,#piSurvivalLevel=Send(Send(SYS,@GetDesertRoomMaintenance),@GetFireBoost)),#new_row=113,#new_col=153,#fine_row=28,#fine_col=22);
+      Send(self,@NewHold,#what=Create(&FireElementalChampion,#piSurvivalLevel=Send(Send(SYS,@GetDesertRoomMaintenance),@GetFireBoost)),#new_row=120,#new_col=170,#fine_row=56,#fine_col=44);
+      
+      Send(self,@NewHold,#what=Create(&XeoBossFire2),#new_row=127,#new_col=157,#fine_row=63,#fine_col=0);
+      return;
+   }
+   
+   PlaceThirdBoss()
+   {
+      Send(self,@NewHold,#what=Create(&FireElementalChampion,#piSurvivalLevel=Send(Send(SYS,@GetDesertRoomMaintenance),@GetFireBoost)),#new_row=101,#new_col=160,#fine_row=51,#fine_col=46);
+      Send(self,@NewHold,#what=Create(&FireElementalChampion,#piSurvivalLevel=Send(Send(SYS,@GetDesertRoomMaintenance),@GetFireBoost)),#new_row=95,#new_col=163,#fine_row=10,#fine_col=55);
+      Send(self,@NewHold,#what=Create(&FireElementalChampion,#piSurvivalLevel=Send(Send(SYS,@GetDesertRoomMaintenance),@GetFireBoost)),#new_row=93,#new_col=178,#fine_row=55,#fine_col=46);
+      Send(self,@NewHold,#what=Create(&FireElementalChampion,#piSurvivalLevel=Send(Send(SYS,@GetDesertRoomMaintenance),@GetFireBoost)),#new_row=88,#new_col=175,#fine_row=46,#fine_col=40);
+      
+      Send(self,@NewHold,#what=Create(&XeoBossFire3),#new_row=85,#new_col=174,#fine_row=19,#fine_col=1);
+      return;
+   }
+
+   SpawnThreats()
+   {
+      local oXeo, i, n, lPlayers, iPlayerCount;
+
+      ptSpawnTimer = $;
+      
+      
+      lPlayers = $;
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&Player)
+         {
+            lPlayers = Cons(First(i),lPlayers);
+         }
+      }
+      
+      if lPlayers <> $
+      {
+         iPlayerCount = Length(lPlayers);
+         
+         while iPlayerCount > 0
+         {
+            oXeo = Create(&XeoFire,#piSurvivalLevel=Send(Send(SYS,@GetDesertRoomMaintenance),@GetFireBoost));
+            Send(self,@NewHold,#what=oXeo,#new_row=Random(1,Send(self,@GetRoomRows)-1),
+                                          #new_col=Random(1,Send(self,@GetRoomCols)-1));
+            Send(oXeo,@TargetSwitch,#what=Nth(lPlayers,iPlayerCount),#iHatred=100);
+            Send(oXeo,@EnterStateChase,#target=Nth(lPlayers,iPlayerCount),#actnow=True);
+
+            --iPlayerCount;
+         }
+      }
+      lPlayers = $;
+
+      piSpawnTime = bound(piSpawnTime - 5000,10000,$);
+      ptSpawnTimer = CreateTimer(self,@SpawnThreats,piSpawnTime);
+      return;
+   }
+
+   FirstBossKilled()
+   {
+      Send(self,@PlaceSecondLights);
+
+
+      Post(self,@SetSector,#sector=LAVA_AREA_TWO,#animation=ANIMATE_FLOOR_LIFT,#height=1000,#speed=40);
+      Post(self,@SetSector,#sector=INITIAL_PLATFORM,#animation=ANIMATE_FLOOR_LIFT,#height=1005,#speed=95/4);
+      
+      Send(self,@QuakeSoundToPlayers);
+      Send(self,@Rumble,#duration=8000);
+      ptSecondAreaScrollTimer = CreateTimer(self,@StartSecondAreaScroll,11000);
+      
+      % Refresh threat spawn.
+      piSpawnTime = 60000;
+      return;
+   }
+
+   RaiseSecondAreaPlatforms()
+   {
+      Send(self,@QuakeSoundToPlayers);
+      Send(self,@Rumble,#duration=4000);
+      Send(self,@ChangeTexture,#id=PLATFORM_SIX,#new_texture=CAVE_STONE_4_TEX,#flags=CTF_FLOOR);
+      Send(self,@ChangeTexture,#id=PLATFORM_SEVEN,#new_texture=CAVE_STONE_4_TEX,#flags=CTF_FLOOR);
+      Send(self,@ChangeTexture,#id=PLATFORM_EIGHT,#new_texture=CAVE_STONE_4_TEX,#flags=CTF_FLOOR);
+      Send(self,@ChangeTexture,#id=BOSS_PLATFORM_TWO,#new_texture=CAVE_STONE_4_TEX,#flags=CTF_FLOOR);
+
+      Send(self,@SetSectorFlags,#sector=PLATFORM_SIX,#depth=SF_DEPTH0,#scrollSpeed=SCROLL_NONE);
+      Send(self,@SetSectorFlags,#sector=PLATFORM_SEVEN,#depth=SF_DEPTH0,#scrollSpeed=SCROLL_NONE);
+      Send(self,@SetSectorFlags,#sector=PLATFORM_EIGHT,#depth=SF_DEPTH0,#scrollSpeed=SCROLL_NONE);
+      Send(self,@SetSectorFlags,#sector=BOSS_PLATFORM_TWO,#depth=SF_DEPTH0,#scrollSpeed=SCROLL_NONE);
+
+      Post(self,@SetSector,#sector=PLATFORM_SIX,#animation=ANIMATE_FLOOR_LIFT,#height=1007,#speed=7/4);
+      Post(self,@SetSector,#sector=PLATFORM_SEVEN,#animation=ANIMATE_FLOOR_LIFT,#height=1014,#speed=14/4);
+      Post(self,@SetSector,#sector=PLATFORM_EIGHT,#animation=ANIMATE_FLOOR_LIFT,#height=1021,#speed=21/4);
+      Post(self,@SetSector,#sector=BOSS_PLATFORM_TWO,#animation=ANIMATE_FLOOR_LIFT,#height=1028,#speed=28/4);
+
+      Send(self,@PlaceSecondBoss);
+
+      return;
+   }
+
+   StartSecondAreaScroll()
+   {
+      ptSecondAreaScrollTimer = $;
+      Send(self,@SetSectorFlags,#sector=LAVA_AREA_TWO,#depth=SF_DEPTH1,#scrollSpeed=SCROLL_FAST);
+      Post(self,@RaiseSecondAreaPlatforms);
+      return;
+   }
+
+   SecondBossKilled()
+   {
+      Send(self,@QuakeSoundToPlayers);
+      Send(self,@Rumble,#duration=4000);
+
+      Send(self,@PlaceThirdLights);
+
+      Post(self,@SetSector,#sector=RING_ONE,#animation=ANIMATE_FLOOR_LIFT,#height=1000,#speed=40);
+      
+      ptThirdAreaScrollTimer = CreateTimer(self,@StartThirdAreaScroll,11000);
+      
+      % Refresh threat spawn.
+      piSpawnTime = 60000;
+      return;
+   }
+
+   StartThirdAreaScroll()
+   {
+      ptThirdAreaScrollTimer = $;
+      Send(self,@SetSectorFlags,#sector=RING_ONE,#depth=SF_DEPTH1,#scrollSpeed=SCROLL_FAST);
+   
+      Send(self,@RaiseThirdAreaPlatforms);
+
+      return;
+   }
+
+   RaiseThirdAreaPlatforms()
+   {
+      Send(self,@QuakeSoundToPlayers);
+      Send(self,@Rumble,#duration=4000);
+      Send(self,@ChangeTexture,#id=PLATFORM_NINE,#new_texture=CAVE_STONE_4_TEX,#flags=CTF_FLOOR);
+      Send(self,@ChangeTexture,#id=PLATFORM_TEN,#new_texture=CAVE_STONE_4_TEX,#flags=CTF_FLOOR);
+      Send(self,@ChangeTexture,#id=PLATFORM_ELEVEN,#new_texture=CAVE_STONE_4_TEX,#flags=CTF_FLOOR);
+      Send(self,@ChangeTexture,#id=PLATFORM_TWELVE,#new_texture=CAVE_STONE_4_TEX,#flags=CTF_FLOOR);
+      Send(self,@ChangeTexture,#id=PLATFORM_THIRTEEN,#new_texture=CAVE_STONE_4_TEX,#flags=CTF_FLOOR);
+      Send(self,@ChangeTexture,#id=PLATFORM_FOURTEEN,#new_texture=CAVE_STONE_4_TEX,#flags=CTF_FLOOR);
+      Send(self,@ChangeTexture,#id=PLATFORM_FIFTEEN,#new_texture=CAVE_STONE_4_TEX,#flags=CTF_FLOOR);
+      Send(self,@ChangeTexture,#id=BOSS_PLATFORM_THREE,#new_texture=CAVE_STONE_4_TEX,#flags=CTF_FLOOR);
+
+      Send(self,@SetSectorFlags,#sector=PLATFORM_NINE,#depth=SF_DEPTH0,#scrollSpeed=SCROLL_NONE);
+      Send(self,@SetSectorFlags,#sector=PLATFORM_TEN,#depth=SF_DEPTH0,#scrollSpeed=SCROLL_NONE);
+      Send(self,@SetSectorFlags,#sector=PLATFORM_ELEVEN,#depth=SF_DEPTH0,#scrollSpeed=SCROLL_NONE);
+      Send(self,@SetSectorFlags,#sector=PLATFORM_TWELVE,#depth=SF_DEPTH0,#scrollSpeed=SCROLL_NONE);
+      Send(self,@SetSectorFlags,#sector=PLATFORM_THIRTEEN,#depth=SF_DEPTH0,#scrollSpeed=SCROLL_NONE);
+      Send(self,@SetSectorFlags,#sector=PLATFORM_FOURTEEN,#depth=SF_DEPTH0,#scrollSpeed=SCROLL_NONE);
+      Send(self,@SetSectorFlags,#sector=PLATFORM_FIFTEEN,#depth=SF_DEPTH0,#scrollSpeed=SCROLL_NONE);
+      Send(self,@SetSectorFlags,#sector=BOSS_PLATFORM_THREE,#depth=SF_DEPTH0,#scrollSpeed=SCROLL_NONE);
+
+      Post(self,@SetSector,#sector=PLATFORM_NINE,#animation=ANIMATE_FLOOR_LIFT,#height=1007,#speed=7/4);
+      Post(self,@SetSector,#sector=PLATFORM_TEN,#animation=ANIMATE_FLOOR_LIFT,#height=1014,#speed=386/4);
+      Post(self,@SetSector,#sector=PLATFORM_ELEVEN,#animation=ANIMATE_FLOOR_LIFT,#height=1021,#speed=21/4);
+      Post(self,@SetSector,#sector=PLATFORM_TWELVE,#animation=ANIMATE_FLOOR_LIFT,#height=1028,#speed=28/4);
+      Post(self,@SetSector,#sector=PLATFORM_THIRTEEN,#animation=ANIMATE_FLOOR_LIFT,#height=1035,#speed=35/4);
+      Post(self,@SetSector,#sector=PLATFORM_FOURTEEN,#animation=ANIMATE_FLOOR_LIFT,#height=1042,#speed=42/4);
+      Post(self,@SetSector,#sector=PLATFORM_FIFTEEN,#animation=ANIMATE_FLOOR_LIFT,#height=1042,#speed=42/4);
+      Post(self,@SetSector,#sector=BOSS_PLATFORM_THREE,#animation=ANIMATE_FLOOR_LIFT,#height=1049,#speed=49/4);
+   
+      Send(self,@PlaceThirdBoss);
+
+      return;
+   }
+
+   ThirdBossKilled()
+   {
+      local i;
+
+      Send(self,@QuakeSoundToPlayers);
+      Send(self,@Rumble,#duration=20000);
+      Send(self,@PlaceFinalLights);
+      Post(self,@SetSector,#sector=FALLING_LAVA_SECTORS,#animation=ANIMATE_CEILING_LIFT,#height=1000,#speed=400/4);
+      
+      ptVictoryTimer = CreateTimer(self,@ClosePrismOfFire,20000);
+      
+      % Refresh threat spawn.
+      piSpawnTime = 60000;
+      if ptSpawnTimer <> $
+      {
+         DeleteTimer(ptSpawnTimer);
+         ptSpawnTimer = $;
+      }
+      
+      Send(Send(SYS,@FindRoomByNum,#num=RID_MAZE_EXIT_ROOM),@OpenFireWall);
+
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&Monster)
+         {
+            Send(First(i),@Killed);
+         }
+         
+         if IsClass(First(i),&Player)
+         {
+            Send(First(i),@DefeatedPrismPassiveQuest,#iElement=ATCK_SPELL_FIRE);
+         }
+      }
+      return;
+   }
+
+   Delete()
+   {
+      local i, oThing, oPlayer;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&LogoffGhost)
+         {
+            Send(Send(First(i),@GetGhostedPlayer),@AdminGoToDesertShore2WhileOffline);
+            Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTSHORE2),@Teleport,#what=First(i));
+         }
+      }
+
+      foreach i in Send(self,@GetHolderPassive)
+      {
+         oThing = Send(self,@HolderExtractObject,#data=i);
+         if IsClass(oThing,&DeadBody)
+            AND NOT Send(oThing,@GetPbMob)
+         {
+            % is a player corpse! Let's move it.
+            Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTDUNES),@Teleport,#what=oThing);
+         }
+      }
+
+      if ptPlayersGathering <> $
+      {
+         DeleteTimer(ptPlayersGathering);
+         ptPlayersGathering = $;
+      }
+
+      if ptRaiseFirstAreaPlatforms <> $
+      {
+         DeleteTimer(ptRaiseFirstAreaPlatforms);
+         ptRaiseFirstAreaPlatforms = $;
+      }
+
+      if ptSecondAreaScrollTimer <> $
+      {
+         DeleteTimer(ptSecondAreaScrollTimer);
+         ptSecondAreaScrollTimer = $;
+      }
+
+      if ptThirdAreaScrollTimer <> $
+      {
+         DeleteTimer(ptThirdAreaScrollTimer);
+         ptThirdAreaScrollTimer = $;
+      }
+      if ptSpawnTimer <> $
+      {
+         DeleteTimer(ptSpawnTimer);
+         ptSpawnTimer = $;
+      }
+      if ptVictoryTimer <> $
+      {
+         DeleteTimer(ptVictoryTimer);
+         ptVictoryTimer = $;
+      }
+      propagate;
+   }
+
+   PlaceFirstLights()
+   {
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_RED,
+           #iIntensity=255),#new_row=92,#new_col=126,#fine_row=8,#fine_col=36);
+%      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_RED,
+%           #iIntensity=255),#new_row=86,#new_col=145,#fine_row=23,#fine_col=43);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_RED,
+           #iIntensity=255),#new_row=101,#new_col=152,#fine_row=14,#fine_col=55);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_RED,
+           #iIntensity=255),#new_row=107,#new_col=141,#fine_row=48,#fine_col=45);
+%      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_RED,
+%           #iIntensity=255),#new_row=107,#new_col=134,#fine_row=30,#fine_col=33);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_RED,
+           #iIntensity=255),#new_row=88,#new_col=135,#fine_row=34,#fine_col=7);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_RED,
+           #iIntensity=255),#new_row=109,#new_col=145,#fine_row=28,#fine_col=9);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_RED,
+           #iIntensity=255),#new_row=107,#new_col=134,#fine_row=53,#fine_col=5);
+      return;
+   }
+   
+   PlaceSecondLights()
+   {
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_RED,
+           #iIntensity=255),#new_row=107,#new_col=162,#fine_row=43,#fine_col=11);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_RED,
+           #iIntensity=255),#new_row=110,#new_col=165,#fine_row=42,#fine_col=48);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_RED,
+           #iIntensity=255),#new_row=110,#new_col=165,#fine_row=42,#fine_col=48);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_RED,
+           #iIntensity=255),#new_row=125,#new_col=169,#fine_row=30,#fine_col=53);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_RED,
+           #iIntensity=255),#new_row=126,#new_col=166,#fine_row=16,#fine_col=13);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_RED,
+           #iIntensity=255),#new_row=129,#new_col=163,#fine_row=6,#fine_col=45);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_RED,
+           #iIntensity=255),#new_row=127,#new_col=148,#fine_row=13,#fine_col=25);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_RED,
+           #iIntensity=255),#new_row=123,#new_col=145,#fine_row=38,#fine_col=53);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_RED,
+           #iIntensity=255),#new_row=121,#new_col=142,#fine_row=53,#fine_col=17);
+      return;
+   }
+
+   PlaceThirdLights()
+   {
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_RED,
+           #iIntensity=255),#new_row=98,#new_col=161,#fine_row=23,#fine_col=20);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_RED,
+           #iIntensity=255),#new_row=90,#new_col=165,#fine_row=56,#fine_col=54);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_RED,
+           #iIntensity=255),#new_row=97,#new_col=166,#fine_row=28,#fine_col=39);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_RED,
+           #iIntensity=255),#new_row=92,#new_col=172,#fine_row=13,#fine_col=45);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_RED,
+           #iIntensity=255),#new_row=82,#new_col=170,#fine_row=35,#fine_col=58);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_RED,
+           #iIntensity=255),#new_row=92,#new_col=181,#fine_row=25,#fine_col=43);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_RED,
+           #iIntensity=255),#new_row=96,#new_col=175,#fine_row=14,#fine_col=30);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_RED,
+           #iIntensity=255),#new_row=100,#new_col=171,#fine_row=12,#fine_col=13);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_RED,
+           #iIntensity=255),#new_row=102,#new_col=163,#fine_row=0,#fine_col=1);
+      return;
+   }
+
+   PlaceFinalLights()
+   {
+      local iNumLights;
+      
+      iNumLights = 160;
+      
+      while iNumLights > 0
+      {
+         Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_RED,
+              #iIntensity=255),#new_row=Random(50,200),#new_col=Random(50,200),#fine_row=Random(0,63),#fine_col=Random(0,63));
+         --iNumLights;
+      }
+
+      return;
+   }
+
+   SomethingKilled(what=$,victim=$)
+   {
+      local i;
+
+      if victim <> $
+         AND IsClass(victim,&Monster)
+      {
+         if IsClass(victim,&XeoBossFire)
+         {
+            foreach i in Send(self,@GetHolderActive)
+            {
+               if IsClass(First(i),&Player)
+               {
+                  Send(First(i),@MsgSendUser,#message_rsc=killed_first_boss_msg,
+                     #parm1=Send(what,@GetName),#parm2=Send(victim,@GetDef),#parm3=Send(victim,@GetName));
+               }
+            }
+            Send(self,@FirstBossKilled);
+            propagate;
+         }
+         if IsClass(victim,&XeoBossFire2)
+         {
+            foreach i in Send(self,@GetHolderActive)
+            {
+               if IsClass(First(i),&Player)
+               {
+                  Send(First(i),@MsgSendUser,#message_rsc=killed_second_boss_msg,
+                     #parm1=Send(what,@GetName),#parm2=Send(victim,@GetDef),#parm3=Send(victim,@GetName));
+               }
+            }
+            Send(self,@SecondBossKilled);
+            propagate;
+         }
+         if IsClass(victim,&XeoBossFire3)
+         {
+            foreach i in Send(self,@GetHolderActive)
+            {
+               if IsClass(First(i),&Player)
+               {
+                  Send(First(i),@MsgSendUser,#message_rsc=killed_third_boss_msg,
+                     #parm1=Send(what,@GetName),#parm2=Send(victim,@GetDef),#parm3=Send(victim,@GetName));
+               }
+            }
+            Send(self,@ThirdBossKilled);
+            propagate;
+         }
+      }
+
+      propagate;
+   }
+
+   ClosePrismOfFire()
+   {
+      local i, oAbyssalBore;
+      
+      ptVictoryTimer = $;
+
+      oAbyssalBore = Send(SYS,@FindRoomByNum,#num=RID_DESERTRIVER2);
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&Player)
+         {
+            Send(oAbyssalBore,@Teleport,#what=First(i));
+         }
+      }
+      
+      Post(oAbyssalBore,@PrismOfFireDefeated);
+      Post(self,@ResetAll);
+      
+      return;
+   }
+
+   SpecialPhaseConditionsSatisfied()
+   {
+      return TRUE;
+   }
+   
+   ResetAll()
+   {
+      local iCount;
+      
+      piSpawnTime = 60000;
+
+      iCount = 2;
+      while iCount <= 18
+      {
+         Send(self,@RemoveTextureChange,#id=iCount);
+         Send(self,@RemoveSectorFlagChange,#id=iCount);
+         Send(self,@SetSector,#sector=iCount,#animation=ANIMATE_FLOOR_LIFT,#height=1000,#speed=0);
+         ++iCount;
+      }
+
+      Send(self,@SetSector,#sector=INITIAL_PLATFORM,#animation=ANIMATE_CEILING_LIFT,#height=2074,#speed=0);
+      Send(self,@SetSector,#sector=RING_ONE,#animation=ANIMATE_FLOOR_LIFT,#height=1400,#speed=0);
+      Send(self,@SetSector,#sector=INITIAL_PLATFORM,#animation=ANIMATE_FLOOR_LIFT,#height=2000,#speed=0);
+
+      if ptPlayersGathering <> $
+      {
+         DeleteTimer(ptPlayersGathering);
+         ptPlayersGathering = $;
+      }
+
+      if ptRaiseFirstAreaPlatforms <> $
+      {
+         DeleteTimer(ptRaiseFirstAreaPlatforms);
+         ptRaiseFirstAreaPlatforms = $;
+      }
+
+      if ptSecondAreaScrollTimer <> $
+      {
+         DeleteTimer(ptSecondAreaScrollTimer);
+         ptSecondAreaScrollTimer = $;
+      }
+
+      if ptThirdAreaScrollTimer <> $
+      {
+         DeleteTimer(ptThirdAreaScrollTimer);
+         ptThirdAreaScrollTimer = $;
+      }
+      if ptSpawnTimer <> $
+      {
+         DeleteTimer(ptSpawnTimer);
+         ptSpawnTimer = $;
+      }
+      if ptVictoryTimer <> $
+      {
+         DeleteTimer(ptVictoryTimer);
+         ptVictoryTimer = $;
+      }
+
+      return;
+   }
+
+   NewHold(what = $,new_row=$,new_col=$)
+   "Prevents anyone from logging on into a special zone"
+   {
+      % If players log on, send them elsewhere.
+      if IsClass(what,&User)
+      {
+         if Send(what,@GetOwner) = $
+         {
+            Post(Send(SYS,@FindRoomByNum,#num=RID_DESERTRIVER2),@Teleport,#what=what);
+         }
+         else
+         {
+            if ptPlayersGathering <> $
+            {
+               Post(what,@MsgSendUser,#message_rsc=players_gathering_msg);
+            }
+         }
+      }
+
+      propagate;
+   }
+   
+   OverrideDeathFunction(who=$,what=$,stroke_obj=$)
+   {
+      local oAfterlife, bDrop, oRoom, iRow, iCol, iFine_Row, iFine_Col, iAngle, iRoom,
+            oBody, lReagentBagContents, lInventoryContents, lItems, i, oSoldierShield;
+
+      Send(who,@ClearStance);
+
+      % Stop any rescue attempts that were going on.
+      Send(who,@CancelRescue);
+      Send(who,@RemoveAllEnchantments,#report=FALSE);
+      
+      Send(who,@SetDeathTime,#iTime=GetTime());
+
+      % Grab the location of the deceased.
+      % Might need to grab the old location if logged off.
+
+      if Send(who,@IsLoggedOn)
+      {
+         oRoom = Send(who,@GetOwner);
+         iRow = Send(who,@GetRow);
+         iCol = Send(who,@GetCol);
+         iFine_Row = Send(who,@GetFineRow);
+         iFine_Col = Send(who,@GetFineCol);
+         iAngle = Send(who,@GetAngle);
+         iRoom = Send(Send(who,@GetOwner),@GetRoomNum);
+      }
+      else
+      {
+         iRoom = Send(who,@GetSaveRoom);
+         oRoom = Send(SYS,@FindRoomByNum,#num=iRoom);
+         iRow = Send(who,@GetSaveRow);
+         iCol = Send(who,@GetSaveCol);
+         iFine_Row = Send(who,@GetSaveFineRow);
+         iFine_Col = Send(who,@GetSaveFineCol);
+         iAngle = Send(who,@GetSaveAngle);
+      }
+
+      % Record-keeping. Keep this before the token check,
+      % so we can give proper message.
+      Send(SYS,@UserKilled,#what=who,#killer=what,#oRoom=oRoom,#stroke_obj=stroke_obj);
+      Send(Send(SYS,@GetStatistics),@PlayerDiedCounter);
+
+      % Create the corpse.
+      if what <> $
+         AND IsClass(what,&User)
+      {
+         oBody = Send(who,@CreateCorpse,#oPlayerKiller=what);
+      }
+      else
+      {
+         oBody = Send(who,@CreateCorpse);
+      }
+      Send(who,@AddCorpse,#corpse=oBody);
+
+      Send(oRoom,@NewHold,#what=oBody,#new_row=iRow,#new_col=iCol,
+            #fine_row=iFine_Row,#fine_col=iFine_Col,#new_angle=iAngle);
+
+      bDrop = TRUE;
+      % Start losing stuff if applicable.
+      if bDrop
+      {
+         lReagentBagContents = Send(who,@GetReagentBagContents);
+         if lReagentBagContents <> $
+         {
+            lInventoryContents = [Send(who,@GetHolderActive),Send(who,@GetHolderPassive),lReagentBagContents];
+         }
+         else
+         {
+            lInventoryContents = [Send(who,@GetHolderActive),Send(who,@GetHolderPassive)];
+         }
+
+         foreach lItems in lInventoryContents
+         {
+            foreach i in lItems
+            {
+               % Let the item know we died, in case it does something special.
+               Send(i,@OwnerKilled);
+
+               if Send(i,@DropOnDeath)
+               {
+                  if Send(oRoom,@ReqNewHold,#what=i,#new_row=iRow,#new_col=iCol)
+                  {
+                     Send(oBody,@NewHold,#what=i);
+                  }
+               }
+            }
+         }
+
+         Post(who,@EvaluatePKStatus);
+
+         % Let SoldierShields know we died. It handles itself as appropriate.
+         oSoldierShield = Send(who,@FindUsing,#what=&SoldierShield);
+         if oSoldierShield <> $
+         {
+            Send(oSoldierShield,@OwnerDied,#what=what);
+         }
+      }
+
+      % Give out your dying scream.
+      if Send(who,@GetGender) = GENDER_FEMALE
+      {
+         i = Send(who,@GetFemaleDeathWav);
+      }
+      else
+      {
+         i = Send(who,@GetMaleDeathWav);
+      }
+
+      Send(oRoom,@SomethingWaveRoom,#what=oBody,#wave_rsc=i);
+      if Send(who,@IsLoggedOn)
+      {
+         Send(who,@WaveSendUser,#what=who,#wave_rsc=i);
+      }
+
+      Send(who,@SetHealth,#amount=1);
+
+      Send(who,@NewHealth);
+      Send(who,@NewMana);
+      Send(who,@NewVigor);
+      
+      Send(who,@SetDeathCost,#DeathCost=Send(Send(SYS,@GetDesertRoomMaintenance),@GetDeathCost),#bOverride=TRUE);
+      Send(who,@ApplyDeathPenalties);
+
+      % Refresh the client with what's really going on.
+      if Send(who,@IsLoggedOn)
+      {
+         Send(who,@ToCliStats,#group=1);
+         Send(who,@ToCliStats,#group=2);
+         Send(who,@ToCliStats,#group=3);
+         Send(who,@ToCliStats,#group=4);
+
+         % Wake up with red foggy hangover.
+         Send(who,@EffectSendUserDuration,#effect=EFFECT_PAIN,#duration=5000);
+      }
+      
+      oAfterlife = Send(SYS,@FindRoomByNum,#num=RID_DESERTALDUNES);
+      Send(oAfterlife,@Teleport,#what=who);
+      return;
+   }
+
+   ReqSpellCast(who = $, oSpell = $, lItems = $)
+   {
+      if IsClass(oSpell,&DeathRift)
+         OR IsClass(oSpell,&PortalOfLife)
+      {
+         return FALSE;
+      }
+
+      propagate;
+   }
+
+   OverridesDeathAllowPhasing()
+   {
+      return TRUE;
+   }
+
+   GetRegion()
+   {
+      return RID_DESERT;
+   }
+   
+   CanHavePlayerPortal()
+   {
+      return FALSE;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+

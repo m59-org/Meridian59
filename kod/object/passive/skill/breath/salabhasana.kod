@@ -1,0 +1,93 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Salabhasana is Breath
+
+constants:
+
+   include blakston.khd
+   include protocol.khd   
+
+resources:
+
+   Salabhasana_name_rsc = "salabhasana"
+   Salabhasana_icon_rsc = iinvigor.bgf
+   Salabhasana_desc_rsc = \
+      "A novice breath technique that increases vigor regeneration. "
+      "In the salabhasana pose, a novice monk lies on their stomach and lifts "
+      "both their head and legs into the air in a curve. The pose benefits "
+      "vigor regeneration greatly, and regular practitioners of salabhasana "
+      "may even find benefits to their maximum vigor."
+      "\n\nBeing hit disrupts the pose, "
+      "so asanas require that the monk hasn't been hit in the last few seconds."
+   
+   Salabhasana_begin = "You breathe in the middle of your chest."
+   Salabhasana_end = "You stop breathing in the middle of your chest."
+   
+   Salabhasana_start_resting = "You lie on your stomach and lift your head and legs in a curved salabhasana pose."
+   Salabhasana_stop_resting = "You return to your feet."
+
+   Salabhasana_intro = \
+      "Shadowcraft Lv. 4: Increase mana recovery while resting."
+
+classvars:
+
+   vrName = Salabhasana_name_rsc
+   vrIcon = Salabhasana_icon_rsc
+   vrDesc = Salabhasana_desc_rsc
+
+   breath_achieved_msg = Salabhasana_begin
+   breath_end_msg = Salabhasana_end
+   breath_start_resting = Salabhasana_start_resting
+   breath_end_resting = Salabhasana_stop_resting
+
+   vrSkill_intro = Salabhasana_intro
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+
+   viSkill_num = SKID_SALABHASANA
+   viSchool = SKS_SHADOWCRAFT
+   viSkill_Level = 2
+   viChance_to_Increase = 6
+   viMeditate_ratio = 20
+
+   viSkillExertion = 0
+   vbCheck_exertion = FALSE
+
+   vbAutomatic = TRUE
+   
+   viPrimaryStat = STAT_ID_STAMINA
+   viSecondaryStat = 0
+
+properties:
+
+messages:
+
+   ModifyRestAddExertion(who=$,iAmount=0)
+   {
+      local iSalabhasanaAbility, iStat;
+
+      if NOT Send(who,@IsResting)
+         OR Send(who,@WasHitRecently)
+      {
+         return iAmount;
+      }
+
+      iSalabhasanaAbility = Send(who,@GetSkillAbility,#skill_num=viSkill_num);
+      iStat = Send(self,@GetRequisiteStat,#who=who);
+
+      Send(self,@ImproveAbility,#who=who);
+
+      return iAmount + (iAmount*2*(iSalabhasanaAbility+(iStat/4)))/100;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

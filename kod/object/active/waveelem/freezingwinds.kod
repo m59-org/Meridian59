@@ -1,0 +1,308 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+FreezingWinds is ActiveWaveElement
+
+constants:
+
+   include blakston.khd
+   
+   % This type of wall does quick effect checks, then creates
+   % another of itself at a different position and deletes itself
+   % to give the illusion of motion.
+   %
+   % Can be sent a name, icon, and element.
+   
+resources:
+
+   VectorWall_desc_rsc = \
+      "Look out!"
+   
+   freezing_winds_name = "freezing winds"
+   freezing_winds_icon = poisoncl.bgf
+   
+   freezing_winds_damage0 = "You withstand the freezing winds unscathed."
+   freezing_winds_damage5 = "Freezing winds chill you to the bone!"
+   freezing_winds_damage10 = "Gales of elemental cold tear at your flesh!"
+   freezing_winds_damage15 = "Icy daggers of air blacken your skin!"
+   freezing_winds_damage20 = "~B~bYou are being frozen solid!"
+
+   flamewave_damage0 = "You withstand the fire unscathed."
+   flamewave_damage5 = "You feel a bit toasted from the flames."
+   flamewave_damage10 = "Something smells like burnt hair.  Wait, it's you!"
+   flamewave_damage15 = "You are on fire!  Put it out!"
+   flamewave_damage20 = "Ouch, that really burned!"
+
+   flamewave_illusion_damage0 = "These flames burn without heat!"
+   flamewave_illusion_damage5 = "The heat is creeping upon you!"
+   flamewave_illusion_damage10 = "Your flesh toasts and curls black before your eyes!"
+   flamewave_illusion_damage15 = "The flames! The flames!"
+   flamewave_illusion_damage20 = "You can feel yourself dying in the roaring flames!"
+
+   freezing_winds_overall_sound = wind-howl-01.wav
+   freezing_winds_hit_sound = ice-cracking-01.wav
+
+   freezing_winds_dissipates = "The cold winds swirl ominously, but fail to coalesce."
+   flamewave_dissipates = "A bit of the flamewave fades into coldness."
+
+classvars:
+
+   vrName = freezing_winds_name
+   vrIcon = freezing_winds_icon
+   vrDesc = VectorWall_desc_rsc
+
+   viObject_flags = OF_NOEXAMINE
+
+properties:
+
+   viLightBonus = 0
+
+   vrDissipateMessage = freezing_winds_dissipates
+   vrUnaffectedMessage = freezing_winds_damage0
+
+   piDrawEffectFlag = OF_FLICKERING
+   piDrawFx = DRAWFX_TRANSLUCENT_50
+
+   viIllusion = FALSE
+
+   % Fine units
+   piExplosionRange = 96
+
+messages:
+
+   Constructor(caster = $, MaxDamage = 0, illusionary = FALSE)
+   {
+      piMaxDamage = MaxDamage;
+      viIllusion = illusionary;
+
+      propagate;
+   }
+
+   Explode(new_row=0, new_col=0, fine_row=0, fine_col=0)
+   {
+      local i, each_obj;
+      
+      if poOwner = $
+         OR NOT IsClass(poOwner,&Room)
+      {
+         Send(self,@Delete);
+         return;
+      }
+      
+      foreach i in Send(poOwner,@GetHolderActive)
+      {
+         each_obj = Send(poOwner,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&Battler)
+            AND NOT (IsClass(each_obj,&Player)
+               AND Send(each_obj,@IsInCannotInteractMode))
+         {
+            if Send(each_obj,@SquaredFineDistanceToLocation,#row=Send(self,@GetRow),
+                                                            #col=Send(self,@GetCol),
+                                                            #fine_row=Send(self,@GetFineRow),
+                                                            #fine_col=Send(self,@GetFineCol)) <= piExplosionRange*piExplosionRange
+            {
+               Send(self,@DoEffect,#what=each_obj);
+            }
+         }
+      }
+
+      propagate;
+   }
+
+   DoEffect(what = $)
+   {
+      local iDamage, iDuration, rMessage;
+
+      iDamage = 0;
+      
+      if viIllusion
+      {
+         iDamage = Send(what,@AssessDamage,#what=poCaster,#damage=Random(0,piMaxDamage),
+                        #aspell=ATCK_SPELL_ALL+ATCK_SPELL_ILLUSION,#report=FALSE,#report_resistance=FALSE);
+      }
+      else
+      {
+         iDamage = Send(what,@AssessDamage,#what=poCaster,#damage=Random(0,piMaxDamage),
+                        #aspell=ATCK_SPELL_ALL+ATCK_SPELL_COLD,#report=FALSE,#report_resistance=FALSE);
+      }
+      Send(poOwner,@SomethingAttacked,#what=poCaster,#victim=what,
+            #use_weapon=self,#stroke_obj=self);
+
+      if iDamage = $
+      {
+         Send(poCaster,@KilledSomething,#what=what,#use_weapon=self);
+      }
+
+      if IsClass(poCaster,&Player)
+      {
+         if iDamage = $
+         {
+            Send(poCaster,@SetPlayerFlag,#flag=PFLAG_DID_DAMAGE,#value=TRUE);
+            
+            return;
+         }
+         else
+         {
+            if piMaxDamage > 0
+            {
+               Send(poCaster,@SetPlayerFlag,#flag=PFLAG_DID_DAMAGE,#value=TRUE);
+            }
+         }
+      }
+
+      if IsClass(what,&Player)
+      {
+         if iDamage = 0
+            OR iDamage = $
+         {
+            if viIllusion
+            {
+               rMessage = firewall_illusion_damage0;
+            }
+            else
+            {
+               rMessage = freezing_winds_damage0;
+            }
+         }
+         else
+         {
+            % Damage is greater than 0
+            Send(what,@WaveSendUser,#wave_rsc=freezing_winds_hit_sound);
+
+            if iDamage < 500
+            {
+               if viIllusion
+               {
+                  rMessage = firewall_illusion_damage5;
+               }
+               else
+               {
+                  rMessage = freezing_winds_damage5;
+               }
+            }
+            else
+            {
+               if iDamage < 1000
+               {
+                  if viIllusion
+                  {
+                     rMessage = firewall_illusion_damage10;
+                  }
+                  else
+                  {
+                     rMessage = freezing_winds_damage10;
+                  }
+               }
+               else
+               {
+                  if iDamage < 1500
+                  {
+                     if viIllusion
+                     {
+                        rMessage = firewall_illusion_damage15;
+                     }
+                     else
+                     {
+                        rMessage = freezing_winds_damage15;
+                     }
+                  }
+                  else
+                  {
+                     if viIllusion
+                     {
+                        rMessage = firewall_illusion_damage20;
+                     }
+                     else
+                     {
+                        rMessage = freezing_winds_damage20;
+                     }
+                  }
+               }
+            }
+         }
+
+         Send(what,@MsgSendUser,#message_rsc=rMessage);
+      }
+      
+      propagate;
+   }
+
+   SendAnimation()
+   {
+      AddPacket(1, ANIMATE_NONE, 2, Random(1,5));
+      
+      return;
+   }
+
+   NewOwner(what = $)
+   {
+      % Add a bit of light if this isn't an illusion.  Firewalls should add some light.
+      if NOT viIllusion
+      {
+         % new room
+         if what <> $
+         {
+            Send(what,@AddBaseLight,#amount=viLightBonus);
+         }
+   
+         % old room
+         if poOwner <> $
+         {
+            Send(poOwner,@AddBaseLight,#amount=-viLightBonus);
+         }
+      }
+      
+      propagate;
+   }
+
+   Delete()
+   {
+      % Take away the light we added if we weren't an illusion.
+      if NOT viIllusion
+      {
+         if poOwner <> $
+         {
+            Send(poOwner,@AddBaseLight,#amount=-viLightBonus);
+         }
+      }
+      
+      propagate;
+   }
+
+   SendLightingInformation()
+   {
+      AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC));
+      % Intensity
+      if viIllusion
+      {
+         % Send less light if we're illusionary.
+         AddPacket(1,0);
+      }
+      else
+      {
+         % 5 out of 255 intensity of light
+         AddPacket(1,5);
+      }
+
+      if Send(self,@GetOwner) <> $
+         AND Send(Send(self,@GetOwner),@LightingColorOverride)
+      {
+         AddPacket(2,Send(Send(self,@GetOwner),@GetLightingColorOverride));
+         return;
+      }
+
+      % Blue color
+      AddPacket(2,LIGHT_BLUE);
+
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

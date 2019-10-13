@@ -1,0 +1,86 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ChaosThreat is RoomThreat 
+
+% Whenever it snows on the mainland, dampen cold and boost fire
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   chaos_threat_name_rsc = "chaos"
+   chaos_threat_icon_rsc = ikarahol.bgf
+   chaos_threat_desc_rsc = \
+      "The natural forces of the world are in disharmony here. "
+      "Chaos reigns. There is no way for the civilized world to magically "
+      "determine what happens here, so the normal penalties for combat "
+      "do not apply. Any adventurer may attack another without being declared an outlaw or murderer."      
+
+   chaos_threat_begin_msg = \
+      "~BThis area is in chaos! The legal protections of civilization cannot be enforced here!"
+   chaos_threat_end_msg = \
+      "Order returns to the area."
+   chaos_threat_dampens_msg = \
+      "You deal less damage!"
+   chaos_threat_boosts_msg = \
+      "You deal more damage!"
+
+   chaos_good_item_use_msg = \
+      "Your item relieves the chaos around you somewhat."
+   chaos_good_spell_use_msg = \
+      "Your spell banishes the chaos in your vicinity."
+      
+   chaos_threat_damage_msg = \
+      "Somehow, you are taking damage from chaos."
+
+   chaos_death_msg = \
+      "~B~U~k[###]~n ~B~v%s succumbed to chaos somehow. Seriously though, how?"
+
+classvars:
+
+   vrName = chaos_threat_name_rsc
+   vrIcon = chaos_threat_icon_rsc
+   vrDesc = chaos_threat_desc_rsc
+
+   viThreatBeginMsg = chaos_threat_begin_msg
+   viThreatEndMsg = chaos_threat_end_msg
+   viThreatDamageMsg = chaos_threat_damage_msg
+   viGoodItemUseMsg = chaos_good_item_use_msg
+   viGoodSpellUseMsg = chaos_good_spell_use_msg
+   
+   viDeathMsg = chaos_death_msg
+   
+   vbReportMessages = FALSE
+
+properties:
+
+   pbDealDamage = FALSE
+   piReport = FALSE
+
+messages:
+
+   Constructor(iDuration=0,iPower=$,report=TRUE,host_object=$)
+   {
+      Send(host_object,@SetChaosZone,#value=TRUE);
+
+      propagate;
+   }
+
+   EndThreat()
+   {
+      Send(poHostObject,@SetChaosZoneToDefault);
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -22,6 +22,9 @@ constants:
    % Threshold for the "wound" and "damage" levels of feedback.
    DAMAGE_THRESHOLD_WOUND = 500
    DAMAGE_THRESHOLD_DAMAGE = 1500
+   
+   % Battlers take bleed damage periodically
+   BLEED_TIME = 5000
 
 resources:
 
@@ -100,6 +103,18 @@ resources:
    battler_unholy_damage = "appalls"
    battler_unholy_slay = "corrupts"
 
+   battler_illusion_fail = "perturbs"
+   battler_illusion_nick = "dismays"
+   battler_illusion_wound = "frightens"
+   battler_illusion_damage = "terrifies"
+   battler_illusion_slay = "deranges"
+
+   battler_charm_fail = "repulses"
+   battler_charm_nick = "intrigues"
+   battler_charm_wound = "captivates"
+   battler_charm_damage = "enchants"
+   battler_charm_slay = "charms"
+   
    battler_quake_fail = "startles"
    battler_quake_nick = "shakes"
    battler_quake_wound = "buffets"
@@ -160,14 +175,53 @@ resources:
    rTumbleSoundTwo = Swoosh02.wav
    rTumbleSoundThree = Swoosh03.wav
    rTumbleSoundFour = Swoosh04.wav
+
+   rActiveBlockSoundOne = SwrdMtl1.wav
+   rActiveBlockSoundTwo = SwrdMtl2.wav
+   rActiveBlockSoundThree = SwrdMtl3.wav
+   rActiveBlockSoundFour = FlshHit2.wav
    
    backstab_sound = Knife-Slice.wav
+
+   illusion_damage_heal_msg = "Hey!  Some of those wounds were illusionary!"
+   
+   knockback_message = \
+      "~BYou knock %s%s away!"
+   knocked_back_message = \
+      "~B%s%s knocks you away!"
+   stun_message = \
+      "~BYour attack stuns %s%s!"
+   stunned_message = \
+      "~B%s%s stuns you!"
+   bleed_message = \
+      "~BYour attack leaves %s%s bleeding!"
+   bleeded_message = \
+      "~BYou begin to bleed!"
+
+   tumble_success = "You tumble out of the way of %s%s's attack!"
+   enemy_tumbled = "%s%s tumbles out of the way of your attack!"
 
 classvars:
 
    viObject_flags = OF_ATTACKABLE
 
    viBattler_level = 50
+
+   % A measure of size and mass. 5 is Baby spider, 200 is humanoid, 300 is troll, 600 is xeo, 4000 is ice dragon
+   % This number generally can't be modified except by race (see GetSize).
+   % Stun, knockback, bleed resistance can, however.
+   % Players are resistant to knockback and stun while wearing plate armor, for example.
+   viBaseSize = 200
+
+   % A measure of base knockback effect on this battler. 100 is normal. 0 is immune. Numbers higher than 100 = more vulnerable.
+   viBaseKnockbackPercentage = 100
+   % A measure of base stun effect on this battler. 100 is normal. 0 is immune. Numbers higher than 100 = more vulnerable.
+   viBaseStunPercentage = 100
+   % A measure of base bleed effect on this battler. 100 is normal. 0 is immune. etc.
+   viBaseBleedPercentage = 100
+   
+   % Some monsters are so big the enemy gets a range bonus.
+   viEnemyRangeBonus = 0
 
 properties:
 
@@ -185,7 +239,7 @@ properties:
    plControlledMinions = $
    ptMinionControlCheck = $
 
-   % list of resistances, Each element is [value, type].
+   % list of resistances, Each element is [type, value].
    plResistances = $
 
    % List of enchantments.
@@ -214,20 +268,114 @@ properties:
    plStatusEffects = $
    ptStatusEffectTimer = $
 
+   % Negative values mean more vulnerable to hexes, positive values resist
+   % -100 is doubled effect, 100 is total immunity
+   piHexResistance = 0
+   
+   % Track periodic bleed damage
+   ptBleedTimer = $
+
+   % Is this Battler protected by a magical shield against projectiles?
+   pbMagicalShield = FALSE
+   % Fine units
+   piMagicalShieldRadius = 64 * 5
+
+   % Is this Battler suffering an Elemental Imbalance?
+   % Always of the form [fire mod, shock mod, cold mod, acid mod]
+   % Wears off after a short time (ptElementalImbalanceTimer)
+   plElementalImbalance = $
+   ptElementalImbalanceTimer = $
+   
+   plCreatureTypes = $
+
 messages:
 
    % The first lump of code here deals with resistances and immunities/etc.
    % They are included here in battler so both user and mobiles can enjoy
    %  the effect.
 
-   TryDeflect()
+   TryDeflect(what=$, caster=$)
    {
-      return FALSE;
+      local oDeflect, oDeflectImpact, iResult, iSquaredFineDist;
+
+      % what is a spell. Players get to try to deflect this with Deflect spell first.
+      % Deflect has its own spell considerations.
+
+      if IsClass(self,&Player)
+      {
+         oDeflect = Send(SYS,@FindSpellByNum,#Num=SID_DEFLECT);
+         if Send(self,@IsEnchanted,#what=oDeflect)
+         {
+            if Send(oDeflect,@TryDeflect,#caster=caster,#victim=self,#oSpell=what)
+            {
+               oDeflectImpact = Create(&DeflectImpact,#iIntensity=125,#iColor=LIGHT_LIGHTNING,#oSpell=what,#oCaster=caster);
+               Send(poOwner,@NewHold,#what=oDeflectImpact,#new_row=Send(self,@GetRow),
+                                                          #new_col=Send(self,@GetCol),
+                                                          #fine_row=Send(self,@GetFineRow),
+                                                          #fine_col=Send(self,@GetFineCol));
+               return oDeflectImpact;
+            }
+         }
+      }
+      
+      % No deflect spell, or we're a monster? Let's make sure this only works vs projectile spells.
+
+      if what = $
+         OR Send(what,@GetProjectileIcon) = $
+         OR IsClass(what,&RadiusProjectile)
+      {
+         return $;
+      }
+
+      if pbMagicalShield
+      {
+         if poOwner <> $
+            AND caster <> $
+         {
+            iSquaredFineDist = Send(self,@SquaredFineDistanceTo,#what=caster);
+            
+            if iSquaredFineDist <> $
+               AND iSquaredFineDist >= piMagicalShieldRadius * piMagicalShieldRadius
+            {
+               oDeflectImpact = Create(&DeflectImpact,#iIntensity=125,#iColor=LIGHT_LIGHTNING,#oSpell=what,#oCaster=caster);
+               Send(poOwner,@NewHold,#what=oDeflectImpact,#new_row=Send(self,@GetRow),
+                                                          #new_col=Send(self,@GetCol),
+                                                          #fine_row=Send(self,@GetFineRow),
+                                                          #fine_col=Send(self,@GetFineCol));
+               
+               if piMagicalShieldRadius > 0
+               {
+                  iResult = Send(poOwner,@IntraTeleport,#what=oDeflectImpact,
+                                                        #type=INTRA_TELEPORT_TOWARD_DESTINATION,
+                                                        #distance=piMagicalShieldRadius,
+                                                        #new_row=Send(caster,@GetRow),
+                                                        #new_col=Send(caster,@GetCol),
+                                                        #fine_row=Send(caster,@GetFineRow),
+                                                        #fine_col=Send(caster,@GetFineCol));
+               }
+               return oDeflectImpact;
+            }
+         }
+      }
+
+      return $;
    }
 
    Delete()
    {
       local i;
+      
+      if ptBleedTimer <> $
+      {
+         DeleteTimer(ptBleedTimer);
+      }
+      ptBleedTimer = $;
+      
+      if ptMinionControlCheck <> $
+      {
+         DeleteTimer(ptMinionControlCheck);
+      }
+      ptMinionControlCheck = $;
 
       % Clear minion control list. Delete each of our minions
       % unless they are reflections, which are handled separately.
@@ -330,9 +478,24 @@ messages:
    "Spells and items can change resistances temporarily."
    {
       local oObjectAttribute, lCurResist, oEquipment, oEnchantment,
-            iHumbled, iHumbledDivisor, i;
+            iHumbled, iHumbledDivisor, i, iCorrode, iCorrodeDivisor,
+            oGuild, oGuildHall, oRelic, lElementalImbalance;
 
       lCurResist = ListCopy(Send(self,@GetBaseResistances));
+      
+      if IsClass(self,&Monster)
+         AND poOwner <> $
+         AND IsClass(poOwner,&ChaosStratumRoom)
+      {
+         lCurResist = Send(poOwner,@ChaosModifyResistance,#resistance_list=lCurResist);
+      }
+
+      foreach lElementalImbalance in Send(self,@GetElementalImbalance)
+      {
+         lCurResist = Send(SYS,@AddResistance,#what=Nth(lElementalImbalance,1),
+                                              #value=Nth(lElementalImbalance,2),
+                                              #resistance_list=lCurResist);
+      }
 
       foreach oObjectAttribute in plObject_attributes
       {
@@ -361,6 +524,32 @@ messages:
          }
       }
 
+      if IsClass(self,&Player)
+      {
+         foreach oEnchantment in Send(self,@GetReservedSpells)
+         {
+            lCurResist = Send(Nth(oEnchantment,1),@ModifyResistance,#resistance_list=lCurResist,#iState=Nth(oEnchantment,3));
+         }
+      }
+
+      if IsClass(self,&Player)
+      {
+         oGuild = Send(self,@GetGuild);
+         if oGuild <> $
+         {
+            oGuildHall = Send(oGuild,@GetGuildHall);
+            if oGuildHall <> $
+            {
+               foreach oRelic in Send(oGuildHall,@GetRelicList)
+               {
+                  lCurResist = Send(oRelic,@ModifyResistance,#resistance_list=lCurResist);
+               }
+            }
+         }
+      }
+
+      lCurResist = Send(self,@ApplyMaximumResistances,#resistance_list=lCurResist);
+
       iHumbled = Send(self,@GetStatusEffect,#type=STATUS_HUMBLED);
       if iHumbled > 0
       {
@@ -370,13 +559,47 @@ messages:
          foreach i in lCurResist
          {
             if Nth(i,2) > 0
+               AND Nth(i,1) < 0
             {
                SetNth(i,2,bound(Nth(i,2) - (iHumbled/iHumbledDivisor),0,$));
             }
          }
       } 
 
+      iCorrode = Send(self,@GetStatusEffect,#type=STATUS_CORRODE);
+      if iCorrode > 0
+      {
+         iCorrodeDivisor = Send(SETTINGS_OBJECT,@GetElementalMultiple,
+                           #type=STATUS_CORRODE);
+         
+         foreach i in lCurResist
+         {
+            if Nth(i,2) > 0
+               AND Nth(i,1) > 0
+            {
+               SetNth(i,2,bound(Nth(i,2) - (iCorrode/iCorrodeDivisor),0,$));
+            }
+         }
+      } 
+
       return lCurResist;
+   }
+
+   ApplyMaximumResistances(resistance_list=$)
+   {
+      local oResist;
+
+      foreach oResist in resistance_list
+      {
+         SetNth(oResist,2,Bound(Nth(oResist,2),MIN_RESISTANCE,Send(SETTINGS_OBJECT,@GetGeneralMaxResistance)+Send(self,@GetMaxResistanceMod,#type=Nth(oResist,1))));
+      }
+
+      return resistance_list;
+   }
+
+   GetMaxResistanceMod(type=-ATCK_SPELL_FIRE)
+   {
+      return 0;
    }
 
    GetEquippedItems()
@@ -385,29 +608,103 @@ messages:
       return $;
    }
 
-   ResistanceCheck(atype = 0, aspell = 0)
+   ResistanceCheck(atype = 0, aspell = 0, what=$)
    "Given bitvectors of attack type and spell, find the resistance modifier "
    "which applies. Largest resistance plus worst weakness gives the modifier."
    {
-      local j, iResType, iMaxRes, iMinRes, iResistance, resistance_list;
+      local j, iResType, iMaxRes, iMinRes, iResistance, resistance_list,
+         iWeaponResist, iMagicResist, iCombinedPrimaryResist, iFinalRes, bEleZero;
 
       iMaxRes = NO_RESISTANCE;
       iMinRes = NO_RESISTANCE;
-
+      
+      if what <> $
+         AND IsClass(what,&Player)
+         AND Send(what,@IsUsingA,#class=&SorceryCrest)
+      {
+         bEleZero = TRUE;
+      }
+      else
+      {
+         bEleZero = FALSE;
+      }
+      
       resistance_list = Send(self,@GetCurrentResistances);
 
+      if Send(SETTINGS_OBJECT,@GetDirectArmorEnabled)
+      {
+         foreach j in resistance_list
+         {
+            iResType = Nth(j,1);
+            if iResType > 0   
+            {
+               % It's a resistance to weapon type
+
+               if (atype & iResType) <> 0
+                  OR (atype <> 0 AND iResType = ATCK_WEAP_ALL)
+               {
+                  iResistance = Nth(j,2);
+
+                  if iResistance > iMaxRes
+                  {
+                     iMaxRes = iResistance;
+                  }
+
+                  if iResistance < iMinRes
+                  {
+                     iMinRes = iResistance;
+                  }
+               }
+            }
+            else
+            {
+               % It's a resistance to spell type
+               iResType = -iResType;
+
+               if (aspell & iResType) <> 0
+                  OR (aspell <> 0 AND iResType = ATCK_SPELL_ALL)
+               {
+                  iResistance = Nth(j,2);
+
+                  if iResistance > iMaxRes
+                  {
+                     iMaxRes = iResistance;
+                  }
+
+                  if iResistance < iMinRes
+                  {
+                     iMinRes = iResistance;
+                  }
+               }
+            }
+         }
+
+         % clip to max/min values
+         iMaxRes = bound(iMaxRes,$,MAX_RESISTANCE);
+         iMinRes = bound(iMinRes,MIN_RESISTANCE,$);
+
+         return iMaxRes + iMinRes;
+      }
+      
+      iWeaponResist = 0;
+      iMagicResist = 0;
       foreach j in resistance_list
       {
-         iResType = First(j);
+         iResType = Nth(j,1);
          if iResType > 0
          {
             % It's a resistance to weapon type
+            if iResType = ATCK_WEAP_ALL
+               AND atype <> 0
+            {
+               iWeaponResist = Nth(j,2);
+               continue;
+            }
 
             if (atype & iResType) <> 0
-               OR (atype <> 0 AND iResType = ATCK_WEAP_ALL)
             {
                iResistance = Nth(j,2);
-               
+
                if iResistance > iMaxRes
                {
                   iMaxRes = iResistance;
@@ -424,16 +721,33 @@ messages:
             % It's a resistance to spell type
             iResType = -iResType;
 
+            if iResType = ATCK_SPELL_ALL
+               AND aspell <> 0
+            {
+               iMagicResist = Nth(j,2);
+               continue;
+            }
+            
             if (aspell & iResType) <> 0
-               OR (aspell <> 0 AND iResType = ATCK_SPELL_ALL)
             {
                iResistance = Nth(j,2);
-               
+
+               if bEleZero
+                  AND (iResType = ATCK_SPELL_SHOCK
+                     OR iResType = ATCK_SPELL_FIRE
+                     OR iResType = ATCK_SPELL_COLD
+                     OR iResType = ATCK_SPELL_ACID
+                     OR iResType = ATCK_SPELL_HOLY
+                     OR iResType = ATCK_SPELL_UNHOLY)
+               {
+                  iResistance = iResistance - 25;
+               }
+
                if iResistance > iMaxRes
                {
                   iMaxRes = iResistance;
                }
-
+               
                if iResistance < iMinRes
                {
                   iMinRes = iResistance;
@@ -441,15 +755,26 @@ messages:
             }
          }
       }
+      
+      if iWeaponResist <> 0
+         AND iMagicResist <> 0
+      {
+         % Partially magical attacks halve both primary resistances,
+         %    but are also reduced by both.
+         iWeaponResist = iWeaponResist/2;
+         iMagicResist = iMagicResist/2;
+      }
+      
+      iCombinedPrimaryResist = bound(iWeaponResist + iMagicResist,
+                                        MIN_RESISTANCE,MAX_RESISTANCE);
+      iFinalRes = bound(iMaxRes + iMinRes,MIN_RESISTANCE,MAX_RESISTANCE);
 
-      % clip to max/min values
-      iMaxRes = Bound(iMaxRes,$,MAX_RESISTANCE);
-      iMinRes = Bound(iMinRes,MIN_RESISTANCE,$);
+      iFinalRes = 100 - (((100-iCombinedPrimaryResist) * (100-iFinalRes))/100);
 
-      return iMaxRes + iMinRes;
+      return bound(iFinalRes,MIN_RESISTANCE,MAX_RESISTANCE);
    }
 
-   GetDamageFromResistance(what = $, value = $)
+   GetDamageFromResistance(what = 0, value = $)
    "Adjust <what> damage according to the value multiplier"
    {
       local iDamage;
@@ -483,6 +808,7 @@ messages:
             if First(i) <> $
             {
                DeleteTimer(First(i));
+               SetNth(i,1,$);
             }
 
             if Length(i) >= ENCHANTMENT_LIST_STATE
@@ -651,6 +977,13 @@ messages:
 
       if piMana < piMax_mana
       {
+         if IsClass(self,&Player)
+            AND Send(self,@IsResting)
+            AND Send(self,@HasSkill,#num=SKID_SIRSASANA)
+         {
+            Send(self,@GainMana,#amount=Send(Send(SYS,@FindSkillByNum,#num=SKID_SIRSASANA),@ModifyRejuvenation,#who=self,#iAmount=1),#bCapped=TRUE);
+            return;
+         }
          Send(self,@GainMana,#amount=1);
       }
       else
@@ -771,7 +1104,8 @@ messages:
    TryAttack(what = $,stroke_obj=$)
    {
       local iOffense, iDefense, iChanceToHit, iDamage, iScalefactor, oWeapon,
-            iBackstabDamage, bDoingBackstab;
+            iBackstabDamage, bDoingBackstab, iBeatThisCheck, iTumblePercentage,
+            iWeaponmasterPercentage;
 
       oWeapon = Send(self,@GetWeapon);
 
@@ -781,7 +1115,56 @@ messages:
          + Send(SETTINGS_OBJECT,@GetBaseRating);
       iChanceToHit = iOffense * Send(SETTINGS_OBJECT,@GetEqualChanceToHit) / iDefense;
       iChanceToHit = bound(iChanceToHit,125,2000);
-      if iChanceToHit >= random(1,1000)
+
+      if IsClass(what,&Player)
+         AND NOT Send(what,@IsResting)
+         AND Send(what,@GetStance) <> $
+         AND (IsClass(Send(what,@GetStance),&ActiveBlockingStance)
+            OR IsClass(Send(what,@GetStance),&ActiveParryingStance))
+      {
+         if Send(Send(what,@GetStance),@AttemptActiveBlock,#who=what,#what=self)
+         {
+            Send(poOwner,@SomethingWaveRoom,#what=what,#wave_rsc=Send(self,@GetActiveBlockSound));
+            return FALSE;
+         }
+         else if Send(Send(what,@GetStance),@AttemptActiveParry,#who=what,#what=self,#stroke_obj=stroke_obj)
+         {
+            Send(poOwner,@SomethingWaveRoom,#what=what,#wave_rsc=Send(self,@GetActiveBlockSound));
+            return FALSE;
+         }
+         else
+         {
+            % Guaranteed hit if player fails active blocking and parrying.
+            % Defense + active blocking would be way too strong.
+            % However, tumbling will still allow a chance to not get hit.
+            iChanceToHit = 1000;
+         }
+      }
+      
+      iTumblePercentage = Send(Send(SYS,@FindSkillByNum,#num=SKID_TUMBLE),@GetTumblePercentage,#who=what,#what=self);
+      iWeaponmasterPercentage = Send(Send(SYS,@FindSkillByNum,#num=SKID_WEAPONMASTER),@GetWeaponmasterPercentage,#who=self,#what=what);
+
+      iChanceToHit = iChanceToHit + iWeaponmasterPercentage;
+
+      iBeatThisCheck = Random(1,1000);
+      if iChanceToHit >= iBeatThisCheck
+         AND iChanceToHit - iTumblePercentage < iBeatThisCheck
+      {
+         % This attack would have worked if not for our tumble percentage
+         if IsClass(what,&Player)
+         {
+            Send(what,@MsgSendUser,#message_rsc=tumble_success,#parm1=Send(self,@GetDef),#parm2=Send(self,@GetName));
+            Send(Send(SYS,@FindSkillByNum,#num=SKID_TUMBLE),@ImproveAbility,#who=what);
+         }
+         Send(poOwner,@SomethingWaveRoom,#what=what,#wave_rsc=Send(what,@GetTumbleSound));
+         if IsClass(self,&Player)
+         {
+            Send(self,@MsgSendUser,#message_rsc=enemy_tumbled,#parm1=Send(what,@GetDef),#parm2=Send(what,@GetName));
+         }
+         return FALSE;
+      }
+
+      if iChanceToHit >= iBeatThisCheck
          OR (IsClass(self,&Player)
              AND Send(Send(SYS,@FindSkillByNum,#num=SKID_SNEAK),
                        @IsSneaking,#who=self)
@@ -790,18 +1173,8 @@ messages:
              AND Send(self,@GetSkillAbility,#skill_num=SKID_BACKSTAB) > 0
              AND Send(Send(SYS,@FindSkillByNum,#num=SKID_BACKSTAB),
                        @TryAutomaticHit,#who=self,#what=what))
+         OR (IsClass(what,&Player) AND Send(what,@IsResting))
       {
-         if Send(Send(SYS,@FindSkillByNum,#num=SKID_TUMBLE),
-                  @AttemptTumble,#who=what,#what=self)
-         {
-            if IsClass(self,&Player)
-            {
-               Send(poOwner,@SomethingWaveRoom,#what=what,
-                     #wave_rsc=Send(self,@GetTumbleSound));
-            }
-            return FALSE;
-         }
-
          % We hit!
          iDamage = Send(self,@GetDamage,#what=what,#stroke_obj=stroke_obj);
          iScalefactor = 1000;
@@ -824,7 +1197,7 @@ messages:
                                     #num=SKID_BACKSTAB),
                                     @LastPriorityModifyDamage,#who=self,
                                     #what=what,#damage=iDamage);
-            if iBackstabDamage > iDamage
+            if iBackstabDamage > 0
             {
                iDamage = iBackstabDamage;
                bDoingBackstab = TRUE;
@@ -839,19 +1212,19 @@ messages:
 
          iDamage = Send(what,@AssessDamage,#what=self,#damage=iDamage,
             #atype=Send(self,@GetDamageType,#stroke_obj=stroke_obj),
-            #aspell=Send(self,@GetSpellType,#stroke_obj=stroke_obj),
+            #aspell=Send(self,@GetSpellType,#stroke_obj=stroke_obj,#damaging_now=TRUE),
             #scalefactor=iScalefactor,#precision=TRUE,
-            #absolute=bDoingBackstab,#damaging_now=TRUE);
+            #damaging_now=TRUE,#bDoingBackstab=bDoingBackstab);
 
          Send(self,@AssessHit,#what=what,#stroke_obj=stroke_obj,#damage=iDamage);
 
          if iDamage = $
          {
-            Send(self,@KilledSomething,#what=what,#use_weapon=oWeapon,#stroke_obj=stroke_obj);
+            Send(self,@KilledSomething,#what=what,#use_weapon=oWeapon,#stroke_obj=stroke_obj,#bDoingBackstab=bDoingBackstab);
          }
          else
          {
-            Send(self,@DidDamage,#amount=iDamage,#what=what);
+            Send(self,@DidDamage,#amount=iDamage,#what=what,#stroke_obj=stroke_obj);
          }
       }
       else
@@ -868,7 +1241,7 @@ messages:
 
       return TRUE;
    }
-   
+
    GetLevel()
    {
       return 65;
@@ -1093,6 +1466,56 @@ messages:
             }
 
             return battler_quake_fail;
+         }
+
+         if (type & ATCK_SPELL_ILLUSION)
+         {
+            if damage = $
+            {
+               return battler_illusion_slay;
+            }
+
+            if damage > DAMAGE_THRESHOLD_DAMAGE
+            {
+               return battler_illusion_damage;
+            }
+
+            if damage > DAMAGE_THRESHOLD_WOUND
+            {
+               return battler_illusion_wound;
+            }
+
+            if damage > 99
+            {
+               return battler_illusion_nick;
+            }
+
+            return battler_illusion_fail;
+         }
+
+         if (type & ATCK_SPELL_CHARM)
+         {
+            if damage = $
+            {
+               return battler_charm_slay;
+            }
+
+            if damage > DAMAGE_THRESHOLD_DAMAGE
+            {
+               return battler_charm_damage;
+            }
+
+            if damage > DAMAGE_THRESHOLD_WOUND
+            {
+               return battler_charm_wound;
+            }
+
+            if damage > 99
+            {
+               return battler_charm_nick;
+            }
+
+            return battler_charm_fail;
          }
       }
       else
@@ -1430,7 +1853,23 @@ messages:
 
       % Spell types are usually represented by negative values, to
       %  differentiate between physical and spell damage.
-      iType = Send(self,@GetSpellType,#use_weapon=use_weapon,#stroke_obj=stroke_obj);
+      if IsClass(self,&Monster)
+      {
+         if use_weapon <> $
+         {
+            % Might be a spell.
+            iType = Send(use_weapon,@GetAttackSpell);
+         }
+         else
+         {
+            % Use ourselves as default.
+            iType = Send(self,@GetSpellType);
+         }
+      }
+      else
+      {
+         iType = Send(self,@GetSpellType,#use_weapon=use_weapon,#stroke_obj=stroke_obj);
+      }
 
       % We only want to use a unique word if the spell damage is NOT generic
       %  or Hunter sword damage.  Otherwise, use the physical damage type.
@@ -1565,6 +2004,8 @@ messages:
       % This is kinda kludgy, should call messages in subclasses instead.
       if IsClass(self,&Player)
       {
+         Send(self,@SetLeapKnockback,#value=FALSE);
+
          if IsClass(what,&Player) AND NOT Send(what,@CheckPlayerFlag,#flag=PFLAG_MORPHED) 
          {
             rColor = battler_plain_text;
@@ -1664,7 +2105,7 @@ messages:
    {
       if ptMinionControlCheck = $
       {
-         CreateTimer(self,@MinionControlCheck,2000);
+         ptMinionControlCheck = CreateTimer(self,@MinionControlCheck,2000);
       }
 
       plControlledMinions = Cons(minion,plControlledMinions);
@@ -1729,6 +2170,8 @@ messages:
    MinionControlCheck()
    {
       local i;
+      
+      ptMinionControlCheck = $;
 
       if Length(plControlledMinions) > 0
       {
@@ -1747,7 +2190,7 @@ messages:
                      #value=TRUE);
             }
          }
-         CreateTimer(self,@MinionControlCheck,2000);
+         ptMinionControlCheck = CreateTimer(self,@MinionControlCheck,2000);
       }
       else
       {
@@ -1860,6 +2303,30 @@ messages:
       return;
    }
 
+   GetActiveBlockSound()
+   {
+      local iRandom;
+      
+      iRandom = Random(1,3);
+      
+      if iRandom = 1
+      {
+         return rActiveBlockSoundOne;
+      }
+      
+      if iRandom = 2
+      {
+         return rActiveBlockSoundTwo;
+      }
+      
+      if iRandom = 3
+      {
+         return rActiveBlockSoundThree;
+      }
+      
+      return rActiveBlockSoundFour;
+   }
+
    GetTumbleSound()
    {
       local iRandom;
@@ -1884,17 +2351,46 @@ messages:
       return rTumbleSoundFour;
    }
 
-   ApplyElementalStatusEffects(damage=1,aspell=0,what=$)
+   ApplyElementalStatusEffects(damage=1,bSecondary=FALSE,aspell=0,what=$,absolute=FALSE)
    {
+      local iIllusionDamage, iDrainDamage, iCharmDamage;
+
+      if absolute
+      {
+         % Special damage doesn't apply status effects.
+         return 0;
+      }
+
+      % Illusion damage is not altered by Sorcery.
+      iIllusionDamage = damage;
+      % Drain damage is not altered by Sorcery.
+      iDrainDamage = damage;
+      % Charm damage is resisted by all creatures somewhat.
+      iCharmDamage = Bound(damage - ((damage * Send(self,@GetCharmResistance))/100),0,$);
+
       if what <> $
-         AND IsClass(what,&Player)
+         AND (IsClass(what,&Player) OR IsClass(what,&AlchemyBomb))
          AND Send(SETTINGS_OBJECT,@GetSorcerySchoolExpansion)
          AND Send(what,@GetSkillAbility,#skill_num=SKID_EMPOWERMENT) > 0
+         AND NOT bSecondary
       {
          % Is a master Sorcerer applying these effects? Boost them.
          damage = (damage * Send(Send(SYS,@FindSkillByNum,
                                   #num=SKID_EMPOWERMENT),
                                   @GetEmpowermentMultiplier,#who=what))/100;
+      }
+
+      if IsClass(self,&Player)
+         AND Send(SETTINGS_OBJECT,@GetSorcerySchoolExpansion)
+         AND Send(self,@GetSkillAbility,#skill_num=SKID_INERT_FORM) > 0
+      {
+         % Is a master Sorcerer taking this damage? Reduce effects.
+         damage = (damage * (100-Send(Send(SYS,@FindSkillByNum,#num=SKID_INERT_FORM),@GetInertFormPercentage,#who=self)))/100;
+      }
+
+      if damage <= 0
+      {
+         return 0;
       }
 
       if aspell & ATCK_SPELL_SHOCK
@@ -1921,7 +2417,28 @@ messages:
       {
          Send(self,@AddStatusEffect,#value=damage,#type=STATUS_MANTLED);
       }
-      return;
+      if aspell & ATCK_SPELL_ILLUSION
+      {
+         if what <> $
+            AND IsClass(what,&Player)
+            AND Send(what,@IsUsingA,#class=&RiijaCrest)
+         {
+            % No healing back for riija crest user.
+         }
+         else
+         {
+            Send(self,@AddStatusEffect,#value=iIllusionDamage,#type=STATUS_TRICKED);
+         }
+      }
+      if aspell & ATCK_SPELL_DRAIN
+      {
+         Send(self,@AddStatusEffect,#value=iDrainDamage,#type=STATUS_DRAINED);
+      }
+      if aspell & ATCK_SPELL_CHARM
+      {
+         Send(self,@AddStatusEffect,#value=iCharmDamage,#type=STATUS_CHARMED);
+      }
+      return damage;
    }
 
    AddStatusEffect(value=10,type=STATUS_SHOCKED)
@@ -1940,23 +2457,39 @@ messages:
                                            Send(SETTINGS_OBJECT,
                                            @GetStatusEffectReductionTime));
       }
-      
+
       if type=STATUS_SHOCKED
          AND IsClass(self,&Player)
       {
          Post(self,@DrawDefense);
       }
       
+      if type=STATUS_CHILLED
+         AND IsClass(self,&Player)
+      {
+         Post(self,@DrawOffense);
+      }
+      
       if type=STATUS_CORRODE
          AND IsClass(self,&Player)
       {
-         Post(self,@DrawArmor);
+         if Send(SETTINGS_OBJECT,@GetDirectArmorEnabled)
+         {
+            Post(self,@DrawArmor);
+         }
+         Post(self,@DrawResistances);
       }
       
       if type=STATUS_HUMBLED
          AND IsClass(self,&Player)
       {
          Post(self,@DrawResistances);
+      }
+      
+      if type=STATUS_DRAINED
+         AND IsClass(self,&Player)
+      {
+         Post(self,@NewHealth);
       }
       
       foreach i in plStatusEffects
@@ -2021,10 +2554,10 @@ messages:
       }
       return;
    }
-   
+
    StatusEffectTimer(timer=$)
    {
-      local i, iBurningDamage, oOpponent;
+      local i, iBurningDamage, iIllusionHeal, oOpponent, iDrainRegain, iCharmedWearOff;
       
       ptStatusEffectTimer = $;
       
@@ -2035,10 +2568,19 @@ messages:
          {
             Post(self,@DrawDefense);
          }
+         if Nth(i,2) = STATUS_CHILLED
+            AND IsClass(self,&Player)
+         {
+            Post(self,@DrawOffense);
+         }
          if Nth(i,2) = STATUS_CORRODE
             AND IsClass(self,&Player)
          {
-            Post(self,@DrawArmor);
+            if Send(SETTINGS_OBJECT,@GetDirectArmorEnabled)
+            {
+               Post(self,@DrawArmor);
+            }
+            Post(self,@DrawResistances);
          }
          if Nth(i,2) = STATUS_HUMBLED
             AND IsClass(self,&Player)
@@ -2057,36 +2599,87 @@ messages:
                AND NOT (IsClass(self,&Player) AND NOT Send(self,@IsLoggedOn))
                AND NOT (IsClass(self,&Player) AND Send(self,@IsInCannotInteractMode))
             {
-               if Send(self,@AssessDamage,#what=self,
-                              #damage=iBurningDamage,
-                              #aspell=ATCK_SPELL_FIRE,
-                              #report=FALSE) = $
+               oOpponent = Send(self,@GetHighestHurtMeRecentlyBattler);
+               
+               if oOpponent = $
                {
-                  oOpponent = Send(self,@GetHighestHurtMeRecentlyBattler);
-                  if oOpponent <> $
-                  {
-                     Post(oOpponent,@KilledSomething,#what=self);
-                  }
-                  else
-                  {
-                     Post(self,@KilledSomething,#what=self);
-                  }
+                  oOpponent = self;
                }
+               if Send(self,@AssessDamage,#what=oOpponent,
+                              #damage=iBurningDamage,
+                              #bSecondary=TRUE,
+                              #aspell=ATCK_SPELL_FIRE,
+                              #report=FALSE,
+                              #report_resistance=FALSE) = $
+               {
+                  Post(oOpponent,@KilledSomething,#what=self);
+               }
+            }
+         }
+         else if Nth(i,2) = STATUS_TRICKED
+         {
+            if NOT (IsClass(self,&Player) AND Send(self,@IsInCannotInteractMode))
+            {
+               iIllusionHeal = Send(SETTINGS_OBJECT,
+                                     @GetStatusEffectReductionAmount,
+                                     #type=STATUS_TRICKED);
+               iIllusionHeal = Bound(iIllusionHeal,0,Nth(i,1));
+               Send(self,@GainHealthNormal,#amount=iIllusionHeal);
+               if IsClass(self,&Player)
+                  AND Send(self,@IsLoggedOn)
+               {
+                  Send(self,@MsgSendUser,#message_rsc=illusion_damage_heal_msg);
+               }
+               SetNth(i,1,Nth(i,1) - iIllusionHeal);
+            }
+         }
+         else if Nth(i,2) = STATUS_DRAINED
+         {
+            if NOT (IsClass(self,&Player) AND Send(self,@IsInCannotInteractMode))
+               AND NOT (IsClass(self,&Player) AND NOT Send(self,@IsLoggedOn))
+            {
+               iDrainRegain = Send(SETTINGS_OBJECT,
+                                    @GetStatusEffectReductionAmount,
+                                    #type=STATUS_DRAINED);
+               iDrainRegain = Bound(iDrainRegain,0,Nth(i,1));
+               SetNth(i,1,Nth(i,1) - iDrainRegain);
+               if IsClass(self,&Player)
+                  AND Send(self,@IsLoggedOn)
+               {
+                  Post(self,@NewHealth);
+               }
+            }
+         }
+         else if Nth(i,2) = STATUS_CHARMED
+         {
+            if NOT (IsClass(self,&Player) AND Send(self,@IsInCannotInteractMode))
+               AND NOT (IsClass(self,&Player) AND NOT Send(self,@IsLoggedOn))
+            {
+               iCharmedWearOff = Send(SETTINGS_OBJECT,
+                                    @GetStatusEffectReductionAmount,
+                                    #type=STATUS_CHARMED);
+               iCharmedWearOff = Bound(iCharmedWearOff,0,Nth(i,1));
+               SetNth(i,1,Nth(i,1) - iCharmedWearOff);
             }
          }
          else
          {
             SetNth(i,1,Nth(i,1) - Send(SETTINGS_OBJECT,
-                                  @GetStatusEffectReductionAmount));
+                                  @GetStatusEffectReductionAmount,
+                                  #type=Nth(i,2)));
          }
 
          if Nth(i,1) <= 0
          {
-            plStatusEffects = DelListElem(plStatusEffects,i);
+            if plStatusEffects <> $
+            {
+               plStatusEffects = DelListElem(plStatusEffects,i);
+            }
          }
       }
       
       if plStatusEffects <> $
+         AND ptStatusEffectTimer = $
       {
          ptStatusEffectTimer = CreateTimer(self,@StatusEffectTimer,
                                            Send(SETTINGS_OBJECT,
@@ -2097,6 +2690,11 @@ messages:
    }
 
    GetBoostedLevel()
+   {
+      return 0;
+   }
+   
+   GetChaosLevel()
    {
       return 0;
    }
@@ -2233,6 +2831,618 @@ messages:
    IsDrainImmune()
    {
       return FALSE;
+   }
+
+   GetHexes()
+   {
+      local oEnch, lHexes;
+
+      lHexes = $;
+      foreach oEnch in plEnchantments
+      {
+         if Send(Nth(oEnch,2),@UseHexBehavior)
+         {
+            lHexes = Cons(Nth(oEnch,2),lHexes);
+         }
+      }
+
+      return lHexes;
+   }
+
+   GetNumHexes()
+   {
+      local oEnch, iNumHexes;
+
+      iNumHexes = 0;
+      foreach oEnch in plEnchantments
+      {
+         if Send(Nth(oEnch,2),@UseHexBehavior)
+         {
+            iNumHexes = iNumHexes + 1;
+         }
+      }
+
+      return iNumHexes;
+   }
+
+   RemoveRandomHex(exempt=$)
+   {
+      local lHexes;
+
+      lHexes = Send(self,@GetHexes);
+      if exempt <> $
+         AND lHexes <> $
+         AND FindListElem(lHexes,exempt) <> 0
+      {
+         lHexes = DelListElem(lHexes,exempt);
+      }
+
+      if lHexes <> $
+         AND Length(lHexes) > 0
+      {
+         Send(self,@RemoveEnchantment,
+              #what=Nth(lHexes,Random(1,Length(lHexes))));
+      }
+
+      return;
+   }
+
+   GetHexIncEffect(iSpellPower=0,oTarget=$)
+   {
+      local lBindingSongState, iBindingSongInc;
+
+      iBindingSongInc = 0;
+      lBindingSongState = Send(self,@GetMostPowerfulRadiusEnchantmentState,#byClass=&BindingSong);
+      if lBindingSongState <> $
+      {
+         iBindingSongInc = Send(Nth(lBindingSongState,1),@GetHexIncEffect,#iSongPower=Nth(lBindingSongState,2));
+      }
+
+      return iSpellPower + 1 + iBindingSongInc;
+   }
+
+   GetHexResistance()
+   {
+      local lBindingSongState, iBindingSongRes;
+
+      iBindingSongRes = 0;
+      lBindingSongState = Send(self,@GetMostPowerfulRadiusEnchantmentState,#byClass=&BindingSong);
+      if lBindingSongState <> $
+      {
+         iBindingSongRes = Send(Nth(lBindingSongState,1),@GetHexResistance,#iSongPower=Nth(lBindingSongState,2));
+      }
+
+      return bound(piHexResistance+iBindingSongRes,-200,200);
+   }
+
+   GetCasterMaxHexes()
+   {
+      return Send(SETTINGS_OBJECT,@GetHexesMax);
+   }
+
+   GetBaseEmpowerments()
+   {
+      return $;
+   }
+
+   GetCurrentEmpowerments()
+   "Boost dealt damage of certain types."
+   {
+      local oObjectAttribute, lCurrentEmpowerments, oEquipment, oEnchantment;
+
+      lCurrentEmpowerments = ListCopy(Send(self,@GetBaseEmpowerments));
+      
+      foreach oObjectAttribute in plObject_attributes
+      {
+         lCurrentEmpowerments = Send(oObjectAttribute,@ModifyEmpowerment,
+                                  #resistance_list=lCurrentEmpowerments);
+      }
+      
+      foreach oEquipment in Send(self,@GetEquippedItems)
+      {
+         lCurrentEmpowerments = Send(oEquipment,@ModifyEmpowerment,
+                                     #empowerment_list=lCurrentEmpowerments);
+      }
+      
+      If IsClass(self,&User)
+      {
+         foreach oEnchantment in Send(self,@GetEnchantmentList)
+         {
+            if Length(oEnchantment) > 2
+            {
+               lCurrentEmpowerments = Send(Nth(oEnchantment,2),
+                  @ModifyEmpowerment,
+                  #empowerment_list=lCurrentEmpowerments,
+                  #iState=Nth(oEnchantment,3));
+            }
+            else
+            {
+               lCurrentEmpowerments = Send(Nth(oEnchantment,2),
+                  @ModifyEmpowerment,
+                  #empowerment_list=lCurrentEmpowerments);
+            }
+         }
+
+         foreach oEnchantment in Send(self,@GetReservedSpells)
+         {
+            lCurrentEmpowerments = Send(Nth(oEnchantment,1),@ModifyEmpowerment,#empowerment_list=lCurrentEmpowerments,#iState=Nth(oEnchantment,3));
+         }
+      }
+      
+      return lCurrentEmpowerments;
+   }
+
+   GetBonusBaseTP()
+   {
+      return 0;
+   }
+
+   GetAlwaysShareXP()
+   {
+      return FALSE;
+   }
+
+   GetBaseSize()
+   {
+      return viBaseSize;
+   }
+
+   GetSize()
+   {
+      return Send(self,@GetBaseSize);
+   }
+
+   GetKnockbackPercentage()
+   {
+      return viBaseKnockbackPercentage;
+   }
+
+   GetStunPercentage()
+   {
+      return viBaseStunPercentage;
+   }
+   
+   GetBleedPercentage()
+   {
+      return viBaseBleedPercentage;
+   }
+
+   GetCriticalPercentage()
+   {
+      return 100;
+   }
+
+   ApplyKnockback(what=$, iRow=0, iCol=0, iFineRow=0, iFineCol=0, knockback_power=0, knockback_angle=0)
+   {
+      local oRoom, iKnockbackDistance, iAngle, i, lSteps, oElement, iIncDuration;
+      
+      if knockback_angle = 0
+      {
+         if what <> $
+         {
+            % Use attacker's angle for knockback if none sent
+            iAngle = Send(what,@GetAngle);
+         }
+         else
+         {
+            % Use the reverse of our own angle otherwise.
+            iAngle = Abs(Send(self,@GetAngle)-2048);
+         }
+      }
+      else
+      {
+         iAngle = knockback_angle;
+      }
+
+      % knockback_power is the attacker's GetKnockbackPower if from an attacker
+      % if from an effect like a trap, have the trap directly send knockback_power and coords
+      
+      if what <> $
+      {
+         iRow = Send(what,@GetRow);
+         iCol = Send(what,@GetCol);
+         iFineRow = Send(what,@GetFineRow);
+         iFineCol = Send(what,@GetFineCol);
+      }
+
+      oRoom = Send(self,@GetOwner);
+      if oRoom = $
+         OR NOT IsClass(oRoom,&Room)
+      {
+         return FALSE;
+      }
+      
+      % Let's calculate.
+      % Start with a standard knockback, which is default 5 units (320 fine).
+      iKnockbackDistance = Send(SETTINGS_OBJECT,@GetStandardKnockbackDistance);
+      
+      % Modify by knockback_power vs our size.
+      iKnockbackDistance = (iKnockbackDistance*knockback_power)/Bound(Send(self,@GetSize),1,$);
+      
+      % Modify by our knockback percentage. This can make us less or more vulnerable.
+      iKnockbackDistance = (iKnockbackDistance*Send(self,@GetKnockbackPercentage))/100;
+
+      % Let's not attempt knockbacks under one square, they get inaccurate
+      % They're also not very useful
+      if iKnockbackDistance < 64
+      {
+         return FALSE;
+      }
+
+      if IsClass(self,&User)
+      {
+         Send(self,@EffectSendUserDuration,#effect=EFFECT_SHAKE,#duration=Bound(iKnockbackDistance*2,500,2000));
+      }
+      
+      if IsClass(what,&Player)
+      {
+         Send(what,@MsgSendUser,#message_rsc=knockback_message,
+                                #parm1=Send(self,@GetDef),
+                                #parm2=Send(self,@GetName));
+      }
+
+      if IsClass(self,&Player)
+         AND what <> $
+      {
+         Send(self,@MsgSendUser,#message_rsc=knocked_back_message,
+                                  #parm1=Send(what,@GetCapDef),
+                                  #parm2=Send(what,@GetName));
+      }
+
+      lSteps = Send(oRoom,@IntraTeleport,#what=self,
+                                   #distance=iKnockbackDistance,
+                                   #type=INTRA_TELEPORT_AWAY_FROM_DESTINATION,
+                                   #new_row=iRow,
+                                   #new_col=iCol,
+                                   #fine_row=iFineRow,
+                                   #fine_col=iFineCol,
+                                   #new_angle=iAngle);
+
+      if lSteps <> $
+      {
+         iIncDuration = 100 * Length(lSteps);
+         foreach i in lSteps
+         {
+            oElement = Create(&DustCloud,#Caster=what,#duration=iIncDuration,#bMS=TRUE);
+            Send(oRoom,@NewHold,#what=oElement,
+                 #new_row=Nth(i,1),#new_col=Nth(i,2),
+                 #fine_row=Nth(i,3),#fine_col=Nth(i,4));
+            iIncDuration = Bound(iIncDuration - 100, 100, $);
+         }
+      }
+      return TRUE;
+   }
+
+   ApplyStun(what=$, stun_power=0)
+   {
+      local oSpell, iStunDuration, oRoom;
+      
+      if Send(self,@IsEnchanted,#byClass=&Stun)
+      {
+         % No multi stunning
+         return FALSE;
+      }
+
+      oRoom = Send(self,@GetOwner);
+      if oRoom = $
+         OR NOT IsClass(oRoom,&Room)
+      {
+         % Dead things don't get stunned
+         return FALSE;
+      }
+
+      iStunDuration = Send(SETTINGS_OBJECT,@GetStandardStunDuration);
+
+      % Modify stun duration by difference in sizes
+      iStunDuration = (iStunDuration*stun_power)/Bound(Send(self,@GetSize),1,$);
+
+      % Modify by our stun percentage. This can make us less or more vulnerable.
+      iStunDuration = (iStunDuration*Send(self,@GetStunPercentage))/100;
+      
+      % No stuns under one second, because that just causes object update jumpiness
+      if iStunDuration < 1000
+      {
+         return FALSE;
+      }
+
+      oSpell = Send(SYS,@FindSpellByNum,#num=SID_STUN);
+      if oSpell <> $
+      {
+         if what <> $
+            AND IsClass(what,&Player)
+         {
+            Send(what,@MsgSendUser,#message_rsc=stun_message,
+                                   #parm1=Send(self,@GetDef),
+                                   #parm2=Send(self,@GetName));
+         }
+%         if IsClass(self,&Player)
+%            AND what <> $
+%         {
+%            Send(self,@MsgSendUser,#message_rsc=stunned_message,
+%                                   #parm1=Send(what,@GetCapDef),
+%                                   #parm2=Send(what,@GetName));
+%         }
+         Send(oSpell,@DoSpell,#oTarget=self,#iDuration=iStunDuration);
+      }
+
+      return TRUE;
+   }
+
+   ApplyBleed(what=$, bleed_power = 0)
+   {
+      local oSpell, iBleedDuration, oRoom;
+
+      oRoom = Send(self,@GetOwner);
+      if oRoom = $
+         OR NOT IsClass(oRoom,&Room)
+      {
+         % No bleeds on dead things
+         return FALSE;
+      }
+
+      iBleedDuration = Send(SETTINGS_OBJECT,@GetStandardBleedDuration);
+
+      % Modify bleed duration by difference in sizes
+      iBleedDuration = (iBleedDuration*bleed_power)/Bound(Send(self,@GetSize),1,$);
+
+      % Modify by our bleed percentage. This can make us less or more vulnerable.
+      iBleedDuration = (iBleedDuration*Send(self,@GetBleedPercentage))/100;
+      
+      % No bleeds under five seconds, because that's not even one damage
+      if iBleedDuration < 5000
+      {
+         return FALSE;
+      }
+
+      oSpell = Send(SYS,@FindSpellByNum,#num=SID_BLEED);
+      if oSpell <> $
+      {
+         if what <> $
+            AND IsClass(what,&Player)
+         {
+            Send(what,@MsgSendUser,#message_rsc=bleed_message,
+                                   #parm1=Send(self,@GetDef),
+                                   #parm2=Send(self,@GetName));
+            if Send(what,@HasSkill,#num=SKID_BLEED_MASTERY)
+            {
+               Send(Send(SYS,@FindSkillByNum,#num=SKID_BLEED_MASTERY),@ImproveAbility,#who=what);
+            }
+         }
+%         if IsClass(self,&Player)
+%            AND what <> $
+%         {
+%            Send(self,@MsgSendUser,#message_rsc=bleeded_message,
+%                                   #parm1=Send(what,@GetCapDef),
+%                                   #parm2=Send(what,@GetName));
+%         }
+         Send(oSpell,@DoSpell,#oTarget=self,#iDuration=iBleedDuration,#bleed_applier=what);
+      }
+
+      return TRUE;
+   }
+
+   StartBleedTimer()
+   {
+      if ptBleedTimer = $
+      {
+         ptBleedTimer = CreateTimer(self,@DoBleed,BLEED_TIME);
+      }
+      return;
+   }
+
+   EndBleedTimer()
+   {
+      if ptBleedTimer <> $
+      {
+         DeleteTimer(ptBleedTimer);
+         ptBleedTimer = $;
+      }
+      return;
+   }
+
+   DoBleed()
+   {
+      local i, iBleedCount;
+
+      ptBleedTimer = $;
+      
+      if (IsClass(self,&Player)
+         AND Send(self,@IsInCannotInteractMode))
+         OR NOT Send(self,@IsEnchanted,#byClass=&Bleed)
+      {
+         return;
+      }
+
+      iBleedCount = 0;
+      foreach i in Send(self,@GetEnchantmentsByClass,#enchClass=&Bleed)
+      {
+         iBleedCount++;
+      }
+      Send(self,@LoseHealth,#amount=iBleedCount,#decay=TRUE);
+      
+      ptBleedTimer = CreateTimer(self,@DoBleed,BLEED_TIME);
+      return;
+   }
+
+   GetKnockbackPower()
+   {
+      return Send(self,@GetSize);
+   }
+   
+   GetStunPower()
+   {
+      return Send(self,@GetSize);
+   }
+
+   GetBleedPower()
+   {
+      return Send(self,@GetSize);
+   }
+
+   IsBleeding()
+   {
+      return Send(self,@IsEnchanted,#byClass=&Bleed);
+   }
+
+   IsStunned()
+   {
+      return Send(self,@IsEnchanted,#byClass=&Stun);
+   }
+
+   GetDamageShare(who=$)
+   {
+      local i, iTotalDamageTaken, iRequesterDamage;
+
+      if who <> $
+         AND plHurtMeRecently <> $
+      {
+         iTotalDamageTaken = 0;
+         iRequesterDamage = 0;
+         foreach i in plHurtMeRecently
+         {
+            iTotalDamageTaken = iTotalDamageTaken + Nth(i,2);
+            if First(i) = who
+            {
+               iRequesterDamage = Nth(i,2);
+            }
+         }
+         
+         if iTotalDamageTaken = 0
+         {
+            return 0;
+         }
+
+         return (iRequesterDamage * 100) / iTotalDamageTaken;
+      }
+      return 0;
+   }
+
+   PlayerHealedSomeone(caster=$, oTarget=$, iHealAmount=0)
+   {
+      return;
+   }
+
+   IsShadow()
+   {
+      % This is a type like Undead, except representing shadows and darkness.
+      return FALSE;
+   }
+
+   ClearElementalImbalance()
+   {
+      if ptElementalImbalanceTimer <> $
+      {
+         DeleteTimer(ptElementalImbalanceTimer);
+      }
+      Send(self,@EndElementalImbalance);
+      return;
+   }
+
+   EndElementalImbalance()
+   {
+      ptElementalImbalanceTimer = $;
+
+      if plElementalImbalance <> $
+      {
+         plElementalImbalance = $;
+         if IsClass(self,&User)
+         {
+            Post(self,@DrawResistances);
+         }
+      }
+
+      return;
+   }
+
+   ApplyElementalImbalance(aspell=0, power=0)
+   {
+      local iFire, iShock, iCold, iAcid, iResType, lElements, bFound;
+
+      if power <= 0
+      {
+         return;
+      }
+
+      lElements = [ATCK_SPELL_FIRE,
+                   ATCK_SPELL_SHOCK,
+                   ATCK_SPELL_COLD,
+                   ATCK_SPELL_ACID];
+
+      bFound = FALSE;
+      foreach iResType in lElements
+      {
+         if (aspell & iResType) <> 0
+         {
+            bFound = TRUE;
+         }
+      }
+
+      if NOT bFound
+      {
+         return;
+      }
+
+      Send(self,@ClearElementalImbalance);
+
+      % If we are being dealt damage of a type, gain resistance.
+      % If we aren't, lose resistance.
+      foreach iResType in lElements
+      {
+         if (aspell & iResType) <> 0
+         {
+            plElementalImbalance = Cons([-iResType,power],plElementalImbalance);
+         }
+         else
+         {
+            plElementalImbalance = Cons([-iResType,-power],plElementalImbalance);
+         }
+      }
+
+      ptElementalImbalanceTimer = CreateTimer(self,@EndElementalImbalance,4000);
+
+      if IsClass(self,&User)
+      {
+         Post(self,@DrawResistances);
+      }
+      return;
+   }
+
+   GetElementalImbalance()
+   {
+      return plElementalImbalance;
+   }
+
+   GetEnemyRangeBonus()
+   {
+      return viEnemyRangeBonus;
+   }
+
+   GetBonusXPGain()
+   {
+      return 0;
+   }
+
+   GetCreatureTypes()
+   {
+      return plCreatureTypes;
+   }
+
+   HasCreatureType(type=CREATURE_TYPE_MONSTER)
+   {
+      local i;
+      
+      if plCreatureTypes <> $
+         AND FindListElem(plCreatureTypes,type) <> 0
+      {
+         return TRUE;
+      }
+      return FALSE;
+   }
+   
+   GetCharmResistance()
+   {
+      % This is a percentage value
+      return 0;
    }
 
 end

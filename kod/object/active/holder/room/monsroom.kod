@@ -64,6 +64,9 @@ properties:
 
    % Is this a room where monsters grow in strength?
    piLevel = 0
+   
+   % Is this a room where monsters are boosted by chaos?
+   piBoostChaosLevel = 0
 
 messages:
 
@@ -184,6 +187,10 @@ messages:
             if IsClass(self,&SurvivalRoom)
             {
                oMonster = Create(First(lMonster_info),#piSurvivalLevel=piLevel);
+            }
+            else if IsClass(self,&ChaosStratumRoom)
+            {
+               oMonster = Create(First(lMonster_info),#iChaosLevel=piBoostChaosLevel);
             }
             else
             {

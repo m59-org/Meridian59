@@ -1,0 +1,306 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+HighSorcerer is Human
+
+constants:
+
+   include blakston.khd
+
+   EQUIPMENT_DROP_PERCENT = 20
+
+resources:
+
+   HighSorcerer_name_rsc = "high sorcerer"
+   HighSorcerer_desc_rsc = \
+      "This high sorcerer is responsible for the Diffraction of "
+      "Biskalane's elements. Kill him and put a stop to it once and for all."
+   HighSorcerer_dead_name_rsc = "dead high sorcerer"
+
+   high_sorcerer_head_male_icon = phaxt1.bgf  %male sorcerer level 1
+
+classvars:
+
+   vrName = HighSorcerer_name_rsc
+   vrDesc = HighSorcerer_desc_rsc
+   vrDead_name = HighSorcerer_dead_name_rsc
+
+   viTreasure_type = TID_HIGH_SORCERER
+
+   viSpeed = SPEED_VERY_FAST
+   viAttack_type = ATCK_WEAP_MAGIC+ATCK_WEAP_BLUDGEON+ATCK_WEAP_PIERCE
+   viAttributes = 0
+   viDefault_behavior = AI_MOVE_REGROUP | AI_FIGHT_SWITCHALOT | AI_FIGHT_LASHOUT | AI_FIGHT_WIZARD_KILLER | AI_FIGHT_AGGRESSIVE | AI_MOVE_OPTIMAL_RANGE
+
+   viColorTranslate1 = XLAT_TO_ORANGE     % Shirt
+   viColorTranslate2 = XLAT_TO_ORANGE   % Pants
+
+   vcShieldClass = &GuildShield
+   viShieldColor1 = XLAT_TO_RED
+   viShieldColor2 = XLAT_TO_RED
+   viShieldShape = SHIELDSHAPE_SLASH
+   viInsignia = $
+
+   viVisionDistance = 40
+   viWimpy = 75
+
+   viCashMin = 200
+   viCashMax = 1600
+
+   viCanSpawnAsChampion = FALSE
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+
+   viBonusBaseTP = 5000
+   vbBonusXPGain = 10000
+
+   % between 1 and 10000
+   viCriticalHitRate = 500
+   vbCanCauseBleed = TRUE
+
+properties:
+
+   prHead = high_sorcerer_head_male_icon
+
+   piBaseLevel = 210
+   piBaseDifficulty = 12
+   viLevel = 240
+   viDifficulty = 12
+
+   piElement = 0
+   piMana = 200
+   piMax_Mana = 200
+
+   piMeleeSpellChance = 100
+   piRangedSpellChance = 30
+   piAllySpellChance = 10
+   piSelfSpellChance = 10
+   piOtherSpellChance = 10
+
+   piMonsterCastDelayMinimum = 750
+   
+   piHexResistance = 75
+
+   % Is this Battler protected by a magical shield against projectiles?
+   pbMagicalShield = TRUE
+   % Fine units
+   piMagicalShieldRadius = 64 * 5
+
+messages:
+
+   Constructor(iElement=0)
+   {
+      local lElements;
+      if iElement <> 0
+      {
+         piElement = iElement;
+      }
+      
+      if piElement = 0
+      {
+         lElements = [ATCK_SPELL_FIRE,ATCK_SPELL_COLD,ATCK_SPELL_SHOCK,ATCK_SPELL_ACID,ATCK_SPELL_HOLY,ATCK_SPELL_UNHOLY];
+         piElement = Nth(lElements,Random(1,Length(lElements)));
+      }
+
+      Post(self,@AddChampionAbility,#ability=3,#value=90);
+      Post(self,@AddChampionAbility,#ability=4,#value=90);
+
+      propagate;
+   }
+
+   GetOptimalRange()
+   "For most monsters, this is the attack range."
+   {
+      return 15 * FINENESS;
+   }
+
+   SetClothes()
+   {
+      Send(self,@SetDefaultClothes,#shirt_color=viColorTranslate1);
+      Send(self,@SetTroopLegs,#translation=viColorTranslate2);
+
+      return;
+   }
+
+   SetEquipment()
+   {
+      local oEquipmentItem, iRandomNumber, iBonusModifier;
+
+      oEquipmentItem = Create(&Flail,#level=viLevel);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+      oEquipmentItem = Create(&SteelShield,#level=viLevel);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+      oEquipmentItem = Create(&Glove,#level=viLevel);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      Send(self,@SetElementEquipment);
+
+      return;
+   }
+
+   SetElementEquipment()
+   {
+      local oEquipmentItem;
+
+      switch(piElement)
+      {
+         case ATCK_SPELL_FIRE:
+            oEquipmentItem = Create(&LightRobe,#color=XLAT_TO_RED,#level=viLevel);
+            Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+            break;
+         case ATCK_SPELL_COLD:
+            oEquipmentItem = Create(&LightRobe,#color=XLAT_TO_BLUE,#level=viLevel);
+            Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+            break;
+         case ATCK_SPELL_SHOCK:
+            oEquipmentItem = Create(&LightRobe,#color=XLAT_TO_SKY,#level=viLevel);
+            Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+            break;
+         case ATCK_SPELL_ACID:
+            oEquipmentItem = Create(&LightRobe,#color=XLAT_TO_DGREEN,#level=viLevel);
+            Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+            break;
+         case ATCK_SPELL_HOLY:
+            oEquipmentItem = Create(&LightRobe,#color=XLAT_TO_GRAY,#level=viLevel);
+            Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+            break;
+         case ATCK_SPELL_UNHOLY:
+            oEquipmentItem = Create(&LightRobe,#color=XLAT_TO_BLACK,#level=viLevel);
+            Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+            break;
+      }
+      return;
+   }
+
+   SetShield()
+   {
+      return;
+   }
+
+   % Override from monster superclass
+   % We drop some of our carried items when we die.
+   CreateTreasure(who = $, corpse = $)
+   {
+      local oUsedItem, oItemAtt;
+
+      oItemAtt = Send(SYS,@FindItemAttByNum,#num=IA_CORPSEPOINTER);
+
+      foreach oUsedItem in plUsing
+      {
+         % Only a percentage chance to drop each item.  Too much stuff otherwise.
+         % Don't drop the shield!  It's a quest/special item!
+         if (Random(1,100) <= EQUIPMENT_DROP_PERCENT)
+            AND (NOT IsClass(oUsedItem,vcShieldClass))
+            AND NOT pbIllusion
+         {
+            if (oItemAtt <> $) AND Send(oItemAtt,@ReqAddToItem,#oItem=oUsedItem)
+            {
+               Send(oItemAtt,@AddToItem,#oItem=oUsedItem,#state1=corpse);
+            }
+
+            Send(poOwner,@NewHold,#what=oUsedItem,
+                  #new_row=piRow,#new_col=piCol,
+                  #fine_row=piFine_row,#fine_col=piFine_col);
+         }
+         else
+         {
+            Send(oUsedItem,@Delete);
+         }
+      }
+
+      plUsing = $;
+
+      propagate;
+   }
+
+   IsAlly(target = $, regroup = FALSE)
+   {
+      if IsClass(target,&HighSorcerer)
+      {
+         return TRUE;
+      }
+
+      propagate;
+   }
+
+   GetElement()
+   {
+      return piElement;
+   }
+
+   TargetSwitch(what=$,iHatred=0,forally=FALSE)
+   {
+      local i;
+
+      if what = $
+         OR poOwner = $
+      {
+         Debug("BAD target we're switching to here!");
+
+         return;
+      }
+
+      if IsClass(what,&User)
+         AND NOT Send(what,@IsLoggedOn)
+      {
+         % Trying to switch to someone logged off. Can't do that.
+         return;
+      }
+
+      piHatred = iHatred;
+
+      if poTarget <> $
+         AND Send(poTarget,@GetOwner) = poOwner
+         AND IsClass(poTarget,&user)
+      {
+         Send(poTarget,@SubtractFromMonsterChasers,
+              #level=piAmountAddedToMonsterChasers);
+      }
+
+      poTarget = what;
+      if IsClass(poTarget,&user)
+      {
+         piAmountAddedToMonsterChasers = piLevel;
+         Send(poTarget,@AddToMonsterChasers,#level=piAmountAddedToMonsterChasers);
+      }
+
+      piState = (piState & VSTATE_VALIDITY_MASK);
+
+      % 'lock' sound
+      if vrSound_aware <> $
+      {
+         Send(poOwner,@SomethingWaveRoom,#what=self,#wave_rsc=vrSound_aware);
+      }
+
+      % Call our tribe!
+      if NOT forally
+         AND poOwner <> $
+      {
+         foreach i in Send(poOwner,@GetHolderActive)
+         {
+            if IsClass(First(i),&HighSorcerer)
+               AND Send(self,@IsAlly,#target=First(i))
+            {
+               Send(First(i),@TargetSwitch,#what=what,#iHatred=100,#forally=TRUE);
+               Send(First(i),@EnterStateChase,#target=what,#actnow=TRUE);
+            }
+         }
+      }
+      return;
+   }
+
+   GetBaseEmpowerments()
+   {
+      return [[piElement*-1,300]];
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

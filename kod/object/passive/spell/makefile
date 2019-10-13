@@ -58,6 +58,24 @@ BOFS = animate.bof \
        sweep.bof \
        teleportspell.bof \
        utility.bof \
-       walspell.bof
+       walspell.bof \
+       movementspell.bof \
+       wavespell.bof \
+       creaholyshield.bof \
+       convoke.bof \
+       groupheal.bof \
+       stonetoflesh.bof \
+       giftofspirit.bof \
+       giftofvitality.bof \
+       markofdefense.bof \
+       douse.bof \
+       creahelmet.bof \
+       creashield.bof \
+       crearing.bof \
+       creascroll.bof \
+       detonate.bof \
+       firebomb.bof \
+       shockbomb.bof \
+       spellbomb.bof
 
 !include $(KODDIR)\kod.mak

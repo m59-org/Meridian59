@@ -1,0 +1,107 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+CharmInsect is CharmSpell
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   CharmInsect_name_rsc = "crawling charm"
+
+   CharmInsect_icon_rsc = charmprojectile.bgf
+
+   CharmInsect_desc_rsc = \
+      "Attempts to alter the hive instincts of an insect creature to make it "
+      "follow you and fight for you. If you are a student of nature "
+      "and know how to focus your mana, this spell can be made more effective. "
+      "Requires mushrooms to cast."
+
+   CharmInsect_sound = rdement.wav
+
+   CharmInsect_projectile_icon_rsc = charmprojectile.bgf
+
+classvars:
+
+   vrName = CharmInsect_name_rsc
+   vrIcon = CharmInsect_icon_rsc
+   vrDesc = CharmInsect_desc_rsc
+   
+   viSpell_num = SID_CHARM_INSECT
+
+   viAttack_spell = ATCK_SPELL_ALL + ATCK_SPELL_CHARM
+
+   viSpell_level = 1
+   viMana = 4
+   viMeditate_ratio = 10
+
+   vrSucceed_wav = CharmInsect_sound
+
+   % In seconds, since it works off GetTime().
+   viPostCast_time = 2
+
+   viChance_To_Increase = 15
+
+   vrProjectile_Icon = CharmInsect_projectile_icon_rsc
+
+   % Short range blast
+   vbIsRangedAttack = FALSE
+
+   % Projectile lighting information.
+   viProjectileLightFlags = LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC
+   % Medium light range, out of 255.
+   viProjectileLightIntensity = 100
+   % Default color is lightning.
+   viProjectileLightColor = LIGHT_RED
+   
+   viProjectileSpeed = 10
+
+properties:
+
+   piDamageMin = 1
+   piDamageMax = 4
+   piRange = 4 * FINENESS
+
+   % Maximum amount of bonus damage mana focus gives us for casting this spell.
+   piManaFocusBonus = 5
+   
+   piExtraCharmMultiple = 1
+
+messages:
+
+   ResetReagents()
+   {
+      % separate message so can change, then set from admin mode
+
+      plReagents = $;
+      plReagents = Cons([&Mushroom,2],plReagents);
+ 
+      return;
+   }
+
+   SendLookAnimation()
+   {
+      AddPacket(1,ANIMATE_NONE, 2,2);
+
+      return;
+   }
+
+   SendProjectileAnimation()
+   {
+      % 100ms between animations, between frames 1-6
+      AddPacket(1,ANIMATE_CYCLE, 4,40, 2,1, 2,6);   
+
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

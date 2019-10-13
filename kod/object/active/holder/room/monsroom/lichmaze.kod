@@ -39,6 +39,9 @@ classvars:
    viTeleport_row = 9
    viTeleport_col = 37
 
+   viLongitude = 11
+   viLatitude = 46
+
    viTerrain_type = TERRAIN_NECROPOLIS
 
 properties:
@@ -246,7 +249,26 @@ messages:
 
       propagate;
    }
+   
+   CanHavePlayerPortal()
+   {
+      return FALSE;
+   }
 
+   HasSwordOfTheHunt()
+   {
+      local i, each_obj;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         each_obj = Send(self,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&HunterSword)
+         {
+            return TRUE;
+         }
+      }
+      return FALSE;
+   }
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

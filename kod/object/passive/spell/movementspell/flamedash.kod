@@ -1,0 +1,265 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+FlameDash is MovementSpell
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   flame_dash_name_rsc = "flame dash"
+   flame_dash_icon_rsc = iflamedash.bgf
+   flame_dash_desc_rsc = \
+     "Teleports you forward, leaving flames in your wake. "
+     "Repeated use of this spell can exhaust even the strongest mage."
+   flame_dash_mastered_desc_rsc = \
+     "\n\n"
+     "You possess exceptional mastery of this spell, allowing you to travel "
+     "triple the distance of an amateur casting."
+
+   flame_dash_max_cooldowns = \
+      "You need to rest for a moment before dashing again."
+   flame_dash_not_here = \
+      "You can't dash here!"
+   flame_dash_too_short = \
+      "You don't have enough power to dash even a step!"
+   flame_dash_dashed = \
+      "You dash %i steps!"
+   flame_dash_no_space = \
+      "You don't have enough space to dash!"
+   flame_dash_no_longer = \
+      "You are exhausted, and cannot dash again for %i seconds."
+   flame_dash_can_do_now = \
+      "You feel that you can dash again."
+
+classvars:
+
+   vrName = flame_dash_name_rsc
+   vrIcon = flame_dash_icon_rsc
+   vrDesc = flame_dash_desc_rsc
+   vrMasteredDesc = flame_dash_mastered_desc_rsc
+
+   viCast_time = 0
+
+   viSpell_num = SID_FLAME_DASH
+   viSpell_level = 4
+   viSchool = SS_FAREN
+   viMana = 8
+   viSpellExertion = 10
+   viChance_To_Increase = 15
+   viMeditate_ratio = 80
+
+properties:
+
+   % This spell keeps track of player cooldowns.
+   plCooldowns = $
+
+   % A player can use the spell this many times in a row.
+   piMaxUses = 3
+
+   % It takes this long for one cooldown to lift.
+   piCooldownTime = 10000
+
+messages:
+
+   ResetReagents()
+   {
+      plReagents = $;
+
+      return;
+   }
+
+   GetNumSpellTargets()
+   {
+      return 0;
+   }
+
+   CanPayCosts(who=$,lTargets=$,bItemCast=FALSE)
+   {
+      local oRoom;
+      
+      oRoom = Send(who,@GetOwner);
+
+      if oRoom <> $
+         AND IsClass(oRoom,&Room)
+         AND Send(oRoom,@CheckRoomFlag,#flag=ROOM_NO_COMBAT)
+      {
+         Send(who,@MsgSendUser,#message_rsc=flame_dash_not_here);
+         return FALSE;
+      }
+
+      % If you're at or beyond max cooldowns, can't use the spell.
+      if Send(self,@GetCooldown,#who=who) >= piMaxUses
+      {
+         Send(who,@MsgSendUser,#message_rsc=flame_dash_max_cooldowns);
+         return FALSE;
+      }
+
+      propagate;
+   }
+
+   CastSpell(who = $, iSpellPower=0)
+   {                   
+      local oRoom, lSteps, iDist, i, oElement, iIncDuration;
+
+      oRoom = Send(who,@GetOwner);
+      if oRoom = $
+      {
+         return FALSE;
+      }
+
+      % Can go up to 10 rows/cols (expressed in *64 fine)
+      iDist = ((iSpellPower+1)*64)/10;
+      
+      if Send(who,@HasMasteredThisSpell,#num=viSpell_num)
+      {
+         % Adepts of flame dash triple the distance traveled.
+         iDist = iDist * 3;
+      }
+      
+      if iDist < 64
+      {
+         Send(who,@MsgSendUser,#message_rsc=flame_dash_too_short);
+         propagate;
+      }
+
+      lSteps = Send(oRoom,@IntraTeleport,#what=who,#distance=iDist,
+                     #type=INTRA_TELEPORT_FORWARD);
+
+      if lSteps <> $
+      {
+        % Send(who,@MsgSendUser,#message_rsc=flame_dash_dashed,
+        %                       #parm1=Length(lSteps));
+         iIncDuration = 200 * Length(lSteps);
+         foreach i in lSteps
+         {
+            oElement = Create(&WallOfFire,#MaxDamage=iSpellPower/6,#Caster=who,
+                        #duration=iIncDuration,#bMS=TRUE);
+            Send(oRoom,@NewHold,#what=oElement,
+                 #new_row=Nth(i,1),#new_col=Nth(i,2),
+                 #fine_row=Nth(i,3),#fine_col=Nth(i,4));
+            iIncDuration = Bound(iIncDuration - 200, 200, $);
+         }
+         Send(self,@AddCooldown,#who=who);
+      }
+      else
+      {
+         Send(who,@MsgSendUser,#message_rsc=flame_dash_no_space);
+      }
+
+      propagate;
+   }
+
+   SuccessChance(who=$)
+   {
+      return TRUE;
+   }
+   
+   GetCooldown(who=$)
+   {
+      local i;
+      
+      foreach i in plCooldowns
+      {
+         if Nth(i,1) = who
+         {
+            return Nth(i,2);
+         }
+      }
+      
+      return 0;
+   }
+
+   AddCooldown(who=$)
+   {
+      local i;
+
+      if who = $
+      {
+         return;
+      }
+
+      foreach i in plCooldowns
+      {
+         if Nth(i,1) = who
+         {
+            SetNth(i,2,Nth(i,2)+1);
+            if Nth(i,2) >= piMaxUses
+            {
+               Send(who,@MsgSendUser,#message_rsc=flame_dash_no_longer,
+                                     #parm1=GetTimeRemaining(Nth(i,3))/1000);
+            }
+            return;
+         }
+      }
+      
+      plCooldowns = Cons([who,1,
+                          CreateTimer(self,@ClearCooldown,piCooldownTime)],
+                          plCooldowns);
+
+      return;
+   }
+
+   ClearCooldown(timer=$)
+   {
+      local i;
+      
+      foreach i in plCooldowns
+      {
+         if Nth(i,3) = timer
+         {
+            if Nth(i,2) = piMaxUses
+            {
+               Send(Nth(i,1),@MsgSendUser,#message_rsc=flame_dash_can_do_now);
+            }
+
+            SetNth(i,2,Nth(i,2)-1);
+            
+            if Nth(i,2) <= 0
+            {
+               SetNth(i,1,$);
+               SetNth(i,2,0);
+               SetNth(i,3,$);
+               plCooldowns = DelListElem(plCooldowns,i);
+            }
+            else
+            {
+               SetNth(i,3,CreateTimer(self,@ClearCooldown,piCooldownTime));
+            }
+         }
+      }
+      
+      return;
+   }
+   
+   Delete()
+   {
+      local i;
+      
+      foreach i in plCooldowns
+      {
+         if Nth(i,3) <> $
+         {
+            DeleteTimer(Nth(i,3));
+            SetNth(i,3,$);
+            SetNth(i,2,0);
+            SetNth(i,1,$);
+            plCooldowns = DelListElem(plCooldowns,i);
+         }
+      }
+      plCooldowns = $;
+      
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

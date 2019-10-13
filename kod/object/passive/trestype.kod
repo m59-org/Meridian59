@@ -35,6 +35,11 @@ classvars:
    vbDropTrinket = TRUE
    vbDropBook = TRUE
 
+   viBonusNumDrops = 0
+   vbGenerateSockets = FALSE
+   vbGenerateDefModSpellProc = FALSE
+   vbGenerateWeaponSpellProc = FALSE
+
 properties:
 
    plTreasure = $      % list of treasures
@@ -112,7 +117,7 @@ messages:
       return;
    }
 
-   GenerateItemAtt(diff_seed=0, raw=FALSE, who = $)
+   GenerateItemAtt(diff_seed=0, raw=FALSE, who = $, level = 20)
    {
       local diff_bonus, random_x, i, j, index, iChoice, oItem,
             oItemAtt, lOptions;
@@ -185,7 +190,7 @@ messages:
       oItemAtt = Send(SYS,@FindItemAttByNum,#num=iChoice);
 
       % Ask that ItemAtt to generate an item with this attribute.
-      oItem = Send(oItemAtt,@GenerateItemWithAttribute, #who=who);
+      oItem = Send(oItemAtt,@GenerateItemWithAttribute, #who=who,#level=level);
 
       return oItem;
    }
@@ -239,10 +244,10 @@ messages:
    }
 
    CreateMobTreasure(mob = $, who = $, level = 1, corpse = $, attributes = 0,
-                     boostedlevel = 0, difficulty = 0)
+                     boostedlevel = 0, difficulty = 0, iChaosLevel = 0)
    {
       local i, iNumberItems, tokengen, iSurvivalLoot, oTreasure, iSafetyCntr,
-            lTreasureItems;
+            lTreasureItems, iChaosLoot;
 
       lTreasureItems = $;
 
@@ -277,6 +282,32 @@ messages:
             Send(SYS,@ShardCreated,#type=&ShardEmpowerment);
             lTreasureItems = Cons(Create(&ShardEmpowerment),lTreasureItems);
          }
+         
+         if Send(who,@GetOwner) <> $
+            AND (IsClass(Send(who,@GetOwner),&DesertRoom)
+                 OR IsClass(Send(who,@GetOwner),&AncientTomb1))
+         {
+            if Random(1,Send(SETTINGS_OBJECT,@GetInstillingShardProbability)) = 1
+            {
+               Send(SYS,@ShardCreated,#type=&ShardReroll);
+               lTreasureItems = Cons(Create(&ShardReroll),lTreasureItems);
+            }
+            if Random(1,Send(SETTINGS_OBJECT,@GetImprovementShardProbability)) = 1
+            {
+               Send(SYS,@ShardCreated,#type=&ShardImprovement);
+               lTreasureItems = Cons(Create(&ShardImprovement),lTreasureItems);
+            }
+            if Random(1,Send(SETTINGS_OBJECT,@GetDisruptionShardProbability)) = 1
+            {
+               Send(SYS,@ShardCreated,#type=&ShardReImbueMajor);
+               lTreasureItems = Cons(Create(&ShardReImbueMajor),lTreasureItems);
+            }
+            if Random(1,Send(SETTINGS_OBJECT,@GetDisturbanceShardProbability)) = 1
+            {
+               Send(SYS,@ShardCreated,#type=&ShardReImbueMinor);
+               lTreasureItems = Cons(Create(&ShardReImbueMinor),lTreasureItems);
+            }
+         }
       }
 
       % MOB_ONE_TREASURE guarantees one and only one item from loot table.
@@ -301,10 +332,12 @@ messages:
       % that may be dropped.
       iSurvivalLoot = boostedlevel
         / Send(Send(SYS,@GetSurvivalRoomMaintenance),@GetSurvivalLoot);
+      
+      iChaosLoot = iChaosLevel / Send(Send(SYS,@GetChaosStrataMaintenance),@GetChaosLoot);
 
       iNumberItems = 1 + (level/55) + Random(0,difficulty/3)
-                        + iSurvivalLoot;
-      iNumberItems = Bound(iNumberItems,$,6 + iSurvivalLoot);
+                        + iSurvivalLoot + iChaosLoot + viBonusNumDrops;
+      iNumberItems = Bound(iNumberItems,$,6 + iSurvivalLoot + iChaosLoot + viBonusNumDrops);
       iNumberItems = (Send(SETTINGS_OBJECT,@GetItemFactor)*iNumberItems)/100;
       iNumberItems = Bound(iNumberItems,1,$);
 
@@ -409,7 +442,7 @@ messages:
          if Random(1,400) <= (Send(SETTINGS_OBJECT,@GetMagicItemModifier) *
                                     piItem_Att_chance) / 100 
          {
-            oObj = Send(self,@GenerateItemAtt,#who=who,#diff_seed=piDiff_seed);
+            oObj = Send(self,@GenerateItemAtt,#who=who,#diff_seed=piDiff_seed,#level=level);
             if oObj <> $
             {
                return oObj;
@@ -492,10 +525,42 @@ messages:
                OR IsClass(corpse,&OrcPitBossBody)
             {
                oObj = Create(First(lItem_info),#level=level);
+               if vbGenerateSockets
+                  AND IsClass(oObj,&DefenseModifier)
+               {
+                  Send(self,@GenerateSockets,#oDefenseModifier=oObj);
+               }
+               if vbGenerateDefModSpellProc
+                  AND IsClass(oObj,&DefenseModifier)
+               {
+                  Create(&DefModSpellProc,#host_object=oObj);
+               }
+               if vbGenerateWeaponSpellProc
+                  AND IsClass(oObj,&Weapon)
+                  AND NOT IsClass(oObj,&RangedWeapon)
+               {
+                  Create(&WeaponSpellProc,#host_object=oObj);
+               }
             }
             else
             {
                oObj = Create(First(lItem_info),#corpse=corpse,#level=level);
+               if vbGenerateSockets
+                  AND IsClass(oObj,&DefenseModifier)
+               {
+                  Send(self,@GenerateSockets,#oDefenseModifier=oObj);
+               }
+               if vbGenerateDefModSpellProc
+                  AND IsClass(oObj,&DefenseModifier)
+               {
+                  Create(&DefModSpellProc,#host_object=oObj);
+               }
+               if vbGenerateWeaponSpellProc
+                  AND IsClass(oObj,&Weapon)
+                  AND NOT IsClass(oObj,&RangedWeapon)
+               {
+                  Create(&WeaponSpellProc,#host_object=oObj);
+               }
             }
             
             if IsClass(oObj,&Money)
@@ -520,10 +585,11 @@ messages:
       local iRandom, iNumSockets, iDifficultyBonus;
 
       % Nerudite armor can't have sockets. It's anti-magic!
-      if IsClass(oDefenseModifier,&NeruditeArmor)
-      {
-         return;
-      }
+      % Removed for balance reasons, unfortunately. Why shouldn't neru have sockets?
+%      if IsClass(oDefenseModifier,&NeruditeArmor)
+%      {
+%         return;
+%      }
       
       % Orc shields always have 1 socket - but only if they're
       % dropped by a monster.  Most orc shields come from the Orc
@@ -531,6 +597,34 @@ messages:
       if IsClass(oDefenseModifier,&OrcShield)
       {
          Create(&DefModSockets,#host_object=oDefenseModifier,#num_sockets=1);
+
+         return;
+      }
+
+      if IsClass(oDefenseModifier,&ElfShield)
+      {
+         % Mob difficulty makes a huge difference for armor max sockets
+         iDifficultyBonus = (piDiff_seed - 5) * 10;
+      
+         iRandom = Random(1,1000);
+         if (iRandom + iDifficultyBonus) >= 1000
+         {
+            iNumSockets = 4;
+         }
+         if (iRandom + iDifficultyBonus) < 1000
+         {
+            iNumSockets = 3;
+         }
+         if (iRandom + iDifficultyBonus) < 950
+         {
+            iNumSockets = 2;
+         }
+         if (iRandom + iDifficultyBonus) < 666
+         {
+            iNumSockets = 1;
+         }
+         Create(&DefModSockets,#host_object=oDefenseModifier,
+               #num_sockets=iNumSockets);
 
          return;
       }

@@ -71,12 +71,20 @@ classvars:
    vrLeaves = ent_leaves_full_rsc
    vrDead_leaves =ent_dead_leaves_full_rsc
 
+   viLanguage = LANGUAGE_SYLVAN
+   
+   viBaseBleedPercentage = 50
+   viBaseKnockbackPercentage = 0
+   
+   viBaseSize = 80
+
 properties:
 
    piAnimation = ANIM_NONE
 
-   piSpellPower = 50
    piMax_mana = 12
+   piMeleeSpellChance = 0
+   piRangedSpellChance = 10
 
    piReputationGroup = REP_FAROL
    
@@ -116,9 +124,14 @@ messages:
                         [ATCK_WEAP_SLASH, -10 ],
                         [-ATCK_SPELL_FIRE, -10 ] ];
                         
-      plSpellBook = [ [SID_LIGHTNING, 5, 100] ];
+      plMeleeSpellBook = [ [SID_SHOCKING_FURY, 5, 100, Random(50,70)] ];
+      plRangedSpellBook = [ [SID_LIGHTNING_BOLT, 5, 100, Random(1,20)] ];
 
       plReputationEnemies = [REP_UNDEAD];
+
+      plCreatureTypes = Cons(CREATURE_TYPE_PLANT,plCreatureTypes);
+      plCreatureTypes = Cons(CREATURE_TYPE_INTELLIGENT,plCreatureTypes);
+      plCreatureTypes = Cons(CREATURE_TYPE_MAGICAL,plCreatureTypes);
 
       propagate;
    }
@@ -208,9 +221,10 @@ messages:
    {
       % Living trees get more dangerous if you burn 'em.
 
-      if (aSpell & ATCK_SPELL_FIRE) AND piSpellChance > 2
+      if (aSpell & ATCK_SPELL_FIRE)
       {
-         piSpellChance = piSpellChance - 1;
+         piMeleeSpellChance = Bound(piMeleeSpellChance+10,10,100);
+         piRangedSpellChance = Bound(piRangedSpellChance+10,10,100);
       }
 
       propagate;

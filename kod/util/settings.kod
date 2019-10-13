@@ -265,18 +265,36 @@ properties:
    % Shocked temporarily reduces defense by a multiple of damage taken (X*m defense)
    % Chilled temporarily slows attack and cast timers (X*m ms)
    % Burning temporarily deals burning damage over time by a divisor (X/m damage)
-   % Corrode temporarily lowers armor (X/m armor)
+   % Corrode temporarily lowers armor (X/m armor) and weapon resists (X/m resist)
    % Humbled temporarily lowers resistances (X/m resist)
    % Mantled temporarily lowers the effect of healing on the victim (X/m healing)
+   % Tricked heals the user when it wears off (illusionary damage)
+   % Drained reduces max health and wears off slowly
+   % Charmed reduces outgoing damage dealt, but is applied in narrow ways
    piShockedMultiple = 4
-   piChilledMultiple = 30
+   piChilledMultiple = 4
    piBurningDivisor = 3
-   piCorrodeDivisor = 6
-   piHumbledDivisor = 3
+   piCorrodeDivisor = 3
+   piHumbledDivisor = 1
    piMantledDivisor = 6
+   piTrickedDivisor = 1
+   piDrainedDivisor = 1
+   piCharmedMultiple = 2
    
    piStatusEffectReductionTime = 3000
+   
+   % No longer used.
    piStatusEffectReductionAmount = 10
+   
+   % Use these instead.
+   piChilledReductionAmount = 5
+   piShockedReductionAmount = 5
+   piCorrodeReductionAmount = 3
+   piHumbledReductionAmount = 10
+   piMantledReductionAmount = 1
+   piTrickedReductionAmount = 7
+   piDrainedReductionAmount = 1
+   piCharmedReductionAmount = 5
 
    % Percent of mana required/used for broadcasting. Default 0 (no cost).
    piBroadcastManaPercent = 0
@@ -301,12 +319,21 @@ properties:
    % Probability for this shard is 1 out of X
    piMinorOutOf = 100
    piAugmeOutOf = 200
+   piDisturbanceOutOf = 20
    piMajorOutOf = 1000
+   piDisruptionOutOf = 50
    piDrainOutOf = 1000
    piEmpowOutOf = 10000
+   piInstillingOutOf = 100
+   piImprovementOutOf = 100
 
    % Can players Reincarnate at the Hall of Genealogy?   
-   piReincarnationEnabled = FALSE
+   pbReincarnationEnabled = TRUE
+   % How many more HP + Learn points*4 do we need per reincarnation?
+   piReincarnationSumMultiple = 21
+   piTPperReinc = 2000
+   % Equation starts here
+   piReincSumBase = 50
 
    % What type of experience system do we use?
    % WARNING: Classic experience system will require client modifications!
@@ -324,6 +351,78 @@ properties:
 
    % Can people opt out of PvP?
    pbAllowOptOutPvP = FALSE
+
+   % Turn this off if light effects are crashing people 
+   pbLightEffectsEnabled = TRUE
+
+   % Players do this percentage of damage to each other
+   piPvPDamagePercentage = 100
+
+   pbWitcherySchoolExpansion = TRUE
+   % How many hexes can a player or mob have at most? General case.
+   piMaxHexesOnVictim = 1
+
+   % Do hexes replace each other when at the limit? Or just fail?
+   pbHexesReplace = TRUE
+
+   % Does gear with magic mods lose durability?
+   pbLoseDurabilityMagicMods = TRUE
+
+   % What is the general resistance cap?
+   % Some races etc can modify this value.
+   piGeneralMaxResistance = 75
+
+   % If Direct Armor is true, old rules are used. Turn it off to switch to new system of resists only.
+   pbDirectArmorEnabled = FALSE
+
+   pbEmpowermentsEnabled = FALSE
+
+   pbSpellItemManaCostsEnabled = FALSE
+
+   piPrismMaxResistanceReward = 2
+   piPrismResistanceReward = 5
+   piPrismEmpowermentReward = 5
+
+   % How many monsters can a single cleave hit?
+   % Keep it higher than should normally be possible, but not so high that we risk crashes.
+   piMaxCleaveAttacks = 20
+
+   % Do amulet bearers and sword of the hunt wielders see each other as red halos?
+   pbNecroAndHunterPvPOn = TRUE
+
+   % Adjust Jala reservations
+   piJalaReservationNumerator = 2
+   piJalaReservationDenominator = 3
+   
+   piStandardKnockbackDistance = 320
+   piStandardStunDuration = 5000
+   piStandardBleedDuration = 60000
+
+   % Raise to increase, lower to lower
+   piHexesVsMonstersEffect = 100
+
+   % Does the server have an issue with TOF mules? Turn this on
+   pbBootLowbiesFromGuildsUponDying = FALSE
+
+   % Of the format [fire, cold, acid, shock, holy, unholy, nerudite, quake, illusion, unknown, unknown, unknown]
+   plLeagueForgePowers = $
+   
+   % How many bombs can an alchemist player have?
+   piBombLimit = 4
+   
+   % Can we meditate the new schools yet?
+   pbAllowMeditatingNewSchools = FALSE
+   
+   % How many singular items (plate, etc) can be looted from a corpse by non-guildmates?
+   piSingularItemsLootMax = 2
+   
+   % How many reincarnations needed to access chaos strata?
+   piMinChaosStrataReincarnations = 5
+
+   % How many dyes have been dropped?
+   piNumDroppedDyes = 0
+   % What's the percent chance for a dye from a chaos stratum boss?
+   piDyeChance = 1
 
 messages:
 
@@ -746,6 +845,18 @@ messages:
       {
          return bound(piMantledDivisor,1,100);
       }
+      if type = STATUS_TRICKED
+      {
+         return bound(piTrickedDivisor,1,100);
+      }
+      if type = STATUS_DRAINED
+      {
+         return bound(piDrainedDivisor,1,100);
+      }
+      if type = STATUS_CHARMED
+      {
+         return bound(piCharmedMultiple,1,100);
+      }
       return 0;
    }
    
@@ -754,8 +865,27 @@ messages:
       return piStatusEffectReductionTime;
    }
    
-   GetStatusEffectReductionAmount()
+   GetStatusEffectReductionAmount(type=STATUS_CHILLED)
    {
+      switch(type)
+      {
+         case STATUS_CORRODE:
+            return piCorrodeReductionAmount;
+         case STATUS_HUMBLED:
+            return piHumbledReductionAmount;
+         case STATUS_MANTLED:
+            return piMantledReductionAmount;
+         case STATUS_SHOCKED:
+            return piShockedReductionAmount;
+         case STATUS_CHILLED:
+            return piChilledReductionAmount;
+         case STATUS_TRICKED:
+            return piTrickedReductionAmount;
+         case STATUS_DRAINED:
+            return piDrainedReductionAmount;
+         case STATUS_CHARMED:
+            return piCharmedReductionAmount;
+      }
       return piStatusEffectReductionAmount;
    }
 
@@ -824,9 +954,29 @@ messages:
       return piEmpowOutOf;
    }
 
+   GetDisturbanceShardProbability()
+   {
+      return piDisturbanceOutOf;
+   }
+
+   GetDisruptionShardProbability()
+   {
+      return piDisruptionOutOf;
+   }
+
+   GetInstillingShardProbability()
+   {
+      return piInstillingOutOf;
+   }
+
+   GetImprovementShardProbability()
+   {
+      return piImprovementOutOf;
+   }
+
    GetReincarnationEnabled()
    {
-      return piReincarnationEnabled;
+      return pbReincarnationEnabled;
    }
 
    GetUnboundMax()
@@ -872,6 +1022,185 @@ messages:
    GetAllowOptOutPvP()
    {
       return pbAllowOptOutPvP;
+   }
+
+   GetLightEffectsEnabled()
+   {
+      return pbLightEffectsEnabled;
+   }
+
+   GetPvPDamagePercentage()
+   {
+      return piPvPDamagePercentage;
+   }
+
+   GetHexesMax()
+   {
+      return piMaxHexesOnVictim;
+   }
+
+   GetHexesReplace()
+   {
+      return pbHexesReplace;
+   }
+
+   GetLoseDurabilityMagicMods()
+   {
+      return pbLoseDurabilityMagicMods;
+   }
+
+   GetGeneralMaxResistance()
+   {
+      return piGeneralMaxResistance;
+   }
+
+   GetReincarnationSumMultiple()
+   {
+      return piReincarnationSumMultiple;
+   }
+
+   GetTPperReinc()
+   {
+      return piTPperReinc;
+   }
+
+   GetDirectArmorEnabled()
+   {
+      return pbDirectArmorEnabled;
+   }
+
+   GetEmpowermentsEnabled()
+   {
+      return pbEmpowermentsEnabled;
+   }
+
+   GetReincarnationSumBase()
+   {
+      return piReincSumBase;
+   }
+
+   GetSpellItemManaCostsEnabled()
+   {
+      return pbSpellItemManaCostsEnabled;
+   }
+
+   GetPrismMaxResistanceReward()
+   {
+      return piPrismMaxResistanceReward;
+   }
+
+   GetPrismResistanceReward()
+   {
+      return piPrismResistanceReward;
+   }
+
+   GetPrismEmpowermentReward()
+   {
+      return piPrismEmpowermentReward;
+   }
+
+   GetMaxCleaveAttacks()
+   {
+      return piMaxCleaveAttacks;
+   }
+
+   GetNecroAndHunterPvPOn()
+   {
+      return pbNecroAndHunterPvPOn;
+   }
+
+   GetJalaReservationNumerator()
+   {
+      return piJalaReservationNumerator;
+   }
+
+   GetJalaReservationDenominator()
+   {
+      return piJalaReservationDenominator;
+   }
+
+   GetStandardKnockbackDistance()
+   {
+      return piStandardKnockbackDistance;
+   }
+   
+   GetStandardStunDuration()
+   {
+      return piStandardStunDuration;
+   }
+   
+   GetStandardBleedDuration()
+   {
+      return piStandardBleedDuration;
+   }
+
+   GetHexesVsMonstersEffect()
+   {
+      return piHexesVsMonstersEffect;
+   }
+
+   BootLowbiesFromGuildsUponDeath()
+   {
+      return pbBootLowbiesFromGuildsUponDying;
+   }
+
+   SetupLeaguePowers()
+   {
+      if plLeagueForgePowers = $
+      {
+         plLeagueForgePowers = [0,0,0,0,0,0,0,0,0,0,0,0];
+      }
+      return;
+   }
+
+   GetLeagueForgePowers()
+   {
+      return plLeagueForgePowers;
+   }
+   
+   AddLeagueForgePower(iAmount=0,iType=FORGE_FIRE)
+   {
+      if plLeagueForgePowers <> $
+      {
+         SetNth(plLeagueForgePowers,iType,Nth(plLeagueForgePowers,iType)+iAmount);
+      }
+      return;
+   }
+   
+   GetBombLimit()
+   {
+      return piBombLimit;
+   }
+   
+   GetAllowMeditatingNewSchools()
+   {
+      return pbAllowMeditatingNewSchools;
+   }
+   
+   GetSingularItemsLootMax()
+   {
+      return piSingularItemsLootMax;
+   }
+
+   GetMinChaosStrataReincarnations()
+   {
+      return piMinChaosStrataReincarnations;
+   }
+   
+   GetNumDroppedDyes()
+   {
+      return piNumDroppedDyes;
+   }
+
+   GetDyeChance()
+   {
+      return piDyeChance;
+   }
+
+   DyeDropped()
+   {
+      piNumDroppedDyes++;
+      return;
    }
 
 end

@@ -23,20 +23,38 @@ classvars:
    viModGroup = GROUP_RESISTANCE
 
    viModRangeMin = 1
-   viModRangeMax = 15
+   viModRangeMax = 30
    
    viPowerDivisor = 10
 
 properties:
 
+   piNumerator = 2
+   piDivisor = 3
 
 messages:
 
    ModifyResistance(resistance_list=$,iState=0)
    {
-      resistance_list = Send(SYS,@AddResistance,#what=viResistanceType,
-                              #value=iState,#resistance_list=resistance_list);
+      if piDivisor = 0
+      {
+         % Avoid div errors
+         piDivisor = 1;
+      }
+
+      resistance_list = Send(SYS,@AddResistance,#what=viResistanceType,#value=bound((iState*piNumerator)/piDivisor,1,$),#resistance_list=resistance_list);
       return resistance_list;
+   }
+
+   GetNumber(iPower=0)
+   {
+      if piDivisor = 0
+      {
+         % Avoid div errors
+         piDivisor = 1;
+      }
+
+      return bound((iPower*piNumerator)/piDivisor,1,$);
    }
 
 end

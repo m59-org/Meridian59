@@ -10,12 +10,16 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 GuildHall1 is GuildHall
 
+% Mercenary Alley is very basic in terms of upgrades.
+
 constants:
 
    OUT1 = 1
    OUT2 = 2
 
    ENTRANCE = 3
+   
+   SUPER_SECRET_DOOR = 9
 
    LIFT_DELAY = 10000
 
@@ -27,6 +31,8 @@ resources:
 
    room_name_guildh1 = "Mercenary Alley"
    room_guildh1 = guildh1.roo
+   
+   ghall1_portal_desc = "You can vaguely see the goings on outside Mercenary Alley."
 
 classvars:
 
@@ -34,6 +40,9 @@ classvars:
 
    viTeleport_row = 18
    viTeleport_col = 14
+
+   viLongitude = 17
+   viLatitude = 29
 
    viInner_teleport_row = 6
    viInner_teleport_col = 14
@@ -56,6 +65,35 @@ classvars:
    viQuality = 4
 
    viSeconds_til_close = 16
+   
+   viPortalOneRow = 1
+   viPortalOneCol = 3
+   viPortalOneFineRow = 52
+   viPortalOneFineCol = 26
+   viPortalOneDestRID = RID_CORNOTH
+   viPortalOneDestRow = 38
+   viPortalOneDestCol = 26
+   viPortalOneDestFineRow = 52
+   viPortalOneDestFineCol = 19
+   viPortalOneDestAngle = ANGLE_EAST
+   vsPortalOneDesc = ghall1_portal_desc
+   
+   viReliquaryRow = 5
+   viReliquaryCol = 15
+   viReliquaryFineRow = 48
+   viReliquaryFineCol = 58
+   
+   viShardFusingDeviceRow = 17
+   viShardFusingDeviceCol = 2
+   viShardFusingDeviceFineRow = 48
+   viShardFusingDeviceFineCol = 47
+   viShardFusingDeviceRate = 8
+   
+   viShardShatteringDeviceRow = 16
+   viShardShatteringDeviceCol = 2
+   viShardShatteringDeviceFineRow = 31
+   viShardShatteringDeviceFineCol = 47
+   viShardShatteringDeviceRate = 2
 
 properties:
 
@@ -66,6 +104,10 @@ properties:
 
    ptSecret = $
    ptEntrance = $
+   
+   piGuildHallMeditateEffiency = 100
+   % Mercenary Alley boosts meditating Weaponcraft and Banditry highly
+   piSpecialGuildHallMeditateEfficiency = 120
 
 messages:
 
@@ -154,6 +196,9 @@ messages:
               #height=16,#speed=16);
          ptSecret = CreateTimer(self,@CloseSecretDoor,LIFT_DELAY);
          Send(self,@OpenSecretDoorSound);
+         
+         Send(self,@SetSector,#sector=SUPER_SECRET_DOOR,#animation=ANIMATE_CEILING_LIFT,
+              #height=76,#speed=16);
       }
 
       return;
@@ -167,6 +212,9 @@ messages:
       Send(self,@SetSector,#sector=OUT2,#animation=ANIMATE_FLOOR_LIFT,
            #height=80,#speed=16);
       Send(self,@CloseSecretDoorSound);
+         
+      Send(self,@SetSector,#sector=SUPER_SECRET_DOOR,#animation=ANIMATE_CEILING_LIFT,
+           #height=0,#speed=16);
 
       return;
    }
@@ -191,6 +239,17 @@ messages:
            #new_row=2,#new_col=12,#fine_col=10,#new_angle=ANGLE_SOUTH);
 
       propagate;
+   }
+   
+   DoesPlayerQualifyForSpecialMeditateRatio(who=$,oSpell=$,oSkill=$)
+   {
+      if oSkill <> $
+         AND (Send(oSkill,@GetSchool) = SKS_FENCING
+            OR Send(oSkill,@GetSchool) = SKS_BANDITRY)
+      {
+         return TRUE;
+      }
+      return FALSE;
    }
 
 end

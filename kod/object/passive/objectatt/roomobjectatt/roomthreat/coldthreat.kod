@@ -32,7 +32,7 @@ resources:
    cold_threat_end_msg = \
       "The desert's burgeoning heat melts away the chill night's snow."
    cold_threat_damage_msg = \
-      "The biting cold gnaws at your bones."
+      "Without a robe to protect you, the biting cold gnaws at your bones."
 
    cold_good_item_use_msg = \
       "The icy breezes no longer bother you."
@@ -99,15 +99,33 @@ messages:
 
    ReqDealDamage(who=$)
    {
+      local iSection;
+
       % Robes are warm enough to protect players.
+      % Undine are hardy against cold, so never hit them.
       if Send(who,@IsUsingA,#class=&RobeBase)
+         OR Send(who,@GetPlayerRace) = RACE_HALF_UNDINE
 %         OR Send(who,@IsEnchanted,#byClass=&ResistCold)
 %         OR Send(who,@IsUsingA,#class=&ColdRing)
       {
          return FALSE;
       }
+      
+      % We make a special exception in Desert Shore 2, the drop zone.
+      if Send(who,@GetOwner) <> $
+         AND IsClass(Send(who,@GetOwner),&DesertShore2)
+      {
+         iSection = Send(Send(who,@GetOwner),@GetSection,#who=who);
+         
+         if iSection = 100
+            OR iSection = 9999
+            OR iSection = 9998
+         {
+            return FALSE;
+         }
+      }
 
-      return TRUE;
+      propagate;
    }
 
    AlterDamageTime()

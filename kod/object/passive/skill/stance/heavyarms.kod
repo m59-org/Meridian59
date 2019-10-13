@@ -19,17 +19,22 @@ resources:
 
    HeavyArms_name_rsc = "heavy arms"
    HeavyArms_icon_rsc = armorico.bgf
-   HeavyArms_desc_rsc = "An intermediate stance that emphasizes defensive capability at the cost of offensive power."
+   HeavyArms_desc_rsc = "An intermediate stance that emphasizes defensive capability."
    
    HeavyArms_begin = "You shift back slightly, holding your arms in a defensive position."
    HeavyArms_end = "You return your arms to their normal position."
    HeavyArms_mantra = "Uiozi' Olpr"
+   HeavyArms_mastered_desc_rsc = \
+      "\n\n"
+      "You have mastered the heavy arms stance, allowing you to evade a fifth of the initial damage "
+      "from any source."
 
 classvars:
 
    vrName = HeavyArms_name_rsc
    vrIcon = HeavyArms_icon_rsc
    vrDesc = HeavyArms_desc_rsc
+   vrMasteredDesc = HeavyArms_mastered_desc_rsc
    
    stance_begin_msg = HeavyArms_begin
    stance_end_msg = HeavyArms_end
@@ -43,12 +48,15 @@ classvars:
    viSchool = SKS_BANDITRY
    viSkill_Level = 4
    viChance_to_Increase = 5
-   viMeditate_ratio = 100
+   viMeditate_ratio = 60
 
    viSkillExertion = 0
    vbCheck_exertion = FALSE
 
    vbAutomatic = TRUE
+   
+   viPrimaryStat = STAT_ID_AGILITY
+   viSecondaryStat = 0
 
 properties:
 
@@ -62,12 +70,14 @@ messages:
    LastPriorityModifyHitRoll(who=$,what=$,hit_roll=$)
    {
       local iHeavyArmsAbility, iHitRollPenalty;
+      
+      % Trying out zero penalties
+      return hit_roll;
 
       iHeavyArmsAbility = Send(who,@GetSkillAbility,#skill_num=viSkill_num);
 
-      % Down to 50% at max skill, agility does not help with offense penalty
-      iHitRollPenalty = 100 - ((iHeavyArmsAbility+1) / 2);
-      iHitRollPenalty = Bound(iHitRollPenalty,50,100);
+      % Down to 10% at max skill, agility does not help with offense penalty
+      iHitRollPenalty = 100 - ((iHeavyArmsAbility+1) / 10);
       
       return hit_roll * (100-iHitRollPenalty) / 100;
    }
@@ -79,9 +89,9 @@ messages:
       iHeavyArmsAbility = Send(who,@GetSkillAbility,#skill_num=viSkill_num);
       iStat = Send(self,@GetRequisiteStat,#who=who);
 
-      % Up to 25% from skill, 10% from stat
+      % Up to 25% from skill, 20% from stat
       iDefensePowerBonus = 100 + ((iHeavyArmsAbility+1) / 4) + (iStat/5);
-      iDefensePowerBonus = Bound(iDefensePowerBonus,100,135);
+      iDefensePowerBonus = Bound(iDefensePowerBonus,100,145);
 
       if what <> $
          AND IsClass(what,&Battler)
@@ -92,6 +102,10 @@ messages:
       return defense_power * iDefensePowerBonus / 100;
    }
 
+   MasteryModifyDamage(damage=0)
+   {
+      return (damage*4)/5;
+   }
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

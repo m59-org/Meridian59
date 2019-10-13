@@ -13,18 +13,38 @@ OutdoorsKD4 is KCForest
 constants:
 
    include blakston.khd
+   
+   CLOSED_GATE_SECTOR = 50
+   OPEN_GATE_SECTOR = 51
+   
+   GROUND_TEXTURE = 09271
+   WOOD_TEXTURE = 09248
+   
+   GATE_UP_HEIGHT = 405
+   GATE_DOWN_HEIGHT = 300
 
 resources:
 
    include kd4.lkod
 
    room_name_OutdoorsKD4 = "The Clearing of the Trading Post"
-   room_OutdoorsKD4 = KD4.roo
+   room_OutdoorsKD4 = kd4door.roo
    OutdoorsKD4_music = boneprst.mp3
 
    OutdoorsKD4_outbuilding_locked = "You may not enter the outbuilding."
    OutdoorsKD4_smokehouse_locked = "The smokehouse is locked."
    OutdoorsKD4_guardshack_locked = "The guard shack is locked."
+   
+   OutdoorsKD4_gate_closes = \
+      "The Trading Post gate swings closed for the night."
+   OutdoorsKD4_gate_opens = \
+      "As the morning dawns, the Trading Post gate swings open."
+   OutdoorsKD4_gate_closed_for_the_night_msg = \
+      "The Trading Post gate is secured for the night, and will not reopen until dawn."
+
+   OutdoorsKD4_gate_open_sound = woodup1.wav
+   OutdoorsKD4_gate_close_sound = wooddn1.wav
+   OutdoorsKD_sound_locked = doorlck.wav
 
 classvars:
 
@@ -36,6 +56,9 @@ classvars:
 
    viWeatherZone = WEATHER_ZONE_KOC_OUTP
    viWeatherMask = WEATHER_MASK_JUNGLE
+
+   viLongitude = 37
+   viLatitude = 53
 
 properties:
 
@@ -57,6 +80,9 @@ properties:
    piMonster_count_max = 3
 
    pbSnowGroundTexture = TRUE
+   
+   piPreviousPhase = 0
+   pbGateClosed = FALSE
 
 messages:
 
@@ -106,6 +132,90 @@ messages:
       plEdge_Exits = $;
       plEdge_Exits = Cons([LEAVE_NORTH, RID_KD3, 59, 32, ROTATE_NONE], plEdge_exits);
       plEdge_Exits = Cons([LEAVE_EAST, RID_KE4, 16, 1, ROTATE_NONE], plEdge_exits);
+
+      propagate;
+   }
+
+   CloseGate()
+   {
+      local i;
+      
+      foreach i in Send(self,@GetPlayersInRoom)
+      {
+         Send(i,@MsgSendUser,#message_rsc=OutdoorsKD4_gate_closes);
+      }
+
+      Send(self,@SetSector,#sector=OPEN_GATE_SECTOR,#animation=ANIMATE_FLOOR_LIFT,#height=GATE_DOWN_HEIGHT,#speed=0);
+      Send(self,@ChangeTexture,#id=OPEN_GATE_SECTOR,#new_texture=GROUND_TEXTURE,#flags=CTF_FLOOR);
+
+      Send(self,@SetSector,#sector=CLOSED_GATE_SECTOR,#animation=ANIMATE_FLOOR_LIFT,#height=GATE_UP_HEIGHT,#speed=0);
+      Send(self,@ChangeTexture,#id=CLOSED_GATE_SECTOR,#new_texture=WOOD_TEXTURE,#flags=CTF_FLOOR);
+      
+      Send(self,@SomethingWaveRoomCoords,#wave_rsc=OutdoorsKD4_gate_close_sound,#row=34,#col=31);
+      
+      pbGateClosed = TRUE;
+      return;
+   }
+
+   OpenGate()
+   {
+      local i;
+      
+      foreach i in Send(self,@GetPlayersInRoom)
+      {
+         Send(i,@MsgSendUser,#message_rsc=OutdoorsKD4_gate_opens);
+      }
+
+      Send(self,@SetSector,#sector=OPEN_GATE_SECTOR,#animation=ANIMATE_FLOOR_LIFT,#height=GATE_UP_HEIGHT,#speed=0);
+      Send(self,@ChangeTexture,#id=OPEN_GATE_SECTOR,#new_texture=WOOD_TEXTURE,#flags=CTF_FLOOR);
+      
+      Send(self,@SetSector,#sector=CLOSED_GATE_SECTOR,#animation=ANIMATE_FLOOR_LIFT,#height=GATE_DOWN_HEIGHT,#speed=0);
+      Send(self,@ChangeTexture,#id=CLOSED_GATE_SECTOR,#new_texture=GROUND_TEXTURE,#flags=CTF_FLOOR);
+      
+      Send(self,@SomethingWaveRoomCoords,#wave_rsc=OutdoorsKD4_gate_open_sound,#row=34,#col=31);
+      
+      pbGateClosed = FALSE;
+      return;
+   }
+
+   RecalcLightAndWeather()
+   {
+      local SysDayPhase;
+
+      SysDayPhase = Send(SYS,@GetDayPhase);
+
+      % We're crossing over into a new quarter.
+      if piPreviousPhase <> SysDayPhase
+      {
+         switch(Send(SYS,@GetDayPhase))
+         {
+            case DAY_PHASE_DAWN:
+               Post(self,@OpenGate);
+               break;
+            case DAY_PHASE_NIGHT:
+               Post(self,@CloseGate);
+               break;
+         }
+      }
+
+      % Previous phase is updated in parent class
+
+      propagate;
+   }
+
+   SomethingTryGo(what = $,row = $,col = $)
+   {
+      if IsClass(what,&Player)
+         AND row >= 33
+         AND row <= 36
+         AND col = 31
+         AND Send(what,@GetHeightAtObject) = GATE_DOWN_HEIGHT
+         AND pbGateClosed
+      {
+         Send(what,@MsgSendUser,#message_rsc=OutdoorsKD4_gate_closed_for_the_night_msg);
+         Send(what,@WaveSendUser,#wave_rsc=OutdoorsKD_sound_locked);
+         return TRUE;
+      }
 
       propagate;
    }

@@ -36,6 +36,8 @@ classvars:
    viLayer = 0                      % Layer represents clothing and gear that may override visually
                                     % Higher numbers override lower numbers
 
+   viHexResistance = 0
+
 properties:
 
    piDefense_bonus = 0              %% piDefense_bonus adds to player's defense. Ranges from 1 to 50
@@ -99,7 +101,7 @@ messages:
 
    ModifyDefensePower(who = $,what = $,defense_power = 0)
    {
-      local i, oDefenseMod;
+      local i, oDefenseMod, iArmorSkillBonus, oArmorSkill;
 
       foreach i in plEnchantmentMods
       {
@@ -111,14 +113,85 @@ messages:
          }
       }
 
-      return defense_power + piDefense_bonus;
+      iArmorSkillBonus = 0;
+      if IsClass(self,&RobeBase)
+         AND who <> $
+         AND IsClass(who,&Player)
+         AND Send(who,@HasSkill,#num=SKID_FLOWING_CLOTH)
+      {
+         oArmorSkill = Send(SYS,@FindSkillByNum,#num=SKID_FLOWING_CLOTH);
+         if oArmorSkill <> $
+         {
+            iArmorSkillBonus = Send(oArmorSkill,@GetArmorSkillBonus,#who=who);
+         }
+      }
+      if (IsClass(self,&PlateArmor)
+         OR IsClass(self,&NeruditeArmor))
+         AND who <> $
+         AND IsClass(who,&Player)
+         AND Send(who,@HasSkill,#num=SKID_HEAVY_ARMOR)
+      {
+         oArmorSkill = Send(SYS,@FindSkillByNum,#num=SKID_HEAVY_ARMOR);
+         if oArmorSkill <> $
+         {
+            iArmorSkillBonus = Send(oArmorSkill,@GetArmorSkillBonus,#who=who,#iDefensePenalty=piDefense_bonus);
+         }
+      }
+      if IsClass(self,&ScaleArmor)
+         AND who <> $
+         AND IsClass(who,&Player)
+         AND Send(who,@HasSkill,#num=SKID_MEDIUM_ARMOR)
+      {
+         oArmorSkill = Send(SYS,@FindSkillByNum,#num=SKID_MEDIUM_ARMOR);
+         if oArmorSkill <> $
+         {
+            iArmorSkillBonus = Send(oArmorSkill,@GetArmorSkillBonus,#who=who,#iDefensePenalty=piDefense_bonus);
+         }
+      }
+      return defense_power + piDefense_bonus + iArmorSkillBonus;
    }
 
    ModifyDefenseDamage(who = $,what = $,damage = $,atype = 0,aspell = 0)
    "Increase or decrease damage done to defender."
    {
-      local iDamageReduce, oAttribute, i, sum, oArmorMod;
+      local iDamageReduce, oAttribute, i, sum, oArmorMod, oArmorSkill;
       sum = 0;
+
+      if IsClass(self,&RobeBase)
+         AND who <> $
+         AND IsClass(who,&Player)
+         AND Send(who,@HasSkill,#num=SKID_IRON_WEAVE)
+      {
+         oArmorSkill = Send(SYS,@FindSkillByNum,#num=SKID_IRON_WEAVE);
+         if oArmorSkill <> $
+         {
+            Send(oArmorSkill,@TookAHit,#who=who);
+         }
+      }
+
+      if (IsClass(self,&PlateArmor)
+         OR IsClass(self,&NeruditeArmor))
+         AND who <> $
+         AND IsClass(who,&Player)
+         AND Send(who,@HasSkill,#num=SKID_HEAVY_ARMOR)
+      {
+         oArmorSkill = Send(SYS,@FindSkillByNum,#num=SKID_HEAVY_ARMOR);
+         if oArmorSkill <> $
+         {
+            Send(oArmorSkill,@TookAHit,#who=who);
+         }
+      }
+      if IsClass(self,&ScaleArmor)
+         AND who <> $
+         AND IsClass(who,&Player)
+         AND Send(who,@HasSkill,#num=SKID_MEDIUM_ARMOR)
+      {
+         oArmorSkill = Send(SYS,@FindSkillByNum,#num=SKID_MEDIUM_ARMOR);
+         if oArmorSkill <> $
+         {
+            Send(oArmorSkill,@TookAHit,#who=who);
+         }
+      }
 
       foreach i in plEnchantmentMods
       {
@@ -137,25 +210,28 @@ messages:
       }
 
       iDamageReduce = 0;
-      if piDamage_reduce <> 0
+      if Send(SETTINGS_OBJECT,@GetDirectArmorEnabled)
       {
-         iDamageReduce = random(piDamage_reduce*33,piDamage_reduce*100);
-         iDamageReduce = bound(iDamageReduce,0,(damage-100));
-      }
-
-      if aspell <> 0
-      {
-         % Reduce damage if part of the damage is spell
-         if atype <> 0
+         if piDamage_reduce <> 0
          {
-            % Only 2/3 of the damage reduction if we're doing both weapon
-            % and spell damage types.
-            iDamageReduce = iDamageReduce * 2 / 3;
+            iDamageReduce = random(piDamage_reduce*33,piDamage_reduce*100);
+            iDamageReduce = bound(iDamageReduce,0,(damage-100));
          }
-         else
+
+         if aspell <> 0
          {
-            % If we're doing pure spell damage, we get no reduction.
-            iDamageReduce = 0;
+            % Reduce damage if part of the damage is spell
+            if atype <> 0
+            {
+               % Only 2/3 of the damage reduction if we're doing both weapon
+               % and spell damage types.
+               iDamageReduce = iDamageReduce * 2 / 3;
+            }
+            else
+            {
+               % If we're doing pure spell damage, we get no reduction.
+               iDamageReduce = 0;
+            }
          }
       }
       
@@ -166,6 +242,12 @@ messages:
    % This will reduce the damage that armor is taking in battle currently.
    DefendingHit(who = $,what = $)
    {
+      if plEnchantmentMods <> $
+         AND NOT Send(SETTINGS_OBJECT,@GetLoseDurabilityMagicMods)
+      {
+         propagate;
+      }
+
       % 50% chance to get damaged.
       if (random(1,100) < DAMAGE_CHANCE)
       {
@@ -209,21 +291,24 @@ messages:
    {
       local i, sum;
       sum = 0;
-
-      foreach i in plEnchantmentMods
+      if Send(SETTINGS_OBJECT,@GetDirectArmorEnabled)
       {
-         if Nth(i,1) = &ArmorMod
+         foreach i in plEnchantmentMods
          {
-            sum = sum + Nth(i,2);
+            if Nth(i,1) = &ArmorMod
+            {
+               sum = sum + Nth(i,2);
+            }
          }
+         return piDamage_reduce + sum;
       }
 
-      return piDamage_reduce + sum;
+      return 0;
    }
 
    GetDefenseBonus()
    {
-      local i, sum;
+      local i, sum, iArmorSkillBonus, oArmorSkill;
       sum = 0;
 
       foreach i in plEnchantmentMods
@@ -233,14 +318,63 @@ messages:
             sum = sum + Nth(i,2);
          }
       }
+
+      iArmorSkillBonus = 0;
+      if IsClass(self,&RobeBase)
+         AND poOwner <> $
+         AND IsClass(poOwner,&Player)
+         AND Send(poOwner,@HasSkill,#num=SKID_FLOWING_CLOTH)
+      {
+         oArmorSkill = Send(SYS,@FindSkillByNum,#num=SKID_FLOWING_CLOTH);
+         if oArmorSkill <> $
+         {
+            iArmorSkillBonus = Send(oArmorSkill,@GetArmorSkillBonus,#who=poOwner);
+         }
+      }
+      iArmorSkillBonus = 0;
+      if (IsClass(self,&PlateArmor)
+         OR IsClass(self,&NeruditeArmor))
+         AND poOwner <> $
+         AND IsClass(poOwner,&Player)
+         AND Send(poOwner,@HasSkill,#num=SKID_HEAVY_ARMOR)
+      {
+         oArmorSkill = Send(SYS,@FindSkillByNum,#num=SKID_HEAVY_ARMOR);
+         if oArmorSkill <> $
+         {
+            iArmorSkillBonus = Send(oArmorSkill,@GetArmorSkillBonus,#who=poOwner,#iDefensePenalty=piDefense_bonus);
+         }
+      }
+      if IsClass(self,&ScaleArmor)
+         AND poOwner <> $
+         AND IsClass(poOwner,&Player)
+         AND Send(poOwner,@HasSkill,#num=SKID_MEDIUM_ARMOR)
+      {
+         oArmorSkill = Send(SYS,@FindSkillByNum,#num=SKID_MEDIUM_ARMOR);
+         if oArmorSkill <> $
+         {
+            iArmorSkillBonus = Send(oArmorSkill,@GetArmorSkillBonus,#who=poOwner,#iDefensePenalty=piDefense_bonus);
+         }
+      }
       
-      return piDefense_bonus + sum;
+      return piDefense_bonus + sum + iArmorSkillBonus;
+   }
+
+   GetHexResistance()
+   {
+      local i, iHexResistance;
+      
+      iHexResistance = viHexResistance;
+
+      return iHexResistance;
    }
 
    GetPrefixes()
    {
       return [[&ArmorMod,100],
-              [&DefenseMod,100]];
+              [&DefenseMod,100],
+              [&HealthMod,50],
+              [&ManaMod,100],
+              [&VigorMod,300]];
    }
 
    GetSuffixes()
@@ -251,7 +385,8 @@ messages:
               [&AcidResistanceMod,100],
               [&PierceResistanceMod,100],
               [&SlashResistanceMod,100],
-              [&BludgeonResistanceMod,100]];
+              [&BludgeonResistanceMod,100],
+              [&ThrustResistanceMod,100]];
    }
 
 end

@@ -27,6 +27,8 @@ resources:
       "open your mind and improve your abilities.  To do so, speak the "
       "name of the ability you wish to improve while in trance.  This "
       "will use up accumulated training points."
+      "\n\nMeditating takes a great deal of focus, and will cancel "
+      "some other activities such as singing songs."
 
    Meditate_begin_trance = \
       "You begin your meditation and let your mind wander.  Which ability "
@@ -35,6 +37,14 @@ resources:
       "You begin to meditate on the art of %s and come to a deeper "
       "understanding of its intricacies.  You have improved your ability "
       "by ~B%i~B points."
+   Meditate_cast_altered_positive = \
+      "You begin to meditate on the art of %s and come to a deeper "
+      "understanding of its intricacies.  You have improved your ability "
+      "by ~B%i~B points. The area you are in made the points spent ~B~g%i% more efficient~B~n."
+   Meditate_cast_altered_negative = \
+      "You begin to meditate on the art of %s and come to a deeper "
+      "understanding of its intricacies.  You have improved your ability "
+      "by ~B%i~B points. The area you are in made the points spent ~B~r%i% less efficient~B~n."
    Meditate_cast_failure = \
       "You can't seem to properly focus your mind.  Confused and "
       "disappointed, you wake from your trance."
@@ -46,6 +56,9 @@ resources:
       "progress any further in its mastery."
    Meditate_cast_finished = \
       "You wake from your trance and feel your mental energies refreshed!"
+
+   cannot_meditate_new_schools = \
+      "It seems we don't know how to meditate this school just yet. Looks like you'll have to improve it the old fashioned way!"
 
 classvars:
 
@@ -61,6 +74,9 @@ classvars:
 
    viFlash = FLASH_GOOD
    viMeditate_ratio = 200
+   
+   viPrimaryStat = STAT_ID_MYSTICISM
+   viSecondaryStat = 0
 
 properties:
 
@@ -113,13 +129,15 @@ messages:
    SomethingSaidDuringTrance(who=$,string=$,lTargets=$)
    {
       local i, bFound, oSpell, sSpell, oSkill, sSkill, iPercent,
-            iRatio, iGain, iNum, iPoints;
+            iRatio, iGain, iNum, iPoints, iRoomMeditateEfficiency, iRawPoints;
 
       Send(who,@BreakTrance,#event=EVENT_STEER);  %% Don't print fizzle message
 
       bFound = FALSE;
 
       iPoints = Send(who,@GetTrainingPoints);
+      
+      iRoomMeditateEfficiency = 100;
 
       foreach i in Send(who,@GetSpellList)
       {
@@ -130,8 +148,24 @@ messages:
          if StringEqual(string,sSpell)
          {
             bFound = TRUE;
+            
+            if (Send(oSpell,@GetSchool) = SKS_ALCHEMY
+               OR Send(oSpell,@GetSchool) = SKS_SHADOWCRAFT
+               OR Send(oSpell,@GetSchool) = SS_BESTIARY)
+               AND NOT Send(SETTINGS_OBJECT,@GetAllowMeditatingNewSchools)
+            {
+               Send(who,@MsgSendUser,#message_rsc=cannot_meditate_new_schools);
+               return;
+            }
+            
             iPercent = Send(oSpell,@GetAbility,#who=who);
             iRatio = Send(oSpell,@GetMeditateRatio);
+
+            % Rooms may have different Meditate efficiencies for each spell (hall ownership, school, etc)
+            if Send(who,@GetOwner) <> $
+            {
+               iRoomMeditateEfficiency = Send(Send(who,@GetOwner),@GetRoomMeditateEfficiency,#who=who,#oSpell=oSpell);
+            }
 
             if iPercent = 99
             {
@@ -142,13 +176,14 @@ messages:
             }
 
             if iRatio = 0
+               or iRoomMeditateEfficiency = 0
             { 
                Send(who,@MsgSendUser,#message_rsc=Meditate_cast_failure);
 
                return;
             }
 
-            if iPoints < iRatio
+            if ((iPoints*iRoomMeditateEfficiency)/100) < iRatio
             {
                Send(who,@MsgSendUser,#message_rsc=Meditate_not_enough_points,
                      #parm1=sSpell);
@@ -157,19 +192,39 @@ messages:
             }
             else
             {
-               iGain = iPoints/iRatio;
+               iGain = ((iPoints*iRoomMeditateEfficiency)/100)/iRatio;
                if iGain > 99 - iPercent
                {
                   iGain = 99 - iPercent;
                }
 
-               Send(who,@MsgSendUser,#message_rsc=Meditate_cast_success,
-                     #parm1=sSpell,#parm2=iGain);
+               % Figure raw points, the actual points spent without room efficiency modifier
+               iRawPoints = (iGain*iRatio*100)/iRoomMeditateEfficiency;
+
+               if iRoomMeditateEfficiency = 100
+               {
+                  Send(who,@MsgSendUser,#message_rsc=Meditate_cast_success,
+                        #parm1=sSpell,#parm2=iGain);
+               }
+               else
+               {
+                  if iRoomMeditateEfficiency > 100
+                  {
+                     Send(who,@MsgSendUser,#message_rsc=Meditate_cast_altered_positive,
+                           #parm1=sSpell,#parm2=iGain,#parm3=iRoomMeditateEfficiency-100);
+                  }
+                  else
+                  {
+                     Send(who,@MsgSendUser,#message_rsc=Meditate_cast_altered_negative,
+                           #parm1=sSpell,#parm2=iGain,#parm3=Abs(iRoomMeditateEfficiency-100));
+                  }
+               }
                Send(who,@ChangeSpellAbility,#spell_num=iNum,
                      #amount=iGain,#report=FALSE);
-               Send(who,@AddTrainingPoints,#points=(-iGain*iRatio));
+               Send(who,@AddTrainingPoints,#points=-iRawPoints);
+               Send(who,@CastASpell,#oSpell=self);
                if iGain*iRatio > Random(0,99)
-               AND NOT StringEqual(string,Meditate_name_rsc)
+                  AND NOT StringEqual(string,Meditate_name_rsc)
                {
                   Send(who,@ChangeSpellAbility,#spell_num=vispell_Num,
                         #amount=1,#report=TRUE);
@@ -189,8 +244,24 @@ messages:
          if StringEqual(string,sSkill)
          {
             bFound = TRUE;
+            
+            if (Send(oSkill,@GetSchool) = SKS_ALCHEMY
+               OR Send(oSkill,@GetSchool) = SKS_SHADOWCRAFT
+               OR Send(oSkill,@GetSchool) = SS_BESTIARY)
+               AND NOT Send(SETTINGS_OBJECT,@GetAllowMeditatingNewSchools)
+            {
+               Send(who,@MsgSendUser,#message_rsc=cannot_meditate_new_schools);
+               return;
+            }
+            
             iPercent = Send(oSkill,@GetAbility,#who=who);
             iRatio = Send(oSkill,@GetMeditateRatio);
+
+            % Rooms may have different Meditate efficiencies for each spell (hall ownership, school, etc)
+            if Send(who,@GetOwner) <> $
+            {
+               iRoomMeditateEfficiency = Send(Send(who,@GetOwner),@GetRoomMeditateEfficiency,#who=who,#oSkill=oSkill);
+            }
 
             if iPercent = 99
             {
@@ -200,7 +271,15 @@ messages:
                      return;
             }
 
-            if iPoints < iRatio
+            if iRatio = 0
+               or iRoomMeditateEfficiency = 0
+            { 
+               Send(who,@MsgSendUser,#message_rsc=Meditate_cast_failure);
+
+               return;
+            }
+
+            if ((iPoints*iRoomMeditateEfficiency)/100) < iRatio
             {
                Send(who,@MsgSendUser,#message_rsc=Meditate_not_enough_points,
                      #parm1=sSkill);
@@ -209,17 +288,37 @@ messages:
             }
             else
             {
-               iGain = iPoints/iRatio;
+               iGain = ((iPoints*iRoomMeditateEfficiency)/100)/iRatio;
                if iGain > 99 - iPercent
                {
                   iGain = 99 - iPercent;
                }
 
-               Send(who,@MsgSendUser,#message_rsc=Meditate_cast_success,
-                     #parm1=sSkill,#parm2=iGain);
+               % Figure raw points, the actual points spent without room efficiency modifier
+               iRawPoints = (iGain*iRatio*100)/iRoomMeditateEfficiency;
+
+               if iRoomMeditateEfficiency = 100
+               {
+                  Send(who,@MsgSendUser,#message_rsc=Meditate_cast_success,
+                        #parm1=sSkill,#parm2=iGain);
+               }
+               else
+               {
+                  if iRoomMeditateEfficiency > 100
+                  {
+                     Send(who,@MsgSendUser,#message_rsc=Meditate_cast_altered_positive,
+                           #parm1=sSkill,#parm2=iGain,#parm3=iRoomMeditateEfficiency-100);
+                  }
+                  else
+                  {
+                     Send(who,@MsgSendUser,#message_rsc=Meditate_cast_altered_negative,
+                           #parm1=sSkill,#parm2=iGain,#parm3=Abs(iRoomMeditateEfficiency-100));
+                  }
+               }
                Send(who,@ChangeSkillAbility,#Skill_num=iNum,
                      #amount=iGain,#report=FALSE);
-               Send(who,@AddTrainingPoints,#points=(-iGain*iRatio));
+               Send(who,@AddTrainingPoints,#points=-iRawPoints);
+               Send(who,@CastASpell,#oSpell=self);
                if iGain*iRatio > Random(0,99)
                {
                   Send(who,@ChangeSpellAbility,#spell_num=vispell_Num,

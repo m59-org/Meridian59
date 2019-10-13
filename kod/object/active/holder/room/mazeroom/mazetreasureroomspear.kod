@@ -1,0 +1,233 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+MazeTreasureRoomSpear is MinotaurMazeRoom
+
+% First treasure room.
+
+constants:
+
+   include blakston.khd
+   
+   PLATFORM_ONE_ID = 200
+   
+   VICTORY_PLATFORM = 300
+   CHOICE_CIRCLE = 301
+
+   VICTORY_MESSAGE_DELAY = 40000
+   LIGHT_MESSAGE_DELAY = 10000
+
+resources:
+
+   room_mazetreasureroomspear = mazetreasureroomspear.roo
+   room_maze_treasure_room_name = "Test of Mind and Body"
+
+   treasure_room_challenge_msg = \
+      "~kThe spirit of Vecka tells you, \"Before the Order became corrupt, this was the Test of Mind and Body, where "
+      "acolyte Sorcerers attempted to prove themselves. If you ascend to the peak of the underground pyramid, those magics may "
+      "still linger.\""
+   treasure_room_spear_victory_msg = \
+      "~kA magically created voice says, \"Congratulations, acolyte. You have shown yourself to be swift of Mind and Body. "
+      "Step into the light, then "
+      "state the skill or spell you wish to know more about, and the ancient knowledge of the Order shall be yours. "
+      "Be warned: as you are a mere acolyte, our Eternal Archive will only allow you to possess the sacred knowledge of one skill or spell at a time. "
+      "If you choose a new mastery, the Archive will remove the old mastery from your mind.\""
+   treasure_room_light_entered_msg = \
+      "Power surrounds your body as you step into the light."
+   treasure_room_light_left_msg = \
+      "You step out of the light."
+   treasure_room_skill_spell_chosen_msg = \
+      "~BKnowledge flares in your mind!~B Check the description of your chosen ability to learn more about your mastery."
+
+   treasure_room_list_msg = \
+      "This archive retains knowledge of these spells and skills: inert form, hammer wielding, scimitar wielding, dagger wielding, "
+      "axe wielding, hermitage, fencing, shield wall, fortitude, valiant charge, heavy arms, "
+      "fireball, lightning bolt, earthquake, and flame dash."
+
+   skill_spell_not_found = \
+      "~kA magically created voice says, \"This archive currently contains no knowledge of that ability.\""
+
+   you_dont_have_that_ability_msg= \
+      "~kA magically created voice says, \"You have no knowledge of that ability to augment.\""
+
+classvars:
+
+   vrName = room_maze_treasure_room_name
+
+properties:
+
+   prRoom = room_mazetreasureroomspear
+   piRoom_num = RID_MAZE_TREASURE_ROOM_SPEAR
+   
+   ptVictoryMsgTimer = $
+   ptLightMsgTimer = $
+
+messages:
+
+   CreateMazeRoomObjects()
+   {
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_DPURPLE,#iIntensity=255),#new_row=19,#new_col=21,#fine_row=20,#fine_col=23);
+      return;
+   }
+   
+   CheckMoveBorders(what=$, new_row=$, new_col=$)
+   {
+      return;
+   }
+   
+   EvaluateMovement(who=$,section=0)
+   {
+      local i, lRandomSectors;
+      % Any time someone moves, randomize south platforms.
+      % ID 250 to 266
+      
+      lRandomSectors = [250,251,252,253,254,255,256,257,258,259,260,261,262,263,264,265,266];
+      
+      foreach i in lRandomSectors
+      {
+         Send(self,@SetSector,#sector=i,#animation=ANIMATE_FLOOR_LIFT,#height=Random(1040,1260),#speed=50);
+      }
+      
+      Switch(section)
+      {
+         case VICTORY_PLATFORM:
+            if ptVictoryMsgTimer = $
+            {
+               Send(who,@MsgSendUser,#message_rsc=treasure_room_spear_victory_msg);
+               ptVictoryMsgTimer = CreateTimer(self,@ClearVictoryMsgTimer,VICTORY_MESSAGE_DELAY);
+            }
+            break;
+         case CHOICE_CIRCLE:
+            if ptLightMsgTimer = $
+            {
+               Send(who,@MsgSendUser,#message_rsc=treasure_room_light_entered_msg);
+               Send(who,@MsgSendUser,#message_rsc=treasure_room_list_msg);
+               ptLightMsgTimer = CreateTimer(self,@ClearLightMsgTimer,LIGHT_MESSAGE_DELAY);
+            }
+            break;
+      }
+      
+      return;
+   }
+   
+   SomeoneSaid(what=$, string=$)
+   {
+      local oSkill, oSpell, iReturnedSpellNum, iReturnedSkillNum, lAllowed, bProceed, i;
+
+      lAllowed = [SID_FIREBALL,
+                  SID_LIGHTNING_BOLT,
+                  SID_FLAME_DASH,
+                  SID_EARTHQUAKE,
+                  SKID_PROFICIENCY_SCIMITAR,
+                  SKID_PROFICIENCY_HAMMER,
+                  SKID_PROFICIENCY_DAGGER,
+                  SKID_PROFICIENCY_AXE,
+                  SKID_INERT_FORM,
+                  SKID_HERMITAGE,
+                  SKID_PROFICIENCY_SWORD,
+                  SKID_ACTIVE_BLOCKING_STANCE,
+                  SKID_FORTITUDE,
+                  SKID_CHARGE_ATTACK,
+                  SKID_HEAVY_ARMS];
+      bProceed = FALSE;
+      if what <> $
+         AND IsClass(what,&User)
+         AND Send(self,@GetSection,#who=what) = CHOICE_CIRCLE
+      {
+         iReturnedSpellNum = Send(SYS,@FindSpellNumByString,#string=string);
+         iReturnedSkillNum = Send(SYS,@FindSkillNumByString,#string=string);         
+         foreach i in lAllowed
+         {
+            if iReturnedSpellNum = i
+            {
+               bProceed = TRUE;
+            }
+            if iReturnedSkillNum = i
+            {
+               bProceed = TRUE;
+            }
+         }
+         
+         if NOT bProceed
+         {
+            Post(what,@MsgSendUser,#message_rsc=skill_spell_not_found);
+            propagate;
+         }
+
+         if iReturnedSpellNum <> 0
+         {
+            if NOT Send(what,@HasSpell,#num=iReturnedSpellNum)
+            {
+               Post(what,@MsgSendUser,#message_rsc=you_dont_have_that_ability_msg);
+               propagate;
+            }
+            Post(what,@MsgSendUser,#message_rsc=treasure_room_skill_spell_chosen_msg);
+            Send(what,@SetMasteredSkill,#num=0);
+            Send(what,@SetMasteredSpell,#num=iReturnedSpellNum);
+            propagate;
+         }
+         if iReturnedSkillNum <> 0
+         {
+            if NOT Send(what,@HasSkill,#num=iReturnedSkillNum)
+            {
+               Post(what,@MsgSendUser,#message_rsc=you_dont_have_that_ability_msg);
+               propagate;
+            }
+            Post(what,@MsgSendUser,#message_rsc=treasure_room_skill_spell_chosen_msg);
+            Send(what,@SetMasteredSkill,#num=iReturnedSkillNum);
+            Send(what,@SetMasteredSpell,#num=0);
+            propagate;
+         }
+      }
+      propagate;
+   }
+
+   ClearVictoryMsgTimer()
+   {
+      ptVictoryMsgTimer = $;
+      return;
+   }
+
+   ClearLightMsgTimer()
+   {
+      ptLightMsgTimer = $;
+      return;
+   }
+
+   NewHold(what=$)
+   {
+      if what <> $
+         AND IsClass(what,&User)
+         AND Send(what,@GetMasteredSkill) = 0
+         AND Send(what,@GetMasteredSpell) = 0
+         AND Send(what,@GetVeckaAdvice)
+      {
+         Send(what,@MsgSendUser,#message_rsc=treasure_room_challenge_msg);
+      }
+      propagate;
+   }
+   
+   Delete()
+   {
+      if ptVictoryMsgTimer <> $
+      {
+         DeleteTimer(ptVictoryMsgTimer);
+         ptVictoryMsgTimer = $;
+      }
+      if ptLightMsgTimer <> $
+      {
+         DeleteTimer(ptLightMsgTimer);
+         ptLightMsgTimer = $;
+      }
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

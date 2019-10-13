@@ -1,0 +1,120 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ShardReImbueMajor is Shard
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   reimbue_major_shard_name_rsc = "shard of disruption"
+   reimbue_major_shard_name_plural = "shards of disruption"
+   reimbue_major_shard_icon_rsc = beigeshard.bgf
+   reimbue_major_shard_desc = \
+      "This mysterious shard of some unknown crystal hums with energy. "
+      "It will disrupt the magical modifications in a powerful item "
+      "and change their nature."
+
+   reimbue_major_shard_req = \
+      "This shard can only change the modifications on a strong magical item."
+   reimbue_major_shard_applied = \
+      "The strong aura around the %s reforms after a bright disruption."
+
+classvars:
+
+   vrName = reimbue_major_shard_name_rsc
+   vrIcon = reimbue_major_shard_icon_rsc
+   vrDesc = reimbue_major_shard_desc
+   
+   vrName_plural = reimbue_major_shard_name_plural
+
+   vrApplied = reimbue_major_shard_applied
+   
+   viShardColor = 77
+
+properties:
+
+messages:
+
+   ReqNewApply(what = $,apply_on = $)
+   {
+      local i;
+      
+      if what = $
+         OR NOT IsClass(what,&Player)
+      {
+         return;
+      }
+
+      foreach i in Send(what,@GetPlayerUsing)
+      {
+         if i = apply_on
+         {
+            Send(what,@MsgSendUser,#message_rsc=vrMust_unequip);
+            return FALSE;
+         }
+      }
+
+      if apply_on <> $
+         AND (IsClass(apply_on,&Weapon)
+            OR IsClass(apply_on,&DefenseModifier)
+            OR IsClass(apply_on,&Ring)
+            OR IsClass(apply_on,&Gauntlet)
+            OR IsClass(apply_on,&NecromancerAmulet)
+            OR IsClass(apply_on,&Necklace)
+            OR IsClass(apply_on,&Instrument)
+            OR IsClass(apply_on,&JewelofFroz)
+            OR IsClass(apply_on,&AdventurerCrest)
+            OR IsClass(apply_on,&ScryingCrystal))
+      {
+         % This shard only applies to strong magical gear
+         if Send(apply_on,@GetMagicModsNumber) >= 3
+            AND Send(apply_on,@GetMagicModsNumber) <= 6
+         {
+            return TRUE;
+         }
+         else
+         {
+            Send(what,@MsgSendUser,#message_rsc=reimbue_major_shard_req);
+         }
+      }
+
+      return FALSE;
+   }
+
+   NewApplied(what = $,apply_on = $)
+   {
+      Send(apply_on,@ClearMagicMods);
+      if Send(self,@GenerateMod,#oItem=apply_on,#who=what) = 1
+      {
+         Send(self,@SubtractNumber,#number=1);
+      }
+      Send(self,@GenerateMod,#oItem=apply_on,#who=what);
+      Send(self,@GenerateMod,#oItem=apply_on,#who=what);
+      if Random(1,2) = 1
+      {
+         Send(self,@GenerateMod,#oItem=apply_on,#who=what);
+      }
+      if Random(1,2) = 1
+      {
+         Send(self,@GenerateMod,#oItem=apply_on,#who=what);
+      }
+      if Random(1,2) = 1
+      {
+         Send(self,@GenerateMod,#oItem=apply_on,#who=what);
+      }
+
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

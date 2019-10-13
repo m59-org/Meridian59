@@ -7,6 +7,8 @@
 DEPEND = ..\resist.bof
 BOFS = resfire.bof resshock.bof rescold.bof resgood.bof resmagic.bof \
 	resevil.bof resacid.bof acidstormbuff.bof shockstormbuff.bof \
-    coldstormbuff.bof heatstormbuff.bof
+    coldstormbuff.bof heatstormbuff.bof gort.bof \
+    holystormbuff.bof \
+    unholystormbuff.bof
 
 !include $(KODDIR)\kod.mak

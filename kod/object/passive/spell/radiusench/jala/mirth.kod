@@ -39,6 +39,9 @@ resources:
    Mirth_enter = "%s's mirthful song lifts your spirits a bit."
    Mirth_leave = "You can no longer hear the mirthful notes of %s's song."
 
+   mirth_song_bonus_rsc = \
+      "\n\nThe happy notes of this song grant you %i offense and 1-%i additional damage against evil entities."
+
 classvars:
 
    radius_ench_cast = Mirth_cast
@@ -66,6 +69,9 @@ classvars:
    viMeditate_ratio = 20
 
    viAffectsEveryone = TRUE
+   
+   % What amount of mana does a Necklace-bound Jala song reserve?
+   viFlatManaReservation = 30
 
 properties:
 
@@ -104,7 +110,7 @@ messages:
 
    % Stuff we handle to be an attack modifier.
 
-   ModifyHitRoll(who = $,what = $,hit_roll = $)
+   ModifyHitRoll(who = $,what = $,hit_roll = $,lRadiusState=$)
    {
       if what = $
       {
@@ -115,13 +121,13 @@ messages:
       if Send(what,@GetKarma,#detect=TRUE) < 0
       {
          % Give a small bonus
-         return hit_roll + 100;
+         return hit_roll + (Nth(lRadiusState,2)+1);
       }
 
       return hit_roll;
    }
    
-   ModifyDamage(who = $,what = $,damage = $)
+   ModifyDamage(who = $,what = $,damage = $,lRadiusState=$)
    {
       if what = $
       {
@@ -132,12 +138,18 @@ messages:
       if Send(what,@GetKarma,#detect=TRUE) < 0
       {
          % Roughly equal to Killing Fields
-         return damage + Random(1,5);
+         return damage + Random(1,Bound(((Nth(lRadiusState,2)+1)/20),1,5));
       }
 
       return damage;
    }
 
+   EffectDesc(who=$, lState=$)
+   {
+      AddPacket(4,mirth_song_bonus_rsc, 4,Nth(lState,2)+1, 4, (Nth(lState,2)+1)/20);
+
+      propagate;
+   }
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

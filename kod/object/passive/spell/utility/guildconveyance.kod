@@ -43,6 +43,9 @@ classvars:
    viMana = 0
    viSpellExertion = 0
    viChance_To_Increase = 15
+   
+   viPrimaryStat = STAT_ID_STAMINA
+   viSecondaryStat = 0
 
 properties:
 
@@ -140,6 +143,9 @@ messages:
             {
                Send(each_obj,@NewHold,#what=First(lTargets));
                bDeposited = TRUE;
+               Send(who,@MsgSendUser,#message_rsc=GuildConveyance_cast,
+                        #parm1=Send(First(lTargets),@GetDef),
+                        #parm2=Send(First(lTargets),@GetName));
                if iFee <> 0
                {
                   Send(oMoney,@SubtractNumber,#number=iFee);

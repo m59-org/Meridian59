@@ -1,0 +1,608 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+DesertRoomMaintenance is UtilityFunctions
+
+constants:
+
+   include blakston.khd
+
+   TOMB1_CONFIGURATION = 1
+   TOMB2_CONFIGURATION = 2
+   TOMB3_CONFIGURATION = 3
+   OASIS_CONFIGURATION = 4
+   ZIGGURAT_CONFIGURATION = 7
+
+resources:
+
+classvars:
+
+   viNumberOfDunesRooms = 3
+
+properties:
+
+   poDesertDunes1 = $   % top     - desertshore1, desertcliffnoaccess1
+   poDesertDunes2 = $   % middle  - desertshore2, desertcliffnoaccess2
+   poDesertDunes3 = $   % bottom  - desertshore3, desertcliffnoaccess3
+
+   plAncientTombs = $   % ancient tomb instances
+
+   piCelegormSpawnOutOf = 50
+   piEncountersSpawnOutOf = 20
+   piNomadsSpawnOutOf = 10
+
+   % Are players acing this content? Turn up the heat. And acid. And shock. And cold.
+   piBoostDesertLevel = 10
+   piBoostFireLevel = 20
+   piBoostAcidLevel = 20
+   piBoostColdLevel = 20
+   piBoostShockLevel = 0
+
+   piBoostUnholyLevel = 20
+   piBoostHolyLevel = 20
+
+   piDeathCost = 100
+
+messages:
+
+   Constructor()
+   {
+      Send(self,@Recreate);
+
+      return;
+   }
+
+   Recreate()
+   {
+      local i;
+
+      if poDesertDunes1 <> $
+      {
+         Send(poDesertDunes1,@HustleUsersOutOfRoom);
+         Send(poDesertDunes1,@Delete);
+         poDesertDunes1 = $;
+      }
+      if poDesertDunes2 <> $
+      {
+         Send(poDesertDunes2,@HustleUsersOutOfRoom);
+         Send(poDesertDunes2,@Delete);
+         poDesertDunes2 = $;
+      }
+      if poDesertDunes3 <> $
+      {
+         Send(poDesertDunes3,@HustleUsersOutOfRoom);
+         Send(poDesertDunes3,@Delete);
+         poDesertDunes3 = $;
+      }
+
+      foreach i in plAncientTombs
+      {
+         Send(i,@Delete);
+         plAncientTombs = DelListElem(plAncientTombs,i);
+      }
+      plAncientTombs = $;
+
+      return;
+   }
+
+   NewDay()
+   {
+      return;
+   }
+
+   GetDesertDunes1()
+   {
+      if poDesertDunes1 = $
+      {
+         return Send(self,@CreateDesertDunes1);
+      }
+      else
+      {
+         return poDesertDunes1;
+      }
+      return $;
+   }
+
+   CreateDesertDunes1()
+   {
+      if poDesertDunes1 = $
+      {
+         Send(SYS,@CreateOneRoomIfNew,#num=RID_DYNAMIC_DESERT_DUNES1,#class=&DesertDunesRoom);
+         poDesertDunes1 = Send(SYS,@FindRoomByNum,#num=RID_DYNAMIC_DESERT_DUNES1);
+         Send(Send(SYS,@GetStatistics),@AddToRoomCount,#iNum=RID_DYNAMIC_DESERT_DUNES1);
+         return poDesertDunes1;
+      }
+
+      return $;
+   }
+
+   GetDesertDunes2()
+   {
+      if poDesertDunes2 = $
+      {
+         return Send(self,@CreateDesertDunes2);
+      }
+      else
+      {
+         return poDesertDunes2;
+      }
+      return $;
+   }
+
+   CreateDesertDunes2()
+   {
+      if poDesertDunes2 = $
+      {
+         Send(SYS,@CreateOneRoomIfNew,#num=RID_DYNAMIC_DESERT_DUNES2,#class=&DesertDunesRoom);
+         poDesertDunes2 = Send(SYS,@FindRoomByNum,#num=RID_DYNAMIC_DESERT_DUNES2);
+         Send(Send(SYS,@GetStatistics),@AddToRoomCount,#iNum=RID_DYNAMIC_DESERT_DUNES2);
+         return poDesertDunes2;
+      }
+
+      return $;
+   }
+
+   GetDesertDunes3()
+   {
+      if poDesertDunes3 = $
+      {
+         return Send(self,@CreateDesertDunes3);
+      }
+      else
+      {
+         return poDesertDunes3;
+      }
+      return $;
+   }
+
+   CreateDesertDunes3()
+   {
+      if poDesertDunes3 = $
+      {
+         Send(SYS,@CreateOneRoomIfNew,#num=RID_DYNAMIC_DESERT_DUNES3,#class=&DesertDunesRoom);
+         poDesertDunes3 = Send(SYS,@FindRoomByNum,#num=RID_DYNAMIC_DESERT_DUNES3);
+         Send(Send(SYS,@GetStatistics),@AddToRoomCount,#iNum=RID_DYNAMIC_DESERT_DUNES3);
+         return poDesertDunes3;
+      }
+
+      return $;
+   }
+
+   RoomDeleted(what=$)
+   {
+      if what <> $
+      {
+         if what = poDesertDunes1
+         {
+            poDesertDunes1 = $;
+         }
+         if what = poDesertDunes2
+         {
+            poDesertDunes2 = $;
+         }
+         if what = poDesertDunes3
+         {
+            poDesertDunes3 = $;
+         }
+      }
+      return;
+   }
+
+   Walk(direction=ANGLE_EAST,where=$,what=$)
+   {
+      local iWhereID, oTargetRoom;
+      if what = $
+      {
+         return;
+      }
+
+      iWhereID = 0;
+      if where = poDesertDunes1
+      {
+         iWhereID = 1;
+      }
+      if where = poDesertDunes2
+      {
+         iWhereID = 2;
+      }
+      if where = poDesertDunes3
+      {
+         iWhereID = 3;
+      }
+      
+      if iWhereID = 1
+      {
+         switch(direction)
+         {
+            case ANGLE_EAST:
+               Post(SYS,@UtilGoNearSquare,#what=what,
+                    #where=Send(SYS,@FindRoomByNum,#num=RID_DESERTCLIFFNOACCESS1),
+                    #new_row=60,
+                    #new_col=6,
+                    #fine_row=0,
+                    #fine_col=0,
+                    #new_angle=Send(what,@GetAngle));
+               return;
+            case ANGLE_WEST:
+               Post(SYS,@UtilGoNearSquare,#what=what,
+                    #where=Send(SYS,@FindRoomByNum,#num=RID_DESERTSHORE1),
+                    #new_row=60,
+                    #new_col=Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTSHORE1),@GetRoomCols)-6,
+                    #fine_row=0,
+                    #fine_col=0,
+                    #new_angle=Send(what,@GetAngle));
+               return;
+            case ANGLE_NORTH:
+               oTargetRoom = Send(self,@GetDesertDunes3);
+               Post(SYS,@UtilGoNearSquare,#what=what,
+                    #where=oTargetRoom,
+                    #new_row=Send(oTargetRoom,@GetTeleportRow),
+                    #new_col=Send(oTargetRoom,@GetTeleportCol),
+                    #fine_row=0,
+                    #fine_col=0,
+                    #new_angle=Send(what,@GetAngle));
+               return;
+            case ANGLE_SOUTH:
+               oTargetRoom = Send(self,@GetDesertDunes2);
+               Post(SYS,@UtilGoNearSquare,#what=what,
+                    #where=oTargetRoom,
+                    #new_row=Send(oTargetRoom,@GetTeleportRow),
+                    #new_col=Send(oTargetRoom,@GetTeleportCol),
+                    #fine_row=0,
+                    #fine_col=0,
+                    #new_angle=Send(what,@GetAngle));
+               return;
+         }
+      }
+
+      if iWhereID = 2
+      {
+         switch(direction)
+         {
+            case ANGLE_EAST:
+               Post(SYS,@UtilGoNearSquare,#what=what,
+                    #where=Send(SYS,@FindRoomByNum,#num=RID_DESERTCLIFFNOACCESS2),
+                    #new_row=60,
+                    #new_col=6,
+                    #fine_row=0,
+                    #fine_col=0,
+                    #new_angle=Send(what,@GetAngle));
+               return;
+            case ANGLE_WEST:
+               Post(SYS,@UtilGoNearSquare,#what=what,
+                    #where=Send(SYS,@FindRoomByNum,#num=RID_DESERTSHORE2),
+                    #new_row=60,
+                    #new_col=Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTSHORE2),@GetRoomCols)-6,
+                    #fine_row=0,
+                    #fine_col=Send(what,@GetFineCol),
+                    #new_angle=Send(what,@GetAngle));
+               return;
+            case ANGLE_NORTH:
+               oTargetRoom = Send(self,@GetDesertDunes1);
+               Post(SYS,@UtilGoNearSquare,#what=what,
+                    #where=oTargetRoom,
+                    #new_row=Send(oTargetRoom,@GetTeleportRow),
+                    #new_col=Send(oTargetRoom,@GetTeleportCol),
+                    #fine_row=0,
+                    #fine_col=0,
+                    #new_angle=Send(what,@GetAngle));
+               return;
+            case ANGLE_SOUTH:
+               oTargetRoom = Send(self,@GetDesertDunes3);
+               Post(SYS,@UtilGoNearSquare,#what=what,
+                    #where=oTargetRoom,
+                    #new_row=Send(oTargetRoom,@GetTeleportRow),
+                    #new_col=Send(oTargetRoom,@GetTeleportCol),
+                    #fine_row=0,
+                    #fine_col=0,
+                    #new_angle=Send(what,@GetAngle));
+               return;
+         }
+      }
+
+      if iWhereID = 3
+      {
+         switch(direction)
+         {
+            case ANGLE_EAST:
+               Post(SYS,@UtilGoNearSquare,#what=what,
+                    #where=Send(SYS,@FindRoomByNum,#num=RID_DESERTCLIFFNOACCESS3),
+                    #new_row=60,
+                    #new_col=6,
+                    #fine_row=0,
+                    #fine_col=0,
+                    #new_angle=Send(what,@GetAngle));
+               return;
+            case ANGLE_WEST:
+               Post(SYS,@UtilGoNearSquare,#what=what,
+                    #where=Send(SYS,@FindRoomByNum,#num=RID_DESERTSHORE3),
+                    #new_row=60,
+                    #new_col=Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTSHORE3),@GetRoomCols)-6,
+                    #fine_row=0,
+                    #fine_col=0,
+                    #new_angle=Send(what,@GetAngle));
+               return;
+            case ANGLE_NORTH:
+               oTargetRoom = Send(self,@GetDesertDunes2);
+               Post(SYS,@UtilGoNearSquare,#what=what,
+                    #where=oTargetRoom,
+                    #new_row=Send(oTargetRoom,@GetTeleportRow),
+                    #new_col=Send(oTargetRoom,@GetTeleportCol),
+                    #fine_row=0,
+                    #fine_col=0,
+                    #new_angle=Send(what,@GetAngle));
+               return;
+            case ANGLE_SOUTH:
+               oTargetRoom = Send(self,@GetDesertDunes1);
+               Post(SYS,@UtilGoNearSquare,#what=what,
+                    #where=oTargetRoom,
+                    #new_row=Send(oTargetRoom,@GetTeleportRow),
+                    #new_col=Send(oTargetRoom,@GetTeleportCol),
+                    #fine_row=0,
+                    #fine_col=0,
+                    #new_angle=Send(what,@GetAngle));
+               return;
+         }
+      }
+   
+      return;
+   }
+   
+   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+   %%%%%%%%%%%%%%%%%%% Ancient Tomb Handling 
+   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+   GetNextAvailableRID()
+   {
+      local iRID, i, bExists;
+
+      iRID = RID_ANCIENT_TOMB_START;
+
+      if plAncientTombs = $
+      {
+         return iRID;
+      }
+
+      while iRID <= RID_ANCIENT_TOMB_END
+      {
+         bExists = FALSE;
+         foreach i in plAncientTombs
+         {
+            if Send(i,@GetRoomNum) = iRID
+            {
+               bExists = TRUE;
+            }
+         }
+
+         if NOT bExists
+         {
+            return iRID;
+         }
+
+         iRID = iRID + 1;
+      }
+
+      return 0;
+   }
+
+   CreateAncientTomb(who=$)
+   {
+      local oRoom, iRID;
+
+      iRID = Send(self,@GetNextAvailableRID);
+      
+      if iRID = 0
+      {
+         return $;
+      }
+
+      Send(SYS,@CreateOneRoomIfNew,#num=iRID,#class=&AncientTomb1);
+
+      oRoom = Send(SYS,@FindRoomByNum,#num=iRID);
+
+      if oRoom <> $
+      {
+         plAncientTombs = Cons(oRoom,plAncientTombs);
+         Send(Send(SYS,@GetStatistics),@AddToRoomCount,#iNum=iRID);
+         Send(oRoom,@Teleport,#what=who);
+         Post(oRoom,@DoPhaseWeather);
+      }
+
+      return oRoom;
+   }
+
+   TombDeleted(what = $)
+   {
+      if plAncientTombs <> $
+         AND FindListElem(plAncientTombs,what) <> 0
+      {
+         plAncientTombs = DelListElem(plAncientTombs,what);
+      }
+
+      return;
+   }
+
+   CreateSorcerersTomb(who=$)
+   {
+      local oRoom, iRID;
+
+      iRID = Send(self,@GetNextAvailableRID);
+      
+      if iRID = 0
+      {
+         return $;
+      }
+
+      Send(SYS,@CreateOneRoomIfNew,#num=iRID,#class=&AncientTomb2);
+
+      oRoom = Send(SYS,@FindRoomByNum,#num=iRID);
+
+      if oRoom <> $
+      {
+         plAncientTombs = Cons(oRoom,plAncientTombs);
+         Send(Send(SYS,@GetStatistics),@AddToRoomCount,#iNum=iRID);
+         Send(oRoom,@Teleport,#what=who);
+         Post(oRoom,@DoPhaseWeather);
+      }
+
+      return oRoom;
+   }
+
+   NewGameHour()
+   {
+      local i;
+      
+      foreach i in plAncientTombs
+      {
+         Send(i,@DoPhaseWeather);
+      }
+
+      return;
+   }
+   
+   GetZiggurat()
+   {
+      if poDesertDunes1 <> $
+         AND Send(poDesertDunes1,@GetConfiguration) = ZIGGURAT_CONFIGURATION
+      {
+         return poDesertDunes1;
+      }
+      if poDesertDunes2 <> $
+         AND Send(poDesertDunes2,@GetConfiguration) = ZIGGURAT_CONFIGURATION
+      {
+         return poDesertDunes2;
+      }
+      if poDesertDunes3 <> $
+         AND Send(poDesertDunes3,@GetConfiguration) = ZIGGURAT_CONFIGURATION
+      {
+         return poDesertDunes3;
+      }
+      return $;
+   }
+
+   GetOasis()
+   {
+      if poDesertDunes1 <> $
+         AND Send(poDesertDunes1,@GetConfiguration) = OASIS_CONFIGURATION
+      {
+         return poDesertDunes1;
+      }
+      if poDesertDunes2 <> $
+         AND Send(poDesertDunes2,@GetConfiguration) = OASIS_CONFIGURATION
+      {
+         return poDesertDunes2;
+      }
+      if poDesertDunes3 <> $
+         AND Send(poDesertDunes3,@GetConfiguration) = OASIS_CONFIGURATION
+      {
+         return poDesertDunes3;
+      }
+      return $;
+   }
+
+   GetNumberOfDunesRooms()
+   {
+      return viNumberOfDunesRooms;
+   }
+
+   GetEncountersSpawnOutOf()
+   {
+      return piEncountersSpawnOutOf;
+   }
+
+   GetCelegormSpawnOutOf()
+   {
+      return piCelegormSpawnOutOf;
+   }
+
+   GetNomadsSpawnOutOf()
+   {
+      return piNomadsSpawnOutOf;
+   }
+
+   GetBoostDesertLevel()
+   {
+      local iBoost;
+      
+      iBoost = piBoostDesertLevel;
+      switch(Send(SYS,@GetDayPhase))
+      {
+         case DAY_PHASE_DAWN:
+            iBoost = iBoost + piBoostShockLevel;
+            break;
+         case DAY_PHASE_DAY:
+            if NOT Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTRIVER2),@GetPrismOfFireDefeated)
+            {
+               iBoost = iBoost + piBoostFireLevel;
+            }
+            break;
+         case DAY_PHASE_DUSK:
+            if NOT Send(Send(SYS,@FindRoomByNum,#num=RID_ACIDPATH),@GetPrismOfAcidDefeated)
+            {
+               iBoost = iBoost + piBoostAcidLevel;
+            }
+            break;
+         case DAY_PHASE_NIGHT:
+            if NOT Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTSANDBAR),@GetPrismOfIceDefeated)
+            {
+               iBoost = iBoost + piBoostColdLevel;
+            }
+            break;
+      }
+      return iBoost;
+   }
+
+   GetFireBoost()
+   {
+      return piBoostFireLevel;
+   }
+   
+   GetColdBoost()
+   {
+      return piBoostColdLevel;
+   }
+   
+   GetShockBoost()
+   {
+      return piBoostShockLevel;
+   }
+   
+   GetAcidBoost()
+   {
+      return piBoostAcidLevel;
+   }
+
+   GetUnholyBoost()
+   {
+      return piBoostUnholyLevel;
+   }
+
+   GetHolyBoost()
+   {
+      return piBoostHolyLevel;
+   }
+
+   GetDeathCost()
+   {
+      local oAfterlifeDunes4E;
+
+      oAfterlifeDunes4E = Send(SYS,@FindRoomByNum,#num=RID_DESERTALDUNES4E);
+      if oAfterlifeDunes4E <> $
+      {
+         if Send(oAfterlifeDunes4E,@GetPrismOfDeathDefeated)
+         {
+            return piDeathCost/2;
+         }
+      }
+      return piDeathCost;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

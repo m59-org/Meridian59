@@ -13,6 +13,8 @@ HammerProficiency is Proficiency
 constants:
 
    include blakston.khd
+   
+   ELEVATION_RISE_MAX = 30
 
 resources:
 
@@ -21,18 +23,36 @@ resources:
    hammerproficiency_name_rsc = "hammer wielding"
    hammerproficiency_icon_rsc = hammrico.bgf
    hammerproficiency_desc_rsc = "This allows the user to use all manner of hammers more proficiently."
-      
+   hammerproficiency_mastered_desc_rsc = \
+      "\n\n"
+      "You are a master hammer wielder, allowing you to make a leap attack toward enemies that would "
+      "otherwise be slightly out of range. To perform the leap, simply attempt to attack an opponent that is "
+      "between one and two full hammer ranges. Leaping can be inaccurate, so be prepared to reorient yourself "
+      "after the strike. The force applied may also knock enemies backwards."
 
+   you_do_leap_attack = \
+      "You leap toward %s%s!"
+   leap_attack_on_you = \
+      "%s leaps toward you, hammer held high!"
+   third_person_does_leap_attack = \
+      "%s leaps forward and brings %s hammer down on %s%s!"
+   
 classvars:
 
    vrName = hammerproficiency_name_rsc
    vrIcon = hammerproficiency_icon_rsc
    vrDesc = hammerproficiency_desc_rsc
+   vrMasteredDesc = hammerproficiency_mastered_desc_rsc
 
    viSchool = SKS_FENCING
    viSkill_num = SKID_PROFICIENCY_HAMMER
    viSkill_level = 3
    viChance_to_increase = 30
+   
+   viLeapRange = 192
+   
+   viPrimaryStat = STAT_ID_MIGHT
+   viSecondaryStat = STAT_ID_MIGHT
 
 properties:
 
@@ -41,6 +61,101 @@ messages:
    GetRequisiteStat(who=$)
    {
      return send(who,@getmight);
+   }
+
+   GetLeapRange()
+   {
+      return viLeapRange;
+   }
+
+   CanPayLeapCost(who=$,oTarget=$)
+   {
+      local oRoom;
+      
+      oRoom = Send(who,@GetOwner);
+
+      if oRoom <> $
+         AND IsClass(oRoom,&Room)
+         AND Send(oRoom,@CheckRoomFlag,#flag=ROOM_NO_COMBAT)
+      {
+         return FALSE;
+      }
+
+      if oTarget = $
+      {
+         return FALSE;
+      }
+
+      if Send(oTarget,@GetHeightAtObject) - Send(who,@GetHeightAtObject) > ELEVATION_RISE_MAX
+      {
+         return FALSE;
+      }
+
+      return TRUE;
+   }
+
+   DoLeap(who = $, oTarget = $)
+   {                   
+      local oRoom, iResult, i, iJustShortDistance, each_obj;
+      
+      if oTarget = $
+      {
+         return FALSE;
+      }
+
+      oRoom = Send(who,@GetOwner);
+      if oRoom = $
+      {
+         return FALSE;
+      }
+
+      % We aim to teleport 64 fine short of the target
+      iJustShortDistance = Send(who,@SquaredFineDistanceTo3D,#what=oTarget);
+      iJustShortDistance = Sqrt(iJustShortDistance);
+      iJustShortDistance = iJustShortDistance - 64;
+
+      iResult = Send(oRoom,@IntraTeleport,#what=who,
+                                         #type=INTRA_TELEPORT_TOWARD_DESTINATION,
+                                         #distance=iJustShortDistance,
+                                         #new_row=Send(oTarget,@GetRow),
+                                         #new_col=Send(oTarget,@GetCol),
+                                         #fine_row=Send(oTarget,@GetFineRow),
+                                         #fine_col=Send(oTarget,@GetFineCol));
+
+%      if iResult 
+%      {
+%         Send(who,@SetLeapKnockback,#value=TRUE);
+%
+%         foreach i in Send(oRoom,@GetHolderActive)
+%         {
+%            each_obj = Send(oRoom,@HolderExtractObject,#data=i);
+%            if IsClass(each_obj,&Player)
+%            {
+%               if each_obj = who
+%               {
+%                  Send(each_obj,@MsgSendUser,#message_rsc=you_do_leap_attack,
+%                                             #parm1=Send(who,@GetIndef),
+%                                             #parm2=Send(oTarget,@GetName));
+%               }
+%               else if each_obj = oTarget
+%               {
+%                  Send(each_obj,@MsgSendUser,#message_rsc=leap_attack_on_you,
+%                                             #parm1=Send(who,@GetName));
+%               }
+%               else
+%               {
+%                  Send(each_obj,@MsgSendUser,#message_rsc=third_person_does_leap_attack,
+%                                             #parm1=Send(who,@GetName),
+%                                             #parm2=Send(who,@GetHisHer),
+%                                             #parm3=Send(oTarget,@GetIndef),
+%                                             #parm4=Send(oTarget,@GetName));
+%               }
+%            }
+%         }
+%         return TRUE;
+%      }
+
+      return FALSE;
    }
 
 end

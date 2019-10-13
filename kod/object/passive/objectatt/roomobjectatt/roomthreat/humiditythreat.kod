@@ -1,0 +1,80 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+HumidityThreat is RoomThreat 
+
+% Humidity is native to the Ko'catani jungle, and dampens fire while boosting cold.
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   humidity_threat_name_rsc = "jungle humidity"
+   humidity_threat_icon_rsc = ifog.bgf
+   humidity_threat_desc_rsc = \
+      "The jungle is extremely humid. "
+      "Attacks and spells using fire are less effective because of the water in the air, "
+      "while cold damage is deadly." 
+
+   humidity_threat_begin_msg = \
+      "Extreme humidity clouds the air, dampening fire and enhancing cold."
+   humidity_threat_end_msg = \
+      "The air dries somewhat."
+   humidity_threat_dampens_msg = \
+      "You deal less fire damage because of all the water in the air!"
+   humidity_threat_boosts_msg = \
+      "You deal more cold damage because of all the water in the air!"
+
+   humidity_good_item_use_msg = \
+      "Your item relieves the humidity around you somewhat."
+   humidity_good_spell_use_msg = \
+      "Your spell banishes the humidity in your vicinity."
+      
+   humidity_threat_damage_msg = \
+      "Somehow, you are taking damage from humidity."
+
+   humidity_death_msg = \
+      "~B~U~k[###]~n ~B~v%s succumbed to humidity somehow. Seriously though, how?"
+
+classvars:
+
+   vrName = humidity_threat_name_rsc
+   vrIcon = humidity_threat_icon_rsc
+   vrDesc = humidity_threat_desc_rsc
+
+   viThreatBeginMsg = humidity_threat_begin_msg
+   viThreatEndMsg = humidity_threat_end_msg
+   viThreatDamageMsg = humidity_threat_damage_msg
+   viGoodItemUseMsg = humidity_good_item_use_msg
+   viGoodSpellUseMsg = humidity_good_spell_use_msg
+   
+   viDeathMsg = humidity_death_msg
+
+   vbDampenElement = TRUE
+   viDampenElement = ATCK_SPELL_FIRE
+   viDampenPercentage = 20
+   
+   viBoostElement = TRUE
+   viBoostElement = ATCK_SPELL_COLD
+   viBoostPercentage = 10
+   
+   vbReportMessages = FALSE
+
+properties:
+
+   pbDealDamage = FALSE
+   piReport = FALSE
+
+messages:
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

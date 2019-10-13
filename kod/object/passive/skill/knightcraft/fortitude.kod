@@ -1,0 +1,98 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Fortitude is KnightcraftSkill
+
+constants:
+
+   include blakston.khd
+   include protocol.khd   
+
+resources:
+
+   Fortitude_name_rsc = "fortitude"
+   Fortitude_icon_rsc = iboonagi.bgf
+   Fortitude_desc_rsc = \
+      "To champion a cause, one must be unflagging. Long marches and tremendous "
+      "sieges require the inclusion of endurance training "
+      "beyond that of any normal soldier in the skillset of a knight. "
+      "Those with the fortitude of a champion will continually regain some of their vigor "
+      "without resting. The vigor gained will typically be at a rate slower than resting, "
+      "and can only go up to a warrior's natural resting vigor maximum, "
+      "but the endurance advantage over long fights can be surprising."
+   Fortitude_mastered_desc_rsc = \
+      "\n\n"
+      "You have mastered the trait of fortitude, allowing you to regain vigor to a much higher level "
+      "than others of your race."
+
+   Fortitude_skill_intro = \
+      "Knightcraft Lv. 3: The ability to fight exhaustion without resting."
+
+   Fortitude_success = "You press on!"
+   Fortitude_sound = wscndwnd.wav
+
+classvars:
+
+   vrName = Fortitude_name_rsc
+   vrIcon = Fortitude_icon_rsc
+   vrDesc = Fortitude_desc_rsc
+   vrMasteredDesc = Fortitude_mastered_desc_rsc
+
+   vrSkill_intro = Fortitude_skill_intro
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+
+   viSkill_num = SKID_FORTITUDE
+   viSchool = SKS_KNIGHTCRAFT
+   viSkill_Level = 3
+   viChance_to_Increase = 7
+   viMeditate_ratio = 60
+
+   viSkillExertion = 0
+   vbCheck_exertion = FALSE
+
+   vbAutomatic = TRUE
+   
+   viPrimaryStat = STAT_ID_STAMINA
+   viSecondaryStat = 0
+
+properties:
+
+   piBasePercentage = 30
+
+messages:
+
+   GetRequisiteStat(who=$)
+   "Varies from skill to skill and spell to spell."
+   {
+      return Send(who,@GetStamina);
+   }
+
+   ModifyRestExertion(who=$, iRestAmount=0)
+   {
+      local iSkillAbility, iStat, iPercentage;
+
+      iPercentage = 0;
+      iSkillAbility = Send(who,@GetSkillAbility,#skill_num=viSkill_num);
+      iStat = Send(self,@GetRequisiteStat,#who=who);
+
+      % 30 percent base, up to 80 percent from skill, 100% resting rate possible at 100 stam
+      iPercentage = piBasePercentage + (iSkillAbility+1)/2 + iStat/5;
+      
+      iRestAmount = (iRestAmount * iPercentage) / 100;
+
+      Send(self,@ImproveAbility,#who=who);
+
+      return iRestAmount;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

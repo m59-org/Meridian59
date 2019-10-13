@@ -42,6 +42,9 @@ classvars:
    vbCheck_exertion = FALSE
 
    viDamage_factor = 100
+   
+   viPrimaryStat = STAT_ID_AIM
+   viSecondaryStat = STAT_ID_MIGHT
 
 properties:
 
@@ -51,17 +54,16 @@ properties:
 
 messages:
 
+   GetRequisiteStat(who=$)
+   {
+      return Send(who,@GetAim);
+   }
+
    GetAttackType(weapon_used=$)
    {
       local i;
       
       i= send(weapon_used,@GetAttackType);
-      
-      if (i & ATCK_WEAP_THRUST) AND NOT (i & ATCK_WEAP_SLASH)
-      {
-         i = i & (~ATCK_WEAP_THRUST);
-         i = (i | ATCK_WEAP_SLASH);
-      }
       
       return i;
    }

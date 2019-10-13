@@ -26,6 +26,8 @@ resources:
       "capacity.  His body is old and weathered yet perfectly fit.  He truly "
       "believes the voice of the people should dictate who leads them and "
       "allows his alliance to sway between the different lieges."
+      "\n\nIf you are a student with room to grow, he may help you improve "
+      "your stamina if you ask him to 'train' you."
 
    fourcon_true_ideal_rsc = \
       "You possess quite a healthy physique, and such training impresses me."
@@ -37,6 +39,16 @@ resources:
 
    fourCouncilor_not_ready = \
       "Ah, you are not hearty enough to learn how to catch your second wind!"
+
+   cannot_train_stam_msg = \
+      "You seem to have full command of your heart's potential. I cannot train you further."
+   teach_stam_msg = \
+      "Come, stand here beside me and let the elements envelop you. "
+      "Stamina is not a matter of muscle or of armor, but of circulation. "
+      "An adventurer with a strong heart can continue to fight long after "
+      "a muscled brawler has given up. This is metaphorical as well as literal. "
+      "I shall teach you some meditation techniques to help you get in touch "
+      "with your body's inner rhythms while we let the sun and the rain temper us."
 
 classvars:
 
@@ -132,6 +144,31 @@ messages:
       }
 
       return TRUE;
+   }
+
+   SomeoneSaid(what = $,type = $,string = $)
+   {
+      local iResult;
+
+      if what <> $
+         AND IsClass(what,&User)
+         AND StringContain(string,"train")
+      {
+         
+         iResult = Send(what,@AttemptTrainStatPoint,#type=STAT_ID_STAMINA);
+
+         if iResult
+         {
+            Send(self,@SayToOne,#target=what,#message_rsc=teach_stam_msg);
+         }
+         else
+         {
+            Send(self,@SayToOne,#target=what,#message_rsc=cannot_train_stam_msg);
+         }
+         return;
+      }
+      
+      propagate;
    }
 
 end

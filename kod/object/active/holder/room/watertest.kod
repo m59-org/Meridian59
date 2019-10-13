@@ -1,0 +1,501 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+WaterTest is Room
+
+%
+% Use depth overrides to simulate different swimming heights
+% Hardware renderer incorrectly puts any object item or monster on an override depth at 0
+%   even if height 0 is beneath the floor
+% Use subjective OF_HANGING flag to force hardware render users to see that object as against the ceiling
+%
+% Create an OF_FLOOR flag to force on ground
+%
+% Force BOUNCE AS YOU WALK to simulate swimming
+% OF_BOUNCING while resting
+%
+% Create a d3dparticle like snow or sandstorm, but for water crud
+% 
+% pgup / look up swims up
+%
+% pgup / look down swims down
+%
+% swimming wading sound
+% sounds for entering / leaving water
+%
+%
+%  moveobj.c bounce anim - can let people go deeper when resting
+%
+%  Look for animation and interpolation - no animations while moving on depth?
+%
+%
+% Water centipede not showing up 
+% of_bouncing acting like of_grounded for players resting?
+% rest = go up in the air?
+%
+% SLIMES!!!!!
+% return with quests (mobs)
+%
+
+constants:
+
+   include blakston.khd
+
+   WATER_SECTOR_ID = 40
+
+resources:
+
+   room_watertest = watertest.roo
+   room_name_watertest = "Under the Waters of the Great Ocean"
+
+   water_test_music = aatitle.mp3
+
+classvars:
+
+   vrName = room_name_watertest
+
+   viTeleport_row = 80
+   viTeleport_col = 47
+
+   viTerrain_type = TERRAIN_BEACH
+
+   viClientFlags = ROOM_OVERRIDE_DEPTH1 | ROOM_OVERRIDE_DEPTH2 | ROOM_OVERRIDE_DEPTH3
+   viOverrideDepth1 = 1900
+   viOverrideDepth2 = 1900
+   viOverrideDepth3 = 1900
+
+   viLongitude = 11
+   viLatitude = 10
+   
+   vbSpawnMonsters = TRUE
+   viMinSpawnRow = 1
+   viMaxSpawnRow = 0
+   viMinSpawnCol = 1
+   viMaxSpawnCol = 0
+
+properties:
+
+   prRoom = room_watertest
+   piRoom_num = RID_WATER_TEST
+
+   prMusic = water_test_music
+
+   piBaseLight = LIGHT_MIN
+   piOutside_factor = 0
+
+   pbSnowGroundTexture = FALSE
+   
+   piWaterUp = TRUE
+   piLightsMoveTime = 3000
+   ptLightsMoveTimer = $
+   
+   pbRoomHasAir = FALSE
+   pbIsUnderwater = TRUE
+
+messages:
+
+   CreateStandardExits()
+   {
+      plEdge_exits = $;
+      
+      return;
+   }
+
+   FirstUserEntered()
+   {
+      ptLightsMoveTimer = CreateTimer(self,@MoveLights,piLightsMoveTime);
+      if vbSpawnMonsters
+      {
+         Post(self,@PopulateArea);
+      }
+
+      propagate;
+   }
+
+   LastUserLeft()
+   {
+      if ptLightsMoveTimer <> $
+      {
+         DeleteTimer(ptLightsMoveTimer);
+         ptLightsMoveTimer = $;
+      }
+      if vbSpawnMonsters
+      {
+         Post(self,@DepopulateArea);
+      }
+      propagate;
+   }
+
+   PopulateArea()
+   {
+      local i, iNumMonsters, oMonster, lMonsters, lClasses, iMinRow, iMinCol, iMaxRow, iMaxCol, iChosenAngle;
+
+      lClasses = [&WaterCentipede];
+
+      iNumMonsters = Random(5,15);
+      lMonsters = $;
+
+      while iNumMonsters > 0
+      {
+         lMonsters = Cons(Nth(lClasses,Random(1,Length(lClasses))),lMonsters);
+         --iNumMonsters;
+      }
+
+      if viMaxSpawnRow = 0
+      {
+         iMaxRow = Send(self,@GetRoomRows)-1;
+      }
+      else
+      {
+         iMaxRow = viMaxSpawnRow;
+      }
+
+      if viMaxSpawnCol = 0
+      {
+         iMaxCol = Send(self,@GetRoomCols)-1;
+      }
+      else
+      {
+         iMaxCol = viMaxSpawnCol;
+      }
+
+      iChosenAngle = ANGLE_EAST;
+      switch(Random(1,4))
+      {
+         case 1:
+            iChosenAngle = ANGLE_WEST;
+            break;
+         case 2:
+            iChosenAngle = ANGLE_NORTH;
+            break;
+         case 3:
+            iChosenAngle = ANGLE_SOUTH;
+            break;
+         case 4:
+            iChosenAngle = ANGLE_EAST;
+            break;
+      }
+
+      foreach i in lMonsters
+      {
+         Send(self,@NewHold,#what=Create(i),
+               #new_row=Random(viMinSpawnRow,iMaxRow),
+               #new_col=Random(viMinSpawnCol,iMaxCol),
+               #new_angle=iChosenAngle);
+      }
+
+      return;
+   }
+   
+   DepopulateArea()
+   {
+      local i, each_obj;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         each_obj = Send(self,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&Monster)
+            AND NOT IsClass(each_obj,&Towns) % don't delete NPCs
+         {
+            Send(each_obj,@Delete);
+         }
+      }
+      
+      return;
+   }
+
+   CreateStandardObjects()
+   {
+      Send(self,@PlaceLights);
+      propagate;
+   }
+
+   SomethingMoved(what = $,new_row = $, new_col = $)
+   {
+      local iSectorID;
+
+      if IsClass(what,&Player)
+      {
+         if new_row < 3
+         {
+            Post(SYS,@UtilGoNearSquare,#what=what,
+                 #where=Send(SYS,@FindRoomByNum,#num=RID_OPEN_WATER),
+                 #new_row=131,
+                 #new_col=172,
+                 #fine_row=0,
+                 #fine_col=0,
+                 #new_angle=Send(what,@GetAngle));
+            return;
+         }
+         
+         if new_row > Send(self,@GetRoomRows)-13
+         {
+            Post(SYS,@UtilGoNearSquare,#what=what,
+                 #where=Send(SYS,@FindRoomByNum,#num=RID_E2),
+                 #new_row=5,
+                 #new_col=new_col,
+                 #fine_row=0,
+                 #fine_col=0,
+                 #new_angle=Send(what,@GetAngle));
+            return;
+         }
+      }
+
+      propagate;
+   }
+
+   PlaceLights(timer=$)
+   {
+      local iMinRow, iMinCol, iUpperBound, iCount, iCur, i, iLightRow, iLightCol;
+      
+      iMinRow = 16;
+      iMinCol = 5;
+      iUpperBound = 79;
+      
+      iCount = 30;
+      
+      iCur = 0;
+      while iCur < iCount
+      {
+         iCur++;
+         Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_DBLUE,
+           #iIntensity=255,#bGrounded=TRUE),#new_row=Random(iMinRow,iUpperBound),#new_col=Random(iMinCol,iUpperBound));
+      }
+      iCur = 0;
+      while iCur < iCount
+      {
+         iCur++;
+         Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_DGREEN,
+           #iIntensity=255,#bGrounded=TRUE),#new_row=Random(iMinRow,iUpperBound),#new_col=Random(iMinCol,iUpperBound));
+      }
+      iCur = 10;
+      while iCur < iCount
+      {
+         iCur++;
+         Send(self,@NewHold,#what=Create(&FogCloud,#Duration=$,#bGrounded=TRUE),#new_row=Random(iMinRow,iUpperBound),
+               #new_col=Random(iMinCol,iUpperBound));
+      }
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
+        #iIntensity=50),#new_row=71,#new_col=15);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
+        #iIntensity=50),#new_row=71,#new_col=20);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
+        #iIntensity=50),#new_row=71,#new_col=25);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
+        #iIntensity=50),#new_row=71,#new_col=30);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
+        #iIntensity=50),#new_row=71,#new_col=35);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
+        #iIntensity=50),#new_row=71,#new_col=40);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
+        #iIntensity=50),#new_row=71,#new_col=45);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
+        #iIntensity=50),#new_row=71,#new_col=50);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
+        #iIntensity=50),#new_row=71,#new_col=55);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
+        #iIntensity=50),#new_row=71,#new_col=60);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
+        #iIntensity=50),#new_row=71,#new_col=65);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
+        #iIntensity=50),#new_row=71,#new_col=70);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
+        #iIntensity=50),#new_row=71,#new_col=75);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
+        #iIntensity=50),#new_row=71,#new_col=80);
+
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
+        #iIntensity=100),#new_row=76,#new_col=15);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
+        #iIntensity=100),#new_row=76,#new_col=20);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
+        #iIntensity=100),#new_row=76,#new_col=25);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
+        #iIntensity=100),#new_row=76,#new_col=30);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
+        #iIntensity=100),#new_row=76,#new_col=35);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
+        #iIntensity=100),#new_row=76,#new_col=40);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
+        #iIntensity=100),#new_row=76,#new_col=45);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
+        #iIntensity=100),#new_row=76,#new_col=50);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
+        #iIntensity=100),#new_row=76,#new_col=55);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
+        #iIntensity=100),#new_row=76,#new_col=60);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
+        #iIntensity=100),#new_row=76,#new_col=65);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
+        #iIntensity=100),#new_row=76,#new_col=70);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
+        #iIntensity=100),#new_row=76,#new_col=75);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
+        #iIntensity=100),#new_row=76,#new_col=80);
+
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
+        #iIntensity=150),#new_row=81,#new_col=15);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
+        #iIntensity=150),#new_row=81,#new_col=20);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
+        #iIntensity=150),#new_row=81,#new_col=25);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
+        #iIntensity=150),#new_row=81,#new_col=30);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
+        #iIntensity=150),#new_row=81,#new_col=35);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
+        #iIntensity=150),#new_row=81,#new_col=40);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
+        #iIntensity=150),#new_row=81,#new_col=45);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
+        #iIntensity=150),#new_row=81,#new_col=50);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
+        #iIntensity=150),#new_row=81,#new_col=55);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
+        #iIntensity=150),#new_row=81,#new_col=60);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
+        #iIntensity=150),#new_row=81,#new_col=65);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
+        #iIntensity=150),#new_row=81,#new_col=70);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
+        #iIntensity=150),#new_row=81,#new_col=75);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
+        #iIntensity=150),#new_row=81,#new_col=80);
+        
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_LIGHTNING,
+        #iIntensity=200),#new_row=86,#new_col=15);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_LIGHTNING,
+        #iIntensity=200),#new_row=86,#new_col=20);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_LIGHTNING,
+        #iIntensity=200),#new_row=86,#new_col=25);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_LIGHTNING,
+        #iIntensity=200),#new_row=86,#new_col=30);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_LIGHTNING,
+        #iIntensity=200),#new_row=86,#new_col=35);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_LIGHTNING,
+        #iIntensity=200),#new_row=86,#new_col=40);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_LIGHTNING,
+        #iIntensity=200),#new_row=86,#new_col=45);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_LIGHTNING,
+        #iIntensity=200),#new_row=86,#new_col=50);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_LIGHTNING,
+        #iIntensity=200),#new_row=86,#new_col=55);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_LIGHTNING,
+        #iIntensity=200),#new_row=86,#new_col=60);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_LIGHTNING,
+        #iIntensity=200),#new_row=86,#new_col=65);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_LIGHTNING,
+        #iIntensity=200),#new_row=86,#new_col=70);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_LIGHTNING,
+        #iIntensity=200),#new_row=86,#new_col=75);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_LIGHTNING,
+        #iIntensity=200),#new_row=86,#new_col=80);
+        
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_WHITE,
+        #iIntensity=255),#new_row=93,#new_col=15);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_WHITE,
+        #iIntensity=255),#new_row=93,#new_col=20);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_WHITE,
+        #iIntensity=255),#new_row=93,#new_col=25);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_WHITE,
+        #iIntensity=255),#new_row=93,#new_col=30);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_WHITE,
+        #iIntensity=255),#new_row=93,#new_col=35);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_WHITE,
+        #iIntensity=255),#new_row=93,#new_col=40);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_WHITE,
+        #iIntensity=255),#new_row=93,#new_col=45);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_WHITE,
+        #iIntensity=255),#new_row=93,#new_col=50);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_WHITE,
+        #iIntensity=255),#new_row=93,#new_col=55);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_WHITE,
+        #iIntensity=255),#new_row=93,#new_col=60);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_WHITE,
+        #iIntensity=255),#new_row=93,#new_col=65);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_WHITE,
+        #iIntensity=255),#new_row=93,#new_col=70);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_WHITE,
+        #iIntensity=255),#new_row=93,#new_col=75);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_WHITE,
+        #iIntensity=255),#new_row=93,#new_col=80);
+        
+      iLightRow = 10;
+      iLightCol = 10;
+      while iLightRow < Send(self,@GetRoomRows)-10
+      {
+         while iLightCol < Send(self,@GetRoomCols)-10
+         {
+            Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BLUE,
+              #iIntensity=255,#bHanging=TRUE),#new_row=iLightRow,#new_col=iLightCol);
+              iLightCol = iLightCol + 10;
+         }
+         iLightCol = 10;
+         iLightRow = iLightRow + 10;
+      }
+
+      return;
+   }
+
+   MoveLights(timer=$)
+   {
+      local i, iRow, iCol;
+
+      ptLightsMoveTimer = $;
+      
+%      if piWaterUp
+%      {
+%         piWaterUp = FALSE;
+%         Post(self,@SetSector,#sector=WATER_SECTOR_ID,#animation=ANIMATE_CEILING_LIFT,#height=1970,#speed=10);
+%      }
+%      else
+%      {
+%         piWaterUp = TRUE;
+%         Post(self,@SetSector,#sector=WATER_SECTOR_ID,#animation=ANIMATE_CEILING_LIFT,#height=2000,#speed=10);
+%      }
+
+      foreach i in plPassive
+      {
+         if (IsClass(First(i),&DynamicLight)
+            AND (Send(First(i),@GetColor) = LIGHT_DBLUE
+               OR Send(First(i),@GetColor) = LIGHT_DGREEN))
+            OR IsClass(First(i),&FogCloud)
+         {
+            Send(SYS,@UtilGoNearSquare,#what=First(i),
+            #where=self,
+            #new_row=Bound(Send(First(i),@GetRow)+Random(-1,1),1,Send(self,@GetRoomRows)-1),
+            #new_col=Bound(Send(First(i),@GetCol)+Random(-1,1),1,Send(self,@GetRoomCols)-1),
+            #fine_row=0,
+            #fine_col=0,
+            #new_angle=0);
+         }
+      }
+
+      ptLightsMoveTimer = CreateTimer(self,@MoveLights,piLightsMoveTime);
+      return;
+   }
+   
+   GetPhaseThreats()
+   {
+      return [&UnderwaterThreat];
+   }
+
+   Delete()
+   {
+      if ptLightsMoveTimer <> $
+      {
+         DeleteTimer(ptLightsMoveTimer);
+         ptLightsMoveTimer = $;
+      }
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

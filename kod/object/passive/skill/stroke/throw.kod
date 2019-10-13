@@ -16,7 +16,7 @@ constants:
 
 resources:
    throw_name_rsc = "throw"
-   throw_icon_rsc = slashico.bgf
+   throw_icon_rsc = ithrow.bgf
    throw_desc_rsc = "Allows a trained warrior to throw daggers."
 
    throw_skill_intro = "Banditry Lv. 3: Basic skill at throwing small blades."
@@ -39,12 +39,15 @@ classvars:
 
    viSchool = SKS_BANDITRY
    viSkill_Num = SKID_THROW
-   viSkill_level = 4
+   viSkill_level = 3
    viChance_to_increase = 50
    viMeditate_ratio = 30
 
    viskillExertion = 2
    vbCheck_exertion = FALSE
+   
+   viPrimaryStat = STAT_ID_AIM
+   viSecondaryStat = STAT_ID_MIGHT
 
 properties:
 
@@ -206,7 +209,15 @@ messages:
 
       if Send(oRoom,@NoReagents)=FALSE
       {
-         Send(oAmmo,@SubtractNumber,#number=1);
+         if Send(who,@HasSkill,#num=SKID_MECHANIZED_QUIVER)
+            AND Send(Send(SYS,@FindSkillByNum,#num=SKID_MECHANIZED_QUIVER),@DoSkill,#who=who,#oAmmo=oAmmo)
+         {
+            propagate;
+         }
+         else
+         {
+            Post(oAmmo,@SubtractNumber,#number=1);
+         }
       }
 
       propagate;
@@ -229,7 +240,9 @@ messages:
       {
          return 1;
       }
-      
+
+      Post(victim,@ApplyBleed,#what=who,#bleed_power=Send(who,@GetBleedPower));
+
       % base weapon damage
       damage = Random(Send(daggers,@GetMinDamage,#who=who,#target=victim),
                      Send(daggers,@GetMaxDamage,#who=who,#target=victim));
@@ -249,7 +262,7 @@ messages:
       local iDamage, stat;
 
       iDamage = damage;
-      iDamage = iDamage + (Send(weapon_used,@GetProf,#who=who)+1)*viMaxProficiencyDamage/100;
+      iDamage = iDamage + (Send(who,@GetSkillAbility,#skill_num=SKID_PROFICIENCY_THROW)+1)*viMaxProficiencyDamage/100;
 
       % Get Aim damage bonus.
       stat = Send(self,@GetRequisiteStat,#who=who);

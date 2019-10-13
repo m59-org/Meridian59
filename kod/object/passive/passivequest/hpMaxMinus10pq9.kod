@@ -1,0 +1,82 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+hpMaxMinus10pq9 is PassiveQuest
+
+% The ninth quest for max minus ten players is to:
+%   Ask Vecka for guidance
+%
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   hpMaxMinus10pq9_icon_rsc = sword.bgf
+   hpMaxMinus10pq9_name_rsc = "Ask Vecka for guidance"
+   hpMaxMinus10pq9_desc_rsc = \
+      "Somewhere in the Eternal Wastes, the heroine of the nomads, Vecka, still presses on. "
+      "Find her and ask her for guidance."
+   
+   hpMaxMinus10pq9_new_quest_msg = \
+      "Somewhere in the Eternal Wastes, the heroine of the nomads, Vecka, still presses on. "
+      "Find her and ask her for ~o~Bguidance."
+
+   hpMaxMinus10pq9_trigger = \
+      "guidance"
+
+   hpMaxMinus10pq9_complete_msg = \
+      "~kVecka says, \"So you've come from the same land the followers of Jala fled long ago? "
+      "I see. If the High Sorcerers are able to send Xeochicatl to attack these 'mana nodes' of yours, "
+      "then the centuries-long situation in Biskalane has fundamentally changed. The High Sorcerers "
+      "will finally perfect immortality if they are allowed to drain too much mana from your lands. "
+      "They'll be unstoppable.\" Vecka scans the grey horizon. \"I always considered this a last resort, "
+      "but I believe we can enter their Palace through the Maze of the Minotaur beneath it. "
+      "After we find and seal the Prism of Life and the Prism of Death, you should make your way through the "
+      "Maze. Use what treasures and knowledge you find there to defeat the Palace defenses. If you succeed, "
+      "you will be the first ally to make it inside their walls in centuries. Go. I will monitor you from afar "
+      "and help with what I know. Let's hope that old broken waypoint still works.\""
+   
+   hpMaxMinus10pq9_reward_sky_stone = \
+      "I acquired this major sky heartstone while sealing the Prism of Lightning. Perhaps you may have a use for it."
+
+classvars:
+
+   vrIcon = hpMaxMinus10pq9_icon_rsc
+   vrName = hpMaxMinus10pq9_name_rsc
+   vrDesc = hpMaxMinus10pq9_desc_rsc
+   
+   vrNewThisQuestMsg = hpMaxMinus10pq9_new_quest_msg
+   vrCompletedMsg = hpMaxMinus10pq9_complete_msg
+   
+   vbReinform = FALSE
+   
+   vbSaySomething = TRUE
+   vsSayTrigger = hpMaxMinus10pq9_trigger
+   vcSayTargetClass = &DesertHeroine
+
+   viChain = MAX_HP_MINUS_10_INVESTIGATE_DESERT_CHAIN
+   cNextQuestClass = &hpMaxMinus10pq10
+
+properties:
+
+messages:
+
+   Completed()
+   {
+      Send(poQuester,@FlagForVeckaAdvice);
+      Send(poQuester,@MsgSendUser,#message_rsc=hpMaxMinus10pq9_reward_sky_stone);
+      Send(poQuester,@NewHold,#what=Create(&MajorSkyHeartStone));
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

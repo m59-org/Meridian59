@@ -10,6 +10,10 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 GuildHall4 is GuildHall
 
+% Wryn's Keep is the largest hall in the game. It has the highest number
+%    maximum of all upgrades.
+%
+
 constants:
 
    DOOR1 = 1
@@ -41,10 +45,28 @@ resources:
 
    news_guild4_name = "news"
    news_guild4_desc = "This is the guild newsgroup."
+   
+   gh4_pogg_king_portal_desc = \
+      "You see the growl-filled darkness of the Ancient Smuggler's Crossing through this portal."
+   gh4_thrashers_portal_desc = \
+      "A subtle necrotic glow hints at the horrors of Affirmation of the Forsaken."
+   gh4_nec3a_portal_desc = \
+      "Accumulated evil has formed a film of slime on the other side of this portal. "
+      "Through it, you can see an Ancient Building."
+   gh4_jungle_trading_post_portal_desc = \
+      "Through this gate, you see Cellar Rooms built in the Ko'Catani style."
+   gh4_desertbridge_portal_desc = \
+      "Bright heat and elemental energies coalesce in and out of existence on the other side of this gateway. "
+      "You see a Collapsed Causeway beyond."
+   gh4_tranquil_place_portal_desc = \
+      "A Tranquil Place resides beyond."
 
 classvars:
 
    vrName = room_name_guildh4
+
+   viLongitude = 14
+   viLatitude = 35
 
    viNews_row = 36
    viNews_col = 10
@@ -70,6 +92,164 @@ classvars:
    viQuality = 10
    viTerrain_type = TERRAIN_CITY | TERRAIN_GUILDHALL | TERRAIN_CAVES
    viSeconds_til_close = 18
+   
+   viPortalOneRow = 38
+   viPortalOneCol = 30
+   viPortalOneFineRow = 42
+   viPortalOneFineCol = 43
+   viPortalOneAngle = ANGLE_SOUTH_EAST
+   viPortalOneDestRID = RID_SEWER_KING
+   viPortalOneDestRow = 42
+   viPortalOneDestCol = 48
+   viPortalOneDestFineRow = 8
+   viPortalOneDestFineCol = 37
+   viPortalOneDestAngle = ANGLE_NORTH_WEST
+   vsPortalOneDesc = gh4_pogg_king_portal_desc
+   
+   viPortalTwoRow = 38
+   viPortalTwoCol = 36
+   viPortalTwoFineRow = 42
+   viPortalTwoFineCol = 21
+   viPortalTwoAngle = ANGLE_SOUTH_WEST
+   viPortalTwoDestRID = RID_MAR_CRYPT3A
+   viPortalTwoDestRow = 30
+   viPortalTwoDestCol = 20
+   viPortalTwoDestFineRow = 44
+   viPortalTwoDestFineCol = 38
+   viPortalTwoDestAngle = ANGLE_SOUTH_EAST
+   vsPortalTwoDesc = gh4_thrashers_portal_desc
+   
+   viPortalThreeRow = 45
+   viPortalThreeCol = 36
+   viPortalThreeFineRow = 53
+   viPortalThreeFineCol = 21
+   viPortalThreeAngle = ANGLE_NORTH_WEST
+   viPortalThreeDestRID = RID_NEC3A
+   viPortalThreeDestRow = 1
+   viPortalThreeDestCol = 9
+   viPortalThreeDestFineRow = 31
+   viPortalThreeDestFineCol = 25
+   viPortalThreeDestAngle = ANGLE_SOUTH_WEST
+   vsPortalThreeDesc = gh4_nec3a_portal_desc
+   
+   viPortalFourRow = 45
+   viPortalFourCol = 30
+   viPortalFourFineRow = 53
+   viPortalFourFineCol = 43
+   viPortalFourAngle = ANGLE_NORTH_EAST
+   viPortalFourDestRID = RID_JUNGLE_TRADING_POST_CELLAR
+   viPortalFourDestRow = 5
+   viPortalFourDestCol = 7
+   viPortalFourDestFineRow = 40
+   viPortalFourDestFineCol = 25
+   viPortalFourDestAngle = ANGLE_WEST
+   vsPortalFourDesc = gh4_jungle_trading_post_portal_desc
+   
+   viPortalFiveRow = 49
+   viPortalFiveCol = 33
+   viPortalFiveFineRow = 5
+   viPortalFiveFineCol = 30
+   viPortalFiveAngle = ANGLE_NORTH
+   viPortalFiveDestRID = RID_DESERTBRIDGE
+   viPortalFiveDestRow = 30
+   viPortalFiveDestCol = 2
+   viPortalFiveDestFineRow = 2
+   viPortalFiveDestFineCol = 59
+   viPortalFiveDestAngle = ANGLE_NORTH_EAST
+   vsPortalFiveDesc = gh4_desertbridge_portal_desc
+   
+   viPortalSixRow = 47
+   viPortalSixCol = 35
+   viPortalSixFineRow = 61
+   viPortalSixFineCol = 15
+   viPortalSixAngle = ANGLE_WEST
+   viPortalSixDestRID = RID_ORC_CAVE1_EXT
+   viPortalSixDestRow = 34
+   viPortalSixDestCol = 6
+   viPortalSixDestFineRow = 29
+   viPortalSixDestFineCol = 58
+   viPortalSixDestAngle = ANGLE_NORTH_EAST
+   vsPortalSixDesc = gh4_tranquil_place_portal_desc
+   
+   viReliquaryOneRow = 24
+   viReliquaryOneCol = 34
+   viReliquaryOneFineRow = 32
+   viReliquaryOneFineCol = 0
+   
+   viReliquaryTwoRow = 24
+   viReliquaryTwoCol = 36
+   viReliquaryTwoFineRow = 32
+   viReliquaryTwoFineCol = 62
+   
+   viReliquaryThreeRow = 17
+   viReliquaryThreeCol = 38
+   viReliquaryThreeFineRow = 63
+   viReliquaryThreeFineCol = 40
+   
+   viReliquaryFourRow = 17
+   viReliquaryFourCol = 11
+   viReliquaryFourFineRow = 63
+   viReliquaryFourFineCol = 17
+   
+   viReliquaryFiveRow = 21
+   viReliquaryFiveCol = 11
+   viReliquaryFiveFineRow = 1
+   viReliquaryFiveFineCol = 47
+   
+   viReliquarySixRow = 22
+   viReliquarySixCol = 11
+   viReliquarySixFineRow = 31
+   viReliquarySixFineCol = 46
+   
+   % Fusing device rates go from 8 (worst) to 4 (best) 
+   viShardFusingDeviceRow = 32
+   viShardFusingDeviceCol = 38
+   viShardFusingDeviceFineRow = 40
+   viShardFusingDeviceFineCol = 63
+   viShardFusingDeviceRate = 4
+   
+   % Shattering device rates go from 2 (worst) to 4 (best) 
+   viShardShatteringDeviceRow = 33
+   viShardShatteringDeviceCol = 40
+   viShardShatteringDeviceFineRow = 31
+   viShardShatteringDeviceFineCol = 14
+   viShardShatteringDeviceRate = 4
+   
+   viFociOneRow = 32
+   viFociOneCol = 13
+   viFociOneFineRow = 58
+   viFociOneFineCol = 1
+   viFociOnePower = 198
+   viFociOneRange = 7
+   viFociOneSpellNum = SID_INVIGORATE
+   
+   viFociTwoRow = 32
+   viFociTwoCol = 13
+   viFociTwoFineRow = 58
+   viFociTwoFineCol = 1
+   viFociTwoPower = 198
+   viFociTwoRange = 7
+   viFociTwoSpellNum = SID_RESTORATE
+   
+   viFociThreeRow = 32
+   viFociThreeCol = 13
+   viFociThreeFineRow = 58
+   viFociThreeFineCol = 1
+   viFociThreePower = 198
+   viFociThreeRange = 7
+   viFociThreeSpellNum = SID_REJUVENATE
+
+   viBartenderRow = 26
+   viBartenderCol = 12
+   viBartenderFineRow = 16
+   viBartenderFineCol = 45
+   viBartenderRate = 100
+   
+   viMarketRow = 36
+   viMarketCol = 38
+   viMarketFineRow = 27
+   viMarketFineCol = 26
+   viMarketRate = 100
 
 properties:
 
@@ -88,6 +268,9 @@ properties:
 
    plGuild_doors
    ptLighting = $
+   
+   % Wryn's Keep boosts all skill and spell meditation by a whopping 60%.
+   piGuildHallMeditateEffiency = 160
 
 messages:
 
@@ -306,7 +489,7 @@ messages:
 
    SomethingTryGo(what = $,row = $,col = $)
    {
-      if (row = 29) AND (col < 24)
+      if (row = 29) AND (col < 24) AND (col > 17)
       {
          Send(self,@SetSector,#sector=WESTDOOR,#animation=ANIMATE_CEILING_LIFT,
               #height=204,#speed=16);
@@ -315,7 +498,7 @@ messages:
          return TRUE;
       }
 
-      if (row = 29) AND (col > 25)
+      if (row = 29) AND (col > 25) AND (col < 32)
       {
          Send(self,@SetSector,#sector=EASTDOOR,#animation=ANIMATE_CEILING_LIFT,
               #height=204,#speed=16);
@@ -324,7 +507,7 @@ messages:
          return TRUE;
       }
 
-      if ((row > 35) OR (row < 39)) AND (col = 33)
+      if ((row > 35) AND (row < 39)) AND (col = 33)
       {
          Send(self,@SetSector,#sector=MASTERDOOR,#animation=ANIMATE_CEILING_LIFT,
               #height=204,#speed=16);
@@ -523,6 +706,27 @@ messages:
       Send(self,@DefensesUp);
 
       propagate;
+   }
+
+   GetTotemLightIntensity(what=$)
+   {
+      if poTotemOne <> $
+         AND what = poTotemOne
+      {
+         return 5;
+      }
+
+      return 0;
+   }
+
+   GetTotemLightColor(what=$)
+   {
+      if poTotemOne <> $
+         AND what = poTotemOne
+      {
+         return LIGHT_YELLOW;
+      }
+      return LIGHT_GREEN;
    }
 
 end

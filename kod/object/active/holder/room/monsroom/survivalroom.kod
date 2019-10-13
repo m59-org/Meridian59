@@ -165,6 +165,7 @@ properties:
 
    % of the form [player,timer]
    plCrashProtection = $
+   ptCrashedOutTimer = $
 
    % Combat has not yet begun
    piHasBegun = FALSE
@@ -312,7 +313,7 @@ messages:
                             [&DeathSpider, 3],
                             [&DragonFly, 3],
                             [&Avar, 3],
-                            [&AvarShaman, 3],
+                            %[&AvarShaman, 3],
                             [&DuskRat, 3],
                             [&EvilEnt, 3],
                             [&Iceperson, 3]];
@@ -341,7 +342,7 @@ messages:
                             [&DeathSpider, 3],
                             [&DragonFly, 3],
                             [&Avar, 3],
-                            [&AvarShaman, 3],
+                            %[&AvarShaman, 3],
                             [&DuskRat, 3],
                             [&EvilEnt, 3],
                             [&Iceperson, 3],
@@ -373,7 +374,7 @@ messages:
                     [&DeathSpider, 3],
                     [&DragonFly, 3],
                     [&Avar, 3],
-                    [&AvarShaman, 3],
+                    %[&AvarShaman, 3],
                     [&DuskRat, 3],
                     [&EvilEnt, 3],
                     [&Iceperson, 3],
@@ -398,11 +399,7 @@ messages:
                       &DragonFlyQueen,
                       &Shadowbeast,
                       &SpiderQueen,
-                      &GiantRatKing,
-                      &EarthElemental,
-                      &FireElemental,
-                      &IceElemental,
-                      &NeruElemental];
+                      &GiantRatKing];
                       
       plMonsters = plRoundOneMonsters;
 
@@ -631,7 +628,7 @@ messages:
       {
          if Nth(lFixedReward,2) = piLevel
          {
-            oReward = Create(First(lFixedReward));
+            oReward = Create(First(lFixedReward),#level=piLevel*3);
             foreach i in plActive
             {
                if IsClass(First(i),&User)
@@ -1256,6 +1253,11 @@ messages:
          DeleteTimer(ptRespawnMiniBossTimer);
          ptRespawnMiniBossTimer = $;
       }
+      if ptCrashedOutTimer <> $
+      {
+         DeleteTimer(ptCrashedOutTimer);
+         ptCrashedOutTimer = $;
+      }
       
       plLivesPerPlayer = $;
 
@@ -1535,6 +1537,7 @@ messages:
          OR oRoom = self
       {
          Send(who,@RemoveEnchantmentClass,#class=&Spectate);
+         Send(who,@FullHeal);
          Send(who,@AdminGoToLastSafeRoom,#from_special=TRUE);
       }
 
@@ -1599,6 +1602,12 @@ messages:
    FirstUserEntered()
    {
       local i;
+      
+      if ptCrashedOutTimer <> $
+      {
+         DeleteTimer(ptCrashedOutTimer);
+         ptCrashedOutTimer = $;
+      }
 
       if piPublic
       {
@@ -1622,9 +1631,26 @@ messages:
 
    LastUserLeft()
    {
-      Post(self,@Delete);
+      if piLives > 0
+         AND piLevel > 20
+      {
+         ptCrashedOutTimer = CreateTimer(self,@CrashedOut,300000);
+      }
+      else
+      {
+         Post(self,@Delete);
+      }
 
       propagate;
+   }
+   
+   CrashedOut(timer=$)
+   {
+      ptCrashedOutTimer = $;
+      
+      Post(self,@Delete);
+      
+      return;
    }
 
    CanHavePlayerPortal(who = $)
@@ -1742,6 +1768,13 @@ messages:
          OR IsClass(oSpell,&Jig)
          OR IsClass(oSpell,&SporeBurst)
          OR IsClass(oSpell,&SummonWeb)
+         OR IsClass(oSpell,&GuildHallRecall)
+         OR IsClass(oSpell,&Recall)
+         OR IsClass(oSpell,&SummonEvilTwin)
+         OR (IsClass(oSpell,&Earthquake)
+            AND IsClass(who,&Monster))
+         OR (IsClass(oSpell,&MonsterEarthquake)
+            AND IsClass(who,&Monster))
       {
          % We have to provide the fail message here.
          Send(who,@MsgSendUser,#message_rsc=survival_no_cast_rsc,

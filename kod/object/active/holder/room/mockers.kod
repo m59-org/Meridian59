@@ -37,6 +37,9 @@ classvars:
 
    viWeatherZone = WEATHER_ZONE_BARLOQUE
 
+   viLongitude = 24
+   viLatitude = 13
+
 properties:
 
    prMusic = mockers_music
@@ -52,6 +55,8 @@ properties:
    piRoom_num = RID_MOCKERS_ROOM
 
    pbLocked = FALSE
+
+   pbPortalOn = FALSE
 
 messages:
 
@@ -117,6 +122,39 @@ messages:
 
 
       propagate;
+   }
+
+   CreateStandardObjects()
+   {
+   %   local oBook;
+
+   %   Send(self,@NewHold,#what=Create(&PrincessGuard),
+   %        #new_row=7,#new_col=13);
+   %   Send(self,@NewHold,#what=Create(&PrincessGuard),
+   %        #new_row=4,#new_col=11);
+
+  %   Send(self,@NewHold,#what=Create(&PrincessGuard),
+  %         #new_row=12,#new_col=6);
+      propagate;
+   }
+
+   OpenPortalToBiskalane()
+   {
+      % Portal has moved to basement
+      return;
+      if NOT pbPortalOn
+      {
+         Send(self,@NewHold,#what=Create(&Portal,#dest_room_num=RID_DESERTSHORE2,
+                                              #dest_row=57,
+                                              #dest_col=30,
+                                              #dest_fine_row=48,
+                                              #dest_fine_col=60,
+                                              #dest_angle=ANGLE_EAST),
+              #new_row=5,#new_col=12,#fine_row=49,#fine_col=48,#new_angle=ANGLE_SOUTH_WEST);
+         pbPortalOn = TRUE;
+      }
+   
+      return;
    }
 
 end

@@ -18,19 +18,96 @@ resources:
 
    Jala_sound = lute_equip.wav
 
+   JalaEffectDesc = \
+      "%r%r"
+   JalaBlankDesc = \
+      ""
+
+   Jala_default_specific_effec_desc = \
+      "\n\nThe strongest %s song currectly affecting you has %i spellpower."
+   Jala_default_reservation_desc = \
+      "\n\nYour %s song is currently reserving %i mana."
+
 classvars:
 
    viSchool = SS_JALA
    viNeedInstrument = FALSE
+   
+   vrSpecificEffectDesc = Jala_default_specific_effec_desc
+   vrReservationDesc = Jala_default_reservation_desc
 
    vrSucceed_wav = Jala_sound
 
    viBaseRange = 12
+   
+   % Jala songs now persist.
+   viCasterPersist = TRUE
+   
+   % What amount of mana does a Necklace-bound Jala song reserve?
+   viFlatManaReservation = 50
+   
+   viPrimaryStat = STAT_ID_INTELLECT
+   viSecondaryStat = 0
 
 properties:
 
+   prMusic = $
 
 messages:
+
+   GetMusic()
+   {
+      return prMusic;
+   }
+
+   GetFlatManaReservation()
+   {
+      return (viFlatManaReservation*Send(SETTINGS_OBJECT,@GetJalaReservationNumerator))/Send(SETTINGS_OBJECT,@GetJalaReservationDenominator);
+   }
+
+   GetManaCost(who=$,iSpellPower=0,lTargets=$)
+   "Returns number of magic points needed to cast spell"
+   {
+      if who <> $
+         AND IsClass(who,&Player)
+         AND Send(who,@IsUsingA,#class=&JalaNecklace)
+      {
+         % When reserving a song, the cost itself is 0.
+         % It'll be taking a huge chunk of mana elsewhere.
+         return 0;
+      }
+      
+      propagate;
+   }
+
+   SendStatsDesc(who=$)
+   {
+      local lState;
+
+      lState = Send(who,@GetMostPowerfulRadiusEnchantmentState,#byClass=GetClass(self));
+      if who <> $
+         AND IsClass(who,&User)
+         AND lState <> $
+      {
+         % Two resources for effect and/or reservation.
+         AddPacket(4,JalaEffectDesc);
+
+         Send(self,@EffectDesc,#who=who,#lState=lState);
+
+         if Send(who,@HasReservedSong,#oSpell=self)
+         {
+            AddPacket(4,Jala_default_reservation_desc, 4,Send(self,@GetName), 4,viFlatManaReservation);
+         }
+         else
+         {
+            AddPacket(4,JalaBlankDesc);
+         }
+
+         return;
+      }
+
+      propagate;
+   }
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -1,0 +1,314 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ChargeAttack is MovementSpell
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   charge_attack_name_rsc = "valiant charge"
+   charge_attack_icon_rsc = iflamedash.bgf
+   charge_attack_desc_rsc = \
+     "You charge forward, knocking foes out of the way "
+     "and stunning them."
+   charge_attack_mastered_desc_rsc = \
+     "\n\n"
+     "You possess exceptional mastery of this spell, allowing you to travel "
+     "triple the distance of an amateur casting."
+
+   charge_attack_max_cooldowns = \
+      "You need to rest for a moment before charging again."
+   charge_attack_not_here = \
+      "You can't charge here!"
+   charge_attack_too_short = \
+      "You don't have enough power to charge even a step!"
+   charge_attack_dashed = \
+      "You charge %i steps!"
+   charge_attack_no_space = \
+      "You don't have enough space to charge!"
+   charge_attack_no_longer = \
+      "You are exhausted, and cannot charge again for %i seconds."
+   charge_attack_can_do_now = \
+      "You feel that you can charge again."
+
+classvars:
+
+   vrName = charge_attack_name_rsc
+   vrIcon = charge_attack_icon_rsc
+   vrDesc = charge_attack_desc_rsc
+   vrMasteredDesc = charge_attack_mastered_desc_rsc
+
+   viCast_time = 0
+
+   viSpell_num = SKID_CHARGE_ATTACK
+   viSpell_level = 5
+   viSchool = SKS_KNIGHTCRAFT
+   viMana = 0
+   viSpellExertion = 20
+   viChance_To_Increase = 15
+   viMeditate_ratio = 80
+   
+   viPrimaryStat = STAT_ID_MIGHT
+   viSecondaryStat = 0
+
+properties:
+
+   % This spell keeps track of player cooldowns.
+   plCooldowns = $
+
+   % A player can use the spell this many times in a row.
+   piMaxUses = 1
+
+   % It takes this long for one cooldown to lift.
+   piCooldownTime = 30000
+   
+   piEffectRange = 64 * 3
+
+messages:
+
+   ResetReagents()
+   {
+      plReagents = $;
+
+      return;
+   }
+
+   GetNumSpellTargets()
+   {
+      return 0;
+   }
+
+   CanPayCosts(who=$,lTargets=$,bItemCast=FALSE)
+   {
+      local oRoom;
+      
+      oRoom = Send(who,@GetOwner);
+
+      if oRoom <> $
+         AND IsClass(oRoom,&Room)
+         AND Send(oRoom,@CheckRoomFlag,#flag=ROOM_NO_COMBAT)
+      {
+         Send(who,@MsgSendUser,#message_rsc=charge_attack_not_here);
+         return FALSE;
+      }
+
+      % If you're at or beyond max cooldowns, can't use the spell.
+      if Send(self,@GetCooldown,#who=who) >= piMaxUses
+      {
+         Send(who,@MsgSendUser,#message_rsc=charge_attack_max_cooldowns);
+         return FALSE;
+      }
+
+      propagate;
+   }
+
+   CastSpell(who = $, iSpellPower=0)
+   {                   
+      local oRoom, lSteps, iDist, i, oElement, n, lBattlers, iIncDuration, lAlreadyAffected;
+
+      oRoom = Send(who,@GetOwner);
+      if oRoom = $
+      {
+         return FALSE;
+      }
+
+      % Can go up to 20 rows/cols (expressed in *64 fine)
+      iDist = ((iSpellPower+1)*64)/5;
+      
+      if Send(who,@HasMasteredThisSpell,#num=viSpell_num)
+      {
+         % Adepts of charge attack triple the distance traveled.
+         iDist = iDist * 3;
+      }
+      
+      if iDist < 64
+      {
+         Send(who,@MsgSendUser,#message_rsc=charge_attack_too_short);
+         propagate;
+      }
+
+      lSteps = Send(oRoom,@IntraTeleport,#what=who,#distance=iDist,
+                     #type=INTRA_TELEPORT_FORWARD);
+
+      lAlreadyAffected = $;
+      if lSteps <> $
+      {
+         lBattlers = Send(Send(who,@GetOwner),@GetHolderActive);
+         iIncDuration = 100 * Length(lSteps);
+         foreach i in lSteps
+         {
+            oElement = Create(&DustCloud,#Caster=who,#duration=iIncDuration,#bMS=TRUE);
+            Send(oRoom,@NewHold,#what=oElement,
+                 #new_row=Nth(i,1),#new_col=Nth(i,2),
+                 #fine_row=Nth(i,3),#fine_col=Nth(i,4));
+            iIncDuration = Bound(iIncDuration - 100, 100, $);
+
+            foreach n in lBattlers
+            {
+               if First(n) <> who
+                  AND IsClass(First(n),&Battler)
+                  AND Send(who,@AllowPlayerAttack,#victim=First(n),#report=FALSE,#actual=FALSE)
+                  AND Send(First(n),@SquaredFineDistanceToLocation,#row=Nth(i,1),#col=Nth(i,2),#fine_row=Nth(i,3),#fine_col=Nth(i,4)) <= piEffectRange * piEffectRange
+                  AND (lAlreadyAffected = $
+                     OR FindListElem(lAlreadyAffected,First(n)) = 0)
+               {
+                  Send(First(n),@ApplyKnockback,#what=who,#knockback_power=(Send(who,@GetKnockbackPower)*(iSpellPower+1)*2)/100);
+                  Send(First(n),@ApplyStun,#what=who,#stun_power=(Send(who,@GetStunPower)*(iSpellPower+1)*2)/100);
+                  lAlreadyAffected = Cons(First(n),lAlreadyAffected);
+               }
+            }
+         }
+         Send(self,@AddCooldown,#who=who);
+      }
+      else
+      {
+         Send(who,@MsgSendUser,#message_rsc=charge_attack_no_space);
+      }
+
+      propagate;
+   }
+
+   SuccessChance(who=$)
+   {
+      return TRUE;
+   }
+   
+   GetCooldown(who=$)
+   {
+      local i;
+      
+      foreach i in plCooldowns
+      {
+         if Nth(i,1) = who
+         {
+            return Nth(i,2);
+         }
+      }
+      
+      return 0;
+   }
+
+   AddCooldown(who=$)
+   {
+      local i;
+
+      if who = $
+      {
+         return;
+      }
+
+      foreach i in plCooldowns
+      {
+         if Nth(i,1) = who
+         {
+            SetNth(i,2,Nth(i,2)+1);
+            if Nth(i,2) >= piMaxUses
+            {
+               Send(who,@MsgSendUser,#message_rsc=charge_attack_no_longer,
+                                     #parm1=GetTimeRemaining(Nth(i,3))/1000);
+            }
+            return;
+         }
+      }
+      
+      plCooldowns = Cons([who,1,
+                          CreateTimer(self,@ClearCooldown,piCooldownTime)],
+                          plCooldowns);
+
+      return;
+   }
+
+   ClearCooldown(timer=$)
+   {
+      local i;
+      
+      foreach i in plCooldowns
+      {
+         if Nth(i,3) = timer
+         {
+            if Nth(i,2) = piMaxUses
+            {
+               Send(Nth(i,1),@MsgSendUser,#message_rsc=charge_attack_can_do_now);
+            }
+
+            SetNth(i,2,Nth(i,2)-1);
+            
+            if Nth(i,2) <= 0
+            {
+               SetNth(i,1,$);
+               SetNth(i,2,0);
+               SetNth(i,3,$);
+               plCooldowns = DelListElem(plCooldowns,i);
+            }
+            else
+            {
+               SetNth(i,3,CreateTimer(self,@ClearCooldown,piCooldownTime));
+            }
+         }
+      }
+      
+      return;
+   }
+   
+   Delete()
+   {
+      local i;
+      
+      foreach i in plCooldowns
+      {
+         if Nth(i,3) <> $
+         {
+            DeleteTimer(Nth(i,3));
+            SetNth(i,3,$);
+            SetNth(i,2,0);
+            SetNth(i,1,$);
+            plCooldowns = DelListElem(plCooldowns,i);
+         }
+      }
+      plCooldowns = $;
+      
+      propagate;
+   }
+
+   PlaySpellSound(room_obj = $,what = $)
+   {
+      local wave_rsc;
+
+      if room_obj <> $
+      {
+         if what <> $
+            AND IsClass(what,&Player)
+            AND Send(what,@GetGender) = GENDER_FEMALE
+         {
+            wave_rsc = Female_battle_shout_sound;
+         }
+         else
+         {
+            wave_rsc = Battle_shout_sound;
+         }
+
+         if wave_rsc <> $
+         {
+            Send(room_obj,@SomethingWaveRoom,#what=what,#wave_rsc=wave_rsc);
+         }
+         else
+         {
+            debug("Spell has no spell sound defined, is not a jala song!");
+         }
+      }
+
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -1,0 +1,67 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+shal6pq1 is PassiveQuest
+
+% The first quest for level 6 shal masters is to:
+%   Speak to Xiana
+%
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   shal6pq1_icon_rsc = skull.bgf
+   shal6pq1_name_rsc = "Study with Priestess Xiana"
+   shal6pq1_desc_rsc = \
+      "You've become a master evangelist of Shal'ille in your own right. It "
+      "is time to ask Priestess Xiana about the arts forbidden to "
+      "mere initiates. Ask her about the powers reserved for crusaders."
+
+   shal6pq1_new_quest_msg = \
+      "You've become a master evangelist of Shal'ille in your own right. It "
+      "is time to ask Priestess Xiana about the arts forbidden to "
+      "mere initiates. Ask her about the powers reserved for ~o~Bcrusaders."
+
+   shal6p1_trigger = \
+      "crusader"
+
+   shal6pq1_complete_msg = \
+      "~kPriestess Xiana tells you, \"~bIndeed, you have become worthy in the eyes of Shal'ille. "
+      "None can doubt your devotion and piety. It is for this reason you are entrusted with a task: "
+      "brave the new desert lands of Biskalane and bring a hundred holy fragments here for study. "
+      "I believe there is much we can learn if we pool our talents.~k\""
+
+classvars:
+
+   vrIcon = shal6pq1_icon_rsc
+   vrName = shal6pq1_name_rsc
+   vrDesc = shal6pq1_desc_rsc
+   
+   vrNewThisQuestMsg = shal6pq1_new_quest_msg
+   vrCompletedMsg = shal6pq1_complete_msg
+   
+   vbReinform = FALSE
+
+   vbSaySomething = TRUE
+   vsSayTrigger = shal6p1_trigger
+   vcSayTargetClass = &ShalillePriestess
+
+   viChain = SHAL6_CHAIN
+   cNextQuestClass = &shal6pq2
+
+properties:
+
+messages:
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

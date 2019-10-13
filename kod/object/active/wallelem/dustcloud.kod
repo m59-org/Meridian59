@@ -1,0 +1,74 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+DustCloud is ActiveWallElement
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   DustCloud_name_rsc = "dust cloud"
+   DustCloud_icon_rsc = poisoncl.bgf
+   DustCloud_desc_rsc = \
+      "The dust of battle is hazy and exhausting."
+
+   dustcloud_damage0 = "The dust cloud makes your eyes water."
+
+   dustcloud_dissipates = "The dust cloud fades."
+
+classvars:
+
+   vrName = DustCloud_name_rsc
+   vrIcon = DustCloud_icon_rsc
+   vrdesc = DustCloud_desc_rsc
+
+   viObject_flags = OF_NOEXAMINE
+
+   vrDissipateMessage = dustcloud_dissipates
+   vrUnaffectedMessage = dustcloud_damage0
+
+properties:
+
+   piDrawEffectFlag = OF_FLICKERING
+   piDrawFx = DRAWFX_TRANSLUCENT_25
+
+   viIllusion = FALSE
+   piMaxDamage = 0
+
+messages:
+
+   Constructor(caster = $, duration = 75, MaxDamage = 0, illusionary = FALSE)
+   {
+      piMaxDamage = 0;
+
+      propagate;
+   }
+
+   GetDuration(duration = 0, bMS = FALSE)
+   {
+      if bMS
+      {
+         return duration;
+      }
+
+      return duration * 1000;
+   }
+
+   SendAnimation()
+   {
+      AddPacket(1, ANIMATE_CYCLE, 4, random(280,300), 2, 1, 2, 5);
+      
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

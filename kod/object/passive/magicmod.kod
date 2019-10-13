@@ -19,8 +19,11 @@ constants:
 
 resources:
 
+   default_name = "a magic mod"
+
 classvars:
 
+   viModName = default_name
    viModType = MOD_SUFFIX
    viModGroup = GROUP_RESISTANCE
    
@@ -32,6 +35,16 @@ properties:
 
 
 messages:
+
+   GetName()
+   {
+      return viModName;
+   }
+
+   GetNumber(iPower=0)
+   {
+      return iPower;
+   }
 
    GetModType()
    {
@@ -51,6 +64,11 @@ messages:
    GetModRangeMax()
    {
       return viModRangeMax;
+   }
+
+   GetPowerDivisor()
+   {
+      return viPowerDivisor;
    }
 
    RollPower(what=$)
@@ -75,10 +93,25 @@ messages:
 
       return 0;
    }
+   
+   NewUsed(who=$,iState=0)
+   {
+      return;
+   }
+   
+   NewUnused(who=$,iState=0)
+   {
+      return;
+   }
 
    GetObjectFlags()
    {
       return OF_NOEXAMINE;
+   }
+
+   ModifyEmpowerment(empowerment_list=$)
+   {
+      return empowerment_list;
    }
 
 end

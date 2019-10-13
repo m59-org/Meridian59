@@ -33,17 +33,25 @@ properties:
 
    % What color?  Default is pure white.
    viLightColor = LIGHT_BWHITE
+   
+   % On the ceiling?
+   pbHanging = FALSE
+   
+   % On the floor? (only needed in depth override cases)
+   pbGrounded = FALSE
 
 messages:
 
    Constructor(iFlags = LIGHT_FLAG_ON, iIntensity = 255, iColor = LIGHT_BWHITE,
-               bVisible=FALSE)
+               bVisible=FALSE,bHanging=FALSE,bGrounded=FALSE)
    {
       if bVisible
       {
          vrIcon = DynamicLight_visible_icon;
       }
 
+      pbHanging = bHanging;
+      pbGrounded = bGrounded;
       Post(self,@SetLight,#iFlags=iFlags,#iIntensity=iIntensity,#iColor=iColor);
 
       propagate;
@@ -148,6 +156,16 @@ messages:
       {
          return (viObject_flags | OF_ATTACKABLE | OF_PLAYER);
       }
+      
+      if pbHanging
+      {
+         return (viObject_flags | OF_HANGING);
+      }
+      
+      if pbGrounded
+      {
+         return (viObject_flags | OF_GROUNDED);
+      }
 
       propagate;
    }
@@ -155,6 +173,11 @@ messages:
    GetIntensity()
    {
       return piLightIntensity;
+   }
+
+   GetColor()
+   {
+      return viLightColor;
    }
 
 end

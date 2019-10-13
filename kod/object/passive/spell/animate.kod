@@ -57,6 +57,9 @@ classvars:
    viMeditate_ratio = 40
 
    vrSucceed_wav = Animate_sound
+   
+   viPrimaryStat = STAT_ID_MYSTICISM
+   viSecondaryStat = STAT_ID_KARMA
 
 properties:
 
@@ -108,25 +111,6 @@ messages:
          Send(who,@MsgSendUser,#message_rsc=Animate_failed_full_rsc);
 
          return FALSE;
-      }
-
-      if IsClass(who,&Player)
-      {
-         if Send(who,@CheckBattlerMinionCount)
-               >= Send(SETTINGS_OBJECT,@GetPlayerMinionLimit)
-         {
-            Send(who,@MsgSendUser,#message_rsc=Animate_too_many_rsc);
-
-            return FALSE;
-         }
-      }
-      else
-      {
-         if Send(who,@CheckBattlerMinionCount)
-            >= Send(SETTINGS_OBJECT,@GetMonsterMinionLimit)
-         {
-            return FALSE;
-         }
       }
 
       propagate;
@@ -183,55 +167,56 @@ messages:
       if iNum < 20
       {
          oRisen = Create(&Mummy);
-         Send(oRisen,@SetIllusion,#value=TRUE);
       }
       else
       {
          if iNum < 40
          {
             oRisen = Create(&Zombie);
-            Send(oRisen,@SetIllusion,#value=TRUE);
          }
          else
          {
             if iNum < 60
             {
                oRisen = Create(&BatteredSkeleton);
-               Send(oRisen,@SetIllusion,#value=TRUE);
             }
             else
             {
                if iNum < 75
                {
                   oRisen = Create(&Skeleton);
-                  Send(oRisen,@SetIllusion,#value=TRUE);
                }
                else
                {
                   if iNum < 90
                   {
                      oRisen = Create(&TuskedSkeleton);
-                     Send(oRisen,@SetIllusion,#value=TRUE);
                   }
                   else
                   {
                      oRisen = Create(&DaemonSkeleton);
-                     Send(oRisen,@SetIllusion,#value=TRUE);
                   }
                }
             }
          }
       }
 
-      % Add this creature to your minion list
-      Send(who,@NewControlledMinion,#minion=oRisen);
+      if Send(who,@CanControlNewMinion,#oMonster=oRisen)
+      {
+         % Add this creature to your minion list
+         Send(who,@NewControlledMinion,#minion=oRisen);
 
-      % Set initial minion behavior
-      Send(oRisen,@ResetBehaviorFlags);
-      Send(self,@ModifyMonsterBehavior,#mob=oRisen);
+         % Set initial minion behavior
+         Send(oRisen,@ResetBehaviorFlags);
+         Send(self,@ModifyMonsterBehavior,#mob=oRisen);
 
-      % Post this due to it needing to be done after the minion is placed.
-      Post(oRisen,@SetMaster,#oMaster=who);
+         % Post this due to it needing to be done after the minion is placed.
+         Post(oRisen,@SetMaster,#oMaster=who);
+      }
+      else
+      {
+         Send(who,@MsgSendUser,#message_rsc=Animate_too_many_rsc);
+      }
 
       % Place the minion
       Send(oRoom,@NewHold,#what=oRisen,#new_row=iRow,#new_col=iCol,

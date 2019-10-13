@@ -20,7 +20,8 @@ BOFS =  badland1.bof a5.bof a6.bof c4.bof c6.bof castle1b.bof d4.bof \
          marcryp1.bof marcryp2.bof oldjas.bof oldmar.bof oldbarln.bof oldbarls.bof \
          marcry3a.bof castle2b.bof castle2c.bof throne2.bof survivalroom.bof \
          elementaldungeon1.bof elementaldungeon2.bof elementaldungeon3.bof \
-         desertafterlife.bof prismoflifefragment.bof
+         desertafterlife.bof prismoflifefragment.bof elementaldungeon4.bof \
+         e1.bof d3.bof chaosstratumroom.bof
 
 
 #       g7.bof h8.bof i2.bof i4.bof i5.bof \

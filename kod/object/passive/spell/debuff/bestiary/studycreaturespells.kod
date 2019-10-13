@@ -1,0 +1,238 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+StudyCreatureSpells is BestiarySpell
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   study_creature_spells_sound = rperappr.wav
+
+   study_creature_spells_name_rsc = "study mysticals"
+   study_creature_spells_icon_rsc = iexfrost.bgf
+   study_creature_spells_desc_rsc = \
+      "Studying a creature will allow you to determine what spells "
+      "it is capable of casting. "
+      "Requires a polished seraphym, a cyan mushroom, and a rainbow fern to cast."
+
+   study_creature_spells_already_enchanted = "%s%s has already been studied."
+   study_creature_spells_caster = "%s%s becomes clearer to you."
+   study_creature_spells_refuses = "%s%s does not become clearer to you."
+   study_creature_spells_on = "Someone is trying to study you."
+   study_creature_spells_off = "You are no longer being studied."
+
+   study_creature_spells_melee = \
+      "%s%s is capable of casting %s in close combat."
+   study_creature_spells_ranged = \
+      "%s%s is capable of casting %s at distant opponents."
+   study_creature_spells_self = \
+      "%s%s is capable of using %s."
+   study_creature_spells_ally = \
+      "%s%s is capable of casting %s on allies."
+   study_creature_spells_other = \
+      "%s%s is capable of casting %s under certain conditions."
+
+   not_capable_of_casting_magic = \
+      "%s%s is not capable of using magic."
+
+classvars:
+
+   vrName = study_creature_spells_name_rsc
+   vrIcon = study_creature_spells_icon_rsc
+   vrDesc = study_creature_spells_desc_rsc
+
+   vrAlreadyEnchanted = study_creature_spells_already_enchanted
+   vrEnchantment_On = study_creature_spells_on
+   vrEnchantment_Off = study_creature_spells_off
+   vrSuccess = study_creature_spells_caster
+   vrFail = study_creature_spells_refuses
+
+   viSchool = SS_BESTIARY
+   viSpell_num = SID_STUDY_CREATURE_SPELLS
+   viSpell_level = 1
+
+   viFlash = FLASH_BAD
+
+   viSpellExertion = 2
+   viMana = 2
+
+   viChance_To_Increase = 15
+   viMeditate_ratio = 10
+
+   vrSucceed_wav = study_creature_spells_sound
+   
+   viPrimaryStat = STAT_ID_INTELLECT
+   viSecondaryStat = 0
+
+   vbIsRangedAttack = FALSE
+
+   viOutlaw = FALSE
+   viHarmful = FALSE
+
+
+properties:
+
+   piBaseDuration = 180000 % Recommended value 2000.
+   piSpellPowerModifier = 1000 % Recommended value 30.
+   piDeviation = 50 % Recommended value 10%.
+   viCast_time = 0 % Recommended value 600 (milliseconds).
+
+messages:
+
+   ResetReagents()
+   {
+      plReagents = $;
+      plReagents = Cons([&PolishedSeraphym,1],plReagents);
+      plReagents = Cons([&CyanMushroom,1],plReagents);
+      plReagents = Cons([&RainbowFern,1],plReagents);
+
+      return;
+   }
+
+   CanPayCosts(who=$,lTargets=$,bItemCast=FALSE)
+   {
+      local oMaster, oTarget;
+
+      oTarget = First(lTargets);
+
+      if NOT IsClass(oTarget,&Monster)
+      {
+         if NOT bItemCast
+         {
+            Send(who,@MsgSendUser,#message_rsc=spell_bad_target,#parm1=vrName,
+                  #parm2=Send(oTarget,@GetDef),#parm3=Send(oTarget,@GetName));
+         }
+
+         return FALSE;
+      }
+
+      propagate;
+   }
+
+   CastSpell(who=$,wielder=$,lTargets=$,iSpellpower=0,report=TRUE,oDeflectImpact=$,bDeflectCast=FALSE)
+   {
+      local oTarget, oRoom, i;
+
+      oTarget = First(lTargets);
+
+      % Spell effects.
+      Send(self,@DoSpell,#what=who,#oTarget=oTarget,#report=report,
+            #iDuration=Send(self,@GetDuration,#iSpellPower=iSpellPower));
+
+      propagate;
+   }
+
+   DoSpell(what=$,oTarget=$,iDuration=$,report=TRUE)
+   "Holds target for duration seconds."
+   {
+      local i, lMeleeSpellBook, lRangedSpellBook, lSelfSpellBook, lAllySpellBook, lOtherSpellBook, bFound;
+
+      if oTarget = $
+      {
+         return FALSE;
+      }
+
+      % Check for enchantment already applied
+      if Send(oTarget,@IsEnchanted,#what=self)
+      {
+         return FALSE;
+      }
+
+      % Check for spell called with $ iDuration, apply default time if so.
+      if iDuration = $
+      {
+         iDuration = 500000;
+      }
+
+      Send(oTarget,@StartEnchantment,#what=self,#time=iDuration,#report=report,
+            #state=report);
+
+      if IsClass(oTarget,&Monster)
+      {
+         bFound = FALSE;
+
+         lMeleeSpellBook = Send(oTarget,@GetMeleeSpellBook);
+         lRangedSpellBook = Send(oTarget,@GetRangedSpellBook);
+         lSelfSpellBook = Send(oTarget,@GetSelfSpellBook);
+         lAllySpellBook = Send(oTarget,@GetAllySpellBook);
+         lOtherSpellBook = Send(oTarget,@GetOtherSpellBook);
+         
+         foreach i in lMeleeSpellBook
+         {
+            bFound = TRUE;
+            Send(what,@MsgSendUser,#message_rsc=study_creature_spells_melee,
+                                   #parm1=Send(oTarget,@GetCapDef),
+                                   #parm2=Send(oTarget,@GetName),
+                                   #parm3=Send(Send(SYS,@FindSpellByNum,#num=First(i)),@GetName));
+         }
+         foreach i in lRangedSpellBook
+         {
+            bFound = TRUE;
+            Send(what,@MsgSendUser,#message_rsc=study_creature_spells_ranged,
+                                   #parm1=Send(oTarget,@GetCapDef),
+                                   #parm2=Send(oTarget,@GetName),
+                                   #parm3=Send(Send(SYS,@FindSpellByNum,#num=First(i)),@GetName));
+         }
+         foreach i in lSelfSpellBook
+         {
+            bFound = TRUE;
+            Send(what,@MsgSendUser,#message_rsc=study_creature_spells_self,
+                                   #parm1=Send(oTarget,@GetCapDef),
+                                   #parm2=Send(oTarget,@GetName),
+                                   #parm3=Send(Send(SYS,@FindSpellByNum,#num=First(i)),@GetName));
+         }
+         foreach i in lAllySpellBook
+         {
+            bFound = TRUE;
+            Send(what,@MsgSendUser,#message_rsc=study_creature_spells_ally,
+                                   #parm1=Send(oTarget,@GetCapDef),
+                                   #parm2=Send(oTarget,@GetName),
+                                   #parm3=Send(Send(SYS,@FindSpellByNum,#num=First(i)),@GetName));
+         }
+         foreach i in lOtherSpellBook
+         {
+            bFound = TRUE;
+            Send(what,@MsgSendUser,#message_rsc=study_creature_spells_other,
+                                   #parm1=Send(oTarget,@GetCapDef),
+                                   #parm2=Send(oTarget,@GetName),
+                                   #parm3=Send(Send(SYS,@FindSpellByNum,#num=First(i)),@GetName));
+         }
+         
+         if NOT bFound
+         {
+            Send(what,@MsgSendUser,#message_rsc=not_capable_of_casting_magic,
+                                   #parm1=Send(oTarget,@GetCapDef),
+                                   #parm2=Send(oTarget,@GetName));
+         }
+      }
+
+      propagate;
+   }
+
+   GetDuration(iSpellPower=0)
+   {
+      local iDuration;
+
+      iDuration = piBaseDuration + iSpellPower * piSpellPowerModifier;
+      iDuration = Random(iDuration * (100 - piDeviation) / 100,iDuration);
+
+      return iDuration;
+   }
+
+   EndEnchantment(who=$,report=TRUE,state=$)
+   {
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -32,6 +32,11 @@ resources:
 
    Dazzle_sound = sDazzle.wav
 
+   % Not implemented yet
+   dazzle_player_rsc = holdrings.bgf
+
+   dazzle_star_projectile_rsc = dazzlestar.bgf
+
 classvars:
 
    vrName = Dazzle_name_rsc
@@ -53,6 +58,25 @@ classvars:
    viSpellExertion = 3
 
    vrSucceed_wav = Dazzle_sound
+   
+   viPrimaryStat = STAT_ID_MYSTICISM
+   viSecondaryStat = STAT_ID_KARMA
+   
+   vrProjectile_Icon = dazzle_star_projectile_rsc
+   viProjectileFlag = PROJ_FLAG_LIGHT_SOURCE
+
+   % Projectile lighting information.
+   viProjectileLightFlags = LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC
+   % Medium light range, out of 255.
+   viProjectileLightIntensity = 255
+   % Default color is lightning.
+   viProjectileLightColor = LIGHT_WHITE
+
+   viProjectileSpeed = 5
+
+   vrBlindRings = dazzle_player_rsc
+
+   viLayer = 9
 
 properties:
 
@@ -64,6 +88,7 @@ properties:
    % Min and max values for Dazzle duration.
    piMinDazzle = 3000
    piMaxDazzle = 10000
+   piMonsterMinDazzle = 500
 
    % Duration of the red pain effect after spell wears off.
    piPainDuration = 1000
@@ -79,11 +104,69 @@ messages:
       return;
    }
 
-   CastSpell(who=$,lTargets=$,iSpellPower=0)
+   CastSpell(who=$,wielder=$,lTargets=$,iSpellPower=0,oDeflectImpact=$,bDeflectCast=FALSE)
    {
-      local oTarget, iDuration;
+      local oTarget, oRoom, i, iDeflectSpeed, iDuration;
 
       oTarget = First(lTargets);
+      % Is this a proc from a weapon?
+      if wielder = $
+      {
+         oRoom = Send(who,@GetOwner);
+         if oDeflectImpact <> $
+            AND oRoom <> $
+         {
+            % Don't send to oDeflectImpact, it's not a NoMoveOn!
+            iDeflectSpeed = Send(who,@SquaredFineDistanceTo,#what=oDeflectImpact);
+               
+            if iDeflectSpeed = 0
+            {
+               iDeflectSpeed = $;
+            }
+
+            if iDeflectSpeed <> $
+            {
+               iDeflectSpeed = (Sqrt(iDeflectSpeed) / 64) * 2;
+            }
+            Send(oRoom,@SomethingShot,#who=who,#target=oDeflectImpact,#projectile=self,#flags=viProjectileFlag,#iDeflectSpeed=iDeflectSpeed);
+         }
+         else
+         {
+            if oRoom <> $
+            {
+               Send(oRoom,@SomethingShot,#who=who,#target=oTarget,#projectile=self,#flags=viProjectileFlag);
+            }
+         }
+      }
+      else
+      {
+         oRoom = Send(wielder,@GetOwner);
+         if oDeflectImpact <> $
+            AND oRoom <> $
+         {
+            % Don't send to oDeflectImpact, it's not a NoMoveOn!
+            iDeflectSpeed = Send(wielder,@SquaredFineDistanceTo,#what=oDeflectImpact);
+               
+            if iDeflectSpeed = 0
+            {
+               iDeflectSpeed = $;
+            }
+
+            if iDeflectSpeed <> $
+            {
+               iDeflectSpeed = (Sqrt(iDeflectSpeed) / 64) * 2;
+            }
+            Send(oRoom,@SomethingShot,#who=wielder,#target=oDeflectImpact,#projectile=self,#flags=viProjectileFlag,#iDeflectSpeed=iDeflectSpeed);
+         }
+         else
+         {
+            if oRoom <> $
+            {
+               Send(oRoom,@SomethingShot,#who=wielder,#target=oTarget,#projectile=self,#flags=viProjectileFlag);
+            }
+         }
+      }
+
       iDuration = Send(self,@GetDuration,#iSpellPower=iSpellPower,
                         #caster=who,#target=oTarget);
 
@@ -108,17 +191,12 @@ messages:
          }
       }
 
-      if IsClass(oTarget,&Monster)
-         AND Send(oTarget,@GetBlindResistance) <> 0
-      {
-         iDuration = (iDuration * (100-Send(oTarget,@GetBlindResistance)))/100;
-      }
-
-      % Re-check the bound on duration.
-      iDuration = Bound(iDuration,piMinDazzle,piMaxDazzle);
+      iDuration = (iDuration * (100-Send(oTarget,@GetBlindResistance)))/100;
 
       if IsClass(oTarget,&Player)
       {
+         % Re-check the bound on duration.
+         iDuration = Bound(iDuration,piMinDazzle,piMaxDazzle);
          Send(oTarget,@MsgSendUser,#message_rsc=vrEnchantment_On);
          Send(oTarget,@EffectSendUserDuration,#effect=EFFECT_WHITEOUT,
                #duration=iDuration);
@@ -126,7 +204,14 @@ messages:
       else
       {
          % Class is Monster
+         % Re-check the bound on duration.
+         iDuration = Bound(iDuration,piMonsterMinDazzle,piMaxDazzle);
          Post(oTarget,@ResetBehaviorFlags);
+         if Send(oTarget,@GetOwner) <> $
+         {
+            Post(Send(oTarget,@GetOwner),@SomethingChanged,#what=oTarget);
+         }
+         Post(oTarget,@WasBlinded);
       }
 
       Send(what,@MsgSendUser,#message_rsc=vrSuccess,
@@ -185,6 +270,10 @@ messages:
          % Post this so it's done AFTER the enchantment is gone from the
          % monster's ench list
          Post(who,@ResetBehaviorFlags);
+         if Send(who,@GetOwner) <> $
+         {
+            Post(Send(who,@GetOwner),@SomethingChanged,#what=who);
+         }
       }
 
       return;
@@ -226,6 +315,75 @@ messages:
       Send(mob,@SetBehaviorFlag,#flag=AI_NOFIGHT,#value=TRUE);
 
       return;
+   }
+
+   % Return the icon used to display a spell shooting through the air.
+   GetProjectileIcon()
+   {
+      return vrProjectile_Icon;
+   }
+
+   % Return the speed at which a particular spell should appear to shoot through the air.
+   GetProjectileSpeed(who=$, target=$)
+   {
+      local iDist;
+
+      if who <> $
+         AND target <> $
+      {
+         % only NoMoveOns can calculate distances
+         if IsClass(who,&NoMoveOn)
+         {
+            iDist = Send(who,@SquaredFineDistanceTo,#what=target);
+         }
+         else if IsClass(target,&NoMoveOn)
+         {
+            iDist = Send(target,@SquaredFineDistanceTo,#what=who);
+         }
+         else
+         {
+            % Neither is a NoMoveOn? Give up!
+            return viProjectileSpeed;
+         }
+
+         if iDist <> $
+            AND iDist <> 0
+         {
+            iDist = Sqrt(iDist);
+
+            % Check sqrt value for 0
+            if iDist = 0
+            {
+               return viProjectileSpeed;
+            }
+            else
+            {
+               return Bound((iDist / 64) * 2,viProjectileSpeed,$);
+            }
+         }
+      }
+      return viProjectileSpeed;
+   }
+
+   SendProjectileAnimation()
+   {
+      AddPacket(1, ANIMATE_CYCLE, 4, 60, 2, 1, 2, 9);   % 60ms between animations
+      return;
+   }
+
+   GetProjectileLightFlags()
+   {
+      return viProjectileLightFlags;
+   }
+
+   GetProjectileLightIntensity()
+   {
+      return viProjectileLightIntensity;
+   }
+
+   GetProjectileLightColor()
+   {
+      return viProjectileLightColor;
    }
 
 end

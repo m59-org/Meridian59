@@ -1,0 +1,129 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Donate is UtilitySpell
+
+constants:
+   include blakston.khd
+
+resources:
+
+   Donate_name_rsc = "donate"
+   Donate_icon_rsc = iconveyance.bgf
+   Donate_desc_rsc = \
+      "Sends a single item to the donation chest in the Adventurer's Hall of Marion."
+
+   Donate_cant = "You cannot cast donate on %s%s."
+   Donate_not_enough_space = "The adventurer's hall storage does not have enough space!"
+   Donate_not_holding = "You cannot cast donate on an item you are not holding!"
+
+   Donate_cast = "A small portal whips into existence, pulling %s%s to the Adventurer's Hall of Marion."
+
+classvars:
+
+   vrName = Donate_name_rsc
+   vrIcon = Donate_icon_rsc
+   vrDesc = Donate_desc_rsc
+
+   viCast_time = 0
+
+   viSpell_num = SID_DONATE
+   viSpell_level = 1
+   viSchool = SS_KRAANAN
+   viMana = 0
+   viSpellExertion = 0
+   viChance_To_Increase = 15
+   
+   viPrimaryStat = STAT_ID_STAMINA
+   viSecondaryStat = 0
+
+properties:
+
+messages:
+
+   ResetReagents()
+   {
+      plReagents = $;
+
+      return;
+   }
+
+   GetNumSpellTargets()
+   {
+      return 1;
+   }
+
+   CastSpell(who = $, lTargets = $)
+   {
+      local oTarget, oGuild, oHall, i, each_obj, iFee, oMoney, iCash, bDeposited;
+      
+      oTarget = First(lTargets);
+   
+      if IsClass(oTarget,&NumberItem)
+         OR NOT IsClass(oTarget,&Item)
+         OR NOT Send(oTarget,@CanBeStoredInVault)
+      {
+         Send(who,@MsgSendUser,#message_rsc=Donate_cant,
+            #parm1=Send(oTarget,@GetDef),
+            #parm2=Send(oTarget,@GetName));
+
+         return;
+      }
+    
+      if NOT Send(who,@IsHolding,#what=oTarget)
+      {
+         Send(who,@MsgSendUser,#message_rsc=Donate_not_holding);
+         return;
+      }
+
+      if NOT Send(who,@ReqLeaveHold,#what=oTarget)
+      {
+         Send(who,@MsgSendUser,#message_rsc=Donate_cant,
+            #parm1=Send(oTarget,@GetDef),
+            #parm2=Send(oTarget,@GetName));
+         return;
+      }
+
+      bDeposited = FALSE;
+      oHall = Send(SYS,@FindRoomByNum,#num=RID_MAR_HALL);
+      foreach i in Send(oHall,@GetHolderActive)
+      {
+         each_obj = Send(oHall,@HolderExtractObject,#data=i);
+         if (IsClass(each_obj,&Chest)
+            OR IsClass(each_obj,&WoodenBox))
+         {
+            if Send(each_obj,@CanDepositItems,#lItems=lTargets)
+            {
+               Send(each_obj,@NewHold,#what=First(lTargets));
+               bDeposited = TRUE;
+               Send(who,@MsgSendUser,#message_rsc=Donate_cast,
+                        #parm1=Send(First(lTargets),@GetDef),
+                        #parm2=Send(First(lTargets),@GetName));
+               break;
+            }
+         }
+      }
+
+      if NOT bDeposited
+      {
+         Send(who,@MsgSendUser,#message_rsc=Donate_not_enough_space);
+      }
+
+      propagate;
+   }
+
+   SuccessChance(who=$)
+   "Starter spell will always work."
+   {
+      return TRUE;
+   }
+ 
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

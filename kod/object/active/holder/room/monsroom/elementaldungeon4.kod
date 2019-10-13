@@ -1,0 +1,551 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ElementalDungeon4 is MonsterRoom
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   room_name_elementaldungeon4 = "Prism of Acid"
+   room_elementaldungeon4 = prismofacid.roo
+   elementaldungeon4_music = cave.mp3
+   
+   acid_prism_phase_out = \
+      "You phase out of the elemental plane of acid, and are drawn along "
+      "the natural curvature of the region's mana flows. Corroded, but alive, "
+      "you find yourself at a familiar oasis."
+
+   killed_acid_boss_msg = \
+      "~B%s has slain %s%s! Waves of acid surge as the elemental plane of acid "
+      "reacts violently!"
+
+   prism_of_acid_entry_msg = \
+      "Acid bubbles up in massive columns where the pressure has been released "
+      "by the intersection of mortal reality and elemental energies. Watch your step, "
+      "for nothing exists below but an eternal sea of acid and death."
+      
+classvars:
+
+   vrName = room_name_elementaldungeon4
+
+   viTeleport_row = 42
+   viTeleport_col = 41
+
+properties:
+
+   prRoom = room_elementaldungeon4
+   piRoom_num = RID_ELEMENTAL_DUNGEON4
+
+   piBaseLight = LIGHT_MIN
+   piOutside_factor = 0
+
+   prMusic = elementaldungeon4_music
+
+   piGen_time = 30000
+   piGen_percent = 80
+
+   piInit_count_min = 4
+   piInit_count_max = 6
+
+   piMonster_count_max = 25
+   
+   plBossCoordinates = $
+   
+   pbLightsPlaced = FALSE
+
+   ptVictoryTimer = $
+
+   piOverridesDeathFunction = TRUE
+
+messages:
+
+   Constructed()
+   {
+      plMonsters = [ [&XeoAcid, 100] ];
+
+      plGenerators = [ [22, 24], [61, 20], [47, 68], [15, 37], [12,61],
+                       [31, 52], [64, 46], [33, 34], [35, 18] ];
+
+      plBossCoordinates = [22, 64];
+
+      Post(self,@PlaceFirstLights);
+
+      propagate;
+   }
+   
+   FirstUserEntered()
+   {
+      local i;
+      Send(self,@PlaceFirstLights);
+      Post(self,@StartThreat,#cClasses=[&PhaseThreat,&AcidPrismThreat]);
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&XeoBossAcid)
+         {
+            propagate;
+         }
+      }
+      Send(self,@NewHold,#what=Create(&XeoBossAcid),#new_row=25,#new_col=64,#fine_row=3,#fine_col=18);
+      Send(self,@NewHold,#what=Create(&EarthElementalChampion),#new_row=29,#new_col=66,#fine_row=17,#fine_col=22);
+      Send(self,@NewHold,#what=Create(&EarthElementalChampion),#new_row=24,#new_col=68,#fine_row=30,#fine_col=63);
+      propagate;
+   }
+
+   StartThreat(cClasses=$,report=FALSE)
+   {
+      local i;
+
+      % Don't start same threat if one already exists.
+      % Don't start threats with no players present.
+      if pbUser_in_room
+         AND cClasses <> $
+      {
+         foreach i in cClasses
+         {
+            if NOT Send(self,@HasObjectAttribute,#cClass=i)
+            {
+               Create(i,#host_object=self,#iDuration=$,#report=report);
+            }
+         }
+      }
+
+      return;
+   }
+   
+   LastUserLeft()
+   {
+      Send(self,@DeleteLights);
+      Post(self,@EndAllThreats);
+      propagate;
+   }
+   
+   EndAllThreats()
+   {
+      local i;
+      
+      foreach i in plObject_attributes
+      {
+         if IsClass(i,&RoomThreat)
+            OR IsClass(i,&RoomStorm)
+         {
+            Send(i,@Delete);
+         }
+      }
+
+      return;
+   }
+
+   ReqSpellCast(who = $, oSpell = $)
+   {
+      local iQflags, iRflags, iHeightF, iHeightFWD, iHeightC, iServerID;
+
+      if IsClass(oSpell,&DeathRift)
+         OR IsClass(oSpell,&PortalOfLife)
+      {
+         return FALSE;
+      }
+
+      if IsClass(oSpell,&Phase)
+      {
+         if NOT IsClass(who,&Player)
+         {
+            propagate;
+         }
+
+         Post(who,@MsgSendUser,#message_rsc=acid_prism_phase_out);
+         Post(Send(SYS,@FindRoomByNum,#num=RID_WAYLAYOASIS),
+               @Teleport,#what=who);
+         return FALSE;
+      }
+
+      propagate;
+   }
+
+   PlaceFirstLights()
+   {
+      if pbLightsPlaced
+      {
+         return;
+      }
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=42,#new_col=41,#fine_row=19,#fine_col=50);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=40,#new_col=45,#fine_row=40,#fine_col=45);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=41,#new_col=48,#fine_row=35,#fine_col=34);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=40,#new_col=51,#fine_row=6,#fine_col=17);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=36,#new_col=51,#fine_row=36,#fine_col=6);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=34,#new_col=54,#fine_row=49,#fine_col=24);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=34,#new_col=60,#fine_row=54,#fine_col=3);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=30,#new_col=51,#fine_row=0,#fine_col=2);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=31,#new_col=47,#fine_row=40,#fine_col=53);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=35,#new_col=47,#fine_row=26,#fine_col=62);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=36,#new_col=44,#fine_row=47,#fine_col=48);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=34,#new_col=41,#fine_row=50,#fine_col=48);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=37,#new_col=38,#fine_row=9,#fine_col=32);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=38,#new_col=35,#fine_row=46,#fine_col=50);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=42,#new_col=35,#fine_row=27,#fine_col=51);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=43,#new_col=32,#fine_row=59,#fine_col=41);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=41,#new_col=29,#fine_row=47,#fine_col=32);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=47,#new_col=32,#fine_row=10,#fine_col=42);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=48,#new_col=36,#fine_row=48,#fine_col=36);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=47,#new_col=39,#fine_row=11,#fine_col=24);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=48,#new_col=42,#fine_row=44,#fine_col=29);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=47,#new_col=45,#fine_row=12,#fine_col=9);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=48,#new_col=48,#fine_row=57,#fine_col=20);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=47,#new_col=51,#fine_row=3,#fine_col=9);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=43,#new_col=51,#fine_row=26,#fine_col=7);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=41,#new_col=54,#fine_row=51,#fine_col=8);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=43,#new_col=57,#fine_row=45,#fine_col=18);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=41,#new_col=60,#fine_row=47,#fine_col=18);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=39,#new_col=63,#fine_row=55,#fine_col=31);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=37,#new_col=66,#fine_row=62,#fine_col=18);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=28,#new_col=66,#fine_row=8,#fine_col=43);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=27,#new_col=61,#fine_row=52,#fine_col=38);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=24,#new_col=60,#fine_row=26,#fine_col=11);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=21,#new_col=62,#fine_row=1,#fine_col=18);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=21,#new_col=66,#fine_row=0,#fine_col=19);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=32,#new_col=62,#fine_row=60,#fine_col=49);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=29,#new_col=58,#fine_row=33,#fine_col=5);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=49,#new_col=29,#fine_row=29,#fine_col=8);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=33,#new_col=69,#fine_row=15,#fine_col=14);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=23,#new_col=68,#fine_row=61,#fine_col=32);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=255),#new_row=25,#new_col=64,#fine_row=3,#fine_col=18);
+      pbLightsPlaced = TRUE;
+      return;
+   }
+   
+   DeleteLights()
+   {
+      local i;
+      
+      foreach i in plPassive
+      {
+         if IsClass(First(i),&DynamicLight)
+         {
+            Send(First(i),@Delete);
+         }
+      }
+      pbLightsPlaced = FALSE;
+      return;
+   }
+
+   SomethingKilled(what=$,victim=$)
+   {
+      local i;
+
+      if victim <> $
+         AND IsClass(victim,&Monster)
+      {
+         if IsClass(victim,&XeoBossAcid)
+         {
+            foreach i in Send(self,@GetHolderActive)
+            {
+               if IsClass(First(i),&Player)
+               {
+                  Send(First(i),@MsgSendUser,#message_rsc=killed_acid_boss_msg,
+                     #parm1=Send(what,@GetName),#parm2=Send(victim,@GetDef),#parm3=Send(victim,@GetName));
+               }
+            }
+            Send(self,@BossKilled);
+            propagate;
+         }
+      }
+
+      propagate;
+   }
+
+   BossKilled()
+   {
+      local i;
+
+      Send(self,@Rumble,#duration=20000);
+      
+      ptVictoryTimer = CreateTimer(self,@ClosePrismOfAcid,20000);
+
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&Monster)
+         {
+            Send(First(i),@Killed);
+         }
+         
+         if IsClass(First(i),&Player)
+         {
+            Send(First(i),@DefeatedPrismPassiveQuest,#iElement=ATCK_SPELL_ACID);
+         }
+      }
+      return;
+   }
+
+   ClosePrismOfAcid()
+   {
+      local i, oOasis;
+      
+      ptVictoryTimer = $;
+
+      oOasis = Send(SYS,@FindRoomByNum,#num=RID_ACIDPATH);
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&Player)
+         {
+            Send(oOasis,@Teleport,#what=First(i));
+         }
+      }
+      
+      
+      Send(Send(SYS,@FindRoomByNum,#num=RID_MAZE_EXIT_ROOM),@OpenAcidWall);
+      
+      Post(oOasis,@PrismOfAcidDefeated);
+      
+      return;
+   }
+
+   NewHold(what = $,new_row=$,new_col=$)
+   "Prevents anyone from logging on into a special zone"
+   {
+      % If players log on, send them elsewhere.
+      if IsClass(what,&User)
+      {
+         if Send(what,@GetOwner) = $
+         {
+            Post(Send(SYS,@FindRoomByNum,#num=RID_WAYLAYOASIS),@Teleport,#what=what);
+         }
+         else
+         {
+            Post(what,@MsgSendUser,#message_rsc=prism_of_acid_entry_msg);
+         }
+      }
+
+      propagate;
+   }
+
+   Delete()
+   {
+      local i, oThing;
+
+      foreach i in Send(self,@GetHolderPassive)
+      {
+         oThing = Send(self,@HolderExtractObject,#data=i);
+         if IsClass(oThing,&DeadBody)
+            AND NOT Send(oThing,@GetPbMob)
+         {
+            % is a player corpse! Let's move it.
+            Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTDUNES),@Teleport,#what=oThing);
+         }
+      }
+
+      if ptVictoryTimer <> $
+      {
+         DeleteTimer(ptVictoryTimer);
+         ptVictoryTimer = $;
+      }
+      propagate;
+   }
+   
+   OverrideDeathFunction(who=$,what=$,stroke_obj=$)
+   {
+      local oAfterlife, bDrop, oRoom, iRow, iCol, iFine_Row, iFine_Col, iAngle, iRoom,
+            oBody, lReagentBagContents, lInventoryContents, lItems, i, oSoldierShield;
+
+      Send(who,@ClearStance);
+
+      % Stop any rescue attempts that were going on.
+      Send(who,@CancelRescue);
+      Send(who,@RemoveAllEnchantments,#report=FALSE);
+      
+      Send(who,@SetDeathTime,#iTime=GetTime());
+
+      % Grab the location of the deceased.
+      % Might need to grab the old location if logged off.
+
+      if Send(who,@IsLoggedOn)
+      {
+         oRoom = Send(who,@GetOwner);
+         iRow = Send(who,@GetRow);
+         iCol = Send(who,@GetCol);
+         iFine_Row = Send(who,@GetFineRow);
+         iFine_Col = Send(who,@GetFineCol);
+         iAngle = Send(who,@GetAngle);
+         iRoom = Send(Send(who,@GetOwner),@GetRoomNum);
+      }
+      else
+      {
+         iRoom = Send(who,@GetSaveRoom);
+         oRoom = Send(SYS,@FindRoomByNum,#num=iRoom);
+         iRow = Send(who,@GetSaveRow);
+         iCol = Send(who,@GetSaveCol);
+         iFine_Row = Send(who,@GetSaveFineRow);
+         iFine_Col = Send(who,@GetSaveFineCol);
+         iAngle = Send(who,@GetSaveAngle);
+      }
+
+      % Record-keeping. Keep this before the token check,
+      % so we can give proper message.
+      Send(SYS,@UserKilled,#what=who,#killer=what,#oRoom=oRoom,#stroke_obj=stroke_obj);
+      Send(Send(SYS,@GetStatistics),@PlayerDiedCounter);
+
+      % Create the corpse.
+      if what <> $
+         AND IsClass(what,&User)
+      {
+         oBody = Send(who,@CreateCorpse,#oPlayerKiller=what);
+      }
+      else
+      {
+         oBody = Send(who,@CreateCorpse);
+      }
+      Send(who,@AddCorpse,#corpse=oBody);
+
+      Send(oRoom,@NewHold,#what=oBody,#new_row=iRow,#new_col=iCol,
+            #fine_row=iFine_Row,#fine_col=iFine_Col,#new_angle=iAngle);
+
+      bDrop = TRUE;
+      % Start losing stuff if applicable.
+      if bDrop
+      {
+         lReagentBagContents = Send(who,@GetReagentBagContents);
+         if lReagentBagContents <> $
+         {
+            lInventoryContents = [Send(who,@GetHolderActive),Send(who,@GetHolderPassive),lReagentBagContents];
+         }
+         else
+         {
+            lInventoryContents = [Send(who,@GetHolderActive),Send(who,@GetHolderPassive)];
+         }
+
+         foreach lItems in lInventoryContents
+         {
+            foreach i in lItems
+            {
+               % Let the item know we died, in case it does something special.
+               Send(i,@OwnerKilled);
+
+               if Send(i,@DropOnDeath)
+               {
+                  if Send(oRoom,@ReqNewHold,#what=i,#new_row=iRow,#new_col=iCol)
+                  {
+                     Send(oBody,@NewHold,#what=i);
+                  }
+               }
+            }
+         }
+
+         Post(who,@EvaluatePKStatus);
+
+         % Let SoldierShields know we died. It handles itself as appropriate.
+         oSoldierShield = Send(who,@FindUsing,#what=&SoldierShield);
+         if oSoldierShield <> $
+         {
+            Send(oSoldierShield,@OwnerDied,#what=what);
+         }
+      }
+
+      % Give out your dying scream.
+      if Send(who,@GetGender) = GENDER_FEMALE
+      {
+         i = Send(who,@GetFemaleDeathWav);
+      }
+      else
+      {
+         i = Send(who,@GetMaleDeathWav);
+      }
+
+      Send(oRoom,@SomethingWaveRoom,#what=oBody,#wave_rsc=i);
+      if Send(who,@IsLoggedOn)
+      {
+         Send(who,@WaveSendUser,#what=who,#wave_rsc=i);
+      }
+
+      Send(who,@SetHealth,#amount=1);
+
+      Send(who,@NewHealth);
+      Send(who,@NewMana);
+      Send(who,@NewVigor);
+      
+      Send(who,@SetDeathCost,#DeathCost=Send(Send(SYS,@GetDesertRoomMaintenance),@GetDeathCost),#bOverride=TRUE);
+      Send(who,@ApplyDeathPenalties);
+
+      % Refresh the client with what's really going on.
+      if Send(who,@IsLoggedOn)
+      {
+         Send(who,@ToCliStats,#group=1);
+         Send(who,@ToCliStats,#group=2);
+         Send(who,@ToCliStats,#group=3);
+         Send(who,@ToCliStats,#group=4);
+
+         % Wake up with red foggy hangover.
+         Send(who,@EffectSendUserDuration,#effect=EFFECT_PAIN,#duration=5000);
+      }
+      
+      oAfterlife = Send(SYS,@FindRoomByNum,#num=RID_DESERTALDUNES);
+      Send(oAfterlife,@Teleport,#what=who);
+      return;
+   }
+
+   OverridesDeathAllowPhasing()
+   {
+      return TRUE;
+   }
+
+   SpecialPhaseConditionsSatisfied(sector=0)
+   {
+      return TRUE;
+   }
+
+   GetRegion()
+   {
+      return RID_DESERT;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

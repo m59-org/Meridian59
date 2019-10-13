@@ -49,6 +49,7 @@ resources:
       "of %d uses with %d power."
    spellitem_cannot_use_yet = "You cannot use that item yet."
    spellitem_disabled = "This item is currently disabled."
+   spellitem_need_mana = "You don't have enough mana!"
 
 classvars:
 
@@ -184,7 +185,7 @@ messages:
 
    ReqNewApply(what=$,apply_on=$)
    {
-      local iPostCastDelay, oSpell;
+      local iPostCastDelay, oSpell, iManaCost;
 
       if vbDisabled
       {
@@ -212,6 +213,17 @@ messages:
             Send(what,@MsgSendUser,#message_rsc=spellitem_disabled);
 
             return FALSE;
+         }
+
+         if Send(SETTINGS_OBJECT,@GetSpellItemManaCostsEnabled)
+            OR IsClass(self,&Wand)
+         {
+            iManaCost = Send(oSpell,@GetManaCost,#who=what,#iSpellPower=piSpellPower,#lTargets=[apply_on]);
+            if Send(what,@GetMana) < iManaCost
+            {
+               Send(what,@MsgSendUser,#message_rsc=spellitem_need_mana);
+               return FALSE;
+            }
          }
 
          iPostCastDelay = Send(oSpell,@GetPostCastDelay);
@@ -274,9 +286,12 @@ messages:
                            #byClass=&AntiMagicAura);
       if lRadiusState <> $
       {
-         iSpellPower = Send(First(lRadiusState),@ModifySpellpower,#who=poOwner,
+         if IsClass(self,&Wand)
+         {
+            iSpellPower = Send(First(lRadiusState),@ModifySpellpower,#who=poOwner,
                               #oSpell=oSpell,#state=lRadiusState,
                               #iSpellPower=iSpellPower);
+         }
       }
 
       % Mana convergence adds spellpower.
@@ -290,13 +305,13 @@ messages:
       }
 
       % Owner of spellitem being demented reduces item spellpower.
-      oModifierSpell = Send(SYS,@FindSpellByNum,#num=SID_DEMENT);
-      if Send(poOwner,@IsEnchanted,#what=oModifierSpell)
-      {
-         iSPLoss = First(Send(poOwner,@GetEnchantedState,#what=oModifierSpell));
-         iSPLoss = Random(iSPLoss, iSPLoss * 2);
-         iSpellPower = iSpellPower - iSPLoss;
-      }
+%      oModifierSpell = Send(SYS,@FindSpellByNum,#num=SID_DEMENT);
+%      if Send(poOwner,@IsEnchanted,#what=oModifierSpell)
+%      {
+%         iSPLoss = First(Send(poOwner,@GetEnchantedState,#what=oModifierSpell));
+%         iSPLoss = Random(iSPLoss, iSPLoss * 2);
+%         iSpellPower = iSpellPower - iSPLoss;
+%      }
 
       iSpellPower = Bound(iSpellPower, SPELLPOWER_MINIMUM, SPELLPOWER_MAXIMUM);
 
@@ -308,6 +323,11 @@ messages:
                    OR Send(Send(what,@GetOwner),@ReqSomethingAttack,#what=what,
                             #victim=apply_on)) )
       {
+         if Send(SETTINGS_OBJECT,@GetSpellItemManaCostsEnabled)
+            OR IsClass(self,&Wand)
+         {
+            Send(what,@LoseMana,#amount=Send(oSpell,@GetManaCost,#who=what,#iSpellPower=iSpellPower,#lTargets=[apply_on]));
+         }
          Send(oSpell,@CastSpell,#who=poOwner,#lTargets=lTargets,
                #iSpellPower=iSpellPower,#bItemCast=TRUE);
       }
@@ -412,6 +432,13 @@ messages:
    {
       % Cast the spell specific to the Spellitem
       Send(self,@CastSpell,#what=what,#apply_on=apply_on);
+
+      if IsClass(self,&Potion)
+         AND Send(apply_on,@HasSkill,#num=SKID_POTION_PRESERVATION)
+         AND Send(Send(SYS,@FindSkillByNum,#num=SKID_POTION_PRESERVATION),@DoSkill,#who=apply_on,#oPotion=self)
+      {
+         return;
+      }
 
       Send(self,@SetHits,#number=piHits - 1);
 

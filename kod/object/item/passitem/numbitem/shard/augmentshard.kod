@@ -66,7 +66,13 @@ messages:
          AND (IsClass(apply_on,&Weapon)
             OR IsClass(apply_on,&DefenseModifier)
             OR IsClass(apply_on,&Ring)
-            OR IsClass(apply_on,&Gauntlet))
+            OR IsClass(apply_on,&Gauntlet)
+            OR IsClass(apply_on,&NecromancerAmulet)
+            OR IsClass(apply_on,&Necklace)
+            OR IsClass(apply_on,&Instrument)
+            OR IsClass(apply_on,&JewelofFroz)
+            OR IsClass(apply_on,&AdventurerCrest)
+            OR IsClass(apply_on,&ScryingCrystal))
       {
          % This shard only applies to gear with one mod
          if Send(apply_on,@GetMagicModsNumber) = 1
@@ -84,7 +90,10 @@ messages:
 
    NewApplied(what = $,apply_on = $)
    {
-      Send(apply_on,@AddMagicMods,#min_num_mods=1,#max_num_mods=1);
+      if Send(self,@GenerateMod,#oItem=apply_on,#who=what) = 1
+      {
+         Send(self,@SubtractNumber,#number=1);
+      }
 
       propagate;
    }

@@ -1,0 +1,136 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+GiftOfSpirit is Spell
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   gift_of_spirit_name_rsc = "gift of spirit"
+   gift_of_spirit_icon_rsc = imanabom.bgf
+   gift_of_spirit_desc_rsc = \
+      "Initiates a burst which burns the "
+      "caster's mana and gives it to his or her minions.  "
+      "Requires two sapphires to cast."
+
+   gift_of_spirit_cast = "%s%s's mana burns brightly!"
+   
+   no_minions = \
+      "You have no minions to receive your gift of spirit!"
+   
+   minion_gained_mana = \
+      "Your %s minion gained ~B~b%i~n mana!"
+
+   gift_of_spirit_sound = kmbomb.wav
+
+classvars:
+
+   vrName = gift_of_spirit_name_rsc
+   vrIcon = gift_of_spirit_icon_rsc
+   vrDesc = gift_of_spirit_desc_rsc
+
+   viSpell_num = SID_GIFT_OF_SPIRIT
+   viMana = 0
+   viSchool = SS_BESTIARY
+   viSpell_level = 4
+
+   viHarmful = FALSE
+   viOutlaw = FALSE
+   viNoNewbieOffense = FALSE
+   viMeditate_ratio = 30
+
+   vrSucceed_wav = gift_of_spirit_sound
+   
+   vbSafetyReport = FALSE
+   
+   viPrimaryStat = STAT_ID_INTELLECT
+   viSecondaryStat = 0
+
+properties:
+
+messages:
+
+   ResetReagents()
+   {
+      plReagents = $;
+      plReagents = Cons([&Sapphire,2],plReagents);
+
+      return;
+   }
+
+   GetNumSpellTargets()
+   {
+      return 0;
+   }
+
+   CanPayCosts(who = $, lTargets = $)
+   {
+      local lMinions;
+
+      %% We need to do our own check rather than use the one in spell.kod.
+      if IsClass(who,&Player) AND Send(who,@GetMana) < 12
+      {
+         Send(who,@WaveSendUser,#wave_rsc=spell_fail_wav);
+         Send(who,@MsgSendUser,#message_rsc=spell_insufficient_magic,
+               #parm1=vrName);
+
+         return FALSE;
+      }
+
+      lMinions = Send(who,@GetControlledMinions);
+      
+      if lMinions = $
+      {
+         Send(who,@MsgSendUser,#message_rsc=no_minions);
+         return FALSE;
+      }
+
+      propagate;
+   }
+
+   CastSpell(who = $, lTargets = $, iSpellpower = 0)
+   {
+      local oRoom, iMana, i, lMinions, iManaGained;
+
+      % Take mana from caster.
+      iMana = Send(who,@GetMana);
+      Send(who,@LoseMana,#amount=iMana);
+
+      % Send message to all in room.
+      oRoom = Send(who,@GetOwner);
+      Send(oRoom,@SomeoneSaid,#type=SAY_MESSAGE,#string=gift_of_spirit_cast,
+           #what=who,#parm1=Send(who,@GetCapDef),#parm2=Send(who,@GetName));
+
+      % Half the gain comes from caster mana, half from caster spellpower.
+      iMana = iMana / 2;
+      iMana = iMana + (iMana * iSpellPower)/100;
+
+      lMinions = Send(who,@GetControlledMinions);
+      
+      if lMinions = $
+      {
+         Send(who,@MsgSendUser,#message_rsc=no_minions);
+         propagate;
+      }
+
+      foreach i in lMinions
+      {
+         iManaGained = Send(i,@GainMana,#amount=iMana/Length(lMinions),#bCapped=TRUE);
+         Send(who,@MsgSendUser,#message_rsc=minion_gained_mana,#parm1=Send(i,@GetTrueName),#parm2=iManaGained);
+      }
+
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

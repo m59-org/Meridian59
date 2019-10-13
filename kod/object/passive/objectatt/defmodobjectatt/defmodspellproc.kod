@@ -17,6 +17,8 @@ constants:
    SELF_CAST_TYPE = 1
    ATTACKER_CAST_TYPE = 2
    NO_TARGET_CAST_TYPE = 3
+   
+   MAZE_WEAPON_SPELL_PROC_PROFILE = 10
 
 resources:
 
@@ -39,20 +41,20 @@ classvars:
 
 properties:
 
-   poSpell = $
+   piSpellNum = $
    piType = SELF_CAST_TYPE
    piSpellPower = 70
    piProcChance = 15
 
 messages:
 
-   Constructor(host_object=$,set_spell=$,set_type=1,set_spellpower=1,set_proc_chance=0)
+   Constructor(host_object=$,set_spell=$,set_type=1,set_spellpower=1,set_proc_chance=0,use_profile=MAZE_WEAPON_SPELL_PROC_PROFILE)
    {
-      local iRandomSpell;
+      local iRandomRoll, lProfile, i;
 
       if set_spell <> $
       {
-         poSpell = set_spell;
+         piSpellNum = set_spell;
          piType = set_type;
          piSpellPower = set_spellpower;
          piProcChance = set_proc_chance;
@@ -64,200 +66,63 @@ messages:
          propagate;
       }
 
-      iRandomSpell = Random(1,100);
-
-      if IsClass(host_object,&Shield)
+      % Profile of format [[chance roll >=, chance roll <=, SID, type, min power roll, max power roll, min proc chance roll, max proc chance roll], CLASS ...]
+      lProfile = $;
+      Switch(use_profile)
       {
-         if iRandomSpell < 25
-         {
-            poSpell = Send(SYS,@FindSpellByNum,#num=SID_MAGIC_SHIELD);
-            piType = Random(1,2);
-            piSpellPower = Random(1,99);
-            piProcChance = Random(10,20);
-            propagate;
-         }
-         if iRandomSpell < 50
-         {
-            poSpell = Send(SYS,@FindSpellByNum,#num=SID_DEFLECT);
-            piType = Random(1,2);
-            piSpellPower = Random(1,99);
-            piProcChance = Random(15,25);
-            propagate;
-         }
-         if iRandomSpell < 75
-         {
-            poSpell = Send(SYS,@FindSpellByNum,#num=SID_BLINK);
-            piType = 3;
-            piSpellPower = Random(1,99);
-            piProcChance = Random(5,20);
-            propagate;
-         }
-         if iRandomSpell <= 100
-         {
-            poSpell = Send(SYS,@FindSpellByNum,#num=SID_CURE_POISON);
-            piType = 1;
-            piSpellPower = Random(1,99);
-            piProcChance = Random(20,45);
-            propagate;
-         }
+         case MAZE_WEAPON_SPELL_PROC_PROFILE:
+            lProfile = [[0,   25,  SID_MAGIC_SHIELD,        Random(1,2), 1, 99, 10, 20, &Shield],
+                        [26,  50,  SID_DEFLECT,             Random(1,2), 1, 99, 5,  15, &Shield],
+                        [51,  75,  SID_BLINK,                         3, 1, 99, 1,   5, &Shield],
+                        [76, 100,  SID_CURE_POISON,                   1, 1, 99, 5,  15, &Shield],
+                        
+                        [0,   50,  SID_HASTE,               Random(1,2), 1, 99, 1,   3, &Pants],
+                        [51,  99,  SID_REMOVE_CURSE,                  1, 1, 99, 1,   3, &Pants],
+                        [100,100,  SID_SPIRITUAL_HAMMER,              1, 1, 99, 1,   1, &Pants],
+                        
+                        [0,   50,  SID_NIGHT_VISION,        Random(1,2), 1, 99, 1,   3, &Helmet],
+                        [51,  75,  SID_EAGLE_EYES,          Random(1,2), 1, 99, 1,   3, &Helmet],
+                        [76,  99,  SID_DETECT_INVISIBLE,    Random(1,2), 1, 99, 1,   3, &Helmet],
+                        [100,100,  SID_DISPEL_ILLUSION,               3, 1, 99, 1,   3, &Helmet],
+                        
+                        [0,   45,  SID_SHADOW_FORM,         Random(1,2), 1, 99, 1,  10, &Armor],
+                        [46,  55,  SID_RESIST_ACID,         Random(1,2), 1, 99, 1,  10, &Armor],
+                        [56,  65,  SID_RESIST_COLD,         Random(1,2), 1, 99, 1,  10, &Armor],
+                        [66,  75,  SID_RESIST_FIRE,         Random(1,2), 1, 99, 1,  10, &Armor],
+                        [76,  85,  SID_RESIST_SHOCK,        Random(1,2), 1, 99, 1,  10, &Armor],
+                        [86,  95,  SID_FREE_ACTION,         Random(1,2), 1, 99, 1,  15, &Armor],
+                        [95, 100,  SID_ARMOR_OF_GORT,       Random(1,2), 1, 99, 1,   5, &Armor],
+                        
+                        [0,   33,  SID_SUPER_STRENGTH,      Random(1,2), 1, 99, 1,   6, &Shirt],
+                        [34,  66,  SID_BLESS,               Random(1,2), 1, 99, 1,   6, &Shirt],
+                        [67, 100,  SID_RESIST_POISON,                 1, 1, 99, 1,  10, &Shirt]
+                        ];
+                        
+            break;
       }
-
-      if IsClass(host_object,&Pants)
+      
+      if lProfile = $
       {
-         if iRandomSpell < 50
-         {
-            poSpell = Send(SYS,@FindSpellByNum,#num=SID_HASTE);
-            piType = Random(1,2);
-            piSpellPower = Random(1,99);
-            piProcChance = Random(1,3);
-            propagate;
-         }
-         if iRandomSpell < 100
-         {
-            poSpell = Send(SYS,@FindSpellByNum,#num=SID_REMOVE_CURSE);
-            piType = 1;
-            piSpellPower = Random(1,99);
-            piProcChance = Random(1,3);
-            propagate;
-         }
-         if iRandomSpell = 100
-         {
-            poSpell = Send(SYS,@FindSpellByNum,#num=SID_SPIRITUAL_HAMMER);
-            piType = 3;
-            piSpellPower = Random(1,99);
-            piProcChance = Random(1,3);
-            propagate;
-         }
+         Post(self,@Delete);
+         propagate;
       }
-
-      if IsClass(host_object,&Helmet)
+      
+      iRandomRoll = Random(1,100);
+      
+      foreach i in lProfile
       {
-         if iRandomSpell < 25
+         if host_object <> $
+            AND IsClass(host_object,Nth(i,9))
          {
-            poSpell = Send(SYS,@FindSpellByNum,#num=SID_DETECT_INVISIBLE);
-            piType = 1;
-            piSpellPower = Random(1,99);
-            piProcChance = Random(5,15);
-            propagate;
-         }
-         if iRandomSpell < 50
-         {
-            poSpell = Send(SYS,@FindSpellByNum,#num=SID_EAGLE_EYES);
-            piType = Random(1,2);
-            piSpellPower = Random(1,99);
-            piProcChance = Random(5,15);
-            propagate;
-         }
-         if iRandomSpell < 75
-         {
-            poSpell = Send(SYS,@FindSpellByNum,#num=SID_NIGHT_VISION);
-            piType = 1;
-            piSpellPower = 99;
-            piProcChance = Random(5,20);
-            propagate;
-         }
-         if iRandomSpell <= 100
-         {
-            poSpell = Send(SYS,@FindSpellByNum,#num=SID_DISPEL_ILLUSION);
-            piType = 3;
-            piSpellPower = Random(1,99);
-            piProcChance = Random(1,5);
-         }
-      }
-
-      if IsClass(host_object,&Armor)
-      {
-         if iRandomSpell < 35
-         {
-            poSpell = Send(SYS,@FindSpellByNum,#num=SID_SHADOW_FORM);
-            piType = Random(1,2);
-            piSpellPower = Random(1,99);
-            piProcChance = Random(10,20);
-            propagate;
-         }
-         if iRandomSpell < 45
-         {
-            poSpell = Send(SYS,@FindSpellByNum,#num=SID_RESIST_ACID);
-            piType = Random(1,2);
-            piSpellPower = Random(1,99);
-            piProcChance = Random(5,10);
-            propagate;
-         }
-         if iRandomSpell < 55
-         {
-            poSpell = Send(SYS,@FindSpellByNum,#num=SID_RESIST_COLD);
-            piType = Random(1,2);
-            piSpellPower = Random(1,99);
-            piProcChance = Random(5,10);
-            propagate;
-         }
-         if iRandomSpell < 65
-         {
-            poSpell = Send(SYS,@FindSpellByNum,#num=SID_RESIST_FIRE);
-            piType = Random(1,2);
-            piSpellPower = Random(1,99);
-            piProcChance = Random(5,10);
-            propagate;
-         }
-         if iRandomSpell < 75
-         {
-            poSpell = Send(SYS,@FindSpellByNum,#num=SID_RESIST_SHOCK);
-            piType = Random(1,2);
-            piSpellPower = Random(1,99);
-            piProcChance = Random(5,10);
-            propagate;
-         }
-         if iRandomSpell < 95
-         {
-            poSpell = Send(SYS,@FindSpellByNum,#num=SID_FREE_ACTION);
-            piType = Random(1,2);
-            piSpellPower = Random(1,99);
-            piProcChance = Random(5,15);
-            propagate;
-         }
-         if iRandomSpell < 100
-         {
-            poSpell = Send(SYS,@FindSpellByNum,#num=SID_EARTHQUAKE);
-            piType = NO_TARGET_CAST_TYPE;
-            piSpellPower = Random(1,99);
-            piProcChance = Random(5,10);
-            propagate;
-         }
-         if iRandomSpell = 100
-         {
-            poSpell = Send(SYS,@FindSpellByNum,#num=SID_ARMOR_OF_GORT);
-            piType = SELF_CAST_TYPE;
-            piSpellPower = Random(1,99);
-            piProcChance = Random(1,5);
-            propagate;
-         }
-      }
-
-      if IsClass(host_object,&Shirt)
-      {
-         if iRandomSpell < 33
-         {
-            poSpell = Send(SYS,@FindSpellByNum,#num=SID_SUPER_STRENGTH);
-            piType = Random(1,2);
-            piSpellPower = Random(1,99);
-            piProcChance = Random(3,6);
-            propagate;
-         }
-         if iRandomSpell < 66
-         {
-            poSpell = Send(SYS,@FindSpellByNum,#num=SID_BLESS);
-            piType = Random(1,2);
-            piSpellPower = Random(1,99);
-            piProcChance = Random(3,6);
-            propagate;
-         }
-         if iRandomSpell <= 100
-         {
-            poSpell = Send(SYS,@FindSpellByNum,#num=SID_RESIST_POISON);
-            piType = 1;
-            piSpellPower = Random(1,99);
-            piProcChance = Random(6,10);
-            propagate;
+            if iRandomRoll >= Nth(i,1)
+               AND iRandomRoll <= Nth(i,2)
+            {
+               piSpellNum = Nth(i,3);
+               piType = Nth(i,4);
+               piSpellPower = Random(Nth(i,5),Nth(i,6));
+               piProcChance = Random(Nth(i,7),Nth(i,8));
+               propagate;
+            }
          }
       }
 
@@ -266,7 +131,7 @@ messages:
 
    GetSpell()
    {
-      return poSpell;
+      return Send(SYS,@FindSpellByNum,#num=piSpellNum);
    }
 
    GetType()
@@ -286,7 +151,7 @@ messages:
 
    ModifyDefenseDamage(who = $,what = $,damage = $,atype = 0,aspell = 0)
    {
-      local i, each_obj, oRoom;
+      local i, each_obj, oRoom, oSpell;
 
       if who = $
       {
@@ -295,11 +160,17 @@ messages:
 
       oRoom = Send(who,@GetOwner);
 
-      if poSpell <> $
+      if piSpellNum <> $
          AND Random(1,100) <= piProcChance
       {
+         oSpell = Send(SYS,@FindSpellByNum,#num=piSpellNum);
+         if oSpell = $
+         {
+            return damage;
+         }
+
          if piType = SELF_CAST_TYPE
-            AND NOT Send(who,@IsEnchanted,#what=poSpell)
+            AND NOT Send(who,@IsEnchanted,#what=oSpell)
          {
             foreach i in Send(oRoom,@GetHolderActive)
             {
@@ -309,7 +180,7 @@ messages:
                {
                   Post(each_obj,@MsgSendUser,#message_rsc=defmod_proc,
                         #parm1=Send(Send(self,@GetHostObject),@GetName),
-                        #parm2=Send(who,@GetName),#parm3=Send(poSpell,@GetName),
+                        #parm2=Send(who,@GetName),#parm3=Send(oSpell,@GetName),
                         #parm4=Send(who,@GetHimHer));
                }
                if IsClass(each_obj,&Player)
@@ -317,10 +188,10 @@ messages:
                {
                   Post(each_obj,@MsgSendUser,#message_rsc=defmod_proc_you,
                         #parm1=Send(Send(self,@GetHostObject),@GetName),
-                        #parm2=Send(poSpell,@GetName));
+                        #parm2=Send(oSpell,@GetName));
                }
             }
-            Post(poSpell,@CastSpell,#who=who,#ltargets=[who],
+            Post(oSpell,@CastSpell,#who=who,#ltargets=[who],
                   #iSpellPower=piSpellPower,#bItemCast=TRUE);
          }
 
@@ -339,7 +210,7 @@ messages:
                {
                   Post(each_obj,@MsgSendUser,#message_rsc=defmod_proc,
                         #parm1=Send(Send(self,@GetHostObject),@GetName),
-                        #parm2=Send(who,@GetName),#parm3=Send(poSpell,@GetName),
+                        #parm2=Send(who,@GetName),#parm3=Send(oSpell,@GetName),
                         #parm4=Send(what,@GetName));
                }
                if IsClass(each_obj,&Player)
@@ -347,11 +218,11 @@ messages:
                {
                   Post(each_obj,@MsgSendUser,#message_rsc=defmod_proc_them,
                         #parm1=Send(Send(self,@GetHostObject),@GetName),
-                        #parm2=Send(poSpell,@GetName),
+                        #parm2=Send(oSpell,@GetName),
                         #parm3=Send(what,@GetName));
                }
             }
-            Post(poSpell,@CastSpell,#who=who,#ltargets=[what],
+            Post(oSpell,@CastSpell,#who=who,#ltargets=[what],
                   #iSpellPower=piSpellPower,#bItemCast=TRUE);
          }
 
@@ -366,18 +237,18 @@ messages:
                {
                   Post(each_obj,@MsgSendUser,#message_rsc=defmod_proc,
                         #parm1=Send(Send(self,@GetHostObject),@GetName),
-                        #parm2=Send(who,@GetName),#parm3=Send(poSpell,@GetName));
+                        #parm2=Send(who,@GetName),#parm3=Send(oSpell,@GetName));
                }
                if IsClass(each_obj,&Player)
                   AND each_obj = who
                {
                   Post(each_obj,@MsgSendUser,#message_rsc=defmod_proc_nobody,
                         #parm1=Send(Send(self,@GetHostObject),@GetName),
-                        #parm2=Send(poSpell,@GetName));
+                        #parm2=Send(oSpell,@GetName));
                }
             }
-            Post(poSpell,@CastSpell,#who=who,
-                  #ltargets=Send(poSpell,@GetTargets,#who=who),
+            Post(oSpell,@CastSpell,#who=who,
+                  #ltargets=Send(oSpell,@GetTargets,#who=who),
                   #iSpellPower=piSpellPower,#bItemCast=TRUE);
          }
       }
@@ -391,6 +262,7 @@ messages:
 
       target_type = Send(self,@GetType);
       if target_type = 1
+         OR target_type = 3
       {
          AddPacket(4,defspellproc_attribute_desc, 4,Send(poHostObject,@GetName),
                    4,Send(Send(self,@GetSpell),@GetName),4,def_attribute_self_rsc,

@@ -8,6 +8,6 @@ DEPEND = ..\resistancemod.bof
 BOFS = fireresistmod.bof coldresistmod.bof shockresistmod.bof \
        acidresistmod.bof holyresistmod.bof unholyresistmod.bof \
        pierceresistmod.bof slashresistmod.bof bludgeonresistmod.bof \
-       quakeresistmod.bof
+       quakeresistmod.bof thrustresistmod.bof
 
 !include $(KODDIR)\kod.mak

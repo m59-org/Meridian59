@@ -1,0 +1,163 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+DeflectImpact is DynamicLight
+
+% This is the animation for a spell impact against a barrier.
+% An actual object must exist for SomethingShot on the client side.
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   DeflectImpact_name = "Magical impact"
+   DeflectImpact_desc = "Magical energies clash at this spot in the air!"
+
+   DeflectImpact_icon = deflectimpact.bgf
+   DeflectImpact_visible_icon = deflectimpact.bgf
+
+classvars:
+
+   vrName = DeflectImpact_name
+   vrDesc = DeflectImpact_desc
+
+   viObject_flags = OF_NOEXAMINE
+
+   % Definitions for animations
+   viOff_frame = 1
+   viStart_frame = 1
+   viEnd_frame = 5
+
+properties:
+
+   vrIcon = DeflectImpact_icon
+
+   % What flags?  Default is the "yes, I'm a light" flag.
+   viLightFlags = LIGHT_FLAG_ON
+
+   % What intensity? from 0-255
+   piLightIntensity = 125
+
+   % What color?  Default is pure white.
+   viLightColor = LIGHT_BBLUE
+
+   piAnim_speed = 100
+   
+   ptExpireTimer = $
+   
+   % We store a spell and a caster to reflect back on at the end of our duration
+   poSpell = $
+   poCaster = $
+
+messages:
+
+   Constructor(iFlags = LIGHT_FLAG_ON, iIntensity = 255, iColor = LIGHT_BWHITE,
+               bVisible=FALSE, iDuration=500, oSpell=$, oCaster=$)
+   {
+      if bVisible
+      {
+         vrIcon = DeflectImpact_visible_icon;
+      }
+
+      Post(self,@SetLight,#iFlags=iFlags,#iIntensity=iIntensity,#iColor=iColor);
+
+      ptExpireTimer = CreateTimer(self,@EndDeflectImpact,iDuration);
+      poSpell = oSpell;
+      poCaster = oCaster;
+      propagate;
+   }
+
+   SetAnimationSpeed()
+   {
+      % Does not animate
+      piAnim_speed = 100;
+
+      return;
+   }
+   
+   EndDeflectImpact()
+   {
+      local iDeflectSpeed;
+
+      ptExpireTimer = $;
+
+      if poOwner <> $
+         AND poSpell <> $
+         AND poCaster <> $
+      {
+         % Don't send to oDeflectImpact, it's not a NoMoveOn!
+         iDeflectSpeed = Send(poCaster,@SquaredFineDistanceTo,#what=self);
+
+         if iDeflectSpeed <> $
+            AND iDeflectSpeed <> 0
+         {
+            iDeflectSpeed = Sqrt(iDeflectSpeed);
+            
+            if iDeflectSpeed <> 0
+            {
+               iDeflectSpeed = (iDeflectSpeed / 64) * 2;
+            }
+         }
+         Send(poOwner,@SomethingShot,#who=self,#target=poCaster,#projectile=poSpell,#flags=Send(poSpell,@GetProjectileFlag),#iDeflectSpeed=Bound(iDeflectSpeed,1,$));
+      }
+
+      Send(self,@Delete);
+      return;
+   }
+
+   Delete()
+   {
+      if ptExpireTimer <> $
+      {
+         DeleteTimer(ptExpireTimer);
+         ptExpireTimer = $;
+      }
+
+      poSpell = $;
+      poCaster = $;
+
+      propagate;
+   }
+
+   SetVisible(value = $)
+   {
+      % Nil means toggle
+
+      if (value = $ AND vrIcon = DeflectImpact_icon)
+         OR (value <> $ AND value)
+      {
+         vrIcon = DeflectImpact_visible_icon;
+      }
+      else
+      {
+         if (value = $ AND vrIcon <> DeflectImpact_icon)
+            OR (value <> $ AND NOT value)
+         {
+            vrIcon = DeflectImpact_icon;
+         }
+      }
+
+      if poOwner <> $
+      {
+         Send(poOwner,@SomethingChanged,#what=self);
+      }
+
+      return;
+   }
+
+   GetObjectFlags()
+   {
+      return viObject_flags;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

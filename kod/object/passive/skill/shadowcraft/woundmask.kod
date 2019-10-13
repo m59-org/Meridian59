@@ -1,0 +1,79 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+WoundMask is ShadowcraftSkill
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   Wound_Mask_name_rsc = "wound mask"
+   Wound_Mask_icon_rsc = idenial.bgf
+   Wound_Mask_desc_rsc = \
+      "Initiate monks undergo brutal training to destroy the primal vulnerability "
+      "of the animal within. When hit, regardless of how close to death they "
+      "may be, the monk will sound as if they are only lightly injured. "
+      "Opponents will not have any idea whether they are making progress "
+      "in battle."
+
+classvars:
+
+   vrName = Wound_Mask_name_rsc
+   vrIcon = Wound_Mask_icon_rsc
+   vrDesc = Wound_Mask_desc_rsc
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+
+   viSkill_num = SKID_WOUND_MASK
+   viSchool = SKS_SHADOWCRAFT
+   viSkill_Level = 1
+   viChance_to_Increase = 10
+   viMeditate_ratio = 10
+
+   viSkillExertion = 0
+   vbCheck_exertion = FALSE
+   
+   viPrimaryStat = STAT_ID_STAMINA
+   viSecondaryStat = 0
+
+properties:
+
+messages:
+
+   GetRequisiteStat(who=$)
+   {
+      return Send(who,@GetStamina);
+   }
+
+   OverrideScream(who=$)
+   {
+      local iAbility, iStat;
+
+      iAbility = Send(who,@GetSkillAbility,#Skill_num=viSkill_num);
+      iStat = Send(self,@GetRequisiteStat,#who=who);
+
+      if iAbility + iStat/10 > Random(1,100)
+      {
+         Send(self,@DoSkill,#who=who);
+         return TRUE;
+      }
+      return FALSE;
+   }
+
+   DoSkill(who=$)
+   {
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

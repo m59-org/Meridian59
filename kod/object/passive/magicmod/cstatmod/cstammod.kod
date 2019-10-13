@@ -1,0 +1,50 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+CasterStamMod is CasterStatMod
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   stam_mod_name = "Stamina"
+
+classvars:
+
+   viModName = stam_mod_name
+   viModType = MOD_SUFFIX
+   viModGroup = GROUP_STAMINA
+
+   viModRangeMin = 1
+   viModRangeMax = 6
+   
+   viPowerDivisor = 50
+
+properties:
+
+
+messages:
+
+   NewUsed(who=$,iState=0)
+   {
+      Send(who,@AddStamina,#points=iState);
+      propagate;
+   }
+
+   NewUnused(who=$,iState=0)
+   {
+      Send(who,@AddStamina,#points=-iState);
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

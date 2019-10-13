@@ -16,6 +16,14 @@ constants:
    MIN_HOUR_COUNTER = 8
    MAX_HOUR_COUNTER = 24
 
+resources:
+
+   % https://freesound.org/people/bmccoy2/sounds/260791/
+   % bmccoy2 on freesound.org
+   kcforest_night_sound = 260791bmccoy2yucatanjunglecrickets2.wav
+   
+   kcforest_night_music = silentmusic.mp3
+
 classvars:
 
    viAvar_clan = AVARCLAN_PROMAGIC   %% which avar clan controls this part of the jungle.
@@ -24,12 +32,116 @@ properties:
 
    plItem_coords = $
    piItem_gen_counter = 0
+   
+   piPreviousPhase = 0
 
 messages:
 
    Constructor()
    {
       Send(self,@CreateJungleItemCoords);
+
+      propagate;
+   }
+
+   GetPhaseMusic()
+   {
+      switch(Send(SYS,@GetDayPhase))
+      {
+         case DAY_PHASE_NIGHT:
+            return kcforest_night_music;
+      }
+      propagate;
+   }
+   
+   GetPhaseThreats()
+   {
+      local lThreats;
+
+      lThreats = $;
+      if Send(self,@CheckRoomFlag,#flag=ROOM_RAINING)
+      {
+         lThreats = Cons(&RainThreat,lThreats);
+      }
+      if Send(self,@CheckRoomFlag,#flag=ROOM_SNOWING)
+      {
+         lThreats = Cons(&SnowThreat,lThreats);
+      }
+
+      switch(Send(SYS,@GetDayPhase))
+      {
+         case DAY_PHASE_DAWN:
+            lThreats = Cons(&HumidityThreat,lThreats);
+            break;
+         case DAY_PHASE_DAY:
+            lThreats = Cons(&HumidityThreat,lThreats);
+            break;
+         case DAY_PHASE_DUSK:
+            lThreats = Cons(&HumidityThreat,lThreats);
+            break;
+         case DAY_PHASE_NIGHT:
+            lThreats = Cons(&JungleNightThreat,lThreats);
+            break;
+      }
+      return lThreats;
+   }
+
+   StartThreat(cClasses=$,report=TRUE)
+   {
+      local i;
+
+      % Don't start same threat if one already exists.
+      % Don't start threats with no players present.
+      if pbUser_in_room
+         AND cClasses <> $
+      {
+         foreach i in cClasses
+         {
+            if NOT Send(self,@HasObjectAttribute,#cClass=i)
+            {
+               Create(i,#host_object=self,#iDuration=$,#report=report);
+            }
+         }
+      }
+
+      return;
+   }
+
+   EndThreat(cClass=&ShockStorm)
+   {
+      if Send(self,@HasObjectAttribute,#cClass=cClass)
+      {
+         Send(Send(self,@GetObjectAttribute,#cClass=cClass),@Delete);
+      }
+      return;
+   }
+   
+   EndAllThreats()
+   {
+      local i;
+      
+      foreach i in plObject_attributes
+      {
+         if IsClass(i,&RoomThreat)
+            OR IsClass(i,&RoomStorm)
+         {
+            Send(i,@Delete);
+         }
+      }
+
+      return;
+   }
+
+   FirstUserEntered()
+   {
+      Post(self,@StartThreat,#cClasses=Send(self,@GetPhaseThreats),#report=FALSE);
+
+      propagate;
+   }
+   
+   LastUserLeft()
+   {
+      Post(self,@EndAllThreats);
 
       propagate;
    }
@@ -44,7 +156,44 @@ messages:
 
    RecalcLightAndWeather()
    {
-      local i, bFound, oItem, lChoose;
+      local i, bFound, oItem, lChoose, SysDayPhase;
+
+      SysDayPhase = Send(SYS,@GetDayPhase);
+
+      % We're crossing over into a new quarter.
+      if piPreviousPhase <> SysDayPhase
+      {
+         Send(self,@EndAllThreats);
+         Send(self,@StartThreat,#cClasses=Send(self,@GetPhaseThreats));
+
+         switch(SysDayPhase)
+         {
+            case DAY_PHASE_DAWN:
+               if plPeriodic_sounds = $
+               {
+                  Send(self,@CreatePeriodicSounds);
+                  Send(self,@AddLoopingSound,#lSoundData=[ room_jungle_sound, 1, 1, 300, 100 ]);
+                  Send(self,@RemoveLoopingSound,#sound_rsc=kcforest_night_sound);
+               }
+               break;
+            case DAY_PHASE_DAY:
+               break;
+            case DAY_PHASE_DUSK:
+               Send(self,@RemoveLoopingSound,#sound_rsc=room_jungle_sound);
+               break;
+            case DAY_PHASE_NIGHT:
+               if plPeriodic_sounds <> $
+               {
+                  plPeriodic_sounds = $;
+               }
+               Send(self,@AddLoopingSound,#lSoundData=[ kcforest_night_sound, 1, 1, 300, 100 ]);
+               break;
+         }
+      }
+         
+      Send(self,@RecalculateRoomMusic);
+
+      piPreviousPhase = SysDayPhase;
 
       if plItem_coords = $
       {

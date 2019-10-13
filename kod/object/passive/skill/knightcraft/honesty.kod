@@ -1,0 +1,66 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Honesty is KnightcraftSkill
+
+constants:
+
+   include blakston.khd
+   include protocol.khd   
+
+resources:
+
+   Honesty_name_rsc = "honesty"
+   Honesty_icon_rsc = iboonagi.bgf
+   Honesty_desc_rsc = \
+      "The first lesson of all aspiring knights is that of adherence to the principle of "
+      "truth. Knights must be plain of mind and word. As a result, knights "
+      "are quite terrible at employing illusion magics."
+      "\n\nHowever, they are quite resistant to them as well."
+
+   Honesty_skill_intro = \
+      "Knightcraft Lv. 1: Resistance to illusions, but worse with them as well."
+
+classvars:
+
+   vrName = Honesty_name_rsc
+   vrIcon = Honesty_icon_rsc
+   vrDesc = Honesty_desc_rsc
+
+   vrSkill_intro = Honesty_skill_intro
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+
+   viSkill_num = SKID_HONESTY
+   viSchool = SKS_KNIGHTCRAFT
+   viSkill_Level = 1
+   viChance_to_Increase = 15
+   viMeditate_ratio = 20
+
+   viSkillExertion = 0
+   vbCheck_exertion = FALSE
+
+   vbAutomatic = TRUE
+   
+   viPrimaryStat = STAT_ID_INTELLECT
+   viSecondaryStat = 0
+
+properties:
+
+messages:
+
+   GetRequisiteStat(who=$)
+   {
+      return Send(who,@GetIntellect);
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

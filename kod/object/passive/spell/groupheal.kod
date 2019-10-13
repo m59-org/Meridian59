@@ -1,0 +1,296 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+GroupHeal is Spell
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   group_heal_name_rsc = "group heal"
+   group_heal_icon_rsc = imajheal.bgf
+   group_heal_desc_rsc = \
+      "The compassionate power of Shal'ille heals severe "
+      "wounds on all present allies. Such a massive font "
+      "of regenerative energies requires tremendous exertion, "
+      "and the cost will rise with each healed ally. "
+      "Requires cyan mushrooms to cast."
+
+   group_heal_harm_rsc = \
+      "%s%s's corrupted spell harms you for ~r~B%i~B~n hitpoints!"
+   group_heal_harm_self_rsc = \
+      "Your corrupted spell harms you for ~r~B%i~B~n hitpoints!"
+   group_heal_harm_other_rsc = \
+      "Your corrupted heal harms %s%s for ~r~B%i~B~n hitpoints!"
+
+   group_heal_cast_rsc = \
+      "%s%s's spell floods you with pure healing energy, "
+      "restoring ~g~B%i~B~n hitpoints."
+   group_heal_cast_self = \
+      "Shal'ille's holy magic floods you with pure healing energy, "
+      "restoring ~g~B%i~B~n hitpoints."
+   group_heal_cast_on_other = "You heal %s%s for ~g~B%i~B~n hitpoints."
+   group_heal_unnecessary_rsc = "There are no damaged allies nearby!"
+   
+   group_heal_mana_needed = \
+      "~BYou don't have the ~b%i~n ~Bmana needed to heal your wounded nearby allies!"
+
+classvars:
+
+   vrName = group_heal_name_rsc
+   vrIcon = group_heal_icon_rsc
+   vrDesc = group_heal_desc_rsc
+
+   viSpell_num = SID_GROUP_HEAL
+   viMana = 9
+   viSchool = SS_SHALILLE
+   viSpell_level = 5
+   viMeditate_ratio = 140
+   viChance_To_Increase = 10
+
+   viFlash = FLASH_GOOD
+   
+   viPrimaryStat = STAT_ID_MYSTICISM
+   viSecondaryStat = STAT_ID_KARMA
+
+properties:
+
+   piSpecialHealRange = 10 * FINENESS
+
+messages:
+
+   ResetReagents()
+   {
+      % separate message so can change, then set from admin mode
+
+      plReagents = $;
+      plReagents = Cons([&CyanMushroom,5],plReagents);
+
+      return;
+   }
+
+   GetNumSpellTargets()
+   {
+      return 0;
+   }
+
+   CanPayCosts(who = $, lTargets = $, iSpellPower = 0)
+   {
+      local i, oRoom, iManaCost;
+      
+      oRoom = Send(who,@GetOwner);
+      if oRoom = $
+      {
+         return FALSE;
+      }
+      
+      lTargets = $;
+      foreach i in Send(oRoom,@GetHolderActive)
+      {
+         if who = First(i)
+            AND Send(First(i),@GetHealth) < Send(First(i),@GetMaxHealth)
+         {
+            % Add the caster themselves
+            lTargets = Cons(First(i),lTargets);
+         }
+
+         if IsClass(who,&Monster)
+            AND who <> First(i)
+            AND IsClass(First(i),&Monster)
+            AND Send(who,@IsAlly,#target=First(i))
+            AND Send(First(i),@GetHealth) < Send(First(i),@GetMaxHealth)
+%            AND Send(who,@SquaredFineDistanceTo3D,#what=First(i)) <= (piSpecialHealRange * piSpecialHealRange)
+         {
+            lTargets = Cons(First(i),lTargets);
+         }
+         
+         % Players can group heal anyone they are NOT allowed to attack (aka not red halos)
+         if IsClass(who,&Player)
+            AND who <> First(i)
+            AND IsClass(First(i),&Player)
+            AND NOT Send(who,@AllowPlayerAttack,#victim=First(i),#actual=FALSE,#report=FALSE)
+            AND Send(First(i),@GetHealth) < Send(First(i),@GetMaxHealth)
+            AND Send(who,@SquaredFineDistanceTo3D,#what=First(i)) <= (piSpecialHealRange * piSpecialHealRange)
+         {
+            lTargets = Cons(First(i),lTargets);
+         }
+      }
+      
+      if lTargets = $
+      {
+         if IsClass(who,&Player)
+         {
+            Send(who,@MsgSendUser,#message_rsc=group_heal_unnecessary_rsc);
+         }
+         return FALSE;
+      }
+      
+      iManaCost = Send(self,@GetManaCost,#who=who,#iSpellPower=iSpellPower,#lTargets=lTargets) + Length(lTargets);
+      if IsClass(who,&Player)
+         AND Send(who,@GetMana) < iManaCost
+      {
+         Send(who,@MsgSendUser,#message_rsc=group_heal_mana_needed,#parm1=iManaCost);
+         return FALSE;
+      }
+
+      propagate;
+   }
+
+   CastSpell(who = $, lTargets = $, iSpellPower = 0)
+   {
+      local iHeal, oTarget, i, oRoom, iResult, iManaCost;
+
+      oRoom = Send(who,@GetOwner);
+      if oRoom = $
+      {
+         return FALSE;
+      }
+      
+      lTargets = $;
+      foreach i in Send(oRoom,@GetHolderActive)
+      {
+         if who = First(i)
+            AND Send(First(i),@GetHealth) < Send(First(i),@GetMaxHealth)
+         {
+            % Add the caster themselves
+            lTargets = Cons(First(i),lTargets);
+         }
+
+         if IsClass(who,&Monster)
+            AND who <> First(i)
+            AND IsClass(First(i),&Monster)
+            AND (who = First(i)
+               OR Send(who,@IsAlly,#target=First(i)))
+            AND Send(First(i),@GetHealth) < Send(First(i),@GetMaxHealth)
+%            AND Send(who,@SquaredFineDistanceTo3D,#what=First(i)) <= (piSpecialHealRange * piSpecialHealRange)
+         {
+            lTargets = Cons(First(i),lTargets);
+         }
+         
+         % Players can group heal anyone they are NOT allowed to attack (aka not red halos)
+         if IsClass(who,&Player)
+            AND who <> First(i)
+            AND IsClass(First(i),&Player)
+            AND NOT Send(who,@AllowPlayerAttack,#victim=First(i),#actual=FALSE,#report=FALSE)
+            AND Send(First(i),@GetHealth) < Send(First(i),@GetMaxHealth)
+            AND Send(who,@SquaredFineDistanceTo3D,#what=First(i)) <= (piSpecialHealRange * piSpecialHealRange)
+         {
+            lTargets = Cons(First(i),lTargets);
+         }
+      }
+      
+      if lTargets = $
+      {
+         if IsClass(who,&Player)
+         {
+            Send(who,@MsgSendUser,#message_rsc=group_heal_unnecessary_rsc);
+         }
+         propagate;
+      }
+
+      iManaCost = Send(self,@GetManaCost,#who=who,#iSpellPower=iSpellPower,#lTargets=lTargets) + Length(lTargets);
+      if IsClass(who,&Player)
+      {
+         if Send(who,@GetMana) >= iManaCost
+         {
+            Send(who,@LoseMana,#amount=iManaCost);
+         }
+         else
+         {
+            propagate;
+         }
+      }
+
+      foreach oTarget in lTargets
+      {
+         iHeal = Random(700,1300) + iSpellPower*20 + 10000*20;
+         iHeal = Bound(iHeal,0,5000);
+         
+         foreach i in Send(oTarget,@GetEnchantmentsByClass,#enchClass=&Hex)
+         {
+            iHeal = Send(Nth(i,2),@ModifyHeal,#amount=iHeal,#state=Nth(i,3));
+         }
+
+         if iHeal < 0
+         {
+            % This heal is incapable of damaging battlers,
+            % since it only targets battlers caster can't attack in the first place.
+            continue;
+         }
+         else
+         {
+            iHeal = Send(oTarget,@GainHealthNormal,#amount=iHeal,#precision=TRUE);
+            Send(oTarget,@RemoveEnchantmentClass,#class=&Bleed);
+         }
+
+         if who <> oTarget
+         {
+            if IsClass(who,&Player)
+            {
+               Send(who,@MsgSendUser,#message_rsc=group_heal_cast_on_other,
+                     #parm1=Send(oTarget,@GetDef),#parm2=Send(oTarget,@GetName),
+                     #parm3=iHeal/100);
+
+               Send(oTarget,@MsgSendUser,#message_rsc=group_heal_cast_rsc,
+                     #parm1=Send(who,@GetCapDef),#parm2=Send(who,@GetName),
+                     #parm3=iHeal/100);
+
+               % Give them a big boost if they help someone of higher Karma.
+               if Send(who,@GetKarma) < Send(oTarget,@GetKarma)
+               {
+                  Send(who,@AddKarma,#amount=Send(who,@CalculateKarmaChangeFromAct,
+                        #karma_doer=Send(who,@GetKarma),#karma_act=Send(oTarget,@GetKarma),
+                        #Swing_factor=3));
+               }
+
+               if oRoom <> $
+                  AND Send(oRoom,@IsInBuilderGroup,#who=oTarget)
+               {
+                  Send(who,@JoinBuilderGroup);
+               }
+         
+               % Notify room we healed someone.
+               if oRoom <> $
+               {
+                  Send(oRoom,@PlayerHealedSomeone,#caster=who,#oTarget=oTarget,#iHealAmount=iHeal/100);
+               }
+            }
+         }
+         else
+         {
+            if IsClass(who,&Player)
+            {
+               Send(who,@MsgSendUser,#message_rsc=group_heal_cast_self,
+                     #parm1=iHeal/100);
+               if oRoom <> $
+               {
+                  Send(oRoom,@PlayerHealedSomeone,#caster=who,#oTarget=oTarget,#iHealAmount=iHeal/100);
+               }
+            }
+         }
+      }
+
+      propagate;
+   }
+
+   CanForget()
+   {
+      return FALSE;
+   }
+
+   OfferToNewCharacters()
+   {
+      return FALSE;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

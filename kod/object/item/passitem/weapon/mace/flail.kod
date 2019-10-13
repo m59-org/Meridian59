@@ -1,0 +1,74 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Flail is Weapon
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   flail_name_rsc = "flail"
+   flail_icon_rsc = flail.bgf
+   flail_desc_rsc = \
+      "A type of advanced mace that both crushes and pierces opponents, "
+      "the flail can be a devastating weapon in the right hands."
+
+   flail_window_overlay_rsc = povflail.bgf
+   flail_player_overlay = flailov.bgf
+
+classvars:
+   vrName = flail_name_rsc
+   vrIcon = flail_icon_rsc
+   vrDesc = flail_desc_rsc
+
+   % Flails are normal quality bludgeon weapons.
+   viWeaponType = WEAPON_TYPE_BLUDGEON
+   viWeaponQuality = WEAPON_QUALITY_NORMAL
+
+   viProficiency_Needed = SKID_PROFICIENCY_MACE
+
+   viValue_average = 900
+   viWeight = 70
+   viBulk = 120
+
+   vrWeapon_window_overlay = flail_window_overlay_rsc
+   vrWeapon_overlay = flail_player_overlay
+
+   viGround_group = 1
+   viInventory_group = 3
+   viBroken_group = 2
+   
+   % Chance to apply knockbacks, stuns, and bleeds
+   viCriticalHitRate = 250
+   vbCanBleed = TRUE
+   vbCanStun = TRUE
+   
+   viRange = 160
+
+properties:
+
+   piAttack_type = ATCK_WEAP_NONMAGIC+ATCK_WEAP_BLUDGEON+ATCK_WEAP_PIERCE
+
+messages:
+
+   CanCleave()
+   {
+      return TRUE;
+   }
+
+   GetCleaveModifier()
+   {
+      return 40;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -47,12 +47,15 @@ properties:
    piDest_col = $
    piDest_fine_row = FINENESS_HALF
    piDest_fine_col = FINENESS_HALF
+   
+   piGlowColor = LIGHT_PURPLE
+   piGlowIntensity = 10
 
 messages:
 
    Constructor(dest_room_num = RID_DEFAULT, dest_row = 1, dest_col = 1,
                dest_angle = $, dest_fine_row = FINENESS_HALF,
-               dest_fine_col = FINENESS_HALF, desc = $, icon=$)
+               dest_fine_col = FINENESS_HALF, desc = $, icon=$, glow_color=LIGHT_PURPLE, glow_intensity=10)
    {
       piDest_room = dest_room_num;
       piDest_row = dest_row;
@@ -60,6 +63,9 @@ messages:
       piDest_fine_row = dest_fine_row;
       piDest_fine_col = dest_fine_col;
       piDest_angle = dest_angle;
+      
+      piGlowColor = glow_color;
+      piGlowIntensity = glow_intensity;
 
       if desc <> $
       {
@@ -167,10 +173,10 @@ messages:
 
    GetMoveOnType()
    {
-      if NOT pbAnimate
-      {
+      %if NOT pbAnimate
+      %{
          return (viMoveOn_type | MOVEON_NO);
-      }
+      %}
 
       propagate;
    }
@@ -184,7 +190,7 @@ messages:
       % More intense if we're actually active.
       if pbAnimate
       {
-         AddPacket(1,10);
+         AddPacket(1,piGlowIntensity);
       }
       else
       {
@@ -192,11 +198,27 @@ messages:
       }
 
       % Color
-      AddPacket(2,LIGHT_PURPLE);
+      AddPacket(2,piGlowColor);
 
       return;
    }
 
+   GetDestination()
+   {
+      return piDest_room;
+   }
+
+   SetDestination(dest_room_num=0,dest_angle=0,dest_row=0,dest_col=0,dest_fine_row=0,dest_fine_col=0,glow_color=0)
+   {
+      piDest_room = dest_room_num;
+      piDest_angle = dest_angle;
+      piDest_row = dest_row;
+      piDest_col = dest_col;
+      piDest_fine_row = dest_fine_row;
+      piDest_fine_col = dest_fine_col;
+      piGlowColor = glow_color;
+      return;
+   }
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

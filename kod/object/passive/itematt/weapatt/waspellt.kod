@@ -507,5 +507,58 @@ messages:
       return TRUE;
    }
 
+   ModifyDamage(damage=0,target=$,wielder=$,lData=$)
+   "Item Attributes, in general, should only + or - damage."
+   {
+      local sMakerInfo, iSpellPower;
+
+      if lData = $ OR NOT IsList(lData)
+      {
+         return damage;
+      }
+
+      if Length(lData) <> 5
+      {
+         return damage;
+      }
+
+      sMakerInfo = Nth(lData,5);
+
+      if sMakerInfo <> $
+         AND Length(sMakerInfo) > 3
+      {
+         iSpellPower = Nth(sMakerInfo,4);
+         if iSpellPower = $
+         {
+            iSpellPower = 0;
+         }
+         if wielder <> $
+            AND IsClass(wielder,&Player)
+            AND Send(wielder,@HasSkill,#num=SKID_CHARGED_CLUTCH)
+            AND Send(wielder,@IsEnchanted,#byClass=&TouchAttackSpell)
+         {
+            % No bonus if using Charged Clutch.
+            return damage;
+         }
+         if wielder <> $
+            AND IsClass(wielder,&Player)
+            AND Send(wielder,@GetStance) <> $
+            AND IsClass(Send(wielder,@GetStance),&ChargedClutchStance)
+            AND Send(Send(SYS,@FindSkillByNum,#num=SKID_CHARGED_CLUTCH_STANCE),@HasFee,#who=wielder)
+         {
+            % No bonus if using Unstable Infusion.
+            return damage;
+         }
+         return damage + iSpellPower/33;
+      }
+
+      return damage;
+   }
+
+   ModifyHitRoll(hitroll=0,target=$,wielder=$,lData=$)
+   {
+      return hitroll;
+   }
+
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

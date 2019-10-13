@@ -1,0 +1,326 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+LightningStrike is MovementSpell
+
+constants:
+   include blakston.khd
+
+   % What change in elevation will stop lightning strike?
+   ELEVATION_RISE_MAX = 150
+
+resources:
+
+   lightning_strike_name_rsc = "lightning strike"
+   lightning_strike_icon_rsc = ilightningstrike.bgf
+   lightning_strike_desc_rsc = \
+     "Lands a wild teleporting strike on your target's back. "
+     "Repeated use of this spell can exhaust even the strongest mage."
+
+   lightning_strike_max_cooldowns = \
+      "You need to rest for a moment before lightning striking again."
+   lightning_strike_not_here = \
+      "You can't strike here!"
+   lightning_strike_too_short = \
+      "You don't have enough power to lightning strike even a step!"
+   lightning_strike_dashed = \
+      "You strike %i steps!"
+   lightning_strike_no_space = \
+      "Your target doesn't have enough space behind them!"
+   lightning_strike_no_longer = \
+      "You are exhausted, and cannot lightning strike again for %i seconds."
+   lightning_strike_can_do_now = \
+      "You feel that you can lightning strike again."
+   lightning_strike_height_difference_too_great = \
+      "The height difference between yourself and your target is too great to "
+      "lightning strike!"
+   lightning_strike_sound = fbolt.wav
+
+   lightning_strike_requirement_weaponcraft_six = \
+      "You don't feel skilled enough to pull off this attack."
+
+classvars:
+
+   vrName = lightning_strike_name_rsc
+   vrIcon = lightning_strike_icon_rsc
+   vrDesc = lightning_strike_desc_rsc
+   vrSucceed_wav = lightning_strike_sound
+
+   viCast_time = 0
+
+   viSpell_num = SID_LIGHTNING_STRIKE
+   viSpell_level = 6
+   viSchool = SS_FAREN
+   viMana = 28
+   viSpellExertion = 25
+   viChance_To_Increase = 15
+   viMeditate_ratio = 80
+
+   viHarmful = TRUE
+   viOutlaw = TRUE
+
+   vbIsRangedAttack = FALSE
+   vbIsAreaEffect = FALSE
+   vbSelfHarming = FALSE
+
+properties:
+
+   % This spell keeps track of player cooldowns.
+   plCooldowns = $
+
+   % A player can use the spell this many times in a row.
+   piMaxUses = 1
+
+   % It takes this long for one cooldown to lift.
+   piCooldownTime = 15000
+   
+   % No range limit
+   piRange = $
+
+messages:
+
+   ResetReagents()
+   {
+      plReagents = $;
+
+      return;
+   }
+
+   GetNumSpellTargets()
+   {
+      return 1;
+   }
+
+   CanPayCosts(who=$,lTargets=$,bItemCast=FALSE)
+   {
+      local oRoom, oTarget;
+      
+      oRoom = Send(who,@GetOwner);
+
+      if oRoom <> $
+         AND IsClass(oRoom,&Room)
+         AND Send(oRoom,@CheckRoomFlag,#flag=ROOM_NO_COMBAT)
+      {
+         Send(who,@MsgSendUser,#message_rsc=lightning_strike_not_here);
+         return FALSE;
+      }
+
+      if NOT Send(self,@HasSecondaryRequirement,#who=who)
+      {
+         Send(who,@MsgSendUser,#message_rsc=lightning_strike_requirement_weaponcraft_six);
+         return FALSE;
+      }
+
+      % If you're at or beyond max cooldowns, can't use the spell.
+      if Send(self,@GetCooldown,#who=who) >= piMaxUses
+      {
+         Send(who,@MsgSendUser,#message_rsc=lightning_strike_max_cooldowns);
+         return FALSE;
+      }
+
+      oTarget = First(lTargets);
+
+      if oTarget = $
+      {
+         return FALSE;
+      }
+
+      if abs(Send(who,@GetHeightAtObject) - Send(oTarget,@GetHeightAtObject))
+               > ELEVATION_RISE_MAX
+      {
+         Send(who,@MsgSendUser,#message_rsc=
+               lightning_strike_height_difference_too_great);
+         return FALSE;
+      }
+
+      propagate;
+   }
+
+   CastSpell(who = $, lTargets = $, iSpellPower=0)
+   {                   
+      local oRoom, lSteps, oTarget, i, oElement, iStartRow, iStartCol,
+                  iStartFineRow, iStartFineCol;
+
+      oTarget = First(lTargets);
+      
+      if oTarget = $
+      {
+         return FALSE;
+      }
+
+      oRoom = Send(who,@GetOwner);
+      if oRoom = $
+      {
+         return FALSE;
+      }
+
+      iStartRow = Send(who,@GetRow);
+      iStartCol = Send(who,@GetCol);
+      iStartFineRow = Send(who,@GetFineRow);
+      iStartFineCol = Send(who,@GetFineCol);
+
+      % 64 fine behind target is already default
+      lSteps = Send(oRoom,@IntraTeleport,#what=who,#target=oTarget,
+                     #type=INTRA_TELEPORT_BEHIND_TARGET);
+
+      if lSteps <> $
+      {
+         %Send(who,@MsgSendUser,#message_rsc=lightning_strike_dashed,
+         %                      #parm1=Length(lSteps));
+
+         oElement = Create(&WallOfLightning,#MaxDamage=(iSpellPower+1)/4,
+                          #Caster=who,#duration=800,#bMS=TRUE);
+         Send(oRoom,@NewHold,#what=oElement,
+              #new_row=iStartRow,#new_col=iStartCol,
+              #fine_row=iStartFineRow,#fine_col=iStartFineCol);
+
+         Post(self,@CreateDestinationLightning,#who=who,#oRoom=oRoom,
+               #iSpellPower=iSpellPower);
+         Send(self,@AddCooldown,#who=who);
+         Post(who,@ClearAttackTimer);
+         Post(who,@UserAttack,#what=oTarget);
+      }
+      else
+      {
+         Send(who,@MsgSendUser,#message_rsc=lightning_strike_no_space);
+      }
+
+      propagate;
+   }
+   
+   CreateDestinationLightning(who=$,oRoom=$,iSpellPower=0)
+   {
+      local oElement;
+
+      oElement = Create(&WallOfLightning,#MaxDamage=(iSpellPower+1)/4,
+                       #Caster=who,#duration=800,#bMS=TRUE);
+      Send(oRoom,@NewHold,#what=oElement,
+           #new_row=Send(who,@GetRow),#new_col=Send(who,@GetCol),
+           #fine_row=Send(who,@GetFineRow),#fine_col=Send(who,@GetFineCol));
+      return;
+   }
+
+   SuccessChance(who=$)
+   {
+      return TRUE;
+   }
+   
+   GetCooldown(who=$)
+   {
+      local i;
+      
+      foreach i in plCooldowns
+      {
+         if Nth(i,1) = who
+         {
+            return Nth(i,2);
+         }
+      }
+      
+      return 0;
+   }
+
+   AddCooldown(who=$)
+   {
+      local i;
+
+      if who = $
+      {
+         return;
+      }
+
+      foreach i in plCooldowns
+      {
+         if Nth(i,1) = who
+         {
+            SetNth(i,2,Nth(i,2)+1);
+            if Nth(i,2) >= piMaxUses
+            {
+               Send(who,@MsgSendUser,#message_rsc=lightning_strike_no_longer,
+                                     #parm1=GetTimeRemaining(Nth(i,3))/1000);
+            }
+            return;
+         }
+      }
+      
+      plCooldowns = Cons([who,1,
+                          CreateTimer(self,@ClearCooldown,piCooldownTime)],
+                          plCooldowns);
+
+      return;
+   }
+
+   ClearCooldown(timer=$)
+   {
+      local i;
+      
+      foreach i in plCooldowns
+      {
+         if Nth(i,3) = timer
+         {
+            if Nth(i,2) = piMaxUses
+            {
+               Send(Nth(i,1),@MsgSendUser,#message_rsc=lightning_strike_can_do_now);
+            }
+
+            SetNth(i,2,Nth(i,2)-1);
+            
+            if Nth(i,2) <= 0
+            {
+               SetNth(i,1,$);
+               SetNth(i,2,0);
+               SetNth(i,3,$);
+               plCooldowns = DelListElem(plCooldowns,i);
+            }
+            else
+            {
+               SetNth(i,3,CreateTimer(self,@ClearCooldown,piCooldownTime));
+            }
+         }
+      }
+      
+      return;
+   }
+   
+   Delete()
+   {
+      local i;
+      
+      foreach i in plCooldowns
+      {
+         if Nth(i,3) <> $
+         {
+            DeleteTimer(Nth(i,3));
+            SetNth(i,3,$);
+            SetNth(i,2,0);
+            SetNth(i,1,$);
+            plCooldowns = DelListElem(plCooldowns,i);
+         }
+      }
+      plCooldowns = $;
+      
+      propagate;
+   }
+
+   HasSecondaryRequirement(who=$)
+   {
+      % Open up this spell to more people.
+      return TRUE;
+
+      if Send(who,@HasSkill,#num=SKID_DISARM)
+      {
+         return TRUE;
+      }
+
+      return FALSE;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

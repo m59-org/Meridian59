@@ -1,0 +1,106 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+BlackMantle is Hex
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   black_mantle_cast_rsc = \
+      "%s%s becomes shrouded in slicing whispers of darkness."
+   black_mantle_already_enchanted = "That poor soul is already black mantled."
+   black_mantle_start = "Whispering slices of darkness surround you."
+   black_mantle_stop  = "The whispering darkness around you departs."
+   has_been_hexed_black_mantle = \
+      "%s%s becomes shrouded in slicing whispers of darkness!"
+
+   black_mantle_name_rsc = "black mantle"
+   black_mantle_icon_rsc = ihexblackmantle.bgf
+   black_mantle_desc_rsc = \
+      "Shrouds your victim in a legion of wight spirits, who will "
+      "hamper any attempt at healing. "
+      "This hex requires two unholy fragments to cast."
+      
+   black_mantle_hex_effect_report = \
+      "At that effectiveness, your black mantle hex will corrupt ~r~B%i\% ~nof any healing energies cast on your victim."
+
+   black_mantle_second_state_report = \
+      "At such extreme effectiveness, your black mantle hex will cause the victim to take ~r~B%i\% ~nof any healing energies as damage instead of being healed."
+
+   black_mantle_sound = qenfeebl.wav
+
+classvars:
+
+   vrName = black_mantle_name_rsc
+   vrIcon = black_mantle_icon_rsc
+   vrDesc = black_mantle_desc_rsc
+
+   vrHexEffectReport = black_mantle_hex_effect_report
+
+   vrAlreadyEnchanted = black_mantle_already_enchanted
+   vrEnchantment_On = black_mantle_start
+   vrEnchantment_Off = black_mantle_stop
+   vrSuccess = black_mantle_cast_rsc
+   vrInformRoom = has_been_hexed_black_mantle
+
+   viSpell_num = SID_HEX_BLACK_MANTLE
+   viSchool = SS_WITCHERY
+   viSubSchool = SSS_WITCHERY_IWODACH
+   viSpell_level = 6
+   viMana = 20
+   viSpell_Exertion = 20
+
+   viFlash = FLASH_BAD
+
+   vrSucceed_wav = black_mantle_sound
+   viChance_To_Increase = 10
+   viMeditate_ratio = 200
+
+properties:
+
+   % Reduces heals by this percentage - state
+   piBaseEffect = 100
+
+   piFlatDuration = 60000
+
+messages:
+
+   ResetReagents()
+   {
+      plReagents = $;
+      plReagents = Cons([&UnholyFragment,2],plReagents);
+
+      return;
+   }
+
+   ModifyHeal(amount = 0,state=0)
+   {
+      amount = (amount * (piBaseEffect-state))/100;
+      return amount;
+   }
+
+   DoHexEffectReport(what=$,iHexEffect=0)
+   {
+      if piBaseEffect - iHexEffect < 0
+      {
+         Send(what,@MsgSendUser,#message_rsc=black_mantle_second_state_report,#parm1=(piBaseEffect-iHexEffect)*(-1));
+      }
+      else
+      {
+         Send(what,@MsgSendUser,#message_rsc=vrHexEffectReport,#parm1=iHexEffect);
+      }
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

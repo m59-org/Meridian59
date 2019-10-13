@@ -54,6 +54,11 @@ classvars:
    vrSound_aware = minotaur_sound_aware
    vrSound_death = minotaur_sound_death
 
+   viBaseSize = 1600
+
+   % Big monster
+   viEnemyRangeBonus = 64 * 2
+
 properties:
 
    viTreasure_type = TID_ZOMBIE
@@ -71,6 +76,10 @@ messages:
    {
       plResistances = [ [-ATCK_SPELL_UNHOLY, 50 ],
                         [-ATCK_SPELL_HOLY, -25 ] ];
+
+      plCreatureTypes = Cons(CREATURE_TYPE_ANIMAL,plCreatureTypes);
+      plCreatureTypes = Cons(CREATURE_TYPE_MUNDANE,plCreatureTypes);
+      plCreatureTypes = Cons(CREATURE_TYPE_INTELLIGENT,plCreatureTypes);
       propagate;
    }
 

@@ -1,0 +1,124 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+CreateHolyShield is Spell
+
+constants:
+   include blakston.khd
+
+resources:
+
+   create_holy_shield_cast_rsc = "A holy shield appears!"
+   create_holy_shield_inv_full_rsc = "A holy shield appears in the air before you, "
+      "but before you can drop something and grab it, it vanishes."
+
+   create_holy_shield_name_rsc = "holy shield"
+   create_holy_shield_icon_rsc = iholyt.bgf
+   create_holy_shield_desc_rsc = \
+      "Materializes a spiritual shield. "
+      "Only the Shal'ille master that created it may use a shield made "
+      "of such pure holy energy. "
+      "Creating a second spiritual shield will dissipate your current "
+      "one, but one is all a dedicated servant of Shal'ille shall ever need. "
+      "Spiritual shields weigh nothing and have an item level dependent upon spellpower. "
+      "Their abilities, such as defense, are also linked to spellpower, as well as karma. "
+      "\n\nRequires ten polished seraphym and ten holy fragments to cast, "
+      "as well as a great deal of mana and effort."
+      
+   previous_holy_shield_dissipates_rsc = \
+      "Your previous holy shield dissipates."
+
+   create_holy_shield_sound = sspham.wav
+
+classvars:
+
+   vrName = create_holy_shield_name_rsc
+   vrIcon = create_holy_shield_icon_rsc
+   vrDesc = create_holy_shield_desc_rsc
+   
+   viSpell_num = SID_HOLY_SHIELD
+   viSchool = SS_SHALILLE
+   viSpell_level = 6
+   viMana = 60
+   viSpellExertion = 100
+   viCast_time = 15000
+
+   viMeditate_ratio = 200
+
+   viChance_To_Increase = 15
+
+   vrSucceed_wav = create_holy_shield_sound
+   
+   viPrimaryStat = STAT_ID_MYSTICISM
+   viSecondaryStat = STAT_ID_KARMA
+
+properties:
+
+
+messages:
+
+   ResetReagents()
+   {
+      % separate message so can change, then set from admin mode
+
+      plReagents = $;
+      plReagents = Cons([&PolishedSeraphym,10],plReagents);
+      plReagents = Cons([&HolyFragment,10],plReagents);
+
+      return;
+   }
+
+   GetNumSpellTargets()
+   {
+      return 0;
+   }
+
+   GetLongevity(iSpellPower = 0)
+   {
+      local iLongevity;
+
+      iLongevity = 10 + ((50 * iSpellpower) / 100);  % lasts 10 - 60 minutes
+      iLongevity = iLongevity * 60 * 1000;  % Convert to ms
+
+      return iLongevity;   
+   }
+
+
+   CastSpell(who = $, lTargets = $,iSpellPower = $)
+   {
+      local oHolyShield, i;
+
+      oHolyShield = Create(&MithrilShield,#oCaster=who,#iCreatedSpellpower=iSpellPower);
+
+      if Send(who,@ReqNewHold,#what=oHolyShield)
+      {
+         foreach i in Send(who,@GetHolderPassive)
+         {
+            if IsClass(i,&MithrilShield)
+            {
+               Send(i,@Delete);
+               Send(who,@MsgSendUser,#message_rsc=previous_holy_shield_dissipates_rsc);
+            }
+         }
+         Send(who,@NewHold,#what=oHolyShield);
+         Send(who,@MsgSendUser,#message_rsc=create_holy_shield_cast_rsc);
+      }
+      else
+      {
+         Send(oHolyShield,@Delete);
+         Send(who,@MsgSendUser,#message_rsc=create_holy_shield_inv_full_rsc);
+      }
+
+      propagate;
+   }
+
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

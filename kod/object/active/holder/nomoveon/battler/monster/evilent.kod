@@ -47,15 +47,15 @@ classvars:
    vrDead_icon = EvilEnt_dead_icon_rsc
    vrDead_name = EvilEnt_dead_name_rsc
 
-   viTreasure_type = TID_ENT
+   viTreasure_type = TID_EVIL_ENT
    viAttack_type = ATCK_WEAP_WHIP
    viSpeed = SPEED_NONE
    viAttributes = MOB_NOMOVE
    viDefault_behavior = AI_NOMOVE | AI_FIGHT_KARMA_AGGRESSIVE
-   viLevel = 50
-   viDifficulty = 4
-   viVisionDistance = 14
-   viKarma = -40
+   viLevel = 150
+   viDifficulty = 6
+   viVisionDistance = 60
+   viKarma = 0
    viCashmin = 125
    viCashmax = 500
    vrSound_hit = EvilEnt_sound_hit
@@ -66,15 +66,20 @@ classvars:
    vrLeaves = EvilEnt_leaves_sparse_rsc
    vrDead_leaves = EvilEnt_dead_leaves_sparse_rsc
 
-   % 1 in x chance to cast a spell.
-   viSpellChance = 8
+   viLanguage = LANGUAGE_SYLVAN
+
+   viBaseBleedPercentage = 50
+   viBaseKnockbackPercentage = 0
+
+   viBaseSize = 80
 
 properties:
 
    piAnimation = ANIM_NONE
 
-   piSpellPower = 90
-   piMax_mana = 20
+   piMax_mana = 60
+   piMeleeSpellChance = 0
+   piRangedSpellChance = 10
 
    piReputationGroup = REP_FAROL
    
@@ -111,12 +116,22 @@ messages:
                         [ATCK_WEAP_BLUDGEON, 50 ],
                         [ATCK_WEAP_SLASH, -10 ],
                         [-ATCK_SPELL_FIRE, -10 ] ];
-
-      plSpellBook = [ [SID_LIGHTNING, 5, 100] ];
+                        
+      plMeleeSpellBook = [ [SID_SHOCKING_FURY, 5, 100, Random(85,99)] ];
+      plRangedSpellBook = [ [SID_LIGHTNING_BOLT, 5, 100, Random(70,90)] ];
 
       plReputationEnemies = [REP_UNDEAD];
 
+      plCreatureTypes = Cons(CREATURE_TYPE_PLANT,plCreatureTypes);
+      plCreatureTypes = Cons(CREATURE_TYPE_INTELLIGENT,plCreatureTypes);
+      plCreatureTypes = Cons(CREATURE_TYPE_MAGICAL,plCreatureTypes);
+
       propagate;
+   }
+
+   GetBaseEmpowerments()
+   {
+      return [[-ATCK_SPELL_SHOCK,300]];
    }
 
    MonsterAttack(what = $)
@@ -204,9 +219,10 @@ messages:
    {
       % Living trees get more dangerous if you burn 'em.
 
-      if (aSpell & ATCK_SPELL_FIRE) AND piSpellChance > 2
+      if (aSpell & ATCK_SPELL_FIRE)
       {
-         piSpellChance = piSpellChance - 1;
+         piMeleeSpellChance = Bound(piMeleeSpellChance+10,10,100);
+         piRangedSpellChance = Bound(piRangedSpellChance+10,10,100);
       }
 
       propagate;

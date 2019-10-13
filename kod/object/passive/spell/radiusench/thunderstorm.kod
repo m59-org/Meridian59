@@ -1,0 +1,133 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Thunderstorm is RadiusEnchantment
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   thunderstorm_name_rsc = "thunderstorm"
+   thunderstorm_icon_rsc = lightnin.bgf
+   thunderstorm_desc_rsc = \
+      "Calls upon the utmost powers of Faren to bring a thunderstorm "
+      "to the area, empowering the element of lightning. "
+      "Requires shock fragments to cast."
+   
+   thunderstorm_already_enchanted = "It is already storming here."
+
+   thunderstorm_on = \
+      "Static energies charge the air, and it begins to rain."
+
+   thunderstorm_off = "The rain ceases."
+   thunderstorm_new_entrant = \
+      "The air is filled with static here, and rain is falling."
+
+   thunderstorm_hurts_you = "The thunderstorm strikes you with lightning!"
+   
+   thunderstorm_cast = "You call upon the utmost power of Faren to bring a thunderstorm to the area!"
+   thunderstorm_starts = "%s calls upon the utmost power of Faren to bring a thunderstorm to the area!"
+   thunderstorm_ends = "The rain ceases."
+   thunderstorm_caster_ends = "The rain ceases."
+   thunderstorm_caster_enter = "Thunder crashes; rain begins to fall."
+   thunderstorm_enter = "Thunder crashes; rain begins to fall."
+   thunderstorm_leave = "The rain ceases."
+
+   already_storming_here = \
+      "It's already storming here!"
+   
+   thunderstorm_sound = fbolt.wav
+
+classvars:
+
+   radius_ench_cast = thunderstorm_cast
+   radius_ench_starts = thunderstorm_starts
+   radius_ench_ends = thunderstorm_ends
+   radius_ench_caster_ends = thunderstorm_caster_ends
+   radius_ench_caster_enter = thunderstorm_caster_enter
+   radius_ench_enter = thunderstorm_enter
+   radius_ench_leave = thunderstorm_leave
+   
+   viSpell_num = SID_THUNDERSTORM
+
+   vrName = thunderstorm_name_rsc
+   vrIcon = thunderstorm_icon_rsc
+   vrDesc = thunderstorm_desc_rsc
+
+   viSchool = SS_FAREN
+   viSpell_level = 6
+   viMana = 30
+   viChance_To_Increase = 10
+   viMeditate_ratio = 110
+   viBaseRange = 10
+   viPeriodicEffect = FALSE
+
+   vrSucceed_wav = thunderstorm_sound
+
+   viAffectsEveryone = TRUE
+   viAffectsGuildmates = TRUE
+   viAffectsEnemies = TRUE
+
+   viCasterPersist = TRUE
+
+   viCast_time = 30000
+
+properties:
+
+   piOldAreaEnchStyle = TRUE
+
+messages:
+
+   ResetReagents()
+   {
+      plReagents = $;
+      plReagents = Cons([&ShockFragment,2],plReagents);
+
+      return;
+   }
+
+   CanPayCosts(who=$)
+   {
+      if who <> $
+         AND Send(who,@GetOwner) <> $
+         AND Send(Send(who,@GetOwner),@CheckRoomFlag,#flag=ROOM_RAINING)
+      {
+         Send(who,@MsgSendUser,#message_rsc=already_storming_here);
+         return FALSE;
+      }
+      propagate;
+   }
+
+   GetDuration(iSpellPower=0)
+   {
+      return Bound(80000+(iSpellPower*1000),80000,180000);
+   }
+
+   StartRoomEffects(oRoom=$)
+   {
+      if Send(oRoom,@CheckRoomFlag,#flag=ROOM_SNOWING)
+      {
+         Send(oRoom,@EndSnow);
+      }
+      Send(oRoom,@StartRain);
+      return;
+   }
+
+   EndRoomEffects(oRoom=$)
+   {
+      Send(oRoom,@EndRain);
+      return;
+   }
+
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

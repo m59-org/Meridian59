@@ -1,0 +1,119 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+LostSoul is AnimatedStatue
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   LostSoul_name_rsc = "lost soul"
+   LostSoul_active_name_rsc = "demented lost soul"
+
+   LostSoul_desc_rsc = \
+      "This is the spirit of some ancient %s.\n\n%r"
+
+   LostSoul_dead_name_rsc = "dissipated lost soul"
+
+   LostSoul_job_one = "sorcerer"
+   LostSoul_job_two = "witch"
+   LostSoul_job_three = "merchant"
+   LostSoul_job_four = "nomad"
+   LostSoul_job_five = "wanderer"
+   LostSoul_job_rare_and_powerful = "bandit"
+
+classvars:
+
+   vrDesc = LostSoul_desc_rsc
+   vrDead_name = LostSoul_dead_name_rsc
+   vrActiveName = LostSoul_active_name_rsc
+
+   vsStatue_job_one = LostSoul_job_one
+   vsStatue_job_two = LostSoul_job_two
+   vsStatue_job_three = LostSoul_job_three
+   vsStatue_job_four = LostSoul_job_four
+   vsStatue_job_five = LostSoul_job_five
+   vsStatue_job_rare_and_powerful = LostSoul_job_rare_and_powerful
+
+   % Our normal speed when active
+   viNormalSpeed = SPEED_VERY_FAST
+   viCashmin = 200
+   viCashmax = 5000
+
+   viTreasure_type = TID_LOST_SOUL
+
+properties:
+
+   % Put these as properties so they can be set
+   vrName = LostSoul_name_rsc
+
+   viLevel = 200
+   viDifficulty = 9
+   viVisionDistance = 12
+   % Attack range of 192, or 3 row/col.
+   viAttackRange = 128
+
+   viAttack_spell = ATCK_SPELL_HOLY
+   piMinDamage = 13
+   piMaxDamage = 60
+
+messages:
+
+   Constructor(bIsRareAndPowerful=FALSE)
+   {
+      local iRandom;
+
+      iRandom = Random(1,2);
+      switch(iRandom)
+      {
+         case 1:
+         viAttack_spell = ATCK_SPELL_HOLY;
+         break;
+         case 2:
+         viAttack_spell = ATCK_SPELL_UNHOLY;
+         break;
+      }
+      propagate;
+   }
+
+   %%% Graphics setup
+
+   Constructed()
+   {
+      if Send(self,@GetProfession) = LostSoul_job_one
+      {
+         Send(self,@SetHeadTattooed);
+      }
+
+      propagate;
+   }
+
+   SetHeadTattooed()
+   {
+      if viGender = GENDER_FEMALE
+      {
+         prHead = charinfo_head_kxt1_icon;
+      }
+      else
+      {
+         prHead = charinfo_head_axt1_icon;
+      }
+      return;
+   }
+
+   SetEquipment()
+   {
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

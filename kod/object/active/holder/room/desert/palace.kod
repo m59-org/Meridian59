@@ -1,0 +1,103 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+PalaceRoom is DesertRoom
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   room_palacedungeonentrance = palacedungeonentrance.roo
+   name_palacedungeonentrance = "Embalming Antechambers"
+   palacedungeonentrance_music = walk5.mp3
+
+   palace_music1 = loboloco06lonersinthenightid793.mp3
+
+classvars:
+
+   vrName = name_palacedungeonentrance
+
+   viTeleport_row = 16
+   viTeleport_col = 36
+
+properties:
+
+   piBaseLight = LIGHT_DARK
+   piOutside_factor = OUTDOORS_5 
+
+   prRoom = room_palacedungeonentrance
+   piRoom_num = RID_PALACE_DUNGEON_ENTRANCE
+   
+   prMusic = palace_music1
+
+messages:
+
+   SomethingMoved(what = $,new_row = $, new_col = $)
+   {
+      if new_col < 2
+      {
+         Send(SYS,@UtilGoNearSquare,#what=what,
+              #where=Send(SYS,@FindRoomByNum,#num=RID_DESERTBRIDGE2),
+              #new_row=4,#new_col=190,#new_angle=Send(what,@GetAngle));
+              
+         return;
+      }
+      if new_row < 2
+      {
+         Send(SYS,@UtilGoNearSquare,#what=what,
+              #where=Send(SYS,@FindRoomByNum,#num=RID_PALACE_DUNGEON1),
+              #new_row=40,#new_col=28,#fine_row=48,#fine_col=8,#new_angle=Send(what,@GetAngle));
+              
+         return;
+      }
+      if new_row > 26
+      {
+         Send(SYS,@UtilGoNearSquare,#what=what,
+              #where=Send(SYS,@FindRoomByNum,#num=RID_MAZE_EXIT_ROOM),
+              #new_row=3,#new_col=12,#fine_row=14,#fine_col=27,#new_angle=Send(what,@GetAngle));
+              
+         return;
+      }
+
+      propagate;
+   }
+
+   CreateStandardObjects()
+   {
+      Send(self,@NewHold,#what=Create(&Lever),#new_row=3,#new_col=11,#fine_row=17,#fine_col=49);
+
+      propagate;
+   }
+
+   SomethingChanged(what=$)
+   {
+      if what <> $
+         AND IsClass(what,&Lever)
+      {
+         Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTBRIDGE2),@OpenGate);
+      }
+
+      propagate;
+   }
+
+   SomethingTryGo(what = $,row = $,col = $)
+   {
+      propagate;
+   }
+   
+   GetPhaseThreats()
+   {
+      return [&ChaosThreat];
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

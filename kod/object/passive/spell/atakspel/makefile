@@ -5,7 +5,8 @@
 !include $(TOPDIR)\common.mak
 
 DEPEND = ..\atakspel.bof
-BOFS = boltspel.bof shokfury.bof exfrost.bof blasfire.bof splsacid.bof vampdrn.bof \
-       illwound.bof earthqua.bof radproj.bof
+BOFS = boltspel.bof \
+       earthqua.bof radproj.bof \
+       monsterquake.bof
 
 !include $(KODDIR)\kod.mak

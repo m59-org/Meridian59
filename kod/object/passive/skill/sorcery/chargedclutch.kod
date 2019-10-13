@@ -45,9 +45,15 @@ classvars:
    viSkillExertion = 0
    vbCheck_exertion = FALSE
    
-   viBaseManaCost = 4
+   viPrimaryStat = STAT_ID_INTELLECT
+   viSecondaryStat = 0
 
 properties:
+   
+   pbUseMana = TRUE
+   piBaseManaCost = 1
+   pbUseVigor = FALSE
+   piBaseVigorCost = 1
 
 messages:
 
@@ -58,47 +64,68 @@ messages:
    
    ModifyWeaponSpellType(who=$,oWeapon=$,oTouchSpell=$,damaging_now=FALSE)
    {
-      local iAbility, iStat, iSpellAbility, iSacrifice, iCoefficient,
-            iInitialCost, lElements;
+      local iAbility, iStat, iSpellAbility, iManaSacrifice, iVigorSacrifice, iCoefficient,
+            lElements, bDoChargedClutch;
 
       iAbility = Send(who,@GetSkillAbility,#Skill_num=viSkill_num);
       iSpellAbility = Send(who,@GetSpellAbility,
                                #spell_num=Send(oTouchSpell,@GetSpellNum));
       iStat = Send(self,@GetRequisiteStat,#who=who);
-      
-      iInitialCost = viBaseManaCost;
-      iCoefficient = Bound(298 - iAbility - iSpellAbility,100,300);
-      
-      iSacrifice = (iInitialCost * iCoefficient)/100;
 
-      if Send(who,@GetMana) >= iSacrifice
+      bDoChargedClutch = TRUE;
+      iCoefficient = Bound(298 - iAbility - iSpellAbility,100,300);
+
+      iManaSacrifice = 0;
+      if pbUseMana
+      {
+         iManaSacrifice = (piBaseManaCost * iCoefficient)/100;
+         if Send(who,@GetMana) < iManaSacrifice
+         {
+            bDoChargedClutch = FALSE;
+         }
+      }
+
+      iVigorSacrifice = 0;
+      if pbUseVigor
+      {
+         iVigorSacrifice = (piBaseVigorCost * iCoefficient)/100;
+         if Send(who,@GetVigor) < iVigorSacrifice
+         {
+            bDoChargedClutch = FALSE;
+         }
+      }
+
+      % Remember, ATCK_SPELL_ILLUSION is not one of the six elements.
+      % Make sure we don't pass along illusion.
+      % Exception: Riija sword can do it :)
+      if bDoChargedClutch
          AND Random(1,100) <= iAbility
       {
          if damaging_now
          {
-            Send(self,@DoSkill,#who=who,#iSacrifice=iSacrifice);
+            Send(self,@DoSkill,#who=who,#iManaSacrifice=iManaSacrifice,#iVigorSacrifice=iVigorSacrifice);
          }
          
          if NOT IsClass(oWeapon,&RiijaSword)
          {
-            return Send(oTouchSpell,@GetAttackSpell);
+            if NOT IsClass(oTouchSpell,&IllusionaryGrasp)
+            {
+               return Send(oTouchSpell,@GetAttackSpell);
+            }
          }
          else
          {
-            lElements = [ATCK_SPELL_FIRE + ATCK_SPELL_ALL,
-                         ATCK_SPELL_COLD + ATCK_SPELL_ALL,
-                         ATCK_SPELL_SHOCK + ATCK_SPELL_ALL,
-                         ATCK_SPELL_ACID + ATCK_SPELL_ALL];
-            return Nth(lElements,Random(1,4));
+            return Send(oTouchSpell,@GetAttackSpell);
          }
       }
       
       return Send(oWeapon,@GetAttackSpell);
    }
 
-   DoSkill(who=$,iSacrifice=0)
+   DoSkill(who=$,iManaSacrifice=0,iVigorSacrifice=0)
    {
-      Send(who,@LoseMana,#amount=iSacrifice);
+      Send(who,@LoseMana,#amount=iManaSacrifice);
+      Send(who,@AddExertion,#amount=iVigorSacrifice*10000);
       
       propagate;
    }

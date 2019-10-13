@@ -10,6 +10,9 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 GuildHall3 is Guildhall
 
+% The Den of Shadows is a premiere hall that already has its own cliff exit.
+%    It's slightly less on the upgrades than other comparable halls for that reason.
+
 constants:
 
    BRIDGE = 2
@@ -31,10 +34,24 @@ resources:
 
    room_name_guildhall3 = "The Den of Shadows"
    room_guildhall3 = guildh3.roo
+   
+   gh3_portal_desc = \
+      "This portal leads to the Abandoned Fountain Tavern in Tos, "
+      "allowing a surprise angle of attack to the city streets."
+   
+   gh3_barn_portal_desc = \
+      "This portal leads right into the center of North Barloque, "
+      "offering a dangerous route into city combat."
+   
+   gh3_cornoth_portal_desc = \
+      "This portal offers an unexpected path into Cor Noth."
 
 classvars:
 
    vrName = room_name_guildhall3
+
+   viLongitude = 17
+   viLatitude = 33
 
    viNews_row = 6
    viNews_col = 16
@@ -60,6 +77,99 @@ classvars:
    viQuality = 8
    viTerrain_type = TERRAIN_CAVES | TERRAIN_GUILDHALL | TERRAIN_RIVER
    viSeconds_til_close = 16
+   
+   viPortalOneRow = 5
+   viPortalOneCol = 20
+   viPortalOneFineRow = 21
+   viPortalOneFineCol = 34
+   viPortalOneAngle = ANGLE_SOUTH
+   viPortalOneDestRID = RID_TOS_OLD_TAVERN
+   viPortalOneDestRow = 2
+   viPortalOneDestCol = 7
+   viPortalOneDestFineRow = 26
+   viPortalOneDestFineCol = 22
+   viPortalOneDestAngle = ANGLE_SOUTH
+   vsPortalOneDesc = gh3_portal_desc
+   
+   viPortalTwoRow = 29
+   viPortalTwoCol = 14
+   viPortalTwoFineRow = 48
+   viPortalTwoFineCol = 16
+   viPortalTwoAngle = ANGLE_NORTH_EAST
+   viPortalTwoDestRID = RID_BAR_NORTH
+   viPortalTwoDestRow = 34
+   viPortalTwoDestCol = 35
+   viPortalTwoDestFineRow = 0
+   viPortalTwoDestFineCol = 24
+   viPortalTwoDestAngle = ANGLE_NORTH
+   vsPortalTwoDesc = gh3_barn_portal_desc
+   
+   viPortalThreeRow = 25
+   viPortalThreeCol = 17
+   viPortalThreeFineRow = 47
+   viPortalThreeFineCol = 16
+   viPortalThreeAngle = ANGLE_SOUTH_WEST
+   viPortalThreeDestRID = RID_CORNOTH
+   viPortalThreeDestRow = 32
+   viPortalThreeDestCol = 39
+   viPortalThreeDestFineRow = 10
+   viPortalThreeDestFineCol = 51
+   viPortalThreeDestAngle = ANGLE_NORTH_EAST
+   vsPortalThreeDesc = gh3_cornoth_portal_desc
+   
+   viReliquaryOneRow = 3
+   viReliquaryOneCol = 17
+   viReliquaryOneFineRow = 32
+   viReliquaryOneFineCol = 32
+   
+   viReliquaryTwoRow = 3
+   viReliquaryTwoCol = 16
+   viReliquaryTwoFineRow = 32
+   viReliquaryTwoFineCol = 32
+   
+   viReliquaryThreeRow = 3
+   viReliquaryThreeCol = 15
+   viReliquaryThreeFineRow = 32
+   viReliquaryThreeFineCol = 32
+   
+   viReliquaryFourRow = 3
+   viReliquaryFourCol = 14
+   viReliquaryFourFineRow = 32
+   viReliquaryFourFineCol = 32
+   
+   % Fusing device rates go from 8 (worst) to 4 (best) 
+   viShardFusingDeviceRow = 15
+   viShardFusingDeviceCol = 5
+   viShardFusingDeviceFineRow = 0
+   viShardFusingDeviceFineCol = 0
+   viShardFusingDeviceRate = 5
+   
+   % Shattering device rates go from 2 (worst) to 4 (best) 
+   viShardShatteringDeviceRow = 16
+   viShardShatteringDeviceCol = 5
+   viShardShatteringDeviceFineRow = 48
+   viShardShatteringDeviceFineCol = 0
+   viShardShatteringDeviceRate = 3
+   
+   viFociOneRow = 13
+   viFociOneCol = 13
+   viFociOneFineRow = 26
+   viFociOneFineCol = 39
+   viFociOnePower = 198
+   viFociOneRange = 5
+   viFociOneSpellNum = SID_RESTORATE
+
+   viBartenderRow = 15
+   viBartenderCol = 14
+   viBartenderFineRow = 10
+   viBartenderFineCol = 56
+   viBartenderRate = 100
+   
+   viMarketRow = 13
+   viMarketCol = 14
+   viMarketFineRow = 16
+   viMarketFineCol = 48
+   viMarketRate = 100
 
 properties:
 
@@ -70,6 +180,10 @@ properties:
 
    ptEntrance = $
    ptBridge = $
+   
+   piGuildHallMeditateEffiency = 100
+   % The Den of Shadows gives a small boost to Jala, Qor, and Banditry
+   piSpecialGuildHallMeditateEfficiency = 120
 
 messages:
 
@@ -216,6 +330,20 @@ messages:
             #new_angle=ANGLE_SOUTH_EAST);
 
       propagate;
+   }
+   
+   DoesPlayerQualifyForSpecialMeditateRatio(who=$,oSpell=$,oSkill=$)
+   {
+      if (oSpell <> $
+         AND Send(oSpell,@GetSchool) = SS_QOR)
+         OR (oSpell <> $
+         AND Send(oSpell,@GetSchool) = SS_JALA)
+         OR (oSkill <> $
+            AND Send(oSkill,@GetSchool) = SKS_BANDITRY)
+      {
+         return TRUE;
+      }
+      return FALSE;
    }
 
 end

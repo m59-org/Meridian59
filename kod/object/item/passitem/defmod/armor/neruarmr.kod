@@ -21,9 +21,13 @@ resources:
    neruditearmor_name_rsc = "nerudite armor"
    neruditearmor_icon_rsc = nerudamr.bgf
    neruditearmor_desc_rsc = \
-      "Forged from mighty Nerudite, this plate is lighter and more durable than "
-      "normal plate.  This chest piece exemplifies the remarkable skill of "
-      "Ixla cha'Totlak."
+      "Forged from mighty nerudite, this plate is lighter and more durable than "
+      "normal plate. This chest piece exemplifies the remarkable skill of "
+      "Ixla cha'Totlak. Designed as a special defense against the magics of "
+      "avar shamans, this armor uses the dampening properties of nerudite to "
+      "greatly resist all forms of magic. However, nerudite's inherent "
+      "brittleness will cause small shards to break off and damage the wearer "
+      "if hit by weapon attacks. When completely broken, it may even explode."
 
    neruditearmor_male_icon_rsc = btm.bgf
    neruditearmor_female_icon_rsc = btn.bgf
@@ -50,6 +54,8 @@ classvars:
 
    viDefense_base = -125
    viDamage_base = 4
+   
+   viHexResistance = 33
 
 properties:
 
@@ -62,12 +68,19 @@ messages:
 
    GetResistanceModifiers()
    {
-      return [ [-ATCK_SPELL_FIRE,15],
-               [-ATCK_SPELL_SHOCK,15],
-               [-ATCK_SPELL_COLD,15],
-               [-ATCK_SPELL_ACID,15],
-               [-ATCK_SPELL_QUAKE,-15]
-             ];
+      if Send(SETTINGS_OBJECT,@GetDirectArmorEnabled)
+      {
+         return [ [-ATCK_SPELL_FIRE,15],
+                  [-ATCK_SPELL_SHOCK,15],
+                  [-ATCK_SPELL_COLD,15],
+                  [-ATCK_SPELL_ACID,15],
+                  [-ATCK_SPELL_QUAKE,-15]
+                ];
+      }
+      
+      return [ [ATCK_WEAP_ALL,-5],
+               [-ATCK_SPELL_ALL,40]
+               ];
    }
 
    GetHeatDamage()
@@ -77,6 +90,12 @@ messages:
 
    DefendingHit(who = $,what = $)
    {
+      if plEnchantmentMods <> $
+         AND NOT Send(SETTINGS_OBJECT,@GetLoseDurabilityMagicMods)
+      {
+         return;
+      }
+
       if random(1,100) < 75
       {
          piHits = piHits - 1;
@@ -126,7 +145,18 @@ messages:
               [&AcidResistanceMod,100],
               [&PierceResistanceMod,25],
               [&SlashResistanceMod,25],
-              [&BludgeonResistanceMod,25]];
+              [&BludgeonResistanceMod,25],
+              [&ThrustResistanceMod,25]];
+   }
+
+   GetHexResistance()
+   {
+      return viHexResistance;
+   }
+
+   GetKnockbackResistance()
+   {
+      return 40;
    }
 
 end

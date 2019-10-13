@@ -1,0 +1,80 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+UnderseaPalace is Room
+
+constants:
+
+   include blakston.khd
+
+resources:
+  
+   room_name_Undersea_Palace = "Small Remnant of an Undersea Palace"
+   room_Undersea_Palace = underseapalace.roo
+   Undersea_Palace_music = aamusic2.mp3
+
+classvars:
+
+   vrName = room_name_Undersea_Palace
+
+   viTeleport_row = 3
+   viTeleport_col = 3
+
+   viTerrain_Type = TERRAIN_CITY
+
+   viLongitude = 5
+   viLatitude = 5
+
+properties:
+
+   prRoom = room_Undersea_Palace
+   piRoom_num = RID_UNDERSEA_PALACE
+
+   piBaseLight = LIGHT_MIN
+   piOutside_factor = 0
+
+   prMusic = Undersea_Palace_music
+
+messages:
+
+   Constructed()
+   {
+
+      propagate;
+   }
+
+   CreateStandardExits()
+   {
+      plExits = $;
+
+%      plExits = Cons([ 2, 5, ROOM_LOCKED_DOOR, Undersea_Palace_locked],plExits);
+%      plExits = Cons([ 2, 6, ROOM_LOCKED_DOOR, Undersea_Palace_locked],plExits);
+%      plExits = Cons([ 2, 7, ROOM_LOCKED_DOOR, Undersea_Palace_locked],plExits);
+%      plExits = Cons([ 3, 7, ROOM_LOCKED_DOOR, Undersea_Palace_locked],plExits);
+
+      %% to sea
+      plExits = Cons([ 3, 2, RID_OPEN_WATER, 36, 26, ROTATE_NONE ],plExits);
+      plExits = Cons([ 3, 3, RID_OPEN_WATER, 36, 26, ROTATE_NONE ],plExits);
+      plExits = Cons([ 3, 4, RID_OPEN_WATER, 36, 26, ROTATE_NONE ],plExits);
+  
+      propagate;
+   }
+
+   CreateStandardObjects()
+   {
+      Send(self,@NewHold,#what=Create(&ScryingDevice),#new_row=1,#new_col=5,
+           #fine_row=15,#fine_col=48);
+
+      propagate;
+   }
+
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

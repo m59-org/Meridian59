@@ -43,6 +43,12 @@ resources:
       "In faith, if we were not already a very powerful faction, I would "
       "offer to have thee join us."
 
+   heartstone_delivered_rsc = \
+      "Indeed, you are Meridian's best hope against this threat. You and any "
+      "companions you deem fit may descend to the basement of this castle and "
+      "use the portal my mages have established. It will take you to the source "
+      "of the Xeochicatl threat, but, beyond that, we know little."
+
 classvars:
 
    viQuestID = QST_ID_PRINCESS_SERVICE
@@ -90,7 +96,7 @@ messages:
 
    Constructor()
    {
-      plWantedItems=[&Token];
+      plWantedItems=[&Token, &Heartstone];
 
       propagate;
    }
@@ -125,6 +131,16 @@ messages:
 
          Send(poOwner,@SomeoneSaid,#what=self,#type=SAY_RESOURCE,
                #string=princess_token_delivered_rsc,#parm1=temp_rsc);
+
+         return TRUE;
+      }
+
+      if IsClass(obj,&Heartstone)
+      {
+         Send(poOwner,@SomeoneSaid,#what=self,#type=SAY_RESOURCE,
+               #string=heartstone_delivered_rsc);
+         
+         %Send(Send(SYS,@FindRoomByNum,#num=RID_MOCKERS_ROOM),@OpenPortalToBiskalane);
 
          return TRUE;
       }

@@ -36,9 +36,7 @@ DesertRiver2 is DesertRoom
 % the first true deathtrap in Meridian. I think the area and high-level
 % danger focus of this entire region warrants it. A message warns players
 % whenever they enter: a single misstep here can get you KILLED.
-% If we don't implement corpse summoning, an NPC in Waylay Oasis will
-% have to automatically do it for players who die this way.
-% NPCs will also warn players multiple times about this place.
+% Xaerdun, in the afterlife, will corpse summon to mitigate loss of items here.
 %
 % In about 200 test runs, I managed to reach the prism without falling every
 % time. So it's a danger for those who like to jump off things blithely,
@@ -114,8 +112,31 @@ resources:
       "~r~BThe earth rumbles, and the lava below begins churning fiercely."
    prism_closed_msg = \
       "~rThe ground trembles, and the heat from below ebbs slightly."
-   
+
+   cant_movement_spell_msg = \
+      "Using a movement spell here would be far too dangerous!"
+
+   booted_for_reset_msg = \
+      "A mighty tide of welling energies bounces you through the region's "
+      "natural curvature, depositing you far away."
+
    burning_step_sound = frying.wav
+
+   prism_of_fire_defeated = \
+      "~BA band of brave warriors have sealed the Prism of Fire in Biskalane! "
+      "For a time, the element of fire will be ally instead of foe."
+
+   cannot_proceed_wallhack = \
+      "This water is on the verge of boiling. You cannot proceed while the Prism of Fire "
+      "remains undefeated!"
+
+   sucked_into_dimensional_breach = \
+      "As %s phases into the elemental plane of fire, a tremendous blast of heated energy "
+      "pushes you beyond the dimensional barrier as well!"
+
+   enter_dimensional_breach = \
+      "As you phase into the elemental plane of fire, you feel a blast of heated energy "
+      "roar around you!"
 
 classvars:
 
@@ -140,6 +161,9 @@ properties:
    
    pbPrismOpen = FALSE
    pbPrismOfFireDefeated = FALSE
+
+   ptPrismOfFireReset = $
+   piHoursLeftReset = 47
 
 messages:
    
@@ -273,6 +297,15 @@ messages:
          return;
       }
 
+      if new_row > (Send(self,@GetRoomRows)-2)
+      {
+         Send(SYS,@UtilGoNearSquare,#what=what,
+              #where=Send(SYS,@FindRoomByNum,#num=RID_DESERTRIVER3),
+              #new_row=3,#new_col=7,#fine_row=36,#fine_col=0,
+              #new_angle=Send(what,@GetAngle));
+         return;
+      }
+
       propagate;
    }
 
@@ -293,6 +326,11 @@ messages:
       {
          DeleteTimer(ptFireElementsTimer);
          ptFireElementsTimer = $;
+      }
+      if ptPrismOfFireReset <> $
+      {
+         DeleteTimer(ptPrismOfFireReset);
+         ptPrismOfFireReset = $;
       }
       
       propagate;
@@ -691,7 +729,46 @@ messages:
       vrName = room_name_defeated;
       Send(self,@EndAllThreats);
       pbPrismOfFireDefeated = TRUE;
+      
+      piHoursLeftReset = 47;
+      ptPrismOfFireReset = CreateTimer(self,@PrismOfFireReset,60000 * 60); % 1 hour, counts down 48 times
 
+      Send(self,@StartThreat,#cClasses=Send(self,@GetPhaseThreats),#report=TRUE);
+      
+      foreach i in Send(SYS,@GetUsersLoggedOn)
+      {
+         Send(i,@MsgSendUser,#message_rsc=prism_of_fire_defeated);
+      }
+      return;
+   }
+
+   PrismOfFireReset()
+   {
+      local i;
+
+      ptPrismOfFireReset = $;
+      
+      if piHoursLeftReset > 0
+      {
+         --piHoursLeftReset;
+         ptPrismOfFireReset = CreateTimer(self,@PrismOfFireReset,60000 * 60); % 1 hour, counts down 48 times
+         return;
+      }
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&Player)
+         {
+            Send(First(i),@MsgSendUser,#message_rsc=booted_for_reset_msg);
+            Send(Send(SYS,@FindRoomByNum,#num=RID_WAYLAYOASIS),@Teleport,#what=First(i));
+         }
+      }
+
+      Send(Send(SYS,@FindRoomByNum,#num=RID_MAZE_EXIT_ROOM),@CloseFireWall);
+      
+      Post(self,@Delete);
+      Post(SYS,@CreateOneRoomIfNew,#num=RID_DESERTRIVER2,#class=&DesertRiver2);
+      
       return;
    }
 
@@ -710,6 +787,44 @@ messages:
       }
 
       return FALSE;
+   }
+
+   ReqSpellCast(oSpell=$,who=$)
+   {
+      if IsClass(oSpell,&MovementSpell)
+      {
+         if who <> $
+            AND IsClass(who,&Player)
+         {
+            Send(who,@MsgSendUser,#message_rsc=cant_movement_spell_msg);
+         }
+         return FALSE;
+      }
+
+      propagate;
+   }
+
+   EnterPrism(who=$)
+   {
+      local i, each_obj;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         each_obj = Send(self,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&Player)
+         {
+            if each_obj = who
+            {
+               Send(each_obj,@MsgSendUser,#message_rsc=enter_dimensional_breach);
+            }
+            else
+            {
+               Send(each_obj,@MsgSendUser,#message_rsc=sucked_into_dimensional_breach,#parm1=Send(who,@GetName));
+            }
+            Post(Send(SYS,@FindRoomByNum,#num=RID_PRISM_OF_FIRE),@Teleport,#what=each_obj);
+         }
+      }
+      return;
    }
 
 end

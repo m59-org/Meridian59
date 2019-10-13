@@ -1,0 +1,37 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+AntiResistanceHex is Hex
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   antireshex_report_msg = \
+      "At that effectiveness, the victim will suffer ~r%i\% ~nreduced resistance."
+
+classvars:
+
+   vrHexEffectReport = antireshex_report_msg
+
+properties:
+
+messages:
+
+   DoHexEffectReport(what=$,iHexEffect=0)
+   {
+      Send(what,@MsgSendUser,#message_rsc=vrHexEffectReport,#parm1=piBaseEffect * iHexEffect / 100);
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

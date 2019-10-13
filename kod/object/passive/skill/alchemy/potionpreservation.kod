@@ -1,0 +1,128 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+PotionPreservation is AlchemySkill
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   potion_preservation_name_rsc = "potion preservation"
+   potion_preservation_icon_rsc = idistill.bgf
+   potion_preservation_desc_rsc = \
+      "An alchemist is no stranger to vials and flasks, "
+      "but only a master knows chemicals well enough "
+      "to begin drinking his or her own mixes. "
+      "Potion preservation extends the life of "
+      "potions by attempting to replace draughts as they are used. "
+      "The skill also helps reduce the fillingness of drinking, "
+      "since the alchemist is consuming less with each sip."
+      "\n\nAlchemical creation depends upon the essence of gold, "
+      "so each process consumes some number of transmuted shillings. "
+      "More skilled alchemists can consume less gold with each transmutation."
+      "\n\nThe more draughts the potion has, the better chance of resisting depletion. "
+      "If the potion starts to drain, its draughts may dissipate rapidly."
+
+   not_enough_shillings_potion_preservation = \
+      "You don't have the %i shillings required to resist charge loss!"
+   transmute_shillings_potion_preservation = \
+      "You alchemically melt %i shillings to resist a charge loss."
+
+classvars:
+
+   vrName = potion_preservation_name_rsc
+   vrIcon = potion_preservation_icon_rsc
+   vrDesc = potion_preservation_desc_rsc
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+
+   viSkill_num = SKID_POTION_PRESERVATION
+   viSchool = SKS_ALCHEMY
+   viSkill_Level = 5
+   viChance_to_Increase = 20
+   viMeditate_ratio = 40
+
+   viSkillExertion = 0
+   vbCheck_exertion = FALSE
+   
+   viPrimaryStat = STAT_ID_INTELLECT
+   viSecondaryStat = 0
+
+properties:
+
+messages:
+
+   GetRequisiteStat(who=$)
+   {
+      return Send(who,@GetIntellect);
+   }
+
+   DoSkill(who=$, oPotion=$)
+   {
+      local iAbility, iStat, iDurability, iChance, oMoney, iCash, iFee;
+
+      iAbility = Send(who,@GetSkillAbility,#Skill_num=viSkill_num);
+      iStat = Send(self,@GetRequisiteStat,#who=who);
+      iDurability = Send(oPotion,@GetHits);
+      
+      if iDurability < 1
+      {
+         return FALSE;
+      }
+
+      % First: 1 in iDurability, incentivizing keeping high durability
+      if Random(1,iDurability) = 1
+      {
+         return FALSE;
+      }
+
+      iChance = Bound(iAbility + iStat/5,10,100);
+      if Random(1,100) > iChance
+      {
+         return FALSE;
+      }
+      
+      % We succeeded! Or, rather, didn't fail. Shilling cost time.
+
+      oMoney = Send(who,@GetMoneyObject);
+      if oMoney = $
+      {
+         % No cash.
+         iCash = 0;
+      }
+      else
+      {
+         iCash = Send(oMoney,@GetValue);
+      }
+      
+      % Fee ranges from 1x down to .1x.
+      iFee = Send(oPotion,@GetInitValue);
+      iFee = iFee - ((iFee*9/10)*(iAbility+1))/100;
+
+      if iCash < iFee AND iFee <> 0
+      {
+         %Send(who,@MsgSendUser,#message_rsc=not_enough_shillings_potion_preservation,#parm1=iFee);
+         return FALSE;
+      }
+
+      if iFee <> 0
+      {
+         Send(oMoney,@SubtractNumber,#number=iFee);
+         %Send(who,@MsgSendUser,#message_rsc=transmute_shillings_potion_preservation,#parm1=iFee);
+      }
+
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

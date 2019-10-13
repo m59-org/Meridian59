@@ -1,0 +1,113 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Brambleblast is BoltSpell
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   Brambleblast_name_rsc = "brambleblast"
+
+   Brambleblast_icon_rsc = iwalltho.bgf
+
+   Brambleblast_desc_rsc = \
+      "Sends bramble vines shooting up from the earth at a target at short range, slashing them with thorns and causing them to bleed.  "
+      "Requires one elderberry and one yrxl sap to cast."
+
+   Brambleblast_sound = faren.wav
+
+   Brambleblast_projectile_icon_rsc = wothorns.bgf
+
+classvars:
+
+   vrName = Brambleblast_name_rsc
+   vrIcon = Brambleblast_icon_rsc
+   vrDesc = Brambleblast_desc_rsc
+   
+   viSpell_num = SID_BRAMBLEBLAST
+
+
+   viAttack_type = ATCK_WEAP_ALL+ATCK_WEAP_SLASH
+   viAttack_spell = 0
+
+   viSchool = SS_FAREN
+   viSpell_level = 3
+   viMana = 8
+
+   vrSucceed_wav = Brambleblast_sound
+
+   % In seconds, since it works off GetTime().
+   viPostCast_time = 2
+
+   viChance_To_Increase = 15
+
+   vrProjectile_Icon = Brambleblast_projectile_icon_rsc
+
+   % Short range blast
+   vbIsRangedAttack = FALSE
+
+   % Projectile lighting information.
+   viProjectileLightFlags = LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC
+   % Medium light range, out of 255.
+   viProjectileLightIntensity = 100
+   % Default color is lightning.
+   viProjectileLightColor = LIGHT_BGREEN
+   
+   viProjectileSpeed = 10
+
+properties:
+
+   piDamageMin = 9
+   piDamageMax = 18
+   piRange = 4 * FINENESS
+
+   % Maximum amount of bonus damage mana focus gives us for casting this spell.
+   piManaFocusBonus = 0
+
+messages:
+
+   ResetReagents()
+   {
+      % separate message so can change, then set from admin mode
+
+      plReagents = $;
+      plReagents = Cons([&Elderberry,1],plReagents);
+      plReagents = Cons([&Yrxlsap,1], plReagents);
+
+      return;
+   }
+
+   SendLookAnimation()
+   {
+      AddPacket(1,ANIMATE_NONE, 2,2);
+
+      return;
+   }
+
+   SendProjectileAnimation()
+   {
+      % 40ms between animations, between frames 1-5
+      AddPacket(1,ANIMATE_CYCLE, 4,40, 2,1, 2,5);   
+
+      return;
+   }
+
+   % The chance to do something in addition to normal damage.
+   DoSideEffect(who=$,victim=$,damage=0)
+   {
+      Post(victim,@ApplyBleed,#what=who,#bleed_power=Send(who,@GetBleedPower));
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -1,0 +1,108 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+SplashOfAcid is BoltSpell
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   include splsacid.lkod
+
+   SplashOfAcid_name_rsc = "splash of acid"
+
+   SplashOfAcid_icon_rsc = isplacid.bgf
+
+   SplashOfAcid_desc_rsc = \
+      "Splashes Qor's unholy corrosive acid on a target at short range.  "
+      "Requires entroot berries to cast."
+
+   SplashOfAcid_sound = qacid.wav
+   
+   SplashOfAcid_projectile_icon_rsc = splashofacidproj.bgf
+
+classvars:
+
+   vrName = SplashOfAcid_name_rsc
+   vrIcon = SplashOfAcid_icon_rsc
+   vrDesc = SplashOfAcid_desc_rsc
+   
+   viSpell_num = SID_SPLASH_OF_ACID
+
+   viAttack_spell = ATCK_SPELL_ALL + ATCK_SPELL_ACID
+
+   viSchool = SS_QOR
+   viSpell_level = 4
+   viMana = 10
+
+   vrSucceed_wav = SplashOfAcid_sound
+
+   % In seconds, since it works off GetTime().
+   viPostCast_time = 2
+
+   viChance_To_Increase = 15
+
+   vrProjectile_Icon = SplashOfAcid_projectile_icon_rsc
+
+   % Short range blast
+   vbIsRangedAttack = FALSE
+
+   % Projectile lighting information.
+   viProjectileLightFlags = LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC
+   % Medium light range, out of 255.
+   viProjectileLightIntensity = 100
+   % Default color is lightning.
+   viProjectileLightColor = LIGHT_BGREEN
+   
+   viPrimaryStat = STAT_ID_MYSTICISM
+   viSecondaryStat = STAT_ID_INTELLECT
+   
+   viProjectileSpeed = 10
+
+properties:
+
+   piDamageMin = 16
+   piDamageMax = 25
+   piRange = 3 * FINENESS
+   
+   % No bonus from Mana Focus
+   piManaFocusBonus = 0
+
+messages:
+
+   ResetReagents()
+   {
+      % separate message so can change, then set from admin mode
+
+      plReagents = $;
+      plReagents = cons([&EntrootBerry,2],plReagents);
+
+      return;
+   }
+
+   SendLookAnimation()
+   {
+      AddPacket(1,ANIMATE_NONE, 2,2);
+
+      return;
+   }
+
+   SendProjectileAnimation()
+   {
+      % 40ms between animations, between frames 1-2
+      AddPacket(1,ANIMATE_CYCLE, 4,40, 2,1, 2,2);   
+
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

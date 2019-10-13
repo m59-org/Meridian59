@@ -1,0 +1,186 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+DeathPrismThreat is RoomThreat 
+
+% Clinging darkness accumulates rapidly per tick if the player isn't moving.
+% Make icon - unholy touch + darkness
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   grasping_darkness_threat_name_rsc = "grasping darkness"
+   grasping_darkness_threat_icon_rsc = idarknes.bgf
+   grasping_darkness_threat_desc_rsc = \
+      "Death, negativity, darkness - call it what you will, but it is present "
+      "here in a physical sense, clawing at you, grasping at your limbs. Don't stop moving!"
+
+   grasping_darkness_threat_begin_msg = \
+      "Darkness closes in, grasping at you."
+   grasping_darkness_threat_end_msg = \
+      "The grasping darkness fades away."
+   grasping_darkness_threat_damage_msg = \
+      "Claws of shadow scratch at you from every angle. You must keep moving. Don't stand still "
+      "or they'll close in around you!"
+
+   grasping_darkness_good_item_use_msg = \
+      "The shadows flee your light!"
+   grasping_darkness_good_spell_use_msg = \
+      "Your magic keeps the shadows at bay!"
+
+   grasping_darkness_death_msg = \
+      "~B~U~k[###]~n ~B~v%s was pulled away into the infinite darkness of the Prism of Death."
+
+classvars:
+
+   vrName = grasping_darkness_threat_name_rsc
+   vrIcon = grasping_darkness_threat_icon_rsc
+   vrDesc = grasping_darkness_threat_desc_rsc
+
+   viThreatBeginMsg = grasping_darkness_threat_begin_msg
+   viThreatEndMsg = grasping_darkness_threat_end_msg
+   viThreatDamageMsg = grasping_darkness_threat_damage_msg
+   viGoodItemUseMsg = grasping_darkness_good_item_use_msg
+   viGoodSpellUseMsg = grasping_darkness_good_spell_use_msg
+   
+   viDeathMsg = grasping_darkness_death_msg
+
+properties:
+
+   % What type of damage do we do?
+   piDamageTypeAttack = 0
+   piDamageTypeSpell = ATCK_SPELL_UNHOLY
+
+   % How much damage do we do?
+   piDamageMin = 1
+   piDamageMax = 3
+   
+   % How often do we deal damage?
+   piDamageTime = 1000
+   ptDamageTimer = $
+   
+   % How long does the threat last?
+   piThreatTime = 10 * 60 * 1000
+   ptThreatTimer = $
+
+   % Do we report the damage?
+   piReport = FALSE
+
+   % This threat drains vigor.
+   piVigorDrop = 10000
+
+   % Keep track of players who have moved in the last 2 seconds.
+   plMovedList = $
+
+messages:
+
+   ReqDealDamage(who=$)
+   {
+      local iSection;
+
+      % Moving keeps the darkness at bay
+      if Send(self,@IsUserOnMovedList,#who=who)
+         OR Send(who,@GetPlayerRace) = RACE_HALF_ORC
+      {
+         return FALSE;
+      }
+
+      propagate;
+   }
+
+   ApplyDirectEffect(who=$)
+   {
+      Send(who,@AddExertion,#amount=piVigorDrop);
+      propagate;
+   }
+   
+   Delete()
+   {
+      local i;
+      
+      foreach i in plMovedList
+      {
+         DeleteTimer(Nth(i,2));
+         SetNth(i,2,$);
+         SetNth(i,1,$);
+         plMovedList = DelListElem(plMovedList,i);
+      }
+      plMovedList = $;
+      propagate;
+   }
+
+   SomethingMoved(what=$)
+   {
+      if IsClass(what,&User)
+      {
+         Send(self,@AddUserToMovedList,#who=what);
+      }
+      return;
+   }
+
+   IsUserOnMovedList(who=$)
+   {
+      local i;
+      
+      foreach i in plMovedList
+      {
+         if First(i) = who
+         {
+            return TRUE;
+         }
+      }
+      return FALSE;
+   }
+
+   AddUserToMovedList(who=$)
+   {
+      local i;
+
+      foreach i in plMovedList
+      {
+         if First(i) = who
+         {
+            if Nth(i,2) <> $
+            {
+               % Already on the list. Refresh.
+               DeleteTimer(Nth(i,2));
+               SetNth(i,2,$);
+               SetNth(i,2,CreateTimer(self,@RemoveUserFromMovedList,2000));
+            }
+            return;
+         }
+      }
+      plMovedList = Cons([who,CreateTimer(self,@RemoveUserFromMovedList,2000)],plMovedList);
+      return;
+   }
+
+   RemoveUserFromMovedList(timer=$)
+   {
+      local i;
+      
+      foreach i in plMovedList
+      {
+         if Nth(i,2) = timer
+         {
+            SetNth(i,2,$);
+            SetNth(i,1,$);
+            plMovedList = DelListElem(plMovedList,i);
+            return TRUE;
+         }
+      }
+      
+      return FALSE;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

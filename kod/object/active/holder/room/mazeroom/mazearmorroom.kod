@@ -1,0 +1,412 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+MazeArmorRoom is MinotaurMazeRoom
+
+% This room contains relics in a vault.
+
+constants:
+
+   include blakston.khd
+
+   PILLAR_OFF = 9751        % texture ID to indicate lighting state
+   PILLAR_ON = 9753
+   
+   SWITCH_DOWN_HEIGHT = 1000
+   SWITCH_UP_HEIGHT = 1010
+   SWITCH_SPEED = 10
+   
+   NORTH_TOP = 7000
+   NORTH_SIDES = 7001
+   NORTH_EAST_TOP = 7002
+   NORTH_EAST_SIDES = 7003
+   EAST_TOP = 7004
+   EAST_SIDES = 7005
+   SOUTH_EAST_TOP = 7006
+   SOUTH_EAST_SIDES = 7007
+   SOUTH_TOP = 7008
+   SOUTH_SIDES = 7009
+   SOUTH_WEST_TOP = 7010
+   SOUTH_WEST_SIDES = 7011
+   WEST_TOP = 7012
+   WEST_SIDES = 7013
+   NORTH_WEST_TOP = 7014
+   NORTH_WEST_SIDES = 7015
+   
+   NORTH_SWITCH = 1
+   NORTH_EAST_SWITCH = 2
+   EAST_SWITCH = 3
+   SOUTH_EAST_SWITCH = 4
+   SOUTH_SWITCH = 5
+   SOUTH_WEST_SWITCH = 6
+   WEST_SWITCH = 7
+   NORTH_WEST_SWITCH = 8
+
+   VAULT_DOOR_SECTOR = 7020
+   
+   VECKA_DISGRUNTLED_DELAY = 20000
+
+resources:
+
+   room_armor_room = mazearmorroom.roo
+   room_maze_armor_room_name = "Ancient Armory"
+   
+   ancient_armory_challenge_msg = \
+      "~kThe spirit of Vecka tells you, \"The Sorcerers were once a highly respected organization that served the Merchant Princes. "
+      "Low-level sorcerers were often used as bodyguards or mercenaries. This is where they kept some of their equipment, "
+      "protected by a series of mechanical passcodes only true apprentices would know.\""
+
+   switch_lift_up_sound = stoneup2.wav
+   switch_lift_down_sound = stonedn2.wav
+   
+   vecka_complaint_msg = \
+      "~kThe spirit of Vecka tells you, \"Wow, it's all a bunch of junk! I suppose the wooden racks rotted away over the ages, "
+      "and the better items were probably looted long ago. Wait... something's strange with that one over there.\""
+   
+classvars:
+
+   vrName = room_maze_armor_room_name
+
+   viTeleport_row = 5
+   viTeleport_col = 5
+
+properties:
+
+   prRoom = room_armor_room
+   piRoom_num = RID_MAZE_ARMOR_ROOM
+   
+   pbVaultOpen = FALSE
+   
+   plSwitchStates = $
+   plLights = $
+   
+   ptVeckaDisgruntledTimer = $
+
+messages:
+
+   CreateMazeRoomObjects()
+   {
+      local i;
+
+      plSwitchStates = [0,0,0,0,0,0,0,0];
+      
+      plLights = [Create(&DynamicLight,#iColor=LIGHT_WHITE,#iIntensity=70),
+                  Create(&DynamicLight,#iColor=LIGHT_WHITE,#iIntensity=70),
+                  Create(&DynamicLight,#iColor=LIGHT_WHITE,#iIntensity=70),
+                  Create(&DynamicLight,#iColor=LIGHT_WHITE,#iIntensity=70),
+                  Create(&DynamicLight,#iColor=LIGHT_WHITE,#iIntensity=70),
+                  Create(&DynamicLight,#iColor=LIGHT_WHITE,#iIntensity=70),
+                  Create(&DynamicLight,#iColor=LIGHT_WHITE,#iIntensity=70),
+                  Create(&DynamicLight,#iColor=LIGHT_WHITE,#iIntensity=70)];
+      
+      Send(self,@NewHold,#what=Nth(plLights,1),#new_row=10,#new_col=26,#fine_row=0,#fine_col=0);
+      Send(self,@NewHold,#what=Nth(plLights,2),#new_row=14,#new_col=32,#fine_row=0,#fine_col=0);
+      Send(self,@NewHold,#what=Nth(plLights,3),#new_row=20,#new_col=34,#fine_row=0,#fine_col=0);
+      Send(self,@NewHold,#what=Nth(plLights,4),#new_row=26,#new_col=32,#fine_row=0,#fine_col=0);
+      Send(self,@NewHold,#what=Nth(plLights,5),#new_row=30,#new_col=26,#fine_row=0,#fine_col=0);
+      Send(self,@NewHold,#what=Nth(plLights,6),#new_row=26,#new_col=20,#fine_row=0,#fine_col=0);
+      Send(self,@NewHold,#what=Nth(plLights,7),#new_row=20,#new_col=18,#fine_row=0,#fine_col=0);
+      Send(self,@NewHold,#what=Nth(plLights,8),#new_row=14,#new_col=20,#fine_row=0,#fine_col=0);
+
+      return;
+   }
+   
+   CheckMoveBorders(what=$, new_row=$, new_col=$)
+   {
+      return;
+   }
+
+   NewHold(what=$)
+   {
+      if what <> $
+         AND IsClass(what,&User)
+         AND Send(what,@GetVeckaAdvice)
+      {
+         Send(what,@MsgSendUser,#message_rsc=ancient_armory_challenge_msg);
+      }
+ 
+      if IsClass(what,&Player)
+      {
+         Post(Send(SYS,@GetGameQuestMaintenance),@EvaluatePlayer,#who=what,#vbTriggered=TRUE);
+      }
+
+      propagate;
+   }
+   
+   CompletedPuzzle()
+   {
+      Send(self,@FillVault);
+      Send(self,@OpenVault);
+      
+      return;
+   }
+
+   OpenVault()
+   {
+      Send(self,@SetSector,#sector=VAULT_DOOR_SECTOR,
+                           #animation=ANIMATE_FLOOR_LIFT,
+                           #height=SWITCH_DOWN_HEIGHT,
+                           #speed=SWITCH_SPEED);
+      Send(self,@SomethingWaveRoom,#wave_rsc=switch_lift_down_sound); 
+      Send(self,@VaultOpened);
+      
+      ptVeckaDisgruntledTimer = CreateTimer(self,@VeckaDisgruntled,VECKA_DISGRUNTLED_DELAY);
+      return;
+   }
+
+   VeckaDisgruntled()
+   {
+      local i;
+      ptVeckaDisgruntledTimer = $;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&Player)
+            AND Send(First(i),@GetVeckaAdvice)
+         {
+            Send(First(i),@MsgSendUser,#message_rsc=vecka_complaint_msg);
+         }
+      }
+      return;
+   }
+
+   FillVault()
+   {
+      local lLootClasses, lMinorLootClasses, iJunkNum, iScrollNum;
+
+      lLootClasses = [&PunchArmorRelic,
+                      &OffenseArmorRelic,
+                      &DefenseArmorRelic,
+                      &MeleeArmorRelic,
+                      &RangedArmorRelic];
+      lMinorLootClasses = [&BanditScimitar,
+                           &Dagger,
+                           &Flail,
+                           &Maul,
+                           &Hatchet,
+                           &ElfShield,
+                           &KnightHelm,
+                           &RunedHelm,
+                           &SteelShield,
+                           &SpikedHelm];
+
+      Send(self,@NewHold,#what=Create(Nth(lLootClasses,Random(1,Length(lLootClasses)))),
+                         #new_row=Random(12,27),#new_col=Random(2,8),#fine_row=Random(0,63),#fine_col=Random(0,63));
+
+      iJunkNum = Random(20,40);
+      
+      while iJunkNum > 0
+      {
+         Send(self,@NewHold,#what=Create(Nth(lMinorLootClasses,Random(1,Length(lMinorLootClasses))),#level=200),
+                            #new_row=Random(12,27),#new_col=Random(2,8),#fine_row=Random(0,63),#fine_col=Random(0,63));
+         iJunkNum--;
+      }
+      
+      iScrollNum = Random(5,12);
+      
+      while iScrollNum > 0
+      {
+         Send(self,@NewHold,#what=Create(&SorcererScrap),
+                            #new_row=Random(12,27),#new_col=Random(2,8),#fine_row=Random(0,63),#fine_col=Random(0,63));
+         iScrollNum--;
+      }
+
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_WHITE,#iIntensity=220),
+                         #new_row=15,#new_col=12,#fine_row=0,#fine_col=0);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_WHITE,#iIntensity=220),
+                         #new_row=20,#new_col=12,#fine_row=0,#fine_col=0);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_WHITE,#iIntensity=220),
+                         #new_row=25,#new_col=12,#fine_row=0,#fine_col=0);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_WHITE,#iIntensity=220),
+                         #new_row=14,#new_col=5,#fine_row=0,#fine_col=0);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_WHITE,#iIntensity=220),
+                         #new_row=20,#new_col=5,#fine_row=0,#fine_col=0);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_WHITE,#iIntensity=220),
+                         #new_row=26,#new_col=5,#fine_row=0,#fine_col=0);
+      return;
+   }
+
+   VaultOpened()
+   {
+      local i, each_obj;
+      
+      pbVaultOpen = TRUE;
+
+      foreach i in Send(self,@GetHolderActive)
+      {
+         each_obj = Send(self,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&Player)
+         {
+            % Let passive quests know we beat this area
+            Send(each_obj,@CompletedPuzzle,#iRoomNum=piRoom_num);
+         }
+      }
+      return;
+   }
+
+   EvaluateMovement(who=$,section=0)
+   {
+      Send(self,@Press,#who=who, #section=section);
+      propagate;
+   }
+
+   Press(who=$, section=0)
+   {
+      Switch(section)
+      {
+         case NORTH_SWITCH:
+            if Nth(plSwitchStates,1) = 0
+            {
+               Send(self,@SomethingWaveRoom,#wave_rsc=switch_lift_up_sound); 
+               Send(self,@Toggle,#switch_num=8,#top_id=NORTH_WEST_TOP,#sides_id=NORTH_WEST_SIDES);
+               Send(self,@Toggle,#switch_num=1,#top_id=NORTH_TOP,#sides_id=NORTH_SIDES);
+               Send(self,@Toggle,#switch_num=2,#top_id=NORTH_EAST_TOP,#sides_id=NORTH_EAST_SIDES);
+               Send(self,@EvaluatePuzzle);
+            }
+            break;
+         case NORTH_EAST_SWITCH:
+            if Nth(plSwitchStates,2) = 0
+            {
+               Send(self,@SomethingWaveRoom,#wave_rsc=switch_lift_up_sound); 
+               Send(self,@Toggle,#switch_num=1,#top_id=NORTH_TOP,#sides_id=NORTH_SIDES);
+               Send(self,@Toggle,#switch_num=2,#top_id=NORTH_EAST_TOP,#sides_id=NORTH_EAST_SIDES);
+               Send(self,@Toggle,#switch_num=3,#top_id=EAST_TOP,#sides_id=EAST_SIDES);
+               Send(self,@EvaluatePuzzle);
+            }
+            break;
+         case EAST_SWITCH:
+            if Nth(plSwitchStates,3) = 0
+            {
+               Send(self,@SomethingWaveRoom,#wave_rsc=switch_lift_up_sound); 
+               Send(self,@Toggle,#switch_num=2,#top_id=NORTH_EAST_TOP,#sides_id=NORTH_EAST_SIDES);
+               Send(self,@Toggle,#switch_num=3,#top_id=EAST_TOP,#sides_id=EAST_SIDES);
+               Send(self,@Toggle,#switch_num=4,#top_id=SOUTH_EAST_TOP,#sides_id=SOUTH_EAST_SIDES);
+               Send(self,@EvaluatePuzzle);
+            }
+            break;
+         case SOUTH_EAST_SWITCH:
+            if Nth(plSwitchStates,4) = 0
+            {
+               Send(self,@SomethingWaveRoom,#wave_rsc=switch_lift_up_sound); 
+               Send(self,@Toggle,#switch_num=3,#top_id=EAST_TOP,#sides_id=EAST_SIDES);
+               Send(self,@Toggle,#switch_num=4,#top_id=SOUTH_EAST_TOP,#sides_id=SOUTH_EAST_SIDES);
+               Send(self,@Toggle,#switch_num=5,#top_id=SOUTH_TOP,#sides_id=SOUTH_SIDES);
+               Send(self,@EvaluatePuzzle);
+            }
+            break;
+         case SOUTH_SWITCH:
+            if Nth(plSwitchStates,5) = 0
+            {
+               Send(self,@SomethingWaveRoom,#wave_rsc=switch_lift_up_sound); 
+               Send(self,@Toggle,#switch_num=4,#top_id=SOUTH_EAST_TOP,#sides_id=SOUTH_EAST_SIDES);
+               Send(self,@Toggle,#switch_num=5,#top_id=SOUTH_TOP,#sides_id=SOUTH_SIDES);
+               Send(self,@Toggle,#switch_num=6,#top_id=SOUTH_WEST_TOP,#sides_id=SOUTH_WEST_SIDES);
+               Send(self,@EvaluatePuzzle);
+            }
+            break;
+         case SOUTH_WEST_SWITCH:
+            if Nth(plSwitchStates,6) = 0
+            {
+               Send(self,@SomethingWaveRoom,#wave_rsc=switch_lift_up_sound); 
+               Send(self,@Toggle,#switch_num=5,#top_id=SOUTH_TOP,#sides_id=SOUTH_SIDES);
+               Send(self,@Toggle,#switch_num=6,#top_id=SOUTH_WEST_TOP,#sides_id=SOUTH_WEST_SIDES);
+               Send(self,@Toggle,#switch_num=7,#top_id=WEST_TOP,#sides_id=WEST_SIDES);
+               Send(self,@EvaluatePuzzle);
+            }
+            break;
+         case WEST_SWITCH:
+            if Nth(plSwitchStates,7) = 0
+            {
+               Send(self,@SomethingWaveRoom,#wave_rsc=switch_lift_up_sound); 
+               Send(self,@Toggle,#switch_num=6,#top_id=SOUTH_WEST_TOP,#sides_id=SOUTH_WEST_SIDES);
+               Send(self,@Toggle,#switch_num=7,#top_id=WEST_TOP,#sides_id=WEST_SIDES);
+               Send(self,@Toggle,#switch_num=8,#top_id=NORTH_WEST_TOP,#sides_id=NORTH_WEST_SIDES);
+               Send(self,@EvaluatePuzzle);
+            }
+            break;
+         case NORTH_WEST_SWITCH:
+            if Nth(plSwitchStates,8) = 0
+            {
+               Send(self,@SomethingWaveRoom,#wave_rsc=switch_lift_up_sound); 
+               Send(self,@Toggle,#switch_num=7,#top_id=WEST_TOP,#sides_id=WEST_SIDES);
+               Send(self,@Toggle,#switch_num=8,#top_id=NORTH_WEST_TOP,#sides_id=NORTH_WEST_SIDES);
+               Send(self,@Toggle,#switch_num=1,#top_id=NORTH_TOP,#sides_id=NORTH_SIDES);
+               Send(self,@EvaluatePuzzle);
+            }
+            break;
+      }
+
+      return;
+   }
+
+   Toggle(switch_num=1, top_id=NORTH_TOP, sides_id=NORTH_SIDES)
+   {
+      if Nth(plSwitchStates,switch_num)
+      {
+         Send(self,@ChangeTexture,#id=top_id,#new_texture=PILLAR_OFF,#flags=CTF_FLOOR);
+         Send(self,@ChangeTexture,#id=sides_id,#new_texture=PILLAR_OFF,#flags=CTF_BELOWWALL);
+         Send(self,@SetSector,#sector=switch_num,
+                              #animation=ANIMATE_FLOOR_LIFT,
+                              #height=SWITCH_UP_HEIGHT,
+                              #speed=SWITCH_SPEED);
+         SetNth(plSwitchStates,switch_num,0);
+         Send(Nth(plLights,switch_num),@SetLight,#iColor=LIGHT_WHITE);
+      }
+      else
+      {
+         Send(self,@ChangeTexture,#id=top_id,#new_texture=PILLAR_ON,#flags=CTF_FLOOR);
+         Send(self,@ChangeTexture,#id=sides_id,#new_texture=PILLAR_ON,#flags=CTF_BELOWWALL);
+         Send(self,@SetSector,#sector=switch_num,
+                              #animation=ANIMATE_FLOOR_LIFT,
+                              #height=SWITCH_DOWN_HEIGHT,
+                              #speed=SWITCH_SPEED);
+         SetNth(plSwitchStates,switch_num,1);
+         Send(Nth(plLights,switch_num),@SetLight,#iColor=LIGHT_BGREEN);
+      }
+      return;
+   }
+
+   EvaluatePuzzle()
+   {
+      local i;
+
+      foreach i in plSwitchStates
+      {
+         if i = 0
+         {
+            return FALSE;
+         }
+      }
+      
+      Send(self,@CompletedPuzzle);
+
+      return TRUE;
+   }
+
+   Delete()
+   {
+      local i;
+
+      if ptVeckaDisgruntledTimer <> $
+      {
+         DeleteTimer(ptVeckaDisgruntledTimer);
+         ptVeckaDisgruntledTimer = $;
+      }
+
+      foreach i in plLights
+      {
+         Send(i,@Delete);
+      }
+      plLights = $;
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

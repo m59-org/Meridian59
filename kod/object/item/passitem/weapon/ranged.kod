@@ -220,7 +220,18 @@ messages:
 
    GetHitBonus()
    {
-      return viHit_roll_modifier + piHitBonus;
+      local i, sum;
+      sum = 0;
+
+      foreach i in plEnchantmentMods
+      {
+         if Nth(i,1) = &RangedOffenseMod
+         {
+            sum = sum + Nth(i,2);
+         }
+      }
+
+      return viHit_roll_modifier + piHitBonus + sum;
    }
 
    GetMinDamage()
@@ -554,6 +565,13 @@ messages:
    GetBaseSpellModifier()
    {
       return viSpell_modifier;
+   }
+
+   GetPrefixes()
+   {
+      return [[&RangedOffenseMod,100],
+              [&PierceEmpowermentMod,100],
+              [&WeaponEmpowermentMod,1]];
    }
 
 end

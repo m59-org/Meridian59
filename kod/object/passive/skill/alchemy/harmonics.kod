@@ -1,0 +1,116 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Harmonics is AlchemySkill
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   harmonics_name_rsc = "harmonics"
+   harmonics_icon_rsc = idiscord.bgf
+   harmonics_desc_rsc = \
+      "True understanding of the workings of existence "
+      "brings an alchemist abilities that are both simple "
+      "and complex at the same time. "
+      "Normally, the resonating fields of magical rings "
+      "prevents the use of more than one by a single "
+      "living being. However, a master alchemist "
+      "knows how to balance these fields against their own "
+      "to allow the use of a second ring. "
+      "\n\nImproving one's knowledge of harmonics requires "
+      "fighting with two rings on for an extended period. "
+      "Until the harmonic fields are perfectly balanced, "
+      "the alchemist will take more damage in combat."
+
+classvars:
+
+   vrName = harmonics_name_rsc
+   vrIcon = harmonics_icon_rsc
+   vrDesc = harmonics_desc_rsc
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+
+   viSkill_num = SKID_HARMONICS
+   viSchool = SKS_ALCHEMY
+   viSkill_Level = 6
+   viChance_to_Increase = 3
+   viMeditate_ratio = 90
+
+   viSkillExertion = 0
+   vbCheck_exertion = FALSE
+   
+   viPrimaryStat = STAT_ID_INTELLECT
+   viSecondaryStat = 0
+
+properties:
+
+messages:
+
+   GetRequisiteStat(who=$)
+   {
+      return Send(who,@GetIntellect);
+   }
+
+   DoSkill(who=$, oEquipment=$)
+   {
+      local iAbility, iStat, lUsing, i, iRingCount;
+      
+      iAbility = Send(who,@GetSkillAbility,#skill_num=viSkill_num);
+      iStat = Send(self,@GetRequisiteStat,#who=who);
+      
+      iRingCount = 0;
+      lUsing = Send(who,@GetPlayerUsing);
+      foreach i in lUsing
+      {
+         if IsClass(i,&Ring)
+         {
+            iRingCount++;
+         }
+      }
+      
+      if iRingCount < 2
+      {
+         return FALSE;
+      }
+      
+      propagate;
+   }
+   
+   GetIncreasedDamageTaken(who=$)
+   {
+      local iAbility, iStat, lUsing, i, iRingCount;
+      
+      iAbility = Send(who,@GetSkillAbility,#skill_num=viSkill_num);
+      iStat = Send(self,@GetRequisiteStat,#who=who);
+      
+      iRingCount = 0;
+      lUsing = Send(who,@GetPlayerUsing);
+      foreach i in lUsing
+      {
+         if IsClass(i,&Ring)
+         {
+            iRingCount++;
+         }
+      }
+      
+      if iRingCount >= 2
+      {
+         return 1000-((iAbility+1)*10);
+      }
+      
+      return 0;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

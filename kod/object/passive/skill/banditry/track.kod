@@ -20,13 +20,13 @@ resources:
    Track_name_rsc = "track"
    Track_icon_rsc = ihunt.bgf
    Track_desc_rsc = "Allows a veteran bandit to track the location of nearby enemies. To begin tracking a target, "
-                    "say track, followed by their name."
+                    "say track, followed by their name. To stop tracking, track yourself or rest."
    
    begin_tracking_rsc = "You begin tracking %s."
    tracking_stop = "You stop tracking your target."
    already_tracking = "You're already tracking that target."
    
-   tracking_target_is_hiding = "%s is near, but seems to be hiding..."
+   tracking_target_is_sneaking = "%s is near, but seems to be covering their tracks..."
    tracking_direction = "You sense %s may be in the direction of %s."
    tracking_found = "~BYou've found your quarry!"
    cannot_find_yourself = "Finding yourself is purely an inner journey - no amount of skill can help with that."
@@ -43,13 +43,16 @@ classvars:
    viSkill_num = SKID_TRACK
    viSchool = SKS_BANDITRY
    viSkill_Level = 5
-   viChance_to_Increase = 15
-   viMeditate_ratio = 100
+   viChance_to_Increase = 30
+   viMeditate_ratio = 50
 
    viSkillExertion = 0
    vbCheck_exertion = FALSE
 
    vbAutomatic = TRUE
+   
+   viPrimaryStat = STAT_ID_INTELLECT
+   viSecondaryStat = 0
 
 properties:
 
@@ -65,12 +68,6 @@ messages:
    StartTracking(who=$, oTarget=$)
    {
       local i;
-      
-      if who = oTarget
-      {
-         Send(who,@MsgSendUser,#message_rsc=cannot_find_yourself);
-         return;
-      }
 
       foreach i in plTracking
       {
@@ -80,6 +77,14 @@ messages:
             Send(who,@MsgSendUser,#message_rsc=already_tracking);
             return;
          }
+      }
+      
+      Send(self,@StopTracking,#who=who);
+
+      if who = oTarget
+      {
+         Send(who,@MsgSendUser,#message_rsc=cannot_find_yourself);
+         return;
       }
 
       plTracking = Cons([who,oTarget],plTracking);
@@ -153,7 +158,13 @@ messages:
                AND Send(oTarget,@GetOwner) <> $
                AND Send(who,@GetOwner) = Send(oTarget,@GetOwner)
             {
+               if Send(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@IsHiding,#who=oTarget)
+               {
+                  % No message at all if target is hiding.
+                  return;
+               }
                Send(who,@MsgSendUser,#message_rsc=tracking_found);
+               Send(self,@StopTracking,#who=who);
                propagate;
             }
 
@@ -165,7 +176,12 @@ messages:
                {
                   if Send(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@IsHiding,#who=oTarget)
                   {
-                      Send(who,@MsgSendUser,#message_rsc=tracking_target_is_hiding,#parm1=Send(oTarget,@GetTrueName));
+                     % No message at all if target is hiding.
+                     return;
+                  }
+                  if Send(Send(SYS,@FindSkillByNum,#num=SKID_SNEAK),@IsSneaking,#who=oTarget)
+                  {
+                      Send(who,@MsgSendUser,#message_rsc=tracking_target_is_sneaking,#parm1=Send(oTarget,@GetTrueName));
                       propagate;
                   }
                   
@@ -185,7 +201,12 @@ messages:
                   {
                      if Send(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@IsHiding,#who=oTarget)
                      {
-                         Send(who,@MsgSendUser,#message_rsc=tracking_target_is_hiding,#parm1=Send(oTarget,@GetTrueName));
+                        % No message at all if target is hiding.
+                        return;
+                     }
+                     if Send(Send(SYS,@FindSkillByNum,#num=SKID_SNEAK),@IsSneaking,#who=oTarget)
+                     {
+                         Send(who,@MsgSendUser,#message_rsc=tracking_target_is_sneaking,#parm1=Send(oTarget,@GetTrueName));
                          propagate;
                      }
 
@@ -209,7 +230,12 @@ messages:
                      {
                         if Send(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@IsHiding,#who=oTarget)
                         {
-                           Send(who,@MsgSendUser,#message_rsc=tracking_target_is_hiding,#parm1=Send(oTarget,@GetTrueName));
+                           % No message at all if target is hiding.
+                           return;
+                        }
+                        if Send(Send(SYS,@FindSkillByNum,#num=SKID_SNEAK),@IsSneaking,#who=oTarget)
+                        {
+                           Send(who,@MsgSendUser,#message_rsc=tracking_target_is_sneaking,#parm1=Send(oTarget,@GetTrueName));
                            propagate;
                         }
                         
@@ -238,7 +264,7 @@ messages:
          return;
       }
       
-      propagate;
+      return;
    }
 
 end

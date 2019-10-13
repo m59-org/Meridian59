@@ -1,0 +1,113 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+PressurePoints is ShadowcraftSkill
+
+constants:
+
+   include blakston.khd
+   include protocol.khd   
+
+resources:
+
+   Pressure_Points_name_rsc = "pressure points"
+   Pressure_Points_icon_rsc = punchico.bgf
+   Pressure_Points_desc_rsc = \
+      "Once trained in the way of the serpent, initiate monks "
+      "are taught precise methods of striking an opponent, allowing "
+      "their punches to stun."
+
+classvars:
+
+   vrName = Pressure_Points_name_rsc
+   vrIcon = Pressure_Points_icon_rsc
+   vrDesc = Pressure_Points_desc_rsc
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+
+   viSkill_num = SKID_PRESSURE_POINTS
+   viSchool = SKS_SHADOWCRAFT
+   viSkill_Level = 2
+   viChance_to_Increase = 15
+   viMeditate_ratio = 30
+
+   viSkillExertion = 0
+   vbCheck_exertion = FALSE
+
+   vbAutomatic = TRUE
+   
+   viPrimaryStat = STAT_ID_AIM
+   viSecondaryStat = 0
+   
+   vbCanStun = TRUE
+   vbCanKnockback = FALSE
+   vbCanBleed = FALSE
+
+properties:
+
+messages:
+
+   GetRequisiteStat(who=$)
+   {
+      return Send(who,@GetAim);
+   }
+
+   GetCriticalHitRate(who=$)
+   {
+      local iStat, iAbility;
+      
+      iStat = Send(self,@GetRequisiteStat,#who=who);
+      iAbility = Send(who,@GetSkillAbility,#skill_num=viSkill_num);
+
+      % Up to 5% from skill and another 5% from stat to bring punch up to 10% crit rate
+      return (iAbility+1)*5 + iStat*5;
+   }
+
+   AttemptCriticalHit(who=$,target=$)
+   {
+      local iRoll;
+      
+      if target = $
+         OR NOT IsClass(target,&Battler)
+         OR who = $
+         OR NOT IsClass(who,&Player)
+      {
+         return;
+      }
+
+      iRoll = Random(1,10000);
+      
+      if iRoll <= Send(self,@GetCriticalHitRate,#who=who)
+      {
+         % We've scored a crit.
+         Send(self,@ImproveAbility,#who=who);  
+         
+         if vbCanKnockback
+         {
+            Send(target,@ApplyKnockback,#what=who,#knockback_power=Send(who,@GetKnockbackPower));
+         }
+         
+         if vbCanStun
+         {
+            Send(target,@ApplyStun,#what=who,#stun_power=Send(who,@GetStunPower));
+         }
+         
+         if vbCanBleed
+         {
+            Send(target,@ApplyBleed,#what=who,#bleed_power=Send(who,@GetBleedPower));
+         }
+      }
+
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

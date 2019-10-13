@@ -87,22 +87,28 @@ Bool VerifySettings(void)
 {
    
    int stats[NUM_CHAR_STATS] = {0,0,0,0,0,0};
-   int schools[NUM_CHAR_SCHOOLS] = {0,0,0,0,0,0,0};
+   int schools[NUM_CHAR_SCHOOLS] = {0,0,0,0,0,0,0,0,0,0,0,0};
 
    // Point of no return, make sure the user really means it.
    if (!AreYouSure(hInst,hMakeStatsDialog,NO_BUTTON,IDS_CONFIRM1))
       return false;
-   if (!AreYouSure(hInst,hMakeStatsDialog,NO_BUTTON,IDS_CONFIRM2))
-      return false;
+//   if (!AreYouSure(hInst,hMakeStatsDialog,NO_BUTTON,IDS_CONFIRM2))
+//      return false;
    
    // Fill in stat values
    CharStatsGetChoices(stats);
    CharSchoolsGetChoices(schools);
-   debug(("CharStatsGetChoices() returned {%i,%i,%i,%i,%i,%i}\n", stats[0], stats[1], stats[2], stats[3], stats[4], stats[5] ));
-   debug(("CharSchoolsGetChoices() returned {%i,%i,%i,%i,%i,%i,%i}\n",schools[0], schools[1], schools[2], schools[3], schools[4], schools[5], schools[6] ));
+//   debug(("CharStatsGetChoices() returned {%i,%i,%i,%i,%i,%i}\n", stats[0], stats[1], stats[2], stats[3], stats[4], stats[5] ));
+//   debug(("CharSchoolsGetChoices() returned {%i,%i,%i,%i,%i,%i,%i}\n",schools[0], schools[1], schools[2], schools[3], schools[4], schools[5], schools[6] ));
+
    SendNewCharInfo(stats[0], stats[1], stats[2], stats[3], stats[4], stats[5],
-                   schools[0], schools[1], schools[2], schools[3], schools[4],
-                   schools[5], schools[6] );
+                   (schools[0]*10)+schools[1],
+                   (schools[2]*10)+schools[3],
+                   (schools[4]*10)+schools[5],
+                   (schools[6]*10)+schools[7],
+                   (schools[8]*10)+schools[9],
+                   (schools[10]*10)+schools[11],
+                   schools[11]);
 
    EnableWindow(GetDlgItem(hMakeStatsDialog, IDOK), FALSE);
    return True;

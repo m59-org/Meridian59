@@ -26,6 +26,8 @@ resources:
       "wear the stately dress of the court, yet always manages to tatter them "
       "up on his impromptu explorations.  He enjoys talking about all of his "
       "findings, whether relevant to anyone else or not."
+      "\n\nIf you are a student with room to grow, he may help you improve "
+      "your mysticism if you ask him to 'train' you."
 
    fivecon_true_ideal_rsc = \
       "I'm glad to see that you share my interest in the mystical nodes."
@@ -36,6 +38,13 @@ resources:
       "~k%s%s tells you, \"You keep it.  You never know when you are going to "
       "need it.~n~k\""
 
+   cannot_train_myst_msg = \
+      "You seem to have full command of your spirit's potential. I cannot train you further."
+   teach_myst_msg = \
+      "I don't need to do anything at all. Training your mysticism is a personal process, "
+      "an exploration of your bond with the world at large. Everything lives, everything dies, "
+      "and all of us are part of this grand cycle. Sit for a time and simply listen. "
+      "Feel the flow of the world all around you."
 
 classvars:
 
@@ -140,6 +149,31 @@ messages:
                    ];
 
       return;
+   }
+
+   SomeoneSaid(what = $,type = $,string = $)
+   {
+      local iResult;
+
+      if what <> $
+         AND IsClass(what,&User)
+         AND StringContain(string,"train")
+      {
+         
+         iResult = Send(what,@AttemptTrainStatPoint,#type=STAT_ID_MYSTICISM);
+
+         if iResult
+         {
+            Send(self,@SayToOne,#target=what,#message_rsc=teach_myst_msg);
+         }
+         else
+         {
+            Send(self,@SayToOne,#target=what,#message_rsc=cannot_train_myst_msg);
+         }
+         return;
+      }
+      
+      propagate;
    }
 
 end

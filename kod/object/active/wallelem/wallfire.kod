@@ -30,6 +30,12 @@ resources:
    firewall_damage15 = "You are on fire!  Put it out!"
    firewall_damage20 = "Ouch, that really burned!"
 
+   firewall_illusion_damage0 = "These flames burn without heat!"
+   firewall_illusion_damage5 = "The heat is creeping upon you!"
+   firewall_illusion_damage10 = "Your flesh toasts and curls black before your eyes!"
+   firewall_illusion_damage15 = "The flames! The flames!"
+   firewall_illusion_damage20 = "You can feel yourself dying in the roaring flames!"
+
    firewall_burn_snd = frying.wav
 
    firewall_dissipates = "A bit of the firewall fades into coldness."
@@ -60,22 +66,19 @@ messages:
    Constructor(caster = $, duration = 75, MaxDamage = 0, illusionary = FALSE)
    {
       piMaxDamage = MaxDamage;
-
-      % Note, if illusionary, piMaxDamage is spellpower, not the true max damage.
       viIllusion = illusionary;
 
       propagate;
    }
 
-   GetDuration(duration = 0)
+   GetDuration(duration = 0, bMS = FALSE)
    {
-      local iDuration;
+      if bMS
+      {
+         return duration;
+      }
 
-      iDuration = Random(duration-20,duration+20);
-      iDuration = iDuration * 1000;
-      iDuration = bound(iDuration,30000,200000);
-
-      return iDuration;
+      return duration * 1000;
    }
 
    DoEffect(what = $)
@@ -86,35 +89,38 @@ messages:
       
       if viIllusion
       {
-         if (piMaxDamage < 35)
-         {
-            return;
-         }
+         iDamage = Send(what,@AssessDamage,#what=poCaster,#damage=Random(0,piMaxDamage),
+                        #aspell=ATCK_SPELL_ALL+ATCK_SPELL_ILLUSION,#report=FALSE,#report_resistance=FALSE);
 
-         oIllusWounds = Send(SYS,@FindSpellByNum,#num=SID_ILLUSIONARY_WOUNDS);
-         iDuration = Send(oIllusWounds,@GetDuration,#iSpellPower=piMaxDamage);
-         iDamage = Send(oIllusWounds,@GetHPLoss,#who=poCaster,#victim=what,#iSpellPower=piMaxDamage);
-
-         if iDamage > 0
-         {
-            % We technically don't have a damage type, but we count as spell damage.
-            %  Also, don't lower damage based on resistances.
-            iDamage = Send(what,@AssessDamage,#what=poCaster,#damage=Random(0,iDamage),
-                           #aspell=ATCK_SPELL_ALL,#absolute=TRUE,#report=FALSE,
-                           #report_resistance=FALSE,#precision=TRUE);
-            Send(poOwner,@SomethingAttacked,#what=poCaster,#victim=what,
-                  #use_weapon=self,#stroke_obj=self);
-            Send(what,@StartEnchantment,#what=oIllusWounds,#time=iDuration,#lastcall=TRUE,
-                  #state=iDamage,#addicon=FALSE);
-         }
+%         if (piMaxDamage < 35)
+%         {
+%            return;
+%         }
+%
+%         oIllusWounds = Send(SYS,@FindSpellByNum,#num=SID_ILLUSIONARY_WOUNDS);
+%         iDuration = Send(oIllusWounds,@GetDuration,#iSpellPower=piMaxDamage);
+%         iDamage = Send(oIllusWounds,@GetHPLoss,#who=poCaster,#victim=what,#iSpellPower=piMaxDamage);
+%
+%         if iDamage > 0
+%         {
+%            % We technically don't have a damage type, but we count as spell damage.
+%            %  Also, don't lower damage based on resistances.
+%            iDamage = Send(what,@AssessDamage,#what=poCaster,#damage=Random(0,iDamage),
+%                           #aspell=ATCK_SPELL_ALL,#absolute=TRUE,#report=FALSE,
+%                           #report_resistance=FALSE,#precision=TRUE);
+%            Send(poOwner,@SomethingAttacked,#what=poCaster,#victim=what,
+%                  #use_weapon=self,#stroke_obj=self);
+%            Send(what,@StartEnchantment,#what=oIllusWounds,#time=iDuration,#lastcall=TRUE,
+%                  #state=iDamage,#addicon=FALSE);
+%         }
       }
       else
       {
          iDamage = Send(what,@AssessDamage,#what=poCaster,#damage=Random(0,piMaxDamage),
                         #aspell=ATCK_SPELL_ALL+ATCK_SPELL_FIRE,#report=FALSE,#report_resistance=FALSE);
-         Send(poOwner,@SomethingAttacked,#what=poCaster,#victim=what,
-               #use_weapon=self,#stroke_obj=self);
       }
+      Send(poOwner,@SomethingAttacked,#what=poCaster,#victim=what,
+            #use_weapon=self,#stroke_obj=self);
 
       if iDamage = $
       {
@@ -142,32 +148,67 @@ messages:
       {
          if iDamage = 0
          {
-            rMessage = firewall_damage0;
+            if viIllusion
+            {
+               rMessage = firewall_illusion_damage0;
+            }
+            else
+            {
+               rMessage = firewall_damage0;
+            }
          }
          else
          {
             % Damage is greater than 0
             Send(what,@WaveSendUser,#wave_rsc=firewall_burn_snd);
 
-            if iDamage < 5
+            if iDamage < 500
             {
-               rMessage = firewall_damage5;
-            }
-            else
-            {
-               if iDamage < 10
+               if viIllusion
                {
-                  rMessage = firewall_damage10;
+                  rMessage = firewall_illusion_damage5;
                }
                else
                {
-                  if iDamage < 15
+                  rMessage = firewall_damage5;
+               }
+            }
+            else
+            {
+               if iDamage < 1000
+               {
+                  if viIllusion
                   {
-                     rMessage = firewall_damage15;
+                     rMessage = firewall_illusion_damage10;
                   }
                   else
                   {
-                     rMessage = firewall_damage20;
+                     rMessage = firewall_damage10;
+                  }
+               }
+               else
+               {
+                  if iDamage < 1500
+                  {
+                     if viIllusion
+                     {
+                        rMessage = firewall_illusion_damage15;
+                     }
+                     else
+                     {
+                        rMessage = firewall_damage15;
+                     }
+                  }
+                  else
+                  {
+                     if viIllusion
+                     {
+                        rMessage = firewall_illusion_damage20;
+                     }
+                     else
+                     {
+                        rMessage = firewall_damage20;
+                     }
                   }
                }
             }
@@ -234,6 +275,13 @@ messages:
       {
          % 5 out of 255 intensity of light
          AddPacket(1,5);
+      }
+
+      if Send(self,@GetOwner) <> $
+         AND Send(Send(self,@GetOwner),@LightingColorOverride)
+      {
+         AddPacket(2,Send(Send(self,@GetOwner),@GetLightingColorOverride));
+         return;
       }
 
       % Red color

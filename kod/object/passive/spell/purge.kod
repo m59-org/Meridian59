@@ -33,7 +33,7 @@ resources:
       "A bright, holy light is trying to burn away your beneficial "
       "enchantments."
    Purge_not_enchanted = "%s%s is not affected by any helpful magical "
-      "energies."
+      "energies that can be purged."
    Purge_spell_intro = \
       "Shal'ille Lv. 5: Removes helpful personal enchantments on the target."
 
@@ -60,6 +60,9 @@ classvars:
    viNoNewbieOffense = TRUE
 
    viFlash = FLASH_BAD
+   
+   viPrimaryStat = STAT_ID_MYSTICISM
+   viSecondaryStat = STAT_ID_KARMA
 
 properties:
 
@@ -127,8 +130,7 @@ messages:
       if NOT bHasEnchantment
          AND Send(SETTINGS_OBJECT,@GetReservedSpellsPurgeable)
       {
-         lEnchantment = Send(target,@GetReservedSpells);
-         if lEnchantment <> $
+         if Send(target,@HasPurgeableReservedSpell)
          {
             bHasEnchantment = TRUE;
          }
@@ -151,9 +153,10 @@ messages:
 
       oTarget = First(lTargets);
 
+      Send(self,@DoHumble,#who=who,#oTarget=oTarget,#iSpellPower=iSpellPower);
+
       if IsClass(oTarget,&Monster)
       {
-         Send(self,@DoHumble,#who=who,#oTarget=oTarget,#iSpellPower=iSpellPower);
          propagate;
       }
       
@@ -219,6 +222,13 @@ messages:
 
       % User's enchantment list might change, so get it now.
       lEnchantments = Send(who,@GetEnchantmentList);
+      lReservedEnchantments = Send(who,@GetReservedSpells);
+         
+      if IsClass(who,&Player)
+      {
+         % Check for purge resistance
+         iSpellPower = iSpellPower - (iSpellPower*Send(who,@GetPurgeResistance,#caster=caster))/100;
+      }
 
       foreach i in lEnchantments
       {
@@ -227,6 +237,7 @@ messages:
          if NOT IsClass(oSpell,&PersonalEnchantment)
             OR NOT Send(oSpell,@CanBeRemovedByPlayer)
             OR Send(oSpell,@IsHarmful)
+            OR Send(who,@IsUsingA,#class=&KraananCrest)
          {
             continue;
          }
@@ -332,6 +343,7 @@ messages:
          if NOT IsClass(oSpell,&PersonalEnchantment)
             OR NOT Send(oSpell,@CanBeRemovedByPlayer)
             OR Send(oSpell,@IsHarmful)
+            OR Send(who,@IsUsingA,#class=&KraananCrest)
          {
             continue;
          }
@@ -372,7 +384,7 @@ messages:
             {
                if ((iSpellPower * Send(oSpell,@GetPurgeFactor))/100) > Random(1,100)
                {
-                  Send(who,@RemoveEnchantment,#what=oSpell,#report=TRUE);
+                  Send(who,@UnReserveSpell,#oSpell=oSpell,#report=TRUE);
                   bRemovedSomething = TRUE;
                }
 
@@ -380,11 +392,10 @@ messages:
             }
 
             % Remove the current enchantment, but don't report.
-            Send(who,@RemoveEnchantment,#what=oSpell,#report=FALSE,#remain=TRUE);
+            Send(who,@UnReserveSpell,#oSpell=oSpell,#report=FALSE,#remain=TRUE);
 
-            % Restart the enchantment with the same reservation but new spellpower.
-            
-            Send(who,@ReserveSpell,#oSpell=oSpell,#iPercentManaReserved=iPercentManaReserved,#iSpellPower=iSpellPower);
+            % Restart the enchantment with the same reservation but new spellpower
+            Send(who,@ReserveSpell,#oSpell=oSpell,#iPercentManaReserved=iPercentManaReserved,#iSpellPower=iNewPower);
 
             % We had an effect, so we still report TRUE.
             bRemovedSomething = TRUE;
@@ -392,7 +403,7 @@ messages:
          else
          {
             % Remove the current enchantment and report.
-            Send(who,@RemoveEnchantment,#what=oSpell,#report=TRUE);
+            Send(who,@UnReserveSpell,#oSpell=oSpell,#report=TRUE);
             bRemovedSomething = TRUE;
          }
       }
@@ -404,7 +415,8 @@ messages:
    {
       Send(who,@MsgSendUser,#message_rsc=Purge_monster,#parm1=Send(oTarget,@GetDef),#parm2=Send(oTarget,@GetName));
 
-      Send(oTarget,@ApplyElementalStatusEffects,#what=who,#damage=iSpellPower,#aspell=ATCK_SPELL_HOLY);
+      % Divide spellpower by 3 because Humbled's effectiveness was increased by x3
+      Send(oTarget,@ApplyElementalStatusEffects,#what=who,#damage=iSpellPower/3,#aspell=ATCK_SPELL_HOLY);
       
       return;
    }

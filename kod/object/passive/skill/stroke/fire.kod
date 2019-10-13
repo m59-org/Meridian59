@@ -51,6 +51,9 @@ classvars:
 
    viSkillExertion = 2
    vbCheck_exertion = FALSE
+   
+   viPrimaryStat = STAT_ID_AIM
+   viSecondaryStat = STAT_ID_MIGHT
 
 properties:
 
@@ -161,7 +164,15 @@ messages:
 
       if Send(oRoom,@NoReagents)=FALSE
       {
-         Send(oAmmo,@SubtractNumber,#number=1);
+         if Send(who,@HasSkill,#num=SKID_MECHANIZED_QUIVER)
+            AND Send(Send(SYS,@FindSkillByNum,#num=SKID_MECHANIZED_QUIVER),@DoSkill,#who=who,#oAmmo=oAmmo)
+         {
+            propagate;
+         }
+         else
+         {
+            Post(oAmmo,@SubtractNumber,#number=1);
+         }
       }
 
       propagate;

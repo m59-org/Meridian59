@@ -1,0 +1,75 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+UnifiedBlazon is ShadowcraftSkill
+
+constants:
+
+   include blakston.khd
+   include protocol.khd   
+
+resources:
+
+   Unified_Blazon_name_rsc = "unified blazon"
+   Unified_Blazon_icon_rsc = imanacon.bgf
+   Unified_Blazon_desc_rsc = \
+      "Once a monk passes from initiate to novice, "
+      "he or she is granted the symbol of the temple at which "
+      "they have pledged their service. "
+      "It matters not what other sigils adorn cloth. Only loyalty matters. "
+      "The monk will receive some or all of the spellpower bonus from a worn robes "
+      "of the disciple regardless of which school's sign it bears."
+
+classvars:
+
+   vrName = Unified_Blazon_name_rsc
+   vrIcon = Unified_Blazon_icon_rsc
+   vrDesc = Unified_Blazon_desc_rsc
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+
+   viSkill_num = SKID_UNIFIED_BLAZON
+   viSchool = SKS_SHADOWCRAFT
+   viSkill_Level = 3
+   viChance_to_Increase = 8
+   viMeditate_ratio = 40
+
+   viSkillExertion = 0
+   vbCheck_exertion = FALSE
+
+   vbAutomatic = TRUE
+   
+   viPrimaryStat = STAT_ID_MYSTICISM
+   viSecondaryStat = 0
+
+properties:
+
+messages:
+
+   GetRequisiteStat(who=$)
+   {
+      return Send(who,@GetMysticism);
+   }
+
+   GetSpellPowerBonus(who=$)
+   {
+      local iStat, iAbility;
+      
+      iStat = Send(self,@GetRequisiteStat,#who=who);
+      iAbility = Send(who,@GetSkillAbility,#skill_num=viSkill_num);
+
+      Send(self,@ImproveAbility,#who=who);
+
+      return (iAbility+1)/5 + iStat/20;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

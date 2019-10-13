@@ -44,6 +44,9 @@ classvars:
    vbCheck_exertion = FALSE
 
    vbAutomatic = TRUE
+   
+   viPrimaryStat = STAT_ID_AGILITY
+   viSecondaryStat = 0
 
 properties:
 
@@ -53,6 +56,11 @@ messages:
    {
       % No dodging if you aren't moving.
       if Send(who,@CheckPlayerFlag,#flag=PFLAG_NO_MOVE)
+      {
+         return 0;
+      }
+      
+      if Send(who,@IsResting)
       {
          return 0;
       }

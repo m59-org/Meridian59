@@ -62,6 +62,54 @@ messages:
 
       propagate;
    }
+   
+   GetPhaseThreats()
+   {
+      switch(Send(SYS,@GetDayPhase))
+      {
+         case DAY_PHASE_DAWN:
+            return [&ShockStorm,&DesertRiver1Storm];
+         case DAY_PHASE_DAY:
+            if Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTRIVER2),
+                     @GetPrismOfFireDefeated)
+            {
+               return [&HeatStorm,&DesertRiver1Storm];
+            }
+            return [&HeatThreat,&DesertRiver1Storm];
+         case DAY_PHASE_DUSK:
+            if Send(Send(SYS,@FindRoomByNum,#num=RID_ACIDPATH),
+                     @GetPrismOfAcidDefeated)
+            {
+               return [&AcidStorm,&DesertRiver1Storm];
+            }
+            return [&AcidThreat,&DesertRiver1Storm];
+         case DAY_PHASE_NIGHT:
+            if Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTSANDBAR),@GetPrismOfIceDefeated)
+            {
+               return [&ColdStorm,&DesertRiver1Storm];
+            }
+            return [&ColdThreat,&DesertRiver1Storm];
+      }
+      return [&ShockStorm,&DesertRiver1Storm];
+   }
+
+   GetDangerPoints()
+   {
+      return [[37,18,42,12],
+              [35,17,24,44],
+              [33,17,48,23],
+              [31,16,26,46],
+              [28,16,31,20],
+              [25,15,1,39],
+              [21,14,47,56], %this one is the center?
+              [19,14,55,29],
+              [17,13,21,57],
+              [14,13,32,17],
+              [11,12,48,19],
+              [10,11,51,18],
+              [9,9,27,33]
+             ];
+   }
 
    SomethingMoved(what = $,new_row = $, new_col = $)
    {

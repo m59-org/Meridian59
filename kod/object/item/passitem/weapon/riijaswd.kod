@@ -54,6 +54,12 @@ classvars:
    viBroken_group = 2
 
    viRange = 3 * FINENESS
+   
+   % Chance to apply knockbacks, stuns, and bleeds
+   viCriticalHitRate = 350
+   vbCanStun = TRUE
+   vbCanKnockback = TRUE
+   vbCanBleed = TRUE
 
 properties:
 
@@ -69,8 +75,12 @@ messages:
          poQuester = quester;
       }
 
-      piItemLevel = 200;
+      propagate;
+   }
 
+   Constructed()
+   {
+      piItemLevel = 222;
       propagate;
    }
 
@@ -149,6 +159,12 @@ messages:
    WeaponHitTarget()
    "Sword wears down rapidly in the hands of someone else, but does not break."
    {
+      if plEnchantmentMods <> $
+         AND NOT Send(SETTINGS_OBJECT,@GetLoseDurabilityMagicMods)
+      {
+         propagate;
+      }
+
       if poOwner <> poQuester
          AND piHits > 1
       {
@@ -199,8 +215,24 @@ messages:
 
    GetPrefixes()
    {
-      return [[&OffenseMod,100],
-              [&WeaponDamageMod,100]];
+      return [[&ManaMod,100],
+              [&VigorMod,100],
+              [&OffenseMod,100],
+              [&WeaponDamageMod,100],
+              [&ThrustEmpowermentMod,100],
+              [&SlashEmpowermentMod,100],
+              [&BludgeonEmpowermentMod,100],
+              [&PierceEmpowermentMod,100],
+              [&IllusionEmpowermentMod,200],
+              [&CharmEmpowermentMod,100],
+              [&FireEmpowermentMod,100],
+              [&ColdEmpowermentMod,100],
+              [&HolyEmpowermentMod,100],
+              [&UnholyEmpowermentMod,100],
+              [&AcidEmpowermentMod,100],
+              [&ShockEmpowermentMod,100],
+              [&MagicEmpowermentMod,1],
+              [&WeaponEmpowermentMod,1]];
    }
 
    GetSuffixes()
@@ -211,7 +243,22 @@ messages:
               [&AcidResistanceMod,100],
               [&PierceResistanceMod,25],
               [&SlashResistanceMod,25],
-              [&BludgeonResistanceMod,25]];
+              [&BludgeonResistanceMod,25],
+              [&WeaponMightMod,100],
+              [&WeaponAgilityMod,100],
+              [&WeaponAimMod,100],
+              [&CasterIntMod,50],
+              [&CasterMystMod,50]];
+   }
+
+   CanCleave()
+   {
+      return TRUE;
+   }
+
+   GetCleaveModifier()
+   {
+      return 40;
    }
 
 end

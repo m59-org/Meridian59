@@ -1,0 +1,231 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+BestiarySkillBook is PassiveItem
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   bestiary_skill_book_name_rsc = "voluminous tome"
+   bestiary_skill_book_icon_rsc = book1.bgf
+   bestiary_skill_book_desc_rsc = \
+      "This heavy book contains academic instructions on the topics of "
+      "languages and sociological power. "
+      "\n\nFrom the chapter headings, it is apparent that this tome will teach a level %i bestiary "
+      "ability called %s. %s"
+
+   skill_tome_generic_error_msg = \
+      "This book is incomprehensible!"
+   success_skill_tome = \
+      "You read through the passages, studying the information within. "
+      "It takes a great deal of thought, but you start to understand the workings of "
+      "living beings a little bit more deeply."
+   skill_tome_already_know_msg = \
+      "You already have this knowledge."
+   skill_tome_no_more_levels_msg = \
+      "You've learned all you can. These concepts are beyond your grasp."
+   skill_tome_no_previous_levels_msg = \
+      "You don't know enough about the previous levels of bestiary to understand this tome."
+   skill_tome_need_more_percents = \
+      "You need %i more percentage points in the previous level of bestiary before you can understand this tome."
+
+classvars:
+
+   vrIcon = bestiary_skill_book_icon_rsc
+   vrDesc = bestiary_skill_book_desc_rsc
+
+   viUse_type = ITEM_SINGLE_USE
+   viUse_amount = 1
+   viBulk = 1
+   viWeight = 1
+
+properties:
+
+   piBestiarySkillID = SKID_WILLPOWER
+   vrName = bestiary_skill_book_name_rsc
+   viInventory_group = 3
+
+messages:
+
+   Constructed()
+   {
+      local lSkillsOne, lSkillsTwo,
+            lSkillsThree, lSkillsFour, lSkillsFive, lSkillsSix,
+            iRandomSkill, iRandomLevel;
+
+      lSkillsOne = [SKID_SKITTERATIC_LANGUAGE];
+
+      lSkillsTwo = [SKID_SYLVAN_LANGUAGE,
+                    SKID_AMPHIBIC_LANGUAGE];
+      
+      lSkillsThree = [SKID_WILLPOWER,
+                      SKID_BIRDSONG_LANGUAGE,
+                      SKID_ORCISH_LANGUAGE];
+
+      lSkillsFour = [SKID_PRIMAL_LANGUAGE,
+                     SKID_TROLLIMAIC_LANGUAGE];
+
+      lSkillsFive = [SKID_SOUL_DOMINATION];
+      
+      lSkillsSix = [SKID_DRACONIC_LANGUAGE];
+
+      iRandomLevel = 1;
+      if Random(1,2) = 2
+      {
+         iRandomLevel = 2;
+         if Random(1,2) = 2
+         {
+            iRandomLevel = 3;
+            if Random(1,2) = 2
+            {
+               iRandomLevel = 4;
+               if Random(1,2) = 2
+               {
+                  iRandomLevel = 5;
+                  if Random(1,2) = 2
+                  {
+                     iRandomLevel = 6;
+                  }
+               }
+            }
+         }
+      }
+      
+      switch(iRandomLevel)
+      {
+         case 1:
+            piBestiarySkillID = Nth(lSkillsOne,Random(1,Length(lSkillsOne)));
+            break;
+         case 2:
+            piBestiarySkillID = Nth(lSkillsTwo,Random(1,Length(lSkillsTwo)));
+            break;
+         case 3:
+            piBestiarySkillID = Nth(lSkillsThree,Random(1,Length(lSkillsThree)));
+            break;
+         case 4:
+            piBestiarySkillID = Nth(lSkillsFour,Random(1,Length(lSkillsFour)));
+            break;
+         case 5:
+            piBestiarySkillID = Nth(lSkillsFive,Random(1,Length(lSkillsFive)));
+            break;
+         case 6:
+            piBestiarySkillID = Nth(lSkillsSix,Random(1,Length(lSkillsSix)));
+            break;
+      }
+      
+      propagate;
+   }
+
+   ReqNewApply(what=$,apply_on=$)
+   {
+      local oSkill, iLearnAttempt;
+
+      if what <> apply_on
+      {
+         return FALSE;
+      }
+
+      oSkill = Send(SYS,@FindSkillByNum,#num=piBestiarySkillID);
+      if oSkill = $
+      {
+         return FALSE;
+      }
+
+      if Send(apply_on,@HasSkill,#num=piBestiarySkillID)
+      {
+         Send(apply_on,@MsgSendUser,#message_rsc=skill_tome_already_know_msg);
+         return FALSE;
+      }
+
+      iLearnAttempt = Send(apply_on,@PlayerCanLearn,#skill_num=piBestiarySkillID);
+
+      if iLearnAttempt mod 10 = PLAYER_LEARN_BASE
+      {
+         Send(what,@MsgSendUser,#message_rsc=skill_tome_need_more_percents,#parm1=iLearnAttempt/10);
+         return FALSE;
+      }
+
+      switch(iLearnAttempt)
+      {
+         case PLAYER_LEARN_SUCCESS:
+            Send(what,@MsgSendUser,#message_rsc=success_skill_tome);
+            return TRUE;
+         case PLAYER_LEARN_ALREADY:
+            Send(what,@MsgSendUser,#message_rsc=skill_tome_already_know_msg);
+            return FALSE;
+         case PLAYER_LEARN_IMPOSSIBLE:
+            Send(what,@MsgSendUser,#message_rsc=skill_tome_no_more_levels_msg);
+            return FALSE;
+         case PLAYER_LEARN_NOBASE:
+            Send(what,@MsgSendUser,#message_rsc=skill_tome_no_previous_levels_msg);
+            return FALSE;
+      }
+
+      Send(what,@MsgSendUser,#message_rsc=skill_tome_generic_error_msg);
+
+      return FALSE;
+   }
+
+   NewApplied(what = $,apply_on = $)  
+   {
+      Send(apply_on,@AddSkill,#num=piBestiarySkillID);
+%      Post(self,@Delete);
+      return;
+   }
+
+   ShowDesc()
+   {
+      local oSkill;
+      
+      oSkill=Send(SYS,@FindSkillByNum,#num=piBestiarySkillID);
+      AddPacket(4, bestiary_book_desc_rsc, 4,Send(oSkill,@GetLevel), 4,Send(oSkill,@GetName), 4,Send(oSkill,@GetDesc));
+
+      return;
+   }
+
+   NewOwner(what=$)
+   {
+      local oSkill;
+      
+      if what = $
+      {
+         propagate;
+      }
+      else
+      {
+         if IsClass(what,&Room)
+         {
+            vrName = bestiary_book_name_rsc;
+            Post(what,@SomethingChanged,#what=self);
+            propagate;
+         }
+      }
+
+      oSkill=Send(SYS,@FindSkillByNum,#num=piBestiarySkillID);
+      if oSkill <> $
+         AND Send(oSkill,@GetName) <> $
+      {
+         vrName = Send(oSkill,@GetName);
+         Post(what,@SomethingChanged,#what=self);
+      }
+
+      propagate;
+   }
+
+   DestroyDisposable()
+   {
+      return FALSE;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

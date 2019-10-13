@@ -1,0 +1,126 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+SorcererStatue is AnimatedStatue
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   SorcererStatue_name_rsc = "ancient statue"
+   SorcererStatue_active_name_rsc = "ancient statue"
+
+   SorcererStatue_dead_name_rsc = "crumbled ancient statue"
+
+   SorcererStatue_job_one = "sorcerer"
+   SorcererStatue_job_two = "witch"
+   SorcererStatue_job_three = "merchant"
+   SorcererStatue_job_four = "nomad"
+   SorcererStatue_job_five = "runesmith"
+   SorcererStatue_job_rare_and_powerful = "bard"
+
+classvars:
+
+   vrDead_name = SorcererStatue_dead_name_rsc
+   vrActiveName = SorcererStatue_name_rsc
+
+   vsStatue_job_one = SorcererStatue_job_one
+   vsStatue_job_two = SorcererStatue_job_two
+   vsStatue_job_three = SorcererStatue_job_three
+   vsStatue_job_four = SorcererStatue_job_four
+   vsStatue_job_five = SorcererStatue_job_five
+   vsStatue_job_rare_and_powerful = SorcererStatue_job_rare_and_powerful
+
+   % Our normal speed when active
+   viNormalSpeed = SPEED_VERY_FAST
+   viCashmin = 500
+   viCashmax = 4000
+   
+   vcWeaponOne = &Dagger
+   vcWeaponTwo = &Axe
+   vcWeaponThree = &Scimitar
+   
+   vcArmorOne = &ChainArmor
+   vcArmorTwo = &ScaleArmor
+   vcArmorthree = &PlateArmor
+   
+   vcShieldOne = &GoldShield
+   vcShieldTwo = &Knightshield
+   vcShieldThree = &SteelShield
+
+   viTreasure_type = TID_SORCERER_STATUE
+
+properties:
+
+   % Put these as properties so they can be set
+   vrName = SorcererStatue_name_rsc
+
+   viLevel = 170
+   viDifficulty = 8
+   viVisionDistance = 3
+
+   viAttack_spell = ATCK_SPELL_ACID
+   piMinDamage = 13
+   piMaxDamage = 30
+
+messages:
+
+   Constructor(bIsRareAndPowerful=FALSE)
+   {
+      local iRandom;
+
+      iRandom = Random(1,4);
+      switch(iRandom)
+      {
+         case 1:
+         viAttack_spell = ATCK_SPELL_ACID;
+         break;
+         case 2:
+         viAttack_spell = ATCK_SPELL_FIRE;
+         break;
+         case 3:
+         viAttack_spell = ATCK_SPELL_COLD;
+         break;
+         case 4:
+         viAttack_spell = ATCK_SPELL_SHOCK;
+         break;
+      }
+      propagate;
+   }
+
+   %%% Graphics setup
+
+   Constructed()
+   {
+      if Send(self,@GetProfession) = SorcererStatue_job_one
+      {
+         Send(self,@SetHeadTattooed);
+      }
+
+      propagate;
+   }
+
+   SetHeadTattooed()
+   {
+      if viGender = GENDER_FEMALE
+      {
+         prHead = charinfo_head_kxt1_icon;
+      }
+      else
+      {
+         prHead = charinfo_head_axt1_icon;
+      }
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

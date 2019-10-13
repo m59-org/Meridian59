@@ -43,6 +43,10 @@ classvars:
 
    viAttack_Spell = ATCK_SPELL_FIRE
 
+   % between 1 and 10000
+   viCriticalHitRate = 550
+   vbCanCauseKnockback = TRUE
+
 properties:
 
    piAnimation = ANIM_NONE
@@ -57,6 +61,21 @@ messages:
                            [-ATCK_SPELL_ALL, 70 ],
                            [ATCK_WEAP_THRUST, -50],
                            [ATCK_WEAP_ALL, 60 ] ];
+      }
+
+      propagate;
+   }
+
+   IsAlly(target = $, regroup = FALSE)
+   {
+      if IsClass(target,&XeoBossFire)
+         OR IsClass(target,&XeoBossFire2)
+         OR IsClass(target,&XeoBossFire3)
+         OR IsClass(target,&XeoFire)
+         OR IsClass(target,&FireElemental)
+         OR IsClass(target,&FireElementalChampion)
+      {
+         return TRUE;
       }
 
       propagate;

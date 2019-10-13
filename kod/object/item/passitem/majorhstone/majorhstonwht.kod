@@ -1,0 +1,72 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+MajorWhiteHeartStone is MajorHeartStone
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   MajorWhiteHeartStone_name_rsc = "major white heartstone"
+   MajorWhiteHeartStone_name_plural = "major white heartstones"
+   MajorWhiteHeartStone_desc_rsc = \
+      "This is a 'heartstone'.  It is a white gem taken from "
+      "the body of a fallen Vix'Si'Xeochicatl.  It wiggles slightly and is cool "
+      "to the touch.  The uses for this gem are not widely known."
+
+classvars:
+
+   vrName = MajorWhiteHeartStone_name_rsc
+   vrDesc = MajorWhiteHeartStone_desc_rsc
+   
+   vrName_plural = MajorWhiteHeartStone_name_plural
+
+   viValue_average = 100
+   viWeight = 20
+   viBulk = 10
+
+   viColor = PT_BLBLK_REDWHT
+
+properties:
+
+messages:
+
+   CreateXeo()
+   {
+      return Create(&XeoHoly,#InAttack=Send(self,@IsInAttack));
+   }
+
+   WeightPrefixes()
+   {
+      return [[&OffenseMod,300]];
+   }
+   
+   WeightSuffixes()
+   {
+      return [[&HolyResistanceMod,100]
+             ];
+   }
+
+   EmpowerAffixes()
+   {
+      return [[&OffenseMod,50],
+              [&HolyResistanceMod,3]
+             ];
+   }
+   
+   GetForgeType()
+   {
+      return FORGE_HOLY;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

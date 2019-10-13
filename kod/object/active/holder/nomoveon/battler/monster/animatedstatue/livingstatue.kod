@@ -1,0 +1,67 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+LivingStatue is AnimatedStatue
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   LivingStatue_name_rsc = "statue"
+   LivingStatue_active_name_rsc = "living statue"
+
+   LivingStatue_rose_drop = "My... beloved...!"
+
+   LivingStatue_dead_name_rsc = "crumbled living statue"
+
+classvars:
+
+   vrDead_name = LivingStatue_dead_name_rsc
+   vrActiveName = LivingStatue_active_name_rsc
+
+properties:
+
+   % Put these as properties so they can be set
+   vrName = LivingStatue_name_rsc
+
+messages:
+
+   CreateTreasure(who=$,corpse=$)
+   {
+      local i,iGen_items,oTreasure,oTreasure_type;
+
+      % Soldiers have a small chance to drop a rose as treasure.
+      if Send(self,@GetRareAndPowerful)
+         AND Random(0,100) = 59
+         AND NOT pbIllusion
+      {
+         oTreasure = Create(&Rose,#corpse=corpse);
+
+         if Send(poOwner,@ReqNewHold,#what=oTreasure,#new_row=piRow,#new_col=piCol)
+         {
+            Send(poOwner,@NewHold,#what=oTreasure,
+                  #new_row=piRow,#new_col=piCol,
+                  #fine_row=piFine_row,#fine_col=piFine_col);
+            Send(poOwner,@SomeoneSaid,#what=self,#type=SAY_RESOURCE,
+                  #string=LivingStatue_rose_drop);
+         }
+         else
+         {
+            Send(oTreasure,@Delete);
+         }
+      }
+
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

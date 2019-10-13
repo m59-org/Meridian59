@@ -1,0 +1,94 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+DetonateBombsSpell is Spell
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   Detonate_name_rsc = "detonate bombs"
+   Detonate_icon_rsc = iflash.bgf
+   Detonate_desc_rsc = \
+      "Detonates all the bombs that you have laid with your other alchemy "
+      "abilities. Requires nothing but a grim intent."
+
+   Detonate_sound = rflash.wav
+   
+   no_bombs_to_detonate = \
+      "You don't have any bombs to detonate!"
+
+classvars:
+
+   vrSucceed_wav = Detonate_sound
+
+   vrName = Detonate_name_rsc
+   vrIcon = Detonate_icon_rsc
+   vrDesc = Detonate_desc_rsc
+
+   viSpell_num = SID_DETONATE_BOMBS
+   viSchool = SKS_ALCHEMY
+   viSpell_level = 3
+   viMana = 2
+   viSpellExertion = 1
+   viChance_To_Increase = 15
+   viMeditate_ratio = 20
+
+   viOutlaw = FALSE
+   viHarmful = FALSE
+   viNoNewbieOffense = FALSE
+   
+   vbSafetyReport = FALSE
+   
+   viPrimaryStat = STAT_ID_INTELLECT
+   viSecondaryStat = 0
+
+properties:
+
+messages:
+
+   ResetReagents()
+   {
+      plReagents = $;
+
+      return;
+   }
+   
+   CanPayCosts(who=$)
+   {
+      if Send(who,@GetBombs) = $
+      {
+         Send(who,@MsgSendUser,#message_rsc=no_bombs_to_detonate);
+         return FALSE;
+      }
+      propagate;
+   }
+
+   GetNumSpellTargets()
+   {
+      return 0;
+   }
+
+   CastSpell(who=$, lTargets = $, iSpellPower=0)
+   {
+      Post(who,@DetonateBombs);
+
+      propagate;
+   }
+
+   PlaySpellSound()
+   {
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

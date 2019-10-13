@@ -1,0 +1,310 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+MithrilShield is Shield
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   mithrilshield_name_rsc = "spiritual shield"
+   mithrilshield_icon_rsc = newestshield.bgf
+   mithrilshield_desc_rsc = \
+      "Coalesced out of pure holy essences, this shield "
+      "glows with the reflection of unseen spiritual light. It is far "
+      "sturdier than its ethereal and thin span would seem to indicate. "
+      "This shield draws its strength from the goodness of your soul, "
+      "and will be weaker or stronger based on your karma and spellpower at creation. It can also "
+      "be enchanted with magical modifications. Be wary; creating another "
+      "spiritual shield will replace your current spiritual shield entirely."
+
+   mithrilshield_window_overlay_rsc = povshldN2.bgf
+
+classvars:
+
+   vrName = mithrilshield_name_rsc
+   vrIcon = mithrilshield_icon_rsc
+   vrDesc = mithrilshield_desc_rsc
+
+   viHits_init_min = 250
+   viHits_init_max = 300
+
+   viValue_average = 1
+   viWeight = 0
+   viBulk = 0
+
+   vrShield_window_overlay = mithrilshield_window_overlay_rsc
+   vrShield_overlay = mithrilshield_icon_rsc
+
+   viGround_group = 3
+   viInventory_group = 1
+   viBroken_group = 4
+
+   viDefense_base = 0
+   viDamage_base = 0
+
+properties:
+
+   piCreatedSpellpower = 0
+   poCaster = $
+
+messages:
+
+   Constructor(oCaster=$, iCreatedSpellpower=0)
+   {
+      piCreatedSpellpower = iCreatedSpellpower;
+      poCaster = oCaster;
+
+      propagate;
+   }
+
+   Constructed()
+   {
+      % Spiritual shields have iLvl equal to spellpower+1 * 3.
+      piItemLevel = (piCreatedSpellpower+1)*3;
+      Create(&DefModSockets,#host_object=self,#num_sockets=4);
+      propagate;
+   }
+
+   NewUsed(what=$)
+   {
+      Send(poOwner,@SetFlickerFlag);
+      Send(poOwner,@SomethingChanged,#what=self);
+
+      propagate;
+   }
+
+   NewUnused(what=$)
+   {
+      Send(poOwner,@RecalcFlickerFlag);
+      Send(poOwner,@SomethingChanged,#what=self);
+
+      propagate;
+   }
+
+   % Shields use the defense bonus as a bonus to block instead.
+   ModifyDefensePower(who = $,what = $,defense_power = 0)
+   {
+      local i, oDefenseMod, iKarma, iRating;
+
+      if NOT Send(poOwner,@HasSpell,#num=SID_HOLY_SHIELD)
+      {
+         Post(self,@Delete);
+         return 0;
+      }
+
+      foreach i in plEnchantmentMods
+      {
+         if Nth(i,1) = &DefenseMod
+         {
+            oDefenseMod = Send(SYS,@GetMagicMod,#class=&DefenseMod);
+            defense_power = Send(oDefenseMod,@ModifyDefensePower,#defense_power=defense_power,#iState=Nth(i,2));
+         }
+      }
+
+      iKarma = 0;
+      if poOwner <> $
+         AND IsClass(poOwner,&Player)
+      {
+         iKarma = Send(poOwner,@GetKarma);
+      }
+      
+      if iKarma = $
+      {
+         iKarma = 0;
+      }
+
+      return defense_power + 50 + Bound(iKarma,0,piCreatedSpellpower+1);
+   }
+
+   GetDefenseBonus()
+   {
+      local i, oDefenseMod, iKarma, iRating, defense_power;
+
+      if NOT Send(poOwner,@HasSpell,#num=SID_HOLY_SHIELD)
+      {
+         Post(self,@Delete);
+         return 0;
+      }
+      
+      defense_power = 0;
+
+      foreach i in plEnchantmentMods
+      {
+         if Nth(i,1) = &DefenseMod
+         {
+            oDefenseMod = Send(SYS,@GetMagicMod,#class=&DefenseMod);
+            defense_power = Send(oDefenseMod,@ModifyDefensePower,#defense_power=defense_power,#iState=Nth(i,2));
+         }
+      }
+
+      iKarma = 0;
+      if poOwner <> $
+         AND IsClass(poOwner,&Player)
+      {
+         iKarma = Send(poOwner,@GetKarma);
+      }
+      
+      if iKarma = $
+      {
+         iKarma = 0;
+      }
+
+      return defense_power + 50 + Bound(iKarma,0,piCreatedSpellpower+1);
+   }
+
+   GetResistanceModifiers()
+   {
+      local iKarma, iRating;
+
+      if Send(SETTINGS_OBJECT,@GetDirectArmorEnabled)
+      { 
+         return [ [ATCK_WEAP_SLASH,10],
+                  [ATCK_WEAP_BLUDGEON,10],
+                  [ATCK_WEAP_THRUST,10]
+                ];
+      }
+
+      iKarma = 0;
+      if poOwner <> $
+         AND IsClass(poOwner,&Player)
+      {
+         iKarma = Send(poOwner,@GetKarma);
+      }
+
+      if iKarma = $
+      {
+         iKarma = 0;
+      }
+
+      iRating = Bound(iKarma/10,0,(piCreatedSpellpower+1)/10);
+
+      return [ [ATCK_WEAP_ALL,iRating],
+               [-ATCK_SPELL_ALL,iRating]
+               ];
+   }
+
+   GetHexResistance()
+   {
+      local iKarma, iRating;
+
+      iKarma = 0;
+      if poOwner <> $
+         AND IsClass(poOwner,&Player)
+      {
+         iKarma = Send(poOwner,@GetKarma);
+      }
+
+      if iKarma = $
+      {
+         iKarma = 0;
+      }
+
+      iRating = Bound((iKarma*11)/100,0,((piCreatedSpellpower+1)*11)/100);
+
+      return iRating;
+   }
+
+   CanBeGivenToNPC()
+   {
+      return FALSE;
+   }
+
+   CanSwap()
+   {
+      return FALSE;
+   }
+
+   CanShatter()
+   {
+      return FALSE;
+   }
+   
+   CanBeStoredInVault()
+   {
+      return FALSE;
+   }
+
+   DropOnDeath()
+   {
+      return FALSE;
+   }
+
+   ReqNewOwner(what=$)
+   {
+      if what = poCaster
+      {
+         return TRUE;
+      }
+
+      % No dropping.
+      return FALSE;
+   }
+
+   Delete()
+   {
+      poCaster = $;
+      propagate;
+   }
+
+   GetLightIntensity()
+   {
+      if poOwner <> $
+         AND IsClass(poOwner,&User)
+      {
+         return Bound(Send(poOwner,@GetKarma),0,100);
+      }
+      return 0;
+   }
+
+   GetLightColor()
+   {
+      return LIGHT_WHITE;
+   }
+
+   GetBaseSpellModifier(oSpell=$)
+   {
+      local iSchool;
+
+      if oSpell = $
+         OR poOwner = $
+         OR NOT IsClass(poOwner,&User)
+      {
+         return 0;
+      }
+
+      iSchool = Send(oSpell,@GetSchool);
+      
+      if iSchool = SS_SHALILLE
+      {
+         return Bound(Send(poOwner,@GetKarma),0,piCreatedSpellpower+1)/10;
+      }
+      
+      if iSchool = SS_JALA
+         OR iSchool = SS_FAREN
+         OR iSchool = SS_KRAANAN
+      {
+         return Bound(Send(poOwner,@GetKarma),0,piCreatedSpellpower+1)/20;
+      }
+
+      return 0;
+   }
+
+   SetSpellPlayerFlag(who=$)
+   {
+      Send(who,@SetFlickerFlag);
+
+      return;  
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

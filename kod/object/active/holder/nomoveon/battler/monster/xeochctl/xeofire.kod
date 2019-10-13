@@ -48,6 +48,8 @@ resources:
 
    viTreasure_type = TID_XEO_FIRE
 
+   viCanSpawnAsChampion = TRUE
+
 properties:
 
    piAnimation = ANIM_NONE
@@ -64,8 +66,25 @@ messages:
 
       piColor_Translation = Send(SYS,@EncodeTwoColorXLAT,#color1=XLAT_TO_RED);
 
-      plSpellBook = [ [SID_FIREBALL,2,30], [SID_FIREWALL,10,50],
-                      [SID_HEAT,10,70], [SID_DEMENT,3,100] ];
+      plMeleeSpellBook = [  [SID_FIREWALL,10,10, Random(70,99)],
+                            [SID_BLAST_OF_FIRE,3,100, Random(70,99)] ];
+      plRangedSpellBook = [ [SID_FIREBALL,5,90, Random(70,99)],
+                            [SID_HEAT,10,100, Random(70,99)] ];
+
+      propagate;
+   }
+
+   IsAlly(target = $, regroup = FALSE)
+   {
+      if IsClass(target,&XeoBossFire)
+         OR IsClass(target,&XeoBossFire2)
+         OR IsClass(target,&XeoBossFire3)
+         OR IsClass(target,&XeoFire)
+         OR IsClass(target,&FireElemental)
+         OR IsClass(target,&FireElementalChampion)
+      {
+         return TRUE;
+      }
 
       propagate;
    }

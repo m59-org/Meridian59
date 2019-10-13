@@ -1,0 +1,121 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+XeoBossUnholy is Xeochicatl
+
+constants:
+
+   include blakston.khd
+
+   ANIM_CAST = 2     %% Cast spell animation.
+
+resources:
+
+   XeoBossUnholy_name_rsc = "vix'zi'xeochicatl"
+   XeoBossUnholy_koc_name_rsc = "vix'zi'xeo'chicatl"
+   XeoBossUnholy_icon_rsc = Xeo.bgf
+   XeoBossUnholy_desc_rsc = \
+      "Before you is a vix'zi'xeochicatl, a being from near the heart of the "
+      "elemental plane of death. This is no minor xeochicatl; the vix are "
+      "far too strong to grace the mortal plane without visiting tremendous "
+      "destruction. This beast is an elemental incarnation of unmaking itself."
+
+   XeoBossUnholy_sound_aware = xeo3awr.wav
+
+classvars:
+
+   vrIcon = bigger_Xeochicatl_icon_rsc
+   vrDead_icon = bigger_Xeochicatl_dead_icon_rsc
+
+   vrName = XeoBossUnholy_name_rsc
+   vrDesc = XeoBossUnholy_desc_rsc
+   vrKocName = XeoBossUnholy_koc_name_rsc
+
+   viAttack_type = ATCK_WEAP_MAGIC
+   viLevel = 180
+   viDifficulty = 8
+   viSpeed = SPEED_FASTER
+   vrSound_aware = XeoBossUnholy_sound_aware
+
+   viTreasure_type = TID_NONE
+
+properties:
+
+   piAnimation = ANIM_NONE
+   piDrawFx = DRAWFX_INVISIBLE
+   piMinDamage = 10
+   piMaxDamage = 30
+
+   piMax_Mana = 100
+
+messages:
+
+   Constructed()
+   {
+      plResistances = [ [-ATCK_SPELL_FIRE, 10 ],
+                        [-ATCK_SPELL_COLD, 160 ],
+                        [-ATCK_SPELL_SHOCK, 20 ],
+                        [-ATCK_SPELL_ACID, 20 ],
+                        [-ATCK_SPELL_HOLY, -20 ],
+                        [-ATCK_SPELL_UNHOLY, 160 ],
+                        [ATCK_WEAP_MAGIC, -10 ],
+                        [ATCK_WEAP_ALL,10],
+                        [-ATCK_SPELL_QUAKE, 100 ]
+                      ];
+
+      % Permanent eagle eyes
+      Post(self,@AddChampionAbility,#ability=3,#value=80);
+
+      piColor_Translation = Send(SYS,@EncodeTwoColorXLAT,#color1=PT_REDTODKBLACK1);
+
+      plMeleeSpellBook = [ [SID_HOLD,5,5, Random(70,99)],
+                            [SID_VAMPIRIC_DRAIN,10,90, Random(70,99)],
+                            [SID_SUMMON_POISON_FOG,10,100, Random(70,99)] ];
+      plRangedSpellBook = [ [SID_BLIND,30,100, Random(70,99)]];
+
+      propagate;
+   }
+
+   GetMaxHitPoints()
+   {
+      return 5000;
+   }
+
+   GetBossStatus()
+   {
+      return TRUE;
+   }
+
+   SendLightingInformation()
+   {
+      AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC));
+      % 255 out of 255 intensity of light
+      AddPacket(1,50);
+      AddPacket(2,LIGHT_BPURPLE);
+
+      return;
+   }
+
+   IsAlly(target = $, regroup = FALSE)
+   {
+      if IsClass(target,&XeoBossUnholy)
+         OR IsClass(target,&XeoBossUnholy2)
+         OR IsClass(target,&XeoBossUnholy3)
+         OR IsClass(target,&XeoUnholy)
+         OR IsClass(target,&DarkAngel)
+      {
+         return TRUE;
+      }
+
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -48,6 +48,8 @@ resources:
 
    viTreasure_type = TID_XEO_ACID
 
+   viCanSpawnAsChampion = TRUE
+
 properties:
 
    piAnimation = ANIM_NONE
@@ -65,8 +67,21 @@ messages:
 
       piColor_Translation = Send(SYS,@EncodeTwoColorXLAT,#color1=XLAT_TO_GREEN);
 
-      plSpellBook = [ [SID_SPLASH_OF_ACID,3,50], [SID_BRITTLE,5,60],
-                      [SID_SLITHERBOLT,10,70], [SID_FLASH,1,100] ];
+      plMeleeSpellBook = [ [ SID_SPLASH_OF_ACID, 3, 100, Random(70,99) ] ];
+      plRangedSpellBook = [ [ SID_SLITHERBOLT, 10, 100, Random(70,99) ] ];
+
+      propagate;
+   }
+
+   IsAlly(target = $, regroup = FALSE)
+   {
+      if IsClass(target,&XeoBossAcid)
+         OR IsClass(target,&XeoAcid)
+         OR IsClass(target,&EarthElemental)
+         OR IsClass(target,&EarthElementalChampion)
+      {
+         return TRUE;
+      }
 
       propagate;
    }

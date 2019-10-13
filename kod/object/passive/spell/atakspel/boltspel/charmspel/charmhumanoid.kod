@@ -1,0 +1,108 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+CharmHumanoid is CharmSpell
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   CharmHumanoid_name_rsc = "inspiring charm"
+
+   CharmHumanoid_icon_rsc = charmprojectile.bgf
+
+   CharmHumanoid_desc_rsc = \
+      "Attempts to alter the mental state of a humanoid creature to make it "
+      "follow you and fight for you. Your spiritual karma must be positively "
+      "aligned in order for the humanoid to consider trusting you at all. "
+      "Requires green mushrooms to cast."
+
+   CharmHumanoid_sound = rdement.wav
+
+   CharmHumanoid_projectile_icon_rsc = charmprojectile.bgf
+
+classvars:
+
+   vrName = CharmHumanoid_name_rsc
+   vrIcon = CharmHumanoid_icon_rsc
+   vrDesc = CharmHumanoid_desc_rsc
+   
+   viSpell_num = SID_CHARM_HUMANOID
+
+   viAttack_spell = ATCK_SPELL_ALL + ATCK_SPELL_CHARM
+   viCharmedType = CREATURE_TYPE_HUMANOID
+
+   viSpell_level = 5
+   viMeditate_ratio = 50
+   viMana = 22
+
+   vrSucceed_wav = CharmHumanoid_sound
+
+   % In seconds, since it works off GetTime().
+   viPostCast_time = 2
+
+   viChance_To_Increase = 15
+
+   vrProjectile_Icon = CharmHumanoid_projectile_icon_rsc
+
+   % Short range blast
+   vbIsRangedAttack = FALSE
+
+   % Projectile lighting information.
+   viProjectileLightFlags = LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC
+   % Medium light range, out of 255.
+   viProjectileLightIntensity = 100
+   % Default color is lightning.
+   viProjectileLightColor = LIGHT_RED
+   
+   viProjectileSpeed = 10
+
+properties:
+
+   piDamageMin = 4
+   piDamageMax = 9
+   piRange = 4 * FINENESS
+
+   % Maximum amount of bonus damage mana focus gives us for casting this spell.
+   piManaFocusBonus = 0
+   
+   piExtraCharmMultiple = 3
+
+messages:
+
+   ResetReagents()
+   {
+      % separate message so can change, then set from admin mode
+
+      plReagents = $;
+      plReagents = Cons([&GreenMushroom,2],plReagents);
+ 
+      return;
+   }
+
+   SendLookAnimation()
+   {
+      AddPacket(1,ANIMATE_NONE, 2,2);
+
+      return;
+   }
+
+   SendProjectileAnimation()
+   {
+      % 100ms between animations, between frames 1-6
+      AddPacket(1,ANIMATE_CYCLE, 4,40, 2,1, 2,6);   
+
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

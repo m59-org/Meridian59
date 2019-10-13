@@ -41,6 +41,9 @@ classvars:
 
    viWeatherZone = WEATHER_ZONE_MARION
 
+   viLongitude = 5
+   viLatitude = 14
+
 properties:
 
    prRoom = room_temple
@@ -77,6 +80,11 @@ messages:
             pbTemple_Made_Scepter = TRUE;
             send(self,@NewHold,#what=Create(&Scepter),#new_row=23,#new_col=8);
          }
+      }
+ 
+      if IsClass(what,&Player)
+      {
+         Post(Send(SYS,@GetGameQuestMaintenance),@EvaluatePlayer,#who=what,#vbTriggered=TRUE);
       }
       
       propagate;

@@ -1,0 +1,80 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+SnowThreat is RoomThreat 
+
+% Whenever it snows on the mainland, dampen cold and boost fire
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   snow_threat_name_rsc = "snow"
+   snow_threat_icon_rsc = iicenova.bgf
+   snow_threat_desc_rsc = \
+      "While completely natural, snow still has an effect on magic. "
+      "Attacks and spells using cold are less effective because monsters and players have already adapted to the chill. "
+      "Conversely, fire is more effective." 
+
+   snow_threat_begin_msg = \
+      "Monsters and adventurers alike adapt to the snow, dampening cold damage and enhancing fire."
+   snow_threat_end_msg = \
+      "The snow's effect on the balance of the elements ceases."
+   snow_threat_dampens_msg = \
+      "You deal less cold damage!"
+   snow_threat_boosts_msg = \
+      "You deal more fire damage!"
+
+   snow_good_item_use_msg = \
+      "Your item relieves the snow around you somewhat."
+   snow_good_spell_use_msg = \
+      "Your spell banishes the snow in your vicinity."
+      
+   snow_threat_damage_msg = \
+      "Somehow, you are taking damage from snow."
+
+   snow_death_msg = \
+      "~B~U~k[###]~n ~B~v%s succumbed to snow somehow. Seriously though, how?"
+
+classvars:
+
+   vrName = snow_threat_name_rsc
+   vrIcon = snow_threat_icon_rsc
+   vrDesc = snow_threat_desc_rsc
+
+   viThreatBeginMsg = snow_threat_begin_msg
+   viThreatEndMsg = snow_threat_end_msg
+   viThreatDamageMsg = snow_threat_damage_msg
+   viGoodItemUseMsg = snow_good_item_use_msg
+   viGoodSpellUseMsg = snow_good_spell_use_msg
+   
+   viDeathMsg = snow_death_msg
+
+   vbDampenElement = TRUE
+   viDampenElement = ATCK_SPELL_COLD
+   viDampenPercentage = 20
+   
+   viBoostElement = TRUE
+   viBoostElement = ATCK_SPELL_FIRE
+   viBoostPercentage = 10
+   
+   vbReportMessages = FALSE
+
+properties:
+
+   pbDealDamage = FALSE
+   piReport = FALSE
+
+messages:
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

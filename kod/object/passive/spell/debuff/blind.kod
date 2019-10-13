@@ -35,6 +35,11 @@ resources:
 
    blind_sound = qblind.wav
 
+   % Not implemented yet
+   blind_player_rsc = holdrings.bgf
+
+   blind_ring_projectile_rsc = greenblindring.bgf
+
 classvars:
 
    vrName = blind_name_rsc
@@ -56,6 +61,25 @@ classvars:
    viSpellExertion = 3
 
    vrSucceed_wav = blind_sound
+   
+   viPrimaryStat = STAT_ID_MYSTICISM
+   viSecondaryStat = STAT_ID_KARMA
+   
+   vrProjectile_Icon = blind_ring_projectile_rsc
+   viProjectileFlag = PROJ_FLAG_LIGHT_SOURCE
+
+   % Projectile lighting information.
+   viProjectileLightFlags = LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC
+   % Medium light range, out of 255.
+   viProjectileLightIntensity = 100
+   % Default color is lightning.
+   viProjectileLightColor = LIGHT_BGREEN
+
+   viProjectileSpeed = 5
+
+   vrBlindRings = blind_player_rsc
+
+   viLayer = 9
 
 properties:
 
@@ -66,6 +90,9 @@ properties:
    % Min and max values for Blind duration.
    piMinBlind = 4000
    piMaxBlind = 12000
+   
+   % Monster min value
+   piMonsterMinBlind = 500
 
 messages:
 
@@ -89,11 +116,68 @@ messages:
       return;
    }
 
-   CastSpell(who=$,lTargets=$,iSpellPower=0)
+   CastSpell(who=$,wielder=$,lTargets=$,iSpellPower=0,oDeflectImpact=$,bDeflectCast=FALSE)
    {
-      local oTarget;
+      local oTarget, oRoom, i, iDeflectSpeed;
 
       oTarget = First(lTargets);
+      % Is this a proc from a weapon?
+      if wielder = $
+      {
+         oRoom = Send(who,@GetOwner);
+         if oDeflectImpact <> $
+            AND oRoom <> $
+         {
+            % Don't send to oDeflectImpact, it's not a NoMoveOn!
+            iDeflectSpeed = Send(who,@SquaredFineDistanceTo,#what=oDeflectImpact);
+               
+            if iDeflectSpeed = 0
+            {
+               iDeflectSpeed = $;
+            }
+
+            if iDeflectSpeed <> $
+            {
+               iDeflectSpeed = (Sqrt(iDeflectSpeed) / 64) * 2;
+            }
+            Send(oRoom,@SomethingShot,#who=who,#target=oDeflectImpact,#projectile=self,#flags=viProjectileFlag,#iDeflectSpeed=iDeflectSpeed);
+         }
+         else
+         {
+            if oRoom <> $
+            {
+               Send(oRoom,@SomethingShot,#who=who,#target=oTarget,#projectile=self,#flags=viProjectileFlag);
+            }
+         }
+      }
+      else
+      {
+         oRoom = Send(wielder,@GetOwner);
+         if oDeflectImpact <> $
+            AND oRoom <> $
+         {
+            % Don't send to oDeflectImpact, it's not a NoMoveOn!
+            iDeflectSpeed = Send(wielder,@SquaredFineDistanceTo,#what=oDeflectImpact);
+               
+            if iDeflectSpeed = 0
+            {
+               iDeflectSpeed = $;
+            }
+
+            if iDeflectSpeed <> $
+            {
+               iDeflectSpeed = (Sqrt(iDeflectSpeed) / 64) * 2;
+            }
+            Send(oRoom,@SomethingShot,#who=wielder,#target=oDeflectImpact,#projectile=self,#flags=viProjectileFlag,#iDeflectSpeed=iDeflectSpeed);
+         }
+         else
+         {
+            if oRoom <> $
+            {
+               Send(oRoom,@SomethingShot,#who=wielder,#target=oTarget,#projectile=self,#flags=viProjectileFlag);
+            }
+         }
+      }
 
       % Spell effects
       Send(self,@DoSpell,#what=who,#oTarget=oTarget,
@@ -118,17 +202,13 @@ messages:
          }
       }
 
-      if IsClass(oTarget,&Monster)
-         AND Send(oTarget,@GetBlindResistance) <> 0
-      {
-         iDuration = (iDuration * (100-Send(oTarget,@GetBlindResistance)))/100;
-      }
-
-      % Re-check the bound on duration.
-      iDuration = Bound(iDuration,piMinBlind,piMaxBlind);
+      iDuration = (iDuration * (100-Send(oTarget,@GetBlindResistance)))/100;
 
       if IsClass(oTarget,&Player)
       {
+         % Re-check the bound on duration.
+         iDuration = Bound(iDuration,piMinBlind,piMaxBlind);
+
          if NOT (IsClass(oTarget,&DM) AND Send(oTarget,@PlayerIsImmortal))
          {
             Send(oTarget,@MsgSendUser,#message_rsc=vrEnchantment_On);
@@ -138,7 +218,13 @@ messages:
       else
       {
          % class is Monster
+         iDuration = Bound(iDuration,piMonsterMinBlind,piMaxBlind);
          Post(oTarget,@ResetBehaviorFlags);
+         if Send(oTarget,@GetOwner) <> $
+         {
+            Post(Send(oTarget,@GetOwner),@SomethingChanged,#what=oTarget);
+         }
+         Post(oTarget,@WasBlinded);
       }
 
       Send(what,@MsgSendUser,#message_rsc=vrSuccess,
@@ -174,6 +260,10 @@ messages:
          % This has to be done AFTER the enchantment is gone from the
          % monster's ench list - post it.
          Post(who,@ResetBehaviorFlags);
+         if Send(who,@GetOwner) <> $
+         {
+            Post(Send(who,@GetOwner),@SomethingChanged,#what=who);
+         }
       }
 
       return;
@@ -193,6 +283,75 @@ messages:
       Send(mob,@SetBehaviorFlag,#flag=AI_NOFIGHT,#value=TRUE);
 
       return;
+   }
+
+   % Return the icon used to display a spell shooting through the air.
+   GetProjectileIcon()
+   {
+      return vrProjectile_Icon;
+   }
+
+   % Return the speed at which a particular spell should appear to shoot through the air.
+   GetProjectileSpeed(who=$, target=$)
+   {
+      local iDist;
+
+      if who <> $
+         AND target <> $
+      {
+         % only NoMoveOns can calculate distances
+         if IsClass(who,&NoMoveOn)
+         {
+            iDist = Send(who,@SquaredFineDistanceTo,#what=target);
+         }
+         else if IsClass(target,&NoMoveOn)
+         {
+            iDist = Send(target,@SquaredFineDistanceTo,#what=who);
+         }
+         else
+         {
+            % Neither is a NoMoveOn? Give up!
+            return viProjectileSpeed;
+         }
+
+         if iDist <> $
+            AND iDist <> 0
+         {
+            iDist = Sqrt(iDist);
+
+            % Check sqrt value for 0
+            if iDist = 0
+            {
+               return viProjectileSpeed;
+            }
+            else
+            {
+               return Bound((iDist / 64) * 2,viProjectileSpeed,$);
+            }
+         }
+      }
+      return viProjectileSpeed;
+   }
+
+   SendProjectileAnimation()
+   {
+      AddPacket(1, ANIMATE_CYCLE, 4, 40, 2, 1, 2, 10);   % 40ms between animations
+      return;
+   }
+
+   GetProjectileLightFlags()
+   {
+      return viProjectileLightFlags;
+   }
+
+   GetProjectileLightIntensity()
+   {
+      return viProjectileLightIntensity;
+   }
+
+   GetProjectileLightColor()
+   {
+      return viProjectileLightColor;
    }
 
 end

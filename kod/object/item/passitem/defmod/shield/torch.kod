@@ -19,7 +19,7 @@ constants:
    % use a torch charge every x milliseconds
    TORCH_CHARGE_RATE = 60000
 
-   TORCH_LIGHT = 40
+   TORCH_LIGHT = 20
 
 resources:
 
@@ -80,7 +80,7 @@ messages:
       Send(poOwner,@SetFlickerFlag);
       if NOT pbIn_use
       {
-         Send(poOwner,@GainLight,#amount=TORCH_LIGHT);
+         Post(poOwner,@RecalcLight);
       }
 
       pbIn_use = TRUE;
@@ -101,7 +101,7 @@ messages:
 
       if pbIn_use
       {
-         Send(poOwner,@LoseLight,#amount=TORCH_LIGHT);
+         Post(poOwner,@RecalcLight);
       }
 
       pbIn_use = FALSE;

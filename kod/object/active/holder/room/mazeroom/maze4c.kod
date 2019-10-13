@@ -1,0 +1,157 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Maze4c is MinotaurMazeRoom
+
+% Predominantly lava hallways with Te'xeo spawn
+%
+%
+%
+% So far:
+% 100
+% to
+% 739
+%
+% xx0 outer ring
+% xx1 middle ring
+% xx2 inner ring
+% xx3 central square
+%
+% xx4 sawblade nopass
+%
+% xx5 crusher walls
+%
+% xx6 sawblades
+%
+% xx7 down spikes
+% xx8 up spikes
+%
+% xx9 are secret doors
+%
+%
+%
+%
+% 109 to 179
+% 189 to 259
+% 269 to 339
+% 349 to 419
+% 429 to 499
+% 509 to 579
+% 589 to 659
+% 669 to 739
+%
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   room_maze4c = maze4c.roo
+
+classvars:
+
+   vbCannotBlinkHere = TRUE
+
+   viTeleport_row = 2
+   viTeleport_col = 2
+   
+   viSouthEntranceRow = 25
+   viSouthEntranceCol = 4
+   viSouthEntranceFineRow = 62
+   viSouthEntranceFineCol = 29
+
+   viNorthEntranceRow = 2
+   viNorthEntranceCol = 4
+   viNorthEntranceFineRow = 60
+   viNorthEntranceFineCol = 28
+
+   viWestEntranceRow = 12
+   viWestEntranceCol = 2
+   viWestEntranceFineRow = 44
+   viWestEntranceFineCol = 63
+
+   viEastEntranceRow = 12
+   viEastEntranceCol = 35
+   viEastEntranceFineRow = 44
+   viEastEntranceFineCol = 39
+
+properties:
+
+   prRoom = room_maze4c
+
+messages:
+   
+   CheckMoveBorders(what=$, new_row=$, new_col=$)
+   {
+      return;
+   }
+
+   CreateMazeRoomObjects()
+   {
+      local i, iR, iRT, iCount, lAlreadyChosen, bSoundInfo;
+% 109 to 179
+% 189 to 259
+% 269 to 339
+% 349 to 419
+% 429 to 499
+% 509 to 579
+% 589 to 659
+% 669 to 739
+
+      Send(self,@SetWadingSound,#type=MAZE_LAVA_WALKING);
+
+      iR = 100;
+      while iR <= 730
+      {
+         Send(self,@SetSectorFlags,#sector=iR,#depth=SF_DEPTH0,#scrollSpeed=SCROLL_NONE);
+         Send(self,@SetSectorFlags,#sector=iR+1,#depth=SF_DEPTH0,#scrollSpeed=SCROLL_NONE);
+         Send(self,@SetSectorFlags,#sector=iR+2,#depth=SF_DEPTH0,#scrollSpeed=SCROLL_NONE);
+         Send(self,@SetSectorFlags,#sector=iR+3,#depth=SF_DEPTH0,#scrollSpeed=SCROLL_NONE);
+         Send(self,@SetSectorFlags,#sector=iR+9,#depth=SF_DEPTH0,#scrollSpeed=SCROLL_NONE);
+         iR = iR + 10;
+      }
+
+      % Open secrets doors on creation
+      Send(self,@SetSector,#sector=179,#animation=ANIMATE_FLOOR_LIFT,#height=1000,#speed=0);
+      Send(self,@SetSector,#sector=189,#animation=ANIMATE_FLOOR_LIFT,#height=1000,#speed=0);
+      Send(self,@SetSector,#sector=299,#animation=ANIMATE_FLOOR_LIFT,#height=1000,#speed=0);
+      Send(self,@SetSector,#sector=379,#animation=ANIMATE_FLOOR_LIFT,#height=1000,#speed=0);
+      Send(self,@SetSector,#sector=659,#animation=ANIMATE_FLOOR_LIFT,#height=1000,#speed=0);
+      Send(self,@SetSector,#sector=509,#animation=ANIMATE_FLOOR_LIFT,#height=1000,#speed=0);
+      Send(self,@SetSector,#sector=499,#animation=ANIMATE_FLOOR_LIFT,#height=1000,#speed=0);
+
+      % Lava in all hallways
+
+      iR = 100;
+      while iR <= 730
+      {
+         plLavaSectors = Cons(iR,plLavaSectors);                  % Lava pain sectors
+         Send(self,@RemoveSectorFlagChange,#id=iR);
+         plLavaSectors = Cons(iR+1,plLavaSectors);                % Lava pain sectors
+         Send(self,@RemoveSectorFlagChange,#id=iR+1);
+         plLavaSectors = Cons(iR+2,plLavaSectors);                % Lava pain sectors
+         Send(self,@RemoveSectorFlagChange,#id=iR+2);
+         plLavaSectors = Cons(iR+3,plLavaSectors);                % Lava pain sectors
+         Send(self,@RemoveSectorFlagChange,#id=iR+3);
+         iR = iR + 10;
+      }
+
+      return;
+   }
+
+% ==================================================================================================================
+% ==================================================================================================================
+% SPECIFIC FUNCTIONS
+% ==================================================================================================================
+% ==================================================================================================================
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

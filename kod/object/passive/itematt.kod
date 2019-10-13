@@ -33,6 +33,7 @@ resources:
    attribute_name_default = "special %s"
 
    itematt_made_rsc = "  Enchanted by %q, %s %s."
+   itematt_initiate_rsc = "Initiate"
    itematt_novice_rsc = "Novice"
    itematt_apprentice_rsc = "Apprentice"
    itematt_journeyman_rsc = "Journeyman"
@@ -118,7 +119,7 @@ messages:
       return;
    }
 
-   GenerateItemWithAttribute(who=$)
+   GenerateItemWithAttribute(who=$,level=20)
    {
       local i, index, jindex, random_x, oItem;
 
@@ -139,7 +140,7 @@ messages:
          random_x = random_x - nth(i,2);
          if random_x < 1         %% we have a winner!
          {
-            oItem = Create(First(i));
+            oItem = Create(First(i),#level=level);
             Send(self,@AddSelfToRandomItem,#oItem=oItem,#who=who);
 
             break;
@@ -540,7 +541,12 @@ messages:
 
    GetTitle(iAbility=0)
    {
-      iAbility = Bound(iAbility,1,4);
+      iAbility = Bound((iAbility+1)/25,0,4);
+
+      if iAbility = 1
+      {
+         return itematt_novice_rsc;
+      }
 
       if iAbility = 2
       {
@@ -557,7 +563,7 @@ messages:
          return itematt_master_rsc;
       }
 
-      return itematt_novice_rsc;
+      return itematt_initiate_rsc;
    }
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

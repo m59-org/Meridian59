@@ -1,0 +1,137 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+BestiaryBookPedestal is PassiveObject
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   bestiary_bookped_name_rsc = "voluminous tome on a pedestal"
+   bestiary_bookped_icon_rsc = jbook.bgf
+   bestiary_bookped_desc_rsc = \
+      "This heavy book contains academic instructions on the topics of "
+      "zoology, biology, and magics pertaining to organisms. "
+      "\n\nFrom the chapter headings, it is apparent that this tome will teach a level %i bestiary "
+      "ability called %s. %s"
+
+   bestiarybook_not_in_range = \
+      "You're too far away to study that!"
+
+   bestiary_bookped_generic_error_msg = \
+      "This book is incomprehensible!"
+   success_bestiary_bookped = \
+      "You read through the passages, studying the information within. "
+      "It takes a great deal of thought, but you start to understand the workings of "
+      "living beings a little bit more deeply."
+   bestiary_bookped_already_know_msg = \
+      "You already have this knowledge."
+   bestiary_bookped_no_more_levels_msg = \
+      "You've learned all you can. These concepts are beyond your grasp."
+   bestiary_bookped_no_previous_levels_msg = \
+      "You don't know enough about the previous levels of bestiary to understand this tome."
+   bestiary_bookped_need_more_percents = \
+      "You need %i more percentage points in the previous level of bestiary before you can understand this tome."
+
+classvars:
+
+   vrIcon = bestiary_bookped_icon_rsc
+   vrDesc = bestiary_bookped_desc_rsc
+
+   viObject_flags = OF_ACTIVATABLE
+
+properties:
+
+   vrName = bestiary_bookped_name_rsc
+
+   piBestiarySpellID = SID_CREATURE_SPEAK
+
+messages:
+
+   Constructor(iBestiarySpellID = SID_SOOTHING_PRESENCE)
+   {
+      piBestiarySpellID = iBestiarySpellID;
+
+      propagate;
+   }
+
+   SendLookAnimation()
+   {
+      AddPacket(1, ANIMATE_NONE, 2, 2);
+      return;
+   }
+
+   ShowDesc()
+   {
+      local oSpell;
+      
+      oSpell=Send(SYS,@FindSpellByNum,#num=piBestiarySpellID);
+      AddPacket(4, bestiary_bookped_desc_rsc, 4,Send(oSpell,@GetLevel), 4,Send(oSpell,@GetName), 4,Send(oSpell,@GetDesc));
+
+      return;
+   }
+
+   TryActivate(who=$)
+   {
+      local oSpell, iLearnAttempt;
+
+      if Abs(Send(who,@GetRow) - Send(self,@GetRow)) > 3
+         OR Abs(Send(who,@GetCol) - Send(self,@GetCol)) > 3
+      {
+         Send(who,@MsgSendUser,#message_rsc=bestiarybook_not_in_range);
+
+         return TRUE;
+      }
+
+      oSpell = Send(SYS,@FindSpellByNum,#num=piBestiarySpellID);
+      if oSpell = $
+      {
+         return TRUE;
+      }
+
+      if Send(who,@HasSpell,#num=piBestiarySpellID)
+      {
+         Send(who,@MsgSendUser,#message_rsc=bestiary_bookped_already_know_msg);
+         return TRUE;
+      }
+
+      iLearnAttempt = Send(who,@PlayerCanLearn,#spell_num=piBestiarySpellID);
+
+      if iLearnAttempt mod 10 = PLAYER_LEARN_BASE
+      {
+         Send(who,@MsgSendUser,#message_rsc=bestiary_bookped_need_more_percents,#parm1=iLearnAttempt/10);
+         return TRUE;
+      }
+
+      switch(iLearnAttempt)
+      {
+         case PLAYER_LEARN_SUCCESS:
+            Send(who,@MsgSendUser,#message_rsc=success_bestiary_bookped);
+            return TRUE;
+         case PLAYER_LEARN_ALREADY:
+            Send(who,@MsgSendUser,#message_rsc=bestiary_bookped_already_know_msg);
+            return TRUE;
+         case PLAYER_LEARN_IMPOSSIBLE:
+            Send(who,@MsgSendUser,#message_rsc=bestiary_bookped_no_more_levels_msg);
+            return TRUE;
+         case PLAYER_LEARN_NOBASE:
+            Send(who,@MsgSendUser,#message_rsc=bestiary_bookped_no_previous_levels_msg);
+            return TRUE;
+      }
+
+      Send(who,@MsgSendUser,#message_rsc=bestiary_bookped_generic_error_msg);
+
+      return TRUE;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

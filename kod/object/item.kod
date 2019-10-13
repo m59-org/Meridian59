@@ -24,9 +24,9 @@ resources:
    item_this = "This "
    item_blank_template = "%q"
 
-   % item_desc_template is vrDesc, item attributes, object attributes,
+   % item_desc_template is vrDesc, item attributes, object attributes, magic mods,
    % variable item appends, item stats, item condition.
-   item_desc_template = "%r%r%r%r%r%r%r"
+   item_desc_template = "%r%r%r%r%r%r%r%r"
    resource_blank = ""
 
    item_try_use_cursed_rsc = \
@@ -56,12 +56,13 @@ resources:
    item_condition_broken = " is covered in filth and ripped beyond use."
    item_cond_master = "\n%s%s%s (%i/%i)"
    special_properties_header = \
-      "\n\nThis item has the following properties:\n"
+      "\n\nThis item has the following overall properties:\n"
    item_stats_range = "%i range\n"
-   item_stats_offense = "%i offense rating bonus\n"
+   item_stats_offense = "%i melee offense rating bonus\n"
+   item_stats_ranged_offense = "%i ranged offense rating bonus\n"
    item_stats_armor = "%i armor\n"
    item_stats_defense = "%i defense rating bonus\n"
-   item_stats_melee = "%i melee damage bonus\n"
+   item_stats_melee = "%i melee weapon damage bonus\n"
    item_stats_min_dmg = "%i-"
    item_stats_base_dmg = "%r%i base damage\n"
    item_stats_owner_dmg = "%r%i damage in owner's hands\n"
@@ -82,15 +83,85 @@ resources:
    item_stats_proc_blind = "15%% chance to cast Blind on hit\n"
    item_stats_proc_bonk = "8%% chance to cast Bonk on hit\n"
    item_stats_proc_purge = "15%% chance to cast Purge on hit\n"
+   item_stats_proc_corrode = "30%% chance to corrode on hit\n"
    item_stats_proc_twister = "8%% chance to disorient victim on hit\n"
    item_stats_proc_vamp = "10%% chance to gain up to 8 health on hit\n"
+   item_stats_might_add = "%i Might bonus\n"
+   item_stats_intellect_add = "%i Intellect bonus\n"
+   item_stats_stamina_add = "%i Stamina bonus\n"
+   item_stats_agility_add = "%i Agility bonus\n"
+   item_stats_mysticism_add = "%i Mysticism bonus\n"
+   item_stats_aim_add = "%i Aim bonus\n"
+   item_stats_health_add = "%i max health\n"
+   item_stats_mana_add = "%i max mana\n"
+   item_stats_vigor_add = "%i max vigor\n"
+   item_stats_empowerment_add = "%i%% %s\n"
+   item_stats_hex_inc_effect_add = "%i%% increased hex effectiveness\n"
+   item_stats_hex_resistance_add = "%i%% hex resistance\n"
+   enchanted_gear_indestructible = "\nThis enchanted %s is indestructible."
+   enchanted_gear_plural_indestructible = "\nThese enchanted %s are indestructible."
+   
+   weapon_agility_mod = "\n+%i Agility"
+   weapon_might_mod = "\n+%i Might"
+   weapon_aim_mod = "\n+%i Aim"
+   caster_int_mod_desc = "\n+%i Intellect"
+   caster_myst_mod_desc = "\n+%i Mysticism"
+   caster_stam_mod_desc = "\n+%i Stamina"
+   health_mod_desc = "\n+%i Health"
+   mana_mod_desc = "\n+%i Mana"
+   vigor_mod_desc = "\n+%i Vigor"
+   offense_mod_desc = "\n+%i offense rating"
+   ranged_offense_mod_desc = "\n+%i ranged offense rating"
+   melee_weapon_damage_mod_desc = "\n+%i melee weapon base damage"
+   fire_resist_mod_desc = "\n+%i\% fire resistance"
+   cold_resist_mod_desc = "\n+%i\% cold resistance"
+   acid_resist_mod_desc = "\n+%i\% acid resistance"
+   shock_resist_mod_desc = "\n+%i\% shock resistance"
+   holy_resist_mod_desc = "\n+%i\% holy resistance"
+   unholy_resist_mod_desc = "\n+%i\% unholy resistance"
+   quake_resist_mod_desc = "\n+%i\% quake resistance"
+   slash_resist_mod_desc = "\n+%i\% slash resistance"
+   thrust_resist_mod_desc = "\n+%i\% thrust resistance"
+   pierce_resist_mod_desc = "\n+%i\% pierce resistance"
+   bludgeon_resist_mod_desc = "\n+%i\% bludgeon resistance"
+   armor_mod_desc = "\n+%i\% weapon resistance"
+   defense_mod_desc = "\n+%i defense rating"
+   fire_empowerment_mod_desc = "\n+%i\% fire damage"
+   cold_empowerment_mod_desc = "\n+%i\% cold damage"
+   shock_empowerment_mod_desc = "\n+%i\% shock damage"
+   acid_empowerment_mod_desc = "\n+%i\% acid damage"
+   holy_empowerment_mod_desc = "\n+%i\% holy damage"
+   unholy_empowerment_mod_desc = "\n+%i\% unholy damage"
+   pierce_empowerment_mod_desc = "\n+%i\% pierce damage"
+   thrust_empowerment_mod_desc = "\n+%i\% thrust damage"
+   slash_empowerment_mod_desc = "\n+%i\% slash damage"
+   bludgeon_empowerment_mod_desc = "\n+%i\% bludgeon damage"
+   punch_empowerment_mod_desc = "\n+%i\% punch damage"
+   weapon_empowerment_mod_desc = "\n+%i\% weapon damage"
+   magic_empowerment_mod_desc = "\n+%i\% magic damage"
+   illusion_empowerment_mod_desc = "\n+%i\% illusion damage"
+   charm_empowerment_mod_desc = "\n+%i\% charm damage"
+   mob_fire_damage_desc = "\n+%i%% monster damage as fire"
+   mob_cold_damage_desc = "\n+%i%% monster damage as cold"
+   mob_shock_damage_desc = "\n+%i%% monster damage as shock"
+   mob_attack_speed_desc = "\n+%i%% monster attack speed"
+   mob_move_speed_desc = "\n+%i%% monster move speed"
+   mob_health_mod_desc = "\nMonsters have +%i%% health"
+   mob_resists_mod_desc = "\nMonsters have +%i%% resistances"
+ 
+   enchantment_mods_attribute_rsc = \
+      "\n\nThis %s has %i %s."
+   enchantment_mods_sing = "enchantment"
+   enchantment_mods_plur = "enchantments"
 
    item_level_master = \
-      "\n\nIt has an item level of %i and has been imbued "
-      "with %i magical modifications."
+      "\n\nIt has an item level of %i."
    item_level_gauntlets = \
-      "\n\nThey have an item level of %i and have been imbued "
-      "with %i magical modifications."
+      "\n\nThey have an item level of %i."
+   shard_applying = \
+      "The %s acquires a magical bonus of %i %s!"
+   shard_armor_mod_percentage = \
+      "The %s acquires a magical bonus of %i weapon resistance!"
 
 classvars:
 
@@ -199,10 +270,12 @@ messages:
    {
       local i, bFoundProperties, iHigh_level, n, iFarenPower, iRiijaPower,
             iKraananPower, iJalaPower, iShalPower, iQorPower, iInstrumentPower,
-            iNum, bID, iMinDamage, iMinDamageOwner, iAttackType;
+            iNum, bID, iMinDamage, iMinDamageOwner, iAttackType,
+            iMightChange, iIntellectChange, iStaminaChange, iAgilityChange,
+            iMysticismChange, iAimChange, iHealthChange, iManaChange, iVigorChange;
 
       % This message 'telescopes' resources into the 5th %r of
-      % item_desc_template. There are 16 different stats we can add;
+      % item_desc_template. There are 18 different stats we can add;
       % when we first add a stat to be displayed we add a template with
       % the correct number of %r formatters to match the number of stats
       % remaining (plus one for the special_properties_header). If a stat
@@ -217,24 +290,42 @@ messages:
 
       if Send(self,@GetRange) <> 0
       {
-         AddPacket(4,system_rsc_template_16, 4,special_properties_header,
+         AddPacket(4,system_rsc_template_21, 4,special_properties_header,
                    4,item_stats_range, 4,Send(self,@GetRange)/FINENESS);
          bFoundProperties = TRUE;
       }
 
       if Send(self,@GetHitBonus) <> 0
       {
-         if bFoundProperties
+         if IsClass(self,&RangedWeapon)
          {
-            % bFoundProperties TRUE, already added headers.
-            AddPacket(4,item_stats_offense, 4,Send(self,@GetHitBonus));
+            if bFoundProperties
+            {
+               % bFoundProperties TRUE, already added headers.
+               AddPacket(4,item_stats_ranged_offense, 4,Send(self,@GetHitBonus));
+            }
+            else
+            {
+               % bFoundProperties FALSE, add headers.
+               AddPacket(4,system_rsc_template_20, 4,special_properties_header,
+                         4,item_stats_ranged_offense, 4,Send(self,@GetHitBonus));
+               bFoundProperties = TRUE;
+            }
          }
          else
          {
-            % bFoundProperties FALSE, add headers.
-            AddPacket(4,system_rsc_template_15, 4,special_properties_header,
-                      4,item_stats_offense, 4,Send(self,@GetHitBonus));
-            bFoundProperties = TRUE;
+            if bFoundProperties
+            {
+               % bFoundProperties TRUE, already added headers.
+               AddPacket(4,item_stats_offense, 4,Send(self,@GetHitBonus));
+            }
+            else
+            {
+               % bFoundProperties FALSE, add headers.
+               AddPacket(4,system_rsc_template_20, 4,special_properties_header,
+                         4,item_stats_offense, 4,Send(self,@GetHitBonus));
+               bFoundProperties = TRUE;
+            }
          }
       }
       else if bFoundProperties
@@ -252,7 +343,7 @@ messages:
          }
          else
          {
-            AddPacket(4,system_rsc_template_14, 4,special_properties_header,
+            AddPacket(4,system_rsc_template_19, 4,special_properties_header,
                       4,item_stats_armor, 4,Send(self,@GetDamageReduction));
             bFoundProperties = TRUE;
          }
@@ -270,7 +361,7 @@ messages:
          }
          else
          {
-            AddPacket(4,system_rsc_template_13,4,special_properties_header,
+            AddPacket(4,system_rsc_template_18,4,special_properties_header,
                       4,item_stats_defense, 4,Send(self,@GetDefenseBonus));
             bFoundProperties = TRUE;
          }
@@ -288,7 +379,7 @@ messages:
          }
          else
          {
-            AddPacket(4,system_rsc_template_12, 4,special_properties_header,
+            AddPacket(4,system_rsc_template_17, 4,special_properties_header,
                       4,item_stats_melee, 4,Send(self,@GetMeleeDamageBonus));
             bFoundProperties = TRUE;
          }
@@ -303,7 +394,7 @@ messages:
       {
          if NOT bFoundProperties
          {
-            AddPacket(4,system_rsc_template_11, 4,special_properties_header);
+            AddPacket(4,system_rsc_template_16, 4,special_properties_header);
             bFoundProperties = TRUE;
          }
          if Send(self,@GetMaxDamage) <> iMinDamage
@@ -328,7 +419,7 @@ messages:
       {
          if NOT bFoundProperties
          {
-            AddPacket(4,system_rsc_template_10, 4,special_properties_header);
+            AddPacket(4,system_rsc_template_15, 4,special_properties_header);
             bFoundProperties = TRUE;
          }
          if Send(self,@GetMaxDamageWithOwnerStats)
@@ -353,7 +444,7 @@ messages:
       {
          if NOT bFoundProperties
          {
-            AddPacket(4,system_rsc_template_9, 4,special_properties_header);
+            AddPacket(4,system_rsc_template_14, 4,special_properties_header);
             bFoundProperties = TRUE;
          }
          if Send(self,@GetMaxSpecialDamage) <> Send(self,@GetMinSpecialDamage)
@@ -379,7 +470,7 @@ messages:
       {
          if NOT bFoundProperties
          {
-            AddPacket(4,system_rsc_template_8, 4,special_properties_header);
+            AddPacket(4,system_rsc_template_13, 4,special_properties_header);
             bFoundProperties = TRUE;
          }
          if Send(self,@GetMaxSpecialDamageWithOwnerStats)
@@ -408,7 +499,7 @@ messages:
          }
          else
          {
-            AddPacket(4,system_rsc_template_7, 4,special_properties_header,
+            AddPacket(4,system_rsc_template_12, 4,special_properties_header,
                       4,item_stats_dmg_bonus, 4,Send(self,@GetDamageBonus));
             bFoundProperties = TRUE;
          }
@@ -454,7 +545,7 @@ messages:
          {
             if NOT bFoundProperties
             {
-               AddPacket(4,system_rsc_template_6, 4,special_properties_header);
+               AddPacket(4,system_rsc_template_11, 4,special_properties_header);
                bFoundProperties = TRUE;
             }
             AddPacket(4,item_stats_gen_sp, 4,iFarenPower);
@@ -463,7 +554,7 @@ messages:
          {
             if NOT bFoundProperties
             {
-               AddPacket(4,system_rsc_template_6, 4,special_properties_header);
+               AddPacket(4,system_rsc_template_11, 4,special_properties_header);
                bFoundProperties = TRUE;
             }
 
@@ -536,7 +627,7 @@ messages:
       {
          if NOT bFoundProperties
          {
-            AddPacket(4,system_rsc_template_5, 4,special_properties_header);
+            AddPacket(4,system_rsc_template_10, 4,special_properties_header);
             bFoundProperties = TRUE;
          }
 
@@ -562,7 +653,7 @@ messages:
       {
          if NOT bFoundProperties
          {
-            AddPacket(4,system_rsc_template_4, 4,special_properties_header);
+            AddPacket(4,system_rsc_template_9, 4,special_properties_header);
             bFoundProperties = TRUE;
          }
 
@@ -595,7 +686,7 @@ messages:
       {
          if NOT bFoundProperties
          {
-            AddPacket(4,system_rsc_template_3, 4,special_properties_header);
+            AddPacket(4,system_rsc_template_8, 4,special_properties_header);
             bFoundProperties = TRUE;
          }
 
@@ -642,7 +733,7 @@ messages:
                {
                   if NOT bFoundProperties
                   {
-                     AddPacket(4,system_rsc_template_2,
+                     AddPacket(4,system_rsc_template_7,
                                4,special_properties_header);
                      bFoundProperties = TRUE;
                   }
@@ -652,7 +743,7 @@ messages:
                {
                   if NOT bFoundProperties
                   {
-                     AddPacket(4,system_rsc_template_2,
+                     AddPacket(4,system_rsc_template_7,
                                4,special_properties_header);
                      bFoundProperties = TRUE;
                   }
@@ -662,7 +753,7 @@ messages:
                {
                   if NOT bFoundProperties
                   {
-                     AddPacket(4,system_rsc_template_2,
+                     AddPacket(4,system_rsc_template_7,
                                4,special_properties_header);
                      bFoundProperties = TRUE;
                   }
@@ -672,17 +763,27 @@ messages:
                {
                   if NOT bFoundProperties
                   {
-                     AddPacket(4,system_rsc_template_2,
+                     AddPacket(4,system_rsc_template_7,
                                4,special_properties_header);
                      bFoundProperties = TRUE;
                   }
                   AddPacket(4,item_stats_proc_purge);
                }
+               else if iNum = WA_CORRODE
+               {
+                  if NOT bFoundProperties
+                  {
+                     AddPacket(4,system_rsc_template_7,
+                               4,special_properties_header);
+                     bFoundProperties = TRUE;
+                  }
+                  AddPacket(4,item_stats_proc_corrode);
+               }
                else if iNum = WA_TWISTER
                {
                   if NOT bFoundProperties
                   {
-                     AddPacket(4,system_rsc_template_2,
+                     AddPacket(4,system_rsc_template_7,
                                4,special_properties_header);
                      bFoundProperties = TRUE;
                   }
@@ -692,7 +793,7 @@ messages:
                {
                   if NOT bFoundProperties
                   {
-                     AddPacket(4,system_rsc_template_2,
+                     AddPacket(4,system_rsc_template_7,
                                4,special_properties_header);
                      bFoundProperties = TRUE;
                   }
@@ -714,7 +815,315 @@ messages:
          AddPacket(4,system_blank_resource);
       }
 
+      iMightChange = Send(self,@GetMightChange);
+      iIntellectChange = Send(self,@GetIntellectChange);
+      iStaminaChange = Send(self,@GetStaminaChange);
+      iAgilityChange = Send(self,@GetAgilityChange);
+      iMysticismChange = Send(self,@GetMysticismChange);
+      iAimChange = Send(self,@GetAimChange);
+
+      if iMightChange <> 0
+         OR iIntellectChange <> 0
+         OR iStaminaChange <> 0
+         OR iAgilityChange <> 0
+         OR iMysticismChange <> 0
+         OR iAimChange <> 0
+      {
+         if NOT bFoundProperties
+         {
+            AddPacket(4,system_rsc_template_6, 4,special_properties_header);
+            bFoundProperties = TRUE;
+         }
+         AddPacket(4,system_rsc_template_6);
+         
+         if iMightChange <> 0
+         {
+            AddPacket(4,item_stats_might_add, 4,iMightChange);
+         }
+         else
+         {
+            AddPacket(4,system_blank_resource);
+         }
+         
+         if iIntellectChange <> 0
+         {
+            AddPacket(4,item_stats_intellect_add, 4,iIntellectChange);
+         }
+         else
+         {
+            AddPacket(4,system_blank_resource);
+         }
+         
+         if iStaminaChange <> 0
+         {
+            AddPacket(4,item_stats_stamina_add, 4,iStaminaChange);
+         }
+         else
+         {
+            AddPacket(4,system_blank_resource);
+         }
+         
+         if iAgilityChange <> 0
+         {
+            AddPacket(4,item_stats_agility_add, 4,iAgilityChange);
+         }
+         else
+         {
+            AddPacket(4,system_blank_resource);
+         }
+         
+         if iMysticismChange <> 0
+         {
+            AddPacket(4,item_stats_mysticism_add, 4,iMysticismChange);
+         }
+         else
+         {
+            AddPacket(4,system_blank_resource);
+         }
+         
+         if iAimChange <> 0
+         {
+            AddPacket(4,item_stats_aim_add, 4,iAimChange);
+         }
+         else
+         {
+            AddPacket(4,system_blank_resource);
+         }
+      }
+      else
+      {
+         AddPacket(4,system_blank_resource);
+      }
+      
+      iHealthChange = Send(self,@GetHealthChange);
+      iManaChange = Send(self,@GetManaChange);
+      iVigorChange = Send(self,@GetVigorChange);
+      
+      if iHealthChange <> 0
+         OR iManaChange <> 0
+         OR iVigorChange <> 0
+      {
+         if NOT bFoundProperties
+         {
+            AddPacket(4,system_rsc_template_5, 4,special_properties_header);
+            bFoundProperties = TRUE;
+         }
+         AddPacket(4,system_rsc_template_3);
+         
+         if iHealthChange <> 0
+         {
+            AddPacket(4,item_stats_health_add, 4,iHealthChange);
+         }
+         else
+         {
+            AddPacket(4,system_blank_resource);
+         }
+         
+         if iManaChange <> 0
+         {
+            AddPacket(4,item_stats_mana_add, 4,iManaChange);
+         }
+         else
+         {
+            AddPacket(4,system_blank_resource);
+         }
+         
+         if iVigorChange <> 0
+         {
+            AddPacket(4,item_stats_vigor_add, 4,iVigorChange);
+         }
+         else
+         {
+            AddPacket(4,system_blank_resource);
+         }
+      }
+      else
+      {
+         AddPacket(4,system_blank_resource);
+      }
+
+      if Send(self,@GetCurrentEmpowerments) <> $
+      {
+         if NOT bFoundProperties
+         {
+            AddPacket(4,system_rsc_template_4, 4,special_properties_header);
+            bFoundProperties = TRUE;
+         }
+
+         if Length(Send(self,@GetCurrentEmpowerments)) > 1
+         {
+            AddPacket(4,Send(SYS,@AddResourceTemplate,
+                           #iNum=Length(Send(self,@GetCurrentEmpowerments))));
+         }
+
+         foreach i in Send(self,@GetCurrentEmpowerments)
+         {
+            AddPacket(4,item_stats_empowerment_add, 4,Nth(i,2),
+                      4,Send(SYS,@GetEmpowermentName,#type=Nth(i,1)));
+         }
+      }
+      else if bFoundProperties
+      {
+         AddPacket(4,system_blank_resource);
+      }
+
+      if Send(self,@GetHexIncEffect) <> 0
+      {
+         if NOT bFoundProperties
+         {
+            AddPacket(4,system_rsc_template_3, 4,special_properties_header);
+            bFoundProperties = TRUE;
+         }
+         
+         AddPacket(4,item_stats_hex_inc_effect_add, 4,Send(self,@GetHexIncEffect));
+      }
+      else if bFoundProperties
+      {
+         AddPacket(4,system_blank_resource);
+      }
+
+      if Send(self,@GetHexResistance) <> 0
+      {
+         if NOT bFoundProperties
+         {
+            AddPacket(4,system_rsc_template_2, 4,special_properties_header);
+            bFoundProperties = TRUE;
+         }
+         
+         AddPacket(4,item_stats_hex_resistance_add, 4,Send(self,@GetHexResistance));
+      }
+      else if bFoundProperties
+      {
+         AddPacket(4,system_blank_resource);
+      }
+
       return;
+   }
+
+   GetBaseMightChange()
+   {
+      return 0;
+   }
+
+   GetMightChange()
+   {
+      local i, iSum;
+
+      iSum = 0;
+      foreach i in plEnchantmentMods
+      {
+         if Send(SYS,@GetGroupOfClassMod,#class=Nth(i,1)) = GROUP_MIGHT
+         {
+            iSum = iSum + Nth(i,2);
+         }
+      }
+      
+      return iSum + Send(self,@GetBaseMightChange);
+   }
+
+   GetBaseIntellectChange()
+   {
+      return 0;
+   }
+
+   GetIntellectChange()
+   {
+      local i, iSum;
+
+      iSum = 0;
+      foreach i in plEnchantmentMods
+      {
+         if Send(SYS,@GetGroupOfClassMod,#class=Nth(i,1)) = GROUP_INTELLECT
+         {
+            iSum = iSum + Nth(i,2);
+         }
+      }
+      
+      return iSum + Send(self,@GetBaseIntellectChange);
+   }
+
+   GetBaseStaminaChange()
+   {
+      return 0;
+   }
+
+   GetStaminaChange()
+   {
+      local i, iSum;
+
+      iSum = 0;
+      foreach i in plEnchantmentMods
+      {
+         if Send(SYS,@GetGroupOfClassMod,#class=Nth(i,1)) = GROUP_STAMINA
+         {
+            iSum = iSum + Nth(i,2);
+         }
+      }
+      
+      return iSum + Send(self,@GetBaseStaminaChange);
+   }
+
+   GetBaseAgilityChange()
+   {
+      return 0;
+   }
+
+   GetAgilityChange()
+   {
+      local i, iSum;
+
+      iSum = 0;
+      foreach i in plEnchantmentMods
+      {
+         if Send(SYS,@GetGroupOfClassMod,#class=Nth(i,1)) = GROUP_AGILITY
+         {
+            iSum = iSum + Nth(i,2);
+         }
+      }
+      
+      return iSum + Send(self,@GetBaseAgilityChange);
+   }
+
+   GetBaseMysticismChange()
+   {
+      return 0;
+   }
+
+   GetMysticismChange()
+   {
+      local i, iSum;
+
+      iSum = 0;
+      foreach i in plEnchantmentMods
+      {
+         if Send(SYS,@GetGroupOfClassMod,#class=Nth(i,1)) = GROUP_MYSTICISM
+         {
+            iSum = iSum + Nth(i,2);
+         }
+      }
+      
+      return iSum + Send(self,@GetBaseMysticismChange);
+   }
+
+   GetBaseAimChange()
+   {
+      return 0;
+   }
+
+   GetAimChange()
+   {
+      local i, iSum;
+
+      iSum = 0;
+      foreach i in plEnchantmentMods
+      {
+         if Send(SYS,@GetGroupOfClassMod,#class=Nth(i,1)) = GROUP_AIM
+         {
+            iSum = iSum + Nth(i,2);
+         }
+      }
+      
+      return iSum + Send(self,@GetBaseAimChange);
    }
 
    GetMinDamageWithOwnerStats()
@@ -781,6 +1190,11 @@ messages:
    GetDefenseBonus()
    {
       return 0;
+   }
+
+   GetEmpowermentModifiers()
+   {
+      return $;
    }
 
    GetMeleeDamageBonus()
@@ -890,6 +1304,18 @@ messages:
             Send(i,@AttributeDesc);
          }
       }
+      
+      if plEnchantmentMods = $
+      {
+         AddPacket(4,system_blank_resource);
+      }
+      else
+      {
+         % Support for displaying up to 6 magic mods.
+         
+         AddPacket(4,Send(SYS,@AddResourceTemplate,#iNum=Length(plEnchantmentMods)+1));
+         Send(self,@EnchantmentModsDesc,#lEnchantmentMods=plEnchantmentMods);
+      }
 
       % Special things for number items, etc.
       Send(self,@AppendDesc);
@@ -910,6 +1336,21 @@ messages:
    AppendItemCondition()
    {
       local iHit_Percent, rItem_condition;
+
+      if plEnchantmentMods <> $
+         AND NOT Send(SETTINGS_OBJECT,@GetLoseDurabilityMagicMods)
+         AND NOT IsClass(self,&Ring)
+      {
+         if Send(self,@IsPlural)
+         {
+            AddPacket(4,enchanted_gear_plural_indestructible,4,Send(self,@GetName));
+         }
+         else
+         {
+            AddPacket(4,enchanted_gear_indestructible,4,Send(self,@GetName));
+         }
+         return;
+      }
 
       if vbShow_Condition
          AND piHits_init > 0
@@ -963,13 +1404,12 @@ messages:
          OR IsClass(self,&DefenseModifier)
          OR IsClass(self,&Ring)
       {
-         AddPacket(4,item_level_master, 4,piItemLevel,
-                   4,Send(self,@GetMagicModsNumber));
+         AddPacket(4,item_level_master, 4,piItemLevel);
       }
       else if IsClass(self,&Gauntlet)
+         OR IsClass(self,&Glove)
       {
-         AddPacket(4,item_level_gauntlets, 4,piItemLevel,
-                   4,Send(self,@GetMagicModsNumber));
+         AddPacket(4,item_level_gauntlets, 4,piItemLevel);
       }
       else
       {
@@ -1130,6 +1570,14 @@ messages:
 
    NewUsed()
    {
+      local i, oMod;
+      
+      foreach i in plEnchantmentMods
+      {
+         oMod = Send(SYS,@GetMagicMod,#class=Nth(i,1));
+         Send(oMod,@NewUsed,#who=poOwner,#iState=Nth(i,2));
+      }
+      
       Send(self,@DoPlayerArt);
       If IsClass(poOwner,&Player)
       {
@@ -1166,7 +1614,14 @@ messages:
             return FALSE;
          }
       }
-      
+
+      foreach i in plObject_attributes
+      {
+         if NOT Send(i,@ItemReqUse,#oItem=self,#oPlayer=poOwner)
+         {
+            return FALSE;
+         }
+      }
       return TRUE;
    }
 
@@ -1191,6 +1646,14 @@ messages:
 
    NewUnused()
    {
+      local i, oMod;
+      
+      foreach i in plEnchantmentMods
+      {
+         oMod = Send(SYS,@GetMagicMod,#class=Nth(i,1));
+         Send(oMod,@NewUnused,#who=poOwner,#iState=Nth(i,2));
+      }
+
       Send(self,@UndoPlayerArt);
 
       return;
@@ -1350,10 +1813,26 @@ messages:
 
    DefendingHit(who = $,what = $)
    {
+      if plEnchantmentMods <> $
+         AND NOT Send(SETTINGS_OBJECT,@GetLoseDurabilityMagicMods)
+      {
+         return;
+      }
+
       % Set to 75% currently
       if random(1,100) < ARMOR_TAKE_DAMAGE_PCT   
       {
-         piHits = piHits - 1;
+         if who <> $
+            AND IsClass(who,&Player)
+            AND Send(who,@HasSkill,#num=SKID_MAINTENANCE)
+            AND Send(Send(SYS,@FindSkillByNum,#num=SKID_MAINTENANCE),@DoSkill,#who=who,#oEquipment=self)
+         {
+            return;
+         }
+         else
+         {
+            piHits = piHits - 1;
+         }
       }
       
       if piHits <= 0
@@ -1368,13 +1847,15 @@ messages:
    {
       local i, oItemAtt, iNum;
 
-      % Remove itematts from us, since we're not gonna use 'em anymore.
-      % This also lets cursed items finally remove themselves from us.
+      % Remove curse attribute so players aren't forced to keep a broken weapon
       foreach i in plItem_Attributes
       {
-         iNum = Send(self,@GetNumFromCompound,#compound=First(i));
-         oItemAtt = Send(SYS,@FindItemAttByNum,#num=iNum);
-         Send(oItemAtt,@RemoveFromItem,#oItem=self);
+         oItemAtt = Send(SYS,@FindItemAttByNum,
+                         #num=Send(self,@GetNumFromCompound,#compound=First(i)));
+         if IsClass(oItemAtt,&WeapAttCursed)
+         {
+            Send(oItemAtt,@RemoveFromItem,#oItem=self);
+         }
       }
    
       Send(poOwner,@SomethingChanged,#what=self);        
@@ -1387,12 +1868,80 @@ messages:
 
    AdjustsMaxHealth()
    {
+      if plEnchantmentMods <> $
+      {
+         if Send(self,@HasMagicModOfClass,#class=&HealthMod)
+         {
+            return TRUE;
+         }
+      }
+
       return FALSE;
    }
 
    AdjustsMaxMana()
    {
+      if plEnchantmentMods <> $
+      {
+         if Send(self,@HasMagicModOfClass,#class=&ManaMod)
+         {
+            return TRUE;
+         }
+      }
+
       return FALSE;
+   }
+
+   AdjustsMaxVigor()
+   {
+      if plEnchantmentMods <> $
+      {
+         if Send(self,@HasMagicModOfClass,#class=&VigorMod)
+         {
+            return TRUE;
+         }
+      }
+
+      return FALSE;
+   }
+
+   GetHealthChange()
+   {
+      if plEnchantmentMods <> $
+      {
+         if Send(self,@HasMagicModOfClass,#class=&HealthMod)
+         {
+            return Send(self,@GetStateMagicModOfClass,#class=&HealthMod);
+         }
+      }
+
+      return 0;
+   }
+
+   GetManaChange()
+   {
+      if plEnchantmentMods <> $
+      {
+         if Send(self,@HasMagicModOfClass,#class=&ManaMod)
+         {
+            return Send(self,@GetStateMagicModOfClass,#class=&ManaMod);
+         }
+      }
+
+      return 0;
+   }
+   
+   GetVigorChange()
+   {
+      if plEnchantmentMods <> $
+      {
+         if Send(self,@HasMagicModOfClass,#class=&VigorMod)
+         {
+            return Send(self,@GetStateMagicModOfClass,#class=&VigorMod);
+         }
+      }
+
+      return 0;
    }
 
    IsItemType(type = ITEMTYPE_MISC)
@@ -1583,7 +2132,10 @@ messages:
 
       if iSpell = SID_SHROUD
       AND (IsClass(self,&Weapon)
-         OR IsClass(self,&DefenseModifier))
+         OR IsClass(self,&DefenseModifier)
+         OR IsClass(self,&Necklace)
+         OR IsClass(self,&Instrument)
+         OR IsClass(self,&AttackModifier))
       {
          foreach i in plItem_Attributes
          {
@@ -2481,17 +3033,53 @@ messages:
 
       foreach lMagicMod in plEnchantmentMods
       {
-         if Send(SYS,@GetGroupOfClassMod,#class=Nth(lMagicMod,1))
-                        = GROUP_RESISTANCE
+         if Send(SYS,@GetGroupOfClassMod,#class=Nth(lMagicMod,1)) = GROUP_RESISTANCE
          {
             oMagicMod = Send(SYS,@GetMagicMod,#class=Nth(lMagicMod,1));
             lCurrentResistances = Send(oMagicMod,@ModifyResistance,
                                      #resistance_list=lCurrentResistances,
                                      #iState=Nth(lMagicMod,2));
          }
+         else
+         {
+            if NOT Send(SETTINGS_OBJECT,@GetDirectArmorEnabled)
+            {
+               if Send(SYS,@GetGroupOfClassMod,#class=Nth(lMagicMod,1)) = GROUP_ARMOR
+               {
+                  oMagicMod = Send(SYS,@GetMagicMod,#class=Nth(lMagicMod,1));
+                  lCurrentResistances = Send(oMagicMod,@ModifyResistance,
+                                           #resistance_list=lCurrentResistances,
+                                           #iState=Nth(lMagicMod,2));
+               }
+            }
+         }
       }
 
       return lCurrentResistances;
+   }
+
+   GetCurrentEmpowerments()
+   {
+      local lCurrentEmpowerments, oObjectAttribute, lMagicMod, oMagicMod;
+      
+      lCurrentEmpowerments = Send(self,@GetEmpowermentModifiers);
+      
+      foreach oObjectAttribute in plObject_attributes
+      {
+         lCurrentEmpowerments = Send(oObjectAttribute,@ModifyEmpowerment,
+                                                      #empowerment_list=lCurrentEmpowerments);
+      }
+
+      foreach lMagicMod in plEnchantmentMods
+      {
+         if Send(SYS,@GetGroupOfClassMod,#class=Nth(lMagicMod,1)) = GROUP_EMPOWERMENT
+         {
+            oMagicMod = Send(SYS,@GetMagicMod,#class=Nth(lMagicMod,1));
+            lCurrentEmpowerments = Send(oMagicMod,@ModifyEmpowerment,#empowerment_list=lCurrentEmpowerments,#iState=Nth(lMagicMod,2));
+         }
+      }
+
+      return lCurrentEmpowerments;
    }
 
    ModifyResistance(resistance_list=$)
@@ -2506,6 +3094,23 @@ messages:
       }
       
       return resistance_list;
+   }
+
+   ModifyEmpowerment(empowerment_list=$)
+   {
+      local oEmpowerment, lCurrentEmpowerments;
+      
+      lCurrentEmpowerments = Send(self,@GetCurrentEmpowerments);
+      
+      foreach oEmpowerment in lCurrentEmpowerments
+      {
+         empowerment_list = Send(SYS,@AddEmpowerment,
+                                     #what=Nth(oEmpowerment,1),
+                                     #value=Nth(oEmpowerment,2),
+                                     #empowerment_list=empowerment_list);
+      }
+      
+      return empowerment_list;
    }
 
    AddRadiusEnchantment(what=$,iPower=0,source=$)
@@ -2787,6 +3392,21 @@ messages:
       return sum;
    }
 
+   GetStateMagicModOfClass(class=&ArmorMod)
+   {
+      local i;
+      
+      foreach i in plEnchantmentMods
+      {
+         if Nth(i,1) = class
+         {
+            return Nth(i,2);
+         }
+      }
+   
+      return 0;
+   }
+
    HasMagicModOfClass(class=&ArmorMod)
    {
       local i;
@@ -2802,68 +3422,24 @@ messages:
       return FALSE;
    }
 
-   AddMagicMods(min_num_mods=0, max_num_mods=0)
-   "General random decisions for adding one to multiple mods."
+   RemoveMagicModOfClass(class=&ArmorMod)
    {
-      local iNumMods, iModType, bAdded, iChosenType;
-      bAdded = FALSE;
-
-      if NOT IsClass(self,&Gauntlet)
-         AND NOT IsClass(self,&DefenseModifier)
-         AND NOT IsClass(self,&Weapon)
-         AND NOT IsClass(self,&Ring)
-      {
-         return bAdded;
-      }
-
-      if max_num_mods < 0
-      {
-         max_num_mods = 0;
-      }
-
-      if max_num_mods > 6
-      {
-         max_num_mods = 6;
-      }
-
-      if min_num_mods > max_num_mods
-      {
-         min_num_mods = 0;
-         max_num_mods = 0;
-      }
-
-      iNumMods = Random(min_num_mods,max_num_mods);
+      local i;
       
-      while iNumMods > 0
+      foreach i in plEnchantmentMods
       {
-         if plEnchantmentMods <> $
-            AND Length(plEnchantmentMods) = 6
+         if Nth(i,1) = class
          {
-            break;
+            plEnchantmentMods = DelListElem(plEnchantmentMods,i);
          }
-
-         iChosenType = Random(MOD_PREFIX,MOD_SUFFIX);
-         
-         % check for prefix/suffix limit.
-         % since we checked for 6 mods total, we know the other is open
-         %   if the chosen type is full.
-         if Send(self,@GetMagicModsNumberOfType,#type=iChosenType) >= 3
-         {
-            if iChosenType = MOD_PREFIX
-            {
-               iChosenType = MOD_SUFFIX;
-            }
-            else
-            {
-               iChosenType = MOD_PREFIX;
-            }
-         }
-
-         bAdded = Send(self,@AddMagicMod,#type=iChosenType);
-         iNumMods = iNumMods - 1;
       }
       
-      return bAdded;
+      if plEnchantmentMods = $
+      {
+         Send(self,@RemoveMagicFlag);
+      }
+
+      return;
    }
 
    GetItemLevel()
@@ -2881,78 +3457,41 @@ messages:
       return $;
    }
 
-   AddMagicMod(type=MOD_SUFFIX)
+   ApplyMagicMod(cClass=&ArmorMod,iPower=0)
    {
-      local i, lPrefixClasses, lSuffixClasses, iRoll, iChanceSum,
-            lClasses, cChosenMod, oChosenMod, iPowerValue;
+      local oMagicMod;
 
-      % Lists are [mod type, chance to roll]
-      % random roll takes from a sum of all chances
-
-      if type = MOD_SUFFIX
+      if poOwner <> $
+         AND IsClass(poOwner,&Player)
+         AND Send(poOwner,@IsLoggedOn)
       {
-         lClasses = Send(self,@GetSuffixes);
-      }
-      if type = MOD_PREFIX
-      {
-         lClasses = Send(self,@GetPrefixes);
-      }
-
-      if lClasses = $
-      {
-         return FALSE;
-      }
-      
-      % Remove mods we already have from the possibilities.
-      if Send(self,@GetMagicModsNumber) <> 0
-      {
-         foreach i in lClasses
+         oMagicMod = Send(SYS,@GetMagicMod,#class=cClass);
+         if oMagicMod <> $
          {
-            if Send(self,@HasMagicModOfClass,#class=Nth(i,1))
+            if NOT Send(SETTINGS_OBJECT,@GetDirectArmorEnabled)
+               AND IsClass(oMagicMod,&ArmorMod)
             {
-               lClasses = DelListElem(lClasses,i);
+               Post(poOwner,@MsgSendUser,#message_rsc=shard_armor_mod_percentage,
+                                         #parm1=Send(self,@GetName),
+                                         #parm2=Send(oMagicMod,@GetNumber,#iPower=iPower));
+            }
+            else
+            {
+               Post(poOwner,@MsgSendUser,#message_rsc=shard_applying,
+                                         #parm1=Send(self,@GetName),
+                                         #parm2=Send(oMagicMod,@GetNumber,#iPower=iPower),
+                                         #parm3=Send(oMagicMod,@GetName));
             }
          }
       }
 
-      iChanceSum = 0;
-      foreach i in lClasses
+      if iPower <> 0
       {
-         iChanceSum = iChanceSum + Nth(i,2);
-      }
-
-      if iChanceSum = 0
-      {
-         % Item has no more possible mods!
-         return FALSE;
-      }
-
-      iRoll = Random(1, iChanceSum);
-      foreach i in lClasses
-      {
-         iRoll = iRoll - Nth(i,2);
-         if iRoll <= 0
-         {
-            % we've found our chosen mod class
-            cChosenMod = Nth(i,1);
-            break;
-         }
-      }
-
-      iPowerValue = 0;
-      oChosenMod = Send(SYS,@GetMagicMod,#class=cChosenMod);
-      if oChosenMod <> $
-      {
-         iPowerValue = Send(oChosenMod,@RollPower,#what=self);
-      }
-
-      if iPowerValue <> 0
-      {
-         plEnchantmentMods = Cons([cChosenMod,iPowerValue],plEnchantmentMods);
+         plEnchantmentMods = Cons([cClass,iPower],plEnchantmentMods);
          Send(self,@AddMagicFlag);
          return TRUE;
       }
-
+   
       return FALSE;
    }
 
@@ -2961,6 +3500,262 @@ messages:
       plEnchantmentMods = $;
       Send(self,@RemoveMagicFlag);
 
+      return;
+   }
+
+   GetMagicMods()
+   {
+      return plEnchantmentMods;
+   }
+
+   SetItemLevel(iLevel=20)
+   {
+      piItemLevel = iLevel;
+      return;
+   }
+
+   GetItemFlags()
+   {
+      return piItem_flags;
+   }
+
+   SetItemFlags(value=0)
+   {
+      piItem_flags = value;
+      return;
+   }
+
+   GetHexResistance()
+   {
+      return 0;
+   }
+
+   GetHexIncEffect()
+   {
+      return 0;
+   }
+
+   GetKnockbackResistance()
+   {
+      return 0;
+   }
+
+   GetStunResistance()
+   {
+      return 0;
+   }
+   
+   GetBleedResistance()
+   {
+      return 0;
+   }
+   
+   EnchantmentModsDesc(lEnchantmentMods=$)
+   {
+      local lMod;
+
+      if Length(lEnchantmentMods) = 1
+      {
+         AddPacket(4,enchantment_mods_attribute_rsc, 4,Send(self,@GetName),
+                   4,Length(lEnchantmentMods), 4,enchantment_mods_sing);
+      }
+      else
+      {
+         AddPacket(4,enchantment_mods_attribute_rsc, 4,Send(self,@GetName),
+                   4,Length(lEnchantmentMods), 4,enchantment_mods_plur);
+      }
+
+      foreach lMod in lEnchantmentMods
+      {
+         if First(lMod) = &WeaponAgilityMod
+         {
+            AddPacket(4,weapon_agility_mod, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
+         else if First(lMod) = &WeaponMightMod
+         {
+            AddPacket(4,weapon_might_mod, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
+         else if First(lMod) = &WeaponAimMod
+         {
+            AddPacket(4,weapon_aim_mod, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
+         else if First(lMod) = &HealthMod
+         {
+            AddPacket(4,health_mod_desc, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
+         else if First(lMod) = &ManaMod
+         {
+            AddPacket(4,mana_mod_desc, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
+         else if First(lMod) = &VigorMod
+         {
+            AddPacket(4,vigor_mod_desc, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
+         else if First(lMod) = &CasterIntMod
+         {
+            AddPacket(4,caster_int_mod_desc, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
+         else if First(lMod) = &CasterStamMod
+         {
+            AddPacket(4,caster_stam_mod_desc, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
+         else if First(lMod) = &CasterMystMod
+         {
+            AddPacket(4,caster_myst_mod_desc, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
+         else if First(lMod) = &OffenseMod
+         {
+            AddPacket(4,offense_mod_desc, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
+         else if First(lMod) = &RangedOffenseMod
+         {
+            AddPacket(4,ranged_offense_mod_desc, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
+         else if First(lMod) = &WeaponDamageMod
+         {
+            AddPacket(4,melee_weapon_damage_mod_desc, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
+         else if First(lMod) = &FireResistanceMod
+         {
+            AddPacket(4,fire_resist_mod_desc, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
+         else if First(lMod) = &ColdResistanceMod
+         {
+            AddPacket(4,cold_resist_mod_desc, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
+         else if First(lMod) = &AcidResistanceMod
+         {
+            AddPacket(4,acid_resist_mod_desc, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
+         else if First(lMod) = &ShockResistanceMod
+         {
+            AddPacket(4,shock_resist_mod_desc, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
+         else if First(lMod) = &HolyResistanceMod
+         {
+            AddPacket(4,holy_resist_mod_desc, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
+         else if First(lMod) = &QuakeResistanceMod
+         {
+            AddPacket(4,quake_resist_mod_desc, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
+         else if First(lMod) = &SlashResistanceMod
+         {
+            AddPacket(4,slash_resist_mod_desc, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
+         else if First(lMod) = &BludgeonResistanceMod
+         {
+            AddPacket(4,bludgeon_resist_mod_desc, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
+         else if First(lMod) = &ThrustResistanceMod
+         {
+            AddPacket(4,thrust_resist_mod_desc, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
+         else if First(lMod) = &PierceResistanceMod
+         {
+            AddPacket(4,pierce_resist_mod_desc, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
+         else if First(lMod) = &ArmorMod
+         {
+            AddPacket(4,armor_mod_desc, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
+         else if First(lMod) = &DefenseMod
+         {
+            AddPacket(4,defense_mod_desc, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
+         else if First(lMod) = &FireEmpowermentMod
+         {
+            AddPacket(4,fire_empowerment_mod_desc, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
+         else if First(lMod) = &ColdEmpowermentMod
+         {
+            AddPacket(4,cold_empowerment_mod_desc, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
+         else if First(lMod) = &ShockEmpowermentMod
+         {
+            AddPacket(4,shock_empowerment_mod_desc, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
+         else if First(lMod) = &AcidEmpowermentMod
+         {
+            AddPacket(4,acid_empowerment_mod_desc, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
+         else if First(lMod) = &HolyEmpowermentMod
+         {
+            AddPacket(4,holy_empowerment_mod_desc, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
+         else if First(lMod) = &UnholyEmpowermentMod
+         {
+            AddPacket(4,unholy_empowerment_mod_desc, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
+         else if First(lMod) = &PierceEmpowermentMod
+         {
+            AddPacket(4,pierce_empowerment_mod_desc, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
+         else if First(lMod) = &ThrustEmpowermentMod
+         {
+            AddPacket(4,thrust_empowerment_mod_desc, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
+         else if First(lMod) = &SlashEmpowermentMod
+         {
+            AddPacket(4,slash_empowerment_mod_desc, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
+         else if First(lMod) = &BludgeonEmpowermentMod
+         {
+            AddPacket(4,bludgeon_empowerment_mod_desc, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
+         else if First(lMod) = &PunchEmpowermentMod
+         {
+            AddPacket(4,punch_empowerment_mod_desc, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
+         else if First(lMod) = &WeaponEmpowermentMod
+         {
+            AddPacket(4,weapon_empowerment_mod_desc, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
+         else if First(lMod) = &MagicEmpowermentMod
+         {
+            AddPacket(4,magic_empowerment_mod_desc, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
+         else if First(lMod) = &IllusionEmpowermentMod
+         {
+            AddPacket(4,illusion_empowerment_mod_desc, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
+         else if First(lMod) = &CharmEmpowermentMod
+         {
+            AddPacket(4,charm_empowerment_mod_desc, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
+         else if First(lMod) = &MobFireDamage
+         {
+            AddPacket(4,mob_fire_damage_desc, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
+         else if First(lMod) = &MobColdDamage
+         {
+            AddPacket(4,mob_cold_damage_desc, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
+         else if First(lMod) = &MobShockDamage
+         {
+            AddPacket(4,mob_shock_damage_desc, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
+         else if First(lMod) = &MobHealth
+         {
+            AddPacket(4,mob_health_mod_desc, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
+         else if First(lMod) = &MobResists
+         {
+            AddPacket(4,mob_resists_mod_desc, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
+         else if First(lMod) = &MobAttackSpeed
+         {
+            AddPacket(4,mob_attack_speed_desc, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
+         else if First(lMod) = &MobMoveSpeed
+         {
+            AddPacket(4,mob_move_speed_desc, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
+         else
+         {
+            AddPacket(4, system_blank_resource);
+         }
+      }
       return;
    }
 

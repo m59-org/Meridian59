@@ -10,6 +10,13 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 GuildHall7 is GuildHall
 
+   % Old Dwarven is a curious hall with multiple entrances and exits.
+   %
+   %   Following the Dwarven theme, it has premium shard rates and 6 reliquaries.
+   %   
+   %   It has no portals or spell totems.
+   %
+
 constants:
 
    STEP1 = 1
@@ -48,6 +55,9 @@ classvars:
    viTeleport_row = 5
    viTeleport_col = 11
 
+   viLongitude = 9
+   viLatitude = 24
+
    viNews_row = 14
    viNews_col = 17
    viNews_finerow = 12
@@ -65,6 +75,56 @@ classvars:
 
    viTerrain_type = TERRAIN_CITY | TERRAIN_GUILDHALL
    viSeconds_til_close = 15
+   
+   viReliquaryOneRow = 21
+   viReliquaryOneCol = 23
+   viReliquaryOneFineRow = 0
+   viReliquaryOneFineCol = 13
+   
+   viReliquaryTwoRow = 22
+   viReliquaryTwoCol = 23
+   viReliquaryTwoFineRow = 0
+   viReliquaryTwoFineCol = 13
+   
+   viReliquaryThreeRow = 23
+   viReliquaryThreeCol = 23
+   viReliquaryThreeFineRow = 0
+   viReliquaryThreeFineCol = 13
+   
+   viReliquaryFourRow = 24
+   viReliquaryFourCol = 23
+   viReliquaryFourFineRow = 0
+   viReliquaryFourFineCol = 13
+   
+   viReliquaryFiveRow = 25
+   viReliquaryFiveCol = 23
+   viReliquaryFiveFineRow = 0
+   viReliquaryFiveFineCol = 13
+   
+   viReliquarySixRow = 26
+   viReliquarySixCol = 23
+   viReliquarySixFineRow = 0
+   viReliquarySixFineCol = 13
+   
+   % Fusing device rates go from 8 (worst) to 4 (best) 
+   viShardFusingDeviceRow = 12
+   viShardFusingDeviceCol = 21
+   viShardFusingDeviceFineRow = 24
+   viShardFusingDeviceFineCol = 0
+   viShardFusingDeviceRate = 4
+   
+   % Shattering device rates go from 2 (worst) to 4 (best) 
+   viShardShatteringDeviceRow = 11
+   viShardShatteringDeviceCol = 20
+   viShardShatteringDeviceFineRow = 16
+   viShardShatteringDeviceFineCol = 8
+   viShardShatteringDeviceRate = 4
+   
+   viMarketRow = 11
+   viMarketCol = 15
+   viMarketFineRow = 7
+   viMarketFineCol = 56
+   viMarketRate = 100
 
 properties:
 
@@ -80,6 +140,10 @@ properties:
    plSouthDoor = $
    plEastDoor = $
    plWestDoor = $
+   
+   piGuildHallMeditateEffiency = 100
+   % The Old Dwarven Hall boosts all spells and skills with the primary stats Might or Stamina by 20%.
+   piSpecialGuildHallMeditateEfficiency = 120
 
 messages:
 
@@ -450,6 +514,23 @@ messages:
 
       propagate;
    }
+   
+   DoesPlayerQualifyForSpecialMeditateRatio(who=$,oSpell=$,oSkill=$)
+   {
+      if (oSpell <> $
+         AND Send(oSpell,@GetPrimaryStat) = STAT_ID_STAMINA)
+         OR (oSpell <> $
+         AND Send(oSpell,@GetPrimaryStat) = STAT_ID_MIGHT)
+         OR (oSkill <> $
+         AND Send(oSkill,@GetPrimaryStat) = STAT_ID_STAMINA)
+         OR (oSkill <> $
+         AND Send(oSkill,@GetPrimaryStat) = STAT_ID_MIGHT)
+      {
+         return TRUE;
+      }
+      return FALSE;
+   }
+
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

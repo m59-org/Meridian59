@@ -1,0 +1,217 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+CreatureSpeak is BestiarySpell
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   CreatureSpeak_sound = rperappr.wav
+
+   creature_speak_name_rsc = "creature speak"
+   creature_speak_icon_rsc = iseduce.bgf
+   creature_speak_desc_rsc = \
+      "Attempts to talk to a creature or humanoid by signaling "
+      "peace. Creatures much stronger than you will usually ignore you, "
+      "and wounded creatures will most certainly continue fighting. "
+      "However, if a creature does decide to respond, they will be unlikely "
+      "to attack you afterwards."
+      "\n\nYou must know the creature or humanoid's language in order "
+      "to speak with them, and you may fail to understand them if "
+      "you are not sufficiently fluent."
+      "\n\nRequires a purple mushroom to cast."
+
+   creature_speak_already_enchanted = "%s%s has already made its choice regarding communicating with you."
+   creature_speak_caster = "%s%s stops being aggressive and responds."
+   creature_speak_refuses = "%s%s ignores your attempts to communicate."
+   creature_speak_on = "Someone is trying to talk to you."
+   creature_speak_off = "You are no longer being spoken with."
+
+classvars:
+
+   vrName = creature_speak_name_rsc
+   vrIcon = creature_speak_icon_rsc
+   vrDesc = creature_speak_desc_rsc
+
+   vrAlreadyEnchanted = creature_speak_already_enchanted
+   vrEnchantment_On = creature_speak_on
+   vrEnchantment_Off = creature_speak_off
+   vrSuccess = creature_speak_caster
+   vrFail = creature_speak_refuses
+
+   viSchool = SS_BESTIARY
+   viSpell_num = SID_CREATURE_SPEAK
+   viSpell_level = 1
+
+   viFlash = FLASH_BAD
+
+   viSpellExertion = 2
+   viMana = 2
+
+   viChance_To_Increase = 15
+   viMeditate_ratio = 10
+
+   vrSucceed_wav = CreatureSpeak_sound
+   
+   viPrimaryStat = STAT_ID_INTELLECT
+   viSecondaryStat = 0
+
+   vbIsRangedAttack = FALSE
+
+   viOutlaw = FALSE
+   viHarmful = FALSE
+
+
+properties:
+
+   piBaseDuration = 180000 % Recommended value 2000.
+   piSpellPowerModifier = 1000 % Recommended value 30.
+   piDeviation = 50 % Recommended value 10%.
+   viCast_time = 0 % Recommended value 600 (milliseconds).
+
+messages:
+
+   ResetReagents()
+   {
+      plReagents = $;
+      plReagents = Cons([&PurpleMushroom,1],plReagents);
+
+      return;
+   }
+
+   CanPayCosts(who=$,lTargets=$,bItemCast=FALSE)
+   {
+      local oMaster, oTarget;
+
+      oTarget = First(lTargets);
+
+      if NOT IsClass(oTarget,&Monster)
+      {
+         if NOT bItemCast
+         {
+            Send(who,@MsgSendUser,#message_rsc=spell_bad_target,#parm1=vrName,
+                  #parm2=Send(oTarget,@GetDef),#parm3=Send(oTarget,@GetName));
+         }
+
+         return FALSE;
+      }
+
+      propagate;
+   }
+
+   CastSpell(who=$,wielder=$,lTargets=$,iSpellpower=0,report=TRUE,oDeflectImpact=$,bDeflectCast=FALSE)
+   {
+      local oTarget, oRoom, i, iDeflectSpeed;
+
+      oTarget = First(lTargets);
+
+      % Spell effects.
+      Send(self,@DoSpell,#what=who,#oTarget=oTarget,#report=report,
+            #iDuration=Send(self,@GetDuration,#iSpellPower=iSpellPower));
+
+      propagate;
+   }
+
+   DoSpell(what=$,oTarget=$,iDuration=$,report=TRUE)
+   "Holds target for duration seconds."
+   {
+      local i, oSpell, oLanguageMaintenance, bSuccess;
+
+      if oTarget = $
+      {
+         return FALSE;
+      }
+
+      % Check for enchantment already applied
+      if Send(oTarget,@IsEnchanted,#what=self)
+      {
+         return FALSE;
+      }
+
+      % Check for spell called with $ iDuration, apply default time if so.
+      if iDuration = $
+      {
+         iDuration = 500000;
+      }
+
+      Send(oTarget,@StartEnchantment,#what=self,#time=iDuration,#report=report,
+            #state=report);
+
+      if IsClass(oTarget,&Monster)
+      {
+         
+         if Send(what,@GetBaseMaxHealth) + Random(1,20) >= Send(oTarget,@GetLevel) + 5
+            AND Send(oTarget,@GetHealth) >= Send(oTarget,@GetMaxHealth)
+         {
+            oLanguageMaintenance = Send(SYS,@GetLanguageMaintenance);
+            if report
+            {
+               Send(what,@MsgSendUser,#message_rsc=vrSuccess,
+                     #parm1=Send(oTarget,@GetCapDef),#parm2=Send(oTarget,@GetName));
+            }
+            if oLanguageMaintenance <> $
+            {
+               Send(oLanguageMaintenance,@AttemptConversation,#who=what,#oMonster=oTarget);
+            }
+            Send(oTarget,@EnterStateMove);
+            Send(oTarget,@ResetBehaviorFlags);
+            if Send(oTarget,@GetOwner) <> $
+            {
+               Send(Send(oTarget,@GetOwner),@SomethingChanged,#what=oTarget);
+            }
+            if Send(oTarget,@GetOwner) <> $
+            {
+               Send(Send(oTarget,@GetOwner),@SomethingTurned,#what=oTarget,#new_angle=Send(SYS,@UtilGetAngleTowards,#row=Send(what,@GetRow),#col=Send(what,@GetCol)));
+            }
+         }
+         else
+         {
+            if report
+            {
+               Post(what,@MsgSendUser,#message_rsc=vrFail,
+                     #parm1=Send(oTarget,@GetCapDef),#parm2=Send(oTarget,@GetName));
+            }
+         }
+      }
+
+      propagate;
+   }
+
+   GetDuration(iSpellPower=0)
+   {
+      local iDuration;
+
+      iDuration = piBaseDuration + iSpellPower * piSpellPowerModifier;
+      iDuration = Random(iDuration * (100 - piDeviation) / 100,iDuration);
+
+      return iDuration;
+   }
+
+   EndEnchantment(who=$,report=TRUE,state=$)
+   {
+      if IsClass(who,&Monster)
+      {
+         % This has to be done AFTER the enchantment is gone from the
+         % monster's ench list - Post it
+         Post(who,@ResetBehaviorFlags);
+         if Send(who,@GetOwner) <> $
+         {
+            Post(Send(who,@GetOwner),@SomethingChanged,#what=who);
+         }
+      }
+
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

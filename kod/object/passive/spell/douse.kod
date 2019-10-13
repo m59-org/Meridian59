@@ -1,0 +1,133 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Douse is Spell
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   Douse_name_rsc = "douse"
+   Douse_icon_rsc = ifog.bgf
+   Douse_desc_rsc = \
+      "Alchemists are no strangers to fire. To progress "
+      "beyond the first year of study, every alchemist "
+      "must learn how to put out fires, both in the lab and elsewhere. "
+      "The douse spell will attempt to quench enemy firewalls, and your own, in a "
+      "small radius around you."
+
+   Douse_success = \
+      "You throw a spray of dousing dust formed from pure mana."
+
+   Douse_sound = sholysym.wav
+
+classvars:
+
+   vrName = Douse_name_rsc
+   vrIcon = Douse_icon_rsc
+   vrDesc = Douse_desc_rsc
+
+   viSpell_num = SID_DOUSE
+   viSchool = SKS_ALCHEMY
+   viSpell_level = 2
+   viMana = 12
+   viSpellExertion = 4
+
+   viCast_time = 9000
+   viChance_To_Increase = 15
+   viMeditate_ratio = 20
+
+   vrSucceed_wav = Douse_sound
+   
+   viPrimaryStat = STAT_ID_MYSTICISM
+   viSecondaryStat = 0
+
+properties:
+
+messages:
+
+   ResetReagents()
+   {
+      plReagents = $;
+      plReagents = Cons([&Money,400],plReagents);
+
+      return;
+   }
+
+   GetNumSpellTargets()
+   {
+      return 0;
+   }
+
+   CastSpell(who=$,iSpellPower=0)
+   {
+      local oRoom, oObject, oMonster, iChance, iRoll;
+
+      Send(who,@MsgSendUser,#message_rsc=Douse_success);
+      oRoom = Send(who,@GetOwner);
+      
+      if oRoom <> $
+         AND IsClass(oRoom,&Room)
+      {
+         Send(self,@DouseWallsAroundBattler,#who=who,#oRoom=oRoom,#iSpellPower=iSpellPower);
+      }
+
+      propagate;
+   }
+
+   DouseWallsAroundBattler(who=$,oRoom=$,iSpellPower=0)
+   "Deletes walls in a small radius around target battler."   
+   {
+      local i, each_obj;
+
+      % Relies on SquaredFineDistanceTo, a function descended from nomoveon.
+      if NOT IsClass(who,&Battler)
+      {
+         return;
+      }
+
+      % Check each active element, tell the object to delete if it is a wall and too close
+      foreach i in Send(oRoom,@GetHolderActive)
+      {
+         each_obj = Send(oRoom,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&WallofFire)
+         {
+            if Send(who,@SquaredFineDistanceTo,#what=each_obj) <= (iSpellPower*2 * iSpellPower*2)
+               AND iSpellPower > Random(1,98)
+               AND (Send(each_obj,@GetCaster) = who
+                  OR Send(who,@AllowPlayerAttack,#report=FALSE,#victim=Send(each_obj,@GetCaster)))
+            {
+               Post(each_obj,@Delete);
+            }
+         }
+      }
+      
+      % Separate check through plPassive for passive wall elements
+      foreach i in Send(oRoom,@GetHolderPassive)
+      {
+         each_obj = Send(oRoom,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&PassiveWallofFire)
+         {
+            if Send(who,@SquaredFineDistanceTo,#what=each_obj) <= (iSpellPower*2 * iSpellPower*2)
+               AND iSpellPower > Random(1,98)
+               AND (Send(each_obj,@GetCaster) = who
+                  OR Send(who,@AllowPlayerAttack,#report=FALSE,#victim=Send(each_obj,@GetCaster)))
+            {
+               Post(each_obj,@Delete);
+            }
+         }
+      }
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

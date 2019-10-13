@@ -1,0 +1,62 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ElementalFragment is Reagent
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   fragment_name_rsc = "elemental fragment"
+   fragment_icon_rsc = instillingshard.bgf
+   fragment_desc_rsc = \
+      "This fragment of crystal holds solidified elemental essence that seems "
+      "to have come from a plane of pure energy."
+
+   fragment_name_plural_rsc = "elemental fragments"
+
+classvars:
+
+   vrName = fragment_name_rsc
+   vrIcon = fragment_icon_rsc
+   vrDesc = fragment_desc_rsc
+
+   vrName_plural = fragment_name_plural_rsc
+
+   viValue_average = 20
+   viBulk = 5
+   viWeight = 2
+
+   viFragmentColor = 0
+
+properties:
+
+   piNumber = 3
+
+messages:
+
+   Constructed()
+   {
+      if viFragmentColor <> 0
+      {
+         piItem_flags = viFragmentColor;
+      }
+      propagate;
+   }
+
+   GetForgeType()
+   {
+      return FORGE_FIRE;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

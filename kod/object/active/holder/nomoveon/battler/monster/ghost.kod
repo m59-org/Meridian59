@@ -61,6 +61,7 @@ classvars:
    viVisionDistance = 60
    % Attack range of 192, or 3 row/col.
    viAttackRange = 192
+   viAttack_spell = ATCK_SPELL_UNHOLY
    viKarma = -100
    vbIsUndead = TRUE
    viCashmin = 1000
@@ -75,9 +76,15 @@ classvars:
       AI_FIGHT_AGGRESSIVE | AI_MOVE_WALKTHROUGH_WALLS \
       | AI_FIGHT_WIZARD_KILLER | AI_MOVE_FLEE_FRIGHTENERS
 
-   % 1 in x chance to cast a spell.
-   viSpellChance = 4
-   
+   % Ghost is a rapidly killable boss. Let's not make this too high.
+   viBonusBaseTP = 5
+
+   viBaseBleedPercentage = 0
+
+   viBaseSize = 225
+
+   vbBonusXPGain = 40
+
 properties:
 
    piAnimation = ANIM_NONE
@@ -88,8 +95,9 @@ properties:
    piMaxDamage = 16
    vrDesc = ghost_desc_rsc
 
-   piSpellPower = 99
    piMax_mana = 20
+   piMeleeSpellChance = 20
+   piRangedSpellChance = 30
 
    piReputationGroup = REP_FARNOHL
    
@@ -102,15 +110,27 @@ messages:
                         [-ATCK_SPELL_UNHOLY, 90],
                         [-ATCK_SPELL_ACID, 90],
                         [ATCK_WEAP_NONMAGIC, 90],
-                        [ATCK_WEAP_MAGIC, -50],
                         [-ATCK_SPELL_HOLY, -50]
                       ];
 
-      plSpellBook = [ [ SID_FIREBALL, 3, 100 ] ];
+      plMeleeSpellBook = [ [SID_BLAST_OF_FIRE, 5, 90, Random(85,99)],
+                           [SID_HEX_FLAMMABILITY, 5, 100, Random(10,30)]];
+      plRangedSpellBook = [ [SID_FIREBALL, 5, 100, Random(70,90)] ];
+
+      plAllySpellBook = [ [SID_UNHOLY_RESOLVE,5,100, Random(80,90)]];
 
       plReputationEnemies = [REP_FAROL];
 
+      plCreatureTypes = Cons(CREATURE_TYPE_INTELLIGENT,plCreatureTypes);
+      plCreatureTypes = Cons(CREATURE_TYPE_MAGICAL,plCreatureTypes);
+      plCreatureTypes = Cons(CREATURE_TYPE_UNDEAD,plCreatureTypes);
+
       propagate;
+   }
+
+   GetBaseEmpowerments()
+   {
+      return [[-ATCK_SPELL_FIRE,300]];
    }
 
    MonsterAttack(what = $)

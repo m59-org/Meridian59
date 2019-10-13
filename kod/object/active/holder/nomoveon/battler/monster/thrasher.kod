@@ -78,7 +78,11 @@ classvars:
    vrSound_aware = thrasher_sound_aware
    vrSound_death = thrasher_sound_death
 
-   viCanSpawnAsChampion = FALSE
+   viCanSpawnAsChampion = TRUE
+   
+   viBaseBleedPercentage = 0
+
+   vbBonusXPGain = 0
 
 properties:
 
@@ -120,6 +124,9 @@ messages:
                         [-ATCK_SPELL_HOLY, -15 ]
                       ];
 
+      plCreatureTypes = Cons(CREATURE_TYPE_UNDEAD,plCreatureTypes);
+      plCreatureTypes = Cons(CREATURE_TYPE_MAGICAL,plCreatureTypes);
+
       Send(self,@SelectAdditionalWeapon);
       Send(self,@TweakBehavior);
 
@@ -138,7 +145,7 @@ messages:
       {
          % Shield: Increase hps.
          viLevel = viLevel + 10;
-         oObject = Create(&GoldShield);
+         oObject = Create(&GoldShield,#level=viLevel);
          Send(self,@NewHold,#what=oObject);
          prShieldOverlay = thrasher_shield_overlay;
       }
@@ -147,7 +154,7 @@ messages:
          if RandomNumber = 1
          {
             % Mace: No change in stats, we just get a second attack.
-            oObject = Create(&Mace);
+            oObject = Create(&Mace,#level=viLevel);
             Send(self,@NewHold,#what=oObject);
             prShieldOverlay = thrasher_mace_overlay;
          }
@@ -155,7 +162,7 @@ messages:
          {
             % Scimitar: Increase difficulty by 1 and get second attack.
             viDifficulty = viDifficulty + 1;
-            oObject = Create(&Scimitar);
+            oObject = Create(&Scimitar,#level=viLevel);
             Send(self,@NewHold,#what=oObject);
             prShieldOverlay = thrasher_scimitar_overlay;
          }

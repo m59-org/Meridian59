@@ -205,33 +205,36 @@ void RoomObjectSetHeight(room_contents_node *r)
    {
       if (r->obj.boundingHeight == 0)
       {
-	 int width,height;
-	 if(GetObjectSize(r->obj.icon_res, r->obj.animate->group, 0, *(r->obj.overlays), 
-			 &width, &height))
-	 {
-	    r->obj.boundingHeight = height;
-	    r->obj.boundingWidth = width;
-	 }
+         int width,height;
+         if(GetObjectSize(r->obj.icon_res, r->obj.animate->group, 0, *(r->obj.overlays),&width, &height))
+         {
+            r->obj.boundingHeight = height;
+            r->obj.boundingWidth = width;
+         }
       }
       r->motion.z = ceiling - r->obj.boundingHeight;
+   }
+   else if (r->obj.flags & OF_GROUNDED)
+   {
+      r->motion.z = floor;
    }
    else if (ROOM_OVERRIDE_MASK & GetRoomFlags())
    {
       int height = floor;
       int depth = GetPointDepth(r->motion.x, r->motion.y);
       switch (depth) {
-      case SF_DEPTH1:
-	 if (ROOM_OVERRIDE_DEPTH1 & GetRoomFlags())
-	    height = GetOverrideRoomDepth(SF_DEPTH1);
-	 break;
-      case SF_DEPTH2:
-	 if (ROOM_OVERRIDE_DEPTH2 & GetRoomFlags())
-	    height = GetOverrideRoomDepth(SF_DEPTH2);
-	 break;
-      case SF_DEPTH3:
-	 if (ROOM_OVERRIDE_DEPTH3 & GetRoomFlags())
-	    height = GetOverrideRoomDepth(SF_DEPTH3);
-	 break;
+         case SF_DEPTH1:
+            if (ROOM_OVERRIDE_DEPTH1 & GetRoomFlags())
+               height = GetOverrideRoomDepth(SF_DEPTH1);
+               break;
+         case SF_DEPTH2:
+            if (ROOM_OVERRIDE_DEPTH2 & GetRoomFlags())
+               height = GetOverrideRoomDepth(SF_DEPTH2);
+               break;
+         case SF_DEPTH3:
+            if (ROOM_OVERRIDE_DEPTH3 & GetRoomFlags())
+               height = GetOverrideRoomDepth(SF_DEPTH3);
+               break;
       }
       r->motion.z = height;
    }

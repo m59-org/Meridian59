@@ -1,0 +1,156 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Relic is PassiveItem
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+classvars:
+
+   viValue_average = 100000
+   viWeight = 600
+   viBulk = 600
+
+   viGround_group = 1
+   
+   viDefenseBonus = 0
+   viHitRollBonus = 0
+   
+   % These are high precision, 100 = one damage
+   viPunchDamageBonus = 0
+   viMeleeDamageBonus = 0
+   viTouchDamageBonus = 0
+   viRangedDamageBonus = 0
+   viSpellDamageBonus = 0
+   
+   viResistanceType = 0
+   viResistanceBonus = 0
+   
+   viSecondaryResistanceType = 0
+   viSecondaryResistanceBonus = 0
+
+   viHealthRegenBonus = 0
+   viManaRegenBonus = 0
+   viVigorRegenBonus = 0
+   
+   % These are high precision, 10000 = 100%
+   viExperienceBonus = 0
+   viBlindResistance = 0
+
+properties:  
+
+messages:   
+
+   %%%%% Relic Functions
+
+   ModifyDefensePower(attacker=$,defense_power=0)
+   {
+      return defense_power + viDefenseBonus;
+   }
+
+   ModifyHitRoll(who = $,what = $,hit_roll = $)
+   {
+      return hit_roll + viHitRollBonus;
+   }
+
+   ModifyDamage(who = $,what = $,damage = $,stroke_obj = $)
+   {
+      if stroke_obj <> $
+         AND IsClass(stroke_obj,&Punch)
+      {
+         return damage + viPunchDamageBonus;
+      }
+      if stroke_obj <> $
+         AND IsClass(stroke_obj,&Punch)
+      {
+         return damage + viMeleeDamageBonus;
+      }
+      if stroke_obj <> $
+         AND IsClass(stroke_obj,&Slash)
+      {
+         return damage + viMeleeDamageBonus;
+      }
+      if stroke_obj <> $
+         AND IsClass(stroke_obj,&Stab)
+      {
+         return damage + viMeleeDamageBonus;
+      }
+      if stroke_obj <> $
+         AND IsClass(stroke_obj,&TouchAttackSpell)
+      {
+         return damage + viTouchDamageBonus;
+      }
+      if stroke_obj <> $
+         AND (IsClass(stroke_obj,&Fire)
+            OR IsClass(stroke_obj,&Throw))
+      {
+         return damage + viRangedDamageBonus;
+      }
+      if stroke_obj <> $
+         AND IsClass(stroke_obj,&AttackSpell)
+      {
+         return damage + viSpellDamageBonus;
+      }
+      return damage;
+   }
+
+   ModifyResistance(resistance_list=$)
+   {
+      if viResistanceType <> 0
+      {
+         resistance_list = Send(SYS,@AddResistance,#what=viResistanceType,
+                                 #value=viResistanceBonus,#resistance_list=resistance_list);
+      }
+      if viSecondaryResistanceType <> 0
+      {
+         resistance_list = Send(SYS,@AddResistance,#what=viSecondaryResistanceType,
+                                 #value=viSecondaryResistanceBonus,#resistance_list=resistance_list);
+      }
+      return resistance_list;
+   }
+
+   AdjustHealthTime(time=0, lRadiusState=0)
+   {
+      return time;
+   }
+
+   AdjustVigorTime(time=0, lRadiusState=0)
+   {
+      return time;
+   }
+
+   AdjustManaTime(time=0, lRadiusState=0)
+   {
+      return time;
+   }
+
+   AddBlindResistance(resistance=0)
+   {
+      return resistance + viBlindResistance;
+   }
+   
+   GetExperienceBonus()
+   {
+      return viExperienceBonus;
+   }
+
+   DestroyDisposable()
+   {
+      % Don't destroy relics.
+      return FALSE;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+

@@ -10,6 +10,10 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 GuildHall12 is GuildHall
 
+   % West Tower guild hall is all about the military.
+   %    Good reliquaries, great meditation ratio, PvP portal locations.
+   %    West Tower is virtually untakeable when in the right hands.
+
 constants:
 
    MAIN_DOOR  = 59
@@ -50,6 +54,9 @@ resources:
 
    guildh12_lift_up_sound = stoneup2.wav
    guildh12_lift_down_sound = stonedn2.wav
+   
+   gh12_portal_desc = \
+      "This portal is maintained for quick deployment outside the city walls."
 
 classvars:
 
@@ -57,6 +64,9 @@ classvars:
 
    viTeleport_row = 34
    viTeleport_col = 8
+
+   viLongitude = 19
+   viLatitude = 48
 
    viNews_row = 37
    viNews_col = 46
@@ -84,6 +94,62 @@ classvars:
    vrEntrancedoor_close_sound = guildh12_lift_up_sound
    %vrSecretdoor_open_sound = 
    %vrSecretdoor_close_sound = 
+   
+   viPortalOneRow = 9
+   viPortalOneCol = 47
+   viPortalOneFineRow = 23
+   viPortalOneFineCol = 54
+   viPortalOneAngle = ANGLE_EAST
+   viPortalOneDestRID = RID_KA5
+   viPortalOneDestRow = 47
+   viPortalOneDestCol = 6
+   viPortalOneDestFineRow = 1
+   viPortalOneDestFineCol = 63
+   viPortalOneDestAngle = ANGLE_EAST
+   vsPortalOneDesc = gh12_portal_desc
+   
+   viReliquaryOneRow = 33
+   viReliquaryOneCol = 50
+   viReliquaryOneFineRow = 13
+   viReliquaryOneFineCol = 40
+   
+   viReliquaryTwoRow = 33
+   viReliquaryTwoCol = 52
+   viReliquaryTwoFineRow = 13
+   viReliquaryTwoFineCol = 19
+   
+   viReliquaryThreeRow = 34
+   viReliquaryThreeCol = 53
+   viReliquaryThreeFineRow = 30
+   viReliquaryThreeFineCol = 50
+   
+   % Fusing device rates go from 8 (worst) to 4 (best) 
+   viShardFusingDeviceRow = 37
+   viShardFusingDeviceCol = 53
+   viShardFusingDeviceFineRow = 60
+   viShardFusingDeviceFineCol = 49
+   viShardFusingDeviceRate = 6
+   
+   % Shattering device rates go from 2 (worst) to 4 (best) 
+   viShardShatteringDeviceRow = 38
+   viShardShatteringDeviceCol = 53
+   viShardShatteringDeviceFineRow = 52
+   viShardShatteringDeviceFineCol = 49
+   viShardShatteringDeviceRate = 3
+   
+   viFociOneRow = 39
+   viFociOneCol = 43
+   viFociOneFineRow = 43
+   viFociOneFineCol = 61
+   viFociOnePower = 198
+   viFociOneRange = 3
+   viFociOneSpellNum = SID_REJUVENATE
+  
+   viMarketRow = 38
+   viMarketCol = 42
+   viMarketFineRow = 54
+   viMarketFineCol = 38
+   viMarketRate = 100
 
 properties:
 
@@ -95,6 +161,10 @@ properties:
 
    ptSecret = $
    ptEntrance = $
+   
+   piGuildHallMeditateEffiency = 100
+   % West Tower Guild Hall boosts Kraanan and Knightcraft by 25%
+   piSpecialGuildHallMeditateEfficiency = 125
 
 messages:
 
@@ -331,10 +401,10 @@ messages:
       local lObjCoords1;
 
       Send(self,@NewHold,#what=Create(&Chest),
-            #new_row=39,#new_col=47,#fine_col=56,#fine_row=40,
+            #new_row=40,#new_col=47,#fine_row=22,#fine_col=21,
             #new_angle=ANGLE_WEST);
       Send(self,@NewHold,#what=Create(&Chest),
-            #new_row=41,#new_col=47,#fine_col=8,#fine_row=32,
+            #new_row=41,#new_col=47,#fine_row=11,#fine_col=21,
             #new_angle=ANGLE_WEST);
 
       lObjCoords1 = [ [41,13,48,24,OO_GREY_JUG], [41,50,48,00,OO_APPLE],
@@ -438,6 +508,26 @@ messages:
    GetRegion()
    {
       return RID_KOCATAN;
+   }
+   
+   DoesPlayerQualifyForSpecialMeditateRatio(who=$,oSpell=$,oSkill=$)
+   {
+      if oSpell <> $
+         AND Send(oSpell,@GetSchool) = SS_KRAANAN
+      {
+         return TRUE;
+      }
+      if oSpell <> $
+         AND Send(oSpell,@GetSchool) = SKS_KNIGHTCRAFT
+      {
+         return TRUE;
+      }
+      if oSkill <> $
+         AND Send(oSkill,@GetSchool) = SKS_KNIGHTCRAFT
+      {
+         return TRUE;
+      }
+      return FALSE;
    }
 
 end

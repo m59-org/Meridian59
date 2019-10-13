@@ -24,7 +24,8 @@ resources:
    desertpath1_storm_name_rsc = "raging elemental energies"
    desertpath1_storm_icon_rsc = iwalllit.bgf
    desertpath1_storm_desc_rsc = \
-      "Run for your life!"
+      "The narrowness of this area has condensed elemental energies both good and bad "
+      "into deadly bursts. Find someplace to hide!"
 
    desertpath1_storm_begin_msg = \
       "Raging energies roar through the area!"
@@ -59,7 +60,7 @@ properties:
    % How long does the storm last? (ms)
    % Send iDuration to constructor to change
    % $ means indefinite
-   piStormTime = 3 * 60 * 1000
+   piStormTime = $
    ptStormTimer = $
 
    % How many magical bubbles do we have max at one time?
@@ -97,6 +98,11 @@ messages:
    CreateBubble(timer=$)
    {
       local i, oLight, iIncrement, lDangerCoords;
+      
+      if NOT Send(SETTINGS_OBJECT,@GetLightEffectsEnabled)
+      {
+         return;
+      }
       
       switch(Send(SYS,@GetDayPhase))
       {
@@ -172,7 +178,14 @@ messages:
 
    ApplyDirectEffect(who=$)
    {
-      local iDamageType, iDamage;
+      local iDamageType, iDamage, iDamageDealt;
+
+      if who <> $
+         AND IsClass(who,&Player)
+         AND Send(who,@IsInCannotInteractMode)
+      {
+         propagate;
+      }
 
       switch(Send(SYS,@GetDayPhase))
       {
@@ -191,30 +204,34 @@ messages:
       }
 
       iDamage = Random(1,10);
-
-      if Send(who,@AssessDamage,#what=self,
+      iDamageDealt = Send(who,@AssessDamage,#what=self,
                                  #damage=iDamage,
                                  #aspell=iDamageType,
-                                 #report=FALSE) = $
+                                 #report=FALSE);
+      if iDamageDealt = $
       {
          Post(who,@Killed,#what=self);
+         propagate;
       }
+      
+      % Reduce back to unprecise for reporting
+      iDamageDealt = iDamageDealt / 100;
       
       if iDamageType = ATCK_SPELL_COLD
       {
-         Send(who,@MsgSendUser,#message_rsc=energies_cold_damage,#parm1=iDamage);
+         Send(who,@MsgSendUser,#message_rsc=energies_cold_damage,#parm1=iDamageDealt);
       }
       if iDamageType = ATCK_SPELL_FIRE
       {
-         Send(who,@MsgSendUser,#message_rsc=energies_fire_damage,#parm1=iDamage);
+         Send(who,@MsgSendUser,#message_rsc=energies_fire_damage,#parm1=iDamageDealt);
       }
       if iDamageType = ATCK_SPELL_SHOCK
       {
-         Send(who,@MsgSendUser,#message_rsc=energies_shock_damage,#parm1=iDamage);
+         Send(who,@MsgSendUser,#message_rsc=energies_shock_damage,#parm1=iDamageDealt);
       }
       if iDamageType = ATCK_SPELL_ACID
       {
-         Send(who,@MsgSendUser,#message_rsc=energies_acid_damage,#parm1=iDamage);
+         Send(who,@MsgSendUser,#message_rsc=energies_acid_damage,#parm1=iDamageDealt);
       }
 
       propagate;

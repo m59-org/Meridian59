@@ -1,0 +1,313 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+MazeChest is StorageBox
+
+constants:
+
+   MAZECHEST_ITEMS_MAX = 150
+
+   APPLY_SUCCESS = 1
+   THIS_SHARD_CANNOT_APPLY = 2
+   NO_SPACE_FOR_MODS = 3
+   NO_MODS_FOUND = 4
+   UNKNOWN_ERROR = 5
+   NO_ITEM = 6
+   NO_PLAYER = 7
+   WEIGHT_TEST_FAILED = 8
+   MOD_NOT_FOUND = 9
+
+   % set item flags to this for colors on instillinggem type
+   GREY_FIRST = 49
+   GREY_SECOND = 50
+   GREY_THIRD = 51
+   GREY_FOURTH = 54
+   GREY_FIFTH = 55
+   GREY_SIXTH = 56
+
+   GREEN_FIRST = 57
+
+   GREYISH_FIRST = 65
+
+   ANOTHER_GREY = 66
+
+   PEACH = 67
+   REDDER_PEACH = 68
+   REDDISH = 69
+   REDDER = 70
+   VERY_RED = 71
+   EVEN_MORE_RED = 72
+   ALL_RED = 73
+   ALL_DARK_RED = 74
+
+   % This one is great
+   EFFULGENT_RED = 77
+   EFFULGENT_BLUE = 78
+   EFFULGENT_GREEN = 79
+   
+   WEIRD_SILVER = 81
+   WEIRD_BLUE = 82
+   WEIRD_GREEN = 83
+   
+   WEIRDER_BLUE = 85
+   WEIRDER_GREEN = 86
+   WEIRDER_RED = 87
+   
+   BLOOD_GEM = 96
+   CLOUDED_GEM = 97
+   
+   WHITE_RANGE = 113
+   WHITE_MAX_RANGE = 120
+
+   include blakston.khd
+
+resources:
+
+   mazechest_name_rsc = "feretory"
+   mazechest_icon_rsc = box2.bgf
+
+   mazechest_desc_rsc = \
+      "Relics of an immense value may be held within this ancient "
+      "container."
+
+classvars:
+   vrName = mazechest_name_rsc
+   vrIcon = mazechest_icon_rsc
+   vrDesc = mazechest_desc_rsc
+
+   viBulk_hold_max = $
+   viWeight_hold_max = $
+
+properties:
+
+messages:
+
+   ReqNewHold(what = $, who = $)
+   {
+      if NOT Send(self,@CanDepositItems,#lItems=[what])
+      {
+         return FALSE;
+      }
+
+      propagate;
+   }
+
+   CanDepositItems(lItems = $)
+   {
+      local plItemsStored;
+
+      if lItems = $
+      {
+         return FALSE;
+      }
+
+      plItemsStored = Send(self,@GetHolderPassive);
+      if plItemsStored <> $
+         AND (Length(plItemsStored) + Length(lItems)) > mazechest_ITEMS_MAX
+         AND NOT (Length(lItems) = 1
+            AND IsClass(First(lItems),&NumberItem))
+      {
+         return FALSE;
+      }
+
+      return TRUE;
+   }
+   
+   MajorImbue(oItem=$)
+   {
+      Send(self,@GenerateMod,#oItem=oItem);
+      Send(self,@GenerateMod,#oItem=oItem);
+      Send(self,@GenerateMod,#oItem=oItem);
+      if Random(1,2) = 1
+      {
+         Send(self,@GenerateMod,#oItem=oItem);
+      }
+      if Random(1,2) = 1
+      {
+         Send(self,@GenerateMod,#oItem=oItem);
+      }
+      if Random(1,2) = 1
+      {
+         Send(self,@GenerateMod,#oItem=oItem);
+      }
+      return;
+   }
+
+   WeightPrefixes()
+   {
+      return $;
+   }
+   
+   WeightSuffixes()
+   {
+      return $;
+   }
+
+   EmpowerAffixes()
+   {
+      return [[&OffenseMod,5],
+              [&WeaponDamageMod,1],
+              [&ThrustEmpowermentMod,3],
+              [&SlashEmpowermentMod,3],
+              [&BludgeonEmpowermentMod,3],
+              [&PierceEmpowermentMod,3],
+              [&WeaponEmpowermentMod,2],
+              [&WeaponMightMod,1],
+              [&WeaponAgilityMod,1],
+              [&WeaponAimMod,1]
+             ];
+   }
+
+   GenerateMod(oItem=$)
+   {
+      local i, n, lPrefixes, lSuffixes, cChosenMod, oChosenMod, lCombined, iTotalWeight, iChosenWeight,
+            iRolledPower;
+      % If we fail to generate a mod, tell them why and don't consume the shard.
+
+      if oItem = $
+      {
+         return NO_ITEM;
+      }
+      
+      lPrefixes = Send(oItem,@GetPrefixes);
+      lSuffixes = Send(oItem,@GetSuffixes);
+
+      foreach i in lPrefixes
+      {
+         if Send(oItem,@HasMagicModOfClass,#class=Nth(i,1))
+         {
+            lPrefixes = DelListElem(lPrefixes,i);
+         }
+      }
+
+      foreach i in lSuffixes
+      {
+         if Send(oItem,@HasMagicModOfClass,#class=Nth(i,1))
+         {
+            lSuffixes = DelListElem(lSuffixes,i);
+         }
+      }
+
+      if lPrefixes = $
+         AND lSuffixes = $
+      {
+         return NO_MODS_FOUND;
+      }
+
+      if Send(oItem,@GetMagicModsNumberOfType,#type=MOD_PREFIX) >= 3
+      {
+         lPrefixes = $;
+      }
+      if Send(oItem,@GetMagicModsNumberOfType,#type=MOD_SUFFIX) >= 3
+      {
+         lSuffixes = $;
+      }
+
+      if lPrefixes = $
+         AND lSuffixes = $
+      {
+         return NO_SPACE_FOR_MODS;
+      }
+
+      % We've removed all mods the item already has.
+      % We've removed all mods from bins the item is maxed out on.
+      % Anything chosen now will be a mod the item doesn't have for a bin that is open.
+      % Let's combine into a list for easy random selection.
+      % We've also guaranteed at least one of these lists is not nil.
+      % Let's let the shard alter values.
+      
+      foreach i in lPrefixes
+      {
+         foreach n in Send(self,@WeightPrefixes)
+         {
+            if Nth(i,1) = Nth(n,1)
+            {
+               SetNth(i,2,Nth(i,2) + Nth(n,2));
+            }
+         }
+      }
+
+      foreach i in lSuffixes
+      {
+         foreach n in Send(self,@WeightSuffixes)
+         {
+            if Nth(i,1) = Nth(n,1)
+            {
+               SetNth(i,2,Nth(i,2) + Nth(n,2));
+            }
+         }
+      }
+
+      foreach i in lPrefixes
+      {
+         lCombined = Cons(i,lCombined);
+      }
+      foreach i in lSuffixes
+      {
+         lCombined = Cons(i,lCombined);
+      }
+
+      % Now we have a list of [Mod, Weight] with shard weighting factored in
+      % Let's get the sum of the weights
+      
+      iTotalWeight = 0;
+      foreach i in lCombined
+      {
+         iTotalWeight = iTotalWeight + Nth(i,2);
+      }
+
+      % Let's pinpoint our weight target.
+      iChosenWeight = Random(1,iTotalWeight);
+
+      % What have we pinpointed?
+      foreach i in lCombined
+      {
+         iChosenWeight = iChosenWeight - Nth(i,2);
+         if iChosenWeight <= 0
+         {
+            % Found it!
+            cChosenMod = Nth(i,1);
+            break;
+         }
+      }
+
+      if iChosenWeight > 0
+      {
+         return WEIGHT_TEST_FAILED;
+      }
+
+      oChosenMod = Send(SYS,@GetMagicMod,#class=cChosenMod);
+      if oChosenMod = $
+      {
+         Debug(cChosenMod," not found by SYS!");
+         return MOD_NOT_FOUND;
+      }
+      iRolledPower = Send(oChosenMod,@RollPower,#what=oItem);
+
+      foreach i in Send(self,@EmpowerAffixes)
+      {
+         if Nth(i,1) = cChosenMod
+         {
+            iRolledPower = iRolledPower + Nth(i,2);
+         }
+      }
+
+      % Now we have a mod that has not already been applied, is in a bin with free space,
+      % and empowered by the shard. Let's apply it.
+      if Send(oItem,@ApplyMagicMod,#cClass=cChosenMod,#iPower=iRolledPower)
+      {
+         return APPLY_SUCCESS;
+      }
+
+      return UNKNOWN_ERROR;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -1,0 +1,107 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ShockingFury is BoltSpell
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   include shokfury.lkod
+
+   ShockingFury_name_rsc = "shocking fury"
+
+   ShockingFury_icon_rsc = ishkfury.bgf
+
+   ShockingFury_desc_rsc = \
+      "Releases Faren's fury as a large amount of electricity directed at a target at short range.  "
+      "Requires blue mushrooms and elderberries to cast."
+
+   ShockingFury_sound = fzap.wav
+   ShockingFury_icon = lightnin.bgf
+   
+   ShockingFury_projectile_icon = shockingfuryproj.bgf
+
+classvars:
+
+   vrName = ShockingFury_name_rsc
+   vrIcon = ShockingFury_icon_rsc
+   vrDesc = ShockingFury_desc_rsc
+   
+   viSpell_num = SID_SHOCKING_FURY
+
+   viAttack_spell = ATCK_SPELL_ALL + ATCK_SPELL_SHOCK
+
+   viSchool = SS_FAREN
+   viSpell_level = 3
+   viMana = 8
+
+   vrSucceed_wav = ShockingFury_sound
+
+   % In seconds, since it works off GetTime().
+   viPostCast_time = 2
+
+   viChance_To_Increase = 20
+
+   vrProjectile_Icon = ShockingFury_projectile_icon
+
+   % Short range blast
+   vbIsRangedAttack = FALSE
+
+   % Projectile lighting information.
+   viProjectileLightFlags = LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC
+   % Medium light range, out of 255.
+   viProjectileLightIntensity = 100
+   % Default color is lightning.
+   viProjectileLightColor = LIGHT_LIGHTNING
+   
+   viProjectileSpeed = 10
+
+properties:
+
+   piDamageMin = 12
+   piDamageMax = 20
+   piRange = 5 * FINENESS
+
+   % Maximum amount of bonus damage mana focus gives us for casting this spell.
+   piManaFocusBonus = 5
+
+messages:
+
+   ResetReagents()
+   {
+      % separate message so can change, then set from admin mode
+
+      plReagents = $;
+      plReagents = Cons([&BlueMushroom,2],plReagents);
+      plReagents = Cons([&Elderberry,1],plReagents);
+
+      return;
+   }
+
+   SendLookAnimation()
+   {
+      AddPacket(1,ANIMATE_NONE, 2,2);
+
+      return;
+   }
+
+   SendProjectileAnimation()
+   {
+      % 40ms between animations, between frames 1-2
+      AddPacket(1,ANIMATE_CYCLE, 4,40, 2,1, 2,2);   
+
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

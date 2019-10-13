@@ -1,0 +1,151 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+CharmSpell is BoltSpell
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   charmed_wrong = \
+      "%s%s seems hardly affected by this particular charm spell."
+
+   charmed_first = \
+      "%s%s seems slightly confused."
+   charmed_second = \
+      "%s%s is starting to act strangely."
+   charmed_third = \
+      "%s%s is behaving very erratically."
+   charmed_final = \
+      "~B%s%s loses its will and becomes your servant!"
+
+   wrong_karma_undead = \
+      "%s%s recognizes your karmically positive spirit as nothing but an enemy."
+   wrong_karma_humanoid = \
+      "%s%s senses your karmically negative spirit and refuses to be swayed."
+   cannot_charm_at_limit = \
+      "You push to bring %s%s under your control, but fail!"
+
+classvars:
+
+   viSchool = SS_BESTIARY
+   viCharmedType = CREATURE_TYPE_INSECT
+
+   viPrimaryStat = STAT_ID_INTELLECT
+   viSecondaryStat = 0
+   viChance_To_Increase = 15
+
+properties:
+
+   % Some charm spells are more effective than others
+   % Base damage already charms, so charm multiple is for added based on spellpower
+   % Should always be at least 1, otherwise mob will just die before being charmed
+   piExtraCharmMultiple = 1
+
+messages:
+
+   % The chance to do something in addition to normal damage.
+   DoSideEffect(who=$,victim=$,damage=0,iSpellPower=0)
+   {
+      local i, lGetCreatureTypes;
+
+      if victim <> $
+         AND who <> $
+         AND IsClass(victim,&Monster)
+         AND Send(victim,@GetHealth) > 0
+      {
+         lGetCreatureTypes = Send(victim,@GetCreatureTypes);
+         
+         if lGetCreatureTypes <> $
+            AND FindListElem(lGetCreatureTypes,viCharmedType) <> 0
+         {
+            if viCharmedType = CREATURE_TYPE_UNDEAD
+               AND Send(who,@GetKarma) > 0
+            {
+               Send(who,@MsgSendUser,#message_rsc=wrong_karma_undead,#parm1=Send(victim,@GetCapDef),#parm2=Send(victim,@GetName));
+               return;
+            }
+            
+            if viCharmedType = CREATURE_TYPE_HUMANOID
+               AND Send(who,@GetKarma) < 0
+            {
+               Send(who,@MsgSendUser,#message_rsc=wrong_karma_humanoid,#parm1=Send(victim,@GetCapDef),#parm2=Send(victim,@GetName));
+               return;
+            }
+
+            Send(victim,@ApplyElementalStatusEffects,#damage=(damage/100)*piExtraCharmMultiple*(iSpellPower/99),#aspell=ATCK_SPELL_CHARM,#what=who,#absolute=FALSE);
+
+            if Send(victim,@GetStatusEffect,#type=STATUS_CHARMED) >= Send(victim,@GetHealth)
+            {
+               if Send(who,@CanControlNewMinion,#oMonster=victim)
+               {
+                  Send(who,@MsgSendUser,#message_rsc=charmed_final,#parm1=Send(victim,@GetCapDef),#parm2=Send(victim,@GetName));
+
+                  % Add this creature to your minion list
+                  Send(who,@NewControlledMinion,#minion=victim);
+
+                  % Set initial minion behavior
+                  Send(victim,@ResetBehaviorFlags);
+                  Send(self,@ModifyMonsterBehavior,#mob=victim);
+                  Send(victim,@SetMaster,#oMaster=who);
+
+                  % Start them off with Loyalty equal to how much charmed is on them
+                  Send(victim,@AddLoyalty,#amount=Send(victim,@GetStatusEffect,#type=STATUS_CHARMED));
+               }
+               else
+               {
+                  Send(who,@MsgSendUser,#message_rsc=cannot_charm_at_limit,#parm1=Send(victim,@GetDef),#parm2=Send(victim,@GetName));
+               }
+            }
+            else if Send(victim,@GetStatusEffect,#type=STATUS_CHARMED) >= Send(victim,@GetHealth)*3/4
+            {
+               Send(who,@MsgSendUser,#message_rsc=charmed_third,#parm1=Send(victim,@GetCapDef),#parm2=Send(victim,@GetName));
+            }
+            else if Send(victim,@GetStatusEffect,#type=STATUS_CHARMED) >= Send(victim,@GetHealth)/2
+            {
+               Send(who,@MsgSendUser,#message_rsc=charmed_second,#parm1=Send(victim,@GetCapDef),#parm2=Send(victim,@GetName));
+            }
+            else if Send(victim,@GetStatusEffect,#type=STATUS_CHARMED) >= Send(victim,@GetHealth)/4
+            {
+               Send(who,@MsgSendUser,#message_rsc=charmed_first,#parm1=Send(victim,@GetCapDef),#parm2=Send(victim,@GetName));
+            }
+         }
+         else
+         {
+            Send(who,@MsgSendUser,#message_rsc=charmed_wrong,#parm1=Send(victim,@GetCapDef),#parm2=Send(victim,@GetName));
+         }
+      }
+
+      if victim <> $
+         AND who <> $
+         AND IsClass(victim,&Player)
+         AND Send(victim,@GetHealth) > 0
+         AND viCharmedType = CREATURE_TYPE_HUMANOID
+      {
+         Send(victim,@ApplyElementalStatusEffects,#damage=(damage/100)*piExtraCharmMultiple*(iSpellPower/99),#aspell=ATCK_SPELL_CHARM,#what=who,#absolute=FALSE);
+      }
+
+      return;
+   }
+
+   ModifyMonsterBehavior(mob=$)
+   {
+      Send(mob,@SetBehaviorFlag,#flag=AI_MOVE_FOLLOW_MASTER,#value=TRUE);
+      Send(mob,@SetBehaviorFlag,#flag=AI_FIGHT_AGGRESSIVE,#value=FALSE);
+      Send(mob,@SetBehaviorFlag,#flag=AI_FIGHT_NEWBIESAFE);
+      Send(mob,@SetBehaviorFlag,#flag=AI_FIGHT_MONSTERS);
+
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

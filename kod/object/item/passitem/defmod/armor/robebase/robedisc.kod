@@ -27,7 +27,9 @@ resources:
    RobeInsignia_desc_rsc = \
       "Heavy and warm, disciple robes typically denote a fervent (and some "
       "would say unhealthy) dedication to one school or another.   These robes "
-      "bear the insignia of %s and will give bonuses to spells in that school."
+      "bear the insignia of %s and will give bonuses to spells in that school. "
+      "As with all robes, the fabric will also stick to wounds and slightly "
+      "reduce bleeding."
 
    disciplerobe_riija_female = emblm-rf.bgf
    disciplerobe_riija_male = emblm-rm.bgf
@@ -69,6 +71,7 @@ properties:
    viXLAT_kraanan_master = XLAT_TO_BLUE
    viXLAT_riija_master = XLAT_TO_PURPLE
    viXLAT_jala_master = XLAT_TO_GREEN
+   viXLAT_shadowcraft_master = XLAT_TO_DGREEN
    piSchool = SS_RIIJA
    piLevel = 0
    prInsignia_male =  disciplerobe_riija_male
@@ -93,9 +96,19 @@ messages:
 
    GetBaseSpellModifier(oSpell=$)
    {
-      if Send(oSpell,@GetSchool) = piSchool
+      local iShadowcraftBonus;
+      
+      iShadowcraftBonus = 0;
+      if poOwner <> $
+         AND IsClass(poOwner,&Player)
+         AND Send(poOwner,@HasSkill,#num=SKID_UNIFIED_BLAZON)
       {
-         return Bound(4 * piLevel,5,20);
+         iShadowcraftBonus = Send(Send(SYS,@FindSkillByNum,#num=SKID_UNIFIED_BLAZON),@GetSpellPowerBonus,#who=poOwner);
+      }
+      if Send(oSpell,@GetSchool) = piSchool
+         OR iShadowcraftBonus > 0
+      {
+         return Bound(4 * piLevel + iShadowcraftBonus,5,20);
       }
 
       return 5;
@@ -114,6 +127,7 @@ messages:
       {
          skin_color = XLAT_TO_SKIN2;
       }
+
       XLAT = Send(SYS,@EncodeTwoColorXLAT,#color1=translation,#color2=skin_color);
       Send(self,@SetPaletteTranslation,#translation=XLAT);
 
@@ -125,6 +139,12 @@ messages:
          }
 
          if IsClass(poOwner,&User)
+         {
+            Send(poOwner,@SomethingChanged,#what=self);
+            Send(self,@DoPlayerArt);
+         }
+         
+         if IsClass(poOwner,&Monster)
          {
             Send(poOwner,@SomethingChanged,#what=self);
             Send(self,@DoPlayerArt);
@@ -156,14 +176,81 @@ messages:
          return;
       }
 
-      foreach i in Send(poOwner,@GetSpellList)
+      if IsClass(poOwner,&Player)
       {
-         oSpell = Send(SYS,@FindSpellByNum,#num=Send(poOwner,@DecodespellNum,#compound=i));
-         if piSchool = Send(oSpell,@GetSchool)
+         if Send(poOwner,@HasSkill,#num=SKID_UNIFIED_BLAZON)
          {
-            if Send(oSpell,@GetLevel) > iHigh_level
+            Send(self,@SetXLATTranslation,#translation=viXLAT_shadowcraft_master);
+            return;
+         }
+         foreach i in Send(poOwner,@GetSpellList)
+         {
+            oSpell = Send(SYS,@FindSpellByNum,#num=Send(poOwner,@DecodespellNum,#compound=i));
+            if piSchool = Send(oSpell,@GetSchool)
             {
-               iHigh_Level = Send(oSpell,@GetLevel);
+               if Send(oSpell,@GetLevel) > iHigh_level
+               {
+                  iHigh_Level = Send(oSpell,@GetLevel);
+               }
+            }
+         }
+      }
+      
+      if IsClass(poOwner,&Monster)
+      {
+         foreach i in Send(poOwner,@GetMeleeSpellBook)
+         {
+            oSpell = Send(SYS,@FindSpellByNum,#num=First(i));
+            if piSchool = Send(oSpell,@GetSchool)
+            {
+               if Send(oSpell,@GetLevel) > iHigh_level
+               {
+                  iHigh_Level = Send(oSpell,@GetLevel);
+               }
+            }
+         }
+         foreach i in Send(poOwner,@GetRangedSpellBook)
+         {
+            oSpell = Send(SYS,@FindSpellByNum,#num=First(i));
+            if piSchool = Send(oSpell,@GetSchool)
+            {
+               if Send(oSpell,@GetLevel) > iHigh_level
+               {
+                  iHigh_Level = Send(oSpell,@GetLevel);
+               }
+            }
+         }
+         foreach i in Send(poOwner,@GetSelfSpellBook)
+         {
+            oSpell = Send(SYS,@FindSpellByNum,#num=First(i));
+            if piSchool = Send(oSpell,@GetSchool)
+            {
+               if Send(oSpell,@GetLevel) > iHigh_level
+               {
+                  iHigh_Level = Send(oSpell,@GetLevel);
+               }
+            }
+         }
+         foreach i in Send(poOwner,@GetAllySpellBook)
+         {
+            oSpell = Send(SYS,@FindSpellByNum,#num=First(i));
+            if piSchool = Send(oSpell,@GetSchool)
+            {
+               if Send(oSpell,@GetLevel) > iHigh_level
+               {
+                  iHigh_Level = Send(oSpell,@GetLevel);
+               }
+            }
+         }
+         foreach i in Send(poOwner,@GetAllySpellBook)
+         {
+            oSpell = Send(SYS,@FindSpellByNum,#num=First(i));
+            if piSchool = Send(oSpell,@GetSchool)
+            {
+               if Send(oSpell,@GetLevel) > iHigh_level
+               {
+                  iHigh_Level = Send(oSpell,@GetLevel);
+               }
             }
          }
       }
@@ -396,6 +483,17 @@ messages:
    GetSchool()
    {
       return piSchool;
+   }
+
+   GetPrefixes()
+   {
+      return [[&DefenseMod,100],
+              [&ManaMod,600],
+              [&VigorMod,200],
+              [&AcidEmpowermentMod,100],
+              [&ShockEmpowermentMod,100],
+              [&FireEmpowermentMod,100],
+              [&ColdEmpowermentMod,100]];
    }
 
 end

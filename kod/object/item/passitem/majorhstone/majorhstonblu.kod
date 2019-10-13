@@ -1,0 +1,73 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+MajorBlueHeartStone is MajorHeartStone
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   MajorBlueHeartStone_name_rsc = "major blue heartstone"
+   MajorBlueHeartStone_name_plural = "major blue heartstones"
+   MajorBlueHeartStone_desc_rsc = \
+      "This is a 'heartstone'.  It is a blue gem taken from "
+      "the body of a fallen Vix'Ma'Xeochicatl.  It wiggles slightly and is cool "
+      "to the touch.  The uses for this gem are not widely known."
+
+classvars:
+
+   vrName = MajorBlueHeartStone_name_rsc
+   vrDesc = MajorBlueHeartStone_desc_rsc
+   
+   vrName_plural = MajorBlueHeartStone_name_plural
+
+   viValue_average = 100
+   viWeight = 20
+   viBulk = 10
+
+   viColor = XLAT_TO_BLUE
+
+properties:
+
+messages:
+
+   CreateXeo()
+   {
+      return Create(&XeoWater,#InAttack=Send(self,@IsInAttack));
+   }
+
+   WeightPrefixes()
+   {
+      return [[&ManaMod,200]
+             ];
+   }
+   
+   WeightSuffixes()
+   {
+      return [[&ColdResistanceMod,200]
+             ];
+   }
+
+   EmpowerAffixes()
+   {
+      return [[&ManaMod,5],
+              [&ColdResistanceMod,5]
+             ];
+   }
+   
+   GetForgeType()
+   {
+      return FORGE_COLD;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -1,0 +1,153 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+GuildHallRecall is TeleportationSpell
+
+constants:
+   include blakston.khd
+
+resources:
+
+   guild_hall_recall_name_rsc = "egress"
+   guild_hall_recall_icon_rsc = iblink.bgf
+   guild_hall_recall_desc_rsc = \
+    "Teleports you to the foyer of your guild hall, "
+    "provided you are guilded and your guild owns one. "
+	 "Requires nothing but time and a will to move."
+
+   guild_hall_recall_spell_intro = \
+      "Riija Level 1: Transports you to your guild's hall foyer."
+
+   guild_hall_recall_dont_have_a_guild = \
+      "You don't belong to a guild, so you cannot teleport to a guild hall."
+   guild_hall_recall_dont_have_a_hall = \
+      "Your guild does not own a hall, so you cannot teleport to a guild hall."
+
+   guild_hall_recall_depart_to_destination = \
+      "%s vanishes in a blur of arcane energy."
+
+   guild_hall_recall_in_raza = \
+      "Raza is much too far away for you to reach your guild hall with egress."
+
+classvars:
+
+   vrName = guild_hall_recall_name_rsc
+   vrIcon = guild_hall_recall_icon_rsc
+   vrDesc = guild_hall_recall_desc_rsc
+
+   viCast_time = 30000
+
+   vrSpell_intro = guild_hall_recall_spell_intro
+
+   viSpell_num = SID_GUILD_HALL_RECALL
+   viSpell_level = 1
+   viSchool = SS_RIIJA
+   viMana = 3
+   viSpellExertion = 10
+   viChance_To_Increase = 15
+   viMeditate_ratio = 20
+   
+   viPrimaryStat = STAT_ID_INTELLECT
+   viSecondaryStat = 0
+
+properties:
+
+messages:
+
+   ResetReagents()
+   {
+      plReagents = $;
+
+      return;
+   }
+
+   GetNumSpellTargets()
+   {
+      return 0;
+   }
+
+   CastSpell(who = $, lTargets = $)
+   {
+      local owner, oRoom, oGuild, i, each_obj, oCurrentRoom;
+      
+      oCurrentRoom = Send(who,@GetOwner);
+      if oCurrentRoom <> $
+      {
+         if Send(oCurrentRoom,@GetRegion) = RID_NEWB_BASE
+         {
+            Send(who,@MsgSendUser,#message_rsc=guild_hall_recall_in_raza);
+            propagate;
+         }
+      }
+
+      oGuild = Send(who,@GetGuild);
+      
+      if oGuild = $
+      {
+         Send(who,@MsgSendUser,#message_rsc=guild_hall_recall_dont_have_a_guild);
+         propagate;
+      }
+      
+      oRoom = Send(oGuild,@GetGuildHall);
+      
+      if oRoom = $
+      {
+         Send(who,@MsgSendUser,#message_rsc=guild_hall_recall_dont_have_a_hall);
+         propagate;
+      }
+
+      foreach i in Send(Send(who,@GetOwner),@GetHolderActive)
+      {
+         each_obj = Send(Send(who,@GetOwner),@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&User)
+         {
+            Send(each_obj,@MsgSendUser,
+                  #message_rsc=guild_hall_recall_depart_to_destination,
+                  #parm1=Send(who,@GetName));
+         }
+      }
+
+      Post(oRoom,@Teleport,#what=who);  
+
+      propagate;
+   }
+
+   CanPayCosts(who = $,lTargets = $)
+   {
+      % Can't cast just after attacking someone
+      if Send(who,@GetLastPlayerAttackTime)
+         + Send(SETTINGS_OBJECT,@TeleportAttackDelaySec)
+         > GetTime()
+      {
+         Send(who,@MsgSendUser,#message_rsc=spell_too_soon_since_attacking);
+
+         return FALSE;
+      }
+
+      propagate;
+   }
+
+   SuccessChance(who=$)
+   {
+      return TRUE;
+   }
+
+   CanForget()
+   {
+      return FALSE;
+   }
+
+   OfferToNewCharacters()
+   {
+      return FALSE;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

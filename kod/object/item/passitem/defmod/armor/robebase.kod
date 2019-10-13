@@ -25,7 +25,9 @@ resources:
    robe_icon_rsc = robe.bgf
    robe_desc_rsc = \
       "Heavy and warm, these full length robes generally denotes one's "
-      "dedication to the higher arts of knowledge, spell craft or religion."
+      "dedication to the higher arts of knowledge, spell craft or religion. "
+      "In times of great need, the fabric of robes can also "
+      "slightly staunch bleeding."
 
    robe_male_icon_rsc = btc.bgf
    robe_female_icon_rsc = btd.bgf
@@ -67,7 +69,7 @@ classvars:
    viBroken_group = 3
 
    viSpell_modifier = 10
-   viDefense_base = 20
+   viDefense_base = 40
 
    viUse_type = ITEM_USE_BODY | ITEM_USE_LEGS
 
@@ -145,10 +147,39 @@ messages:
 
    GetResistanceModifiers()
    {
-      return [ [ ATCK_WEAP_ALL, -10],
-               [-ATCK_SPELL_FIRE,-20],
-               [-ATCK_SPELL_SHOCK,15]
+      local iResist;
+      if Send(SETTINGS_OBJECT,@GetDirectArmorEnabled)
+      {
+         return [ [ ATCK_WEAP_ALL, -10],
+                  [-ATCK_SPELL_FIRE,-20],
+                  [-ATCK_SPELL_SHOCK,15]
+                ];
+      }
+      
+      iResist = -10;
+      
+      if poOwner <> $
+         AND IsClass(poOwner,&Player)
+         AND Send(poOwner,@HasSkill,#num=SKID_IRON_WEAVE)
+      {
+         iResist = Send(Send(SYS,@FindSkillByNum,#num=SKID_IRON_WEAVE),@GetRobeResists,#who=poOwner,#iResist=iResist);
+      }
+      
+      return [ [ATCK_WEAP_ALL,iResist],
+               [-ATCK_SPELL_ALL,iResist]
              ];
+   }
+
+   GetPrefixes()
+   {
+      return [[&DefenseMod,100],
+              [&ManaMod,600],
+              [&VigorMod,200]];
+   }
+
+   GetBleedResistance()
+   {
+      return 15;
    }
 
 end

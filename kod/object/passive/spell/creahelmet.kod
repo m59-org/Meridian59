@@ -1,0 +1,223 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+CreateHelmet is Spell
+
+constants:
+   include blakston.khd
+
+resources:
+
+   create_helmet_cast_rsc = "%s%s appears."
+   create_helmet_inv_full_rsc = \
+      "%s%s appears in the air before you but since you are unable "
+      "to carry it, it falls on the floor with a loud clang."
+   create_helmet_name_rsc = "create helmet"
+   create_helmet_icon_rsc = icremace.bgf
+   create_helmet_desc_rsc = \
+      "Materializes a helmet. Requires nothing but a violent will."
+
+   create_helmet_sound = kraanan.wav
+
+classvars:
+
+   vrName = create_helmet_name_rsc
+   vrIcon = create_helmet_icon_rsc
+   vrDesc = create_helmet_desc_rsc
+
+   viSpell_num = SID_CREATE_HELMET
+   viSchool = SKS_ALCHEMY
+   viSpell_level = 1
+   viMana = 15
+   viCast_time = 5000
+   viMeditate_ratio = 10
+   
+
+   vrSucceed_wav = create_helmet_sound
+   
+   viPrimaryStat = STAT_ID_INTELLECT
+   viSecondaryStat = 0
+
+properties:
+
+messages:
+
+   ResetReagents()
+   {
+      plReagents = $;
+
+      return;
+   }
+
+   GetNumSpellTargets()
+   {
+      return 0;
+   }
+
+   TranceBlocksSay()
+   {
+      return TRUE;
+   }
+
+   SomethingSaidDuringTrance(who=$,string=$)
+   {
+      local i, iSpellPower, iCount,isWeaponCreateable, oWeapon, oItemAtt;
+
+      iCount = 0;
+      isWeaponCreateable = false;
+
+      iSpellPower = Send(self,@GetSpellPower,#who=who);
+
+      foreach i in Send(SYS,@GetItemTemplates)
+      {
+         if(StringEqual(string,Send(i,@GetName)))
+         {
+            if(NOT isClass(i,&Helmet))
+            {
+               return;
+            }
+
+            if NOT Send(self,@CanCreateHelmet,#sWeapon=Send(i,@GetName),#iSpellPower=iSpellPower,#who=who)
+            {
+               return;
+            }
+
+            oWeapon = Create(getClass(i));
+            isWeaponCreateable = true;
+            break;
+         }
+      }
+
+      if(isWeaponCreateable = true)
+      {
+         Send(who,@BreakTrance,#event=EVENT_STEER);
+         % Weapon has half its hits, + iSpellPower% of the other half.
+         Send(oWeapon,@SetHits,#number=(Send(oWeapon,@GetHits)*(iSpellPower+100))/200);
+
+         if Send(who,@ReqNewHold,#what=oWeapon)
+         {
+            Send(who,@NewHold,#what=oWeapon);
+            Send(who,@MsgSendUser,#message_rsc=create_helmet_cast_rsc,
+                  #parm1=Send(oWeapon,@GetCapIndef),#parm2=Send(oWeapon,@GetName));
+         }
+         else
+         {
+            Send(Send(who,@GetOwner),@NewHold,#what=oWeapon,
+                  #new_row=Send(who,@GetRow),#new_col=Send(who,@GetCol),
+                  #fine_row=(Send(who,@GetFineRow)+2),
+                  #fine_col=(Send(who,@GetFineCol)+2));
+            Send(who,@MsgSendUser,#message_rsc=create_helmet_inv_full_rsc,
+                  #parm1=Send(oWeapon,@GetCapIndef),#parm2=Send(oWeapon,@GetName));
+         }
+
+         oItemAtt = Send(SYS,@FindItemAttByNum,#num=IA_MADE);
+         Send(oItemAtt,@AddtoItem,#oItem=oWeapon,
+               #timer_duration=Send(self,@GetDuration,#iSpellpower=iSpellpower));
+      }
+
+      return;
+   }
+
+   CanCreateHelmet(sWeapon=$,iSpellPower=$,who=$)
+   {
+      local iSpellAbility;
+      
+      iSpellAbility = Send(who,@GetSpellAbility,#spell_num=SID_CREATE_HELMET);
+
+      if(StringEqual("helm",sWeapon) AND iSpellAbility > 0)
+      {
+         return true;
+      }
+      if(StringEqual("spiked helm",sWeapon) AND iSpellAbility >=35)
+      {
+         return true;
+      }
+      if(StringEqual("runed helm",sWeapon) AND iSpellAbility >= 65)
+      {
+         return true;
+      }
+      if(StringEqual("knight's helm",sWeapon) AND iSpellAbility >= 95)
+      {
+         return true;
+      }
+      return false;
+   }
+
+   CastSpell(who=$,lTargets=$,iSpellPower=$)
+   {
+      local oWeapon,iNum, oItemAtt;
+
+      % Keep the bottom end a bit low because the player might want a lower weapon.
+      iNum = Random(iSpellPower/3,iSpellPower);
+
+      if iNum < 35
+      {
+         oWeapon = Create(&SimpleHelm);
+      }
+      else
+      {
+         if iNum < 65
+         {
+            oWeapon = Create(&SpikedHelm);
+         }
+         else
+         {
+            if iNum < 95
+            {
+               oWeapon = Create(&RunedHelm);
+            }
+            else
+            {
+               if iNum <= 99
+               {
+                  oWeapon = create(&KnightHelm);
+               }
+            }
+         }
+      }
+
+      % Weapon has half its hits, + iSpellPower% of the other half.
+      Send(oWeapon,@SetHits,#number=(Send(oWeapon,@GetHits)*(iSpellPower+100))/200);
+
+      if Send(who,@ReqNewHold,#what=oWeapon)
+      {
+         Send(who,@NewHold,#what=oWeapon);
+         Send(who,@MsgSendUser,#message_rsc=create_helmet_cast_rsc,
+               #parm1=Send(oWeapon,@GetCapIndef),#parm2=Send(oWeapon,@GetName));
+      }
+      else
+      {
+         Send(Send(who,@GetOwner),@NewHold,#what=oWeapon,
+               #new_row=Send(who,@GetRow),#new_col=Send(who,@GetCol),
+               #fine_row=(Send(who,@GetFineRow)+2),
+               #fine_col=(Send(who,@GetFineCol)+2));
+         Send(who,@MsgSendUser,#message_rsc=create_helmet_inv_full_rsc,
+               #parm1=Send(oWeapon,@GetCapIndef),#parm2=Send(oWeapon,@GetName));
+      }
+
+      oItemAtt = Send(SYS,@FindItemAttByNum,#num=IA_MADE);
+      Send(oItemAtt,@AddtoItem,#oItem=oWeapon,
+            #timer_duration=Send(self,@GetDuration,#iSpellpower=iSpellpower));
+
+      propagate;
+   }
+
+   GetDuration(iSpellpower=$)
+   {
+      local iDuration;
+
+      iDuration = iSpellpower * 2; %%In minutes
+      iDuration = iDuration * 60 * 1000;
+
+      return iDuration;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

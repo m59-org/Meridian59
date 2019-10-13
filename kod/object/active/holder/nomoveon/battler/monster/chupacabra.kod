@@ -24,7 +24,9 @@ resources:
    chupacabra_name_rsc = "chupacabra"
    chupacabra_icon_rsc = chupa.bgf
    chupacabra_desc_rsc = \
-      "A chupacabra"
+      "Not everything organic in the desert has died. Some creatures, formerly of nature, "
+      "adapted and evolved over the centuries into lethal killing machines. The fabled "
+      "chupacabras that inhabit the wastes of the city proper rank among the deadliest."
 
    chupacabra_dead_icon_rsc = chupaX.bgf
    chupacabra_dead_name_rsc = "dead chupacabra"
@@ -49,22 +51,27 @@ classvars:
 
    viAttributes = 0
 
-   viLevel = 100
-   viDifficulty = 6
-   viKarma = -75
+   viLevel = 165
+   viDifficulty = 9
+   viKarma = 0
    
-   viCashmin = 250
-   viCashmax = 750
+   viCashmin = 0
+   viCashmax = 0
    
    vrSound_hit = chupacabra_sound_hit
    vrSound_miss = chupacabra_sound_miss
    vrSound_aware = chupacabra_sound_aware
    vrSound_death = chupacabra_sound_death
 
+   viBaseSize = 115
+
+   % between 1 and 10000
+   viCriticalHitRate = 2000
+   vbCanCauseBleed = TRUE
+
 properties:
 
-
-   viTreasure_type = TID_TOUGH
+   viTreasure_type = TID_CHUPACABRA
 
    piAnimation = ANIM_NONE
 
@@ -78,6 +85,12 @@ messages:
    {
       plResistances = [ [-ATCK_SPELL_UNHOLY, 50 ],
                         [-ATCK_SPELL_HOLY, -25 ] ];
+
+      plCreatureTypes = Cons(CREATURE_TYPE_ANIMAL,plCreatureTypes);
+      plCreatureTypes = Cons(CREATURE_TYPE_MUNDANE,plCreatureTypes);
+      
+      plAllySpellBook = [ [SID_HASTE,3,100, 85]];
+      
       propagate;
    }
    
@@ -146,11 +159,6 @@ messages:
          ptRevertControl = $;
       }
       propagate;
-   }
-   
-   CanMorphTo()
-   {
-      return false;
    }
    
 end

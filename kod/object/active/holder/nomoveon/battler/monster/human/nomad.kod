@@ -1,0 +1,424 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+NomadBandit is Human
+
+constants:
+
+   include blakston.khd
+
+   EQUIPMENT_DROP_PERCENT = 20
+
+resources:
+
+   NomadBandit_name_rsc = "nomad bandit"
+   NomadBandit_desc_rsc = \
+      "This desert nomad has been hardened by a life of danger and hardship. "
+      "It would not be wise to trifle with the tribe."
+   NomadBandit_dead_name_rsc = "dead nomad bandit"
+
+   nomad_head_male_icon = phaxt1.bgf  %male sorcerer level 1
+
+classvars:
+
+   vrName = NomadBandit_name_rsc
+   vrDesc = NomadBandit_desc_rsc
+   vrDead_name = NomadBandit_dead_name_rsc
+
+   viTreasure_type = TID_NONE
+
+   viSpeed = SPEED_FASTER
+   viAttack_type = ATCK_WEAP_SLASH
+   viAttributes = 0
+   viDefault_behavior = AI_MOVE_REGROUP
+
+   viColorTranslate1 = XLAT_TO_ORANGE     % Shirt
+   viColorTranslate2 = XLAT_TO_ORANGE   % Pants
+
+   vcShieldClass = &GuildShield
+   viShieldColor1 = XLAT_TO_RED
+   viShieldColor2 = XLAT_TO_RED
+   viShieldShape = SHIELDSHAPE_SLASH
+   viInsignia = $
+
+   viVisionDistance = 12
+
+   viCashMin = 200
+   viCashMax = 1600
+
+   viCanSpawnAsChampion = FALSE
+
+properties:
+
+   prHead = nomad_head_male_icon
+
+   piBaseLevel = 150
+   piBaseDifficulty = 6
+
+   %Here so they can be set
+   vrIcon = human_male_icon_rsc
+   vrDead_Icon = human_dead_male_icona_rsc
+   vrDead_Legs = human_dead_male_iconb_rsc
+   viLevel = 150         % piBaseLevel
+   viDifficulty = 6     % piBaseDifficulty
+   piGender = GENDER_MALE
+   viKarma = 0
+
+   piDemonSponsor = SSS_WITCHERY_XAERDUN
+
+messages:
+
+   Constructor(iDemonSponsor=SSS_WITCHERY_XAERDUN)
+   {
+      piDemonSponsor = iDemonSponsor;
+
+      propagate;
+   }
+
+   SetClothes()
+   {
+      Send(self,@SetDefaultClothes,#shirt_color=viColorTranslate1);
+      Send(self,@SetTroopLegs,#translation=viColorTranslate2);
+
+      return;
+   }
+
+   SetEquipment()
+   {
+      local oEquipmentItem, iRandomNumber, iBonusModifier;
+
+      iRandomNumber = Random(1,100);
+      if iRandomNumber <= 55
+      {
+         oEquipmentItem = Create(&Scimitar,#level=viLevel);
+      }
+      else if iRandomNumber <= 100
+      {
+        oEquipmentItem = Create(&BattleBow,#level=viLevel);
+        poArrow = Create(&NeruditeArrow);
+      }
+
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      Send(self,@SetDemonSponsorEquipment);
+      Send(self,@SetPhaseEquipment);
+
+      % Gauntlets?
+      iRandomNumber = Random(1,100);
+      if iRandomNumber < 20
+      {
+         oEquipmentItem = Create(&Gauntlet,#level=viLevel);
+         Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+      }
+
+      return;
+   }
+
+   SetDemonSponsorEquipment()
+   {
+      local oEquipmentItem;
+
+      switch(piDemonSponsor)
+      {
+         case SSS_WITCHERY_RAUMLAR:
+            oEquipmentItem = Create(&SkullMask,#level=viLevel);
+            Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+            break;
+         case SSS_WITCHERY_XAERDUN:
+            if Send(self,@FindUsing,#class=&RangedWeapon) = $
+            {
+               oEquipmentItem = Create(&SteelShield,#level=viLevel);
+               Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+            }
+            break;
+         case SSS_WITCHERY_NEQUZON:
+            if Send(self,@FindUsing,#class=&RangedWeapon) = $
+            {
+               oEquipmentItem = Create(&Torch,#level=viLevel);
+               Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+            }
+            break;
+         case SSS_WITCHERY_IWODACH:
+            oEquipmentItem = Create(&Circlet,#level=viLevel);
+            Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+            break;
+         case SSS_WITCHERY_VENTDAL:
+            if Send(self,@FindUsing,#class=&RangedWeapon) = $
+            {
+               oEquipmentItem = Create(&SteelShield,#level=viLevel);
+               Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+            }
+            break;
+      }
+      return;
+   }
+
+   SetPhaseEquipment()
+   {
+      local oEquipmentItem;
+
+      switch(Send(SYS,@GetDayPhase))
+      {
+         case DAY_PHASE_DAWN:
+            oEquipmentItem = Create(&Robe,#color=XLAT_TO_SKIN2,#level=viLevel);
+            Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+            break;
+         case DAY_PHASE_DAY:
+            if Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTRIVER2),@GetPrismOfFireDefeated)
+            {
+               oEquipmentItem = Create(&Robe,#color=XLAT_TO_SKIN2,#level=viLevel);
+               Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+            }
+            break;
+         case DAY_PHASE_DUSK:
+            oEquipmentItem = Create(&Robe,#color=XLAT_TO_SKIN4,#level=viLevel);
+            Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+            if Send(self,@FindUsing,#class=&Circlet) <> $
+               OR Send(self,@FindUsing,#class=&Helmet) = $
+            {
+               oEquipmentItem = Create(&SimpleHelm,#level=viLevel);
+               Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+            }
+            break;
+         case DAY_PHASE_NIGHT:
+            oEquipmentItem = Create(&Robe,#color=XLAT_TO_GRAY,#level=viLevel);
+            Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+            break;
+      }
+      return;
+   }
+
+   SetShield()
+   {
+      return;
+   }
+
+   % Override from monster superclass
+   % We drop some of our carried items when we die.
+   CreateTreasure(who = $, corpse = $)
+   {
+      local oUsedItem, oItemAtt;
+
+      oItemAtt = Send(SYS,@FindItemAttByNum,#num=IA_CORPSEPOINTER);
+
+      foreach oUsedItem in plUsing
+      {
+         % Only a percentage chance to drop each item.  Too much stuff otherwise.
+         % Don't drop the shield!  It's a quest/special item!
+         if (Random(1,100) <= EQUIPMENT_DROP_PERCENT)
+            AND (NOT IsClass(oUsedItem,vcShieldClass))
+            AND NOT pbIllusion
+         {
+            if (oItemAtt <> $) AND Send(oItemAtt,@ReqAddToItem,#oItem=oUsedItem)
+            {
+               Send(oItemAtt,@AddToItem,#oItem=oUsedItem,#state1=corpse);
+            }
+
+            Send(poOwner,@NewHold,#what=oUsedItem,
+                  #new_row=piRow,#new_col=piCol,
+                  #fine_row=piFine_row,#fine_col=piFine_col);
+         }
+         else
+         {
+            Send(oUsedItem,@Delete);
+         }
+      }
+
+      plUsing = $;
+
+      % Don't propagate.  We do everything here.
+      return;
+   }
+
+   IsAlly(target = $, regroup = FALSE)
+   {
+      local iFaction;
+
+      if IsClass(target,&NomadBandit)
+         AND Send(target,@GetDemonSponsor) = piDemonSponsor
+      {
+         return TRUE;
+      }
+
+      if IsClass(target,&Player)
+      {
+         if piDemonSponsor = SSS_WITCHERY_VENTDAL
+            AND Send(target,@HasWitcherySubSchool,#school=SSS_WITCHERY_VENTDAL)
+         {
+            return TRUE;
+         }
+         if piDemonSponsor = SSS_WITCHERY_XAERDUN
+            AND Send(target,@HasWitcherySubSchool,#school=SSS_WITCHERY_XAERDUN)
+         {
+            return TRUE;
+         }
+         if piDemonSponsor = SSS_WITCHERY_IWODACH
+            AND Send(target,@HasWitcherySubSchool,#school=SSS_WITCHERY_IWODACH)
+         {
+            return TRUE;
+         }
+         if piDemonSponsor = SSS_WITCHERY_NEQUZON
+            AND Send(target,@HasWitcherySubSchool,#school=SSS_WITCHERY_NEQUZON)
+         {
+            return TRUE;
+         }
+      }
+
+      propagate;
+   }
+
+   GetDemonSponsor()
+   {
+      return piDemonSponsor;
+   }
+
+   SpecialHatredBehavior(what=$)
+   {
+      local iFaction, iDemonSponsor;
+      
+      if IsClass(what,&NomadBandit)
+      {
+         % Different tribes DO NOT like each other
+         iDemonSponsor = Send(what,@GetDemonSponsor);
+         if iDemonSponsor = SSS_WITCHERY_XAERDUN
+            AND piDemonSponsor = SSS_WITCHERY_VENTDAL
+         {
+            return 60;
+         }
+         if iDemonSponsor = SSS_WITCHERY_VENTDAL
+            AND piDemonSponsor = SSS_WITCHERY_XAERDUN
+         {
+            return 60;
+         }
+         if iDemonSponsor = SSS_WITCHERY_IWODACH
+            AND piDemonSponsor = SSS_WITCHERY_NEQUZON
+         {
+            return 60;
+         }
+         if iDemonSponsor = SSS_WITCHERY_NEQUZON
+            AND piDemonSponsor = SSS_WITCHERY_IWODACH
+         {
+            return 60;
+         }
+         if iDemonSponsor = SSS_WITCHERY_RAUMLAR
+         {
+            % Everyone hates Raumlar followers.
+            return 100;
+         }
+      }
+
+      if IsClass(what,&User)
+      {
+         if piDemonSponsor = SSS_WITCHERY_RAUMLAR
+         {
+            % Raumlar followers hate everyone.
+            return 100;
+         }
+         if piDemonSponsor = SSS_WITCHERY_VENTDAL
+         {
+            if Send(what,@HasWitcherySubSchool,#school=SSS_WITCHERY_XAERDUN)
+            {
+               return 100;
+            }
+         }
+         if piDemonSponsor = SSS_WITCHERY_XAERDUN
+         {
+            if Send(what,@HasWitcherySubSchool,#school=SSS_WITCHERY_VENTDAL)
+            {
+               return 100;
+            }
+         }
+         if piDemonSponsor = SSS_WITCHERY_NEQUZON
+         {
+            if Send(what,@HasWitcherySubSchool,#school=SSS_WITCHERY_IWODACH)
+            {
+               return 100;
+            }
+         }
+         if piDemonSponsor = SSS_WITCHERY_IWODACH
+         {
+            if Send(what,@HasWitcherySubSchool,#school=SSS_WITCHERY_NEQUZON)
+            {
+               return 100;
+            }
+         }
+      }
+
+      if NOT IsClass(what,&Human)
+      {
+         return 5;
+      }
+
+      return 0;
+   }
+
+   TargetSwitch(what=$,iHatred=0,forally=FALSE)
+   {
+      local i;
+
+      if what = $
+         OR poOwner = $
+      {
+         Debug("BAD target we're switching to here!");
+
+         return;
+      }
+
+      if IsClass(what,&User)
+         AND NOT Send(what,@IsLoggedOn)
+      {
+         % Trying to switch to someone logged off. Can't do that.
+         return;
+      }
+
+      piHatred = iHatred;
+
+      if poTarget <> $
+         AND Send(poTarget,@GetOwner) = poOwner
+         AND IsClass(poTarget,&user)
+      {
+         Send(poTarget,@SubtractFromMonsterChasers,
+              #level=piAmountAddedToMonsterChasers);
+      }
+
+      poTarget = what;
+      if IsClass(poTarget,&user)
+      {
+         piAmountAddedToMonsterChasers = piLevel;
+         Send(poTarget,@AddToMonsterChasers,#level=piAmountAddedToMonsterChasers);
+      }
+
+      piState = (piState & VSTATE_VALIDITY_MASK);
+
+      % 'lock' sound
+      if vrSound_aware <> $
+      {
+         Send(poOwner,@SomethingWaveRoom,#what=self,#wave_rsc=vrSound_aware);
+      }
+
+      % Call our tribe!
+      if NOT forally
+         AND poOwner <> $
+      {
+         foreach i in Send(poOwner,@GetHolderActive)
+         {
+            if IsClass(First(i),&NomadBandit)
+               AND Send(self,@IsAlly,#target=First(i))
+            {
+               Send(First(i),@TargetSwitch,#what=what,#iHatred=100,#forally=TRUE);
+               Send(First(i),@EnterStateChase,#target=what,#actnow=TRUE);
+            }
+         }
+      }
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -21,8 +21,15 @@ resources:
    SacredResonance_name_rsc = "sacred resonance"
    SacredResonance_icon_rsc = isacrres.bgf
    SacredResonance_desc_rsc = \
-      "The music of this song hinders the casting of the dark spells of Qor.  "
+      "The music of this song hinders the casting of the dark spells of Qor "
+      "and protects all who hear it from blinding and dazzling magics. "
+      "In addition, listeners are protected from Qor's preferred elements, "
+      "unholy and acid. "
       "A ruby and an entroot berry are required to begin performing this song."
+      
+   sacred_resist_rsc = \
+      "\n\nIn addition to hindering the magics of Qor, the song of Sacred Resonance currently affecting "
+      "you adds %i\% unholy resistance and acid resistance."
 
    SacredResonance_song = goodfor.mp3
 
@@ -42,6 +49,12 @@ classvars:
 
    viHinderedSchool = SS_QOR
 
+   viResistOne = -ATCK_SPELL_UNHOLY
+   viResistTwo = -ATCK_SPELL_ACID
+
+   viDivisorOne = 6
+   viDivisorTwo = 6
+
 properties:
 
    prMusic = SacredResonance_song
@@ -57,6 +70,43 @@ messages:
       return;
    }
 
+   AddBlindResistance(power=0,resistance=0)
+   {
+      return resistance + power/3;
+   }
+
+   SendStatsDesc(who=$)
+   {
+      if who <> $
+         AND IsClass(who,&User)
+         AND Send(who,@GetMostPowerfulRadiusEnchantmentState,#byClass=&SacredResonance) <> $
+      {
+         Send(self,@EffectDesc,#who=who);
+
+         return;
+      }
+
+      propagate;
+   }
+
+   EffectDesc(who=$)
+   {
+      local lState, iDivisorOne;
+      
+      lState = Send(who,@GetMostPowerfulRadiusEnchantmentState,#byClass=&SacredResonance);
+
+      if lState <> $
+      {
+         iDivisorOne = viDivisorOne;
+         if iDivisorOne = 0
+         {
+            iDivisorOne = 1;
+         }
+         AddPacket(4,sacred_resist_rsc, 4,Nth(lState,2)/iDivisorOne);
+      }
+
+      propagate;
+   }
 
 end
 

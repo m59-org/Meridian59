@@ -18,10 +18,10 @@ constants:
 resources:
 
    RecklessHeart_name_rsc = "reckless heart"
-   RecklessHeart_icon_rsc = ikillfel.bgf
+   RecklessHeart_icon_rsc = irecklessheart.bgf
    RecklessHeart_desc_rsc = "A master stance that employs reckless energy to increase damage to both the warrior and his enemies."
 
-   RecklessHeart_skill_intro = "Banditry Lv. 5: A stance that increases final damage dealt to both the warrior and his enemies."
+   RecklessHeart_skill_intro = "Banditry Lv. 6: A stance that increases final damage dealt to both the warrior and his enemies."
    
    RecklessHeart_begin = "Your heart pounds as you prepare for violence."
    RecklessHeart_end = "Your heartrate slows."
@@ -49,12 +49,15 @@ classvars:
    viSchool = SKS_BANDITRY
    viSkill_Level = 6
    viChance_to_Increase = 5
-   viMeditate_ratio = 500
+   viMeditate_ratio = 80
 
    viSkillExertion = 0
    vbCheck_exertion = FALSE
 
    vbAutomatic = TRUE
+   
+   viPrimaryStat = STAT_ID_MIGHT
+   viSecondaryStat = 0
 
 properties:
 
@@ -72,9 +75,9 @@ messages:
       iRecklessHeartAbility = Send(who,@GetSkillAbility,#skill_num=viSkill_num);
       iStat = Send(self,@GetRequisiteStat,#who=who);
 
-      % Up to 20% final damage increase from skill, and up to 5% from stat.
-      iDamageBonus = 100 + ((iRecklessHeartAbility+1) / 5) + (Bound(iStat-20,0,50) / 10);
-      iDamageBonus = Bound(iDamageBonus,100,205);
+      % Up to 33% final damage increase from skill, and up to 10% from stat.
+      iDamageBonus = 100 + ((iRecklessHeartAbility) / 3) + (iStat / 10);
+      iDamageBonus = Bound(iDamageBonus,100,160);
 
       if what <> $
          AND IsClass(what,&Battler)
@@ -82,7 +85,7 @@ messages:
          Send(self,@ImproveAbility,#who=who,#target=what);
       }
       
-      return damage * iDamageBonus / 100;
+      return (damage * iDamageBonus) / 100;
    }
 
    LastPriorityModifyDefenseDamage(who=$,what=$,damage=$)
@@ -91,11 +94,11 @@ messages:
 
       iRecklessHeartAbility = Send(who,@GetSkillAbility,#skill_num=viSkill_num);
 
-      % Up to 20% final damage increase
-      iDamageBonus = 100 + ((iRecklessHeartAbility+1) / 5);
-      iDamageBonus = Bound(iDamageBonus,100,120);
+      % Up to 33% final damage increase
+      iDamageBonus = 100 + ((iRecklessHeartAbility) / 3);
+      iDamageBonus = Bound(iDamageBonus,100,150);
 
-      return damage * iDamageBonus / 100;
+      return (damage * iDamageBonus) / 100;
    }
 
 

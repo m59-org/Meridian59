@@ -1,0 +1,90 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+MediumArmor is KnightcraftSkill
+
+constants:
+
+   include blakston.khd
+   include protocol.khd   
+
+resources:
+
+   MediumArmor_name_rsc = "medium armor"
+   MediumArmor_icon_rsc = igort.bgf
+   MediumArmor_desc_rsc = \
+      "Most knights spend their early career soldiering, where they learn "
+      "to become comfortable in scale armor. Stronger warriors "
+      "will wear medium armor more effectively."
+
+   MediumArmor_skill_intro = \
+      "Knightcraft Lv. 1: Reduces the defense penalty of scale armor."
+
+classvars:
+
+   vrName = MediumArmor_name_rsc
+   vrIcon = MediumArmor_icon_rsc
+   vrDesc = MediumArmor_desc_rsc
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+
+   vrSkill_intro = MediumArmor_skill_intro
+
+   viSkill_num = SKID_MEDIUM_ARMOR
+   viSchool = SKS_KNIGHTCRAFT
+   viSkill_Level = 1
+   viChance_to_Increase = 5
+   viMeditate_ratio = 60
+
+   viSkillExertion = 0
+   vbCheck_exertion = FALSE
+
+   vbAutomatic = TRUE
+   
+   viPrimaryStat = STAT_ID_MIGHT
+   viSecondaryStat = 0
+
+properties:
+
+messages:
+
+   GetRequisiteStat(who=$)
+   {
+      return Send(who,@GetMight);
+   }
+   
+   GetArmorSkillBonus(who=$)
+   {
+      local iMight, iSkillAbility;
+
+      if who <> $
+         AND IsClass(who,&Player)
+      {
+         iMight = Send(who,@GetMight);
+         iSkillAbility = Send(who,@GetSkillAbility,#Skill_num=viSkill_num);
+         
+         % A 99% and 100 Might character can remove all armor penalty.
+         return (50*(((iSkillAbility+1)/2)+(iMight/2)))/100; 
+      }
+      return 0;
+   }
+
+   TookAHit(who=$)
+   {
+      if who <> $
+      {
+         Send(self,@ImproveAbility,#who=who);
+      }
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

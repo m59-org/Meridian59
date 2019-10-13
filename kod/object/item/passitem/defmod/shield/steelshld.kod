@@ -1,0 +1,79 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+SteelShield is Shield
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   steelshield_name_rsc = "nomad shield"
+   steelshield_icon_rsc = newshield.bgf
+   steelshield_desc_rsc = \
+      "The Biskalanic peoples once had access to metals not available "
+      "on the Meridian mainland; metals which remain uncorroded "
+      "even centuries later. "
+      "This shield still bears the proud and undamaged design of the "
+      "ancient sorcerers who crafted it. Once a symbol of civilization "
+      "and duty, it is now nothing but a reminder of what was lost. "
+      "\n\nThis sorcerous shield is layered in such a way as to channel magical energies "
+      "away from the wielder at the cost of slightly amplifying the force "
+      "of incoming physical attacks."
+
+   steelshield_window_overlay_rsc = povshldN1.bgf
+
+classvars:
+
+   vrName = steelshield_name_rsc
+   vrIcon = steelshield_icon_rsc
+   vrDesc = steelshield_desc_rsc
+
+   viHits_init_min = 800
+   viHits_init_max = 950
+
+   viValue_average = 5000
+   viWeight = 155
+   viBulk = 155
+
+   vrShield_window_overlay = steelshield_window_overlay_rsc
+   vrShield_overlay = steelshield_icon_rsc
+
+   viGround_group = 3
+   viInventory_group = 1
+   viBroken_group = 4
+
+   viDefense_base = 30
+   viDamage_base = 0
+   viHexResistance = 22
+
+properties:
+
+messages:
+
+   GetResistanceModifiers()
+   {
+      if Send(SETTINGS_OBJECT,@GetDirectArmorEnabled)
+      { 
+         return [ [ATCK_WEAP_SLASH,10],
+                  [ATCK_WEAP_BLUDGEON,10],
+                  [ATCK_WEAP_THRUST,10]
+                ];
+      }
+      
+      return [ [ATCK_WEAP_ALL,-5],
+               [-ATCK_SPELL_ALL,10]
+               ];
+   }
+
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

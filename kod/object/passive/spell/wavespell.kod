@@ -1,0 +1,48 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+WaveSpell is Spell
+
+%  Wave spells create wall elements that move
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+classvars:
+
+   viHarmful = TRUE
+
+properties:
+
+
+messages:
+
+   GetNumSpellTargets()
+   {
+      return 0;
+   }
+
+   CastSpell(who = $, lTargets = $, iSpellPower = 1)
+   {
+      Send(self,@PlaceWaveElements,#who=who,#iSpellPower=iSpellPower);
+
+      propagate;
+   }
+
+   PlaceWaveElements(who = $, iSpellPower = 0)
+   {
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

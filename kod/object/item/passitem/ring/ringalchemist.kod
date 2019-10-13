@@ -1,0 +1,260 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+RingAlchemist is Ring
+
+constants:
+
+   include blakston.khd
+
+   % use a charge every x milliseconds
+   RING_ALCHEMIST_CHARGE_RATE = 10000
+   RING_ALCHEMIST_CHARGE_LOSS_RATE = 1000
+
+resources:
+
+   ring_alchemist_name_rsc = "alchemist's ring"   
+   ring_alchemist_icon_rsc = ring3.bgf
+   ring_alchemist_desc_rsc = \
+      "This ring bears strange markings. It looks to be the work "
+      "of an alchemist. Indeed, it seems a %s spell of %i power has been "
+      "imbued directly into the runes. It will continually provide "
+      "that magic while worn, restoring it shortly even if purging energies remove it."
+      "\n\nBeing an alchemist's ring, it will not disappear upon "
+      "being completely drained, and will instead slowly recharge over time while not being worn."
+      "\n\nThose who are not alchemists can use a ring such as this, but without "
+      "the ring sustainment techniques held as closely guarded secrets, its magic will not last very long."
+
+   ring_alchemist_use = "Alchemical energies surround you."
+   ring_alchemist_use_wav_rsc = invis_ring.wav
+  
+   ring_alchemist_dead_rsc = "Your alchemist's ring goes cold, having expended its magical energy."
+   
+   ring_alchemist_already_buffed_rsc = \
+      "You cannot wear that ring, as you are already affected by its imbued spell."
+
+   no_charges_alchemist_ring = \
+      "This ring is out of charges! It needs time to recharge."
+      
+classvars:
+
+   vrRealName = ring_alchemist_name_rsc
+   vrIcon = ring_alchemist_icon_rsc
+   vrRealDesc = ring_alchemist_desc_rsc
+
+
+   viBulk = 5
+   viWeight = 10
+   
+   viValue_average = 150
+   
+   viUnrevealedColor = PT_ITEM_XLAT_BLUE_TO_ORANGE
+   viRevealedColor = PT_ITEM_XLAT_BLUE_TO_ORANGE
+
+properties:
+
+   viHits_init_min = 24
+   viHits_init_max = 42
+
+   pbIn_use = False
+   ptCharge = $
+   ptRecharge = $
+   
+   pidBuff = 0
+   piRingPower = 0
+
+messages:
+
+   Constructor(idBuff=0, iRingPower=0, level=20)
+   {
+      if Send(SYS,@FindSpellByNum,#num=idBuff) <> $
+      {
+         pidBuff = idBuff;
+      }
+      else
+      {
+         pidBuff = SID_BLESS;
+      }
+      
+      piRingPower = iRingPower;
+      viHits_init_min = 24 + iRingPower;
+      viHits_init_max = 42 + iRingPower;
+      
+      Post(self,@RevealHiddenAttributes);
+
+      propagate;
+   }
+
+   ReqUse(what = $)
+   {
+      local oBuff;
+      
+      if piHits <= 0
+      {
+         Send(poOwner,@MsgSendUser,#message_rsc=no_charges_alchemist_ring);
+         return FALSE;
+      }
+      
+%      if Send(what,@IsEnchanted,#what=Send(SYS,@FindSpellByNum,#num=pidBuff))
+%      {
+%	      Send(poOwner,@MsgSendUser,#message_rsc=ring_alchemist_already_buffed_rsc);
+%	      return FALSE;
+%      }
+
+      propagate;
+   }
+
+   NewUsed(what = $)
+   {
+      if vrName <> vrRealName
+      {
+         % Identify upon equip, 'testing out' the ring
+         Send(self,@RevealHiddenAttributes);
+         Send(self,@RevealHiddenColor);
+         Send(Send(self,@GetOwner),@SomethingChanged,#what=self);
+      }
+
+      if ptRecharge <> $
+      {
+         DeleteTimer(ptRecharge);
+         ptRecharge = $;
+      }
+      if ptCharge <> $
+      {
+	      DeleteTimer(ptCharge);
+      }
+      ptCharge = CreateTimer(self,@ChargeTimer,RING_ALCHEMIST_CHARGE_LOSS_RATE);
+
+      % Give message
+      Send(poOwner,@MsgSendUser,#message_rsc=ring_alchemist_use);
+      
+      pbIn_use = True;
+      Send(Send(SYS,@FindSpellByNum,#num=pidBuff),@CastSpell,#bItemCast=TRUE,#who=poOwner,#lTargets=[poOwner],#iSpellPower=piRingPower,#bSecondaryCast=TRUE,#bSustainedByItem=TRUE);
+
+      propagate;
+   }
+
+   NewUnused(what = $)
+   {
+      if ptCharge = $
+      {
+         %debug("alchemist ring",self,"got unused when has no timer");
+      }
+      else
+      {
+         DeleteTimer(ptCharge);
+         ptCharge = $;
+      }
+
+      pbIn_use = False;
+
+      if Send(what,@IsEnchanted,#what=Send(SYS,@FindSpellByNum,#num=pidBuff))
+      {
+         Send(what,@RemoveEnchantment,#what=Send(SYS,@FindSpellByNum,#num=pidBuff),#report=FALSE);
+      }
+
+      if ptRecharge = $
+      {
+         ptRecharge = CreateTimer(self,@RechargeTimer,RING_ALCHEMIST_CHARGE_RATE);
+      }
+
+      propagate;
+   }
+
+   SetItemPlayerFlag()
+   {
+      propagate;
+   }
+
+   RechargeTimer(timer=$)
+   {
+      ptRecharge = $;
+      
+      if piHits < piHits_init
+      {
+         piHits++;
+      }
+
+      if piHits < piHits_init
+      {
+         ptRecharge = CreateTimer(self,@RechargeTimer,RING_ALCHEMIST_CHARGE_RATE);
+      }
+      
+      return;
+   }
+
+   ChargeTimer()
+   "Called every minute to drain a hit, using up the ring."
+   {
+      ptCharge = $;
+      
+      if NOT Send(poOwner,@IsEnchanted,#what=Send(SYS,@FindSpellByNum,#num=pidBuff))
+         AND NOT Send(poOwner,@IsInCannotInteractMode)
+      {
+         Send(Send(SYS,@FindSpellByNum,#num=pidBuff),@CastSpell,#bItemCast=TRUE,#who=poOwner,#lTargets=[poOwner],#iSpellPower=piRingPower,#bSecondaryCast=TRUE,#bSustainedByItem=TRUE);
+      }
+
+      if poOwner <> $
+         AND IsClass(poOwner,&Player)
+         AND Send(poOwner,@HasSkill,#num=SKID_RING_SUSTAINMENT)
+         AND Send(Send(SYS,@FindSkillByNum,#num=SKID_RING_SUSTAINMENT),@DoSkill,#who=poOwner,#oEquipment=self)
+      {
+         ptCharge = CreateTimer(self,@ChargeTimer,RING_ALCHEMIST_CHARGE_LOSS_RATE * ((Send(poOwner,@GetSkillAbility,#Skill_num=SKID_RING_SUSTAINMENT)+26)/25));
+         return;
+      }
+      else
+      {
+         piHits = piHits - 1;
+      }
+
+      if piHits <= 0
+      {
+         Send(poOwner,@MsgSendUser,#message_rsc=ring_alchemist_dead_rsc);
+         Send(poOwner,@TryUnuseItem,#what=self);
+         return;
+      }
+
+      ptCharge = CreateTimer(self,@ChargeTimer,RING_ALCHEMIST_CHARGE_LOSS_RATE);
+      return;
+   }
+
+   UserLogoff()
+   {
+      Send(poOwner,@TryUnuseItem,#what=self);
+
+      propagate;
+   }
+
+   delete()
+   {
+     if ptCharge <> $
+     {
+       DeleteTimer(ptCharge);
+       ptCharge = $;
+     }
+      if ptRecharge <> $
+      {
+         DeleteTimer(ptRecharge);
+         ptRecharge = $;
+      }
+     propagate;
+   }
+
+   DoBaseDesc()
+   "Items can override this to provide a more detailed base description."
+   {
+      AddPacket(4,vrRealDesc, 4,Send(Send(SYS,@FindSpellByNum,#num=pidBuff),@GetName), 4, piRingPower);
+
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+

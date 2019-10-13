@@ -1,0 +1,125 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ProperMaintenance is AlchemySkill
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   proper_maintenance_name_rsc = "proper maintenance"
+   proper_maintenance_icon_rsc = imend.bgf
+   proper_maintenance_desc_rsc = \
+      "Rigorous upkeep of equipment is essential to the study of alchemy. "
+      "There is little magic about it, just good old fashioned hard work "
+      "and discipline. Continual minor transmutations will help an "
+      "alchemist maintain their gear in tip-top shape."
+      "\n\nAlchemical creation depends upon the essence of gold, "
+      "so each process consumes some number of transmuted shillings. "
+      "More skilled alchemists can consume less gold with each transmutation."
+      "\n\nThe more durability the equipment has, the better chance of resisting wear and tear. "
+      "If the armor starts to become damaged, the problems will spread rapidly."
+
+   not_enough_shillings_proper_maintenance = \
+      "You don't have the %i shillings required to resist durability loss!"
+   transmute_shillings_proper_maintenance = \
+      "You alchemically melt %i shillings to resist a point of durability loss."
+
+classvars:
+
+   vrName = proper_maintenance_name_rsc
+   vrIcon = proper_maintenance_icon_rsc
+   vrDesc = proper_maintenance_desc_rsc
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+
+   viSkill_num = SKID_MAINTENANCE
+   viSchool = SKS_ALCHEMY
+   viSkill_Level = 2
+   viChance_to_Increase = 20
+   viMeditate_ratio = 40
+
+   viSkillExertion = 0
+   vbCheck_exertion = FALSE
+   
+   viPrimaryStat = STAT_ID_INTELLECT
+   viSecondaryStat = 0
+
+properties:
+
+messages:
+
+   GetRequisiteStat(who=$)
+   {
+      return Send(who,@GetIntellect);
+   }
+
+   DoSkill(who=$, oEquipment=$)
+   {
+      local iAbility, iStat, iDurability, iChance, oMoney, iCash, iFee;
+
+      iAbility = Send(who,@GetSkillAbility,#Skill_num=viSkill_num);
+      iStat = Send(self,@GetRequisiteStat,#who=who);
+      iDurability = Send(oEquipment,@GetHits);
+      
+      if iDurability < 1
+      {
+         return FALSE;
+      }
+
+      % First: 1 in iDurability, incentivizing keeping high durability
+      if Random(1,iDurability) = 1
+      {
+         return FALSE;
+      }
+
+      iChance = Bound(iAbility + iStat/5,10,100);
+      if Random(1,100) > iChance
+      {
+         return FALSE;
+      }
+      
+      % We succeeded! Or, rather, didn't fail. Shilling cost time.
+
+      oMoney = Send(who,@GetMoneyObject);
+      if oMoney = $
+      {
+         % No cash.
+         iCash = 0;
+      }
+      else
+      {
+         iCash = Send(oMoney,@GetValue);
+      }
+      
+      % Fee ranges from 1x down to .1x.
+      iFee = Send(oEquipment,@GetInitValue);
+      iFee = iFee - ((iFee*9/10)*(iAbility+1))/100;
+
+      if iCash < iFee AND iFee <> 0
+      {
+         %Send(who,@MsgSendUser,#message_rsc=not_enough_shillings_proper_maintenance,#parm1=iFee);
+         return FALSE;
+      }
+
+      if iFee <> 0
+      {
+         Send(oMoney,@SubtractNumber,#number=iFee);
+         %Send(who,@MsgSendUser,#message_rsc=transmute_shillings_proper_maintenance,#parm1=iFee);
+      }
+
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

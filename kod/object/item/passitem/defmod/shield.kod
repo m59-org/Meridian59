@@ -65,12 +65,23 @@ messages:
    % Called here, different shields can give different bonuses.
    GetBlockAbility(who = $)
    {
-      return bound(send(who,@GetSkillAbility,#skill_num=SKID_BLOCK) + piDefense_bonus,1,120);
+      return Send(who,@GetSkillAbility,#skill_num=SKID_BLOCK) + piDefense_bonus;
    }
 
    % Shields use the defense bonus as a bonus to block instead.
    ModifyDefensePower(who = $,what = $,defense_power = 0)
    {
+      local i, oDefenseMod;
+
+      foreach i in plEnchantmentMods
+      {
+         if Nth(i,1) = &DefenseMod
+         {
+            oDefenseMod = Send(SYS,@GetMagicMod,#class=&DefenseMod);
+            defense_power = Send(oDefenseMod,@ModifyDefensePower,#defense_power=defense_power,#iState=Nth(i,2));
+         }
+      }
+
       return defense_power;
    }
 
@@ -241,6 +252,27 @@ messages:
       return;
    }
 
+   GetPrefixes()
+   {
+      return [[&ArmorMod,100],
+              [&DefenseMod,100],
+              [&HealthMod,50],
+              [&ManaMod,100],
+              [&VigorMod,300]];
+   }
+
+   GetSuffixes()
+   {
+      return [[&FireResistanceMod,100],
+              [&ColdResistanceMod,100],
+              [&ShockResistanceMod,100],
+              [&AcidResistanceMod,100],
+              [&PierceResistanceMod,100],
+              [&SlashResistanceMod,100],
+              [&BludgeonResistanceMod,100],
+              [&ThrustResistanceMod,100],
+              [&WeaponAgilityMod,50]];
+   }
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -1,0 +1,91 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+DesertTomb1 is DesertRoom
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   room_deserttomb1 = deserttomb3.roo
+   room_name_deserttomb1 = "Desolate Dunes"
+   
+   enter_tomb_msg = \
+      "You enter the ancient tomb of some long forgotten sorcerer."
+
+classvars:
+
+   vrName = room_name_deserttomb1
+
+   viTeleport_row = 60
+   viTeleport_col = 102
+
+   vbSpawnMonsters = TRUE
+
+properties:
+
+   piBaseLight = LIGHT_DARK
+   piOutside_factor = OUTDOORS_5 
+
+   piDirectional_percent = DIRECTIONAL_PERCENT_OUTDOORS
+
+   prRoom = room_deserttomb1
+   piRoom_num = RID_DESERTTOMB1
+
+messages:
+
+   SomethingTryGo(what = $,row = $,col = $)
+   {
+      % CONFIGURATION 1
+      if row = 37 
+         OR row = 36
+      {
+         if col = 121
+            OR col = 122
+         {
+            Send(what,@MsgSendUser,#message_rsc=enter_tomb_msg);
+            Send(Send(SYS,@FindRoomByNum,#num=RID_ANCIENT_TOMB_START),@Teleport,#what=what);
+         }
+
+         return TRUE;
+      }
+      % CONFIGURATION 2
+      if row = 98
+      {
+         if col = 62
+            OR col = 63
+         {
+            Send(what,@MsgSendUser,#message_rsc=enter_tomb_msg);
+            Send(Send(SYS,@FindRoomByNum,#num=RID_ANCIENT_TOMB_START),@Teleport,#what=what);
+         }
+
+         return TRUE;
+      }
+      % CONFIGURATION 3
+      if row = 13
+         OR row = 12
+      {
+         if col = 49
+            OR col = 48
+         {
+            Send(what,@MsgSendUser,#message_rsc=enter_tomb_msg);
+            Send(Send(SYS,@FindRoomByNum,#num=RID_ANCIENT_TOMB_START),@Teleport,#what=what);
+         }
+
+         return TRUE;
+      }
+
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

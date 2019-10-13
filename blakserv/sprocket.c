@@ -78,8 +78,7 @@ client_def_table_type client_def_table[] =
 	{ BP_SEND_ENCHANTMENTS,    { {1, TAG_INT}, {0, DONE_PARM} } },
 	{ BP_CHANGED_STATS,               { {1, TAG_INT}, {1, TAG_INT}, {1, TAG_INT}, {1, TAG_INT},
                                        {1, TAG_INT}, {1, TAG_INT},{1, TAG_INT}, {1, TAG_INT},
-                                       {1, TAG_INT}, {1, TAG_INT}, {1, TAG_INT}, {1, TAG_INT},
-                                       {1, TAG_INT}, {0, DONE_PARM} } },
+                                       {1, TAG_INT}, {1, TAG_INT}, {1, TAG_INT}, {1, TAG_INT}, {1, TAG_INT}, {0, DONE_PARM} } },
 	
 };
 int num_client_msgs = sizeof(client_def_table)/sizeof(client_def_table_type);

@@ -1,0 +1,138 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+AirElemental is Monster
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   airelemental_koc_name_rsc = "riz'ix quitch"
+   airelemental_name_rsc = "air elemental"
+   airelemental_icon_rsc = deserttwister.bgf
+   airelemental_desc_rsc = \
+      "It's just sand and wind. How dangerous could it be?"
+
+   airelemental_dead_icon_rsc = airelementaldead.bgf
+   airelemental_dead_name_rsc = "pile of sand"
+
+   airelemental_sound_hit = gst_atkh.wav
+   airelemental_sound_miss = gst_atkm.wav
+   airelemental_sound_death = gst_dth.wav
+   airelemental_sound_aware = gst_awr.wav
+
+classvars:
+
+   vrKocName = airelemental_koc_name_rsc
+   vrName = airelemental_name_rsc
+   vrIcon = airelemental_icon_rsc
+   
+   vrDead_icon = airelemental_dead_icon_rsc
+   vrDead_name = airelemental_dead_name_rsc
+
+   viIndefinite = ARTICLE_AN
+   viTreasure_type = TID_AIR_ELEMENTAL
+   viSpeed = SPEED_FAST
+   viLevel = 170
+   viDifficulty = 9
+   viVisionDistance = 60
+   % Attack range of 192, or 3 row/col.
+   viAttackRange = 192
+   viAttack_spell = ATCK_SPELL_SHOCK
+   viKarma = 0
+   vbIsUndead = FALSE
+   viCashmin = 1000
+   viCashmax = 5500
+   vrSound_hit = airelemental_sound_hit
+   vrSound_miss = airelemental_sound_miss
+   vrSound_aware = airelemental_sound_aware
+   vrSound_death = airelemental_sound_death
+
+   viDead_drawfx = DRAWFX_TRANSLUCENT_75
+   viDefault_behavior = \
+      AI_FIGHT_AGGRESSIVE | AI_MOVE_WALKTHROUGH_WALLS \
+      | AI_FIGHT_WIZARD_KILLER | AI_MOVE_FLEE_FRIGHTENERS
+   
+   viBaseSize = 5
+   viBaseKnockbackPercentage = 0
+   viBaseBleedPercentage = 0
+   viBaseStunPercentage = 0
+
+   vbBonusXPGain = 170
+   
+properties:
+
+   piAnimation = ANIM_NONE
+   piGroup = 1
+   piDrawEffectFlag = OF_FLICKERING
+   piDrawfx = DRAWFX_TRANSLUCENT_75
+   piMinDamage = 1
+   piMaxDamage = 25
+   vrDesc = airelemental_desc_rsc
+
+   piMax_mana = 20
+   piMeleeSpellChance = 100
+   piRangedSpellChance = 50
+   
+messages:
+
+   Constructed()
+   {
+      plCreatureTypes = Cons(CREATURE_TYPE_ELEMENTAL,plCreatureTypes);
+      plCreatureTypes = Cons(CREATURE_TYPE_SHOCK,plCreatureTypes);
+      plCreatureTypes = Cons(CREATURE_TYPE_AIR,plCreatureTypes);
+      plCreatureTypes = Cons(CREATURE_TYPE_MAGICAL,plCreatureTypes);
+
+      plResistances = [ [ATCK_WEAP_ALL, 200]
+                      ];
+
+      plMeleeSpellBook = [ [ SID_SHOCKING_FURY, 3, 100, Random(40,99) ] ];
+      plRangedSpellBook = [ [ SID_LIGHTNING_BOLT, 3, 100, Random(40,99) ] ];
+
+      plAllySpellBook = [ [SID_RESIST_SHOCK,5,100, Random(40,99)]];
+
+      propagate;
+   }
+
+   GetBaseEmpowerments()
+   {
+      return [[-ATCK_SPELL_SHOCK,150]];
+   }
+
+   MonsterAttack(what = $)
+   {
+      return;
+   }
+
+   SendLookAnimation()
+   {
+      AddPacket(1,ANIMATE_CYCLE, 4,150, 2,1, 2,8);
+
+      return;
+   }
+
+   SendMoveAnimation()
+   {
+      AddPacket(1,ANIMATE_CYCLE, 4,125, 2,1, 2,8);
+
+      return;
+   }
+
+   SendAnimation()
+   {
+      AddPacket(1,ANIMATE_CYCLE, 4,150, 2,1, 2,8);
+
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

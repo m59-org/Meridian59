@@ -1,0 +1,108 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+SpellBomb is Spell
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   Spell_Bomb_name_rsc = "spell bomb"
+   Spell_Bomb_icon_rsc = iflash.bgf
+   Spell_Bomb_desc_rsc = \
+      "Master alchemists dispense with the toys of youth and begin "
+      "playing with fundamental forces. A properly prepared set of "
+      "reagents, mana, and alchemical forces can cast a random fire, cold, shock, or acid splash spell "
+      "the alchemist knows at one nearby enemy. The spell bomb is the least understood and most unstable bomb. "
+      "When laid, it will detonate whenever an enemy steps on it, or "
+      "if the alchemist casts 'detonate bombs.' "
+      "If the alchemist knows no attack spells at all, "
+      "the spell bomb's unpredictability will become a liability. "
+      "Otherwise, it will use the alchemist's "
+      "spell ability to assault the enemy. "
+      "\n\nThe bag and the elements for the bomb are transmuted "
+      "directly from gold, so only shillings are required."
+      "\n\nOnly a certain number of bombs can be magically controlled "
+      "at once. Any above this limit are designed to harmlessly defuse, "
+      "so that no innocents wander past and get harmed."
+
+   Spell_Bomb_sound = rflash.wav
+
+classvars:
+
+   vrSucceed_wav = Spell_Bomb_sound
+
+   vrName = Spell_Bomb_name_rsc
+   vrIcon = Spell_Bomb_icon_rsc
+   vrDesc = Spell_Bomb_desc_rsc
+
+   viSpell_num = SID_CREATE_SPELL_BOMB
+   viSchool = SKS_ALCHEMY
+   viSpell_level = 5
+   viMana = 7
+   viSpellExertion = 1
+   viChance_To_Increase = 15
+   viMeditate_ratio = 50
+
+   viOutlaw = FALSE
+   viHarmful = FALSE
+   viNoNewbieOffense = FALSE
+   
+   vbSafetyReport = FALSE
+   
+   viPrimaryStat = STAT_ID_INTELLECT
+   viSecondaryStat = 0
+
+properties:
+
+messages:
+
+   ResetReagents()
+   {
+      plReagents = $;
+      plReagents = Cons([&Money,1200],plReagents);
+
+      return;
+   }
+
+   GetNumSpellTargets()
+   {
+      return 0;
+   }
+
+   CastSpell(who=$, lTargets = $, iSpellPower=0)
+   {
+      local oBomb, oRoom;
+      
+      oRoom = Send(who,@GetOwner);
+      if oRoom <> $
+         AND IsClass(oRoom,&Room)
+      {
+         oBomb = Create(&AlchemyBomb,#oCreator=who,#iType=BOMB_SPELL,#bProximityTrigger=TRUE,#iBombPower=iSpellPower);
+         Send(who,@AddBomb,#oBomb=oBomb);
+         Send(oRoom,@NewHold,#what=oBomb,
+                             #new_row=Send(who,@GetRow),
+                             #new_col=Send(who,@GetCol),
+                             #fine_row=Send(who,@GetFineRow),
+                             #fine_col=Send(who,@GetFineCol));
+      }
+
+      propagate;
+   }
+
+   PlaySpellSound()
+   {
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

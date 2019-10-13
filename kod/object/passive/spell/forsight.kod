@@ -67,6 +67,9 @@ classvars:
    viMeditate_ratio = 20
 
    viFlash = FLASH_BAD
+   
+   viPrimaryStat = STAT_ID_INTELLECT
+   viSecondaryStat = 0
 
 properties:
 
@@ -120,6 +123,11 @@ messages:
    {
       local iToList,iListed,i,oTarget,lAbilities,iCompound,iAbilityNum,
             oAbility,iAbilityLength,IMaxHopSize,iFrog,iCounter,iTemp,iSkill;
+            
+      if Send(who,@getsession) <> $
+      {
+         propagate;
+      }
 
       oTarget = First(lTargets);
       iToList = iSpellPower / 4;

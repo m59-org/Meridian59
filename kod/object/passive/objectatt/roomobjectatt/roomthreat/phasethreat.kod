@@ -35,6 +35,12 @@ resources:
       "the convergence itself."
    phase_success = \
       "You phase out of this plane of existence - and directly into another!"
+   
+   % Currently unused
+   prism_of_fire_phase_out = \
+      "You phase out of the elemental plane of fire and are drawn along "
+      "the natural curvature of the region's mana flows. Singed, but alive, "
+      "you find yourself at a familiar oasis."
 
 classvars:
 
@@ -74,9 +80,45 @@ messages:
             if Send(poHostObject,@SpecialPhaseConditionsSatisfied,
                   #sector=iServerID)
             {
+               if IsClass(poHostObject,&DesertRiver2)
+               {
+                  Send(poHostObject,@EnterPrism,#who=who);
+               }
+               if IsClass(poHostObject,&PrismOfFire)
+               {
+                  Post(Send(SYS,@FindRoomByNum,#num=RID_DESERTRIVER2),@Teleport,#what=who);
+               }
+               if IsClass(poHostObject,&PrismOfDeath)
+               {
+                  Post(Send(SYS,@FindRoomByNum,#num=RID_DESERTALDUNES),@Teleport,#what=who);
+               }
+               if IsClass(poHostObject,&PrismOfLife)
+               {
+                  Post(Send(SYS,@FindRoomByNum,#num=RID_DESERTALDUNES),@Teleport,#what=who);
+               }
+               if IsClass(poHostObject,&DesertSandbar)
+               {
+                  Post(Send(SYS,@FindRoomByNum,#num=RID_ELEMENTAL_DUNGEON3),
+                        @Teleport,#what=who);
+               }
+               if IsClass(poHostObject,&ElementalDungeon3)
+               {
+                  % Prism of Ice gets us in ReqSpellCast, but let's be sure.
+                  Post(Send(SYS,@FindRoomByNum,#num=RID_WAYLAYOASIS),
+                        @Teleport,#what=who);
+               }
+               if IsClass(poHostObject,&AcidPath)
+               {
+                  Post(Send(SYS,@FindRoomByNum,#num=RID_ELEMENTAL_DUNGEON4),
+                        @Teleport,#what=who);
+               }
+               if IsClass(poHostObject,&ElementalDungeon4)
+               {
+                  % Prism of Ice gets us in ReqSpellCast, but let's be sure.
+                  Post(Send(SYS,@FindRoomByNum,#num=RID_WAYLAYOASIS),
+                        @Teleport,#what=who);
+               }
                Post(who,@MsgSendUser,#message_rsc=phase_success);
-               Post(Send(SYS,@FindRoomByNum,#num=RID_ELEMENTAL_DUNGEON1),
-                     @Teleport,#what=who);
                Post(who,@EffectSendUserDuration,#effect=EFFECT_WHITEOUT,
                      #duration=1250);
                return FALSE;

@@ -22,7 +22,7 @@ resources:
    wolf_name_rsc = "wolf"
    wolf_icon_rsc = wolf.bgf
    wolf_desc_rsc = \
-      "A Wolf"
+      "This sleek and fast-moving creature is as vicious as it is majestic."
 
    wolf_dead_icon_rsc = wolfX.bgf
    wolf_dead_name_rsc = "dead wolf"
@@ -41,7 +41,7 @@ classvars:
    vrDead_icon = wolf_dead_icon_rsc
    vrDead_name = wolf_dead_name_rsc
 
-   viSpeed = SPEED_AVERAGE
+   viSpeed = SPEED_FAST
    viAttack_type = ATCK_WEAP_SLASH
    viDefault_behavior = AI_FIGHT_KARMA_AGGRESSIVE | AI_MOVE_FLEE_FRIGHTENERS
 
@@ -56,10 +56,12 @@ classvars:
    vrSound_aware = wolf_sound_aware
    vrSound_death = wolf_sound_death
 
+   viBaseSize = 100
+
 properties:
 
    viTreasure_type = TID_ZOMBIE
-   viLevel = 55
+   viLevel = 125
 
    piAnimation = ANIM_NONE
 
@@ -73,6 +75,9 @@ messages:
    {
       plResistances = [ [-ATCK_SPELL_UNHOLY, 50 ],
                         [-ATCK_SPELL_HOLY, -25 ] ];
+
+      plCreatureTypes = Cons(CREATURE_TYPE_ANIMAL,plCreatureTypes);
+      plCreatureTypes = Cons(CREATURE_TYPE_MUNDANE,plCreatureTypes);
       propagate;
    }
 

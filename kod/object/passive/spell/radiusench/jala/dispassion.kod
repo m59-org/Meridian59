@@ -1,0 +1,154 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Dispassion is Jala
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   Dispassion_name_rsc = "dispassion"
+   Dispassion_icon_rsc = idispassion.bgf
+   Dispassion_desc_rsc = \
+      "This song is less a song and more an ode to silence. "
+      "With no notes and no lyrics, listeners will hear nothing at all - "
+      "and that is the point. Without emotions to attune the listener one way or "
+      "another, the ability to fight similarly neutral entities is enhanced. "
+      "The strikes of all listeners will aim true and hit harder against "
+      "neutral beings. "
+      "It requires 1 unholy fragment and 1 holy fragment to cast."
+
+   Dispassion_on = "%s%s's silent song focuses you toward neutrality."
+
+   Dispassion_song = silentmusic.mp3
+
+   Dispassion_cast = "You begin to play a silent song."
+   Dispassion_starts = "%s begins to play a silent song."
+   Dispassion_ends = "The silent song played by %s fades away."
+   Dispassion_caster_ends = "Your silent song fades."
+   Dispassion_caster_enter = "Your spirit drifts toward neutral."
+   Dispassion_enter = "%s's silent song makes your spirit drift toward neutral."
+   Dispassion_leave = "You can no longer hear the silent notes of %s's song."
+
+   dispassion_bonus_rsc = \
+      "\n\nThe silent notes of this song grant you %i offense and 1-%i additional damage against neutral entities."
+
+classvars:
+
+   radius_ench_cast = Dispassion_cast
+   radius_ench_starts = Dispassion_starts
+   radius_ench_ends = Dispassion_ends
+   radius_ench_caster_ends = Dispassion_caster_ends
+   radius_ench_caster_enter = Dispassion_caster_enter
+   radius_ench_enter = Dispassion_enter
+   radius_ench_leave = Dispassion_leave
+
+   vrName = Dispassion_name_rsc
+   vrIcon = Dispassion_icon_rsc
+   vrDesc = Dispassion_desc_rsc
+
+   viSpell_num = SID_DISPASSION
+   viSchool = SS_JALA
+   viSpell_level = 2
+
+   viMana = 4
+   viManaDrain = 4
+   viDrainTime = 5000
+
+   viSpellExertion = 1
+   viChance_To_Increase = 25
+   viMeditate_ratio = 80
+
+   viAffectsEveryone = TRUE
+   
+   % What amount of mana does a Necklace-bound Jala song reserve?
+   viFlatManaReservation = 60
+
+properties:
+
+   prMusic = Dispassion_song
+
+messages:
+
+   ResetReagents()
+   {
+      plReagents = $;
+      plReagents = Cons([&HolyFragment,1],plReagents);
+      plReagents = Cons([&UnholyFragment,1],plReagents);
+
+      return;
+   }
+
+   StartSpecialEffect(what=$,iPower=0,source=$)
+   {
+      if IsClass(what,&User)
+      {
+         Send(what,@SetAction,#action=UA_NORMAL);
+      }
+
+      propagate;
+   }
+   
+   EndSpecialEffect(what=$,iPower=0,source=$)
+   {
+      propagate;
+   }
+
+   % Stuff we handle to be an attack modifier.
+
+   ModifyHitRoll(who = $,what = $,hit_roll = $,lRadiusState=$)
+   {
+      local lState;
+
+      if what = $
+         OR lRadiusState = $
+      {
+         return hit_roll;
+      }
+
+      % Only affect the neutral ones...
+      if Send(what,@GetKarma,#detect=TRUE) = 0
+      {
+         % Give a small bonus
+         return hit_roll + (Nth(lRadiusState,2)+1);
+      }
+
+      return hit_roll;
+   }
+   
+   ModifyDamage(who = $,what = $,damage = $,lRadiusState=$)
+   {
+      if what = $
+         OR lRadiusState = $
+      {
+         return damage;
+      }
+
+      % Only affect the neutral ones...
+      if Send(what,@GetKarma,#detect=TRUE) = 0
+      {
+         % Roughly equal to Killing Fields
+         return damage + Random(1,Bound(((Nth(lRadiusState,2)+1)/20),1,5));
+      }
+
+      return damage;
+   }
+
+   EffectDesc(who=$, lState=$)
+   {
+      AddPacket(4,dispassion_bonus_rsc, 4,Nth(lState,2)+1, 4, (Nth(lState,2)+1)/20);
+
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

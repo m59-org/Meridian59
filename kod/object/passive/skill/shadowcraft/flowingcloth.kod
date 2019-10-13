@@ -1,0 +1,84 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+FlowingCloth is ShadowcraftSkill
+
+constants:
+
+   include blakston.khd
+   include protocol.khd   
+
+resources:
+
+   FlowingCloth_name_rsc = "flowing cloth technique"
+   FlowingCloth_icon_rsc = dodgeico.bgf
+   FlowingCloth_desc_rsc = \
+      "Monks undergo extensive training in full vestments. "
+      "They learn to use the motion of the trailing fabric to obscure their "
+      "core points. As a result, monks are most evasive in robes."
+
+classvars:
+
+   vrName = FlowingCloth_name_rsc
+   vrIcon = FlowingCloth_icon_rsc
+   vrDesc = FlowingCloth_desc_rsc
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+
+   viSkill_num = SKID_FLOWING_CLOTH
+   viSchool = SKS_SHADOWCRAFT
+   viSkill_Level = 1
+   viChance_to_Increase = 10
+   viMeditate_ratio = 20
+
+   viSkillExertion = 0
+   vbCheck_exertion = FALSE
+
+   vbAutomatic = TRUE
+   
+   viPrimaryStat = STAT_ID_AGILITY
+   viSecondaryStat = 0
+
+properties:
+
+messages:
+
+   GetRequisiteStat(who=$)
+   {
+      return Send(who,@GetAgility);
+   }
+   
+   GetArmorSkillBonus(who=$)
+   {
+      local iStat, iSkillAbility;
+
+      if who <> $
+         AND IsClass(who,&Player)
+      {
+         iStat = Send(self,@GetRequisiteStat,#who=who);
+         iSkillAbility = Send(who,@GetSkillAbility,#Skill_num=viSkill_num);
+         
+         return iSkillAbility+1; 
+      }
+      return 0;
+   }
+
+   TookAHit(who=$)
+   {
+      if who <> $
+      {
+         Send(self,@ImproveAbility,#who=who);
+      }
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

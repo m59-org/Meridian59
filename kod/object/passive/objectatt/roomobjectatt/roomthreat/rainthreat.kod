@@ -1,0 +1,80 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+RainThreat is RoomThreat 
+
+% Whenever it rains on the mainland, dampen fire and boost shock
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   rain_threat_name_rsc = "rain"
+   rain_threat_icon_rsc = ifog.bgf
+   rain_threat_desc_rsc = \
+      "While completely natural, rain still has an effect on magic. "
+      "Attacks and spells using fire are less effective because of the water in the air, "
+      "while shock damage is deadly." 
+
+   rain_threat_begin_msg = \
+      "The rain wets the air, dampening fire and enhancing shock."
+   rain_threat_end_msg = \
+      "The rain's effect on the balance of the elements ceases."
+   rain_threat_dampens_msg = \
+      "You deal less fire damage because of all the water in the air!"
+   rain_threat_boosts_msg = \
+      "You deal more shock damage because of all the water in the air!"
+
+   rain_good_item_use_msg = \
+      "Your item relieves the rain around you somewhat."
+   rain_good_spell_use_msg = \
+      "Your spell banishes the rain in your vicinity."
+      
+   rain_threat_damage_msg = \
+      "Somehow, you are taking damage from rain."
+
+   rain_death_msg = \
+      "~B~U~k[###]~n ~B~v%s succumbed to rain somehow. Seriously though, how?"
+
+classvars:
+
+   vrName = rain_threat_name_rsc
+   vrIcon = rain_threat_icon_rsc
+   vrDesc = rain_threat_desc_rsc
+
+   viThreatBeginMsg = rain_threat_begin_msg
+   viThreatEndMsg = rain_threat_end_msg
+   viThreatDamageMsg = rain_threat_damage_msg
+   viGoodItemUseMsg = rain_good_item_use_msg
+   viGoodSpellUseMsg = rain_good_spell_use_msg
+   
+   viDeathMsg = rain_death_msg
+
+   vbDampenElement = TRUE
+   viDampenElement = ATCK_SPELL_FIRE
+   viDampenPercentage = 20
+   
+   viBoostElement = TRUE
+   viBoostElement = ATCK_SPELL_SHOCK
+   viBoostPercentage = 10
+   
+   vbReportMessages = FALSE
+
+properties:
+
+   pbDealDamage = FALSE
+   piReport = FALSE
+
+messages:
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

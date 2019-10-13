@@ -1,0 +1,819 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+LanguageMaintenance is UtilityFunctions
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   insect_language_name = "skitteratic"
+   water_language_name = "amphibic"
+   undead_language_name = "necromantic"
+   forest_language_name = "sylvan"
+   avar_language_name = "birdsong"
+   orc_language_name = "orcish"
+   animal_language_name = "primal"
+   troll_language_name = "trollimaic"
+   desert_language_name = "biskalanic"
+   dragon_language_name = "draconic"
+   
+   fail_to_understand = "You fail to understand %s%s."
+
+   orc1 = "We orcs were once much uglier, but a social beautiment program taught many how to stay fit and take care of themselves."
+   orc2 = "Passage into the warrens is difficult because of the illusion your ancient heroes placed on our warren entrance, but we dug another way through..."
+   orc3 = "There lies a node of mana in the cave where spiders live. You may partake of it if you wish."
+   orc4 = "I am simply amazed you can understand me. Our peoples have long been at war simply because of miscommunication."
+   orc5 = "We did invade your cities once, in the past. We deeply regret the divide this has caused between our peoples."
+   orc6 = "I hope to work my way up the ranks and one day become Pit Boss. Don't tell the current one I said that, though."
+   orc7 = "My recall spell fizzles constantly. I think something is wrong with me."
+   orc8 = "Tomorrow is my birthday."
+   orc9 = "You should see the wizard."
+   orc_if_orc = "You are quite good looking for a human... did you have an orcish ancestor?"
+
+   cave_orc1 = "I am on duty. I am not permitted to fraternize at this time."
+   cave_orc2 = "This area is off-limits to your kind."
+   cave_orc3 = "The Pit Boss will have my head if he catches me wasting time talking to a stranger while on duty."
+   cave_orc4 = "I am going to challenge the Pit Boss for his position one of these days. Two of my warren-mates say I would be a great Pit Boss."
+   cave_orc5 = "The wizards make my skin crawl. I would trust a pickaxe over a spell in any fight."
+   cave_orc6 = "The island-humans fear us for good reason."
+   cave_orc7 = "The island-birdmen hate us, but we do not know why."
+   cave_orc8 = "It must be terrifying to live under the open sky."
+   cave_orc9 = "I'm busy."
+   
+   cave_orc_if_elf = "What manner of creature are you, blue-skin?"
+   cave_orc_if_demon = "Your red skin makes me experience an urge toward primal violence."
+   cave_orc_if_undine = "The undine hail from a body of water how big? I do not believe you. Such a thing is impossible."
+   cave_orc_if_drow = "You are indeed far from your home caves, drow."
+   cave_orc_if_draconian = "Can you even understand me, beast?"
+   
+   cave_orc_if_orc_female = "You are far too lovely to be outside your warren unprotected."
+   cave_orc_if_orc_male = "You should look into joining the fighting elite."
+   
+   orc_wizard1 = "I could teach you a thing or two about magic, if you only had the capability."
+   orc_wizard2 = "The beasts of shadow are held back only by the valiant and constant effort of my fellow wizards."
+   orc_wizard3 = "If you see the bird priestess who scries using bones, cut off her head. It is only fair."
+   orc_wizard4 = "Merb was once great and mighty, but the beasts of shadow forced us from our ancestral city and into lesser caves."
+   orc_wizard5 = "The chamber you call enigmatic is our place of honored rest for the dead."
+   orc_wizard6 = "Brog and Grog were brothers, but only one could be Pit Boss. Their example leads our society even now, generations later."
+   orc_wizard7 = "Ah, you call your leyline of warfare Kraanan. Curious, how you have personified it. We classify Killing Fields and Mana Bomb as 'ungjukto.' It does not translate well to an outsider."
+   orc_wizard8 = "My staff was carved by my warren's first magic-wielding ancestor. His inner spark awoke during a fight for supremacy. He lost, but his warren boss saw the wisdom in keeping him alive in an entirely new position of service."
+   orc_wizard9 = "The acidic spell of 'slitherbolt' is quite draining to cast, but necessary to keep the beasts of shadow at bay without risking their claws."
+   orc_wizard10 = "We will never attack the island-humans. They earned our respect. Their founding warriors fought with a fury we never knew humans possessed."
+   
+   orc_wizard_if_demon = "Our wizards rejected the offers of demons long ago. You would be wise to do the same."
+   orc_wizard_if_drow = "How are you here, drow? We sealed our caves off from yours generations ago!"
+   orc_wizard_if_undine = "I dream of the ocean sometimes, undine. I have never been, but I have still seen it."
+   orc_wizard_if_draconian = "How incredible! You are not a natural creature at all. You are called a 'draconian,' you say?"
+   orc_wizard_if_elf = "Even we have heard of the tragedy of your Vale, sylvan one. We cannot help, but we would if we had the means."
+
+   orc_pit_boss1 = "I have two weapons. You have one. The outcome of a struggle is obvious."
+   orc_pit_boss2 = "The wizards serve me well. Do you know magic, stranger?"
+   orc_pit_boss3 = "The life of a Pit Boss is not all fighting and mating. It takes dedication and vigilance, lest a younger orc rises up and take the position for himself."
+   orc_pit_boss4 = "The bird priestess that scries with bones has sent many warriors to kill me. The warren-children have feasted on their bones."
+   orc_pit_boss5 = "I will restore our people to glory in the seat of our ancestral capital, Merb, once we destroy the beasts of shadow."
+   orc_pit_boss6 = "Konima earned honor in these tunnels long ago."
+   orc_pit_boss7 = "There is little to be said, stranger."
+   orc_pit_boss8 = "You speak our language with an uncouth accent."
+   orc_pit_boss9 = "We had a sun, like yours. It shook and spewed magma for a generation, shaping Merb, or so the tales say."
+   
+   orc_pit_boss_if_drow = "I know of your kind, drow, though our caves have not connected in generations. Be wary in these tunnels. Not many will be as understanding as I."
+   orc_pit_boss_if_draconian = "You look tough, beast. I would enjoy sparring with you."
+   orc_pit_boss_if_elf = "A Fey mated with a human, did it? Disgusting and hilarious! You are truly a tragic creature."
+   orc_pit_boss_if_undine = "We have no quarrel with your kind, water-spirit. You may find access back to your realm of water through the Aqueducts of Merb."
+   orc_pit_boss_if_demon = "We are not buying what you are probably selling, demon."
+
+   baby_spider1 = "Hungry."
+   baby_spider2 = "Very hungry."
+   baby_spider3 = "Somewhat hungry."
+   baby_spider4 = "Ravenously hungry!"
+   baby_spider5 = "Must eat!"
+   baby_spider6 = "Starving..."
+   baby_spider7 = "Must find food..."
+   baby_spider8 = "Can eat centipedes?"
+   baby_spider9 = "Can eat trees?"
+   baby_spider10 = "Can eat you?"
+   
+   centipede1 = "Beware spiders."
+   centipede2 = "Cannot abide lightning."
+   centipede3 = "The ground is plentiful and kind."
+   centipede4 = "Peace in all your travels."
+   centipede5 = "Our Queen is the size of a mountain."
+   centipede6 = "We are all one."
+   centipede7 = "Feel free to visit our hives should you ever find yourself crawling beneath the Twisted Woods."
+   centipede8 = "The Ancient One will find no aid from us."
+   centipede9 = "We still chitter the sweet songs of the lovely Jala."
+   centipede10 = "Have you paid your taxes to the Queen?"
+
+   warrior_avar1 = "I'm on patrol. Beware of kriipa."
+   warrior_avar2 = "Dragonflies are everywhere this time of year."
+   warrior_avar3 = "The noble avars have tremendous egos."
+   warrior_avar4 = "I chose this profession to stab things, and stab things I shall."
+   warrior_avar5 = "Never could master a bow, or else I'd be Chieftain by now."
+   warrior_avar6 = "If you see avars wearing green, run. I'm pretty sure they're cannibals."
+   warrior_avar7 = "We're not allowed at the Village, but sometimes I wear blue and visit anyway."
+   warrior_avar8 = "That human in the hut is quite mad. Not the one who tames dragonflies. The other one. She lives alone and talks to a corpse constantly."
+   warrior_avar9 = "The dragonfly queen followed me around for a time because I fed her."
+   warrior_avar10 = "I dream of flying."
+   warrior_avar11 = "Watch out for kriipa. They'll eat your young."
+   warrior_avar_if_undine = "You smell like the sea."
+   warrior_avar_if_orc = "You smell like orc."
+   warrior_avar_if_demon = "I like your skin color."
+
+   noble_avar1 = "The warrior avars have enormous egos."
+   noble_avar2 = "I'm more of a ceremonial guard. The warrior avars do the real perimeter defense."
+   noble_avar3 = "Blue just isn't my color. A shame."
+   noble_avar4 = "The avars that wear green are not welcome here."
+   noble_avar5 = "The shamans know something they aren't telling us."
+   noble_avar6 = "The chieftains need to stop listening to the shamans, I say."
+   noble_avar7 = "Nature wants us dead. There is no harmony."
+   noble_avar8 = "Things get horrible at night. The jungle didn't used to be like this."
+   noble_avar_if_elf = "I like your skin color."
+   noble_avar_if_orc = "You are green. Are you an ally of the avars that wear green? If so, we must destroy you."
+   noble_avar_if_demon = "You are red. Are you an ally of the warrior avars? If so, please get back to work."
+   noble_avar_if_undine = "You are blue. You bring scents with you similar to that of our god, who emerges from the sea."
+   noble_avar_if_drow = "You are purple. Do you serve the trickster? The human at the Trading Post might be receptive to you."
+   noble_avar_if_draconian = "Are you half-kriipa?!"
+   
+   bone_avar1 = "The Priestess has the best seed. It'll make you think you're swimming, bird. Oh, I mean man."
+   bone_avar2 = "That stuff with the late Orc Pit Boss was all a big misunderstanding. He ate some bad seed and went crazy."
+   bone_avar3 = "You're far out from the walls!"
+   bone_avar4 = "Listen to the waves..."
+   bone_avar5 = "We started this green movement because we didn't like how the nobles were plundering the forest."
+   bone_avar6 = "The warrior avars know how to party, believe me."
+   bone_avar7 = "What am I doing with my life?"
+   bone_avar8 = "If you're ever in the Village, there's a shaman you should see."
+   bone_avar9 = "I'm sleepy."
+   bone_avar10 = "I don't know why they think we're cannibals."
+   bone_avar_if_orc = "I like your style, my green friend."
+   
+   warrior_avar_shaman1 = "If you seek to steal the magic in our blood, you'll have to fight for it."
+   warrior_avar_shaman2 = "The ground shakes when I get angry. To tell the truth, I don't fully understand it."
+   warrior_avar_shaman3 = "When I focus my hate on somone, they become frozen in place for a moment."
+   warrior_avar_shaman4 = "Sandstorms make me laugh like I'm a child once again. The decades just fade away."
+   warrior_avar_shaman5 = "We could take down the walls of Ko'Catan with earthquakes, if we so desired. "
+   warrior_avar_shaman6 = "We only trust humans who have Riija's blessing."
+   warrior_avar_shaman7 = "I've trained my entire life to harness my magic, but the noble shamans still look down on me."
+   warrior_avar_shaman8 = "The one benefit of being out here on the fringes: we get to eat kriipa meat. It's delicious."
+   warrior_avar_shaman9 = "Our basic combat magic was inspired by dragonfly spit."
+
+   noble_avar_shaman1 = "Wulfgang is one of the few humans we trust."
+   noble_avar_shaman2 = "We only trust humans who have Riija's blessing."
+   noble_avar_shaman3 = "Nature breathes like a living being. We shamans know this, and keep other avars in harmony with all life."
+   noble_avar_shaman4 = "We are not so different. Avars and humans could learn much from one another."
+   noble_avar_shaman5 = "The warrior shamans think we look down on them, but, in truth, they must stay bitter and angry for their combat magics to remain at peak effectiveness."
+   noble_avar_shaman6 = "If we noble shamans are fighting intruders, the tribe has already lost. The warrior tribe exists at our borders to keep out threats."
+   noble_avar_shaman7 = "There is a font of mana at the heart of our village. You may entreat our god with offerings of food by dropping them at his mouth."
+   noble_avar_shaman8 = "If you dare slay his children, our god will become angry."
+   noble_avar_shaman9 = "Our god is nameless, yet kind."
+   noble_avar_shaman10 = "The chieftains listen to us because we pass all knowledge down between generations."
+   noble_avar_shaman11 = "The shamans hold rituals each high moon to reinforce the sleep of the colossal entity that sleeps inside the world."
+
+   warrior_avar_chieftain1 = "You cannot be allowed to trespass deeper into our territory!"
+   warrior_avar_chieftain2 = "I am tasked with the defense of the avar nations. I would sooner die than fail."
+   warrior_avar_chieftain3 = "The noble chieftains rarely see actual combat."
+   warrior_avar_chieftain4 = "I've clashed with many patrols from Ko'Catan. I try not to kill them, but it still happens sometimes."
+   warrior_avar_chieftain5 = "I've advocated destroying Ko'Catan in one fell swoop, but the shamans have decided otherwise."
+   warrior_avar_chieftain6 = "Kriipa meat is delicious, but dragonfly meat is the core of our rations."
+   warrior_avar_chieftain7 = "Sniping a kriipa in a distant tree brings me joy I cannot describe."
+   warrior_avar_chieftain8 = "Do you know how to critically strike an opponent? I would teach you, but I'm on duty right now."
+   warrior_avar_chieftain9 = "Your words have a curious accent. It must be the lack of beak."
+   warrior_avar_chieftain10 = "Are you a great fighter among your people? You are quite tiny."
+   warrior_avar_chieftain_if_orc = "Beware, half-orc. Your kind are despised here."
+   
+   noble_avar_chieftain1 = "You are beneath my notice."
+   noble_avar_chieftain2 = "Our god, moved to anger, is a frightening thing to behold."
+   noble_avar_chieftain3 = "We wear blue to mirror the sky in which we once flew."
+   noble_avar_chieftain4 = "What color is the sky where you hail from?"
+   noble_avar_chieftain5 = "I'm in charge here. I advise caution among my people, stranger."
+   noble_avar_chieftain6 = "Food is more scarce with each season."
+   noble_avar_chieftain7 = "I have nothing to say to a non-avar."
+   noble_avar_chieftain8 = "Arrows are power."
+   noble_avar_chieftain9 = "Our god gave us thought in exchange for our ability to fly. Was it worth it? I wonder."
+   noble_avar_chieftain10 = "The Necromancers attempted a coup, but we removed their cult from the Avar race with fire and nerudite."
+   noble_avar_chieftain_if_orc = "Tread carefully, half-orc abomination."
+   noble_avar_chieftain_if_demon = "Are you working with the warrior avars, red-skin?"
+   
+   bone_avar_chieftain1 = "We protect the Priestess!"
+   bone_avar_chieftain2 = "We were exiled because we followed the teachings of the Priestess."
+   bone_avar_chieftain3 = "The Priestess knows the truth about our false god..."
+   bone_avar_chieftain4 = "I have seen a little human girl wandering unaccompanied near the Temple of Riija."
+   bone_avar_chieftain5 = "You have some strange weapons."
+   
+   avar_other_color = "Have you seen my tribe?"
+
+   frogmen1 = "Go ahead, ask me if I say 'ribbit.' I dare you."
+   frogmen2 = "You call it the King's Way. We call it home. Who is this 'king,' anyway? Have you ever even seen him?"
+   frogmen3 = "The white-walled town to the north fills our waters with filth. They're lucky we don't massacre them!"
+   frogmen4 = "We have our own kind of magic, but we'll never show it to an outsider."
+   frogmen5 = "We keep the trolls and black spiders from spreading. Those in the white-walled town should thank us."
+   frogmen6 = "The mountains are dangerous for those heading south. Take the long way, off the beaten path."
+   frogmen7 = "Shal'ille healed one of our children many seasons ago. We remember."
+   frogmen8 = "Evil-doers shall not be allowed to pass unhindered."
+   frogmen9 = "Faren aided our waters many seasons ago. We remember."
+   frogmen10 = "Deep in the mountains lies an evil beyond understanding. Tread not, or risk succumbing."
+   frogmen11 = "The Ancient One sleeps within the world. Every single magic-user we have is dedicated to the ongoing ritual that keeps it dormant."
+   frogmen12 = "Should the Ancient One wake, all life will end. It it is not that the living will die. No, it is far worse than that."
+   frogmen13 = "Our people were given a holy task long ago. This world survives only because of us."
+
+   fey_elhai1 = "We must destroy the evil ones!"
+   fey_elhai2 = "The Vale must be purged!"
+   fey_elhai3 = "Cleanse the heretics!"
+   fey_elhai4 = "I'm not sure I remember why we're even fighting."
+   fey_elhai5 = "The war has been long, but we can never give up."
+   fey_elhai6 = "Shal'ille guide us!"
+   fey_elhai7 = "If I die, the power of the Vale will resurrect me, and I will continue to fight!"
+   fey_elhai8 = "I can't talk. I have to fight!"
+   
+   fey_dirhai1 = "We must destroy the vile ones!"
+   fey_dirhai2 = "The Vale must be cleansed!"
+   fey_dirhai3 = "Purge the heretics!"
+   fey_dirhai4 = "I don't know why we fight. I think it is simply our nature."
+   fey_dirhai5 = "The war will never end."
+   fey_dirhai6 = "Qor guide us!"
+   fey_dirhai7 = "If I die, the power of the Vale will resurrect me, and I will continue to fight!"
+   fey_dirhai8 = "I can't talk. I have to fight!"
+   
+   giant_spider1 = "I have just made my pilgrimage home from the Web of Offspring. Many of the smaller spiders you see are just youths. Do not worry, not many are meant to survive."
+   giant_spider2 = "I have lived at this camp for several moons. I hope I am chosen to meet the Queen soon..."
+   giant_spider3 = "Each moon, several of our Defenders are chosen to go on a pilgrimage to meet our Queen. It is considered a very prestigious honor, but many do not return."
+   giant_spider4 = "All spiders' lineage can be traced back to the first Queen. However we do not have a 'King' as you say. We do not understand the humans' concept of royalty."
+   giant_spider5 = "Some of our brothers have chosen to continue to wander the land, revoking their honor of protecting our holy sites from invaders. They believe a greater honor is to be gained through finding new lands for us. Though strange, we wish them good travels."
+   giant_spider6 = "We spiders are a sedentary people, until we are called upon by our Queen. I have always wondered why your kind travels so much."
+   giant_spider7 = "I am always amazed by your wizards' magic. We do not have the ability to do such things."
+   giant_spider8 = "Can all of your people understand us? I do wish our races could cooperate more."
+
+   scorpion1 = "You giant have shiny shell too, yes? But how perform burrowdance with many gap in shell? Sand get inside. Most unfortunate, most sad."
+   scorpion2 = "No time for talk, no time! Must perform burrowdance to thank mighty Buku-ku for gift of poison."
+   scorpion3 = "Scorpion god each give gift. God Pokko-ko give us strong shell. You giant must get gift of large size, hee-hee!"
+   scorpion4 = "Sun shines brightly today. Give thanks to great Akka-ka for wondrous gift. So happy, so happy!"
+   scorpion_if_undine = "You blue giant! Much like Auzak, blue scorpion. Special, very special! Blessing of Auzak with you."
+   scorpion_if_elf = "You blue giant! Much like Auzak, blue scorpion. Special, very special! Blessing of Auzak with you."
+   scorpion_if_demon = "Hmm, odd. You strange red giant. Very red, VERY red! You bring blessings from Akka-ka?"
+   scorpion_if_orc = "Emerald giant, green as Pokko-ko. No surprise, all green giant very strong! Maybe strongest!"
+   scorpion_if_drow = "...You purple giant! Purple is color of evil magic! Legend say one day, purple scorpion become god, gift us only sickness. Must be true, must be. You stay away!"
+
+   living_tree1 = "It has been a very long time since another race has spoken to one of my kind. These things tend to happen when you live for hundreds of years. Tell me, is Riija still around? Quite the bookworm, that one."
+   living_tree2 = "Hello there! You're quite the bright one, to have mastered our language at your age! Why, when I was just a sapling your 'Great War' that so many of you talk about was still centuries away. There have been many Great Wars in my time, child. Though the last may have been the most destructive, soon it too shall be a simple memory in the minds of few. Time heals all wounds, as they say..."
+   living_tree3 = "Salutations. It's been some time since I've spoken to someone who can travel to new places. Have you been to the desert? I've heard it's warmer there."
+   living_tree_5 = "Life is very boring when you can't move around. That's why we invented a new game called Calculus! But I don't think you'd like it very much..."
+   living_tree_if_demon = "So you are one of the Demons I have heard about. I've been told that you are not even from our world. How did you find this place? Other worlds must not be very common."
+   living_tree_if_undine = "A marine species that can travel on land? Very interesting. Years ago if I said that, everyone would've looked at me like my leaves had turned purple."
+
+   skeleton1 = "What? You didn't think we could talk because we don't have your fancy-pants vocal cords?"
+   skeleton2 = "Does this cobweb make my pelvis look big?"
+   skeleton3 = "Throw me a bone, would you? Just not a femur, I’m good on those."
+   skeleton4 = "I think I’ve been putting on weight recently."
+   skeleton5 = "That death stare you've got going would work better if I wasn’t already... well, you get the idea."
+   skeleton6 = "Woah, woah! Slow down there buddy! You have a bone to pick with me or something?"
+   skeleton7 = "Nu-uh. No way! Don't even think about it. I'd make a terrible weapon handle. I-I'm really... brittle! Yeah, cracks all over the place! Don't want a Sword of Osteoporosis now do we? Didn't think so."
+   skeleton8 = "We're all the same, deep down inside."
+   skeleton_if_female = "You know, back in my day I was a pretty good looking guy. You'll have to take my word for it."
+   skeleton_if_male = "Hey big guy, my eye sockets are up here."
+
+   lich1 = "The King of Brax was weak and his actions deplorable. He would rather end thousands of lives than let them live through the will of the Ancient One. What else would he have sacrificed them for, I wonder? Even as my city fell, I knew I had made the right choice."
+   lich2 = "I see that look in your eyes, mortal. I know why you're here. To you, I'm an abomination, a monster. You likely made a deal with someone to erase me from the world in exchange for money or power. But remember, I made a deal once, too."
+   lich3 = "Living or dead, Brax is still my city and I its queen. When my people fell, I did not fear.  They would soon become my eternal warriors, free from the king's tyranny and lies."
+   lich4 = "I do not regret Brax's fate. I have offered this city the ultimate protection. We fear not tyrants. We fear not conquerors. We fear not famine or disease. Through the Ancient One, we have ascended to immortality."
+
+   mad_king1 = "Oh boy! Are you the biddlesnitch they told me about? They'd go on and on for hours about you! Oh, don't worry! They know everything. Wouldn't hurt you though! ...much."
+   mad_king2 = "I wouldn't breathe here if I were you. It could be poisoned. ANYWHERE could be poisoned... Wouldn't want anything to happen to little old me."
+   mad_king3 = "You might have been told by some particularly RUDE fellows that I'm insane. Well, I am! They still shouldn't jump to conclusions like that. It's just not a nice thing to do! I'm not crazy in a bad way, mind you. No no no! More like the way that an apple only tastes good if you mash it up a bit. I like you, adventurer. You know how to get things done!"
+   mad_king4 = "People always tell me that I'm stubborn. But I don't think that's true. I change my mind multiple times a day! Sometimes I even have two at once!"
+   mad_king_if_undine = "Well aren't you as blue as a baby's bottom! If the baby had been rolling around in an alchemist's reagent supply, that is. Or is it co-agent? Bah, no matter! What matters is you're here! We're  here! And here is... well, I'm not sure exactly. But it's better than out there."
+   mad_king_if_drow = "What sort of beast are you? Not the edible kind, I assume. A pity, I really was hoping for a good roast, some aged wine and cheese... Reminds me of that time with the ballroom, and the goat, oh yes and the missing finger! Good times!"
+
+classvars:
+
+   orc1_classvar = orc1
+
+properties:
+
+   % Orcish
+   plOrcStrings = $
+   plCaveOrcStrings = $
+   plOrcWizardStrings = $
+   plOrcPitBossStrings = $
+   
+   % Skitteratic
+   plBabySpiderStrings = $
+   plCentipedeStrings = $
+   plSpiderStrings = $
+   plAntStrings = $
+   plMutantAntStrings = $
+   plScorpionStrings = $
+   
+   % Birdsong
+   plWarriorAvarStrings = $
+   plWarriorShamanStrings = $
+   plWarriorChieftainStrings = $
+   plNobleWarriorAvarStrings = $
+   plNobleShamanStrings = $
+   plNobleChieftainStrings = $
+   plBoneWarriorAvarStrings = $
+   plAvarOtherColorStrings = $
+   
+   % Amphibic
+   plFrogmenStrings = $
+   plWaterCentipedeStrings = $
+   plMolluskStrings = $
+   
+   % Sylvan
+   plFeyElhaiStrings = $
+   plFeyDirhaiStrings = $
+   plLivingTreeStrings = $
+   plDiseasedTreeStrings = $
+   plFungusBeastStrings = $
+   
+   % Necromantic
+   plSkeletonStrings = $
+   
+   plLetters = $
+   plOrcGarbles = $
+   plAvarGarbles = $
+
+messages:
+
+   Constructor()
+   {
+      Send(self,@Recreate);
+
+      return;
+   }
+
+   Recreate()
+   {
+      plLetters = ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"];
+      plOrcGarbles = ["g","k","r","j","u"];
+      plAvarGarbles = ["y","ee","kr-","ii","k"];
+
+      plLivingTreeStrings = $;
+      plLivingTreeStrings = Cons([living_tree1],plLivingTreeStrings);
+      plLivingTreeStrings = Cons([living_tree2],plLivingTreeStrings);
+      plLivingTreeStrings = Cons([living_tree3],plLivingTreeStrings);
+      plLivingTreeStrings = Cons([living_tree_5],plLivingTreeStrings);
+      plLivingTreeStrings = Cons([living_tree_if_demon,RACE_HALF_DEMON],plLivingTreeStrings);
+      plLivingTreeStrings = Cons([living_tree_if_undine,RACE_HALF_UNDINE],plLivingTreeStrings);
+
+      plSkeletonStrings = $;
+      plSkeletonStrings = Cons([skeleton1],plSkeletonStrings);
+      plSkeletonStrings = Cons([skeleton2],plSkeletonStrings);
+      plSkeletonStrings = Cons([skeleton3],plSkeletonStrings);
+      plSkeletonStrings = Cons([skeleton4],plSkeletonStrings);
+      plSkeletonStrings = Cons([skeleton5],plSkeletonStrings);
+      plSkeletonStrings = Cons([skeleton6],plSkeletonStrings);
+      plSkeletonStrings = Cons([skeleton7],plSkeletonStrings);
+      plSkeletonStrings = Cons([skeleton8],plSkeletonStrings);
+      plSkeletonStrings = Cons([skeleton_if_female,RACE_HUMAN,GENDER_FEMALE],plSkeletonStrings);
+      plSkeletonStrings = Cons([skeleton_if_male,RACE_HUMAN,GENDER_MALE],plSkeletonStrings);
+
+      plScorpionStrings = $;
+      plScorpionStrings = Cons([scorpion1],plScorpionStrings);
+      plScorpionStrings = Cons([scorpion2],plScorpionStrings);
+      plScorpionStrings = Cons([scorpion3],plScorpionStrings);
+      plScorpionStrings = Cons([scorpion4],plScorpionStrings);
+      plScorpionStrings = Cons([scorpion_if_undine,RACE_HALF_UNDINE],plScorpionStrings);
+      plScorpionStrings = Cons([scorpion_if_elf,RACE_HALF_ELF],plScorpionStrings);
+      plScorpionStrings = Cons([scorpion_if_demon,RACE_HALF_DEMON],plScorpionStrings);
+      plScorpionStrings = Cons([scorpion_if_orc,RACE_HALF_ORC],plScorpionStrings);
+      plScorpionStrings = Cons([scorpion_if_drow,RACE_DROW],plScorpionStrings);
+      
+      plSpiderStrings = $;
+      plSpiderStrings = Cons([giant_spider1],plSpiderStrings);
+      plSpiderStrings = Cons([giant_spider2],plSpiderStrings);
+      plSpiderStrings = Cons([giant_spider3],plSpiderStrings);
+      plSpiderStrings = Cons([giant_spider4],plSpiderStrings);
+      plSpiderStrings = Cons([giant_spider5],plSpiderStrings);
+      plSpiderStrings = Cons([giant_spider6],plSpiderStrings);
+      plSpiderStrings = Cons([giant_spider7],plSpiderStrings);
+      plSpiderStrings = Cons([giant_spider8],plSpiderStrings);
+
+      plFrogmenStrings = $;
+      plFrogmenStrings = Cons([frogmen1],plFrogmenStrings);
+      plFrogmenStrings = Cons([frogmen2],plFrogmenStrings);
+      plFrogmenStrings = Cons([frogmen3],plFrogmenStrings);
+      plFrogmenStrings = Cons([frogmen4],plFrogmenStrings);
+      plFrogmenStrings = Cons([frogmen5],plFrogmenStrings);
+      plFrogmenStrings = Cons([frogmen6],plFrogmenStrings);
+      plFrogmenStrings = Cons([frogmen7],plFrogmenStrings);
+      plFrogmenStrings = Cons([frogmen8],plFrogmenStrings);
+      plFrogmenStrings = Cons([frogmen9],plFrogmenStrings);
+      plFrogmenStrings = Cons([frogmen10],plFrogmenStrings);
+      plFrogmenStrings = Cons([frogmen11],plFrogmenStrings);
+      plFrogmenStrings = Cons([frogmen12],plFrogmenStrings);
+      plFrogmenStrings = Cons([frogmen13],plFrogmenStrings);
+
+      plFeyElhaiStrings = $;
+      plFeyElhaiStrings = Cons([fey_elhai1],plFeyElhaiStrings);
+      plFeyElhaiStrings = Cons([fey_elhai2],plFeyElhaiStrings);
+      plFeyElhaiStrings = Cons([fey_elhai3],plFeyElhaiStrings);
+      plFeyElhaiStrings = Cons([fey_elhai4],plFeyElhaiStrings);
+      plFeyElhaiStrings = Cons([fey_elhai5],plFeyElhaiStrings);
+      plFeyElhaiStrings = Cons([fey_elhai6],plFeyElhaiStrings);
+      plFeyElhaiStrings = Cons([fey_elhai7],plFeyElhaiStrings);
+      plFeyElhaiStrings = Cons([fey_elhai8],plFeyElhaiStrings);
+      
+      plFeyDirhaiStrings = $;
+      plFeyDirhaiStrings = Cons([fey_elhai1],plFeyDirhaiStrings);
+      plFeyDirhaiStrings = Cons([fey_elhai2],plFeyDirhaiStrings);
+      plFeyDirhaiStrings = Cons([fey_elhai3],plFeyDirhaiStrings);
+      plFeyDirhaiStrings = Cons([fey_elhai4],plFeyDirhaiStrings);
+      plFeyDirhaiStrings = Cons([fey_elhai5],plFeyDirhaiStrings);
+      plFeyDirhaiStrings = Cons([fey_elhai6],plFeyDirhaiStrings);
+      plFeyDirhaiStrings = Cons([fey_elhai7],plFeyDirhaiStrings);
+      plFeyDirhaiStrings = Cons([fey_elhai8],plFeyDirhaiStrings);
+      
+      plOrcStrings = $;
+      plOrcStrings = Cons([orc1],plOrcStrings);
+      plOrcStrings = Cons([orc2],plOrcStrings);
+      plOrcStrings = Cons([orc3],plOrcStrings);
+      plOrcStrings = Cons([orc4],plOrcStrings);
+      plOrcStrings = Cons([orc5],plOrcStrings);
+      plOrcStrings = Cons([orc6],plOrcStrings);
+      plOrcStrings = Cons([orc7],plOrcStrings);
+      plOrcStrings = Cons([orc8],plOrcStrings);
+      plOrcStrings = Cons([orc9],plOrcStrings);
+      plOrcStrings = Cons([orc_if_orc,RACE_HALF_ORC],plOrcStrings);
+
+      plCaveOrcStrings = $;
+      plCaveOrcStrings = Cons([cave_orc1],plCaveOrcStrings);
+      plCaveOrcStrings = Cons([cave_orc2],plCaveOrcStrings);
+      plCaveOrcStrings = Cons([cave_orc3],plCaveOrcStrings);
+      plCaveOrcStrings = Cons([cave_orc4],plCaveOrcStrings);
+      plCaveOrcStrings = Cons([cave_orc5],plCaveOrcStrings);
+      plCaveOrcStrings = Cons([cave_orc6],plCaveOrcStrings);
+      plCaveOrcStrings = Cons([cave_orc7],plCaveOrcStrings);
+      plCaveOrcStrings = Cons([cave_orc8],plCaveOrcStrings);
+      plCaveOrcStrings = Cons([cave_orc9],plCaveOrcStrings);
+      plCaveOrcStrings = Cons([cave_orc_if_orc_male,RACE_HALF_ORC,GENDER_MALE],plCaveOrcStrings);
+      plCaveOrcStrings = Cons([cave_orc_if_orc_female,RACE_HALF_ORC,GENDER_FEMALE],plCaveOrcStrings);
+      
+      plOrcWizardStrings = $;
+      plOrcWizardStrings = Cons([orc_wizard1],plOrcWizardStrings);
+      plOrcWizardStrings = Cons([orc_wizard2],plOrcWizardStrings);
+      plOrcWizardStrings = Cons([orc_wizard3],plOrcWizardStrings);
+      plOrcWizardStrings = Cons([orc_wizard4],plOrcWizardStrings);
+      plOrcWizardStrings = Cons([orc_wizard5],plOrcWizardStrings);
+      plOrcWizardStrings = Cons([orc_wizard6],plOrcWizardStrings);
+      plOrcWizardStrings = Cons([orc_wizard7],plOrcWizardStrings);
+      plOrcWizardStrings = Cons([orc_wizard8],plOrcWizardStrings);
+      plOrcWizardStrings = Cons([orc_wizard9],plOrcWizardStrings);
+      plOrcWizardStrings = Cons([orc_wizard10],plOrcWizardStrings);
+      plOrcWizardStrings = Cons([orc_wizard_if_demon,RACE_HALF_DEMON],plOrcWizardStrings);
+      plOrcWizardStrings = Cons([orc_wizard_if_draconian,RACE_DRACONIAN],plOrcWizardStrings);
+      plOrcWizardStrings = Cons([orc_wizard_if_drow,RACE_DROW],plOrcWizardStrings);
+      plOrcWizardStrings = Cons([orc_wizard_if_elf,RACE_HALF_ELF],plOrcWizardStrings);
+      plOrcWizardStrings = Cons([orc_wizard_if_undine,RACE_HALF_UNDINE],plOrcWizardStrings);
+      
+      plOrcPitBossStrings = $;
+      plOrcPitBossStrings = Cons([orc_pit_boss1],plOrcPitBossStrings);
+      plOrcPitBossStrings = Cons([orc_pit_boss2],plOrcPitBossStrings);
+      plOrcPitBossStrings = Cons([orc_pit_boss3],plOrcPitBossStrings);
+      plOrcPitBossStrings = Cons([orc_pit_boss4],plOrcPitBossStrings);
+      plOrcPitBossStrings = Cons([orc_pit_boss5],plOrcPitBossStrings);
+      plOrcPitBossStrings = Cons([orc_pit_boss6],plOrcPitBossStrings);
+      plOrcPitBossStrings = Cons([orc_pit_boss7],plOrcPitBossStrings);
+      plOrcPitBossStrings = Cons([orc_pit_boss8],plOrcPitBossStrings);
+      plOrcPitBossStrings = Cons([orc_pit_boss9],plOrcPitBossStrings);
+      plOrcPitBossStrings = Cons([orc_pit_boss_if_demon,RACE_HALF_DEMON],plOrcPitBossStrings);
+      plOrcPitBossStrings = Cons([orc_pit_boss_if_draconian,RACE_DRACONIAN],plOrcPitBossStrings);
+      plOrcPitBossStrings = Cons([orc_pit_boss_if_drow,RACE_DROW],plOrcPitBossStrings);
+      plOrcPitBossStrings = Cons([orc_pit_boss_if_elf,RACE_HALF_ELF],plOrcPitBossStrings);
+      plOrcPitBossStrings = Cons([orc_pit_boss_if_undine,RACE_HALF_UNDINE],plOrcPitBossStrings);
+      
+      plBabySpiderStrings = $;
+      plBabySpiderStrings = Cons([baby_spider1],plBabySpiderStrings);
+      plBabySpiderStrings = Cons([baby_spider2],plBabySpiderStrings);
+      plBabySpiderStrings = Cons([baby_spider3],plBabySpiderStrings);
+      plBabySpiderStrings = Cons([baby_spider4],plBabySpiderStrings);
+      plBabySpiderStrings = Cons([baby_spider5],plBabySpiderStrings);
+      plBabySpiderStrings = Cons([baby_spider6],plBabySpiderStrings);
+      plBabySpiderStrings = Cons([baby_spider7],plBabySpiderStrings);
+      plBabySpiderStrings = Cons([baby_spider8],plBabySpiderStrings);
+      plBabySpiderStrings = Cons([baby_spider9],plBabySpiderStrings);
+      plBabySpiderStrings = Cons([baby_spider10],plBabySpiderStrings);
+      
+      plCentipedeStrings = $;
+      plCentipedeStrings = Cons([centipede1],plCentipedeStrings);
+      plCentipedeStrings = Cons([centipede2],plCentipedeStrings);
+      plCentipedeStrings = Cons([centipede3],plCentipedeStrings);
+      plCentipedeStrings = Cons([centipede4],plCentipedeStrings);
+      plCentipedeStrings = Cons([centipede5],plCentipedeStrings);
+      plCentipedeStrings = Cons([centipede6],plCentipedeStrings);
+      plCentipedeStrings = Cons([centipede7],plCentipedeStrings);
+      plCentipedeStrings = Cons([centipede8],plCentipedeStrings);
+      plCentipedeStrings = Cons([centipede9],plCentipedeStrings);
+      plCentipedeStrings = Cons([centipede10],plCentipedeStrings);
+
+      plWarriorAvarStrings = $;
+      plWarriorAvarStrings = Cons([warrior_avar1],plWarriorAvarStrings);
+      plWarriorAvarStrings = Cons([warrior_avar2],plWarriorAvarStrings);
+      plWarriorAvarStrings = Cons([warrior_avar3],plWarriorAvarStrings);
+      plWarriorAvarStrings = Cons([warrior_avar4],plWarriorAvarStrings);
+      plWarriorAvarStrings = Cons([warrior_avar5],plWarriorAvarStrings);
+      plWarriorAvarStrings = Cons([warrior_avar6],plWarriorAvarStrings);
+      plWarriorAvarStrings = Cons([warrior_avar7],plWarriorAvarStrings);
+      plWarriorAvarStrings = Cons([warrior_avar8],plWarriorAvarStrings);
+      plWarriorAvarStrings = Cons([warrior_avar9],plWarriorAvarStrings);
+      plWarriorAvarStrings = Cons([warrior_avar10],plWarriorAvarStrings);
+      plWarriorAvarStrings = Cons([warrior_avar_if_undine,RACE_HALF_UNDINE],plWarriorAvarStrings);
+      plWarriorAvarStrings = Cons([warrior_avar_if_orc,RACE_HALF_ORC],plWarriorAvarStrings);
+      plWarriorAvarStrings = Cons([warrior_avar_if_demon,RACE_HALF_DEMON],plWarriorAvarStrings);
+      
+      plWarriorShamanStrings = $;
+      plWarriorShamanStrings = Cons([warrior_avar_shaman1],plWarriorShamanStrings);
+      plWarriorShamanStrings = Cons([warrior_avar_shaman2],plWarriorShamanStrings);
+      plWarriorShamanStrings = Cons([warrior_avar_shaman3],plWarriorShamanStrings);
+      plWarriorShamanStrings = Cons([warrior_avar_shaman4],plWarriorShamanStrings);
+      plWarriorShamanStrings = Cons([warrior_avar_shaman5],plWarriorShamanStrings);
+      plWarriorShamanStrings = Cons([warrior_avar_shaman6],plWarriorShamanStrings);
+      plWarriorShamanStrings = Cons([warrior_avar_shaman7],plWarriorShamanStrings);
+      plWarriorShamanStrings = Cons([warrior_avar_shaman8],plWarriorShamanStrings);
+      plWarriorShamanStrings = Cons([warrior_avar_shaman9],plWarriorShamanStrings);
+   
+      plWarriorChieftainStrings = $;
+      plWarriorChieftainStrings = Cons([warrior_avar_chieftain1],plWarriorChieftainStrings);
+      plWarriorChieftainStrings = Cons([warrior_avar_chieftain2],plWarriorChieftainStrings);
+      plWarriorChieftainStrings = Cons([warrior_avar_chieftain3],plWarriorChieftainStrings);
+      plWarriorChieftainStrings = Cons([warrior_avar_chieftain4],plWarriorChieftainStrings);
+      plWarriorChieftainStrings = Cons([warrior_avar_chieftain5],plWarriorChieftainStrings);
+      plWarriorChieftainStrings = Cons([warrior_avar_chieftain6],plWarriorChieftainStrings);
+      plWarriorChieftainStrings = Cons([warrior_avar_chieftain7],plWarriorChieftainStrings);
+      plWarriorChieftainStrings = Cons([warrior_avar_chieftain8],plWarriorChieftainStrings);
+      plWarriorChieftainStrings = Cons([warrior_avar_chieftain9],plWarriorChieftainStrings);
+      plWarriorChieftainStrings = Cons([warrior_avar_chieftain10],plWarriorChieftainStrings);
+      plWarriorChieftainStrings = Cons([warrior_avar_chieftain_if_orc,RACE_HALF_ORC],plWarriorChieftainStrings);
+   
+      plNobleWarriorAvarStrings = $;
+      plNobleWarriorAvarStrings = Cons([noble_avar1],plNobleWarriorAvarStrings);
+      plNobleWarriorAvarStrings = Cons([noble_avar2],plNobleWarriorAvarStrings);
+      plNobleWarriorAvarStrings = Cons([noble_avar3],plNobleWarriorAvarStrings);
+      plNobleWarriorAvarStrings = Cons([noble_avar4],plNobleWarriorAvarStrings);
+      plNobleWarriorAvarStrings = Cons([noble_avar5],plNobleWarriorAvarStrings);
+      plNobleWarriorAvarStrings = Cons([noble_avar6],plNobleWarriorAvarStrings);
+      plNobleWarriorAvarStrings = Cons([noble_avar7],plNobleWarriorAvarStrings);
+      plNobleWarriorAvarStrings = Cons([noble_avar8],plNobleWarriorAvarStrings);
+      plNobleWarriorAvarStrings = Cons([noble_avar_if_elf,RACE_HALF_ELF],plNobleWarriorAvarStrings);
+      plNobleWarriorAvarStrings = Cons([noble_avar_if_drow,RACE_DROW],plNobleWarriorAvarStrings);
+      plNobleWarriorAvarStrings = Cons([noble_avar_if_undine,RACE_HALF_UNDINE],plNobleWarriorAvarStrings);
+      plNobleWarriorAvarStrings = Cons([noble_avar_if_orc,RACE_HALF_ORC],plNobleWarriorAvarStrings);
+      plNobleWarriorAvarStrings = Cons([noble_avar_if_demon,RACE_HALF_DEMON],plNobleWarriorAvarStrings);
+      plNobleWarriorAvarStrings = Cons([noble_avar_if_draconian,RACE_DRACONIAN],plNobleWarriorAvarStrings);
+      
+      plNobleShamanStrings = $;
+      plNobleShamanStrings = Cons([noble_avar_shaman1],plNobleShamanStrings);
+      plNobleShamanStrings = Cons([noble_avar_shaman2],plNobleShamanStrings);
+      plNobleShamanStrings = Cons([noble_avar_shaman3],plNobleShamanStrings);
+      plNobleShamanStrings = Cons([noble_avar_shaman4],plNobleShamanStrings);
+      plNobleShamanStrings = Cons([noble_avar_shaman5],plNobleShamanStrings);
+      plNobleShamanStrings = Cons([noble_avar_shaman6],plNobleShamanStrings);
+      plNobleShamanStrings = Cons([noble_avar_shaman7],plNobleShamanStrings);
+      plNobleShamanStrings = Cons([noble_avar_shaman8],plNobleShamanStrings);
+      plNobleShamanStrings = Cons([noble_avar_shaman9],plNobleShamanStrings);
+      plNobleShamanStrings = Cons([noble_avar_shaman10],plNobleShamanStrings);
+      plNobleShamanStrings = Cons([noble_avar_shaman11],plNobleShamanStrings);
+
+      plNobleChieftainStrings = $;
+      plNobleChieftainStrings = Cons([noble_avar_chieftain1],plNobleChieftainStrings);
+      plNobleChieftainStrings = Cons([noble_avar_chieftain2],plNobleChieftainStrings);
+      plNobleChieftainStrings = Cons([noble_avar_chieftain3],plNobleChieftainStrings);
+      plNobleChieftainStrings = Cons([noble_avar_chieftain4],plNobleChieftainStrings);
+      plNobleChieftainStrings = Cons([noble_avar_chieftain5],plNobleChieftainStrings);
+      plNobleChieftainStrings = Cons([noble_avar_chieftain6],plNobleChieftainStrings);
+      plNobleChieftainStrings = Cons([noble_avar_chieftain7],plNobleChieftainStrings);
+      plNobleChieftainStrings = Cons([noble_avar_chieftain8],plNobleChieftainStrings);
+      plNobleChieftainStrings = Cons([noble_avar_chieftain9],plNobleChieftainStrings);
+      plNobleChieftainStrings = Cons([noble_avar_chieftain10],plNobleChieftainStrings);
+      plNobleChieftainStrings = Cons([noble_avar_chieftain_if_orc,RACE_HALF_ORC],plNobleChieftainStrings);
+      plNobleChieftainStrings = Cons([noble_avar_chieftain_if_demon,RACE_HALF_DEMON],plNobleChieftainStrings);
+
+      plBoneWarriorAvarStrings = $;
+      plBoneWarriorAvarStrings = Cons([bone_avar1],plBoneWarriorAvarStrings);
+      plBoneWarriorAvarStrings = Cons([bone_avar2],plBoneWarriorAvarStrings);
+      plBoneWarriorAvarStrings = Cons([bone_avar3],plBoneWarriorAvarStrings);
+      plBoneWarriorAvarStrings = Cons([bone_avar4],plBoneWarriorAvarStrings);
+      plBoneWarriorAvarStrings = Cons([bone_avar5],plBoneWarriorAvarStrings);
+      plBoneWarriorAvarStrings = Cons([bone_avar6],plBoneWarriorAvarStrings);
+      plBoneWarriorAvarStrings = Cons([bone_avar7],plBoneWarriorAvarStrings);
+      plBoneWarriorAvarStrings = Cons([bone_avar8],plBoneWarriorAvarStrings);
+      plBoneWarriorAvarStrings = Cons([bone_avar9],plBoneWarriorAvarStrings);
+      plBoneWarriorAvarStrings = Cons([bone_avar10],plBoneWarriorAvarStrings);
+      plBoneWarriorAvarStrings = Cons([bone_avar_if_orc,RACE_HALF_ORC],plBoneWarriorAvarStrings);
+      
+      plAvarOtherColorStrings = $;
+      plAvarOtherColorStrings = Cons([avar_other_color],plAvarOtherColorStrings);
+      return;
+   }
+
+   NewDay()
+   {
+      return;
+   }
+
+   NewGameHour()
+   {
+      return;
+   }
+
+   AttemptConversation(who=$, oMonster=$)
+   {
+      local iPlayerRace, iPlayerGender, cMonsterClass, lChoicesList, lPossibleChoices, sChosenString, i, oLanguage;
+      
+      if who <> $
+         AND IsClass(who,&Player)
+         AND oMonster <> $
+         AND IsClass(oMonster,&Monster)
+         AND Send(oMonster,@GetLanguage) <> LANGUAGE_NONE
+      {
+         lPossibleChoices = $;
+         iPlayerRace = Send(who,@GetPlayerRace);
+         iPlayerGender = Send(who,@GetGender);
+         
+         oLanguage = Send(SYS,@FindSkillByNum,#num=Send(oMonster,@GetLanguage));
+         
+         % Ability check!
+         if NOT Send(oLanguage,@DoSkill,#who=who,#oMonster=oMonster)
+         {
+            Send(who,@MsgSendUser,#message_rsc=fail_to_understand,#parm1=Send(oMonster,@GetDef),#parm2=Send(oMonster,@GetName));
+            return;
+         }
+         
+         cMonsterClass = GetClass(oMonster);
+         switch(cMonsterClass)
+         {
+            case &Ent:
+               lChoicesList = ListCopy(plLivingTreeStrings);
+               break;
+            case &Skeleton:
+               lChoicesList = ListCopy(plSkeletonStrings);
+               break;
+            case &Scorpion:
+               lChoicesList = ListCopy(plScorpionStrings);
+               break;
+            case &Spider:
+               lChoicesList = ListCopy(plSpiderStrings);
+               break;
+            case &Fairy:
+               lChoicesList = ListCopy(plFeyElhaiStrings);
+               break;
+            case &EvilFairy:
+               lChoicesList = ListCopy(plFeyDirhaiStrings);
+               break;
+            case &Frogman:
+               lChoicesList = ListCopy(plFrogmenStrings);
+               break;
+            case &Orc:
+               lChoicesList = ListCopy(plOrcStrings);
+               break;
+            case &CaveOrc:
+               lChoicesList = ListCopy(plCaveOrcStrings);
+               break;
+            case &OrcWizard:
+               lChoicesList = ListCopy(plOrcWizardStrings);
+               break;
+            case &OrcPitBoss:
+               lChoicesList = ListCopy(plOrcPitBossStrings);
+               break;
+            case &SpiderBaby:
+               lChoicesList = ListCopy(plBabySpiderStrings);
+               break;
+            case &Centipede:
+               lChoicesList = ListCopy(plCentipedeStrings);
+               break;
+            case &Avar:
+               if Send(oMonster,@GetClan) = AVARCLAN_ANTIMAGIC
+               {
+                  lChoicesList = ListCopy(plWarriorAvarStrings);
+               }
+               else if Send(oMonster,@GetClan) = AVARCLAN_PROMAGIC
+               {
+                  lChoicesList = ListCopy(plNobleWarriorAvarStrings);
+               }
+               else if Send(oMonster,@GetClan) = AVARCLAN_BONE_FACTION
+               {
+                  lChoicesList = ListCopy(plBoneWarriorAvarStrings);
+               }
+               else
+               {
+                  lChoicesList = ListCopy(plAvarOtherColorStrings);
+               }
+               break;
+            case &AvarShaman:
+               if Send(oMonster,@GetClan) = AVARCLAN_ANTIMAGIC
+               {
+                  lChoicesList = ListCopy(plWarriorShamanStrings);
+               }
+               else if Send(oMonster,@GetClan) = AVARCLAN_PROMAGIC
+               {
+                  lChoicesList = ListCopy(plNobleShamanStrings);
+               }
+               else
+               {
+                  lChoicesList = ListCopy(plAvarOtherColorStrings);
+               }
+               break;
+            case &AvarChieftain:
+               if Send(oMonster,@GetClan) = AVARCLAN_ANTIMAGIC
+               {
+                  lChoicesList = ListCopy(plWarriorChieftainStrings);
+               }
+               else if Send(oMonster,@GetClan) = AVARCLAN_PROMAGIC
+               {
+                  lChoicesList = ListCopy(plNobleChieftainStrings);
+               }
+               else
+               {
+                  lChoicesList = ListCopy(plAvarOtherColorStrings);
+               }
+               break;
+         }
+
+         foreach i in lChoicesList
+         {
+            if Length(i) = 1
+            {
+               lPossibleChoices = Cons(i,lPossibleChoices);
+            }
+            else if Length(i) = 2
+            {
+               if iPlayerRace = Nth(i,2)
+               {
+                  lPossibleChoices = Cons(i,lPossibleChoices);
+               }
+            }
+            else if Length(i) = 3
+            {
+               if iPlayerRace = Nth(i,2)
+                  AND iPlayerGender = Nth(i,3)
+               {
+                  lPossibleChoices = Cons(i,lPossibleChoices);
+               }
+            }
+         }
+
+         if lPossibleChoices <> $
+         {
+            Post(Send(oMonster,@GetOwner),@SomeoneSaid,#what=oMonster,#type=SAY_RESOURCE,#string=First(Nth(lPossibleChoices,Random(1,Length(lPossibleChoices)))));
+         }
+      }
+      return;
+   }
+   
+   GarbleString(sString=$,iPlayerAbility=0,iPlayerIntelligence=1,iLanguage=LANGUAGE_NONE)
+   {
+      local iGarbleNum, lLetters, oChosenLetter, lGarbleList;
+
+      switch(iLanguage)
+      {
+         case LANGUAGE_NONE:
+            return sString;
+         case LANGUAGE_ORCISH:
+            lGarbleList = ListCopy(plOrcGarbles);
+         case LANGUAGE_BIRDSONG:
+            lGarbleList = ListCopy(plAvarGarbles);
+            break;
+      }
+
+      iGarbleNum = (104 - (iPlayerAbility+5) - (iPlayerIntelligence/2))/4;
+      lLetters = ListCopy(plLetters);
+
+      while iGarbleNum > 0
+      {
+         if lLetters <> $
+         {
+            oChosenLetter = Nth(lLetters,Random(1,Length(lLetters)));
+            lLetters = DelListElem(lLetters,oChosenLetter);
+            sString = StringSubstitute(sString,oChosenLetter,Nth(lGarbleList,Random(1,Length(lGarbleList))));
+         }
+         iGarbleNum--;
+      }
+      
+      Debug(sString);
+      
+      return sString;
+   }
+
+   DoTest()
+   {
+      local testString;
+      
+%      testString = CreateString();
+%      SetString(testString,Nth(plOrcStrings,1));
+      
+%      DO THIS INSTEAD         Post(poOwner,@SomeoneSaid,#what=self,#type=SAY_RESOURCE,#string=Nth(i,2));
+
+%      Send(self,@GarbleString,#sString=testString,#iPlayerAbility=25,#iPlayerIntelligence=50,#iLanguage=LANGUAGE_ORCISH);
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

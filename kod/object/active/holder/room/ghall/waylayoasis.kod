@@ -11,7 +11,7 @@
 WaylayOasis is GuildHall
 
 % Waylay Oasis is the central location for most desert activities.
-% It's the region rescue spot, hosts a variety of NPCs, is safe from
+% It's the region recall spot, hosts a variety of NPCs, is safe from
 % elemental storms and threats, and is also a guild hall.
 % Special consideration has been made for certain hall features. Most players
 % won't realize it's a hall until they're being attacked from the ledges.
@@ -21,6 +21,7 @@ WaylayOasis is GuildHall
 %
 % Wall spells ARE allowed in the 'foyer' (which is everywhere but the hall)
 % so players can leave ambushes and blockages in the narrow passages.
+% The rescue spot is protected from walls because players entering a room wipe damage walls.
 %
 % The water also changes depth with rain and snow,
 % so fights here will often be physically different.
@@ -37,6 +38,15 @@ WaylayOasis is GuildHall
 % to avoid storms and threats. Mostly because it would be annoying,
 % but also because we want clean and non-laggy PvP.
 
+% Waylay Oasis' abilities include:
+%    Unique elemental spell totems that other halls can't get. They apply protective buffs harnessed from the storms.
+%       Dependent on defeated prisms.
+%    low meditate ratio
+%    No market access (different continent)
+%    Best shard conversion rates (4:4)
+%    Portals to Prism of Ice sandbar, Prism of Fire basin, Prism of Acid bowl
+%    
+
 constants:
 
    include blakston.khd
@@ -50,10 +60,28 @@ constants:
    HALL_SECTORS_NORTH = 24
    CHEST_PASSAGE_SECTOR = 25
    
+   WAYPOINT_SECTOR = 30
+
+   CAVE_SECTORS = 9
+
+   PRISM_OF_ACID_TUNNEL_SECTORS = 800
+
    AREA_OUTSIDE = 0
    AREA_INSIDE = 1
    AREA_LEDGES = 2
+   AREA_CAVES = 3
+   AREA_DOOR = 4
+
+   OFFLIMITS_SECTORS = 500
+   AREA_ILLEGAL = 5
+
+   AREA_PRISM_OF_ACID_TUNNEL = 6
    
+   AREA_WAYPOINT = 7
+
+   OUTER_POOL = 400
+   INNER_POOL = 401
+
    InsideAreaSouthMinRow = 55
    InsideAreaSouthMinFineRow = 6
    InsideAreaSouthMaxRow = 79
@@ -89,6 +117,37 @@ resources:
    
    waterfall_sound_oasis = wfall2.wav
 
+   no_tribe_fight_in_caves = \
+      "The tribesmen watch you with guarded eyes. Fighting is not allowed in their caves."
+
+   waylayoasis_outside_drink = \
+      "The small pool of sand-filtered water slakes your thirst."
+   waylayoasis_inside_drink = \
+      "The sand-filtered water pumped into this pool greatly refreshes you!"
+   water_disgusting_msg = \
+      "You can't drink this acidic sludge!"
+   waylayoasis_drink_sound = drink.wav
+
+   waylayoasis_cannot_truce_here = \
+      "Centuries of violence have imbued these sands with too much pain to call a truce."
+
+   gh_waylay_oasis_acid_prism_portal_desc = \
+      "The Prism of Acid's searing energies dance around this portal."
+   gh_waylay_oasis_fire_prism_portal_desc = \
+      "This portal appears to be permanently on fire."
+   gh_waylay_oasis_ice_prism_portal_desc = \
+      "You peer through a layer of ice at an odd location beyond."
+   gh_waylay_oasis_death_prism_portal_desc = \
+      "Limitless darkness and endless grey lie beyond this portal."
+   gh_waylay_oasis_life_prism_portal_desc = \
+      "Boundless brightness and endless grey lie beyond this portal."
+
+   waypoint_trigger_word = \
+      "qua quazali"
+   
+   waypoint_trigger_palace = \
+      "qua quazalo"
+
 classvars:
 
    vrName = room_name_waylayoasis
@@ -122,6 +181,150 @@ classvars:
 
    viWeatherZone = WEATHER_ZONE_DESERT
 
+   viOutsideFilling = 20  
+   viOutsideNutrition = 40
+
+   viInsideFilling = 20
+   viInsideNutrition = 80
+   
+   viPortalOneRow = 84
+   viPortalOneCol = 87
+   viPortalOneFineRow = 48
+   viPortalOneFineCol = 16
+   viPortalOneAngle = ANGLE_SOUTH
+   viPortalOneDestRID = RID_ACIDPATH
+   viPortalOneDestRow = 86
+   viPortalOneDestCol = 133
+   viPortalOneDestFineRow = 60
+   viPortalOneDestFineCol = 58
+   viPortalOneDestAngle = ANGLE_NORTH_EAST
+   vsPortalOneDesc = gh_waylay_oasis_acid_prism_portal_desc
+   viPortalOneGlowColor = LIGHT_BGREEN
+   
+   viPortalTwoRow = 98
+   viPortalTwoCol = 87
+   viPortalTwoFineRow = 0
+   viPortalTwoFineCol = 16
+   viPortalTwoAngle = ANGLE_NORTH
+   viPortalTwoDestRID = RID_DESERTRIVER2
+   viPortalTwoDestRow = 35
+   viPortalTwoDestCol = 24
+   viPortalTwoDestFineRow = 48
+   viPortalTwoDestFineCol = 10
+   viPortalTwoDestAngle = ANGLE_NORTH
+   vsPortalTwoDesc = gh_waylay_oasis_fire_prism_portal_desc
+   viPortalTwoGlowColor = LIGHT_BRED
+   
+   viPortalThreeRow = 91
+   viPortalThreeCol = 80
+   viPortalThreeFineRow = 16
+   viPortalThreeFineCol = 32
+   viPortalThreeAngle = ANGLE_EAST
+   viPortalThreeDestRID = RID_DESERTSANDBAR
+   viPortalThreeDestRow = 53
+   viPortalThreeDestCol = 14
+   viPortalThreeDestFineRow = 45
+   viPortalThreeDestFineCol = 29
+   viPortalThreeDestAngle = ANGLE_SOUTH_WEST
+   vsPortalThreeDesc = gh_waylay_oasis_ice_prism_portal_desc
+   viPortalThreeGlowColor = LIGHT_BBLUE
+   
+   viPortalFourRow = 87
+   viPortalFourCol = 111
+   viPortalFourFineRow = 16
+   viPortalFourFineCol = 0
+   viPortalFourAngle = ANGLE_WEST
+   viPortalFourDestRID = RID_DESERTALDUNES4E
+   viPortalFourDestRow = 53
+   viPortalFourDestCol = 14
+   viPortalFourDestFineRow = 45
+   viPortalFourDestFineCol = 29
+   viPortalFourDestAngle = ANGLE_EAST
+   vsPortalFourDesc = gh_waylay_oasis_death_prism_portal_desc
+   viPortalFourGlowColor = LIGHT_BPURPLE
+   
+   viPortalFiveRow = 87
+   viPortalFiveCol = 100
+   viPortalFiveFineRow = 16
+   viPortalFiveFineCol = 32
+   viPortalFiveAngle = ANGLE_EAST
+   viPortalFiveDestRID = RID_DESERTALDUNES4W
+   viPortalFiveDestRow = 53
+   viPortalFiveDestCol = 14
+   viPortalFiveDestFineRow = 45
+   viPortalFiveDestFineCol = 29
+   viPortalFiveDestAngle = ANGLE_WEST
+   vsPortalFiveDesc = gh_waylay_oasis_life_prism_portal_desc
+   viPortalFiveGlowColor = LIGHT_BWHITE
+   
+   viReliquaryOneRow = 32
+   viReliquaryOneCol = 88
+   viReliquaryOneFineRow = 48
+   viReliquaryOneFineCol = 16
+   
+   viReliquaryTwoRow = 32
+   viReliquaryTwoCol = 89
+   viReliquaryTwoFineRow = 48
+   viReliquaryTwoFineCol = 16
+   
+   viReliquaryThreeRow = 32
+   viReliquaryThreeCol = 90
+   viReliquaryThreeFineRow = 48
+   viReliquaryThreeFineCol = 16
+   
+   viReliquaryFourRow = 32
+   viReliquaryFourCol = 91
+   viReliquaryFourFineRow = 48
+   viReliquaryFourFineCol = 16
+   
+   viReliquaryFiveRow = 32
+   viReliquaryFiveCol = 92
+   viReliquaryFiveFineRow = 48
+   viReliquaryFiveFineCol = 16
+   
+   viReliquarySixRow = 32
+   viReliquarySixCol = 93
+   viReliquarySixFineRow = 48
+   viReliquarySixFineCol = 16
+   
+   % Fusing device rates go from 8 (worst) to 4 (best) 
+   viShardFusingDeviceRow = 66
+   viShardFusingDeviceCol = 76
+   viShardFusingDeviceFineRow = 16
+   viShardFusingDeviceFineCol = 16
+   viShardFusingDeviceRate = 4
+   
+   % Shattering device rates go from 2 (worst) to 4 (best) 
+   viShardShatteringDeviceRow = 67
+   viShardShatteringDeviceCol = 76
+   viShardShatteringDeviceFineRow = 54
+   viShardShatteringDeviceFineCol = 16
+   viShardShatteringDeviceRate = 4
+   
+   viFociOneRow = 26
+   viFociOneCol = 96
+   viFociOneFineRow = 2
+   viFociOneFineCol = 18
+   viFociOnePower = 297
+   viFociOneRange = 11
+   viFociOneSpellNum = SID_INVIGORATE
+   
+   viFociTwoRow = 26
+   viFociTwoCol = 96
+   viFociTwoFineRow = 2
+   viFociTwoFineCol = 18
+   viFociTwoPower = 297
+   viFociTwoRange = 11
+   viFociTwoSpellNum = SID_RESTORATE
+   
+   viFociThreeRow = 26
+   viFociThreeCol = 96
+   viFociThreeFineRow = 2
+   viFociThreeFineCol = 18
+   viFociThreePower = 297
+   viFociThreeRange = 11
+   viFociThreeSpellNum = SID_REJUVENATE
+
 properties:
 
    vrWading_Sound = water_wading_sound
@@ -142,6 +345,16 @@ properties:
 
    pbSnowGroundTexture = TRUE
    piPreviousPhase = 0
+
+   pbRentable = TRUE
+   
+   pbPrismOpen = TRUE
+
+   piOverridesDeathFunction = TRUE
+   
+   piGuildHallMeditateEffiency = 100
+   % Boosts Faren, Banditry, Sorcery, Witchery by 20%
+   piSpecialGuildHallMeditateEfficiency = 120
 
 messages:
 
@@ -170,6 +383,7 @@ messages:
    {
       plEdge_Exits = $;
       plEdge_Exits = Cons([ LEAVE_WEST, RID_DESERTPATH1, 11, 58, ROTATE_NONE ],plEdge_Exits);
+      %plEdge_Exits = Cons([ LEAVE_NORTH, RID_DESERTCAVERAFT, 18, 4, ROTATE_NONE ],plEdge_Exits);
 
       propagate;
    }
@@ -186,17 +400,21 @@ messages:
       if piPreviousPhase <> SysDayPhase
       {
          Send(self,@DoPhaseWeather);
-         prMusic = Send(self,@GetPhaseMusic);
-         foreach i in plActive
-         {
-            if IsClass(First(i),&User)
-            {
-               Send(First(i),@SendRoomMusic,#music_rsc=prMusic);
-            }
-         }
+         Send(self,@RecalculateRoomMusic);
       }
 
       piPreviousPhase = SysDayPhase;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&DesertWitch)
+            OR IsClass(First(i),&DesertBard)
+            OR IsClass(First(i),&NomadWiseMan)
+            OR IsClass(First(i),&DesertBandit)
+         {
+            Send(First(i),@SayRandom);
+         }
+      }
       propagate;
    }
 
@@ -209,10 +427,26 @@ messages:
             {
                Send(self,@EndSnow);
             }
+            if Send(self,@CheckRoomFlag,#flag=ROOM_RAINING)
+            {
+               Send(self,@EndRain);
+            }
             break;
          case DAY_PHASE_DAY:
+            if Send(self,@CheckRoomFlag,#flag=ROOM_SNOWING)
+            {
+               Send(self,@EndSnow);
+            }
+            if Send(self,@CheckRoomFlag,#flag=ROOM_RAINING)
+            {
+               Send(self,@EndRain);
+            }
             break;
          case DAY_PHASE_DUSK:
+            if Send(self,@CheckRoomFlag,#flag=ROOM_SNOWING)
+            {
+               Send(self,@EndSnow);
+            }
             if NOT Send(self,@CheckRoomFlag,#flag=ROOM_RAINING)
             {
                Send(self,@StartRain);
@@ -250,7 +484,7 @@ messages:
 
    SomethingTryGo(what=$, row=$,  col = $)
    {
-      local i;
+      local i, iSection;
       
       foreach i in plInside_doors
       {
@@ -263,7 +497,61 @@ messages:
          }
       }
 
+      iSection = Send(self,@GetSection,#who=what,#bCheckForPool=TRUE);
+      if iSection = OUTER_POOL
+      {
+         if Send(self,@CheckRoomFlag,#flag=ROOM_SNOWING)
+         {
+            propagate;
+         }
+         if Send(self,@CheckRoomFlag,#flag=ROOM_RAINING)
+         {
+            Send(what,@MsgSendUser,#message_rsc=water_disgusting_msg);
+            return TRUE;
+         }
+         Send(self,@UserDrink,#who=what,#where=OUTER_POOL);
+         return TRUE;
+      }
+      if iSection = INNER_POOL
+      {
+         Send(self,@UserDrink,#who=what,#where=INNER_POOL);
+         return TRUE;
+      }
       propagate;
+   }
+
+   IsBeverage()
+   {
+      return TRUE;
+   }
+
+   UserDrink(who=$,where=OUTER_POOL)
+   {
+      if where=OUTER_POOL
+      {
+         if NOT Send(who,@ReqEatSomething,#filling=viOutsideFilling,#what=self)
+         {
+            return;
+         }
+
+         Send(who,@EatSomething,#nutrition=viOutsideNutrition,#filling=viOutsideFilling);
+         Send(who,@WaveSendUser,#wave_rsc=waylayoasis_drink_sound);
+         Send(who,@MsgSendUser,#message_rsc=waylayoasis_outside_drink);
+      }
+      else if where=INNER_POOL
+      {
+         if NOT Send(who,@ReqEatSomething,#filling=viInsideFilling,#what=self)
+         {
+            return;
+         }
+
+         Send(who,@EatSomething,#nutrition=viInsideNutrition,#filling=viInsideFilling);
+         Send(who,@WaveSendUser,#wave_rsc=waylayoasis_drink_sound);
+         Send(who,@MsgSendUser,#message_rsc=waylayoasis_inside_drink);
+      
+      }
+
+      return;
    }
 
    SomeoneSaid(what = $,type = $,string = $,parm1 = $,parm2 = $,parm3 = $,
@@ -308,7 +596,10 @@ messages:
                                     #iFineRow=Send(each_obj,@GetFineRow),
                                     #iFineCol=Send(each_obj,@GetFineCol));
 
-            if iSpeakerSection = iEachObjSection
+            if (iSpeakerSection = AREA_INSIDE
+               AND iEachObjSection = AREA_INSIDE)
+               OR (iSpeakerSection <> AREA_INSIDE
+                  AND iEachObjSection <> AREA_INSIDE)
                OR iSpeakerSection = AREA_LEDGES
             {
                Send(each_obj,@SomeoneSaid,#what=what,#type=type,#string=string,
@@ -330,6 +621,21 @@ messages:
       {
          Send(self,@OpenSecretDoor);
       }
+      
+      if iSpeakerSection = AREA_WAYPOINT
+         AND StringContain(string,waypoint_trigger_word)
+      {
+         Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTRIVER3),@Teleport,#what=what);
+         return;
+      }
+      
+      if iSpeakerSection = AREA_WAYPOINT
+         AND StringContain(string,waypoint_trigger_palace)
+         AND Send(what,@HasCompletedQuestChain,#chain_num=ANY_HP_MAZE_EXIT_CHAIN)
+      {
+         Send(Send(SYS,@FindRoomByNum,#num=RID_PALACE_DUNGEON_ENTRANCE),@Teleport,#what=what);
+         return;
+      }
 
       return;
    }
@@ -348,6 +654,8 @@ messages:
 
    InFoyer(who=$,iRow=$,iCol=$,iFineRow=$,iFineCol=$)
    {
+      local iSection;
+
       if who <> $
       {
          iRow = Send(who,@GetRow);
@@ -356,16 +664,17 @@ messages:
          iFineCol = Send(who,@GetFineCol);
       }
 
-      if Send(self,@GetSection,#who=who,#iRow=iRow,#iCol=iCol,
-            #iFineRow=iFineRow,#iFineCol=iFineCol) = AREA_OUTSIDE
+      iSection = Send(self,@GetSection,#who=who,#iRow=iRow,#iCol=iCol,#iFineRow=iFineRow,#iFineCol=iFineCol);
+      if iSection = AREA_INSIDE
+         OR iSection = AREA_LEDGES
       {
-         return TRUE;
+         return FALSE;
       }
 
-      return FALSE;
+      return TRUE;
    }
 
-   GetSection(who=$,iRow=$,iCol=$,iFineRow=$,iFineCol=$)
+   GetSection(who=$,iRow=$,iCol=$,iFineRow=$,iFineCol=$,bCheckForPool=FALSE)
    {
       local iQflags, iRflags, iHeightF, iHeightFWD, iHeightC, iServerID;
       
@@ -374,7 +683,25 @@ messages:
          OR iFineRow = $
          OR iFineCol = $
       {
-         return AREA_OUTSIDE;
+         if who <> $
+         {
+            iRow = Send(who,@GetRow);
+            iCol = Send(who,@GetCol);
+            iFineRow = Send(who,@GetFineRow);
+            iFineCol = Send(who,@GetFineCol);
+         }
+         else
+         {
+            return AREA_OUTSIDE;
+         }
+         if iRow = $
+            OR iCol = $
+            OR iFineRow = $
+            OR iFineCol = $
+         {
+            % Who gave us some nil coords.
+            return AREA_OUTSIDE;
+         }
       }
 
       iQflags = LIQ_GET_SECTORINFO;
@@ -383,23 +710,61 @@ messages:
                       prmRoom, iQflags, iRow, iCol, iFineRow, iFineCol,
                       *iRflags, *iHeightF, *iHeightFWD, *iHeightC, *iServerID)
       {
+         if iServerID = OFFLIMITS_SECTORS
+         {
+            return AREA_ILLEGAL;
+         }
+
+         if bCheckForPool
+         {
+            if iServerID = INNER_POOL
+            {
+               return INNER_POOL;
+            }
+            if iServerID = OUTER_POOL
+            {
+               return OUTER_POOL;
+            }
+         }
+
          if iServerID = CHEST_PASSAGE_SECTOR
             OR iServerID = HALL_SECTORS_SOUTH
             OR iServerID = HALL_SECTORS_NORTH
+            OR iServerID = INNER_POOL
          {
             return AREA_INSIDE;
          }
-         
+
+         if iServerID = ENTRANCE_SECTOR2
+         {
+            return AREA_DOOR;
+         }
+
          if iServerID = LEDGE_SECTORS
          {
             return AREA_LEDGES;
+         }
+         
+         if iServerID = CAVE_SECTORS
+         {
+            return AREA_CAVES;
+         }
+         
+         if iServerID = PRISM_OF_ACID_TUNNEL_SECTORS
+         {
+            return AREA_PRISM_OF_ACID_TUNNEL;
+         }
+         
+         if iServerID = WAYPOINT_SECTOR
+         {
+            return AREA_WAYPOINT;
          }
       }
 
       return AREA_OUTSIDE;
    }
 
-   ReqSomethingAttack(what = $,victim = $)
+   ReqSomethingAttack(what = $,victim = $, report=TRUE)
    "No one may attack through the door if it's closed."
    {
       local iVictimSection, iAttackerSection;
@@ -419,6 +784,18 @@ messages:
                              #iCol=Send(what,@GetCol),
                              #iFineRow=Send(what,@GetFineRow),
                              #iFineCol=Send(what,@GetFineCol));
+
+      % The caves are protected.
+      if iAttackerSection = AREA_CAVES
+         OR iVictimSection = AREA_CAVES
+      {
+         if IsClass(what,&Player)
+            AND report
+         {
+            Send(what,@MsgSendUser,#message_rsc=no_tribe_fight_in_caves);
+         }
+         return FALSE;
+      }
 
       % The ledges are not protected from direct attacks from outside.
       % Ledges will not get hit by earthquakes and other area attacks, though,
@@ -443,12 +820,25 @@ messages:
 
    SomethingMoved(what = $,new_row = $, new_col = $)
    {
+      if NOT IsClass(what,&Player)
+      {
+         propagate;
+      }
+
       if new_col > (Send(self,@GetRoomCols)-2)
       {
          Send(SYS,@UtilGoNearSquare,#what=what,
               #where=Send(SYS,@FindRoomByNum,#num=RID_DESERTBRIDGE),
               #new_row=3,#new_col=3,#fine_row=50,#fine_col=9,
               #new_angle=ANGLE_EAST);
+         return;
+      }
+
+      if new_row < 2
+      {
+         Send(SYS,@UtilGoNearSquare,#what=what,
+              #where=Send(SYS,@FindRoomByNum,#num=RID_ACIDPATH),
+              #new_row=205,#new_col=152,#new_angle=ANGLE_NORTH);
          return;
       }
 
@@ -460,7 +850,7 @@ messages:
          return;
       }
 
-      if new_row > (Send(self,@GetRoomRows)-1) and (new_col > 50)
+      if new_row > (Send(self,@GetRoomRows)-1) and (new_col > 50) and (new_col < 80)
       {
          Send(SYS,@UtilGoNearSquare,#what=what,
               #where=Send(SYS,@FindRoomByNum,#num=RID_DESERTRIVER1),
@@ -491,7 +881,7 @@ messages:
       % southeast hermit
       Send(self,@NewHold,#what=Create(&Firepit,#iSoundRadius=0),
             #new_row=52,#new_col=114,#fine_row=59,#fine_col=35);
-      Send(self,@NewHold,#what=Create(&NomadWiseMan),
+      Send(self,@NewHold,#what=Create(&DesertBard),
             #new_row=52,#new_col=115,#fine_row=33, #fine_col=52,
             #new_angle=ANGLE_WEST);
 
@@ -500,11 +890,11 @@ messages:
             #new_row=31,#new_col=116,#fine_row=59,#fine_col=25);
       Send(self,@NewHold,#what=Create(&Firepit,#iSoundRadius=0),
             #new_row=36,#new_col=122,#fine_row=50,#fine_col=5);
-      Send(self,@NewHold,#what=Create(&NomadWiseMan),
-            #new_row=37,#new_col=123,#fine_row=42, #fine_col=49,
-            #new_angle=ANGLE_WEST);
-      Send(self,@NewHold,#what=Create(&NomadWiseMan),
+      Send(self,@NewHold,#what=Create(&DesertBandit),
             #new_row=37,#new_col=119,#fine_row=46, #fine_col=44,
+            #new_angle=ANGLE_WEST);
+      Send(self,@NewHold,#what=Create(&DesertTribesman),
+            #new_row=35,#new_col=122,#fine_row=15, #fine_col=34,
             #new_angle=ANGLE_WEST);
       
       % north cave
@@ -514,6 +904,47 @@ messages:
             #new_row=14,#new_col=107,#fine_row=7, #fine_col=22,
             #new_angle=ANGLE_WEST);
 
+      % southmost cave
+      Send(self,@NewHold,#what=Create(&Firepit,#iSoundRadius=0),
+            #new_row=69,#new_col=123,#fine_row=39,#fine_col=18);
+      Send(self,@NewHold,#what=Create(&DesertWitch),
+            #new_row=67,#new_col=122,#fine_row=22, #fine_col=31,
+            #new_angle=ANGLE_WEST);
+
+      % Tribesmen
+      Send(self,@NewHold,#what=Create(&DesertTribesman),
+            #new_row=52,#new_col=118,#fine_row=54, #fine_col=17,
+            #new_angle=ANGLE_WEST);
+      Send(self,@NewHold,#what=Create(&DesertTribesman),
+            #new_row=56,#new_col=116,#fine_row=3, #fine_col=38,
+            #new_angle=ANGLE_WEST);
+      Send(self,@NewHold,#what=Create(&DesertTribesman),
+            #new_row=51,#new_col=123,#fine_row=53, #fine_col=40,
+            #new_angle=ANGLE_WEST);
+      Send(self,@NewHold,#what=Create(&DesertTribesman),
+            #new_row=57,#new_col=122,#fine_row=20, #fine_col=2,
+            #new_angle=ANGLE_WEST);
+      Send(self,@NewHold,#what=Create(&DesertTribesman),
+            #new_row=57,#new_col=126,#fine_row=56, #fine_col=47,
+            #new_angle=ANGLE_WEST);
+      Send(self,@NewHold,#what=Create(&DesertTribesman),
+            #new_row=62,#new_col=123,#fine_row=54, #fine_col=24,
+            #new_angle=ANGLE_WEST);
+      Send(self,@NewHold,#what=Create(&DesertTribesman),
+            #new_row=39,#new_col=115,#fine_row=1, #fine_col=61,
+            #new_angle=ANGLE_WEST);
+      Send(self,@NewHold,#what=Create(&Firepit,#iSoundRadius=0),
+            #new_row=41,#new_col=115,#fine_row=31,#fine_col=61);
+      Send(self,@NewHold,#what=Create(&Firepit,#iSoundRadius=0),
+            #new_row=62,#new_col=113,#fine_row=11,#fine_col=47);
+      Send(self,@NewHold,#what=Create(&DesertTribesman),
+            #new_row=65,#new_col=116,#fine_row=58, #fine_col=9,
+            #new_angle=ANGLE_WEST);
+      Send(self,@NewHold,#what=Create(&Firepit,#iSoundRadius=0),
+            #new_row=51,#new_col=124,#fine_row=5,#fine_col=15);
+      
+      
+      
       Send(self,@NewHold,#what=Create(&Pillar),#new_row=28,#new_col=98,
             #fine_row=15,#fine_col=7);
       Send(self,@NewHold,#what=Create(&Pillar),#new_row=28,#new_col=99,
@@ -552,8 +983,8 @@ messages:
             #fine_row=32,#fine_col=32);
       Send(self,@NewHold,#what=Create(&Brazier),#new_row=68,#new_col=96,
             #fine_row=57,#fine_col=58);
-      Send(self,@NewHold,#what=Create(&Brazier),#new_row=71,#new_col=81,
-            #fine_row=22,#fine_col=40);
+      Send(self,@NewHold,#what=Create(&Brazier),#new_row=71,#new_col=80,
+            #fine_row=16,#fine_col=48);
 
       Send(self,@NewHold,#what=Create(&Brazier),#new_row=19,#new_col=88,
             #fine_row=37,#fine_col=35);
@@ -643,14 +1074,25 @@ messages:
             % Water sidedefs tagged as ID 14.
             Send(self,@ChangeTexture,#id=13,#new_texture=61017,
                   #flags=CTF_FLOOR);
+                  
+            % outer pool
+            Send(self,@ChangeTexture,#id=400,#new_texture=61017,
+                  #flags=CTF_FLOOR);
+
             % Stop vertically scrolling water from animating.
             Send(self,@AnimateWall,#wall=14,#animation=ANIMATE_NONE,
                   #first_group=1,#second_group=1,#end_group=1);
+            % Make unpassable
+            Send(self,@AnimateWall,#wall=14,#animation=ANIMATE_NONE,#first_group=2,
+                  #passable=FALSE);
+            
             % Change texture.
             Send(self,@ChangeTexture,#id=14,#new_texture=61017,
                   #flags=CTF_NORMALWALL);
             % Stop water scroll effect and remove depth.
             Send(self,@SetSectorFlags,#sector=13,#depth=SF_DEPTH0,
+                  #scrollSpeed=SCROLL_NONE);
+            Send(self,@SetSectorFlags,#sector=400,#depth=SF_DEPTH0,
                   #scrollSpeed=SCROLL_NONE);
 
 
@@ -674,11 +1116,15 @@ messages:
       {
          % Remove sludge water textures.
          Send(self,@RemoveTextureChange,#id=13);
+         Send(self,@RemoveTextureChange,#id=400);
          % Remove sludge water sides.
          Send(self,@RemoveTextureChange,#id=14);
+
          Send(self,@RemoveAnimateWallChange,#wall=14);
+
          % Reset sector flag changes to sludge water.
          Send(self,@RemoveSectorFlagChange,#id=13);
+         Send(self,@RemoveSectorFlagChange,#id=400);
 
          % Remove snow depth and walking sounds.
          Send(self,@RemoveSectorFlagChange,#id=0);
@@ -699,9 +1145,13 @@ messages:
       % Acid rain makes the water gross.
       Send(self,@ChangeTexture,#id=13,#new_texture=09363,
             #flags=CTF_FLOOR);
+      Send(self,@ChangeTexture,#id=400,#new_texture=09363,
+            #flags=CTF_FLOOR);
       Send(self,@ChangeTexture,#id=14,#new_texture=09363,
             #flags=CTF_NORMALWALL);
       Send(self,@SetSectorFlags,#sector=13,#depth=SF_DEPTH1,
+            #scrollSpeed=SCROLL_SLOW);
+      Send(self,@SetSectorFlags,#sector=400,#depth=SF_DEPTH1,
             #scrollSpeed=SCROLL_SLOW);
       propagate;
    }
@@ -712,16 +1162,366 @@ messages:
       Send(self,@RemoveTextureChange,#id=0);
       % Remove sludge water textures.
       Send(self,@RemoveTextureChange,#id=13);
+      Send(self,@RemoveTextureChange,#id=400);
       % Remove sludge water sides.
       Send(self,@RemoveTextureChange,#id=14);
       % Reset sector flag changes to sludge water.
       Send(self,@RemoveSectorFlagChange,#id=13);
+      Send(self,@RemoveSectorFlagChange,#id=400);
       propagate;
    }
 
    GetRegion()
    {
       return RID_DESERT;
+   }
+
+   ResetGuildHall()
+   {
+      local i;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&Player)
+         {
+            Send(First(i),@SetValidatedForThisHall,#value=FALSE);
+         }
+      }
+
+      propagate;
+   }
+
+   NewHold(what = $, new_angle = ANGLE_EAST, new_row = 1, new_col = 1,
+           fine_row = FINENESS/2, fine_col = FINENESS/2, session = $,
+           merge = TRUE)
+   {
+      local iSection;
+
+      if IsClass(what,&Player)
+      {
+         iSection = Send(self,@GetSection,#who=what);
+         if iSection = AREA_INSIDE
+            OR iSection = AREA_LEDGES
+         {
+            % If they can log on in the hall, they must be valid. If they're teleported, unset.
+            Send(what,@SetValidatedForThisHall,#value=TRUE);
+         }
+         
+         if iSection = AREA_PRISM_OF_ACID_TUNNEL
+            AND NOT pbPrismOpen
+         {
+            Post(self,@Teleport,#what=what);
+         }
+      }
+
+      propagate;
+   }
+
+   Teleport(what=$,foyer=FALSE)
+   {
+      if foyer
+      {
+         if IsClass(what,&Player)
+         {
+            % Any foyer teleports (including logging on inside hall) ensures we're not legit.
+            Send(what,@SetValidatedForThisHall,#value=FALSE);
+         }
+      }
+
+      propagate;
+   }
+
+   LeaveHold(what = $)
+   {
+      if IsClass(what,&Player)
+      {
+         Send(what,@SetValidatedForThisHall,#value=FALSE);
+      }
+
+      propagate;
+   }
+
+   IsMoveOK(old_row = 1, old_col = 1, old_fine_row = 1, old_fine_col = 1,
+            new_row = 1, new_col = 1, new_fine_row = 1, new_fine_col = 1,
+            who=$)
+   {
+      local iSection;
+
+      iSection = Send(self,@GetSection,#who=who,
+                                       #iRow=new_row,
+                                       #iCol=new_col,
+                                       #iFineRow=new_fine_row,
+                                       #iFineCol=new_fine_col);
+
+      if iSection = AREA_ILLEGAL
+      {
+         % No wallhacking. No compromises.
+         return FALSE;
+      }
+
+      % Complex hall. Don't check movement if it's not owned.
+      if poGuild_owner = $
+      {
+         return TRUE;
+      }
+
+      % They've been validated. No more checks.
+      if Send(who,@GetValidatedForThisHall)
+      {
+         return TRUE;
+      }
+      
+      if ptEntrance <> $
+      {
+         % Door's open. Validate anyone moving through the door.
+         if iSection = AREA_DOOR
+         {
+            Send(who,@SetValidatedForThisHall,#value=TRUE);
+            return TRUE;
+         }
+      }
+
+      if Send(self,@InFoyer,#iRow=old_row,#iCol=old_col,
+               #iFineRow=old_fine_row,#iFineCol=old_fine_col)
+      {
+         % We're in the foyer. Check if we're trying to move into the hall.
+         if NOT Send(self,@InFoyer,#iRow=new_row,#iCol=new_col,
+                    #iFineRow=new_fine_Row,#iFineCol=new_fine_col)
+         {
+            % Bad player! Fail the attempt.
+            Debug("ALERT!",Send(who,@GetTrueName),who,
+                  "tried to move through closed Guild Hall door ",
+                  Send(self,@GetName)," from ",old_row,old_col,old_fine_row,
+                  old_fine_col," to ",new_row,new_col,new_fine_row,
+                  new_fine_col,". Last door opening was ",
+                  GetTime() - Send(self,@GetDoorTimeStamp),
+                  " seconds ago.");
+            return FALSE;
+         }
+      }
+
+      return TRUE;
+   }
+
+   ClosePrismOfAcidDoor()
+   {
+      local i;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&Player)
+         {
+            if Send(self,@GetSection,#who=First(i)) = AREA_PRISM_OF_ACID_TUNNEL
+            {
+               Send(self,@Teleport,#what=First(i));
+            }
+         }
+      }
+      Send(self,@SetSector,#sector=PRISM_OF_ACID_TUNNEL_SECTORS,#animation=ANIMATE_FLOOR_LIFT,#height=64,#speed=16);
+      pbPrismOpen = FALSE;
+      return;
+   }
+
+   OpenPrismOfAcidDoor()
+   {
+      Send(self,@SetSector,#sector=PRISM_OF_ACID_TUNNEL_SECTORS,#animation=ANIMATE_FLOOR_LIFT,#height=0,#speed=16);
+      pbPrismOpen = TRUE;
+      return;
+   }
+   
+   OverrideDeathFunction(who=$,what=$,stroke_obj=$)
+   {
+      local oAfterlife, bDrop, oRoom, iRow, iCol, iFine_Row, iFine_Col, iAngle, iRoom,
+            oBody, lReagentBagContents, lInventoryContents, lItems, i, oSoldierShield;
+
+      Send(who,@ClearStance);
+
+      % Stop any rescue attempts that were going on.
+      Send(who,@CancelRescue);
+      Send(who,@RemoveAllEnchantments,#report=FALSE);
+      
+      Send(who,@SetDeathTime,#iTime=GetTime());
+
+      % Grab the location of the deceased.
+      % Might need to grab the old location if logged off.
+
+      if Send(who,@IsLoggedOn)
+      {
+         oRoom = Send(who,@GetOwner);
+         iRow = Send(who,@GetRow);
+         iCol = Send(who,@GetCol);
+         iFine_Row = Send(who,@GetFineRow);
+         iFine_Col = Send(who,@GetFineCol);
+         iAngle = Send(who,@GetAngle);
+         iRoom = Send(Send(who,@GetOwner),@GetRoomNum);
+      }
+      else
+      {
+         iRoom = Send(who,@GetSaveRoom);
+         oRoom = Send(SYS,@FindRoomByNum,#num=iRoom);
+         iRow = Send(who,@GetSaveRow);
+         iCol = Send(who,@GetSaveCol);
+         iFine_Row = Send(who,@GetSaveFineRow);
+         iFine_Col = Send(who,@GetSaveFineCol);
+         iAngle = Send(who,@GetSaveAngle);
+      }
+
+      % Record-keeping. Keep this before the token check,
+      % so we can give proper message.
+      Send(SYS,@UserKilled,#what=who,#killer=what,#oRoom=oRoom,#stroke_obj=stroke_obj);
+      Send(Send(SYS,@GetStatistics),@PlayerDiedCounter);
+
+      % Create the corpse.
+      if what <> $
+         AND IsClass(what,&User)
+      {
+         oBody = Send(who,@CreateCorpse,#oPlayerKiller=what);
+      }
+      else
+      {
+         oBody = Send(who,@CreateCorpse);
+      }
+      Send(who,@AddCorpse,#corpse=oBody);
+
+      Send(oRoom,@NewHold,#what=oBody,#new_row=iRow,#new_col=iCol,
+            #fine_row=iFine_Row,#fine_col=iFine_Col,#new_angle=iAngle);
+
+      bDrop = TRUE;
+      % Start losing stuff if applicable.
+      if bDrop
+      {
+         lReagentBagContents = Send(who,@GetReagentBagContents);
+         if lReagentBagContents <> $
+         {
+            lInventoryContents = [Send(who,@GetHolderActive),Send(who,@GetHolderPassive),lReagentBagContents];
+         }
+         else
+         {
+            lInventoryContents = [Send(who,@GetHolderActive),Send(who,@GetHolderPassive)];
+         }
+
+         foreach lItems in lInventoryContents
+         {
+            foreach i in lItems
+            {
+               % Let the item know we died, in case it does something special.
+               Send(i,@OwnerKilled);
+
+               if Send(i,@DropOnDeath)
+               {
+                  if Send(oRoom,@ReqNewHold,#what=i,#new_row=iRow,#new_col=iCol)
+                  {
+                     Send(oBody,@NewHold,#what=i);
+                  }
+               }
+            }
+         }
+
+         Post(who,@EvaluatePKStatus);
+
+         % Let SoldierShields know we died. It handles itself as appropriate.
+         oSoldierShield = Send(who,@FindUsing,#what=&SoldierShield);
+         if oSoldierShield <> $
+         {
+            Send(oSoldierShield,@OwnerDied,#what=what);
+         }
+      }
+
+      % Give out your dying scream.
+      if Send(who,@GetGender) = GENDER_FEMALE
+      {
+         i = Send(who,@GetFemaleDeathWav);
+      }
+      else
+      {
+         i = Send(who,@GetMaleDeathWav);
+      }
+
+      Send(oRoom,@SomethingWaveRoom,#what=oBody,#wave_rsc=i);
+      if Send(who,@IsLoggedOn)
+      {
+         Send(who,@WaveSendUser,#what=who,#wave_rsc=i);
+      }
+
+      Send(who,@SetHealth,#amount=1);
+
+      Send(who,@NewHealth);
+      Send(who,@NewMana);
+      Send(who,@NewVigor);
+      
+      Send(who,@SetDeathCost,#DeathCost=Send(Send(SYS,@GetDesertRoomMaintenance),@GetDeathCost),#bOverride=TRUE);
+      Send(who,@ApplyDeathPenalties);
+
+      % Refresh the client with what's really going on.
+      if Send(who,@IsLoggedOn)
+      {
+         Send(who,@ToCliStats,#group=1);
+         Send(who,@ToCliStats,#group=2);
+         Send(who,@ToCliStats,#group=3);
+         Send(who,@ToCliStats,#group=4);
+
+         % Wake up with red foggy hangover.
+         Send(who,@EffectSendUserDuration,#effect=EFFECT_PAIN,#duration=5000);
+      }
+      
+      oAfterlife = Send(SYS,@FindRoomByNum,#num=RID_DESERTALDUNES);
+      Send(oAfterlife,@Teleport,#what=who);
+      return;
+   }
+
+   Delete()
+   {
+      local i, oThing;
+
+      foreach i in Send(self,@GetHolderPassive)
+      {
+         oThing = Send(self,@HolderExtractObject,#data=i);
+         if IsClass(oThing,&DeadBody)
+            AND NOT Send(oThing,@GetPbMob)
+         {
+            % is a player corpse! Let's move it.
+            Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTDUNES),@Teleport,#what=oThing);
+         }
+      }
+
+      propagate;
+   }
+
+   ReqSpellCast(who = $, oSpell = $, lItems = $)
+   {
+      if IsClass(oSpell,&Truce)
+      {
+         if IsClass(who,&Player)
+         {
+            Send(who,@MsgSendUser,#message_rsc=waylayoasis_cannot_truce_here);
+         }
+         return FALSE;
+      }
+      if IsClass(oSpell,&DeathRift)
+         OR IsClass(oSpell,&PortalOfLife)
+      {
+         return FALSE;
+      }
+
+      propagate;
+   }
+   
+   DoesPlayerQualifyForSpecialMeditateRatio(who=$,oSpell=$,oSkill=$)
+   {
+      if (oSpell <> $
+         AND Send(oSpell,@GetSchool) = SS_FAREN)
+         OR (oSpell <> $
+         AND Send(oSpell,@GetSchool) = SS_WITCHERY)
+         OR (oSkill <> $
+         AND Send(oSkill,@GetSchool) = SKS_SORCERY)
+         OR (oSkill <> $
+         AND Send(oSkill,@GetSchool) = SS_WITCHERY)
+         OR (oSkill <> $
+         AND Send(oSkill,@GetSchool) = SKS_BANDITRY)
+      {
+         return TRUE;
+      }
+      return FALSE;
    }
 
 end

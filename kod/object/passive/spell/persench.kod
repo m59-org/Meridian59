@@ -153,7 +153,9 @@ messages:
       % Check for enchantment already applied
       if Send(oTarget,@IsEnchanted,#what=self)
       {
-         if Send(who,@HasReservedSpell,#oSpell=self)
+         if IsClass(who,&Player)
+            AND oTarget = who
+            AND Send(who,@HasReservedSpell,#oSpell=self)
          {
             if Send(who,@UnReserveSpell,#oSpell=self)
             {
@@ -207,7 +209,7 @@ messages:
       return lTargets;
    }
 
-   CastSpell(who=$,iSpellPower=0,lTargets=$,bItemCast=FALSE)
+   CastSpell(who=$,iSpellPower=0,lTargets=$,bItemCast=FALSE,bSecondaryCast=FALSE,bSustainedByItem=FALSE,bSeer=0)
    {
       local oTarget, lType;
 
@@ -217,6 +219,11 @@ messages:
          AND IsClass(who,&Player)
          AND Send(who,@ReservesForThisLevel,#iLevel=viSpell_level)
       {
+         % If target already has this enchantment, remove it
+         if Send(who,@IsEnchanted,#what=self)
+         {
+            Send(who,@RemoveEnchantment,#what=self,#report=FALSE,#remain=TRUE);
+         }
          Send(who,@UseReserveSkill,#oSpell=self,
                                    #iSpellPower=iSpellPower);
          propagate;
@@ -254,9 +261,9 @@ messages:
 
       Send(oTarget,@StartEnchantment,#what=self,
             #state=Send(self,@GetStateValue,#iSpellpower=iSpellpower,#who=who,
-            #target=oTarget),#time=Send(self,@GetDuration,#iSpellPower=iSpellPower),
+            #target=oTarget),#time=Send(self,@GetDuration,#iSpellPower=iSpellPower) + bSeer*3600000,
             #lastcall=Send(self,@GetLastCall),#addicon=Send(self,@GetAddicon),
-            #who=who,#ltype=lType,#bItemCast=bItemCast,#iSpellpower=iSpellpower);
+            #who=who,#ltype=lType,#bItemCast=bItemCast,#iSpellpower=iSpellpower,#bSustainedByItem=bSustainedByItem);
 
       % GetStateValue is sometimes (eg used for pre-enchantment behaviors,
       % who is the caster, target is the target (sometimes the same as who).
@@ -412,6 +419,26 @@ messages:
    CanBeReserved()
    {
       return vbCanBeReserved;
+   }
+
+   AltersLightLevel()
+   {
+      return FALSE;
+   }
+
+   IsDefensive()
+   {
+      return viDefensive;
+   }
+   
+   IsOffensive()
+   {
+      return viOffensive;
+   }
+
+   IsResistance()
+   {
+      return viResistanceType;
    }
 
 end

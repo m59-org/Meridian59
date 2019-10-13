@@ -54,8 +54,17 @@ messages:
             }
             return [&HeatThreat,&DesertPath1Storm];
          case DAY_PHASE_DUSK:
+            if Send(Send(SYS,@FindRoomByNum,#num=RID_ACIDPATH),
+                     @GetPrismOfAcidDefeated)
+            {
+               return [&AcidStorm,&DesertPath1Storm];
+            }
             return [&AcidThreat,&DesertPath1Storm];
          case DAY_PHASE_NIGHT:
+            if Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTSANDBAR),@GetPrismOfIceDefeated)
+            {
+               return [&ColdStorm,&DesertPath1Storm];
+            }
             return [&ColdThreat,&DesertPath1Storm];
       }
       return [&ShockStorm,&DesertPath1Storm];

@@ -1,0 +1,77 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+SorceryCrest is Crest
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   Sorcery_Crest_name_rsc = "Crest of the Sorcerer"
+   Sorcery_Crest_icon_rsc = frcharm.bgf
+   Sorcery_Crest_desc_rsc = \
+      "You are the wisest among all those who practice sorcery. "
+      "This crest signifies that you are the master of Sorcery. "
+      "While wearing it, your damage will pierce enemy elemental resistances."
+
+   Sorcery_Crest_equipped = \
+      "The Crest of the Sorcerer changes the way mana flows through you, "
+      "allowing you to strike directly at a foe's very essence."
+   Sorcery_Crest_unequipped = \
+      "The power of the Crest of the Sorcerer leaves you."
+
+classvars:
+
+   vrName = Sorcery_Crest_name_rsc
+   vrIcon = Sorcery_Crest_icon_rsc
+   vrDesc = Sorcery_Crest_desc_rsc
+
+   viValue_average = 10
+
+   viBulk = 25
+   viWeight = 25
+
+   viGround_group = 2
+
+properties:
+   
+   pbIn_use = False
+
+   piItemLevel = 300
+
+messages:
+
+   NewUsed(what = $)
+   {
+      if IsClass(what,&User)
+      {
+         Send(what,@MsgSendUser,#message_rsc=Sorcery_Crest_equipped);
+      }
+      
+      propagate;
+   }
+
+   NewUnused(what = $)
+   {
+      if IsClass(what,&User)
+      {
+         Send(what,@MsgSendUser,#message_rsc=Sorcery_Crest_unequipped);
+      }
+
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+

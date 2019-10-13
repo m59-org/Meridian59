@@ -49,23 +49,25 @@ classvars:
    vrDead_icon = iceperson_dead_icon_rsc
    vrDead_name = iceperson_dead_name_rsc
 
-   viTreasure_type = TID_NONE
+   viTreasure_type = TID_ICE_ELE
    viSpeed = SPEED_AVERAGE
    viAttack_type = ATCK_WEAP_THRUST
    viAttack_spell = ATCK_SPELL_COLD
    viAttributes = 0
-   viLevel = 75
-   viDifficulty = 5
+   viLevel = 160
+   viDifficulty = 8
    viVisionDistance = 10
    % Attack range of 192, or 3 row/col.
    viAttackRange = 192
-   viKarma = -70
+   viKarma = 0
    viCashmin = 200
    viCashmax = 450
    vrSound_hit = iceperson_sound_hit
    vrSound_miss = iceperson_sound_miss
    vrSound_aware = iceperson_sound_aware
    vrSound_death = iceperson_sound_death
+
+   viBaseSize = 90
 
 properties:
 
@@ -76,8 +78,13 @@ messages:
 
    Constructed()
    {
-      plResistances = [ [-ATCK_SPELL_FIRE, -99 ],[ -ATCK_SPELL_COLD, 99 ]];
+      plResistances = [ [-ATCK_SPELL_FIRE, -20 ],[ -ATCK_SPELL_COLD, 99 ]];
 
+      plCreatureTypes = Cons(CREATURE_TYPE_ELEMENTAL,plCreatureTypes);
+      plCreatureTypes = Cons(CREATURE_TYPE_INTELLIGENT,plCreatureTypes);
+      plCreatureTypes = Cons(CREATURE_TYPE_MAGICAL,plCreatureTypes);
+
+      plAllySpellBook = [ [SID_RESIST_COLD,5,100, Random(80,90)]];
       propagate;
    }
 

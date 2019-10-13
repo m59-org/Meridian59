@@ -31,10 +31,8 @@ classvars:
    vrDead_name = eaelem_champion_dead_name_rsc
 
    vbNamedMob = TRUE
-   viIndefinite = ARTICLE_NONE
-   viDefinite = ARTICLE_NONE
 
-   viTreasure_type = TID_NONE
+   viTreasure_type = TID_EARTH_ELE
    viSpeed = SPEED_FAST
 
    viLevel = 250
@@ -42,7 +40,15 @@ classvars:
 
    viCashmin = 3000
    viCashmax = 12000
+
+   viDefault_behavior = AI_FIGHT_AGGRESSIVE | AI_MOVE_WALKTHROUGH_WALLS
+
+   viBonusBaseTP = 1
    
+   viBaseSize = 2200
+
+   vbBonusXPGain = 390
+
 properties:
 
    piAnimation = ANIM_NONE
@@ -54,7 +60,7 @@ messages:
 
    Constructed()
    {
-      plSpellBook = [ [SID_EARTHQUAKE,3,100] ];
+      plMeleeSpellBook = [ [SID_EARTHQUAKE,3,100,99] ];
 
       plResistances = [ [-ATCK_SPELL_ACID, -70 ],
                         [-ATCK_SPELL_COLD, -25 ],
@@ -62,6 +68,19 @@ messages:
                         [-ATCK_SPELL_ALL, 50 ],
                         [ATCK_WEAP_BLUDGEON, -50],
                         [ATCK_WEAP_ALL, 50 ] ];
+
+      propagate;
+   }
+
+   IsAlly(target = $, regroup = FALSE)
+   {
+      if IsClass(target,&XeoBossAcid)
+         OR IsClass(target,&XeoAcid)
+         OR IsClass(target,&EarthElemental)
+         OR IsClass(target,&EarthElementalChampion)
+      {
+         return TRUE;
+      }
 
       propagate;
    }

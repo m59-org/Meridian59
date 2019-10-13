@@ -50,7 +50,8 @@ resources:
    spell_too_tired = "You are too tired to cast %s!"
    spell_insufficient_magic = "You don't have enough mana to cast %s!"
    spell_insufficient_reagent = "You don't have the reagents to cast %s!"
-   spell_out_of_range = "%s%s is out of range."
+   
+   spell_out_of_range = "%s%s is too far away to reach with %s."
    spell_begin_trance = "You start to cast %s."
    spell_safety_on = \
       "You can't make an antisocial cast; you don't want to attack innocents."
@@ -86,13 +87,22 @@ resources:
    spell_silenced_rsc = "Your words catch in your throat and you cannot speak."
 
    spell_fail_wav = spelfail.wav
-   spell_desc_rsc = "SCHOOL : %s         LEVEL : %i \n\n%s%s%s%r%r%r"
+   spell_desc_rsc = "SCHOOL : %s         LEVEL : %i %s%s\n\n%s%s%s%r%r%r"
+   spell_school_witchery = "Witchery"
+   spell_school_witchery_xaerdun = "Witchery, through Xaerdun"
+   spell_school_witchery_nequzon = "Witchery, through Nequzon"
+   spell_school_witchery_iwodach = "Witchery, through Iwodach"
+   spell_school_witchery_ventdal = "Witchery, through Ventdal"
+   spell_school_witchery_raumlar = "Witchery, through Raumlar"
    spell_school_riija = "Riija"
    spell_school_shalille = "Shal'ille"
    spell_school_qor = "Qor"
    spell_school_faren = "Faren"
    spell_school_kraanan = "Kraanan"
    spell_school_jala = "Jala"
+   spell_school_knightcraft = "Knightcraft"
+   spell_school_alchemy = "Alchemy"
+   spell_school_bestiary = "Bestiary"
    spell_intro_rsc = "One of the many mystical spells."
 
    spell_sound_jala = lute_equip.wav
@@ -102,6 +112,7 @@ resources:
    spell_sound_faren = faren.wav
    spell_sound_riija = riija.wav
    spell_sound_dm_command = tranport.wav
+   spell_sound_bestiary = spell1.wav
 
    spell_gesture_third = \
       "%s%s murmurs something under %s breath and makes a mystical gesture."
@@ -128,7 +139,7 @@ resources:
       "~g~BAn unseen force rips the words of the spell from your throat "
       "before you can fully utter them."
    spell_display_spellpower = \
-      "Spellpower for %s is ~b%i~n."
+      "The spellpower of your %s cast is ~b%i~n."
    no_line_of_sight = \
       "Your hindered line of sight makes casting more difficult."
 
@@ -142,12 +153,39 @@ resources:
    cannot_cast_on_phased_out = \
       "You can't cast anything on %s while %s is phased out of existence!"
 
+   unable_to_improve_blood_magic = \
+      "The pain involved in using blood magic makes it impossible for you to improve this spell."
+
+   spell_mastered_desc_rsc = \
+      "You've mastered this spell to an exceptional degree."
+
+   male_shout_sound = maleshout.wav
+   
+   name_spell_stat_might = "\n\nPRIMARY : Might"
+   name_spell_stat_intellect = "\n\nPRIMARY : Intellect"
+   name_spell_stat_stamina = "\n\nPRIMARY : Stamina"
+   name_spell_stat_agility = "\n\nPRIMARY : Agility"
+   name_spell_stat_mysticism = "\n\nPRIMARY : Mysticism"
+   name_spell_stat_aim = "\n\nPRIMARY : Aim"
+   name_spell_stat_none = ""
+
+   spell_secondary_might = "         SECONDARY : Might"
+   spell_secondary_intellect = "         SECONDARY : Intellect"
+   spell_secondary_stamina = "         SECONDARY : Stamina"
+   spell_secondary_agility = "         SECONDARY : Agility"
+   spell_secondary_mysticism = "         SECONDARY : Mysticism"
+   spell_secondary_aim = "         SECONDARY : Aim"
+   spell_secondary_karma = "         SECONDARY : Karma"
+   spell_secondary_none = ""
+
 classvars:
 
    vrName = spell_name_rsc
    vrIcon = spell_icon_rsc
    vrDesc = spell_desc_text_rsc
    vrSpell_intro = spell_intro_rsc
+   
+   vrMasteredDesc = spell_mastered_desc_rsc
 
    viIndefinite = ARTICLE_NONE
    viDefinite = ARTICLE_NONE
@@ -204,6 +242,7 @@ classvars:
    viNoNewbieOffense = FALSE
 
    viFlash = FLASH_NONE
+   vbCanBeCastWithBloodMagic = TRUE
 
    vbCastable_in_HappyLand = TRUE
 
@@ -216,6 +255,15 @@ classvars:
    viDefensive = FALSE
    viOffensive = FALSE
    viResistanceType = 0
+   
+   % Some spells act as 'area checks', turn off safety reports to stop that behavior
+   vbSafetyReport = TRUE
+   
+   viPrimaryStat = STAT_ID_MYSTICISM
+   viSecondaryStat = 0
+   
+   % Some spells throw visual projectiles
+   viProjectileFlag = 0
 
 properties:
 
@@ -238,6 +286,14 @@ properties:
    % to nerf spells that are being abused by under 30 HP mules.
    piMinHitPoints = 0
    piMeditate_ratio = 100
+
+   % If this is TRUE, then all spells that use this behavior will remove
+   % other spells that use this behavior when they are cast on a victim.
+   % E.g. A newly cast Hex will remove previous Hexes.
+   piUseHexBehavior = FALSE
+
+   % Maximum limit for spells
+   piRange = 40 * FINENESS
 
 messages:      
 
@@ -283,7 +339,42 @@ messages:
          iSchool = viSchool;
       }
 
-      if iSchool = SS_RIIJA
+      if iSchool = SS_BESTIARY
+      {
+         rSchool = spell_school_bestiary;
+      }
+      else if iSchool = SKS_ALCHEMY
+      {
+         rSchool = spell_school_alchemy;
+      }
+      else if iSchool = SKS_KNIGHTCRAFT
+      {
+         rSchool = spell_school_knightcraft;
+      }
+      else if iSchool = SS_WITCHERY
+      {
+         if viSubSchool = SSS_WITCHERY_XAERDUN
+         {
+            rSchool = spell_school_witchery_xaerdun;
+         }
+         if viSubSchool = SSS_WITCHERY_NEQUZON
+         {
+            rSchool = spell_school_witchery_nequzon;
+         }
+         if viSubSchool = SSS_WITCHERY_IWODACH
+         {
+            rSchool = spell_school_witchery_iwodach;
+         }
+         if viSubSchool = SSS_WITCHERY_VENTDAL
+         {
+            rSchool = spell_school_witchery_ventdal;
+         }
+         if viSubSchool = SSS_WITCHERY_RAUMLAR
+         {
+            rSchool = spell_school_witchery_raumlar;
+         }
+      }
+      else if iSchool = SS_RIIJA
       {
          rSchool = spell_school_riija;
       }
@@ -313,7 +404,7 @@ messages:
 
    ShowDesc(who=$)
    {
-      local rSchool, rOutlaw, rExtra;
+      local rSchool, rOutlaw, rExtra, rPrimaryStat, rSecondaryStat;
 
       if viSchool <> SS_DM_COMMAND
       {
@@ -325,9 +416,65 @@ messages:
             rOutlaw = spell_outlaw;
          }
 
-         rExtra = Send(self,@GetExtraDesc);
+         rPrimaryStat = name_spell_stat_none;
+         if viPrimaryStat = STAT_ID_MIGHT
+         {
+            rPrimaryStat = name_spell_stat_might;
+         }
+         if viPrimaryStat = STAT_ID_INTELLECT
+         {
+            rPrimaryStat = name_spell_stat_intellect;
+         }
+         if viPrimaryStat = STAT_ID_STAMINA
+         {
+            rPrimaryStat = name_spell_stat_stamina;
+         }
+         if viPrimaryStat = STAT_ID_AGILITY
+         {
+            rPrimaryStat = name_spell_stat_agility;
+         }
+         if viPrimaryStat = STAT_ID_MYSTICISM
+         {
+            rPrimaryStat = name_spell_stat_mysticism;
+         }
+         if viPrimaryStat = STAT_ID_AIM
+         {
+            rPrimaryStat = name_spell_stat_aim;
+         }
+      
+         rSecondaryStat = spell_secondary_none;
+         if viSecondaryStat = STAT_ID_MIGHT
+         {
+            rSecondaryStat = spell_secondary_might;
+         }
+         if viSecondaryStat = STAT_ID_INTELLECT
+         {
+            rSecondaryStat = spell_secondary_intellect;
+         }
+         if viSecondaryStat = STAT_ID_STAMINA
+         {
+            rSecondaryStat = spell_secondary_stamina;
+         }
+         if viSecondaryStat = STAT_ID_AGILITY
+         {
+            rSecondaryStat = spell_secondary_agility;
+         }
+         if viSecondaryStat = STAT_ID_MYSTICISM
+         {
+            rSecondaryStat = spell_secondary_mysticism;
+         }
+         if viSecondaryStat = STAT_ID_AIM
+         {
+            rSecondaryStat = spell_secondary_aim;
+         }
+         if viSecondaryStat = STAT_ID_KARMA
+         {
+            rSecondaryStat = spell_secondary_karma;
+         }
 
-         AddPacket(4,spell_desc_rsc, 4,rSchool, 4,viSpell_Level, 4,vrDesc,
+         rExtra = Send(self,@GetExtraDesc,#who=who);
+
+         AddPacket(4,spell_desc_rsc, 4,rSchool, 4,viSpell_Level, 4,rPrimaryStat, 4,rSecondaryStat, 4,vrDesc,
                    4,rOutlaw, 4,rExtra);
 
          Send(self,@SendStatsDesc,#who=who);
@@ -362,8 +509,13 @@ messages:
       return spell_nothing;
    }
 
-   GetExtraDesc()
+   GetExtraDesc(who=$)
    {
+      if who <> $
+         AND Send(who,@HasMasteredThisSpell,#num=viSpell_num)
+      {
+         return vrMasteredDesc;
+      }
       return spell_nothing;
    }
 
@@ -448,8 +600,14 @@ messages:
       if viSchool = SS_QOR
          OR viSchool = SS_SHALILLE
          OR viSchool = SS_FAREN
+         OR viSchool = SS_WITCHERY
       {
          return Send(who,@GetMysticism);
+      }
+
+      if viSchool = SKS_KNIGHTCRAFT
+      {
+         return Send(who,@GetMight);
       }
 
       if viSchool = SS_KRAANAN
@@ -459,6 +617,8 @@ messages:
 
       if viSchool = SS_RIIJA
          OR viSchool = SS_JALA
+         OR viSchool = SKS_ALCHEMY
+         OR viSchool = SS_BESTIARY
       {
          return Send(who,@GetIntellect);
       }
@@ -470,21 +630,15 @@ messages:
       
       return Send(who,@GetMysticism);
    }
-
+   
    GetPrimaryStat()
    {
-      if viSchool = SS_KRAANAN
-      {
-         return STAT_ID_STAMINA;
-      }
+      return viPrimaryStat;
+   }
 
-      if viSchool = SS_JALA
-         OR viSchool = SS_RIIJA
-      {
-         return STAT_ID_INTELLECT;
-      }
-
-      return STAT_ID_MYSTICISM;
+   GetSecondaryStat()
+   {
+      return viSecondaryStat;
    }
    
    GetAbility(who=$)
@@ -520,7 +674,7 @@ messages:
 
       iRequisiteStat = Send(self,@GetRequisiteStat,#who=who);
 
-      return bound(random(iRequisiteStat/2,iRequisiteStat)/2,1,25);
+      return bound(random(iRequisiteStat/2,iRequisiteStat)/2,1,100);
    }
    
    KarmaCheck(who=$)
@@ -778,7 +932,8 @@ messages:
             }
             
             % We've failed. Let's try blood magic.
-            if Send(who,@GetSkillAbility,#Skill_num=SKID_BLOOD_MAGIC) > 0
+            if vbCanBeCastWithBloodMagic
+               AND Send(who,@GetSkillAbility,#Skill_num=SKID_BLOOD_MAGIC) > 0
             {
                if Send(Send(SYS,@FindSkillByNum,#num=SKID_BLOOD_MAGIC),
                                @AttemptBloodSacrifice,
@@ -786,6 +941,7 @@ messages:
                                #oSpell=self,
                                #iSpellPower=iSpellPower)
                {
+                  Send(who,@UsedBloodMagic);
                   return TRUE;
                }
             }
@@ -801,9 +957,9 @@ messages:
       return TRUE;
    }
 
-   CanPayCosts(who=$,lTargets=$,iSpellPower=0,bItemCast=FALSE,bFreeCast=FALSE)
+   CanPayCosts(who=$,lTargets=$,iSpellPower=0,bItemCast=FALSE,bFreeCast=FALSE,report=TRUE)
    {
-      local i, each_obj, oRoom, iRand, oSpell, oTarget;
+      local i, each_obj, oRoom, iRand, oSpell, oTarget, iTotalRange;
 
       if lTargets <> $
          AND Length(lTargets) = 1
@@ -819,6 +975,35 @@ messages:
                   #parm2=Send(oTarget,@GetHeShe));
 
             return FALSE;
+         }
+
+         if piRange <> $
+         {
+            iTotalRange = piRange;
+
+            % A little fudge factor to account for lag drift, etc.
+            if IsClass(oTarget,&Player) AND Send(oTarget,@HasMovedRecently)
+            {
+               iTotalRange = iTotalRange + RANGE_MOVEMENT_BONUS;
+            }
+            
+            iTotalRange = iTotalRange + Send(oTarget,@GetEnemyRangeBonus);
+
+            if Send(oTarget,@GetOwner) <> $
+               AND who <> $
+               AND IsClass(who,&NoMoveOn)
+               AND Send(who,@GetOwner) <> $
+               AND Send(who,@SquaredFineDistanceTo3D,#what=oTarget) > (iTotalRange * iTotalRange)
+            {
+               if NOT bItemCast
+               {
+                  Send(who,@MsgSendUser,#message_rsc=spell_out_of_range,
+                       #parm1=Send(oTarget,@GetCapDef),#parm2=Send(oTarget,@GetName),
+                       #parm3=vrName);
+               }
+
+               return FALSE;
+            }
          }
       }
 
@@ -876,7 +1061,7 @@ messages:
 
          % Don't check the attack time for itemcast spells. The items
          % themselves will allow or disallow this.
-         if NOT Send(who,@IsOkayAttackTime,#seconds=viPostCast_Time)
+         if NOT Send(who,@IsOkayAttackTime,#seconds=viPostCast_Time,#stroke_obj=self)
          {
             return FALSE;
          }
@@ -998,7 +1183,7 @@ messages:
       if Send(self,@IsHarmful)
       {
          % Can the caster attack the target(s) with the harmful spell?
-         if NOT Send(self,@CheckPlayerAttackCast,#who=who,#lTargets=lTargets)
+         if NOT Send(self,@CheckPlayerAttackCast,#who=who,#lTargets=lTargets,#report=report)
          {
             return FALSE;
          }
@@ -1099,7 +1284,7 @@ messages:
       return lTargets;
    }
 
-   CheckPlayerAttackCast(who=$,lTargets=$)
+   CheckPlayerAttackCast(who=$,lTargets=$,report=TRUE)
    "Checks to see if player can attack said targets."
    {
       local oRoom, i, lFinalTargets, oTarget;
@@ -1134,7 +1319,7 @@ messages:
                if NOT Send(oRoom,@ReqSomethingAttack,#what=who,#victim=i,
                            #stroke_obj=self)
                   OR NOT Send(who,@AllowPlayerAttack,#victim=i,
-                              #stroke_obj=self)
+                              #stroke_obj=self,#report=report)
                {
                   return FALSE;
                }
@@ -1143,7 +1328,7 @@ messages:
          else
          {
             lFinalTargets = Send(self,@GetAttackTargets,#who=who,
-                                 #lTargets=lTargets);
+                                 #lTargets=lTargets,#report=report);
 
             % Don't cast the spell if there's no valid targets.
             if lFinalTargets = $
@@ -1297,6 +1482,8 @@ messages:
          Send(who,@AddExertion,#amount=(10000*viSpellExertion)/2);
       }
       
+      Send(who,@CastOrFizzledNoteBloodMagic);
+      
       Send(who,@MsgSendUser,#message_rsc=spell_failed_by_chance,#Parm1=vrName);
       
       return;
@@ -1381,21 +1568,21 @@ messages:
                return TRUE;
             }
          }
+
+         % We've failed. Let's try force spike.
+         if Send(who,@GetSkillAbility,#Skill_num=SKID_FORCE_SPIKE) > 0
+         {
+            if Send(Send(SYS,@FindSkillByNum,#num=SKID_FORCE_SPIKE),
+                            @AttemptManaSacrifice,
+                            #who=who,
+                            #oSpell=self,
+                            #iSpellPower=iSpellPower)
+            {
+               return TRUE;
+            }
+         }
          
          return FALSE;
-      }
-
-      % We've failed. Let's try force spike.
-      if Send(who,@GetSkillAbility,#Skill_num=SKID_FORCE_SPIKE) > 0
-      {
-         if Send(Send(SYS,@FindSkillByNum,#num=SKID_FORCE_SPIKE),
-                         @AttemptManaSacrifice,
-                         #who=who,
-                         #oSpell=self,
-                         #iSpellPower=iSpellPower)
-         {
-            return TRUE;
-         }
       }
 
       return TRUE;
@@ -1406,8 +1593,9 @@ messages:
    "half the exertion, and no reagents."
    {
       local num, iAbility, lReagent, cReagentClass, iLists, lItems,
-            iNumNeeded, oUserObject, oRoom, iVigorReduction, iExertion;
-      
+            iNumNeeded, oUserObject, oRoom, iVigorReduction, iExertion,
+            iManaCost, oRote, oEfficientCasting;
+
       oRoom = Send(who,@GetOwner);	  
       if NOT IsClass(who,&Player)
       {
@@ -1430,9 +1618,29 @@ messages:
 
       if NOT Send(who,@PlayerIsImmortal)
       {
+         iManaCost = Send(self,@GetManaCost,#who=who,#iSpellPower=iSpellpower);
+
+         if piUseHexBehavior
+         {
+            oRote = Send(SYS,@FindSkillByNum,#num=SKID_ROTE_MEMORIZATION);
+         }
+         else
+         {
+            oRote = $;
+         }
+
+         % Hexes can be cast for less mana via skill
+         if oRote <> $
+            AND Send(who,@GetSkillAbility,#Skill_num=SKID_ROTE_MEMORIZATION) > 0
+            AND Send(oRote,@DoSkill,#who=who)
+         {
+            iManaCost = (iManaCost * (100-Send(oRote,
+                                          @GetCostReduction,#who=who))) / 100;
+            iManaCost = bound(iManaCost,0,$);
+         }
+
          % Reduce magic points of caster
-         Send(who,@LoseMana,#amount=Send(self,@GetManaCost,#who=who,
-              #iSpellPower=iSpellpower));
+         Send(who,@LoseMana,#amount=iManaCost);
 
          iVigorReduction = 0;
          if Send(who,@GetSkillAbility,#Skill_num=SKID_EFFICIENCY) > 0
@@ -1445,6 +1653,26 @@ messages:
          }
          
          iExertion = Bound(viSpellExertion-iVigorReduction,0,$);
+
+         % Hexes can be cast efficiently via skill
+         if piUseHexBehavior
+         {
+            oEfficientCasting = Send(SYS,@FindSkillByNum,
+                                      #num=SKID_EFFICIENT_CASTING);
+         }
+         else
+         {
+            oEfficientCasting = $;
+         }
+         
+         if oEfficientCasting <> $
+            AND Send(who,@GetSkillAbility,#Skill_num=SKID_EFFICIENT_CASTING) > 0
+            AND Send(oEfficientCasting,@DoSkill,#who=who)
+         {
+            iExertion = (iExertion * (100-Send(oEfficientCasting,
+                                          @GetCostReduction,#who=who))) / 100;
+            iExertion = bound(iExertion,0,$);
+         }
 
          % Spell casting requires exertion (which is in 10^-4 units)
          Send(who,@AddExertion,#amount=10000*iExertion);
@@ -1487,7 +1715,14 @@ messages:
                      {
                         if IsClass(oUserObject,&NumberItem)
                         {
-                           Send(oUserObject,@SubtractNumber,#number=iNumNeeded);
+                           if Send(who,@HasSkill,#num=SKID_TRANSMOGRIFICATION)
+                              AND Send(Send(SYS,@FindSkillByNum,#num=SKID_TRANSMOGRIFICATION),@DoSkill,#who=who,#oReagent=oUserObject)
+                           {
+                           }
+                           else
+                           {
+                              Send(oUserObject,@SubtractNumber,#number=iNumNeeded);
+                           }
                            iNumNeeded = 0;
 
                            break;
@@ -1519,9 +1754,23 @@ messages:
       return TRUE;
    }
 
-   CastSpell(who = $, lTargets = $, iSpellPower = 0, bItemCast=FALSE)
+   CastSpell(who = $, lTargets = $, iSpellPower = 0, bItemCast=FALSE, bSecondaryCast = FALSE, bDeflectCast = FALSE)
    {
       local oTarget, oRoom;
+
+      if piUseHexBehavior
+      {
+         foreach oTarget in lTargets
+         {
+            if Send(oTarget,@GetNumHexes) > Send(SETTINGS_OBJECT,@GetHexesMax)
+            {
+               if Send(oTarget,@GetNumHexes) > Send(who,@GetCasterMaxHexes)
+               {
+                  Post(oTarget,@RemoveRandomHex,#exempt=self);
+               }
+            }
+         }
+      }
 
       if IsClass(who,&DM)
       {
@@ -1580,6 +1829,7 @@ messages:
                if (Send(SETTINGS_OBJECT,@DisplaySpellData)
                      OR IsClass(oTarget,&DM))
                   AND oTarget <> who
+                  AND NOT bSecondaryCast
                {
                   Send(oTarget,@MsgSendUser,#message_rsc=spell_display_spellpower,
                      #parm1=Send(self,@GetName),#parm2=iSpellPower);
@@ -1593,9 +1843,14 @@ messages:
       if who <> $
          AND IsClass(who,&Player)
          AND Send(who,@CheckPlayerPreference,#flag=CF_SPELLPOWER)
+         AND NOT bSecondaryCast
       {
-         Send(who,@MsgSendUser,#message_rsc=spell_display_spellpower,
-               #parm1=Send(self,@GetName),#parm2=iSpellPower);
+         % Hexes have their own type of report!
+         if NOT IsClass(self,&Hex)
+         {
+            Send(who,@MsgSendUser,#message_rsc=spell_display_spellpower,
+                  #parm1=Send(self,@GetName),#parm2=iSpellPower);
+         }
       }
 
       % Define what is the target for the next few checks.
@@ -1641,10 +1896,13 @@ messages:
 
             return;
          }
-      
-         Send(self,@PlaySpellSound,#room_obj=oRoom,#what=who);
-         Send(oRoom,@SpellCast,#who=who,#oSpell=self,#lItems=lTargets,
-               #bItemCast=bItemCast);
+
+         if NOT bSecondaryCast
+         {
+            Send(self,@PlaySpellSound,#room_obj=oRoom,#what=who);
+            Send(oRoom,@SpellCast,#who=who,#oSpell=self,#lItems=lTargets,
+                  #bItemCast=bItemCast);
+         }
       }
 
       if Send(self,@AffectsSpellPower)
@@ -1698,9 +1956,18 @@ messages:
             }
          }
       }
+      
+      % Spell successfully cast. Remove Blood Magic no-imp boolean.
+      if IsClass(who,&Player)
+      {
+         Send(who,@CastOrFizzledNoteBloodMagic);
+      }
 
       % Count that this spell was cast successfully
-      Send(Send(SYS,@GetStatistics),@SpellCast,#oSpell=self,#who=who);
+      if NOT bSecondaryCast
+      {
+         Send(Send(SYS,@GetStatistics),@SpellCast,#oSpell=self,#who=who);
+      }
 
       return;
    }
@@ -1711,6 +1978,16 @@ messages:
 
       if room_obj <> $
       {
+         if IsClass(what,&Player)
+            AND Send(what,@GetStance) <> $
+            AND IsClass(Send(what,@GetStance),&MysticStealthStance)
+         {
+            if Send(Send(what,@GetStance),@AttemptSilence,#who=what)
+            {
+               return;
+            }
+         }
+
          wave_rsc = Send(self,@GetSpellSound);
 
          if wave_rsc <> $
@@ -1731,6 +2008,11 @@ messages:
       if vrSucceed_wav <> $
       {
          return vrSucceed_wav;
+      }
+
+      if viSchool = SKS_KNIGHTCRAFT
+      {
+         return male_shout_sound;
       }
 
       if viSchool = SS_JALA
@@ -1762,6 +2044,11 @@ messages:
       {
          return spell_sound_riija;
       }
+      
+      if viSchool = SS_BESTIARY
+      {
+         return spell_sound_bestiary;
+      }
 
       if viSchool = SS_DM_COMMAND
       {
@@ -1774,15 +2061,20 @@ messages:
    GetManaCost(who=$,iSpellPower=0,lTargets=$)
    "Returns number of magic points needed to cast spell"
    {
-      local iCost, oPrincessShield;
+      local iCost, oPrincessShield, i;
+
+      if iSpellPower = $
+      {
+         iSpellPower = 1;
+      }
 
       if iSpellpower = 0
       {
          Debug("Bad iSpellpower passed to GetManaCost");
       }
-      
+
       iCost = viMana;
-      
+
       % don't take anything below 1 unless it already is.
       if iCost = 0
       {
@@ -1807,6 +2099,12 @@ messages:
       {
          iCost = iCost - Send(oPrincessShield,@GetSpellManaReduction,
                                #lTargets=lTargets);
+      }
+
+      foreach i in Send(who,@GetEnchantmentsByClass,#enchClass=&Hex)
+      {
+         iCost = Send(Nth(i,2),@ModifyManaCost,
+                              #state=Nth(i,3),#cost=iCost);
       }
       
       return bound(iCost,1,$);
@@ -1845,6 +2143,16 @@ messages:
       % Monsters can cast spells, can't improve in them.
       if NOT IsClass(who,&Player)    
       {
+         return FALSE;
+      }
+      
+      % Players using Blood Magic to avoid reagent use cannot improve.
+      if Send(who,@GetUsedBloodMagic)
+      {
+         if Send(self,@GetAbility,#who=who) < 99
+         {
+            Send(who,@MsgSendUser,#message_rsc=unable_to_improve_blood_magic);
+         }
          return FALSE;
       }
 
@@ -1904,6 +2212,7 @@ messages:
       iRandom = random(0,100);      
       if iRandom < increase_chance
       {      
+         Send(who,@AddAccumulatedWisdom,#amount=viMeditate_ratio);
          Send(who,@ChangeSpellAbility, #spell_num=vispell_Num,#amount=1,
               #report=TRUE);
          % Since we advanced, reset our school cast improvement bonus.
@@ -2027,7 +2336,7 @@ messages:
       return TRUE;
    }
 
-   DoubleCheckAfterTrance(who=$, lTargets = $, iSpellPower = 0)
+   DoubleCheckAfterTrance(who=$, lTargets = $, iSpellPower = 0, report = FALSE)
    {
       if IsClass(who,&User) AND Send(who,@IsResting)  
       {
@@ -2038,7 +2347,7 @@ messages:
 
       if (Send(self,@IsHarmful)
             AND IsClass(who,&User)
-            AND NOT Send(self,@CheckPlayerAttackCast,#who=who,#lTargets=lTargets))
+            AND NOT Send(self,@CheckPlayerAttackCast,#who=who,#lTargets=lTargets,#report=report))
          OR NOT Send(Send(who,@GetOwner),@ReqSpellCast,#who=who,#oSpell=self,
                      #lItems=lTargets)
       {
@@ -2054,9 +2363,9 @@ messages:
       return TRUE;
    }
 
-   BeginCastingTrance(who = $, lTargets = $, iSpellPower = 0)
+   BeginCastingTrance(who = $, lTargets = $, iSpellPower = 0, report = TRUE)
    {
-      local oTrance, oObject, oOwner, i, oTarget, lFinalTargets, iCastTime;
+      local oTrance, oObject, oOwner, i, oTarget, lFinalTargets, iCastTime, oDeflectImpact;
 
       oOwner = Send(who,@GetOwner);
 
@@ -2087,13 +2396,18 @@ messages:
       {
          % Double-check to get valid targets.
          lFinalTargets = Send(self,@GetGoodTargets,#who=who,
-                              #lTargets=lTargets);
+                              #lTargets=lTargets,#report=report);
 
-         if lFinalTargets <> $ AND IsClass(First(lFinalTargets),&Battler)
-            AND Send(First(lFinalTargets),@TryDeflect,#what=self,#caster=who)
+         oDeflectImpact = $;
+         if lFinalTargets <> $
+            AND IsClass(First(lFinalTargets),&Battler)
          {
-            Send(self,@CastSpell,#who=who,#lTargets=[who],
-                 #iSpellPower=iSpellPower/2);
+            oDeflectImpact = Send(First(lFinalTargets),@TryDeflect,#what=self,#caster=who);
+         }
+         
+         if oDeflectImpact <> $
+         {
+            Send(self,@CastSpell,#who=who,#lTargets=[who],#iSpellPower=iSpellPower/2,#oDeflectImpact=oDeflectImpact,#bDeflectCast=TRUE);
          }             
          else
          {
@@ -2434,6 +2748,15 @@ messages:
          }
       }
       
+      if viSchool = SKS_KNIGHTCRAFT
+      {
+         % Knightcraft is stronger the heavier your gear
+         if iItemModifier < 0
+         {
+            iItemModifier = Abs(iItemModifier);
+         }
+      }
+      
       if viSchool = SS_JALA
       {
          % Jala's strength is based on the strength of the instrument
@@ -2629,9 +2952,9 @@ messages:
 
    % When a player enchants an item information about them
    % is added to the item's desc.
-   GetMakerInfo(who=$)
+   GetMakerInfo(who=$,iSpellPower=0)
    {
-      return [who,self,Send(who,@GetSpellAbility,#spell_num=viSpell_Num)];
+      return [who,self,Send(who,@GetSpellAbility,#spell_num=viSpell_Num),iSpellPower];
    }
 
    GetEnchantmentType()
@@ -2686,6 +3009,61 @@ messages:
    {
       % When a DM does 'dm get spell', does he get this spell?
       return TRUE;
+   }
+
+   UseHexBehavior()
+   {
+      % Hex behavior spells are typically negative debuffs, and will
+      % remove other hex behavior spells when they are cast to create
+      % a natural limit. E.g. A newly cast hex removes an old hex.
+      return piUseHexBehavior;
+   }
+
+   HasSecondaryRequirement(who=$)
+   {
+      % Fill out this function for multi-school spells.
+      % For example, if self is Faren 6 but requires Weaponcraft 6 too,
+      % functions can call here to see if 'who' has Weaponcraft 6.
+      %
+      % Return FALSE if they don't meet the requirements.
+      %
+      % If there are no requirements, this always returns TRUE.
+      return TRUE;
+   }
+
+   GetCastTime()
+   {
+      return viCast_time;
+   }
+
+   ModifyEmpowerment(empowerment_list=$)
+   {
+      return empowerment_list;
+   }
+
+   GetSafetyReport()
+   {
+      return vbSafetyReport;
+   }
+
+   AltersLightLevel()
+   {
+      return FALSE;
+   }
+
+   GetProjectileIcon()
+   {
+      return $;
+   }
+
+   GetProjectileFlag()
+   {
+      return viProjectileFlag;
+   }
+
+   GetRange()
+   {
+      return piRange;
    }
 
 end

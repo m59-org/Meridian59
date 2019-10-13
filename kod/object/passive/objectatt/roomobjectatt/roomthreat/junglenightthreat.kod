@@ -1,0 +1,106 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+JungleNightThreat is RoomThreat 
+
+% The Ko'catani jungle is no friend to man at night.
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   jungle_night_threat_name_rsc = "night in the Ko'catani jungle"
+   jungle_night_threat_icon_rsc = idarknes.bgf
+   jungle_night_threat_desc_rsc = \
+      "The humid light of day is gone, and the darkness under the thick canopy "
+      "stirs the hunt and quickens the blood. All native jungle creatures "
+      "are faster and deadlier during the long night. Your cold "
+      "attacks will be less effective, for nature here is already one with the "
+      "night's chill. Above all, your experience gained during the night "
+      "will be boosted - should you survive."
+
+   jungle_night_threat_begin_msg = \
+      "Night cloaks the Ko'catani jungle. Eyes gleam from the leafy depths, "
+      "and hungry calls echo from toothy mouths unseen. It would not be wise to remain out."
+   jungle_night_threat_end_msg = \
+      "The returning light of the sun banishes the long Ko'catani night. "
+      "The creatures of the jungle end their hunting frenzy."
+   jungle_night_threat_dampens_msg = \
+      "You deal less damage because you can't see!"
+   jungle_night_threat_boosts_msg = \
+      "The jungle creature deals more damage in its night frenzy!"
+
+   jungle_night_good_item_use_msg = \
+      "Your item relieves the night around you somewhat."
+   jungle_night_good_spell_use_msg = \
+      "Your spell banishes the night in your vicinity."
+      
+   jungle_night_threat_damage_msg = \
+      "Somehow, you are taking damage from night."
+
+   jungle_night_death_msg = \
+      "~B~U~k[###]~n ~B~v%s succumbed to night in the Ko'catani jungle somehow. Seriously though, how?"
+
+classvars:
+
+   vrName = jungle_night_threat_name_rsc
+   vrIcon = jungle_night_threat_icon_rsc
+   vrDesc = jungle_night_threat_desc_rsc
+
+   viThreatBeginMsg = jungle_night_threat_begin_msg
+   viThreatEndMsg = jungle_night_threat_end_msg
+   viThreatDamageMsg = jungle_night_threat_damage_msg
+   viGoodItemUseMsg = jungle_night_good_item_use_msg
+   viGoodSpellUseMsg = jungle_night_good_spell_use_msg
+   
+   viDeathMsg = jungle_night_death_msg
+
+   vbDampenElement = TRUE
+   viDampenElement = ATCK_SPELL_COLD
+   viDampenPercentage = 40
+
+   vbReportMessages = TRUE
+   
+   viOverrideChampionType = CHAMPION_DEADLY
+   viAddMonsterLevel = 10
+
+properties:
+
+   pbDealDamage = FALSE
+   piReport = FALSE
+
+messages:
+
+   Constructor(host_object=$)
+   {
+      if host_object <> $
+         AND IsClass(host_object,&Room)
+      {
+         Send(host_object,@AddBaseLight,#amount=-125);
+      }
+      propagate;
+   }
+
+   Delete()
+   {
+      Send(poHostObject,@AddBaseLight,#amount=125);
+      propagate;
+   }
+
+   AlterShardDrops(iNumShards=0)
+   {
+      % Eliminates shard drops.
+      return 0;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

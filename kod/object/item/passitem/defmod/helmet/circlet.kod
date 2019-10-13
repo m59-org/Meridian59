@@ -70,11 +70,25 @@ messages:
 
    GetHealthChange()
    {
+      if plEnchantmentMods <> $
+      {
+         if Send(self,@HasMagicModOfClass,#class=&HealthMod)
+         {
+            return Send(self,@GetStateMagicModOfClass,#class=&HealthMod) + piHealth_change;
+         }
+      }
       return piHealth_change;
    }
 
    GetManaChange()
    {
+      if plEnchantmentMods <> $
+      {
+         if Send(self,@HasMagicModOfClass,#class=&ManaMod)
+         {
+            return Send(self,@GetStateMagicModOfClass,#class=&ManaMod) + piMana_change;
+         }
+      }
       return piMana_change;
    }
 
@@ -106,6 +120,18 @@ messages:
       return TRUE;
    }
 
+   GetPrefixes()
+   {
+      return [[&ArmorMod,100],
+              [&DefenseMod,100],
+              [&HealthMod,50],
+              [&ManaMod,100],
+              [&VigorMod,300],
+              [&AcidEmpowermentMod,100],
+              [&ShockEmpowermentMod,100],
+              [&FireEmpowermentMod,100],
+              [&ColdEmpowermentMod,100]];
+   }
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

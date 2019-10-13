@@ -1,0 +1,140 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+HighSorcererCold is HighSorcerer
+
+constants:
+
+   include blakston.khd
+
+   HUMAN_TRANSLATION_LEGS_MASK = 0xff
+   HUMAN_TRANSLATION_LEGS_MUL = 1
+   HUMAN_TRANSLATION_BODY_MASK = 0xff00
+   HUMAN_TRANSLATION_BODY_MUL = 0x100
+   HUMAN_TRANSLATION_Skin_MASK = 0xff0000
+   HUMAN_TRANSLATION_Skin_MUL = 0x10000
+
+   HUMAN_TRANSLATION2_HAIR_MASK = 0xff
+   HUMAN_TRANSLATION2_HAIR_MUL = 1
+   HUMAN_TRANSLATION2_ARMS_MASK = 0xff00
+   HUMAN_TRANSLATION2_ARMS_MUL = 0x100
+
+   EQUIPMENT_DROP_PERCENT = 20
+
+resources:
+
+   HighSorcererCold_name_rsc = "Tanis, High Sorcerer of Cold"
+   HighSorcererCold_desc_rsc = \
+      "This high sorcerer is responsible for the Diffraction of "
+      "Biskalane's elements. "
+      "She is a master of the element of Cold and ice spells. "
+      "Kill her and put a stop to it once and for all."
+   HighSorcererCold_dead_name_rsc = "dead high sorcerer"
+
+classvars:
+
+   vrName = HighSorcererCold_name_rsc
+   vrDesc = HighSorcererCold_desc_rsc
+   vrDead_name = HighSorcererCold_dead_name_rsc
+
+   viTreasure_type = TID_HIGH_SORCERER
+   viAttack_spell = ATCK_SPELL_COLD
+
+   viColorTranslate1 = XLAT_TO_BLUE     % Shirt
+   viColorTranslate2 = XLAT_TO_BLUE   % Pants
+
+properties:
+
+   piElement = ATCK_SPELL_COLD
+
+messages:
+
+   Constructed()
+   {
+      plMeleeSpellBook = [ [SID_EXPLOSIVE_FROST,1,100,99]];
+      plRangedSpellBook = [[SID_ICICLE_VOLLEY,1,100,99]];
+                            
+      plResistances = [ [-ATCK_SPELL_UNHOLY, 75 ],
+                        [-ATCK_SPELL_HOLY, 75 ],
+                        [-ATCK_SPELL_FIRE, 75],
+                        [-ATCK_SPELL_COLD, 300],
+                        [-ATCK_SPELL_SHOCK, 75],
+                        [-ATCK_SPELL_ACID, 75],
+                        [-ATCK_SPELL_QUAKE, 75],
+                        [-ATCK_SPELL_ALL, 75],
+                        [ATCK_WEAP_ALL,75]];
+      propagate;
+   }
+
+   SetGender()
+   {
+      viGender = GENDER_FEMALE;
+      vrIcon = human_female_icon_rsc;
+      prHead = human_head_female_tattoo_1;
+      prEyes = human_eyes_kx_icon;
+      prMouth = human_mouth_kx_icon;
+      prNose = human_nose_kx_icon;
+      prToupee = human_hair_ca_icon;
+      prLegs = human_legs_b_rsc;
+      prRight_arm = human_rightarm_b_rsc;
+      prLeft_arm = human_leftarm_b_rsc;
+      vrDead_Icon = human_dead_female_icona_rsc;
+      vrDead_Legs = human_dead_female_iconb_rsc;
+      vrSound_death = human_female_sound_death;
+
+      return;
+   }
+
+   SetHair()
+   % Sets the hairdo, color.
+   {
+      local Translation;
+
+      prToupee = human_hair_xb_icon;
+      Translation = PT_GRAY_TO_DBLUE;
+
+      piBody_translations2 = piBody_translations2 & ~HUMAN_TRANSLATION2_HAIR_MASK;
+      piBody_translations2 = piBody_translations2
+                                 | (Translation * HUMAN_TRANSLATION2_HAIR_MUL);
+
+      return;
+   }
+
+   SetFace()
+   {
+      prEyes = human_eyes_mx_icon;
+      prNose = human_nose_mx_icon;
+      prMouth = human_mouth_mx_icon;
+
+      return;
+   }
+
+   SetSkinColor(color = 1)
+   {
+      local iColor, i;
+
+      Send(self,@SetSkinTranslation,#translation=2);
+      iColor = Send(self,@GetDefaultShirtColor);
+      Send(self,@SetDefaultClothes,#shirt_color = iColor);
+      foreach i in plUsing
+      {
+         Send(i,@DoPlayerArt);
+      }
+
+      if poOwner <> $
+      {
+         Send(poOwner,@SomethingChanged,#what=self);
+      }
+
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

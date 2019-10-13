@@ -27,12 +27,18 @@ resources:
       "in the Great Ocean."
    E2_icewalk = "The ice looks a bit too thin to risk going any farther out."
 
+   dive_into_the_waters_e2 = \
+      "You dive into the waters of the Great Ocean."
+
 classvars:
 
    vrName = room_name_OutdoorsE2
 
    viTeleport_row = 19
    viTeleport_col = 32
+
+   viLongitude = 11
+   viLatitude = 11
 
    viTerrain_type = TERRAIN_FOREST | TERRAIN_BEACH
 
@@ -72,9 +78,34 @@ messages:
       propagate;
    }
 
+   SomethingMoved(what = $,new_row = $, new_col = $)
+   {
+      local iSectorID, oUnderWater;
+
+      if IsClass(what,&Player)
+      {
+         if new_row < 2
+         {
+            oUnderWater = Send(SYS,@FindRoomByNum,#num=RID_WATER_TEST);
+            Send(what,@MsgSendUser,#message_rsc=dive_into_the_waters_e2);
+            Post(SYS,@UtilGoNearSquare,#what=what,
+                 #where=oUnderWater,
+                 #new_row=Send(oUnderWater,@GetRoomRows)-15,
+                 #new_col=new_col,
+                 #fine_row=0,
+                 #fine_col=0,
+                 #new_angle=Send(what,@GetAngle));
+            return;
+         }
+      }
+
+      propagate;
+   }
+
    CreateStandardExits()
    {
       plEdge_Exits = $;
+      plEdge_Exits = Cons([LEAVE_WEST, RID_E1, 51, 33, ROTATE_NONE], plEdge_exits);
       plEdge_Exits = Cons([LEAVE_EAST, RID_F2, 21, 3, ROTATE_NONE], plEdge_exits);
       plEdge_Exits = Cons([LEAVE_SOUTH, RID_D4, 1, 23, ROTATE_NONE], plEdge_exits);
 

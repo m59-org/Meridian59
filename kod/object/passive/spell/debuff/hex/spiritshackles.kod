@@ -1,0 +1,131 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+SpiritShackles is Hex
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   spirit_shackles_cast_rsc = "%s%s becomes shackled to the spirit world."
+   spirit_shackles_already_enchanted = \
+      "That poor soul is already afflicted by spirit shackles."
+   spirit_shackles_start = "Magic clamps upon your wrists and your hands suddenly feel partially ethereal."
+   spirit_shackles_stop  = "The spirit shackles unclasp and fade."
+   has_been_hexed_spirit_shackles = \
+      "%s%s has been shackled to the spirit world!"
+
+   spirit_shackles_name_rsc = "spirit shackles"
+   spirit_shackles_icon_rsc = ihexsever.bgf
+   spirit_shackles_desc_rsc = \
+      "Shackles your victim's hands to the spirit world, causing part "
+      "of their damage to be dealt to mana before health. "
+      "Stacks with with the mana shield ability learned by Ventdal witches. "
+      "This hex requires one cold fragment to cast."
+
+   spirit_shackles_sound = qenfeebl.wav
+
+   lose_mana_spirit_shackles = \
+      "Your mana absorbs ~b~B%i~n damage!"
+
+   deal_damage_spirit_shackles = \
+      "You deal ~b~B%i~n damage to your %s%s's mana!"
+
+   spirit_shackles_hex_effect_report = \
+      "At that effectiveness, your spirit shackles hex will cause the victim to deal ~r~B%i\% ~nof their damage to mana instead of health."
+
+classvars:
+
+   vrName = spirit_shackles_name_rsc
+   vrIcon = spirit_shackles_icon_rsc
+   vrDesc = spirit_shackles_desc_rsc
+
+   vrHexEffectReport = spirit_shackles_hex_effect_report
+
+   vrAlreadyEnchanted = spirit_shackles_already_enchanted
+   vrEnchantment_On = spirit_shackles_start
+   vrEnchantment_Off = spirit_shackles_stop
+   vrSuccess = spirit_shackles_cast_rsc
+   vrInformRoom = has_been_hexed_spirit_shackles
+
+   viSpell_num = SID_HEX_SPIRIT_SHACKLES
+   viSchool = SS_WITCHERY
+   viSubSchool = SSS_WITCHERY_VENTDAL
+   viSpell_level = 5
+   viMana = 40
+   viSpell_Exertion = 30
+
+   viFlash = FLASH_BAD
+
+   vrSucceed_wav = spirit_shackles_sound
+   viChance_To_Increase = 15
+   viMeditate_ratio = 200
+
+properties:
+
+   % this base percentage of damage is dealt to mana first
+   piBaseEffect = 10
+
+   piFlatDuration = 120000
+
+messages:
+
+   ResetReagents()
+   {
+      plReagents = $;
+      plReagents = Cons([&ColdFragment,1],plReagents);
+
+      return;
+   }
+
+   AttackerDealsDamageToMana(who=$,what=$,state=0,damage=0)
+   {
+      local iVictimMana, iPercentageRedirected, iDamageRedirected;
+
+      if who = $
+         OR what = $
+         OR who = what
+         OR damage <= 0
+         OR state < 0
+      {
+         return damage;
+      }
+
+      iVictimMana = Send(who,@GetMana);
+      iPercentageRedirected = piBaseEffect;
+      iPercentageRedirected = piBaseEffect + ((iPercentageRedirected*(state+1))/100);
+
+      iDamageRedirected = (damage * iPercentageRedirected)/100;
+      iDamageRedirected = Bound(iDamageRedirected,0,iVictimMana*100);
+
+      Send(who,@LoseMana,#amount=iDamageRedirected/100);
+      
+      if IsClass(who,&Player)
+      {
+         Send(who,@MsgSendUser,#message_rsc=lose_mana_spirit_shackles,#parm1=iDamageRedirected/100);
+      }
+
+      if IsClass(what,&Player)
+      {
+         Send(what,@MsgSendUser,#message_rsc=deal_damage_spirit_shackles,#parm1=iDamageRedirected/100,#parm2=Send(who,@GetDef),#parm3=Send(who,@GetName));
+      }
+      return damage - iDamageRedirected;
+   }
+
+   DoHexEffectReport(what=$,iHexEffect=0)
+   {
+      Send(what,@MsgSendUser,#message_rsc=vrHexEffectReport,#parm1=piBaseEffect + ((piBaseEffect*(iHexEffect+1))/100));
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

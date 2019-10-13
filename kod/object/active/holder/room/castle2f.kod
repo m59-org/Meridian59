@@ -1,0 +1,169 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Castle2f is Room
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   room_castle2f = castle2f.roo
+   room_name_castle2f = "Basement of the Bourgeois Castle"
+
+   castle2f_music = castle.mp3
+   
+   castle2f_book_name = "The Lands Beyond"
+   castle2f_book_text = \
+	"Take heed, adventurer.\n"
+	"\n"
+   "The Mages of the Royal Court have managed to open a portal to the vicinity "
+   "of the source of the Xeochicatl threat. Centuries ago, we didst trade with the "
+   "civilization that used to exist there, but contact was lost in the time of disasters.\n"
+   "\n"
+   "What we know of the lands of Biskalane is only second-hand information "
+   "from those who have braved its dangers. There is no reliable method "
+   "for thy return; only the spell of 'recall' cast near the Royal Portal's "
+   "exit can bring thee here once more. It is for that reason we have begun teaching recall "
+   "to all adventurers."
+	"\n"
+   "If thou choosest to proceed, thou must enter prepared.\n"
+   "\n"
+   "Biskalane is a battleground of the elements. The raw elemental planes have been "
+   "exposed by ruptures in the world itself. The constant rhythm of the planes "
+   "brings one to prominence in the deserts beyond at each phase of the day."
+   "¶"
+   "In the morning, electricity leaps from dune to dune. Someone appears to have "
+   "permanently restrained the Prism of Lightning somehow, so the morning is "
+   "the safest time to cross the desert.\n"
+   "\n"
+   "In the heat of the day, fire reigns. Thou wilst not be able to wear body armor "
+   "or robes without overheating to a lethal degree.\n"
+   "\n"
+   "In the evening, acid rain falls. Any adventurer caught without a helmet "
+   "wilt surely perish.\n"
+   "\n"
+   "And finally, at night, the elemental blizzards become so cold that one "
+   "must wear robes or freeze to death in short order."
+	"¶"
+   "Protection from the elements is key to survival in the desert.\n"
+   "\n"
+   "We have many reports of deaths in narrow canyons from raging elemental energies. "
+   "If thou intend to enter narrow spaces, know that the winds beyond can be fatal "
+   "for the unprotected.\n"
+   "\n"
+   "Indeed, death itself is more harrowing as well. Biskalane does not share our Underworld. "
+   "When one dies in the lands beyond, one goes to the Eternal Wastes, the afterlife of "
+   "the Biskalani peoples. Many have said that a demon waits there to make deals with the "
+   "recently deceased, but he charges a high price in gold. Bring at least 64,000 "
+   "shillings or thou mayest have to make painful sacrifices to return to the lands of the living."
+	"¶"
+   "The High Sorcerers of Biskalane continue to send their Xeochicatl minions to drain "
+   "our mana nodes. Find them and, by Royal Decree, thou art empowered to destroy them with no quarter.\n"
+   "\n"
+   "If doing so also frees the Biskalani nomads from centuries of elemental suffering, "
+   "we can only consider that long-delayed aid for old allies.\n"
+   "\n"
+   "Good luck to thee."
+
+classvars:
+
+   vrName = room_name_castle2f
+   viTerrain_Type = TERRAIN_CASTLE
+
+   viTeleport_row = 4
+   viTeleport_col = 2
+
+   viWeatherZone = WEATHER_ZONE_BARLOQUE
+   viWeatherMask = WEATHER_MASK_DEFAULT_NS
+
+properties:
+
+
+   prMusic = castle2f_music
+
+   piBaseLight = LIGHT_DARK
+   piOutside_factor = OUTDOORS_3 
+
+
+   prRoom = room_castle2f
+   piRoom_num = RID_CASTLE2F
+
+messages:
+
+
+   CreateStandardObjects()
+   {
+      local oBook;
+      oBook = Create(&BookPedestal,#Name=castle2f_book_name,#Text=castle2f_book_text);
+
+      Send(self,@NewHold,#what=oBook,
+           #new_row=4,#new_col=5,#fine_row=44,#fine_col=47,#new_angle=ANGLE_WEST);
+
+      Send(self,@NewHold,#what=Create(&PrincessGuard),
+           #new_row=1,#new_col=11);
+      Send(self,@NewHold,#what=Create(&PrincessGuard),
+           #new_row=4,#new_col=13,#fine_row=28,#fine_col=13);
+
+      Send(self,@NewHold,#what=Create(&Brazier),
+           #new_row=1,#new_col=5,#fine_row=22,#fine_col=53);
+      Send(self,@NewHold,#what=Create(&Brazier),
+           #new_row=1,#new_col=2,#fine_row=22,#fine_col=22);
+      %Send(self,@NewHold,#what=Create(&Brazier),
+      %     #new_row=4,#new_col=13,#fine_row=28,#fine_col=13);
+
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BPURPLE,
+           #iIntensity=255),#new_row=2,#new_col=13,#fine_row=37,#fine_col=2);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BPURPLE,
+           #iIntensity=255),#new_row=2,#new_col=15,#fine_row=37,#fine_col=2);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BPURPLE,
+           #iIntensity=255),#new_row=2,#new_col=23,#fine_row=37,#fine_col=2);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BPURPLE,
+           #iIntensity=255),#new_row=2,#new_col=31,#fine_row=37,#fine_col=2);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BPURPLE,
+           #iIntensity=255),#new_row=2,#new_col=39,#fine_row=37,#fine_col=2);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BPURPLE,
+           #iIntensity=255),#new_row=2,#new_col=47,#fine_row=37,#fine_col=2);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BPURPLE,
+           #iIntensity=255),#new_row=2,#new_col=55,#fine_row=37,#fine_col=2);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BPURPLE,
+           #iIntensity=255),#new_row=2,#new_col=63,#fine_row=37,#fine_col=2);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BPURPLE,
+           #iIntensity=255),#new_row=2,#new_col=71,#fine_row=37,#fine_col=2);
+      propagate;
+   }
+
+   CreateStandardExits()
+   {
+      plExits = $;
+
+      plExits = Cons([ 4, 1, RID_CASTLE2D, 30, 28, ROTATE_NONE ],plExits);
+
+      propagate;
+   }
+
+   SomethingMoved(what = $,new_row = $, new_col = $)
+   {
+      if (new_col > 33)
+      {
+         Send(SYS,@UtilGoNearSquare,#what=what,
+              #where=Send(SYS,@FindRoomByNum,#num=RID_DESERTSHORE2),
+              #new_row=57,#new_col=30,#fine_row=48,#fine_col=60,#new_angle=ANGLE_EAST);
+              
+         return;
+      }
+
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+

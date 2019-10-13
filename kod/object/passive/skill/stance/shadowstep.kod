@@ -1,0 +1,150 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ShadowstepStance is Stance
+
+constants:
+
+   include blakston.khd
+   include protocol.khd   
+
+resources:
+
+   Shadowstep_name_rsc = "shadowstep"
+   Shadowstep_icon_rsc = punchico.bgf
+   Shadowstep_desc_rsc = \
+      "The ultimate combat technique of the monk disciplines "
+      "channels inner energy to move so fast that even the "
+      "most trained eye cannot follow. The master monk "
+      "will appear rapidly at an enemy's weak points and obliterate them."
+      "\n\nAttacking in the blink of an eye is only possible with "
+      "a free hand. Weapons would only slow down a master martial artist."
+      "\n\nHowever, it is sometimes possible to throw daggers instead of punch, "
+      "assuming one finds suitable small knives."
+   
+   Shadowstep_begin = "You angle your hands and prepare to strike quickly."
+   Shadowstep_end = "You return your hands to a normal angle."
+   Shadowstep_mantra = \
+      "Celeritas"
+      
+   shadowstep_no_space = \
+      "The target is too close to a wall!"
+
+classvars:
+
+   vrName = Shadowstep_name_rsc
+   vrIcon = Shadowstep_icon_rsc
+   vrDesc = Shadowstep_desc_rsc
+
+   stance_begin_msg = Shadowstep_begin
+   stance_end_msg = Shadowstep_end
+   
+   vsStanceMantra = Shadowstep_mantra
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+
+   viSkill_num = SKID_SHADOWSTEP
+   viSchool = SKS_SHADOWCRAFT
+   viSkill_Level = 6
+   viChance_to_Increase = 5
+   viMeditate_ratio = 100
+
+   viSkillExertion = 0
+   vbCheck_exertion = FALSE
+
+   vbAutomatic = TRUE
+   
+   viPrimaryStat = STAT_ID_AGILITY
+   viSecondaryStat = 0
+
+properties:
+
+messages:
+
+   GetRequisiteStat(who=$)
+   {
+      return Send(who,@GetAgility);
+   }
+
+   ModifyAttackDamage(who=$, what=$, damage=0, stroke_obj=$)
+   {
+      local iShadowstepAbility, iStat, iDamagePercentage;
+
+      if Send(who,@GetWeapon) <> $
+      {
+         return damage;
+      }
+
+      iShadowstepAbility = Send(who,@GetSkillAbility,#skill_num=viSkill_num);
+      iStat = Send(self,@GetRequisiteStat,#who=who);
+
+      % Shadowstep starts low but works up to 2/3rds damage.
+
+      iDamagePercentage = (damage * ((((iShadowstepAbility+1)*3)/4)+((iStat*3)/4)))/100;
+      iDamagePercentage = Bound(iDamagePercentage,25,75);
+
+      Send(self,@ImproveAbility,#who=who);
+
+      return (damage * iDamagePercentage)/100;
+   }
+
+   DoTeleport(who = $, lTargets = $)
+   {                   
+      local oRoom, lSteps, oTarget, i, oImage, iStartRow, iStartCol,
+                  iStartFineRow, iStartFineCol;
+
+      oTarget = First(lTargets);
+      
+      if oTarget = $
+      {
+         return FALSE;
+      }
+
+      oRoom = Send(who,@GetOwner);
+      if oRoom = $
+      {
+         return FALSE;
+      }
+
+      if Send(who,@SquaredFineDistanceTo3D,#what=oTarget) > 64*8 * 64*8
+      {
+         return FALSE;
+      }
+      
+      iStartRow = Send(who,@GetRow);
+      iStartCol = Send(who,@GetCol);
+      iStartFineRow = Send(who,@GetFineRow);
+      iStartFineCol = Send(who,@GetFineCol);
+
+      % 64 fine behind target is already default
+      if Send(oRoom,@IntraTeleport,#what=who,#target=oTarget,#type=Random(INTRA_TELEPORT_FRONT_TARGET,INTRA_TELEPORT_FRONT_LEFT_RIGHTWARD_TARGET)) = $
+      {
+         if Send(oRoom,@IntraTeleport,#what=who,#target=oTarget,#type=Random(INTRA_TELEPORT_FRONT_TARGET,INTRA_TELEPORT_FRONT_LEFT_RIGHTWARD_TARGET)) = $
+         {
+            if Send(oRoom,@IntraTeleport,#what=who,#target=oTarget,#type=Random(INTRA_TELEPORT_FRONT_TARGET,INTRA_TELEPORT_FRONT_LEFT_RIGHTWARD_TARGET)) = $
+            {
+               Send(who,@MsgSendUser,#message_rsc=shadowstep_no_space);
+               return FALSE;
+            }
+         }
+      }
+
+      oImage = Create(&MoveGhost,#oCopiedPlayer=who,#iAfterimageTime=450);
+      Send(oRoom,@NewHold,#what=oImage,
+           #new_row=iStartRow,#new_col=iStartCol,
+           #fine_row=iStartFineRow,#fine_col=iStartFineCol);    
+
+      return TRUE;
+   }
+
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

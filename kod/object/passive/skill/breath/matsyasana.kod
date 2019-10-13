@@ -1,0 +1,92 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Matsyasana is Breath
+
+constants:
+
+   include blakston.khd
+   include protocol.khd   
+
+resources:
+
+   Matsyasana_name_rsc = "matsyasana"
+   Matsyasana_icon_rsc = ifreeact.bgf
+   Matsyasana_desc_rsc = \
+      "A novice breath technique that increases lung capacity. "
+      "In the matsyasana pose, a novice monk lies on their back and pushes their chest up, taking on the aspect of a fish. "
+      "The pose allows the monk to maintain their breath underwater, and even recover it by filtering "
+      "air from the very water with their inner energy."
+      "\n\nBeing hit disrupts the pose, "
+      "so asanas require that the monk hasn't been hit in the last few seconds."
+   
+   Matsyasana_begin = "You breathe rapidly and lightly."
+   Matsyasana_end = "You stop breathing rapidly and lightly."
+   
+   Matsyasana_start_resting = "You push your chest up and take on the aspect of the fish in a matsyasana pose."
+   Matsyasana_stop_resting = "You return to your feet."
+
+   Matsyasana_intro = \
+      "Shadowcraft Lv. 1: Maintain breath underwater."
+
+classvars:
+
+   vrName = Matsyasana_name_rsc
+   vrIcon = Matsyasana_icon_rsc
+   vrDesc = Matsyasana_desc_rsc
+
+   breath_achieved_msg = Matsyasana_begin
+   breath_end_msg = Matsyasana_end
+   breath_start_resting = Matsyasana_start_resting
+   breath_end_resting = Matsyasana_stop_resting
+
+   vrSkill_intro = Matsyasana_intro
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+
+   viSkill_num = SKID_MATSYASANA
+   viSchool = SKS_SHADOWCRAFT
+   viSkill_Level = 1
+   viChance_to_Increase = 15
+   viMeditate_ratio = 10
+
+   viSkillExertion = 0
+   vbCheck_exertion = FALSE
+
+   vbAutomatic = TRUE
+   
+   viPrimaryStat = STAT_ID_STAMINA
+   viSecondaryStat = 0
+
+properties:
+
+messages:
+
+   ModifyBreathLoss(who=$,iBreathLoss=0)
+   {
+      local iMatsyasanaAbility, iStat;
+
+      if NOT Send(who,@IsResting)
+         OR Send(who,@WasHitRecently)
+      {
+         return iBreathLoss;
+      }
+
+      iMatsyasanaAbility = Send(who,@GetSkillAbility,#skill_num=viSkill_num);
+      iStat = Send(self,@GetRequisiteStat,#who=who);
+
+      Send(self,@ImproveAbility,#who=who);
+
+      return iBreathLoss - (iBreathLoss * (iMatsyasanaAbility+(iStat/4)))/66;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

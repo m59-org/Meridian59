@@ -1,0 +1,134 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Blizzard is RadiusEnchantment
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   blizzard_name_rsc = "blizzard"
+   blizzard_icon_rsc = iicenova.bgf
+   blizzard_desc_rsc = \
+      "Summons a tempest from the darkest depths of winter. "
+      "The magical cold is so strong that rivers and oceans may "
+      "be entirely frozen in a flash. "
+      "Requires cold fragments to cast."
+   
+   blizzard_already_enchanted = "It is already snowing here."
+
+   blizzard_on = \
+      "Freezing gales rush through the area, heralding a powerful blizzard."
+
+   blizzard_off = "The air warms."
+   blizzard_new_entrant = \
+      "The air is freezing here, and snow is falling."
+
+   blizzard_hurts_you = "The blizzard's icy chill saps your strength."
+   
+   blizzard_cast = "You call upon the icy anger of Faren to blast nature's utmost chill across the area!"
+   blizzard_starts = "%s calls upon the icy anger of Faren to blast nature's utmost chill across the area!"
+   blizzard_ends = "The air warms."
+   blizzard_caster_ends = "The air warms."
+   blizzard_caster_enter = "Unnaturally cold snow begins to fall."
+   blizzard_enter = "Unnaturally cold snow begins to fall."
+   blizzard_leave = "The air around you warms."
+
+   already_snowing_here = \
+      "It's already snowing here!"
+   
+   blizzard_sound = ficefing.wav
+
+classvars:
+
+   radius_ench_cast = blizzard_cast
+   radius_ench_starts = blizzard_starts
+   radius_ench_ends = blizzard_ends
+   radius_ench_caster_ends = blizzard_caster_ends
+   radius_ench_caster_enter = blizzard_caster_enter
+   radius_ench_enter = blizzard_enter
+   radius_ench_leave = blizzard_leave
+   
+   viSpell_num = SID_BLIZZARD
+
+   vrName = blizzard_name_rsc
+   vrIcon = blizzard_icon_rsc
+   vrDesc = blizzard_desc_rsc
+
+   viSchool = SS_FAREN
+   viSpell_level = 6
+   viMana = 30
+   viChance_To_Increase = 10
+   viMeditate_ratio = 110
+   viBaseRange = 10
+   viPeriodicEffect = FALSE
+
+   vrSucceed_wav = blizzard_sound
+
+   viAffectsEveryone = TRUE
+   viAffectsGuildmates = TRUE
+   viAffectsEnemies = TRUE
+
+   viCasterPersist = TRUE
+
+   viCast_time = 30000
+
+properties:
+
+   piOldAreaEnchStyle = TRUE
+
+messages:
+
+   ResetReagents()
+   {
+      plReagents = $;
+      plReagents = Cons([&ColdFragment,2],plReagents);
+
+      return;
+   }
+
+   CanPayCosts(who=$)
+   {
+      if who <> $
+         AND Send(who,@GetOwner) <> $
+         AND Send(Send(who,@GetOwner),@CheckRoomFlag,#flag=ROOM_SNOWING)
+      {
+         Send(who,@MsgSendUser,#message_rsc=already_snowing_here);
+         return FALSE;
+      }
+      propagate;
+   }
+
+   GetDuration(iSpellPower=0)
+   {
+      return Bound(80000+(iSpellPower*1000),80000,180000);
+   }
+
+   StartRoomEffects(oRoom=$)
+   {
+      if Send(oRoom,@CheckRoomFlag,#flag=ROOM_RAINING)
+      {
+         Send(oRoom,@EndRain);
+      }
+      Send(oRoom,@StartSnow);
+      return;
+   }
+
+   EndRoomEffects(oRoom=$)
+   {
+      Send(oRoom,@EndSnow);
+      return;
+   }
+
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

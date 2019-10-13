@@ -1,0 +1,105 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+LightAttackStance is Stance
+
+constants:
+
+   include blakston.khd
+   include protocol.khd   
+
+resources:
+
+   LightAttacks_name_rsc = "rapid assault"
+   LightAttacks_icon_rsc = slashico.bgf
+   LightAttacks_desc_rsc = \
+      "Sometimes, the best defense is a savage offense. "
+      "New knights are taught to wield weapons with aggressiveness in mind, "
+      "allowing them to attack twice as fast. Attacks made in this manner "
+      "do less damage, but are sure to cow the enemy."
+      "\n\nRapid attacks are only possible with "
+      "melee weapons. Other tools, like bows, "
+      "are not designed for assaults."
+
+   LightAttacks_skill_intro = "Knightcraft Lv. 2: A stance that increases attack speed but lowers power."
+   
+   LightAttacks_begin = "You lower your shoulders and prepare to strike quickly."
+   LightAttacks_end = "You return your upper body to its normal position."
+   LightAttacks_mantra = \
+      "Forward with courage!"
+
+   LightAttacks_intro = \
+      "Knightcraft Lv. 2: Faster attacks, less power."
+
+classvars:
+
+   vrName = LightAttacks_name_rsc
+   vrIcon = LightAttacks_icon_rsc
+   vrDesc = LightAttacks_desc_rsc
+
+   stance_begin_msg = LightAttacks_begin
+   stance_end_msg = LightAttacks_end
+   
+   vsStanceMantra = LightAttacks_mantra
+
+   vrSkill_intro = LightAttacks_skill_intro
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+
+   viSkill_num = SKID_LIGHT_ATTACK_STANCE
+   viSchool = SKS_KNIGHTCRAFT
+   viSkill_Level = 2
+   viChance_to_Increase = 5
+   viMeditate_ratio = 70
+
+   viSkillExertion = 0
+   vbCheck_exertion = FALSE
+
+   vbAutomatic = TRUE
+   
+   viPrimaryStat = STAT_ID_AGILITY
+   viSecondaryStat = 0
+
+properties:
+
+messages:
+
+   GetRequisiteStat(who=$)
+   {
+      return Send(who,@GetAgility);
+   }
+
+   ModifyAttackDamage(who=$, what=$, damage=0, stroke_obj=$)
+   {
+      local iLightAttackAbility, iStat, iDamagePercentage;
+
+      if stroke_obj = $
+         OR NOT (IsClass(stroke_obj,&Stab)
+            OR IsClass(stroke_obj,&Slash))
+      {
+         return damage;
+      }
+
+      iLightAttackAbility = Send(who,@GetSkillAbility,#skill_num=viSkill_num);
+      iStat = Send(self,@GetRequisiteStat,#who=who);
+
+      % Light attacks do quarter damage.
+
+      iDamagePercentage = (damage * (((iLightAttackAbility+1)*3/4)+(iStat/4)))/400;
+      iDamagePercentage = Bound(iDamagePercentage,1,25);
+
+      Send(self,@ImproveAbility,#who=who);
+
+      return (damage * iDamagePercentage)/100;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

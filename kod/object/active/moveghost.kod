@@ -1,0 +1,389 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+MoveGhost is ActiveObject
+
+constants:
+
+   include blakston.khd
+   include protocol.khd
+
+resources:
+
+   moveghost_name_rsc = "afterimage"
+   moveghost_desc_rsc = \
+      "This is an afterimage of %q, left behind by rapid movement."
+
+   moveghost_default_icon = ptb.bgf
+   moveghost_default_larm = plb.bgf
+   moveghost_default_rarm = prb.bgf
+   moveghost_default_legs = pfb.bgf
+
+   moveghost_default_sword = swordov.bgf
+   moveghost_default_shield = rshield.bgf
+
+   moveghost_someone = "Someone"
+
+   moveghost_appear_wav_rsc = logghost_poof.wav
+
+classvars:
+
+
+properties:
+
+   piDrawFX = DRAWFX_DITHERINVIS
+
+   vrDesc = moveghost_desc_rsc
+   vrName = moveghost_name_rsc
+   vrIcon = moveghost_default_icon
+
+   % Who the moveghost is of.
+   poCopiedPlayer = $
+   piExpression = 1
+   prToupee = charinfo_hair_cb_icon
+   prEyes = charinfo_eyes_kx_icon
+   prMouth = charinfo_mouth_lx_icon
+   prNose = charinfo_nose_mx_icon
+   prHead = charinfo_head_kx_icon
+   prRight_arm = moveghost_default_rarm
+   prLeft_arm = moveghost_default_larm
+   prLegs = moveghost_default_legs
+
+   prWeapon = moveghost_default_sword
+   prShield = moveghost_default_shield
+   prBowTop = $
+
+   piIcon_frame = 1
+   piLegs_frame = 1
+   piLeft_frame = 1
+   piRight_frame = 1
+   piShield_frame = 1
+   piWeapon_frame = 1
+
+   piIcon_translation = 0
+   piLegs_translation = 0
+   piArms_translation = 0
+   piWeapon_translation = 0
+   piShield_translation = 0
+   piSkin_translation = 3
+   piHair_translation = PT_GRAY_TO_BGREEN
+
+   piOverlays = 8
+
+   ptDisappearTimer = $
+   piSoldierShieldOverlay = $
+
+messages:
+
+   Constructor(oCopiedPlayer = $, iAfterimageTime = 500)
+   {
+      local i;
+
+      if oCopiedPlayer <> $
+      {
+         Send(self,@SetMoveGhost,#oCopiedPlayer=oCopiedPlayer);
+         if poCopiedPlayer <> $
+         {
+            Send(Send(poCopiedPlayer,@GetOwner),@NewHold,#what=self,
+                 #new_row=Send(poCopiedPlayer,@GetRow),
+                 #new_col=Send(poCopiedPlayer,@GetCol),
+                 #fine_row=(Send(poCopiedPlayer,@GetFineRow)),
+                 #fine_col=(Send(poCopiedPlayer,@GetFineCol)),
+                 #new_angle=Send(poCopiedPlayer,@GetAngle));
+            ptDisappearTimer = CreateTimer(self,@DisappearTrigger,iAfterimageTime);
+         }
+         % Play a sound audible in the room
+         if poOwner <> $ 
+         {
+            Send(poOwner, @SomethingWaveRoom, #what=self,
+                 #wave_rsc = moveghost_appear_wav_rsc);
+         }
+      }
+
+      propagate;
+   }
+
+   Delete()
+   {
+      poCopiedPlayer = $;
+
+      if ptDisappearTimer <> $
+      {
+         DeleteTimer(ptDisappearTimer);
+         ptDisappearTimer = $;
+      }
+
+      propagate;
+   }
+
+   ShowDesc()
+   {
+      if poCopiedPlayer <> $
+      {
+         Addpacket(4,vrDesc);
+         AddPacket(STRING_RESOURCE,Send(poCopiedPlayer,@GetTrueName));
+      }
+      else
+      {
+         Addpacket(4,vrDesc);
+         AddPacket(STRING_RESOURCE,moveghost_someone);
+         Post(self,@Delete);
+      }
+
+      return;
+   }
+
+   DisappearTrigger()
+   {
+      ptDisappearTimer = $;
+
+      Send(self,@Delete);
+
+      return;
+   }
+
+   ResetFrames()
+   {
+      piIcon_frame = 1;
+      piLeft_frame = 1;
+      piRight_frame = 1;
+      piLegs_frame = 1;
+      piOverlays = 8;
+
+      if prShield <> $
+      {
+         if piSoldierShieldOverlay = HS_SHIELD_BACK
+         {
+            piShield_frame = 1;
+         }
+         else
+         {
+            piShield_frame = 2;
+         }
+
+         piLeft_frame = 7;
+         piOverlays = piOverlays + 1;
+      }
+
+      if prWeapon <> $
+      {
+         piWeapon_frame = 4;
+         if prBowTop <> $
+         {
+            piWeapon_frame = 2;
+            piLeft_frame = 7;
+         }
+         else
+         {
+            piRight_frame = 17;
+         }
+
+         piOverlays = piOverlays + 1;
+      }
+
+      return;
+   }
+
+   ResetPose()
+   {
+      Send(self,@ResetFrames);
+
+      piIcon_translation = Send(poCopiedPlayer,@GetBodyTranslation);
+      piLegs_translation = Send(poCopiedPlayer,@GetLegsTranslation);
+      piArms_translation = Send(poCopiedPlayer,@GetArmsTranslation);
+      piHair_translation = Send(poCopiedPlayer,@getHairColor);
+      piSkin_Translation = Send(poCopiedPlayer,@GetSkinColor);
+      piExpression = Send(poCopiedPlayer,@GetExpression);
+
+      if poOwner <> $
+      {
+         Send(poOwner,@SomethingChanged,#what=self);
+      }
+
+      return;
+   }
+
+   SetMoveGhost(oCopiedPlayer = $)
+   {
+      local oWeapon;
+
+      if oCopiedPlayer = $
+         OR NOT (IsClass(oCopiedPlayer,&User)
+            OR IsClass(oCopiedPlayer,&Human))
+      {
+         debug("Bad oCopiedPlayer!");
+         return;
+      }
+
+      poCopiedPlayer = oCopiedPlayer;
+
+      vrIcon = Send(poCopiedPlayer,@GetIcon,#trueicon=TRUE);
+
+      prHead = Send(poCopiedPlayer,@GetHeadRsc);
+      prEyes = Send(poCopiedPlayer,@GetEyesRsc);
+      prMouth = Send(poCopiedPlayer,@GetMouthRsc);
+      prNose = Send(poCopiedPlayer,@GetNoseRsc);
+      prToupee = Send(poCopiedPlayer,@GetHairRsc);
+
+      prLeft_arm = Send(poCopiedPlayer,@GetLeftArmRsc);
+
+      prRight_arm = Send(poCopiedPlayer,@GetRightArmRsc);
+      prLegs = Send(poCopiedPlayer,@GetLegsRsc);
+      prShield = Send(poCopiedPlayer,@GetShieldRsc);
+      piShield_translation = Send(poCopiedPlayer,@GetShieldTranslation);
+      oWeapon = Send(poCopiedPlayer,@LookUpPlayerWeapon);
+      
+      if Send(poCopiedPlayer,@FindUsing,#class=&SoldierShield) <> $
+      {
+         piSoldierShieldOverlay = Send(poCopiedPlayer,@GetShieldOverlayHotspot);
+      }
+
+      piWeapon_translation = 0;
+      prBowTop = $;
+
+      if oWeapon <> $
+      {
+         piWeapon_translation = Send(oWeapon,@GetPaletteTranslation);
+
+         if isClass(oWeapon,&RangedWeapon)
+         {
+            prBowTop = Send(oWeapon,@GetSecondOverlay);
+         }
+      }
+
+      if oWeapon <> $
+      {
+         prWeapon = Send(oWeapon,@GetOverlay);
+      }
+      else
+      {
+         prWeapon = $;
+      }
+
+      Send(self,@ResetPose);
+
+      return;
+   }
+
+   SendAnimation()
+   {
+      if (piIcon_translation) <> 0
+      {
+         AddPacket(1,ANIMATE_TRANSLATION, 1,piIcon_translation);
+      }
+
+      AddPacket(1,ANIMATE_NONE, 2,piIcon_frame);
+
+      return;
+   }
+
+   SendOverlays()
+   {
+      local i,iOverlays,hotspot,iLeft_group,iRight_group,iSkin_xlat,
+            iArms_xlat;
+
+      % Send overlay bitmap info to user.
+
+      % Player has 8 standard overlays: right arm, left arm, legs, head, eyes, 
+      %  mouth, nose, hair
+
+      % Number of overlays
+      AddPacket(1,piOverlays);
+
+      % Left hand
+      AddPacket(4,prLeft_arm, 1,HS_LEFT_HAND);
+      if piArms_translation <> 0
+      {
+         AddPacket(1,ANIMATE_TRANSLATION, 1,piArms_translation);
+      }
+
+      AddPacket(1,ANIMATE_NONE, 2,piLeft_frame);
+
+      % Right hand
+      AddPacket(4,prRight_arm, 1,HS_RIGHT_HAND);
+      if piArms_translation <> 0
+      {
+         AddPacket(1,ANIMATE_TRANSLATION, 1,piArms_translation);
+      }
+
+      AddPacket(1,ANIMATE_NONE, 2,piRight_frame);
+
+      % Legs
+      AddPacket(4,prLegs, 1,HS_LEGS);
+      if piLegs_translation <> 0
+      {
+         AddPacket(1,ANIMATE_TRANSLATION, 1,piLegs_translation);
+      }
+
+      AddPacket(1,ANIMATE_NONE, 2,piLegs_frame);
+
+      % Face
+      iSkin_xlat = piSkin_translation;
+      AddPacket(4,prHead, 1,HS_HEAD, 1,ANIMATE_TRANSLATION, 1,iSkin_xlat,
+                1,ANIMATE_NONE, 2,1);
+      AddPacket(4,prMouth, 1,HS_MOUTH, 1,ANIMATE_TRANSLATION, 1,iSkin_xlat,
+                1,ANIMATE_NONE, 2,piExpression);
+      AddPacket(4,prEyes, 1,HS_EYES, 1,ANIMATE_TRANSLATION, 1,iSkin_xlat,
+                1,ANIMATE_NONE, 2,piExpression);
+      AddPacket(4,prNose, 1,HS_NOSE, 1,ANIMATE_TRANSLATION, 1,iSkin_xlat,
+                1,ANIMATE_NONE, 2,1);
+      AddPacket(4,prToupee, 1,HS_TOUPEE, 1,ANIMATE_TRANSLATION,
+                1,piHair_translation, 1,ANIMATE_NONE, 2,1);
+
+      if prShield <> $
+      {
+         if piSoldierShieldOverlay <> $
+         {
+            AddPacket(4,prShield,1,piSoldierShieldOverlay);
+         }
+         else
+         {
+            AddPacket(4,prShield,1,HS_LEFT_WEAPON);
+         }
+
+         if piShield_translation <> 0
+         {
+            AddPacket(1,ANIMATE_TRANSLATION, 1,piShield_translation);
+         }
+
+         AddPacket(1,ANIMATE_NONE, 2,piShield_frame);
+      }
+
+      if prWeapon <> $
+      {
+         AddPacket(4,prWeapon);
+
+         if prBowTop <> $
+         {
+            AddPacket(1,HS_BOTTOM_BOW);
+         }
+         else
+         {
+            AddPacket(1,HS_RIGHT_WEAPON);
+         }
+
+         if piWeapon_translation <> 0
+         {
+            AddPacket(1,ANIMATE_TRANSLATION, 1,piWeapon_translation);
+         }
+
+         AddPacket(1,ANIMATE_NONE, 2,piWeapon_frame);
+      }
+
+      return;
+   }
+
+   GetCopiedPlayer()
+   {
+      return poCopiedPlayer;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

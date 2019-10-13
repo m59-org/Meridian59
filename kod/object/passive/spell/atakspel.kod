@@ -48,6 +48,9 @@ classvars:
    vbIsRangedAttack = FALSE
    vbIsAreaEffect = FALSE
    vbSelfHarming = FALSE
+   
+   viPrimaryStat = STAT_ID_MYSTICISM
+   viSecondaryStat = STAT_ID_INTELLECT
 
 properties:
 
@@ -126,31 +129,6 @@ messages:
          return FALSE;
       }
 
-      if piRange <> $
-      {
-         iTotalRange = piRange;
-
-         % A little fudge factor to account for lag drift, etc.
-         if IsClass(target,&Player) AND Send(target,@HasMovedRecently)
-         {
-            iTotalRange = iTotalRange + RANGE_MOVEMENT_BONUS;
-         }
-
-         if Send(target,@GetOwner) <> $
-            AND Send(who,@SquaredFineDistanceTo3D,#what=target)
-                     > (iTotalRange * iTotalRange)
-         {
-            if NOT bItemCast
-            {
-               Send(who,@MsgSendUser,#message_rsc=attack_spell_out_of_range,
-                    #parm1=Send(target,@GetCapDef),#parm2=Send(target,@GetName),
-                    #parm3=vrName);
-            }
-
-            return FALSE;
-         }
-      }
-
       propagate;
    }
 
@@ -161,7 +139,7 @@ messages:
 
    CastSpell(who=$,lTargets=$,iSpellPower=0,bItemCast=FALSE)
    {
-      local i, iDamage, iManaFocus, iTemp, oRoom;
+      local i, iDamage, iManaFocus, iTemp, oRoom, oGuild, oGuildHall;
 
       iTemp = $;
 
@@ -185,6 +163,23 @@ messages:
          {
             % Myst and Int boost base damage
             iDamage = Send(self,@DamageFactors,#damage=iDamage,#who=who);
+
+            % Check for relics - this is high precision so * 100
+            if who <> $
+            {
+               oGuild = Send(who,@GetGuild);
+               if oGuild <> $
+               {
+                  oGuildHall = Send(oGuild,@GetGuildHall);
+                  if oGuildHall <> $
+                  {
+                     foreach i in Send(oGuildHall,@GetRelicList)
+                     {
+                        iDamage = Send(i,@ModifyDamage,#who=self,#damage=iDamage,#stroke_obj=self);
+                     }
+                  }
+               }
+            }
 
             % Reduce damage based on spell power.
             iDamage = (iDamage * (50 + (iSpellPower / 2))) / SPELLPOWER_MAXIMUM;
@@ -214,6 +209,13 @@ messages:
       %  attack messages.
       foreach i in lTargets
       {
+         % Ignore those not in this room.
+         if Send(i,@GetOwner) <> Send(who,@GetOwner)
+            OR Send(i,@GetOwner) = $
+         {
+            continue;
+         }
+
          if IsClass(who,&Player)
          {
             Send(who,@SetKillTarget,#target=i);
@@ -236,6 +238,7 @@ messages:
          }
 
          if IsClass(self,&Earthquake)
+            OR IsClass(self,&MonsterEarthquake)
          {
             iDamage = Send(self,@ComputeDamage,#who=who,#target=i,
                            #iDamage=iDamage);
@@ -276,6 +279,7 @@ messages:
          }
 
          if IsClass(who,&Battler)
+            OR IsClass(who,&AlchemyBomb)
          {
             Send(who,@AssessHit,#what=i,#damage=iDamage,#use_weapon=self);
 
@@ -287,7 +291,7 @@ messages:
 
          Send(oRoom,@SomethingAttacked,#what=who,#victim=i,#use_weapon=self);
 
-         Send(self,@DoSideEffect,#who=who,#victim=i,#damage=iDamage);
+         Send(self,@DoSideEffect,#who=who,#victim=i,#damage=iDamage,#iSpellPower=iSpellPower);
       }
 
       % This used to not propagate, but as of July 2014 it does. No bugs yet noted.
@@ -303,7 +307,7 @@ messages:
       % and high intellect to reach their full potential.
       iMysticism = Send(who,@GetMysticism);
       iIntellect = Send(who,@GetIntellect);
-      iDamage = ((100+bound(((iMysticism+iIntellect)/2)-25,0,40))*damage)/100;
+      iDamage = ((100+bound(((iMysticism+iIntellect)/2)-25,0,100))*damage)/100;
 
       return iDamage;
    }

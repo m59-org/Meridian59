@@ -1,0 +1,101 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Hermitage is WitcherySkill
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   hermitage_name_rsc = "hermitage"
+   hermitage_icon_rsc = iseance.bgf
+   hermitage_desc_rsc = \
+      "Disconnecting oneself from the world leads to inner revelations "
+      "and peace that can never truly be taught by demons. Ultimately, "
+      "it is Ventdal's wish that witches and warlocks outgrow the need "
+      "for demonic pacts altogether. Her greatest offering is the hermitage "
+      "her students undergo, during which they endure hex after hex "
+      "as self-flagellation. The solitude is not required, but the "
+      "pain is."
+
+   hermitage_resist = \
+      "You resist much of the hex thanks to Ventdal's revelations."
+
+classvars:
+
+   vrName = hermitage_name_rsc
+   vrIcon = hermitage_icon_rsc
+   vrDesc = hermitage_desc_rsc
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+
+   viSkill_Num = SKID_HERMITAGE
+   viSubSchool = SSS_WITCHERY_VENTDAL
+   viSkill_level = 6
+   viChance_to_increase = 18
+   viMeditate_ratio = 99
+   
+   viPrimaryStat = STAT_ID_MYSTICISM
+   viSecondaryStat = 0
+
+properties:
+   
+   piHexResistance = 30
+
+messages:
+
+   GetRequisiteStat(who=$)
+   "Varies from skill to skill and spell to spell."
+   {
+      return Send(who,@GetMysticism);
+   }
+
+   GetHexResistance(who=$)
+   {
+      local iAbility, iStat, iTotalResistance;
+      
+      iAbility = Send(who,@GetSkillAbility,#Skill_num=viSkill_num);
+      iStat = Send(self,@GetRequisiteStat,#who=who);
+      
+      iTotalResistance = piHexResistance;
+
+      % 30% to 67%
+      iTotalResistance = iTotalResistance + iStat/10 + ((iTotalResistance * (iAbility+1))/100);
+
+      if Send(who,@GetMasteredSkill) = viSkill_Num
+      {
+         iTotalResistance = iTotalResistance * 3;
+      }
+
+      return iTotalResistance;
+   }
+
+   DoSkill(who=$)
+   {
+      local iAbility, iStat;
+      
+      iAbility = Send(who,@GetSkillAbility,#Skill_num=viSkill_num);
+      iStat = Send(self,@GetRequisiteStat,#who=who);
+
+      if bound(iAbility-6,1,93) + iStat/10 <= Random(1,100)
+      {
+         return FALSE;
+      }
+
+      Send(who,@MsgSendUser,#message_rsc=hermitage_resist);
+
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -1,0 +1,102 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Nightgrip is WitcherySkill
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   nightgrip_name_rsc = "nightgrip"
+   nightgrip_icon_rsc = iseance.bgf
+   nightgrip_desc_rsc = \
+      "Ventdal's alliance with minor demons of the night gives her witches "
+      "greatly increased effectiveness against monsters."
+
+   nightgrip_increase = \
+      "Your hex is far more effective thanks to Ventdal's alliances."
+
+classvars:
+
+   vrName = nightgrip_name_rsc
+   vrIcon = nightgrip_icon_rsc
+   vrDesc = nightgrip_desc_rsc
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+
+   viSkill_Num = SKID_NIGHTGRIP
+   viSubSchool = SSS_WITCHERY_VENTDAL
+   viSkill_level = 1
+   viChance_to_increase = 20
+   viMeditate_ratio = 33
+   
+   viPrimaryStat = STAT_ID_MYSTICISM
+   viSecondaryStat = 0
+
+properties:
+   
+   piIncHexEffectiveness = 50
+
+messages:
+
+   GetRequisiteStat(who=$)
+   "Varies from skill to skill and spell to spell."
+   {
+      return Send(who,@GetMysticism);
+   }
+
+   GetIncHexEffectiveness(who=$,oTarget=$)
+   {
+      local iAbility, iStat, iTotalIncrease;
+      
+      if oTarget = $
+         OR NOT IsClass(oTarget,&Monster)
+      {
+         return FALSE;
+      }
+      
+      iAbility = Send(who,@GetSkillAbility,#Skill_num=viSkill_num);
+      iStat = Send(self,@GetRequisiteStat,#who=who);
+      
+      iTotalIncrease = piIncHexEffectiveness;
+      
+      iTotalIncrease = iTotalIncrease + iStat/5 + ((iTotalIncrease * (iAbility+1))/100);
+
+      return iTotalIncrease;
+   }
+
+   DoSkill(who=$,oTarget=$)
+   {
+      local iAbility, iStat;
+      
+      iAbility = Send(who,@GetSkillAbility,#Skill_num=viSkill_num);
+      iStat = Send(self,@GetRequisiteStat,#who=who);
+      
+      if oTarget = $
+         OR NOT IsClass(oTarget,&Monster)
+      {
+         return FALSE;
+      }
+
+      if bound(iAbility-6,1,93) + iStat/10 <= Random(1,100)
+      {
+         return FALSE;
+      }
+
+      Send(who,@MsgSendUser,#message_rsc=nightgrip_increase);
+
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

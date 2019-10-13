@@ -1,0 +1,97 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Sever is Hex
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   Sever_cast_rsc = \
+      "%s%s appears forlorn."
+   Sever_already_enchanted = \
+      "That poor soul is already afflicted by sever."
+   Sever_start = "Your connection to the world's mana has been temporarily severed!"
+   Sever_stop  = "The strange affliction fades, and you begin regenerating mana normally."
+   has_been_hexed_Sever = \
+      "%s%s appears forlorn!"
+
+   Sever_name_rsc = "sever"
+   Sever_icon_rsc = ihexsever.bgf
+   Sever_desc_rsc = \
+      "Partially severs the victim's connection to their mana nodes, hindering mana regeneration. "
+      "This hex requires one cold fragment to cast."
+
+   sever_hex_effect_report = \
+      "At that effectiveness, your sever hex will force the victim to wait ~r~B%i ~ntimes as long to regenerate a point of mana."
+
+   Sever_sound = qenfeebl.wav
+
+classvars:
+
+   vrName = Sever_name_rsc
+   vrIcon = Sever_icon_rsc
+   vrDesc = Sever_desc_rsc
+
+   vrHexEffectReport = sever_hex_effect_report
+
+   vrAlreadyEnchanted = Sever_already_enchanted
+   vrEnchantment_On = Sever_start
+   vrEnchantment_Off = Sever_stop
+   vrSuccess = Sever_cast_rsc
+   vrInformRoom = has_been_hexed_Sever
+
+   viSpell_num = SID_HEX_SEVER
+   viSchool = SS_WITCHERY
+   viSubSchool = SSS_WITCHERY_VENTDAL
+   viSpell_level = 1
+   viMana = 10
+   viSpell_Exertion = 20
+
+   viFlash = FLASH_BAD
+
+   vrSucceed_wav = Sever_sound
+   viChance_To_Increase = 25
+   viMeditate_ratio = 30
+
+properties:
+
+   % Reduce regeneration time by this percentage minus state
+   piBaseEffect = 100
+
+   piFlatDuration = 120000
+
+messages:
+
+   ResetReagents()
+   {
+      plReagents = $;
+      plReagents = Cons([&ColdFragment,1],plReagents);
+
+      return;
+   }
+
+   ModifyManaRegenTime(state=0,regen=0)
+   {
+      % regen here is a time in ms. delay starts at double, goes up to x10
+      regen = regen * (1+((piBaseEffect+((state+1)*9))/100));
+      return regen;
+   }
+
+   DoHexEffectReport(what=$,iHexEffect=0)
+   {
+      Send(what,@MsgSendUser,#message_rsc=vrHexEffectReport,#parm1=(1+((piBaseEffect+((iHexEffect+1)*9))/100)));
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -1,0 +1,87 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+FarenCrest is Crest
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   Faren_Crest_name_rsc = "Crest of the Elementalist"
+   Faren_Crest_icon_rsc = frcharm.bgf
+   Faren_Crest_desc_rsc = \
+      "You are the wisest among all of Faren's disciples. "
+      "This crest signifies that you are the master of his magics. "
+      "While wearing it, you will become the eye of the storm."
+
+   Faren_Crest_learned_spells = \
+      "Faren's raw power flows through the crest, centering a storm of energies around you."
+   Faren_Crest_lost_spells = \
+      "Faren's raw power leaves you, and with it goes the ability to firestorm and ice nova."
+
+classvars:
+
+   vrName = Faren_Crest_name_rsc
+   vrIcon = Faren_Crest_icon_rsc
+   vrDesc = Faren_Crest_desc_rsc
+
+   viValue_average = 10
+
+   viBulk = 25
+   viWeight = 25
+
+   viGround_group = 2
+
+properties:
+   
+   pbIn_use = False
+
+   piItemLevel = 300
+
+messages:
+
+   NewUsed(what = $)
+   {
+      if NOT Send(what,@HasSpell,#num=SID_ICE_NOVA)
+         AND NOT Send(what,@HasSpell,#num=SID_FIRE_STORM)
+      {
+         Send(what,@AddSpell,#num=SID_ICE_NOVA,#iability=Send(what,@GetMysticism));
+         Send(what,@AddSpell,#num=SID_FIRE_STORM,#iability=Send(what,@GetMysticism));
+         pbGrantedSpell = TRUE;
+         Send(what,@MsgSendUser,#message_rsc=Faren_Crest_learned_spells);
+      }
+      
+      propagate;
+   }
+
+   NewUnused(what = $)
+   {
+      if pbGrantedSpell
+      {
+         Send(what,@RemoveSpell,#num=SID_ICE_NOVA);
+         Send(what,@RemoveSpell,#num=SID_FIRE_STORM);
+         pbGrantedSpell = FALSE;
+         
+         if Send(what,@IsLoggedOn)
+         {
+            Send(what,@MsgSendUser,#message_rsc=Faren_Crest_lost_spells);
+            Post(what,@ToCliSpells);
+         }
+      }
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+

@@ -10,6 +10,10 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 GuildHall14 is GuildHall
 
+   % Bookmaker's guild house has the best financials.
+   %    Best market buy/sell ratio.
+   % Secret sewer exit.
+
 constants:
 
    LIFT_ONE = 83
@@ -131,6 +135,12 @@ resources:
    guildh14_entrancedoor_close_sound = doordown.wav
    guildh14_lift_up_sound = stoneup2.wav
    guildh14_lift_down_sound = stonedn2.wav
+   
+   sewer_exit_msg = \
+      "You struggle your way deeper into the toilet to avoid anyone finding out that you fell in!"
+
+   sewer_male_fall_wav = malefall822m.wav
+   sewer_female_fall_wav = femalefall822m.wav
 
 classvars:
 
@@ -167,6 +177,66 @@ classvars:
    % not actually used for the secret door here
    vrSecretdoor_open_sound = guildh14_lift_up_sound
    vrSecretdoor_close_sound = guildh14_lift_down_sound
+   
+   viReliquaryOneRow = 2
+   viReliquaryOneCol = 12
+   viReliquaryOneFineRow = 16
+   viReliquaryOneFineCol = 49
+   
+   viReliquaryTwoRow = 2
+   viReliquaryTwoCol = 14
+   viReliquaryTwoFineRow = 16
+   viReliquaryTwoFineCol = 25
+   
+   viReliquaryThreeRow = 18
+   viReliquaryThreeCol = 13
+   viReliquaryThreeFineRow = 30
+   viReliquaryThreeFineCol = 34
+   
+   % Fusing device rates go from 8 (worst) to 4 (best) 
+   viShardFusingDeviceRow = 8
+   viShardFusingDeviceCol = 8
+   viShardFusingDeviceFineRow = 18
+   viShardFusingDeviceFineCol = 17
+   viShardFusingDeviceRate = 5
+   
+   % Shattering device rates go from 2 (worst) to 4 (best) 
+   viShardShatteringDeviceRow = 6
+   viShardShatteringDeviceCol = 8
+   viShardShatteringDeviceFineRow = 50
+   viShardShatteringDeviceFineCol = 17
+   viShardShatteringDeviceRate = 3
+   
+   viFociOneRow = 14
+   viFociOneCol = 28
+   viFociOneFineRow = 44
+   viFociOneFineCol = 52
+   viFociOnePower = 198
+   viFociOneRange = 9
+   viFociOneSpellNum = SID_INVIGORATE
+   
+   viFociTwoRow = 14
+   viFociTwoCol = 28
+   viFociTwoFineRow = 44
+   viFociTwoFineCol = 52
+   viFociTwoPower = 99
+   viFociTwoRange = 9
+   viFociTwoSpellNum = SID_REJUVENATE
+
+   viBartenderRow = 6
+   viBartenderCol = 23
+   viBartenderFineRow = 62
+   viBartenderFineCol = 1
+   viBartenderRate = 100
+   
+   viMarketRow = 13
+   viMarketCol = 10
+   viMarketFineRow = 26
+   viMarketFineCol = 3
+   viMarketRate = 100
+
+   viLongitude = 20
+   viLatitude = 8
 
 properties:
 
@@ -186,6 +256,10 @@ properties:
 
    % This hall is a special case - it gets music.
    prMusic = guildh14_music
+   
+   piGuildHallMeditateEffiency = 100
+   % Bookmaker's boosts Riija by 25%
+   piSpecialGuildHallMeditateEfficiency = 125
 
 messages:
 
@@ -321,6 +395,33 @@ messages:
    SomethingTryGo(what=$, row=$, col = $)
    {
       local oGuild;
+      
+      if what <> $
+         AND IsClass(what,&User)
+         AND Send(what,@GetHeightAtObject) = 0
+      {
+         % They're stuck in the shitter. Secret sewer exit.
+         % Added by Gar 11/9/17, since silliness this sincere should be claimed.
+         Send(what,@MsgSendUser,#message_rsc=sewer_exit_msg);
+         Send(SYS,@UtilGoNearSquare,#what=what,
+              #where=Send(SYS,@FindRoomByNum,#num=RID_BAR_SEWER2),
+              #new_row=46,
+              #new_col=23,
+              #new_angle=ANGLE_NORTH);
+              
+         if Send(what,@GetGender) = GENDER_MALE
+         {
+            Send(self,@SomethingWaveRoom,#row=row,#col=col,#wave_rsc=sewer_male_fall_wav);
+            Send(what,@WaveSendUser,#what=what,#wave_rsc=sewer_male_fall_wav);
+         }
+         else
+         {
+            Send(self,@SomethingWaveRoom,#row=row,#col=col,#wave_rsc=sewer_female_fall_wav);
+            Send(what,@WaveSendUser,#what=what,#wave_rsc=sewer_female_fall_wav);
+         }
+      
+         return TRUE;
+      }
 
       if row = 4 AND col = 28
       {
@@ -618,6 +719,16 @@ messages:
       }
 
       return GUILDH14_ZONE_MAIN;
+   }
+   
+   DoesPlayerQualifyForSpecialMeditateRatio(who=$,oSpell=$,oSkill=$)
+   {
+      if oSpell <> $
+         AND Send(oSpell,@GetSchool) = SS_RIIJA
+      {
+         return TRUE;
+      }
+      return FALSE;
    }
 
 end

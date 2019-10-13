@@ -126,7 +126,19 @@ messages:
    {
       ptCharge = $;
 
-      piHits = piHits - 1;
+      if poOwner <> $
+         AND IsClass(poOwner,&Player)
+         AND Send(poOwner,@HasSkill,#num=SKID_RING_SUSTAINMENT)
+         AND Send(Send(SYS,@FindSkillByNum,#num=SKID_RING_SUSTAINMENT),@DoSkill,#who=poOwner,#oEquipment=self)
+      {
+         ptCharge = CreateTimer(self,@ChargeTimer,RINGINVISIBILITY_CHARGE_RATE);
+         return;
+      }
+      else
+      {
+         piHits = piHits - 1;
+      }
+
       if piHits <= 0
       {
          Send(poOwner,@MsgSendUser,#message_rsc=ringinvisibility_dead_rsc);

@@ -1,0 +1,270 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ZealousFervor is KnightcraftSkill
+
+constants:
+
+   include blakston.khd
+   include protocol.khd   
+
+resources:
+
+   ZealousFervor_name_rsc = "zealous fervor"
+   ZealousFervor_icon_rsc = imajheal.bgf
+   ZealousFervor_desc_rsc = \
+      "The most loyal of knights consider their own lives secondary to the cause. "
+      "Such passionate loyalty makes them far more dangerous than a less motivated opponent. "
+      "Knights overcome with zealous fervor will continue to fight on even when mortally wounded, "
+      "for they are true believers, and no force is greater than an ideal."
+      "\n\nWhen on the verge of death, a zealous knight will make a determined last stand, thereby knocking back "
+      "all nearby opponents, shrugging off negative status effects, and gaining a burst of health."
+      "\n\nThe fervor imbued in such a believer also permanently increases their maximum health."
+
+   ZealousFervor_skill_intro = \
+      "Weaponcraft Lv. 6: Up to +20 max health, and a burst of health near death."
+
+   ZealousFervor_success = "~BGiving a tremendous shout, you refuse to die!"
+   ZealousFervor_roar = \
+      "~BOvercome with zealous fervor, %s%s roars and makes a defiant last stand!"
+
+   female_zealous_fervor_shout = femaleshout.wav
+   male_zealous_fervor_shout = maleshout.wav
+
+classvars:
+
+   vrName = ZealousFervor_name_rsc
+   vrIcon = ZealousFervor_icon_rsc
+   vrDesc = ZealousFervor_desc_rsc
+
+   vrSkill_intro = ZealousFervor_skill_intro
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+
+   viSkill_num = SKID_ZEALOUS_FERVOR
+   viSchool = SKS_KNIGHTCRAFT
+   viSkill_Level = 6
+   viChance_to_Increase = 5
+   viMeditate_ratio = 110
+
+   viSkillExertion = 0
+   vbCheck_exertion = FALSE
+
+   vbAutomatic = TRUE
+   
+   viShow_enchantment_icon = 0x02
+   
+   viPrimaryStat = STAT_ID_STAMINA
+   viSecondaryStat = 0
+
+properties:
+
+messages:
+
+   GetRequisiteStat(who=$)
+   "Varies from skill to skill and spell to spell."
+   {
+      return Send(who,@GetStamina);
+   }
+
+   SkillFailed(who=$)
+   {
+      % Override base class behavior to do nothing.  Base class sends a
+      % spammy message if we fail.
+      return;
+   }
+
+   DoSkill(who=$)
+   {
+      local iHealth, i, each_obj, lKnockbackBattlers, iDist, iClosestDist, oClosestBattler, lOrderedBattlers,
+            iKnockbackLimit;
+
+      if who = $
+      {
+         Debug("DoSkill called with bad who.");
+
+         return FALSE;
+      }
+
+      if NOT (Send(self,@CanPayCosts,#who=who)
+            AND Send(self,@PayCosts,#who=who))
+      {
+         return FALSE;
+      }
+
+      lKnockbackBattlers = $;
+
+      foreach i in Send(Send(who,@GetOwner),@GetHolderActive)
+      {
+         each_obj = Send(Send(who,@GetOwner),@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&Player)
+         {
+            if each_obj = who
+            {
+               Send(each_obj,@MsgSendUser,#message_rsc=ZealousFervor_success);
+            }
+            else
+            {
+               Send(each_obj,@MsgSendUser,#message_rsc=ZealousFervor_roar,#parm1=Send(who,@GetDef),#parm2=Send(who,@GetName));
+               
+               iDist = Send(who,@SquaredFineDistanceTo3D,#what=each_obj);
+               if iDist <= (64 * 8) * (64 * 8)
+                  AND Send(who,@AllowPlayerAttack,#victim=each_obj,#report=FALSE,#actual=FALSE)
+               {
+                  lKnockbackBattlers = Cons(each_obj,lKnockbackBattlers);
+               }
+            }
+         }
+         
+         if IsClass(each_obj,&Monster)
+         {
+            iDist = Send(who,@SquaredFineDistanceTo3D,#what=each_obj);
+            if iDist <= (64 * 10) * (64 * 10)
+            {
+               lKnockbackBattlers = Cons(each_obj,lKnockbackBattlers);
+            }
+         }
+      }
+
+      % Limit this shout to 40 battlers knocked back.
+      % If player is surrounded by more than 40 battlers, they've got bigger problems.
+      iKnockbackLimit = 40;
+      while iKnockbackLimit > 0
+      {
+         iClosestDist = 9999999;
+         oClosestBattler = $;
+         
+         foreach i in lKnockbackBattlers
+         {
+            iDist = Send(who,@SquaredFineDistanceTo3D,#what=i);
+            if iDist < iClosestDist
+            {
+               iClosestDist = iDist;
+               oClosestBattler = i;
+            }
+         }
+
+         if oClosestBattler <> $
+         {
+            lOrderedBattlers = Cons(oClosestBattler,lOrderedBattlers);
+            lKnockbackBattlers = DelListElem(lKnockbackBattlers,oClosestBattler);
+         }
+
+         if lKnockbackBattlers = $
+         {
+            iKnockbackLimit = 0;
+         }
+         iKnockbackLimit--;
+      }
+      lKnockbackBattlers = $;
+      
+      foreach i in lOrderedBattlers
+      {
+         Send(i,@ApplyKnockback,#what=who,#knockback_power=Send(who,@GetKnockbackPower)*2);
+      }
+      lOrderedBattlers = $;
+
+      if Send(who,@GetGender) = GENDER_FEMALE
+      {
+         Send(Send(who,@GetOwner),@SomethingWaveRoom,#what=who,#wave_rsc=female_zealous_fervor_shout);
+      }
+      else
+      {
+         Send(Send(who,@GetOwner),@SomethingWaveRoom,#what=who,#wave_rsc=male_zealous_fervor_shout);
+      }
+
+      Send(who,@RemoveEnchantmentClass,#class=&Debuff);
+      iHealth = (Send(self,@GetRequisiteStat,#who=who)/4 + Send(who,@GetSkillAbility,#Skill_num=viSkill_num))/4;
+      Send(who,@GainHealthNormal,#amount=iHealth);
+      Send(who,@ShowAddEnchantment,#what=self,#type=ENCHANTMENT_PLAYER);
+
+      propagate;
+   }
+
+   GetWaitTime(who=$)
+   {
+      local iStamina, iWaitTime;
+
+      if who = $
+      {
+         Debug("GetWaitTime called with bad who.");
+
+         return FALSE;
+      }
+
+      iStamina = Send(self,@GetRequisiteStat,#who=who);
+      iWaitTime = ((100-iStamina) * Send(who,@GetSkillAbility,#Skill_num=viSkill_num)/100) + iStamina;
+      % 5 to 10 minutes wait time before you can resist death again.
+      iWaitTime = (600 - (iWaitTime*3)) * 1000;
+
+      return iWaitTime;
+   }
+
+   GetInitialChance(who = $)
+   "This is the initial chance to advance."
+   {
+      % No easy-cheezing it.  No advancement if you have an "easy" way
+      % to trigger the skill.  This includes tokens, cursed rings, or
+      % (token) deaths.
+      if Send(who,@PossessesA,#class=&Token)
+         OR Send(who,@PossessesA,#class=&RingOfLethargy)
+         OR Send(send(who,@GetOwner),@GetRoomNum) = RID_UNDERWORLD
+      {
+         % No initial chance to succeed; that is, you will always fail to advance.
+         return 0;
+      }
+
+      propagate;
+   }
+
+   ShowEnchantmentIcon(type = $)
+   {
+      return viShow_enchantment_icon & 0x02;
+   }
+
+   SendTimeDesc(who=$)
+   {
+      local iDuration, iTimer;
+
+      iTimer = Send(who,@GetZealousFervorTimer);
+      if iTimer = $
+      {
+         propagate;
+      }
+
+      if IsTimer(iTimer)
+      {
+         iDuration = GetTimeRemaining(iTimer);
+      }
+      else
+      {
+         % Should be an integer.
+         iDuration = iTimer;
+      }
+
+      % If we somehow ended up with $, set iDuration to 0. This isn't
+      % likely to happen, but check anyway.
+      if iDuration = $
+      {
+         iDuration = 0;
+      }
+
+      iDuration = iDuration / 1000;
+
+      % This message picks the appropriate resources for the duration given,
+      % and sends them to the user.
+      Send(self,@SendTimeRemaining,#iTime=iDuration);
+
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

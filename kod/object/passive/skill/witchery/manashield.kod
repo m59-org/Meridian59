@@ -1,0 +1,117 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ManaShield is WitcherySkill
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   manashield_name_rsc = "mana shield"
+   manashield_icon_rsc = iseance.bgf
+   manashield_desc_rsc = \
+      "One of Ventdal's greatest hexes, spirit shackles, curses the victim to "
+      "deal damage partially on the spiritual plane. Before mastery of that spell, "
+      "however, comes a certain amount of training for afflicting oneself with "
+      "the same energies. As witches of Ventdal grow toward mastery, "
+      "they learn to channel a portion of injuries taken to their spirit instead, "
+      "should their mystical energies be sufficient."
+
+   lose_mana_mana_shield = \
+      "Your mana absorbs ~b~B%i~n damage!"
+
+   deal_damage_mana_shield = \
+      "You deal ~b~B%i~n damage to %s%s's mana!"
+
+classvars:
+
+   vrName = manashield_name_rsc
+   vrIcon = manashield_icon_rsc
+   vrDesc = manashield_desc_rsc
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+
+   viSkill_Num = SKID_MANA_SHIELD
+   viSubSchool = SSS_WITCHERY_VENTDAL
+   viSkill_level = 4
+   viChance_to_increase = 15
+   viMeditate_ratio = 44
+   
+   viPrimaryStat = STAT_ID_MYSTICISM
+   viSecondaryStat = 0
+
+properties:
+   
+   piBaseEffect = 10
+
+messages:
+
+   GetRequisiteStat(who=$)
+   "Varies from skill to skill and spell to spell."
+   {
+      return Send(who,@GetMysticism);
+   }
+
+   AttackerDealsDamageToMana(oAttacker=$,oDefender=$,damage=0)
+   {
+      local iVictimMana, iPercentageRedirected, iDamageRedirected, iAbility, iStat;
+
+      if oDefender = $
+         OR damage <= 0
+      {
+         return damage;
+      }
+      
+      iAbility = Send(oDefender,@GetSkillAbility,#Skill_num=viSkill_num);
+      iStat = Send(self,@GetRequisiteStat,#who=oDefender);
+      iVictimMana = Send(oDefender,@GetMana);
+      
+      % This reasonably goes up to 25ish percent
+      iPercentageRedirected = piBaseEffect + ((piBaseEffect*(iAbility+1))/100) + iStat/10;
+
+      iDamageRedirected = (damage * iPercentageRedirected)/100;
+      iDamageRedirected = Bound(iDamageRedirected,0,iVictimMana*100);
+
+      Send(oDefender,@LoseMana,#amount=iDamageRedirected/100);
+      
+      if IsClass(oDefender,&Player)
+      {
+         Send(oDefender,@MsgSendUser,#message_rsc=lose_mana_mana_shield,#parm1=iDamageRedirected/100);
+      }
+
+      if oAttacker <> $
+         AND IsClass(oAttacker,&Player)
+      {
+         Send(oAttacker,@MsgSendUser,#message_rsc=deal_damage_mana_shield,#parm1=iDamageRedirected/100,#parm2=Send(oDefender,@GetDef),#parm3=Send(oDefender,@GetName));
+      }
+      return damage - iDamageRedirected;
+   }
+
+
+   DoSkill(who=$)
+   {
+      local iAbility, iStat;
+      
+      iAbility = Send(who,@GetSkillAbility,#Skill_num=viSkill_num);
+      iStat = Send(self,@GetRequisiteStat,#who=who);
+
+      if bound(iAbility-6,1,93) + iStat/10 <= Random(1,100)
+      {
+         return FALSE;
+      }
+
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

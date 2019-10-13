@@ -1,0 +1,95 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Mayurasana is Breath
+
+constants:
+
+   include blakston.khd
+   include protocol.khd   
+
+resources:
+
+   Mayurasana_name_rsc = "mayurasana"
+   Mayurasana_icon_rsc = irestor.bgf
+   Mayurasana_desc_rsc = \
+      "A master breath technique that increases health regeneration. "
+      "In the mayurasana pose, a master monk rises on flat palms "
+      "and remains elevated and horizontal. The pose benefits "
+      "health regeneration greatly."
+      "\n\nHigh level asanas also contain the benefits of "
+      "their lower level counterparts. When resting, "
+      "a monk will gain the boosts of all the asanas "
+      "they know. However, being hit disrupts their pose, "
+      "so asanas require that the monk hasn't been hit in the last few seconds."
+   
+   Mayurasana_begin = "You expand your breathing deep into your lungs."
+   Mayurasana_end = "You stop breathing in the depths of your lungs."
+   
+   Mayurasana_start_resting = "You flatten your palms on the ground and lift your body into a horizontal mayurasana pose."
+   Mayurasana_stop_resting = "You return to your feet."
+
+   Mayurasana_intro = \
+      "Shadowcraft Lv. 6: Increase health regen while resting."
+
+classvars:
+
+   vrName = Mayurasana_name_rsc
+   vrIcon = Mayurasana_icon_rsc
+   vrDesc = Mayurasana_desc_rsc
+
+   breath_achieved_msg = Mayurasana_begin
+   breath_end_msg = Mayurasana_end
+   breath_start_resting = Mayurasana_start_resting
+   breath_end_resting = Mayurasana_stop_resting
+
+   vrSkill_intro = Mayurasana_intro
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+
+   viSkill_num = SKID_MAYURASANA
+   viSchool = SKS_SHADOWCRAFT
+   viSkill_Level = 6
+   viChance_to_Increase = 10
+   viMeditate_ratio = 60
+
+   viSkillExertion = 0
+   vbCheck_exertion = FALSE
+
+   vbAutomatic = TRUE
+   
+   viPrimaryStat = STAT_ID_STAMINA
+   viSecondaryStat = 0
+
+properties:
+
+messages:
+
+   ModifyRegeneration(who=$,iAmount=0)
+   {
+      local iMayurasanaAbility, iStat;
+
+      if NOT Send(who,@IsResting)
+         OR Send(who,@WasHitRecently)
+      {
+         return iAmount;
+      }
+
+      iMayurasanaAbility = Send(who,@GetSkillAbility,#skill_num=viSkill_num);
+      iStat = Send(self,@GetRequisiteStat,#who=who);
+
+      Send(self,@ImproveAbility,#who=who);
+
+      return iAmount + (iAmount*2*(iMayurasanaAbility+(iStat/4)))/100;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

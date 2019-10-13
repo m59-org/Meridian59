@@ -1,0 +1,72 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+MajorPurpleHeartStone is MajorHeartStone
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   MajorPurpleHeartStone_name_rsc = "major purple heartstone"
+   MajorPurpleHeartStone_name_plural = "major purple heartstones"
+   MajorPurpleHeartStone_desc_rsc = \
+      "This is a 'heartstone'.  It is a purple gem taken from "
+      "the body of a fallen Vix'Re'Xeochicatl.  It wiggles slightly and is cool "
+      "to the touch.  The uses for this gem are not widely known."
+
+classvars:
+
+   vrName = MajorPurpleHeartStone_name_rsc
+   vrDesc = MajorPurpleHeartStone_desc_rsc
+   
+   vrName_plural = MajorPurpleHeartStone_name_plural
+
+   viValue_average = 100
+   viWeight = 20
+   viBulk = 10
+
+   viColor = XLAT_TO_PURPLE
+properties:
+
+messages:
+
+   CreateXeo()
+   {
+      return Create(&XeoIll,#InAttack=Send(self,@IsInAttack));
+   }
+
+   WeightPrefixes()
+   {
+      return [[&ManaMod,300],
+              [&VigorMod,100]
+             ];
+   }
+   
+   WeightSuffixes()
+   {
+      return $;
+   }
+
+   EmpowerAffixes()
+   {
+      return [[&ManaMod,16],
+              [&VigorMod,8]
+             ];
+   }
+   
+   GetForgeType()
+   {
+      return FORGE_ILLUSION;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

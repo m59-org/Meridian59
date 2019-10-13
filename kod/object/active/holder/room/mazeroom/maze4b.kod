@@ -1,0 +1,292 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Maze4b is MinotaurMazeRoom
+
+% Randomized Hallways with special trap functions
+%
+%
+%
+% So far:
+% 100
+% to
+% 739
+%
+% xx0 outer ring
+% xx1 middle ring
+% xx2 inner ring
+% xx3 central square
+%
+% xx4 sawblade nopass
+%
+% xx5 crusher walls
+%
+% xx6 sawblades
+%
+% xx7 down spikes
+% xx8 up spikes
+%
+% xx9 are secret doors
+%
+%
+%
+%
+% 109 to 179
+% 189 to 259
+% 269 to 339
+% 349 to 419
+% 429 to 499
+% 509 to 579
+% 589 to 659
+% 669 to 739
+%
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   room_maze4b = maze4b.roo
+
+classvars:
+
+   vbCannotBlinkHere = TRUE
+
+   viTeleport_row = 2
+   viTeleport_col = 2
+   
+   viSouthEntranceRow = 25
+   viSouthEntranceCol = 4
+   viSouthEntranceFineRow = 62
+   viSouthEntranceFineCol = 29
+
+   viNorthEntranceRow = 2
+   viNorthEntranceCol = 4
+   viNorthEntranceFineRow = 60
+   viNorthEntranceFineCol = 28
+
+   viWestEntranceRow = 12
+   viWestEntranceCol = 2
+   viWestEntranceFineRow = 44
+   viWestEntranceFineCol = 63
+
+   viEastEntranceRow = 12
+   viEastEntranceCol = 35
+   viEastEntranceFineRow = 44
+   viEastEntranceFineCol = 39
+   
+   % Sawblade settings
+   % Sawblades are twice as slow to animate in this room... for no discernible reason.
+   % Changing animation speed doesn't work... for no discernible reason.
+%   SAWBLADE_FULL_CYCLE_TIME = 8000
+%   SAWBLADE_DAMAGE_TIME = 60
+%   SAWBLADE_DORMANT_TIME = 2000
+%   SAWBLADE_DAMAGE = 1
+%   SAWBLADE_SPEED = 10
+
+   %
+   % Todo:
+   % 
+   % Interconnected rooms
+   % 
+   % Lava scrolling
+   %
+
+properties:
+
+   prRoom = room_maze4b
+
+messages:
+   
+   CheckMoveBorders(what=$, new_row=$, new_col=$)
+   {
+      return;
+   }
+
+   CreateMazeRoomObjects()
+   {
+      local i, iR, iRT, iCount, lAlreadyChosen, bSoundInfo;
+% 109 to 179
+% 189 to 259
+% 269 to 339
+% 349 to 419
+% 429 to 499
+% 509 to 579
+% 589 to 659
+% 669 to 739
+
+      Send(self,@SetWadingSound,#type=MAZE_LAVA_WALKING);
+
+      % Turn off default scrolling
+      iR = 100;
+      while iR <= 730
+      {
+         Send(self,@SetSectorFlags,#sector=iR,#depth=SF_DEPTH0,#scrollSpeed=SCROLL_NONE);
+         Send(self,@SetSectorFlags,#sector=iR+1,#depth=SF_DEPTH0,#scrollSpeed=SCROLL_NONE);
+         Send(self,@SetSectorFlags,#sector=iR+2,#depth=SF_DEPTH0,#scrollSpeed=SCROLL_NONE);
+         Send(self,@SetSectorFlags,#sector=iR+3,#depth=SF_DEPTH0,#scrollSpeed=SCROLL_NONE);
+         Send(self,@SetSectorFlags,#sector=iR+9,#depth=SF_DEPTH0,#scrollSpeed=SCROLL_NONE);
+         iR = iR + 10;
+      }
+      
+      % Southbound secret doors
+      iCount = 0;
+      while iCount < 7
+      {
+         iR = Random(10+(8*iCount),17+(8*iCount))*10;
+         plSecretDoors = Cons([[iR,iR+1,iR+2,iR+3],              % Trigger sectors
+                               [iR+9],                           % Door sector
+                               ANIMATE_FLOOR_LIFT,
+                               1000,
+                               50,
+                               SECRET_DOOR_ONLY_ONCE],plSecretDoors);
+         iCount++;
+      }
+
+      % Northbound secret doors
+      iCount = 7;
+      while iCount > 0
+      {
+         iR = Random(10+(8*iCount),17+(8*iCount))*10;
+         plSecretDoors = Cons([[iR,iR+1,iR+2,iR+3],              % Trigger sectors
+                               [iR-71],                          % Door sector
+                               ANIMATE_FLOOR_LIFT,
+                               1000,
+                               50,
+                               SECRET_DOOR_ONLY_ONCE],plSecretDoors);
+         iCount--;
+      }
+      
+      % Crusher trap selection
+      iCount = 0;
+      while iCount <= 7
+      {
+         % Choose a trigger square
+         iR = Random(10+(8*iCount),17+(8*iCount))*10;
+         
+         % Choose a trapped square next to it or on it, bounded to this row
+         iRT = Bound(iR + (Random(-1,1)*10), (10+(8*iCount))*10, (17+(8*iCount))*10);
+         
+         plCrusherStates = Cons([[iR,iR+1,iR+2,iR+3],          % Trigger sectors
+                              [iRT+2,iRT+3],                   % Crusher sectors
+                              $,
+                              TRAP_READY,
+                              ANIMATE_CEILING_LIFT,
+                              1050,                            % down height
+                              220,                             % down speed
+                              1160,                            % up height
+                              11,                              % up speed
+                              iRT+5                            % nopass Wall ID for Crusher
+                              ],plCrusherStates);
+         iCount++;
+      }
+      
+      iCount = 0;
+      lAlreadyChosen = $;
+      bSoundInfo = -1;     % -1 means room sound, all subsequent spikes go to $ to play nothing
+      while iCount <= 7
+      {
+         % How many spikes in this row? Naturally weighted via duplicate protection as well
+         %iR = Bound(Random(-16,8),1,8);
+         iR = 1;
+
+         while iR > 0
+         {
+            % Choose a square
+            iRT = Random(10+(8*iCount),17+(8*iCount))*10;
+         
+            if lAlreadyChosen = $
+               OR FindListElem(lAlreadyChosen,iRT) = 0
+            {
+               plSpikeStates = Cons([[iRT,iRT+1,iRT+2,iRT+3],        % Pain sectors
+                                     iRT+7,                          % down wall ID
+                                     iRT+8,                          % Up wall ID
+                                     $,
+                                     SPIKES_DORMANT,
+                                     SPIKES_SIMULTANEOUS,            % Spike behavior
+                                     bSoundInfo,                     % sound row
+                                     bSoundInfo                      % sound col
+                                     ],plSpikeStates);
+               lAlreadyChosen = Cons(iRT,lAlreadyChosen);
+            }
+            iR--;
+            
+            if bSoundInfo = -1
+            {
+               bSoundInfo = $;
+            }
+         }
+         iCount++;
+      }
+
+      iCount = 0;
+      while iCount <= 7
+      {
+         % How much lava in this row? Naturally weighted via duplicate protection as well
+         % lAlreadyChosen also contains Spikes so no Spikes and Lava in same location
+         %iR = Bound(Random(-8,8),1,8);
+         iR = 1;
+
+         while iR > 0
+         {
+            % Choose a square
+            iRT = Random(10+(8*iCount),17+(8*iCount))*10;
+         
+            if lAlreadyChosen = $
+               OR FindListElem(lAlreadyChosen,iRT) = 0
+            {
+               plLavaSectors = Cons(iRT,plLavaSectors);                  % Lava pain sectors
+               Send(self,@RemoveSectorFlagChange,#id=iRT);
+               plLavaSectors = Cons(iRT+1,plLavaSectors);                % Lava pain sectors
+               Send(self,@RemoveSectorFlagChange,#id=iRT+1);
+               plLavaSectors = Cons(iRT+2,plLavaSectors);                % Lava pain sectors
+               Send(self,@RemoveSectorFlagChange,#id=iRT+2);
+               plLavaSectors = Cons(iRT+3,plLavaSectors);                % Lava pain sectors
+               Send(self,@RemoveSectorFlagChange,#id=iRT+3);
+               lAlreadyChosen = Cons(iRT,lAlreadyChosen);
+            }
+            iR--;
+         }
+         iCount++;
+      }
+      
+      % Sawblade selection
+      iCount = 0;
+      while iCount <= 7
+      {
+         % Choose a trigger square
+         iR = Random(10+(8*iCount),17+(8*iCount))*10;
+         
+         % Choose a trapped square next to it or on it, bounded to this row
+         iRT = Bound(iR + (Random(-1,1)*10), (10+(8*iCount))*10, (17+(8*iCount))*10);
+         
+         plSawbladeStates = Cons([[iR,iR+1,iR+2,iR+3],                 % Trigger sectors
+                                  [iRT,iRT+1,iRT+2],                   % Damage sectors
+                                  iRT+6,                               % Sawblade walls ID
+                                  iRT+4,                               % Sawblade no pass ID
+                                  $,
+                                  $,
+                                  -1,                                 % Sound row
+                                  -1                                  % Sound col
+                                  ],plSawbladeStates);
+         iCount++;
+      }
+      return;
+   }
+
+% ==================================================================================================================
+% ==================================================================================================================
+% SPECIFIC FUNCTIONS
+% ==================================================================================================================
+% ==================================================================================================================
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

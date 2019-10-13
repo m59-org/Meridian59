@@ -165,6 +165,9 @@ resources:
    no_use_jig = \
       "You can't wield that - it would interfere with your funky moves!"
 
+   room_chaos_zone_no_truce_jig = \
+      "There is no way to prevent combat in this place of anarchy. Your spell fails."
+
 classvars:
 
    % This variable is passed down to client for render flags for room
@@ -199,6 +202,22 @@ classvars:
 
    viWeatherZone = WEATHER_ZONE_DEFAULT
    viWeatherMask = WEATHER_MASK_DEFAULT
+
+   viMaxLegalPlayerHeight = 1000000
+   vbCheckLegalPlayerHeights = FALSE
+   
+   vbCanSneakHere = TRUE
+   vbCanHideHere = TRUE
+   
+   vbDefaultChaosZone = FALSE
+
+   vbOverridePlayerLightLevel = FALSE
+   viOverridePlayerLightLevel = 0
+
+   % Rough coordinate system for pathfinding
+   % 1000 is 'super far away' to avoid pathfinding there
+   viLongitude = 1000
+   viLatitude = 1000
 
 properties:
 
@@ -328,6 +347,21 @@ properties:
    % per room weather conditions
    piWeather = WEATHER_PATTERN_CLEAR
    
+   % Some rooms have bonuses to Meditate efficiency
+   piRoomMeditateEfficiency = 100
+   
+   % Save the default area music for Jala / music change purposes
+   prDefaultAreaMusic = $
+
+   % This player is presenting a shield wall, blocking certain movements
+   plShieldWallers = $
+   
+   % Does this room let you breathe?
+   pbRoomHasAir = TRUE
+   
+   % Do players 'drift' up and down?
+   pbIsUnderwater = FALSE
+
 messages:
 
    Constructor()
@@ -350,6 +384,8 @@ messages:
 
       Send(self,@RecalcSkyBox);
       Send(self,@RecalculateDirectionalLight);
+      
+      prDefaultAreaMusic = Send(self,@GetMusic);
 
       propagate;
    }
@@ -798,6 +834,446 @@ messages:
       return Send(self,@CheckRoomFlag,#flag=ROOM_GUEST_AREA);
    }
 
+   IntraTeleport(what=$,target=$,distance=64,type=INTRA_TELEPORT_FORWARD,
+                 new_row=$,new_col=$,fine_row=FINENESS/2,fine_col=FINENESS/2,
+                 new_angle=$,bMoveOffBSP=FALSE)
+   {
+      local iRow, iCol, iFineRow, iFineCol, iNewRow, iNewCol, iNewFineRow,
+            iNewFineCol, iRowPercentage, iColPercentage, iRowSign, iColSign,
+            iRowDist, iColDist, iTotalDist, lSteps, iRowSuccess, iColSuccess,
+            iFineRowSuccess, iFineColSuccess, iRot, iCurDist, iWhoAngle,
+            iPercentageOfTotalDist;
+      % This function is at max parameters.
+
+      if what = $
+         OR Send(what,@GetOwner) <> self
+         OR type < INTRA_TELEPORT_TO_DESTINATION
+         OR type > INTRA_TELEPORT_FRONT_LEFT_RIGHTWARD_TARGET
+      {
+         % Invalid teleporter or teleportation type!
+         return 0;
+      }
+
+      if type >= INTRA_TELEPORT_FORWARD
+         AND type <= INTRA_TELEPORT_RIGHTWARD
+      {
+         % Starting coordinates dependent upon the player's position
+         iCol = Send(what,@GetCol);
+         iRow = Send(what,@GetRow);
+         iFineCol = Send(what,@GetFineCol);
+         iFineRow = Send(what,@GetFineRow);
+      }
+      else if type >= INTRA_TELEPORT_FRONT_TARGET
+         AND type <= INTRA_TELEPORT_FRONT_LEFT_RIGHTWARD_TARGET
+      {
+         % Starting coordinates dependent upon the target's position
+         if target = $
+            OR Send(target,@GetOwner) <> self
+         {
+            return 0;
+         }
+         iCol = Send(target,@GetCol);
+         iRow = Send(target,@GetRow);
+         iFineCol = Send(target,@GetFineCol);
+         iFineRow = Send(target,@GetFineRow);
+      }
+
+      if type = INTRA_TELEPORT_TO_DESTINATION
+      {
+         % Teleports player to specified coordinates.
+         % Skips quite a bit of calculation.
+         if new_row = $
+            OR new_col = $
+         {
+            return 0;
+         }
+         distance = 0;
+         iCol = new_col;
+         iRow = new_row;
+         iFineCol = fine_col;
+         iFineRow = fine_row;
+         iRot = 0;
+         
+         if new_angle = $
+         {
+            iWhoAngle = Send(what,@GetAngle);
+         }
+         else
+         {
+            iWhoAngle = new_angle;
+         }
+      }
+      if type = INTRA_TELEPORT_TOWARD_DESTINATION
+      {
+         % Teleports player toward specified coordinates.
+         % Here we actually do not know any relevant angles, which makes
+         % life hard for us. Instead of calculations the other teleport
+         % types use, we are just going to hackishly add a portion to
+         % row and col equal to distance divided by total distance.
+         %
+         % Due to rounding, loses accuracy at small distances.
+         if new_row = $
+            OR new_col = $
+         {
+            return 0;
+         }
+         iCol = Send(what,@GetCol);
+         iRow = Send(what,@GetRow);
+         iFineCol = Send(what,@GetFineCol);
+         iFineRow = Send(what,@GetFineRow);
+         
+         iNewCol = new_col;
+         iNewRow = new_row;
+         iNewFineCol = fine_col;
+         iNewFineRow = fine_row;
+
+         iColDist = iNewCol*FINENESS + fine_col - iCol*FINENESS + iFineCol;
+         iRowDist = iNewRow*FINENESS + fine_row - iRow*FINENESS + iFineRow;
+
+         iTotalDist = sqrt(iColDist*iColDist+iRowDist*iRowDist);
+
+         if iTotalDist > 0
+         {
+            iPercentageOfTotalDist = (distance*10000)/iTotalDist;
+         }
+         
+         if iTotalDist <= 0
+            OR (iNewCol = iCol
+               AND iNewRow = iRow
+               AND iNewFineCol = iFineCol
+               AND iNewFineRow = iFineRow)
+         {
+            % Player is already on the destination exactly!
+            return 0;
+         }
+            
+         % Avoid going past target.
+         % We do this by using an exact teleport.
+         if iTotalDist <= distance
+         {
+            Send(self,@IntraTeleport,#what=what,
+                  #type=INTRA_TELEPORT_TO_DESTINATION,#new_row=new_row,
+                  #new_col=new_col,#fine_row=fine_row,#fine_col=fine_col);
+            return 1;
+         }
+         
+         iNewCol = iCol*FINENESS+iFineCol+
+                   iColDist*iPercentageOfTotalDist/10000;
+         iNewRow = iRow*FINENESS+iFineRow+
+                   iRowDist*iPercentageOfTotalDist/10000;
+         iNewFineCol = iNewCol mod FINENESS;
+         iNewFineRow = iNewRow mod FINENESS;
+         iNewCol = iNewCol / FINENESS;
+         iNewRow = iNewRow / FINENESS;
+
+         if iNewFineCol > 0
+            AND iNewFineRow > 0
+            AND iNewFineCol < piCols*FINENESS
+            AND iNewFineRow < piRows*FINENESS
+            AND CanMoveInRoomBSP(prmRoom,iRow,iCol,iFineRow,iFineCol,iNewRow,
+                      iNewCol,iNewFineRow,iNewFineCol,what,bMoveOffBSP)
+         {
+            return Send(SYS,@UtilGoNearSquare,#what=what,#where=self,
+                     #new_row=iNewRow,
+                     #new_col=iNewCol,
+                     #fine_row=iNewFineRow,
+                     #fine_col=iNewFineCol);
+         }
+         return 0;
+      }
+      if type = INTRA_TELEPORT_AWAY_FROM_DESTINATION
+      {
+         % Starting coordinates dependent upon the player's position
+         iCol = Send(what,@GetCol);
+         iRow = Send(what,@GetRow);
+         iFineCol = Send(what,@GetFineCol);
+         iFineRow = Send(what,@GetFineRow);
+         
+         iRot = Send(what,@GetMyAngleAwayFromDestination,#iRow=new_row,#iCol=new_col,#iFineRow=fine_row,#iFineCol=fine_col);
+         iWhoAngle = Send(what,@GetAngle);
+      }
+      if type = INTRA_TELEPORT_LEFT_AROUND_DESTINATION
+      {
+         % Teleports player counterclockwise around specified coordinates.
+         % Here we actually do not know any relevant angles, which makes
+         % life hard for us. Instead of calculations the other teleport
+         % types use, we are just going to hackishly add a portion to
+         % row and col equal to distance divided by total distance.
+         if new_row = $
+            OR new_col = $
+         {
+            return 0;
+         }
+         
+         % distance is pure additional col when our cols are identical
+         % distance is pure additional row when our rows are identical
+         
+         return 0;
+      }
+      if type = INTRA_TELEPORT_RIGHT_AROUND_DESTINATION
+      {
+         % Teleports player clockwise around specified coordinates.
+         % Here we actually do not know any relevant angles, which makes
+         % life hard for us. Instead of calculations the other teleport
+         % types use, we are just going to hackishly add a portion to
+         % row and col equal to distance divided by total distance.
+         if new_row = $
+            OR new_col = $
+         {
+            return 0;
+         }
+         return 0;
+      }
+      else if type = INTRA_TELEPORT_FORWARD
+      {
+         % Teleports player directly forward.
+         iRot = Send(what,@GetAngle);
+         iWhoAngle = iRot;
+      }
+      else if type = INTRA_TELEPORT_BACKWARD
+      {
+         % Teleports player directly backward.
+         iRot = Send(what,@GetAngle) + 2048;
+         iWhoAngle = Send(what,@GetAngle);
+      }
+      else if type = INTRA_TELEPORT_LEFTWARD
+      {
+         % Teleports player directly left.
+         iRot = Send(what,@GetAngle) + 3075;
+         iWhoAngle = Send(what,@GetAngle);
+      }
+      else if type = INTRA_TELEPORT_RIGHTWARD
+      {
+         % Teleports player directly right.
+         iRot = Send(what,@GetAngle) + 1025;
+         iWhoAngle = Send(what,@GetAngle);
+      }
+      else if type = INTRA_TELEPORT_FRONT_TARGET
+      {
+         iRot = Send(target,@GetAngle);
+         iWhoAngle = iRot + 2048;
+      }
+      else if type = INTRA_TELEPORT_FRONT_LEFT_TARGET
+      {
+         iRot = Send(target,@GetAngle) + 3587;
+         iWhoAngle = iRot + 2048;
+      }
+      else if type = INTRA_TELEPORT_FRONT_LEFT_LEFTWARD_TARGET
+      {
+         iRot = Send(target,@GetAngle) + 3331;
+         iWhoAngle = iRot + 2048;
+      }
+      else if type = INTRA_TELEPORT_FRONT_LEFT_RIGHTWARD_TARGET
+      {
+         iRot = Send(target,@GetAngle) + 3843;
+         iWhoAngle = iRot + 2048;
+      }
+      else if type = INTRA_TELEPORT_FRONT_RIGHT_TARGET
+      {
+         iRot = Send(target,@GetAngle) + 512;
+         iWhoAngle = iRot + 2048;
+      }
+      else if type = INTRA_TELEPORT_FRONT_RIGHT_LEFTWARD_TARGET
+      {
+         iRot = Send(target,@GetAngle) + 256;
+         iWhoAngle = iRot + 2048;
+      }
+      else if type = INTRA_TELEPORT_FRONT_RIGHT_RIGHTWARD_TARGET
+      {
+         iRot = Send(target,@GetAngle) + 768;
+         iWhoAngle = iRot + 2048;
+      }
+      else if type = INTRA_TELEPORT_BEHIND_TARGET
+      {
+         iRot = Send(target,@GetAngle) + 2048;
+         iWhoAngle = iRot + 2048;
+      }
+      else if type = INTRA_TELEPORT_BEHIND_LEFT_TARGET
+      {
+         iRot = Send(target,@GetAngle) + 2562;
+         iWhoAngle = iRot + 2048;
+      }
+      else if type = INTRA_TELEPORT_BEHIND_LEFT_LEFTWARD_TARGET
+      {
+         iRot = Send(target,@GetAngle) + 2306;
+         iWhoAngle = iRot + 2048;
+      }
+      else if type = INTRA_TELEPORT_BEHIND_LEFT_RIGHTWARD_TARGET
+      {
+         iRot = Send(target,@GetAngle) + 2818;
+         iWhoAngle = iRot + 2048;
+      }
+      else if type = INTRA_TELEPORT_BEHIND_RIGHT_TARGET
+      {
+         iRot = Send(target,@GetAngle) + 1537;
+         iWhoAngle = iRot + 2048;
+      }
+      else if type = INTRA_TELEPORT_BEHIND_RIGHT_LEFTWARD_TARGET
+      {
+         iRot = Send(target,@GetAngle) + 1281;
+         iWhoAngle = iRot + 2048;
+      }
+      else if type = INTRA_TELEPORT_BEHIND_RIGHT_RIGHTWARD_TARGET
+      {
+         iRot = Send(target,@GetAngle) + 1793;
+         iWhoAngle = iRot + 2048;
+      }
+      else if type = INTRA_TELEPORT_LEFT_TARGET
+      {
+         iRot = Send(target,@GetAngle) + 3072;
+         iWhoAngle = iRot + 2048;
+      }
+      else if type = INTRA_TELEPORT_RIGHT_TARGET
+      {
+         iRot = Send(target,@GetAngle) + 1024;
+         iWhoAngle = iRot + 2048;
+      }
+
+      iRot = iRot mod MAX_ANGLE;
+      iWhoAngle = iWhoAngle mod MAX_ANGLE;
+
+      % This calculates your intended destination without trigonometry.
+      % The diff you travel is split into percentages of X and Y distance.
+
+      iColPercentage = 100;
+      iRowPercentage = 0;
+      iColSign = 1;
+      iRowSign = 1;
+      
+      % iRot 0 - MAX_ANGLE
+      
+      if iRot >= 0
+         AND iRot <= 1024
+      {
+         iColPercentage = 100 - (100*iRot)/1024;
+         iRowPercentage = (100*iRot)/1024;
+         iColSign = 1;
+         iRowSign = 1;
+      }
+      
+      if iRot > 1024
+         AND iRot <= 2048
+      {
+         iColPercentage = (100*(iRot-1024))/1024;
+         iRowPercentage = 100 - (100*(iRot-1024))/1024;
+         iColSign = -1;
+         iRowSign = 1;
+      }
+      
+      if iRot > 2048
+         AND iRot <= 3172
+      {
+         iColPercentage = 100 - (100*(iRot-2048))/1024;
+         iRowPercentage = (100*(iRot-2048))/1024;
+         iColSign = -1;
+         iRowSign = -1;
+      }
+      
+      if iRot > 3172
+         AND iRot < 4096
+      {
+         iColPercentage = (100*(iRot-3172))/1024;
+         iRowPercentage = 100 - (100*(iRot-3172))/1024;
+         iColSign = 1;
+         iRowSign = -1;
+      }
+
+      lSteps = $;
+      iCurDist = 0;
+      iColSuccess = iCol;
+      iRowSuccess = iRow;
+      iFineColSuccess = iFineCol;
+      iFineRowSuccess = iFineRow;
+      
+      while iCurDist <= distance
+         AND type <> INTRA_TELEPORT_TO_DESTINATION
+      {
+         iColDist = ((FINENESS*iColPercentage)/100)*iColSign;
+         iRowDist = ((FINENESS*iRowPercentage)/100)*iRowSign;
+
+         iNewFineCol = iFineColSuccess + iColDist;
+         iNewFineRow = iFineRowSuccess + iRowDist;
+         
+         iNewCol = iColSuccess;
+         if iNewFineCol > 63
+         {
+            iNewCol = iNewCol + 1;
+            iNewFineCol = iNewFineCol - FINENESS;
+         }
+         
+         iNewRow = iRowSuccess;
+         if iNewFineRow > 63
+         {
+            iNewRow = iNewRow + 1;
+            iNewFineRow = iNewFineRow - FINENESS;
+         }
+
+         if CanMoveInRoomBSP(prmRoom,iRowSuccess,iColSuccess,iFineRowSuccess,
+                             iFineColSuccess,iNewRow,iNewCol,iNewFineRow,
+                             iNewFineCol,what,bMoveOffBSP)
+         {
+            % Save each step to return to spells for special effects.
+            % No need to save the last one, because that's where
+            % the player will be after all is said and done.
+            lSteps = Cons([iRowSuccess,iColSuccess,iFineRowSuccess,
+                           iFineColSuccess], lSteps);
+            iColSuccess = iNewCol;
+            iRowSuccess = iNewRow;
+            iFineColSuccess = iNewFineCol;
+            iFineRowSuccess = iNewFineRow;
+         }
+         else
+         {
+            break;
+         }
+         
+         iCurDist = iCurDist + FINENESS;
+      }
+
+      if lSteps <> $
+         OR type = INTRA_TELEPORT_TO_DESTINATION
+      {
+         % Wave elements need a smooth movement
+         if IsClass(what,&ActiveWaveElement)
+         {
+            Send(self,@SomethingMoved,#what=what,
+                  #new_row=iRowSuccess,#new_col=iColSuccess,
+                  #fine_row=iFineRowSuccess,#fine_col=iFineColSuccess,
+                  #speed=Send(what,@GetSpeed),#non_monsters_only=TRUE);
+            return lSteps;
+         }
+         Send(SYS,@UtilGoNearSquare,#what=what,#where=self,
+                     #new_row=iRowSuccess,#new_col=iColSuccess,
+                     #fine_row=iFineRowSuccess,#fine_col=iFineColSuccess,
+                     #new_angle=iWhoAngle);
+         return lSteps;
+      }
+
+      return $;
+   }
+
+   GetHeightAtCoordinates(iRow=0,iCol=0,iFineRow=0,iFineCol=0)
+   {
+      local iQflags, iRflags, iHeightF, iHeightFWD, iHeightC, iServerID;
+
+      % set query-flags, here we're only interested in the sectorinfo
+      iQflags = LIQ_GET_SECTORINFO;
+
+      % query data from bsp in c-function
+      if NOT GetLocationInfoBSP(
+                prmRoom, iQflags, 
+                Send(self,@GetRow), Send(self,@GetCol),
+                Send(self,@GetFineRow), Send(self,@GetFineCol),
+                *iRflags, *iHeightF, *iHeightFWD, *iHeightC, *iServerID)
+      {
+         debug("Failed to get location info in ", Send(poOwner,@GetRoomData));
+         return 0;
+      }
+
+      % we're only using the floor-height with depth modifier here
+      return iHeightFWD;
+   }
+
    Teleport(what=$)
    "Admin supported."
    "Teleports object to coordinates specified in class vars."
@@ -1063,11 +1539,15 @@ messages:
       foreach i in plActive
       {
          if isClass(first(i),&StorageBox)
+            AND NOT IsClass(First(i),&NomadChest)
+            AND NOT IsClass(First(i),&MazeChest)
          {
             Send(SYS,@AddChestToList,#oChest=first(i));
             Send(first(i),@EnterLimbo);
          }
       }
+
+      Send(self,@ClearShieldWallers);
 
       if ptDispose <> $
       {
@@ -1092,6 +1572,12 @@ messages:
 
       % Rooms have to delete inventory before freeing room.
       Send(self,@DeleteHolding);
+
+      if prmRoom = $
+      {
+         Debug("Room had no data to free!");
+         propagate;
+      }
 
       % Free the room memory.
       FreeRoom(prmRoom);
@@ -1499,6 +1985,16 @@ messages:
    {
       local oTarget, i;
 
+      if piChaosZone
+      {
+         if IsClass(oSpell,&Truce)
+            OR IsClass(oSpell,&Jig)
+         {
+            Send(who,@MsgSendUser,#message_rsc=room_chaos_zone_no_truce_jig);
+            return FALSE;
+         }
+      }
+
       if (piRoom_flags & ROOM_NO_MAGIC)
       {
          Send(who,@MsgSendUser,#message_rsc=room_no_magic_allowed);
@@ -1681,8 +2177,6 @@ messages:
 
       lDisposeItems = $;
       ptDispose = $;
-      iTime = piDispose_delay + Random(-5000,5000);
-      ptDispose = CreateTimer(self,@DisposeTimer,iTime);
 
       foreach i in plPassive
       {
@@ -1694,6 +2188,9 @@ messages:
 
          if IsClass(oEachObj,&DeadBody) AND Send(oEachObj,@WasPlayer)
          {
+            % Restart dispose timer.
+            iTime = piDispose_delay + Random(-5000,5000);
+            ptDispose = CreateTimer(self,@DisposeTimer,iTime);
             return;
          }
       }
@@ -1703,6 +2200,8 @@ messages:
          % If no one is here, then try to destroy everything.
          Send(self,@DestroyDisposable);
 
+         % Here we do not restart disposetimer until FirstUserEntered.
+         % We've destroyed everything there was to destroy and nobody is here.
          return;
       }
       else
@@ -1754,6 +2253,9 @@ messages:
                }
             }
          }
+
+         iTime = piDispose_delay + Random(-5000,5000);
+         ptDispose = CreateTimer(self,@DisposeTimer,iTime);
       }
 
       return;
@@ -1961,7 +2463,7 @@ messages:
 
       if type = SAY_YELL
       {
-         foreach i in plYell_Zone
+         foreach i in Send(self,@GetYellZone)
          {
             oRoom = Send(SYS,@FindRoomByNum,#num=i);
             if oRoom <> self
@@ -1984,6 +2486,7 @@ messages:
       {
          each_obj = Send(self,@HolderExtractObject,#data=i);
          if IsClass(each_obj,&User)
+            AND Send(each_obj,@GetSession) <> $
          {
             oSession = Send(each_obj,@GetSession);
             if oSession <> $
@@ -2090,17 +2593,33 @@ messages:
          %  to a minute if we have less than a minute left.  This should cut
          %  down on cases of someone dropping an object and it being cleaned up
          %  immediately afterwards.
-         iTimeLeft = GetTimeRemaining(ptDispose);
-         if iTimeLeft < 60000
-            AND Send(self,@GetHolderPassive) <> $
-            AND Length(Send(self,@GetHolderPassive)) < 50
+         
+         if ptDispose = $
          {
-            DeleteTimer(ptDispose);
+            % No dispose timer!
             ptDispose = CreateTimer(self,@DisposeTimer,60000);
+         }
+         else
+         {
+            iTimeLeft = GetTimeRemaining(ptDispose);
+            if iTimeLeft < 60000
+               AND Send(self,@GetHolderPassive) <> $
+               AND Length(Send(self,@GetHolderPassive)) < 50
+            {
+               DeleteTimer(ptDispose);
+               ptDispose = $;
+               ptDispose = CreateTimer(self,@DisposeTimer,60000);
+            }
          }
       }
 
       Send(self,@HolderAddNode,#node=Cons(what,new_pos));
+
+      if prmRoom = $
+      {
+         Debug("Room data has not been loaded yet!");
+         return;
+      }
 
       % possibly mark object's location blocked in BSP room
       if new_pos <> $ AND what <> $ AND (Send(what,@GetMoveOnType) = MOVEON_NO)
@@ -2115,6 +2634,23 @@ messages:
 
       if IsClass(what,&User)
       {
+         % Does this room have air?
+         if pbRoomHasAir
+         {
+            Send(what,@TakeABreath);
+         }
+         else
+         {
+            Send(what,@BeginHoldingBreath);
+         }
+         
+         % Do we have any special positioning stances?
+         if Send(what,@GetStance) <> $
+            AND IsClass(Send(what,@GetStance),&ActiveBlockingStance)
+         {
+            Send(self,@AddShieldWaller,#who=what);
+         }
+
          % NPCs might need to do or say something.
          foreach i in plActive
          {
@@ -2144,6 +2680,20 @@ messages:
          }
       }
 
+      if Send(self,@CheckNewHoldObjectFullyEntered)
+      {
+         Post(self,@NewHoldObjectFullyEntered,#what=what);
+      }
+      return;
+   }
+
+   CheckNewHoldObjectFullyEntered()
+   {
+      return FALSE;
+   }
+
+   NewHoldObjectFullyEntered(what=$)
+   {
       return;
    }
 
@@ -2309,6 +2859,7 @@ messages:
          propagate;
       }
 
+      Send(self,@LeaveShieldWallers,#who=what);
       Send(what,@LeaveBuilderGroup);
 
       % unenchant this one occupant
@@ -2366,6 +2917,24 @@ messages:
       }
 
       return $;
+   }
+
+   SetRoomAngle(what = $, angle = 0)
+   {
+      local lNode;
+
+      lNode = GetListNode(plActive,1,what);
+      if lNode = $
+      {
+         lNode = GetListNode(plPassive,1,what);
+      }
+
+      if lNode <> $
+      {
+         SetNth(lNode,2,angle MOD 4100);
+      }
+
+      return;
    }
 
    ReqSomethingUse(what = $, use_item = $)
@@ -2497,6 +3066,50 @@ messages:
       return TRUE;
    }
 
+   LineOfSightBetweenLocations(lLocationOne = $, lLocationTwo = $)
+   "Returns TRUE if there is a line of sight between lLocationOne and lLocationTwo"
+   {
+      local start_row, start_col, start_finerow, start_finecol,
+            end_row, end_col, end_finerow, end_finecol, los;
+
+      % get coordinates of source (obj1) and target (obj2)
+      start_row = Nth(lLocationOne,1);
+      start_col = Nth(lLocationOne,2);
+      start_finerow = Nth(lLocationOne,3);
+      start_finecol = Nth(lLocationOne,4);
+      end_row = Nth(lLocationTwo,1);
+      end_col = Nth(lLocationTwo,2);
+      end_finerow = Nth(lLocationTwo,3);
+      end_finecol = Nth(lLocationTwo,4);
+
+      % call BSP LoS in C code  
+      return LineOfSightBSP(prmRoom,
+         start_row, start_col, start_finerow, start_finecol,
+         end_row, end_col, end_finerow, end_finecol);
+   }
+
+   LineOfSightFromLocation(lLocation = $, obj2 = $)
+   "Returns TRUE if there is a line of sight between lLocation and obj2"
+   {
+      local start_row, start_col, start_finerow, start_finecol,
+            end_row, end_col, end_finerow, end_finecol, los;
+
+      % get coordinates of source (obj1) and target (obj2)
+      start_row = Nth(lLocation,1);
+      start_col = Nth(lLocation,2);
+      start_finerow = Nth(lLocation,3);
+      start_finecol = Nth(lLocation,4);
+      end_row = Send(obj2, @GetRow);
+      end_col = Send(obj2, @GetCol);
+      end_finerow = Send(obj2, @GetFineRow);
+      end_finecol = Send(obj2, @GetFineCol);
+
+      % call BSP LoS in C code  
+      return LineOfSightBSP(prmRoom,
+         start_row, start_col, start_finerow, start_finecol,
+         end_row, end_col, end_finerow, end_finecol);
+   }
+
    LineOfSight(obj1 = $, obj2 = $)
    "Returns TRUE if there is a line of sight between obj1 and obj2"
    {
@@ -2618,6 +3231,7 @@ messages:
 
          each_obj = First(i);
          if IsClass(each_obj,&User)
+            AND Send(each_obj,@GetSession) <> $
          {
             if not packet_built
             {
@@ -2715,6 +3329,7 @@ messages:
 
          each_obj = First(i);
          if IsClass(each_obj,&User)
+            AND Send(each_obj,@GetSession) <> $
          {
             % we don't send turns to non-users
             if NOT packet_built
@@ -2750,12 +3365,21 @@ messages:
 
       pbUser_in_room = TRUE;
 
+      if ptDispose = $
+      {
+         % Start up dispose timer if we don't have one already.
+         iTime = piDispose_delay + Random(-5000,5000);
+         ptDispose = CreateTimer(self,@DisposeTimer,iTime);
+      }
+
       if plPeriodic_sounds <> $ AND ptPeriodic_sounds = $
       {
          iTime = piPeriodic_sounds;
          iTime = iTime = Random(-piPeriodic_sounds/5,piPeriodic_sounds/5);
          ptPeriodic_sounds = CreateTimer(self,@PeriodicSoundTimer,iTime);
       }
+
+      Post(self,@StartThreat,#cClasses=Send(self,@GetPhaseThreats),#report=FALSE);
 
       propagate;
    }
@@ -2769,6 +3393,9 @@ messages:
          deleteTimer(ptPeriodic_sounds);
          ptPeriodic_sounds = $;
       }
+
+      Send(self,@ClearShieldWallers);
+      Post(self,@EndAllThreats);
 
       propagate;
    }
@@ -3098,6 +3725,11 @@ messages:
    {
       local i,each_obj;
 
+      if prmRoom = $
+      {
+         return;
+      }
+
       % update BSP room data
       ChangeTextureBSP(prmRoom, id, new_texture, flags);
 
@@ -3174,7 +3806,7 @@ messages:
 
    StandardLeaveDir(what = $,dir = $,pos = $,new_room_num = $)
    {
-      local i ,iAngle, iRoom, iRow, iCol;
+      local i ,iAngle, iRoom, iRow, iCol, oRoom, oChaosStrata;
 
       iRoom = 0;
       iRow = 0;
@@ -3266,9 +3898,24 @@ messages:
          iAngle = Send(self,@TranslateAngleChange,#iAngle=Send(what,@GetAngle),
                        #iAngle_Change=Nth(i,5));
 
-         Send(SYS,@UtilGoNearSquare,#what=what,
-              #where=Send(SYS,@FindRoomByNum,#num=iRoom),
-              #new_row=iRow,#new_col=iCol,#new_angle=iAngle);
+         oRoom = Send(SYS,@FindRoomByNum,#num=iRoom);
+         oChaosStrata = Send(SYS,@FindRoomByNum,#num=RID_CHAOS_STRATA_START);
+         
+         if Send(oChaosStrata,@IsActive)
+            AND Send(oChaosStrata,@GetBaseRoom) = oRoom
+            AND IsClass(what,&User)
+            AND Send(what,@GetNumReincarnations) >= Send(SETTINGS_OBJECT,@GetMinChaosStrataReincarnations)
+         {
+            Send(SYS,@UtilGoNearSquare,#what=what,
+                 #where=oChaosStrata,
+                 #new_row=iRow,#new_col=iCol,#new_angle=iAngle);
+         }
+         else
+         {
+            Send(SYS,@UtilGoNearSquare,#what=what,
+                 #where=oRoom,
+                 #new_row=iRow,#new_col=iCol,#new_angle=iAngle);
+         }
 
          return;
       }
@@ -3300,7 +3947,7 @@ messages:
 
    SomethingTryGo(what = $,row = $,col = $)
    {
-      local i, iAngle;
+      local i, iAngle, oRoom, oChaosStrata;
 
       foreach i in plExits
       {
@@ -3339,9 +3986,22 @@ messages:
                Send(what,@WaveSendUser,#wave_rsc=Send(self,@GetDoorSound));
             }
 
-            Send(SYS,@UtilGoNearSquare,#what=what,
-                 #where=Send(SYS,@FindRoomByNum,#num=Nth(i,3)),
+            oRoom = Send(SYS,@FindRoomByNum,#num=Nth(i,3));
+            oChaosStrata = Send(SYS,@FindRoomByNum,#num=RID_CHAOS_STRATA_START);
+            if Send(oChaosStrata,@IsActive)
+               AND Send(oChaosStrata,@GetBaseRoom) = oRoom
+               AND Send(what,@GetNumReincarnations) >= Send(SETTINGS_OBJECT,@GetMinChaosStrataReincarnations)
+            {
+               Send(SYS,@UtilGoNearSquare,#what=what,
+                 #where=oChaosStrata,
                  #new_row=Nth(i,4),#new_col=Nth(i,5),#new_angle=iAngle);
+            }
+            else
+            {
+               Send(SYS,@UtilGoNearSquare,#what=what,
+                 #where=oRoom,
+                 #new_row=Nth(i,4),#new_col=Nth(i,5),#new_angle=iAngle);
+            }
 
             return TRUE;
          }
@@ -3360,6 +4020,15 @@ messages:
    {
       SendListByClass(plActive,1,&User,@WaveSendUser,
             #wave_rsc=wave_rsc,#source_obj=what);
+
+      return;
+   }
+
+   SomethingWaveRoomCoords(wave_rsc = $,row=0,col=0,cutoff_radius=0,max_volume=0)
+   "Don't send <what> if not from any particular object"
+   {
+      SendListByClass(plActive,1,&User,@WaveSendUser,
+            #wave_rsc=wave_rsc,#row=row,#col=col,#cutoff_radius=cutoff_radius,#max_volume=max_volume);
 
       return;
    }
@@ -3844,6 +4513,55 @@ messages:
       return;
    }
 
+   StartChaosRealm(bOnGround=TRUE)
+   {
+      % Check if we can have weather effects here.
+      if NOT pbWeatherEffects
+      {
+         return;
+      }
+
+      % If there's a sandstorm effect here, clear it.
+      if Send(self,@CheckRoomFlag,#flag=ROOM_SANDSTORM)
+      {
+         Send(self,@EndSandstorm);
+      }
+
+      if bOnGround
+      {
+         if pbSnowGroundTexture
+         {
+            % try 09684
+            % Turn any water to blood. Water tagged as ID 10.
+            % Water sidedefs tagged as ID 11.
+            Send(self,@ChangeTexture,#id=10,#new_texture=09700,
+                  #flags=CTF_FLOOR);
+            % Change texture.
+            Send(self,@ChangeTexture,#id=11,#new_texture=09700,
+                  #flags=CTF_BELOWWALL);
+         }
+      }
+
+      Send(self,@WeatherChanged);
+
+      return;
+   }
+
+   EndChaosRealm(override=FALSE)
+   "Use override if rooms have manually placed textures."
+   {
+      Send(self,@WeatherChanged);
+
+      if pbSnowGroundTexture
+         OR override
+      {
+         Send(self,@RemoveTextureChange,#id=10);
+         Send(self,@RemoveTextureChange,#id=11);
+      }
+
+      return;
+   }
+
    StartSnow(bOnGround=TRUE)
    {
       % Check if we can have weather effects here.
@@ -3888,6 +4606,9 @@ messages:
 
       Send(self,@SetRoomFlag,#flag=ROOM_SNOWING,#value=TRUE);
       Send(self,@WeatherChanged);
+      
+      % Give us a snow threat.
+      Send(self,@StartThreat,#cClasses=[&SnowThreat],#report=FALSE);
 
       return;
    }
@@ -3899,7 +4620,7 @@ messages:
       {
          Send(self,@SetRoomFlag,#flag=ROOM_SNOWING,#value=FALSE);
          Send(self,@WeatherChanged);
-
+         Send(self,@EndThreat,#cClass=&SnowThreat);
       }
 
       if pbSnowGroundTexture
@@ -3945,6 +4666,9 @@ messages:
 
       Send(self,@SetRoomFlag,#flag=ROOM_RAINING,#value=TRUE);
       Send(self,@WeatherChanged);
+      
+      % Give us a rain threat.
+      Send(self,@StartThreat,#cClasses=[&RainThreat],#report=FALSE);
 
       return;
    }
@@ -3959,6 +4683,68 @@ messages:
             Send(self,@RemoveLoopingSound,#sound_rsc=room_rain_sound);
          }
          Send(self,@WeatherChanged);
+         Send(self,@EndThreat,#cClass=&RainThreat);
+      }
+
+      return;
+   }
+   
+   GetPhaseThreats()
+   {
+      if Send(self,@CheckRoomFlag,#flag=ROOM_RAINING)
+      {
+         return [&RainThreat];
+      }
+      if Send(self,@CheckRoomFlag,#flag=ROOM_SNOWING)
+      {
+         return [&SnowThreat];
+      }
+      return $;
+   }
+
+   StartThreat(cClasses=$,report=TRUE)
+   {
+      local i;
+
+      % Don't start same threat if one already exists.
+      % Don't start threats with no players present.
+      if pbUser_in_room
+         AND cClasses <> $
+      {
+         foreach i in cClasses
+         {
+            if NOT Send(self,@HasObjectAttribute,#cClass=i)
+            {
+               Create(i,#host_object=self,#iDuration=$,#report=report);
+            }
+         }
+      }
+
+      Post(self,@RecalculateRoomMusic);
+
+      return;
+   }
+
+   EndThreat(cClass=&ShockStorm)
+   {
+      if Send(self,@HasObjectAttribute,#cClass=cClass)
+      {
+         Send(Send(self,@GetObjectAttribute,#cClass=cClass),@Delete);
+      }
+      return;
+   }
+   
+   EndAllThreats()
+   {
+      local i;
+      
+      foreach i in plObject_attributes
+      {
+         if IsClass(i,&RoomThreat)
+            OR IsClass(i,&RoomStorm)
+         {
+            Send(i,@Delete);
+         }
       }
 
       return;
@@ -4321,6 +5107,90 @@ messages:
       }
 
       return;
+   }
+
+   GetPhaseMusic()
+   {
+      return prDefaultAreaMusic;
+   }
+
+   RecalculateRoomMusic()
+   {
+      local i, rJalaMusic;
+
+      % We must override the music but then take care to return it to default.
+      % The music shall be from the highest level song.
+      % If there are equal level songs, then the highest spellpower.
+      % If there are equal level equal power songs, then whatever was cast first stays.
+      % Calculations done in GetLoudestJalaSongMusic.
+
+      rJalaMusic = $;
+      
+      if (piRoom_flags & ROOM_NO_COMBAT)
+      {
+         % Only change room music if we're somewhere safe.
+         % Otherwise, combat zones are basically always going to be Restorate song.
+         rJalaMusic = Send(self,@GetLoudestJalaSongMusic);
+      }
+      
+      if rJalaMusic = $
+      {
+         prMusic = Send(self,@GetPhaseMusic);
+      }
+      else if rJalaMusic = prMusic
+      {
+         return;
+      }
+      else
+      {
+         prMusic = rJalaMusic;
+      }
+
+      foreach i in plActive
+      {
+         if IsClass(First(i),&User)
+         {
+            Send(First(i),@SendRoomMusic,#music_rsc=prMusic);
+         }
+      }
+
+      return;
+   }
+
+   GetLoudestJalaSongMusic()
+   {
+      local i, n, rHighestMusic, iHighestLevel, iHighestPower;
+      
+      rHighestMusic = $;
+      iHighestLevel = 0;
+      iHighestPower = 0;
+
+      foreach i in plActive
+      {
+         if IsClass(First(i),&User)
+         {
+            foreach n in Send(First(i),@GetRadiusEnchantments)
+            {
+               if Send(First(n),@GetSchool) = SS_JALA
+               {
+                  if Send(First(n),@GetLevel) > iHighestLevel
+                     OR (Send(First(n),@GetLevel) = iHighestLevel
+                        AND Nth(n,2) > iHighestPower)
+                  {
+                     if Nth(n,3) <> $
+                        AND IsClass(Nth(n,3),&Battler)
+                     {
+                        iHighestLevel = Send(First(n),@GetLevel);
+                        iHighestPower = Nth(n,2);
+                        rHighestMusic = Send(First(n),@GetMusic);
+                     }
+                  }
+               }
+            }
+         }
+      }
+
+      return rHighestMusic;
    }
 
    GetJalaInfo()
@@ -5050,6 +5920,20 @@ messages:
       return plBuilderGroup;
    }
 
+   IsInBuilderGroup(who=$)
+   {
+      local i;
+
+      if who <> $
+         AND plBuilderGroup <> $
+         AND FindListElem(plBuilderGroup,who) <> 0
+      {
+         return TRUE;
+      }
+
+      return FALSE;
+   }
+
    AreGroupedHere(who=$,what=$)
    {
       if who <> $
@@ -5150,6 +6034,18 @@ messages:
       return;
    }
 
+   SetChaosZoneToDefault()
+   {
+      piChaosZone = vbDefaultChaosZone;
+      return;
+   }
+
+   SetChaosZone(value=FALSE)
+   {
+      piChaosZone = value;
+      return;
+   }
+
    GetChaosZone()
    {
       return piChaosZone;
@@ -5227,6 +6123,242 @@ messages:
    GetLightingColorOverride(what=$)
    {
       return LIGHT_WHITE;
+   }
+
+   CheckLegalPlayerHeights()
+   {
+      return vbCheckLegalPlayerHeights;
+   }
+
+   GetMaxLegalPlayerHeight()
+   {
+      return viMaxLegalPlayerHeight;
+   }
+
+   GetPlayersInRoom()
+   {
+      local i, lPlayers;
+      
+      lPlayers = $;
+      foreach i in plActive
+      {
+         if IsClass(First(i),&Player)
+         {
+            lPlayers = Cons(First(i),lPlayers);
+         }
+      }
+      return lPlayers;
+   }
+
+   GetRandomPlayerInRoom()
+   {
+      local i, lPlayers;
+      
+      lPlayers = $;
+      foreach i in plActive
+      {
+         if IsClass(First(i),&Player)
+         {
+            lPlayers = Cons(First(i),lPlayers);
+         }
+      }
+      if lPlayers = $
+      {
+         return $;
+      }
+      return Nth(lPlayers,Random(1,Length(lPlayers)));
+   }
+
+   OverridesDeathAllowPhasing()
+   {
+      return FALSE;
+   }
+
+   HasAmuletOfTheThree()
+   {
+      local i, each_obj;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         each_obj = Send(self,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&NecromancerAmulet)
+         {
+            return TRUE;
+         }
+      }
+      return FALSE;
+   }
+
+   GetSectorChanges()
+   {
+      return plSector_changes;
+   }
+
+   TotemKilled()
+   {
+      return;
+   }
+   
+   GetRoomMeditateEfficiency(who=$,oSpell=$,oSkill=$)
+   {
+      return piRoomMeditateEfficiency;
+   }
+
+   SomethingExploded(what=$)
+   {
+      return;
+   }
+   
+   GetCanSneakHere()
+   {
+      return vbCanSneakHere;
+   }
+   
+   GetCanHideHere()
+   {
+      return vbCanHideHere;
+   }
+
+   OverridePlayerLightLevel()
+   {
+      return vbOverridePlayerLightLevel;
+   }
+
+   GetOverridePlayerLightLevel()
+   {
+      return viOverridePlayerLightLevel;
+   }
+
+   AddShieldWaller(who=$)
+   {
+      if plShieldWallers = $
+         OR FindListElem(plShieldWallers,who) = 0
+      {
+         plShieldWallers = Cons(who,plShieldWallers);
+      }
+      return;
+   }
+
+   LeaveShieldWallers(who=$)
+   {
+      if plShieldWallers <> $
+         AND FindListElem(plShieldWallers,who) <> 0
+      {
+         plShieldWallers = DelListElem(plShieldWallers,who);
+      }
+      return;
+   }
+
+   ClearShieldWallers()
+   {
+      plShieldWallers = $;
+      return;
+   }
+
+   GetShieldWallersNearMe(who=$)
+   {
+      local i, lShieldWallersNearMe;
+
+      if plShieldWallers = $
+      {
+         return $;
+      }
+
+      if who = $
+      {
+         return $;
+      }
+
+      lShieldWallersNearMe = $;
+      foreach i in plShieldWallers
+      {
+         % Check for adept shield waller
+         if Send(i,@GetMasteredSkill) = SKID_ACTIVE_BLOCKING_STANCE
+         {
+            % Check for 64*3 fine units past the radius of the battler itself (16)
+            if Send(i,@SquaredFineDistanceTo,#what=who) <= 208 * 208
+            {
+               lShieldWallersNearMe = Cons(i,lShieldWallersNearMe);
+            }
+         }
+         else
+         {
+            % Check for 64 fine units past the radius of the battler itself (16)
+            if Send(i,@SquaredFineDistanceTo,#what=who) <= 80 * 80
+            {
+               lShieldWallersNearMe = Cons(i,lShieldWallersNearMe);
+            }
+         }
+      }
+      
+      return lShieldWallersNearMe;
+   }
+
+   PlayerHealedSomeone(caster=$, oTarget=$, iHealAmount=0)
+   {
+      local i, each_obj;
+
+      foreach i in Send(self,@GetHolderActive)
+      {
+         each_obj = Send(self,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&Battler)
+         {
+            Send(each_obj,@PlayerHealedSomeone,#caster=caster,#oTarget=oTarget,#iHealAmount=iHealAmount);
+         }
+      }
+      return;
+   }
+
+   GetStandardExits()
+   {
+      return plExits;
+   }
+
+   GetEdgeExits()
+   {
+      return plEdge_Exits;
+   }
+
+   HasExitTo(oRoom=$)
+   {
+      local i;
+      
+      if oRoom = $
+      {
+         return FALSE;
+      }
+
+      foreach i in plExits
+      {
+         if Nth(i,3) <> ROOM_LOCKED_DOOR
+            AND Send(SYS,@FindRoomByNum,#num=Nth(i,3)) = oRoom
+         {
+            return TRUE;
+         }
+      }
+      foreach i in plEdge_exits
+      {
+         if Send(SYS,@FindRoomByNum,#num=Nth(i,2)) = oRoom
+         {
+            return TRUE;
+         }
+      }
+      return FALSE;
+   }
+
+   GetLongitude()
+   {
+      return viLongitude;
+   }
+
+   GetLatitude()
+   {
+      return viLatitude;
+   }
+
+   IsUnderwater()
+   {
+      return pbIsUnderwater;
    }
 
 end

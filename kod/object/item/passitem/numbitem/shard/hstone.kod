@@ -1,0 +1,224 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+HeartStone is Shard
+
+constants:
+
+   include blakston.khd
+
+   RESPAWN_MIN = 30000     % Minimum respawn time in milliseconds, 30 seconds
+   RESPAWN_MAX = 300000    % Maximum respawn time in milliseconds, 5 minutes
+
+resources:
+
+   include hstone.lkod
+
+   HeartStone_icon_rsc = xeogem.bgf
+   HeartStone_name_rsc = "heartstone shard"
+   HeartStone_desc_rsc = \
+      "This is called a 'heartstone'.  It is a huge gem taken from the "
+      "body of a fallen Xeochicatl."
+
+   HeartStone_applied_rsc = \
+      "The %s momentarily glows with the same color as the heartstone."
+
+classvars:
+
+   vrName = HeartStone_name_rsc
+   vrDesc = HeartStone_desc_rsc
+   vrIcon = HeartStone_icon_rsc
+
+   viValue_average = 100
+   viWeight = 20
+   viBulk = 10
+
+   viColor = 0
+
+   vrApplied = HeartStone_applied_rsc
+
+properties:
+
+   ptRespawn = $           % Time until dropped stone respawns.
+   
+   piForgeValue = 10
+
+messages:
+
+   Constructor()
+   {
+      piItem_flags = Send(SYS,@EncodeTwoColorXLAT,#color1=viColor);
+
+      propagate;
+   }
+
+   NewOwner(what = $)
+   {
+      if (IsClass(what,&Room))
+         AND (NOT Send(what,@CheckRoomFlag,#flag=ROOM_NO_COMBAT))
+      {
+         if Send(Send(SYS,@GetNodeAttack),@GetRespawn)
+         {
+            ptRespawn = CreateTimer(self,@RespawnXeoTimer,
+                                 Random(RESPAWN_MIN,RESPAWN_MAX));
+         }
+      }
+      else
+      {
+         if ptRespawn <> $
+         {
+            DeleteTimer(ptRespawn);
+         }
+
+         ptRespawn = $;
+      }
+
+      propagate;
+   }
+
+   RespawnXeoTimer()
+   {
+      ptRespawn = $;
+      Send(self,@RespawnXeo);
+
+      return;
+   }
+
+   RespawnXeo()
+   {
+      local oXeochicatl, iRow, iCol;
+
+      if ptRespawn <> $
+      {
+         DeleteTimer(ptRespawn);
+
+         ptRespawn = $;
+      }
+
+      oXeochicatl = Send(self,@CreateXeo);
+      iRow = Send(self,@GetRow);
+      iCol = Send(self,@GetCol);
+
+      if NOT IsClass(poOwner,&Room)
+      {
+         Debug("HStone::RespawnXeo called while not in a room!");
+
+         return;
+      }
+
+      if Send(poOwner,@ReqNewHold,#what=oXeochicatl,#new_row=iRow,#new_col=iCol)
+      {
+         Send(poOwner,@NewHold,#what=oXeochicatl,#new_row=iRow,#new_col=iCol);
+         Post(self,@Delete);
+      }
+      else
+      {
+         ptRespawn = CreateTimer(self,@RespawnXeoTimer,
+                              Random(RESPAWN_MIN,RESPAWN_MAX));
+      }
+
+      return;
+   }
+
+   IsInAttack()
+   {
+      return (Send(poOwner,@FindHolding,#class=&ManaNode)
+                  = Send(Send(SYS,@GetNodeAttack),@GetAttackedNode));
+   }
+
+   Delete()
+   {
+      if ptRespawn <> $
+      {
+         DeleteTimer(ptRespawn);
+      }
+
+      ptRespawn = $;
+
+      propagate;
+   }
+
+   CanBeStoredInVault()
+   {
+      return TRUE;
+   }
+
+   DestroyDisposable()
+   {
+      return FALSE;
+   }
+
+   ReqNewApply(what = $,apply_on = $)
+   {
+      local i;
+      
+      if what = $
+         OR NOT IsClass(what,&Player)
+      {
+         return;
+      }
+
+      foreach i in Send(what,@GetPlayerUsing)
+      {
+         if i = apply_on
+         {
+            Send(what,@MsgSendUser,#message_rsc=vrMust_unequip);
+            return FALSE;
+         }
+      }
+
+      if apply_on <> $
+         AND (IsClass(apply_on,&Weapon)
+            OR IsClass(apply_on,&DefenseModifier)
+            OR IsClass(apply_on,&Ring)
+            OR IsClass(apply_on,&Gauntlet)
+            OR IsClass(apply_on,&NecromancerAmulet)
+            OR IsClass(apply_on,&Necklace)
+            OR IsClass(apply_on,&Instrument)
+            OR IsClass(apply_on,&JewelofFroz)
+            OR IsClass(apply_on,&AdventurerCrest)
+            OR IsClass(apply_on,&ScryingCrystal))
+            AND (Send(apply_on,@GetMagicModsNumber) >= 0
+            AND Send(apply_on,@GetMagicModsNumber) <= 2)
+      {
+         % This shard only applies to non-enchanted gear and weakly magical gear
+         return TRUE;
+      }
+
+      return FALSE;
+   }
+
+   NewApplied(what = $,apply_on = $)
+   {
+      Send(apply_on,@ClearMagicMods);
+      if Send(self,@GenerateMod,#oItem=apply_on,#who=what) = 1
+      {
+         Send(self,@SubtractNumber,#number=1);
+      }
+      if Random(1,2) = 1
+      {
+         Send(self,@GenerateMod,#oItem=apply_on,#who=what);
+      }
+
+      propagate;
+   }
+
+   GetForgeValue()
+   {
+      return piForgeValue;
+   }
+   
+   GetForgeType()
+   {
+      return FORGE_FIRE;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

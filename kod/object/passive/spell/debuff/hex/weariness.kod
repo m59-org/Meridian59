@@ -1,0 +1,96 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Weariness is Hex
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   weariness_cast_rsc = "%s%s suddenly seems weary."
+   weariness_already_enchanted = \
+      "That poor soul is already afflicted by weariness."
+   weariness_start = "Your spells feel heavier somehow."
+   weariness_stop  = "The strange weariness passes."
+   has_been_hexed_weariness = \
+      "%s%s suddenly seems weary!"
+
+   weariness_name_rsc = "weariness"
+   weariness_icon_rsc = ihexsever.bgf
+   weariness_desc_rsc = \
+      "Bonds a spiritual burden to the victim's soul that makes every casting "
+      "require more mana. "
+      "This hex requires one cold fragment to cast."
+
+   weariness_hex_effect_report = \
+      "At that effectiveness, your weariness hex will cause the victim to suffer ~r~B%i\% ~nincreased mana costs."
+
+   weariness_sound = qenfeebl.wav
+
+classvars:
+
+   vrName = weariness_name_rsc
+   vrIcon = weariness_icon_rsc
+   vrDesc = weariness_desc_rsc
+
+   vrHexEffectReport = weariness_hex_effect_report
+
+   vrAlreadyEnchanted = weariness_already_enchanted
+   vrEnchantment_On = weariness_start
+   vrEnchantment_Off = weariness_stop
+   vrSuccess = weariness_cast_rsc
+   vrInformRoom = has_been_hexed_weariness
+
+   viSpell_num = SID_HEX_WEARINESS
+   viSchool = SS_WITCHERY
+   viSubSchool = SSS_WITCHERY_VENTDAL
+   viSpell_level = 2
+   viMana = 2
+   viSpell_Exertion = 30
+
+   viFlash = FLASH_BAD
+
+   vrSucceed_wav = weariness_sound
+   viChance_To_Increase = 25
+   viMeditate_ratio = 30
+
+properties:
+
+   % Mana costs increase by this percent
+   piBaseEffect = 50
+
+   piFlatDuration = 80000
+
+messages:
+
+   ResetReagents()
+   {
+      plReagents = $;
+      plReagents = Cons([&ColdFragment,1],plReagents);
+
+      return;
+   }
+   
+   ModifyManaCost(cost=0,state=0)
+   {
+      % base 50 percent up to 100 percent increase
+      return (cost * (100+piBaseEffect+((state+1)/2))) / 100;
+   }
+
+   DoHexEffectReport(what=$,iHexEffect=0)
+   {
+      Send(what,@MsgSendUser,#message_rsc=vrHexEffectReport,#parm1=piBaseEffect+((iHexEffect+1)/2));
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

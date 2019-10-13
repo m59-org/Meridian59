@@ -1,0 +1,65 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+EmpowermentMod is MagicMod
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   empowerment_default_name = "increased damage"
+
+classvars:
+
+   viModName = empowerment_default_name
+
+   viEmpowermentType = ATCK_SPELL_FIRE
+   viModType = MOD_PREFIX
+   viModGroup = GROUP_EMPOWERMENT
+
+   viModRangeMin = 1
+   viModRangeMax = 15
+   
+   viPowerDivisor = 20
+
+properties:
+
+   piNumerator = 1
+   piDivisor = 1
+
+messages:
+
+   ModifyEmpowerment(empowerment_list=$,iState=0)
+   {
+      if piDivisor = 0
+      {
+         % Avoid div errors
+         piDivisor = 1;
+      }
+      empowerment_list = Send(SYS,@AddEmpowerment,#what=viEmpowermentType,#value=iState,#empowerment_list=empowerment_list);
+      
+      return empowerment_list;
+   }
+
+   GetNumber(iPower=0)
+   {
+      if piDivisor = 0
+      {
+         % Avoid div errors
+         piDivisor = 1;
+      }
+
+      return bound((iPower*piNumerator)/piDivisor,1,$);
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

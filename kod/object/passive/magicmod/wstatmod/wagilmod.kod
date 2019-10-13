@@ -1,0 +1,50 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+WeaponAgilityMod is WeaponStatMod
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   agility_mod_name = "Agility"
+
+classvars:
+
+   viModName = agility_mod_name
+   viModType = MOD_SUFFIX
+   viModGroup = GROUP_AGILITY
+
+   viModRangeMin = 1
+   viModRangeMax = 6
+   
+   viPowerDivisor = 50
+
+properties:
+
+
+messages:
+
+   NewUsed(who=$,iState=0)
+   {
+      Send(who,@AddAgility,#points=iState);
+      propagate;
+   }
+
+   NewUnused(who=$,iState=0)
+   {
+      Send(who,@AddAgility,#points=-iState);
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

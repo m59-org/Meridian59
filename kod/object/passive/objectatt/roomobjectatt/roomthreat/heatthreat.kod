@@ -31,7 +31,8 @@ resources:
    heat_threat_end_msg = \
       "The sun passes behind ominous clouds."
    heat_threat_damage_msg = \
-      "The intense heat makes you sweat profusely under your heavy gear."
+      "The magmatic heat resonates in your heavy gear and burns your flesh. "
+      "You should take it off before you die of heat stroke!"
 
    heat_good_item_use_msg = \
       "And, out here, the sun might just be the most dangerous enemy of all."
@@ -92,15 +93,33 @@ messages:
 
    ReqDealDamage(who=$)
    {
+      local iSection;
+
       % If they take off their armor, they'll be fine.
+      % Demons are hardy against fire, so never hit them.
       if NOT Send(who,@IsUsingA,#class=&Armor)
+         OR Send(who,@GetPlayerRace) = RACE_HALF_DEMON
 %         OR Send(who,@IsEnchanted,#byClass=&ResistFire)
 %         OR Send(who,@IsUsingA,#class=&FireRing)
       {
          return FALSE;
       }
+      
+      % We make a special exception in Desert Shore 2, the drop zone.
+      if Send(who,@GetOwner) <> $
+         AND IsClass(Send(who,@GetOwner),&DesertShore2)
+      {
+         iSection = Send(Send(who,@GetOwner),@GetSection,#who=who);
+         
+         if iSection = 100
+            OR iSection = 9999
+            OR iSection = 9998
+         {
+            return FALSE;
+         }
+      }
 
-      return TRUE;
+      propagate;
    }
 
    ApplyDirectEffect(who=$)

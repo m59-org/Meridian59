@@ -1,0 +1,211 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+PoisonBlade is BanditrySkill
+
+constants:
+
+   include blakston.khd
+   include protocol.khd
+      
+   % Giant Spider
+   SPIDER_POISON_CHANCE = 30
+   SPIDER_POISON_DURATION = 180000
+   SPIDER_POISON_LOSSRATE = 2500
+
+   % Death spider
+   DEATH_SPIDER_POISON_CHANCE = 10
+   DEATH_SPIDER_POISON_DURATION = 180000
+   DEATH_SPIDER_POISON_LOSSRATE = 5000
+
+   % Spider queen
+   SPIDER_QUEEN_POISON_CHANCE = 15
+   SPIDER_QUEEN_POISON_DURATION = 30000
+   SPIDER_QUEEN_POISON_LOSSRATE = 2500
+
+   % Dusk Rat
+   DUSK_RAT_POISON_CHANCE = 6
+   DUSK_RAT_POISON_DURATION = 30000
+   DUSK_RAT_POISON_LOSSRATE = 10000
+
+   % Giant Scorpion
+   GIANT_SCORPION_POISON_CHANCE = 18
+   GIANT_SCORPION_POISON_DURATION = 180000
+   GIANT_SCORPION_POISON_LOSS_RATE = 3500
+   
+   % Narthyl
+   NARTHYL_WORM_EXERTION_MIN = 0
+   NARTHYL_WORM_EXERTION_MAX = 3
+   NARTHYL_WORM_PROC_CHANCE = 100
+
+   % Daemon Skeleton
+   DAEMON_SKELETON_DEMENTIA_POWER = 15
+   DAEMON_SKELETON_DEMENTIA_CHANCE = 5
+   
+   % Diseased Tree
+   DISEASED_TREE_PALSY_POWER = 50
+   DISEASED_TREE_PALSY_CHANCE = 10
+
+resources:
+
+   PoisonBlade_name_rsc = "poison blade"
+   PoisonBlade_icon_rsc = ireveal.bgf
+   PoisonBlade_desc_rsc = \
+      "The truly dishonorable will employ any advantage they can, including "
+      "the use of natural fungi and berries that can inflict severe poisons. "
+      "To apply poison, double-click the proper reagent and then click on "
+      "a piercing or thrusting weapon."
+      "\n\nOnly practiced masters of poisoncraft can wield a blade so coated "
+      "without endangering themselves."
+
+   PoisonBlade_apply = \
+      "You grind up the %s, distill certain essences, and apply a coating of foul poison to the %s."
+   PoisonBlade_not_edge_weapon = \
+      "You can only apply poison to piercing and thrusting weapons!"
+   PoisonBlade_reagent_is_not_poisonous = \
+      "That reagent is not poisonous."
+
+   PoisonBlade_no_ranged = \
+      "You could apply a coating to your bow, but it would just poison your hands!"
+   PoisonBlade_require_more = \
+      "You need at least %i %s to distill enough poison."
+   PoisonBlade_must_unequip = \
+      "You can't coat your weapon with poison while you're holding it!"
+   PoisonBlade_remove_old_poison = \
+      "You wipe away the previous coating of poison."
+
+classvars:
+
+   vrName = PoisonBlade_name_rsc
+   vrIcon = PoisonBlade_icon_rsc
+   vrDesc = PoisonBlade_desc_rsc
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+
+   viSkill_num = SKID_POISON_BLADE
+   viSchool = SKS_BANDITRY
+   viSkill_Level = 3
+   viChance_to_Increase = 20
+   viMeditate_ratio = 70
+
+   viSkillExertion = 0
+   vbCheck_exertion = FALSE
+
+   vbAutomatic = TRUE
+   
+   viPrimaryStat = STAT_ID_AGILITY
+   viSecondaryStat = 0
+
+properties:
+
+   piReagentCost = 20
+
+messages:
+
+   GetRequisiteStat(who=$)
+   {
+      return Send(who,@GetAgility);
+   }
+   
+   DoSkill(who=$, lItems=$)
+   {
+      % lItems sent in the form [weapon, reagent]
+      local oWeapon, oReagent, iAbility, iStat, oPoisonAtt, iPoisonPower, iPoisonDuration, iPoisonProcChance, iPoisonCharges,
+            i, iReagentCost;
+
+      oWeapon = First(lItems);
+      oReagent = Nth(lItems,2);
+      iAbility = Send(who,@GetSkillAbility,#Skill_num=SKID_POISON_BLADE);
+      iStat = Send(self,@GetRequisiteStat,#who=who);
+      
+      if oWeapon <> $
+         AND IsClass(oWeapon,&Weapon)
+      {
+         if NOT Send(oWeapon,@CanApplyPoison)
+         {
+            Send(who,@MsgSendUser,#message_rsc=PoisonBlade_not_edge_weapon);
+            return;
+         }
+
+         foreach i in Send(who,@GetPlayerUsing)
+         {
+            if i = oWeapon
+            {
+               Send(who,@MsgSendUser,#message_rsc=PoisonBlade_must_unequip);
+               return;
+            }
+         }
+
+         if IsClass(oWeapon,&RangedWeapon)
+         {
+            Send(who,@MsgSendUser,#message_rsc=PoisonBlade_no_ranged);
+            return;
+         }
+
+         if oReagent <> $
+            AND IsClass(oReagent,&Reagent)
+         {
+            if NOT Send(oReagent,@GetAppliesPoison)
+            {
+               Send(who,@MsgSendUser,#message_rsc=PoisonBlade_reagent_is_not_poisonous);
+               return;
+            }
+
+            iReagentCost = piReagentCost + (((100-(1+iAbility))*piReagentCost)/100);
+            if Send(oReagent,@GetNumber) < iReagentCost
+            {
+               Send(who,@MsgSendUser,#message_rsc=PoisonBlade_require_more,#parm1=iReagentCost,#parm2=Send(oReagent,@GetName));
+               return;
+            }
+
+            if Send(oWeapon,@HasObjectAttribute,#cClass=&WeaponPoisonProc)
+            {
+               Send(Send(oWeapon,@GetObjectAttribute,#cClass=&WeaponPoisonProc),@Delete);
+               Send(who,@MsgSendUser,#message_rsc=PoisonBlade_remove_old_poison);
+            }
+
+            % Alright, let's poison this weapon.
+            iPoisonPower = Send(oReagent,@GetPoisonLoss);
+            iPoisonDuration = Send(oReagent,@GetPoisonDuration);
+            iPoisonProcChance = Send(oReagent,@GetPoisonProcChance);
+
+            % Full poison loss rate at 99% and 100 Agility
+            iPoisonPower = (iPoisonPower * ((1+iAbility)/2 + iStat/2)) / 100;
+            iPoisonPower = Bound(iPoisonPower,1000,$);
+
+            % Full poison duration at 99%
+            iPoisonDuration = (iPoisonDuration * (1+iAbility)) / 100;
+            iPoisonDuration = Bound(iPoisonDuration,5000,$);
+            
+            % Full poison proc chance at 99%
+            iPoisonProcChance = (iPoisonProcChance * (1+iAbility)) / 100;
+            iPoisonProcChance = Bound(iPoisonProcChance,1,100);
+
+            % Full charges at 99%
+            iPoisonCharges = Send(oReagent, @GetPoisonCharges);
+            iPoisonCharges = (iPoisonCharges * (1+iAbility)) / 100;
+            iPoisonCharges = Bound(iPoisonCharges,1,$);
+
+            oPoisonAtt = Create(&WeaponPoisonProc,#host_object=oWeapon,#set_poison=SID_POISON,
+                                                  #set_poison_power=iPoisonPower,
+                                                  #set_poison_duration=iPoisonDuration,
+                                                  #set_proc_chance=iPoisonProcChance,
+                                                  #set_charges=iPoisonCharges);
+            Send(oReagent,@SubtractNumber,#number=iReagentCost);
+            Send(who,@MsgSendUser,#message_rsc=PoisonBlade_apply,#parm1=Send(oReagent,@GetName),#parm2=Send(oWeapon,@GetName));
+         }
+      }
+      
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

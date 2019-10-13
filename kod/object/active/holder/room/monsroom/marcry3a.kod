@@ -159,6 +159,9 @@ classvars:
    viTeleport_row = 18
    viTeleport_col = 21
 
+   viLongitude = 5
+   viLatitude = 21
+
    viTrap1_row = 24
    viTrap1_col = 22
 
@@ -250,6 +253,23 @@ messages:
       {
          poChest = Create(&WoodenBox,#bLocked=TRUE);
          Send(self,@NewHold,#what=poChest,#new_row=33,#new_col=25);
+      }
+
+      propagate;
+   }
+
+   NewHold(what = $, new_row = 1, new_col = 1)
+   {
+      local who;
+
+      if what = $
+      {
+         propagate;
+      }
+      
+      if IsClass(what,&Player)
+      {
+         Send(Send(SYS,@GetGameQuestMaintenance),@EvaluatePlayer,#who=what,#vbTriggered=TRUE);
       }
 
       propagate;
@@ -1064,8 +1084,18 @@ messages:
 
    DoEndTreasure()
    {
-      local iNumPlayers, iChance, iCumulative, i, oObject, oItemAtt;
+      local iNumPlayers, iChance, iCumulative, i, each_obj, oObject, oItemAtt;
 
+      foreach i in Send(self,@GetHolderActive)
+      {
+         each_obj = Send(self,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&Player)
+            AND Send(self,@InTrapAreaThree,#what=each_obj)
+         {
+            % Let passive quests know we beat this area
+            Send(each_obj,@CompletedPuzzle,#iRoomNum=piRoom_num);
+         }
+      }
       iNumPlayers = Send(self,@CountTrap,#trap=3,#what=COUNTTRAP_USER);
 
       if iNumPlayers > 5
@@ -1093,7 +1123,7 @@ messages:
                {
                   % Create Object.
                   oObject = Create(Nth(Nth(plTreasuresList,i),3),
-                                   #number=Nth(Nth(plTreasuresList,i),4));
+                                   #number=Nth(Nth(plTreasuresList,i),4),#level=150);
                   % Put in chest.
                   Send(poChest,@NewHold,#what=oObject);
                }
@@ -1102,7 +1132,7 @@ messages:
                   if Nth(Nth(plTreasuresList,i),2) = TREASURE_WEAPON
                   {
                      % Create weapon.
-                     oObject = Create(Nth(Nth(plTreasuresList,i),3));
+                     oObject = Create(Nth(Nth(plTreasuresList,i),3),#level=150);
                      % Find Itematt.
                      oItemAtt = Send(SYS,@FindItemAttByNum,
                                      #num=Nth(Nth(plTreasuresList,i),4));
@@ -1130,14 +1160,16 @@ messages:
       % All chances (first number) should add up to 100.
       plTreasuresList = [ [ 1, TREASURE_OBJECT, &Rose, 1 ],
                           [ 3, TREASURE_WEAPON, &Scimitar, WA_BLINDER ],
-                          [ 2, TREASURE_WEAPON, &Scimitar, WA_PURGER ],
+                          [ 1, TREASURE_WEAPON, &Scimitar, WA_PURGER ],
+                          [ 1, TREASURE_WEAPON, &Scimitar, WA_CORRODE ],
                           [ 3, TREASURE_WEAPON, &Scimitar, WA_PARALYZER ],
                           [ 3, TREASURE_WEAPON, &LongSword, WA_PARALYZER ],
                           [ 3, TREASURE_WEAPON, &LongSword, WA_BLINDER ],
                           [ 5, TREASURE_WEAPON, &Hammer, WA_TWISTER ],
                           [ 3, TREASURE_WEAPON, &Hammer, WA_VAMPER ],
                           [ 1, TREASURE_WEAPON, &MysticSword, WA_PURGER ],
-                          [ 2, TREASURE_WEAPON, &MysticSword, WA_BONKER ],
+                          [ 1, TREASURE_WEAPON, &MysticSword, WA_CORRODE ],
+                          [ 1, TREASURE_WEAPON, &MysticSword, WA_BONKER ],
                           [ 3, TREASURE_WEAPON, &Axe, WA_PUNISHER ],
                           [ 3, TREASURE_WEAPON, &Axe, WA_TWISTER ],
                           [ 3, TREASURE_WEAPON, &Axe, WA_PARALYZER ],

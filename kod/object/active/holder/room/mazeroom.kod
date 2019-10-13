@@ -1,0 +1,2899 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+MinotaurMazeRoom is Room
+%
+% Vecka tells you, "This maze was originally constructed to be the ultimate
+%    test for new sorcerers. Once corruption took hold, it became bathed
+%    in opulence, intended as a final resting place for the High Sorcerers. You may have
+%    encountered smaller tombs of lesser known sorcerers already. When the
+%    High Sorcerers found immortality, they knew they would never rest in the maze,
+%    so they sealed it off and set a monster to guard the wealth within."
+%
+%
+
+% The Maze of the Minotaur changes each day.
+% You have until your torches run out.
+% Night vision, light, firewall, glow, etc do not work. Your only light is the torch.
+
+
+
+% Relics can be found in hidden feretories, along with pre-imbued magical melee weapons with boosted mods.
+% Players can master a skill or spell by completing the Test of Mind and Body.
+% The Minotaur is dead. The Ice Dragon rules the maze. Those that defeat (the red dragon?) unlock the Dragonborn race.
+
+
+% Musical attributions:
+% https://freesound.org/people/Lalks/sounds/316830/
+% Lalks Ferambie
+% No changes made
+%
+% https://freesound.org/people/knarmahfox/sounds/72146/
+% Through the Caves
+% knarmahfox
+% no changes made
+%
+% loboloco, 06, loners in the night id 793
+% 
+
+
+constants:
+
+   include blakston.khd
+   
+   %% Some areas of the maze may be open to the desert weather.
+   %%    Use these sectors for simulated weather (we are not part of the desert subclass)
+   %%    Set vbDesertThreatsHere to TRUE in ClassVars
+   %% If these sectors exist, desert threats will be activated.
+   %%    These represent places where the ceiling has caved in, exposing the maze to the desert.
+   
+   SNOW_SECTOR = 700
+   ICE_SECTOR = 710
+   FROZEN_WATERFALL_SECTOR = 711
+   FROZEN_LOWER_WATERFALL_SECTOR = 712
+   WATER_SECTOR_NO_DEPTH_CHANGE = 713
+   
+   % This spawns a treasure strongbox.
+   RELIC_TREASURE_SECTOR = 730
+   
+   %% If these sectors exist, desert monsters will be placed.
+   %%    These represent places where the ceiling has caved in, exposing the maze to the desert.
+   DESERT_SPAWN_ONE = 750
+   DESERT_SPAWN_TWO = 751
+   DESERT_SPAWN_THREE = 752
+   DESERT_SPAWN_FOUR = 753
+   DESERT_SPAWN_FIVE = 754
+   DESERT_SPAWN_SIX = 755
+   DESERT_SPAWN_SEVEN = 756
+   DESERT_SPAWN_EIGHT = 757
+   DESERT_SPAWN_NINE = 758
+   DESERT_SPAWN_TEN = 759
+   
+   %% If these sectors exist, monster spawns will be activated and statues created.
+   STATUE_SPAWN_ONE = 760
+   STATUE_SPAWN_TWO = 761
+   STATUE_SPAWN_THREE = 762
+   STATUE_SPAWN_FOUR = 763
+   STATUE_SPAWN_FIVE = 764
+   STATUE_SPAWN_SIX = 765
+   STATUE_SPAWN_SEVEN = 766
+   STATUE_SPAWN_EIGHT = 767
+   STATUE_SPAWN_NINE = 768
+   STATUE_SPAWN_TEN = 769
+   
+   %% These sectors are searched out and set during room creation if they exist.
+   %%    If they don't exist, no problem.
+   %%    These are to ease creation of custom map rooms.
+   
+   CRUSHER_ONE_TRIGGER_SECTOR = 800
+   CRUSHER_ONE_DAMAGE_SECTOR = 801
+   CRUSHER_ONE_WALL_ID = 802
+   CRUSHER_TWO_TRIGGER_SECTOR = 803
+   CRUSHER_TWO_DAMAGE_SECTOR = 804
+   CRUSHER_TWO_WALL_ID = 805
+   CRUSHER_THREE_TRIGGER_SECTOR = 806
+   CRUSHER_THREE_DAMAGE_SECTOR = 807
+   CRUSHER_THREE_WALL_ID = 808
+   CRUSHER_FOUR_TRIGGER_SECTOR = 809
+   CRUSHER_FOUR_DAMAGE_SECTOR = 810
+   CRUSHER_FOUR_WALL_ID = 811
+   CRUSHER_FIVE_TRIGGER_SECTOR = 812
+   CRUSHER_FIVE_DAMAGE_SECTOR = 813
+   CRUSHER_FIVE_WALL_ID = 814
+   CRUSHER_SIX_TRIGGER_SECTOR = 815
+   CRUSHER_SIX_DAMAGE_SECTOR = 816
+   CRUSHER_SIX_WALL_ID = 817
+   CRUSHER_SEVEN_TRIGGER_SECTOR = 818
+   CRUSHER_SEVEN_DAMAGE_SECTOR = 819
+   CRUSHER_SEVEN_WALL_ID = 820
+   CRUSHER_EIGHT_TRIGGER_SECTOR = 821
+   CRUSHER_EIGHT_DAMAGE_SECTOR = 822
+   CRUSHER_EIGHT_WALL_ID = 823
+   CRUSHER_NINE_TRIGGER_SECTOR = 824
+   CRUSHER_NINE_DAMAGE_SECTOR = 825
+   CRUSHER_NINE_WALL_ID = 826
+   CRUSHER_TEN_TRIGGER_SECTOR = 827
+   CRUSHER_TEN_DAMAGE_SECTOR = 828
+   CRUSHER_TEN_WALL_ID = 829
+   
+   CRUSHER_UP_HEIGHTS_HERE = 1160
+   
+   THIS_AREA_HAS_FALL_THREAT = 830
+   THIS_AREA_HAS_ICEWATER_THREAT = 831
+   THIS_AREA_HAS_PHASE_THREAT = 832
+
+   SECRET_DOOR_ONE_TRIGGER_SECTOR = 850
+   SECRET_DOOR_ONE_OPEN_SECTOR = 851
+   SECRET_DOOR_TWO_TRIGGER_SECTOR = 852
+   SECRET_DOOR_TWO_OPEN_SECTOR = 853
+   SECRET_DOOR_THREE_TRIGGER_SECTOR = 854
+   SECRET_DOOR_THREE_OPEN_SECTOR = 855
+   SECRET_DOOR_FOUR_TRIGGER_SECTOR = 856
+   SECRET_DOOR_FOUR_OPEN_SECTOR = 857
+   SECRET_DOOR_FIVE_TRIGGER_SECTOR = 858
+   SECRET_DOOR_FIVE_OPEN_SECTOR = 859
+   SECRET_DOOR_SIX_TRIGGER_SECTOR = 860
+   SECRET_DOOR_SIX_OPEN_SECTOR = 861
+   SECRET_DOOR_SEVEN_TRIGGER_SECTOR = 862
+   SECRET_DOOR_SEVEN_OPEN_SECTOR = 863
+   SECRET_DOOR_EIGHT_TRIGGER_SECTOR = 864
+   SECRET_DOOR_EIGHT_OPEN_SECTOR = 865
+   SECRET_DOOR_NINE_TRIGGER_SECTOR = 866
+   SECRET_DOOR_NINE_OPEN_SECTOR = 867
+   SECRET_DOOR_TEN_TRIGGER_SECTOR = 868
+   SECRET_DOOR_TEN_OPEN_SECTOR = 869
+   
+   SECRET_DOORS_LOWER_TO_THIS_HEIGHT_HERE = 1000
+
+   SAWBLADES_ONE_TRIGGER_SECTOR = 900
+   SAWBLADES_ONE_DAMAGE_SECTOR = 901
+   SAWBLADES_ONE_WALL_ID = 902
+   SAWBLADES_TWO_TRIGGER_SECTOR = 903
+   SAWBLADES_TWO_DAMAGE_SECTOR = 904
+   SAWBLADES_TWO_WALL_ID = 905
+   SAWBLADES_THREE_TRIGGER_SECTOR = 906
+   SAWBLADES_THREE_DAMAGE_SECTOR = 907
+   SAWBLADES_THREE_WALL_ID = 908
+   SAWBLADES_FOUR_TRIGGER_SECTOR = 909
+   SAWBLADES_FOUR_DAMAGE_SECTOR = 910
+   SAWBLADES_FOUR_WALL_ID = 911
+   SAWBLADES_FIVE_TRIGGER_SECTOR = 912
+   SAWBLADES_FIVE_DAMAGE_SECTOR = 913
+   SAWBLADES_FIVE_WALL_ID = 914
+   SAWBLADES_SIX_TRIGGER_SECTOR = 915
+   SAWBLADES_SIX_DAMAGE_SECTOR = 916
+   SAWBLADES_SIX_WALL_ID = 917
+   SAWBLADES_SEVEN_TRIGGER_SECTOR = 918
+   SAWBLADES_SEVEN_DAMAGE_SECTOR = 919
+   SAWBLADES_SEVEN_WALL_ID = 920
+   SAWBLADES_EIGHT_TRIGGER_SECTOR = 921
+   SAWBLADES_EIGHT_DAMAGE_SECTOR = 922
+   SAWBLADES_EIGHT_WALL_ID = 923
+   SAWBLADES_NINE_TRIGGER_SECTOR = 924
+   SAWBLADES_NINE_DAMAGE_SECTOR = 925
+   SAWBLADES_NINE_WALL_ID = 926
+   SAWBLADES_TEN_TRIGGER_SECTOR = 927
+   SAWBLADES_TEN_DAMAGE_SECTOR = 928
+   SAWBLADES_TEN_WALL_ID = 929
+   
+   SPIKES_ONE_DAMAGE_SECTOR = 930
+   SPIKES_ONE_WALLS_ONE = 931
+   SPIKES_ONE_WALLS_TWO = 932
+   SPIKES_TWO_DAMAGE_SECTOR = 933
+   SPIKES_TWO_WALLS_ONE = 934
+   SPIKES_TWO_WALLS_TWO = 935
+   SPIKES_THREE_DAMAGE_SECTOR = 936
+   SPIKES_THREE_WALLS_ONE = 937
+   SPIKES_THREE_WALLS_TWO = 938
+   SPIKES_FOUR_DAMAGE_SECTOR = 939
+   SPIKES_FOUR_WALLS_ONE = 940
+   SPIKES_FOUR_WALLS_TWO = 941
+   SPIKES_FIVE_DAMAGE_SECTOR = 942
+   SPIKES_FIVE_WALLS_ONE = 943
+   SPIKES_FIVE_WALLS_TWO = 944
+   SPIKES_SIX_DAMAGE_SECTOR = 945
+   SPIKES_SIX_WALLS_ONE = 946
+   SPIKES_SIX_WALLS_TWO = 947
+   SPIKES_SEVEN_DAMAGE_SECTOR = 948
+   SPIKES_SEVEN_WALLS_ONE = 949
+   SPIKES_SEVEN_WALLS_TWO = 950
+   SPIKES_EIGHT_DAMAGE_SECTOR = 951
+   SPIKES_EIGHT_WALLS_ONE = 952
+   SPIKES_EIGHT_WALLS_TWO = 953
+   SPIKES_NINE_DAMAGE_SECTOR = 954
+   SPIKES_NINE_WALLS_ONE = 955
+   SPIKES_NINE_WALLS_TWO = 956
+   SPIKES_TEN_DAMAGE_SECTOR = 957
+   SPIKES_TEN_WALLS_ONE = 958
+   SPIKES_TEN_WALLS_TWO = 959
+   
+   LAVA_ONE_SECTOR = 970
+   LAVA_TWO_SECTOR = 971
+   LAVA_THREE_SECTOR = 972
+   LAVA_FOUR_SECTOR = 973
+   LAVA_FIVE_SECTOR = 974
+   LAVA_SIX_SECTOR = 975
+   LAVA_SEVEN_SECTOR = 976
+   LAVA_EIGHT_SECTOR = 977
+   LAVA_NINE_SECTOR = 978
+   LAVA_TEN_SECTOR = 979
+   
+   TOTEM_ONE_SECTOR = 980
+   TOTEM_TWO_SECTOR = 981
+   TOTEM_THREE_SECTOR = 982
+   TOTEM_FOUR_SECTOR = 983
+   TOTEM_FIVE_SECTOR = 984
+   TOTEM_SIX_SECTOR = 985
+   TOTEM_SEVEN_SECTOR = 986
+   TOTEM_EIGHT_SECTOR = 987
+   TOTEM_NINE_SECTOR = 988
+   TOTEM_TEN_SECTOR = 989
+   
+   NORTH_ENTRANCE_SECTOR = 990
+   EAST_ENTRANCE_SECTOR = 991
+   SOUTH_ENTRANCE_SECTOR = 992
+   WEST_ENTRANCE_SECTOR = 993
+   
+   BLINK_SECTOR = 994
+   
+   NORTH_EXIT_SECTOR = 996
+   EAST_EXIT_SECTOR = 997
+   SOUTH_EXIT_SECTOR = 998
+   WEST_EXIT_SECTOR = 999
+
+   MAZE_WEAPON_SPELL_PROC_PROFILE = 10
+
+resources:
+
+   room_name_minotaurmazeroom = "Maze of the Minotaur"
+   
+   maze_music1 = ferambie.mp3
+   maze_music2 = acidsounds.mp3
+   maze_music3 = bossfight.mp3
+   maze_music4 = walk2.mp3
+   maze_music5 = loboloco06lonersinthenightid793.mp3
+
+   maze_lift_sound = stoneup2.wav
+   maze_click_sound = mechanical1.wav
+   maze_trap_slam = trapslam.wav
+   maze_spike_rise = spiketrap.wav
+   maze_sawblade_rise = sawbladerise.wav
+
+   maze_desert_music = desertheat.mp3
+   maze_desert_music_snow = desertsnow.mp3
+   maze_desert_music_acid_rain = desertrain.mp3
+   maze_desert_music_static_shock = desertdawn.mp3
+
+   maze_cannot_death_rift_or_pol = "Death does not seem to work the same way in this land. Your spell is useless."
+   
+   trap_damages_you = \
+      "Crushing pain radiates through your bones!"
+   
+   spikes_damage_you = \
+      "Spikes stab up from beneath you!"
+
+   lava_applying_burn = \
+      "You are being set on fire!"
+   maze_lava_wading_sound = frying.wav
+   maze_water_wading_sound = splash.wav
+
+   cannot_blink_in_this_room = \
+      "Ancient mechanisms seem to be interfering with your attempt to blink "
+      "in this particular room!"
+
+   maze_clinging_darkness = \
+      "~BStrange clinging darkness drains the mana "
+      "powering your unnatural sources of light! It seems that only a natural "
+      "source of light such as a torch will function here."
+
+   maze_exit_blocked1 = \
+      "This door seems to have been blocked by a cave-in."
+   maze_exit_blocked2 = \
+      "The handle of this door glows red hot. It is likely that lava has filled the room beyond."
+   maze_exit_blocked3 = \
+      "The door refuses to budge."
+   maze_exit_blocked4 = \
+      "This door bears a rare pristine symbol of a High Sorcerer. Its magics still function, so it will not open for you."
+   maze_exit_blocked5 = \
+      "Trace amounts of water leak from around the edges of this door. The next area seems to have been flooded, thus opening it would be not be wise."
+   maze_exit_blocked6 = \
+      "This door is a fake designed to confuse would-be thieves!"
+   maze_exit_blocked7 = \
+      "The door is frozen shut by primordial chill."
+   maze_exit_blocked8 = \
+      "There doesn't appear to be a way to open this door."
+   maze_exit_blocked9 = \
+      "~kA magically created voice says, \"Only apprentice sorcerers may enter the Tea Room.\""
+   maze_exit_blocked10 = \
+      "A lethal current of shocking energy runs through this door. You dare not touch it."
+   maze_exit_blocked11 = \
+      "The floor just beyond this door is covered with bones. Not a good idea."
+   maze_exit_blocked12 = \
+      "Your hand refuses to make contact with the door no matter how hard you try."
+   maze_exit_blocked13 = \
+      "This door is an illusion! A blank wall is all that really lies here."
+
+   maze_headed_towards_boss_room = \
+      "Ancient hoof tracks in the dust indicate the Minotaur once went in this direction."
+   maze_headed_towards_armor_room = \
+      "You feel a strong aura of magic somewhere ahead of you."
+   maze_headed_towards_shrine_room = \
+      "It's getting strangely warmer..."
+   maze_headed_towards_treasure_room = \
+      "The subtle sound of gears grows louder."
+
+classvars:
+
+   vrName = room_name_minotaurmazeroom
+
+   vbCannotBlinkHere = FALSE
+   
+   vbCanSneakHere = FALSE
+   vbCanHideHere = FALSE
+
+   viTeleport_row = 5
+   viTeleport_col = 6
+   
+   viSouthEntranceRow = 24
+   viSouthEntranceCol = 33
+   viSouthEntranceFineRow = 23
+   viSouthEntranceFineCol = 53
+
+   viNorthEntranceRow = 24
+   viNorthEntranceCol = 33
+   viNorthEntranceFineRow = 23
+   viNorthEntranceFineCol = 53
+
+   viWestEntranceRow = 24
+   viWestEntranceCol = 33
+   viWestEntranceFineRow = 23
+   viWestEntranceFineCol = 53
+
+   viEastEntranceRow = 24
+   viEastEntranceCol = 33
+   viEastEntranceFineRow = 23
+   viEastEntranceFineCol = 53
+
+   %%%%%%%%%%%%%%%%%%%% CRUSHERS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+   
+   % How do crusher traps function in this room?
+   TRAP_TRIGGERED_DELAY = 50
+   TRAP_ACTING_DELAY = 500
+   TRAP_HIT_DELAY = 2000
+   TRAP_RETREATING_DELAY = 10000
+   TRAP_DAMAGE = 50
+
+   %%%%%%%%%%%%%%%%%%%% LEVERS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+   LEVER_ONE_ROW = 3
+   LEVER_ONE_TYPE = ANIMATE_CEILING_LIFT
+   LEVER_ONE_ACTIVATES_SECTOR = 1
+   LEVER_ONE_DOWN_HEIGHT = 1160
+   LEVER_ONE_DOWN_SPEED = 50
+   LEVER_ONE_UP_HEIGHT = 1035
+   LEVER_ONE_UP_SPEED = 50
+   
+   LEVER_TWO_ROW = 25
+   LEVER_TWO_TYPE = ANIMATE_FLOOR_LIFT
+   LEVER_TWO_ACTIVATES_SECTOR = 6
+   LEVER_TWO_DOWN_HEIGHT = 200
+   LEVER_TWO_DOWN_SPEED = 50
+   LEVER_TWO_UP_HEIGHT = 1000
+   LEVER_TWO_UP_SPEED = 0
+   
+   %%%%%%%%%%%%%%%%%%%% SPIKES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+   
+   % How do spikes function in this room?
+   SPIKES_DORMANT_TIME = 5000
+   SPIKES_ACTIVE_TIME = 2000
+   SPIKES_DELAY_IF_SEQUENCE = 500
+   SPIKES_SOUND_RADIUS = 10
+   SPIKES_DAMAGE = 40
+   
+   %%%%%%%%%%%%%%%%%%%% TOTEMS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+   
+   % Totem respawn time in this room
+   TOTEM_RESPAWN_TIME = 7000
+   
+   %%%%%%%%%%%%%%%%%%%% LAVA %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+   
+   % Lava settings in this room
+   LAVA_BURN_TIME = 200
+   LAVA_DAMAGE = 500
+   LAVA_BURN_APPLIED = 5
+
+   %%%%%%%%%%%%%%%%%%%% SAWBLADES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+   
+   % Sawblade settings
+   SAWBLADE_FULL_CYCLE_TIME = 3900
+   SAWBLADE_DAMAGE_TIME = 30
+   SAWBLADE_DORMANT_TIME = 2000
+   SAWBLADE_DAMAGE = 1
+   SAWBLADE_SPEED = 10
+
+   viTerrain_Type = TERRAIN_MINES
+
+properties:
+
+   prMusic = maze_music1
+
+   piBaseLight = LIGHT_MIN
+   piOutside_factor = OUTDOORS_NONE 
+   
+   piChaosZone = TRUE
+
+   prRoom = $
+   piRoom_num = $
+   
+   poNorthExit = $
+   poEastExit = $
+   poSouthExit = $
+   poWestExit = $
+   
+   % of the format [[trigger sectors], [crusher sectors], timer, state, type, down height, down speed, up height, up speed, wall ID]
+   plCrusherStates = $
+
+   % of the format [[trigger sectors], [open sectors], type, height, speed, repeatable type]
+   plSecretDoors = $
+   
+   % of the format [[pain sectors], down wall id, up wall id, timer, state, behavior, sound row, sound col]
+   plSpikeStates = $
+   
+   % Totems that cast curses and bolts on players in sight/range
+   % of the format [totem object, spell ID, respawn timer, row, col]
+   plTotems = $
+
+   % These areas inflict burning status effects
+   % of the format [[pain sectors]]
+   plLavaSectors = $
+   ptLavaBurnTimer = $
+   
+   % Two invisible objects, SomethingShot between them
+   plDartTraps = $
+   
+   % Cross this line and it damages you
+   % of the format [[trigger sectors], [damage sectors], wall id, nopass id, cycle timer, damage timer, nonpassable wall ID]
+   plSawbladeStates = $
+
+   piOverridesDeathFunction = TRUE
+
+   vrWading_Sound = maze_water_wading_sound
+
+   % These are the location of the room in the maze
+   piXCoord = 0
+   piYCoord = 0
+   
+   % For generated rooms, where are our entrances?
+   piSouthEntranceRow = 0
+   piSouthEntranceCol = 0
+   piSouthEntranceFineRow = 0
+   piSouthEntranceFineCol = 0
+
+   piNorthEntranceRow = 0
+   piNorthEntranceCol = 0
+   piNorthEntranceFineRow = 0
+   piNorthEntranceFineCol = 0
+
+   piWestEntranceRow = 0
+   piWestEntranceCol = 0
+   piWestEntranceFineRow = 0
+   piWestEntranceFineCol = 0
+
+   piEastEntranceRow = 0
+   piEastEntranceCol = 0
+   piEastEntranceFineRow = 0
+   piEastEntranceFineCol = 0
+   
+   psSouthExitMsg = $
+   psNorthExitMsg = $
+   psWestExitMsg = $
+   psEastExitMsg = $
+   
+   % For generated rooms, where is our blink spot?
+   piCustomTeleportRow = 0
+   piCustomTeleportCol = 0
+
+   piPreviousPhase = 0
+   
+   % These are changed based on spawn zone detection
+   vbDesertThreatsHere = FALSE
+   vbSpawnMonsters = FALSE
+
+   % Where do we spawn mobs?
+   plDesertSpawnPoints = $
+   plStatueSpawnPoints = $
+
+   % Holds a relic for use in guild hall reliquaries
+   plFeretorySpawnPoints = $
+   pbCreatedFeretory = FALSE
+   
+   % Does this room have lethal fall threat? Height 0 or below = death
+   pbFallThreatHere = FALSE
+
+   % Do monsters respawn hourly while players are in room? Generally no
+   pbResetWhilePlayersAreInRoom = FALSE
+
+messages:
+
+   Constructor(iRID=RID_MAZE_ENTRANCE, base_room=$)
+   {
+      piRoom_num = iRID;
+      
+      if base_room <> $
+      {
+         prRoom = base_room;
+      }
+      
+      propagate;
+   }
+   
+   SetXCoord(coord_value=0)
+   {
+      piXCoord = coord_value;
+      return;
+   }
+   
+   SetYCoord(coord_value=0)
+   {
+      piYCoord = coord_value;
+      return;
+   }
+
+   GetXCoord()
+   {
+      return piXCoord;
+   }
+   
+   GetYCoord()
+   {
+      return piYCoord;
+   }
+
+   SetWadingSound(type=MAZE_WATER_WADING)
+   {
+      switch(type)
+      {
+         case 0:
+            vrWading_Sound = maze_water_wading_sound;
+            break;
+         case 1:
+            vrWading_Sound = maze_lava_wading_sound;
+            break;
+      }
+      return;
+   }
+
+   RecalcBackgroundSkyGraphic(iSkyBox=0)
+   {
+      if NOT Send(Send(SYS,@FindRoomByNum,#num=RID_ZIGGURAT_ALTAR),@GetHighSorcerersDefeated)
+      {
+         prBackground = background_chaos_night;
+         return;
+      }
+
+      propagate;
+   }
+
+   CreateStandardObjects()
+   {
+      Send(self,@CreateMazeRoomObjects);
+      Send(self,@SetCustomSectors);
+
+      propagate;
+   }
+
+   CreateMazeRoomObjects()
+   {
+      return;
+   }
+
+   Delete()
+   {
+      local i, oThing, oPlayer;
+      
+      poNorthExit = $;
+      poEastExit = $;
+      poSouthExit = $;
+      poWestExit = $;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&LogoffGhost)
+         {
+            Send(Send(First(i),@GetGhostedPlayer),@AdminGoToDesertShore2WhileOffline);
+            Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTSHORE2),@Teleport,#what=First(i));
+         }
+      }
+      
+      Send(Send(SYS,@GetMazeRoomMaintenance),@RoomDeleted,#what=self);
+
+      foreach i in Send(self,@GetHolderPassive)
+      {
+         oThing = Send(self,@HolderExtractObject,#data=i);
+         if IsClass(oThing,&DeadBody)
+            AND NOT Send(oThing,@GetPbMob)
+         {
+            % is a player corpse! Let's move it.
+            Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTDUNES),@Teleport,#what=oThing);
+         }
+      }
+      
+      foreach i in plCrusherStates
+      {
+         if Nth(i,3) <> $
+            AND IsTimer(Nth(i,3))
+         {
+            DeleteTimer(Nth(i,3));
+         }
+         SetNth(i,3,$);
+         plCrusherStates = DelListElem(plCrusherStates,i);
+      }
+
+      foreach i in plSawbladeStates
+      {
+         if Nth(i,5) <> $
+            AND IsTimer(Nth(i,5))
+         {
+            DeleteTimer(Nth(i,5));
+         }
+         SetNth(i,5,$);
+
+         if Nth(i,6) <> $
+            AND IsTimer(Nth(i,6))
+         {
+            DeleteTimer(Nth(i,6));
+         }
+         SetNth(i,6,$);
+      }
+
+      Send(self,@EndAllThreats);
+
+      propagate;
+   }
+
+% ============
+% TIME
+% ============
+   
+   NewDay()
+   {
+      return;
+   }
+   
+   NewGameHour()
+   {
+      return;
+   }
+
+% ============
+% SOUNDS
+% ============
+
+   SetMusic(music_choice=1)
+   {
+      local i, each_obj;
+
+      switch(music_choice)
+      {
+         case 1:
+            prMusic = maze_music1;
+            break;
+         case 2:
+            prMusic = maze_music2;
+            break;
+         case 3:
+            prMusic = maze_music3;
+            break;
+         case 4:
+            prMusic = maze_music4;
+            break;
+         case 5:
+            prMusic = maze_music5;
+            break;
+      }
+
+      foreach i in Send(self,@GetHolderActive)
+      {
+         each_obj = Send(self,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&Player)
+         {
+            Send(each_obj,@SendRoomMusic,#music_rsc=prMusic);
+         }
+      }
+      return;
+   }
+
+   PlayLiftSound(row=$,col=$,cutoff_radius=10)
+   {
+      if row = $
+         OR col = $
+      {
+         Send(self,@SomethingWaveRoom,#wave_rsc=maze_lift_sound);
+      }
+      else
+      {
+         Send(self,@SomethingWaveRoomCoords,#wave_rsc=maze_lift_sound,#row=row,#col=col,#cutoff_radius=cutoff_radius);
+      }
+      return;
+   }
+   
+   PlayClickSound(row=$,col=$,cutoff_radius=10)
+   {
+      if row = $
+         OR col = $
+      {
+         Send(self,@SomethingWaveRoom,#wave_rsc=maze_click_sound);
+      }
+      else
+      {
+         Send(self,@SomethingWaveRoomCoords,#wave_rsc=maze_click_sound,#row=row,#col=col,#cutoff_radius=cutoff_radius);
+      }
+      return;
+   }
+   
+   PlayTrapSlamSound(row=$,col=$,cutoff_radius=10)
+   {
+      if row = $
+         OR col = $
+      {
+         Send(self,@SomethingWaveRoom,#wave_rsc=maze_trap_slam);
+      }
+      else
+      {
+         Send(self,@SomethingWaveRoomCoords,#wave_rsc=maze_trap_slam,#row=row,#col=col,#cutoff_radius=cutoff_radius);
+      }
+      return;
+   }
+   
+   PlaySpikeSound(row=-1,col=-1,cutoff_radius=10)
+   {
+      if row = $
+         OR col = $
+      {
+         return;
+      }
+
+      if row = -1
+         OR col = -1
+      {
+         Send(self,@SomethingWaveRoom,#wave_rsc=maze_spike_rise);
+      }
+      else
+      {
+         Send(self,@SomethingWaveRoomCoords,#wave_rsc=maze_spike_rise,#row=row,#col=col,#cutoff_radius=cutoff_radius);
+      }
+      return;
+   }
+
+   PlaySawbladeSound(row=-1,col=-1,cutoff_radius=10)
+   {
+      if row = -1
+         OR col = -1
+      {
+         Send(self,@SomethingWaveRoom,#wave_rsc=maze_sawblade_rise);
+      }
+      else
+      {
+         Send(self,@SomethingWaveRoomCoords,#wave_rsc=maze_sawblade_rise,#row=row,#col=col,#cutoff_radius=cutoff_radius);
+      }
+      return;
+   }
+
+% ============
+% MOVEMENT EVALUATION
+% ============
+
+   FirstUserEntered()
+   {
+      Send(self,@StartSpikeCycle);
+      Send(self,@PlaceTotems);
+      Send(self,@StartLava);
+
+      if vbSpawnMonsters
+      {
+         Post(self,@PopulateArea);
+      }
+      
+      if plFeretorySpawnPoints <> $
+      {
+         Post(self,@PopulateChest);
+      }
+
+      if pbFallThreatHere
+      {
+         Post(self,@StartThreat,#cClasses=[&FallThreat],#report=TRUE);
+      }
+      
+      Post(Send(SYS,@GetMazeRoomMaintenance),@PingMaze,#x_coord=piXCoord,#y_coord=piYCoord);
+
+      propagate;
+   }
+
+   LastUserLeft()
+   {
+      Send(self,@EndSpikeCycle);
+      Send(self,@RemoveTotems);
+      Send(self,@EndLava);
+
+      if vbSpawnMonsters
+      {
+         Post(self,@DepopulateArea);
+      }
+
+      propagate;
+   }
+
+   SomethingMoved(what = $,new_row = $, new_col = $)
+   {
+      if NOT IsClass(what,&Player)
+      {
+         propagate;
+      }
+
+      Send(self,@CheckMoveBorders,#what=what,#new_row=new_row,#new_col=new_col);
+
+      Send(self,@EvaluateMovement,#who=what,#section=Send(self,@GetSection,#who=what));
+
+      propagate;
+   }
+   
+   CheckMoveBorders(what=$, new_row=$, new_col=$)
+   {
+      return;
+   }
+   
+   EvaluateMovement(who=$,section=0)
+   {
+      local i;
+
+      foreach i in plSawbladeStates
+      {
+         if FindListElem(Nth(i,1),section) <> 0
+         {
+            Send(self,@TriggerSawblade,#trap_data=i);
+         }
+      }
+      
+      foreach i in plCrusherStates
+      {
+         if FindListElem(Nth(i,1),section) <> 0
+            AND Nth(i,4) = TRAP_READY
+         {
+            SetNth(i,4,TRAP_TRIGGERED);
+            Send(self,@PlayClickSound);
+            SetNth(i,3,CreateTimer(self,@TriggerCrusher,TRAP_TRIGGERED_DELAY));
+         }
+      }
+      
+      foreach i in plSecretDoors
+      {
+         if FindListElem(Nth(i,1),section) <> 0
+         {
+            Send(self,@LowerSecretDoor,#trap_data=i);
+            
+            if Nth(i,6) = SECRET_DOOR_ONLY_ONCE
+            {
+               % Don't keep track of this anymore, it's been opened.
+               plSecretDoors = DelListElem(plSecretDoors,i);
+            }
+         }
+      }
+
+      return;
+   }
+
+   GetSection(who=$,iRow=$,iCol=$,iFineRow=$,iFineCol=$,bCheckForPool=FALSE)
+   {
+      local iQflags, iRflags, iHeightF, iHeightFWD, iHeightC, iServerID;
+      
+      if iRow = $
+         OR iCol = $
+         OR iFineRow = $
+         OR iFineCol = $
+      {
+         if who <> $
+         {
+            iRow = Send(who,@GetRow);
+            iCol = Send(who,@GetCol);
+            iFineRow = Send(who,@GetFineRow);
+            iFineCol = Send(who,@GetFineCol);
+         }
+         else
+         {
+            return 0;
+         }
+         if iRow = $
+            OR iCol = $
+            OR iFineRow = $
+            OR iFineCol = $
+         {
+            % Who gave us some nil coords.
+            return 0;
+         }
+      }
+
+      iQflags = LIQ_GET_SECTORINFO;
+
+      if GetLocationInfoBSP(
+                      prmRoom, iQflags, iRow, iCol, iFineRow, iFineCol,
+                      *iRflags, *iHeightF, *iHeightFWD, *iHeightC, *iServerID)
+      {
+         return iServerID;
+      }
+
+      return 0;
+   }
+
+   % This function can tell us the height of sectors that have been altered.
+   % If no alteration over starting conditions, returns $.
+   % Send ANIMATE_FLOOR_LIFT or ANIMATE_CEILING_LIFT to check floor or ceiling.
+   GetChangedHeightOfSector(sector_id=-1,type=ANIMATE_FLOOR_LIFT)
+   {
+      local i;
+      
+      foreach i in Send(self,@GetSectorChanges)
+      {
+         if sector_id = Nth(i,1)
+            AND type = Nth(i,2)
+         {
+            return Nth(i,3);
+         }
+      }
+
+      return $;
+   }
+
+% ============
+% LEVERS
+% ============
+
+   SomethingChanged(what=$)
+   {
+      if what <> $
+         AND IsClass(what,&Lever)
+      {
+         Send(self,@LeverPulled,#lever_object=what);
+      }
+
+      propagate;
+   }
+
+   LeverPulled(lever_object=$)
+   {
+      if lever_object <> $
+      {
+         if Send(lever_object,@GetRow) = LEVER_ONE_ROW
+         {
+            if Send(lever_object,@GetState) = LEVER_DOWN
+            {
+               Send(self,@SetSector,#sector=LEVER_ONE_ACTIVATES_SECTOR,
+                                    #animation=LEVER_ONE_TYPE,
+                                    #height=LEVER_ONE_DOWN_HEIGHT,
+                                    #speed=LEVER_ONE_DOWN_SPEED);
+            }
+            else
+            {
+               Send(self,@SetSector,#sector=LEVER_ONE_ACTIVATES_SECTOR,
+                                    #animation=LEVER_ONE_TYPE,
+                                    #height=LEVER_ONE_UP_HEIGHT,
+                                    #speed=LEVER_ONE_UP_SPEED);
+            }
+         }
+
+         if Send(lever_object,@GetRow) = LEVER_TWO_ROW
+         {
+            if Send(lever_object,@GetState) = LEVER_DOWN
+            {
+               Send(self,@SetSector,#sector=LEVER_TWO_ACTIVATES_SECTOR,
+                                    #animation=LEVER_TWO_TYPE,
+                                    #height=LEVER_TWO_DOWN_HEIGHT,
+                                    #speed=LEVER_TWO_DOWN_SPEED);
+            }
+            else
+            {
+               Send(self,@SetSector,#sector=LEVER_TWO_ACTIVATES_SECTOR,
+                                    #animation=LEVER_TWO_TYPE,
+                                    #height=LEVER_TWO_UP_HEIGHT,
+                                    #speed=LEVER_TWO_UP_SPEED);
+            }
+         }
+      }
+      Send(self,@PlayLiftSound);
+      return;
+   }
+
+% ============
+% CRUSHERS
+% ============
+
+   TriggerCrusher(timer=$)
+   {
+      local i, n;
+      
+      foreach i in plCrusherStates
+      {
+         if timer = Nth(i,3)
+         {
+            SetNth(i,3,$);
+            SetNth(i,4,TRAP_ACTING);
+            Send(self,@PlayTrapSlamSound);
+            SetNth(i,3,CreateTimer(self,@HitCrusher,TRAP_ACTING_DELAY));
+            
+            foreach n in Nth(i,2)
+            {
+               Send(self,@SetSector,#sector=n,
+                                    #animation=Nth(i,5),
+                                    #height=Nth(i,6),
+                                    #speed=Nth(i,7));
+            }
+         }
+      }
+      return;
+   }
+
+   HitCrusher(timer=$)
+   {
+      local i, n, each_obj;
+      
+      foreach i in plCrusherStates
+      {
+         if timer = Nth(i,3)
+         {
+            SetNth(i,3,$);
+            SetNth(i,4,TRAP_HIT);
+            SetNth(i,3,CreateTimer(self,@RetreatCrusher,TRAP_HIT_DELAY));
+            Send(self,@AnimateWall,#wall=Nth(i,10),#animation=ANIMATE_NONE,#first_group=1,#passable=FALSE);
+      
+            foreach n in Send(self,@GetHolderActive)
+            {
+               each_obj = Send(self,@HolderExtractObject,#data=n);
+               if IsClass(each_obj,&Player)
+                  AND FindListElem(Nth(i,2),Send(self,@GetSection,#who=each_obj)) <> 0
+               {
+                  Send(each_obj,@MsgSendUser,#message_rsc=trap_damages_you);
+                  Send(each_obj,@LoseHealth,#amount=TRAP_DAMAGE);
+                  if Send(each_obj,@GetExactHealth) <= 0
+                  {
+                     Send(self,@TrapsKilledPlayer,#who=each_obj);
+                  }
+                  else
+                  {
+                     Send(Send(SYS,@FindSpellByNum,#num=SID_EVENT_HOLD),@DoSpell,
+                           #what=self,#oTarget=each_obj,#iDuration=TRAP_HIT_DELAY,#report=FALSE);
+                     Send(each_obj,@EffectSendUserDuration,#effect=EFFECT_PAIN,#duration=TRAP_HIT_DELAY);
+                  }
+               }
+            }
+         }
+      }
+
+      return;
+   }
+   
+   RetreatCrusher(timer=$)
+   {
+      local i, n;
+      
+      foreach i in plCrusherStates
+      {
+         if timer = Nth(i,3)
+         {
+            SetNth(i,3,$);
+            SetNth(i,4,TRAP_RETREATING);
+            Send(self,@AnimateWall,#wall=Nth(i,10),#animation=ANIMATE_NONE,#first_group=1,#passable=TRUE);
+            SetNth(i,3,CreateTimer(self,@ResetCrusher,TRAP_RETREATING_DELAY));
+            
+            foreach n in Nth(i,2)
+            {
+               Send(self,@SetSector,#sector=n,#animation=Nth(i,5),#height=Nth(i,8),#speed=Nth(i,9));
+            }
+         }
+      }
+      return;
+   }
+   
+   ResetCrusher(timer=$)
+   {
+      local i;
+      
+      foreach i in plCrusherStates
+      {
+         if timer = Nth(i,3)
+         {
+            SetNth(i,3,$);
+            SetNth(i,4,TRAP_READY);
+         }
+      }
+      return;
+   }
+
+% ============
+% SECRET DOORS
+% ============
+   
+   LowerSecretDoor(trap_data=$)
+   {
+      local i;
+
+      if Send(self,@GetChangedHeightOfSector,#sector_id=First(Nth(trap_data,2)),#type=Nth(trap_data,3)) <> Nth(trap_data,4)
+      {
+         Send(self,@PlayLiftSound);
+         
+         foreach i in Nth(trap_data,2)
+         {
+            Send(self,@SetSector,#sector=i,
+                                 #animation=Nth(trap_data,3),
+                                 #height=Nth(trap_data,4),
+                                 #speed=Nth(trap_data,5));
+         }
+      }
+
+      return;
+   }
+
+% ============
+% SPIKES
+% ============
+   
+   StartSpikeCycle()
+   {
+      local i, iSequenceDelay;
+      
+      iSequenceDelay = 0;
+      foreach i in plSpikeStates
+      {
+         % Make dormant spikes visible
+         Send(self,@ChangeTexture,#id=Nth(i,2),#new_texture=spikes_texture,#flags=CTF_NORMALWALL);
+
+         switch(Nth(i,6))
+         {
+            case SPIKES_SIMULTANEOUS:
+               SetNth(i,4,CreateTimer(self,@RaiseSpikes,SPIKES_DORMANT_TIME));
+               break;
+            case SPIKES_IN_SEQUENCE:
+               SetNth(i,4,CreateTimer(self,@RaiseSpikes,SPIKES_DORMANT_TIME+iSequenceDelay*SPIKES_DELAY_IF_SEQUENCE));
+               iSequenceDelay++;
+               break;
+         }
+            
+      }
+      return;
+   }
+
+   EndSpikeCycle()
+   {
+      local i;
+
+      foreach i in plSpikeStates
+      {
+         if IsTimer(Nth(i,4))
+         {
+            DeleteTimer(Nth(i,4));
+         }
+         SetNth(i,4,$);
+         SetNth(i,5,SPIKES_DORMANT);
+            
+         Send(self,@ChangeTexture,#id=Nth(i,2),#new_texture=blank_texture,#flags=CTF_NORMALWALL);
+         Send(self,@ChangeTexture,#id=Nth(i,3),#new_texture=blank_texture,#flags=CTF_NORMALWALL);
+         Send(self,@AnimateWall,#wall=Nth(i,2),#animation=ANIMATE_NONE,#first_group=2,#passable=TRUE);
+         Send(self,@AnimateWall,#wall=Nth(i,3),#animation=ANIMATE_NONE,#first_group=2,#passable=TRUE);
+      }
+
+      return;
+   }
+
+   RaiseSpikes(timer=$)
+   {
+      local i, n, each_obj;
+
+      foreach i in plSpikeStates
+      {
+         if timer = Nth(i,4)
+         {
+            SetNth(i,4,$);
+            SetNth(i,5,SPIKES_ACTIVE);
+
+            Send(self,@PlaySpikeSound,#row=Nth(i,7),#col=Nth(i,8),#cutoff_radius=SPIKES_SOUND_RADIUS);
+            
+            Send(self,@ChangeTexture,#id=Nth(i,2),#new_texture=blank_texture,#flags=CTF_NORMALWALL);
+            Send(self,@ChangeTexture,#id=Nth(i,3),#new_texture=spikes_texture,#flags=CTF_NORMALWALL);
+            Send(self,@AnimateWall,#wall=Nth(i,2),#animation=ANIMATE_NONE,#first_group=2,#passable=FALSE);
+            Send(self,@AnimateWall,#wall=Nth(i,3),#animation=ANIMATE_NONE,#first_group=2,#passable=FALSE);
+
+            foreach n in Send(self,@GetHolderActive)
+            {
+               each_obj = Send(self,@HolderExtractObject,#data=n);
+               if IsClass(each_obj,&Player)
+                  AND FindListElem(Nth(i,1),Send(self,@GetSection,#who=each_obj)) <> 0
+               {
+                  Send(each_obj,@MsgSendUser,#message_rsc=spikes_damage_you);
+      
+                  Send(each_obj,@LoseHealth,#amount=SPIKES_DAMAGE);
+                  Send(each_obj,@EffectSendUserDuration,#effect=EFFECT_PAIN,#duration=SPIKES_PAIN_TIME);
+                  if Send(each_obj,@GetExactHealth) <= 0
+                  {
+                     Send(self,@TrapsKilledPlayer,#who=each_obj);
+                  }
+               }
+            }
+            
+            SetNth(i,4,CreateTimer(self,@LowerSpikes,SPIKES_ACTIVE_TIME));
+         }
+      }
+
+      return;
+   }
+   
+   LowerSpikes(timer=$)
+   {
+      local i;
+
+      foreach i in plSpikeStates
+      {
+         if timer = Nth(i,4)
+         {
+            SetNth(i,4,$);
+            SetNth(i,5,SPIKES_DORMANT);
+            
+            Send(self,@ChangeTexture,#id=Nth(i,2),#new_texture=spikes_texture,#flags=CTF_NORMALWALL);
+            Send(self,@ChangeTexture,#id=Nth(i,3),#new_texture=blank_texture,#flags=CTF_NORMALWALL);
+            Send(self,@AnimateWall,#wall=Nth(i,2),#animation=ANIMATE_NONE,#first_group=2,#passable=TRUE);
+            Send(self,@AnimateWall,#wall=Nth(i,3),#animation=ANIMATE_NONE,#first_group=2,#passable=TRUE);
+            
+            SetNth(i,4,CreateTimer(self,@RaiseSpikes,SPIKES_DORMANT_TIME));
+         }
+      }
+      return;
+   }
+
+% ============
+% TOTEMS
+% ============
+
+   PlaceTotems()
+   {
+      local i;
+      
+      foreach i in plTotems
+      {
+         if Nth(i,2) <> $
+         {
+            continue;
+         }
+
+         SetNth(i,2,Create(&MazeTotem,#iSpellID=Nth(i,1)));
+         Send(self,@NewHold,#what=Nth(i,2),
+                            #new_row=Nth(i,4),
+                            #new_col=Nth(i,5),
+                            #fine_row=Nth(i,6),
+                            #fine_col=Nth(i,7));
+      }
+
+      return;
+   }
+
+   TotemKilled(totem_object=$)
+   {
+      local i;
+      
+      foreach i in plTotems
+      {
+         if totem_object = Nth(i,2)
+         {
+            SetNth(i,2,$);
+            SetNth(i,3,CreateTimer(self,@RespawnTotem,TOTEM_RESPAWN_TIME));
+         }
+      }
+
+      return;
+   }
+
+   RespawnTotem(timer=$)
+   {
+      local i;
+      
+      foreach i in plTotems
+      {
+         if timer = Nth(i,3)
+         {
+            SetNth(i,3,$);
+            SetNth(i,2,Create(&MazeTotem,#iSpellID=Nth(i,1)));
+            Send(self,@NewHold,#what=Nth(i,2),
+                               #new_row=Nth(i,4),
+                               #new_col=Nth(i,5),
+                               #fine_row=Nth(i,6),
+                               #fine_col=Nth(i,7));
+         }
+      }
+
+      return;
+   }
+   
+   RemoveTotems()
+   {
+      local i;
+      
+      foreach i in plTotems
+      {
+         if Nth(i,2) <> $
+         {
+            Send(Nth(i,2),@Delete);
+            SetNth(i,2,$);
+         }
+         if Nth(i,3) <> $
+         {
+            if IsTimer(Nth(i,3))
+            {
+               DeleteTimer(Nth(i,3));
+            }
+            SetNth(i,3,$);
+         }
+      }
+
+      return;
+   }
+
+% ============
+% LAVA
+% ============
+
+   StartLava()
+   {
+      local i;
+
+      foreach i in plLavaSectors
+      {
+         % Set up the lava
+         %Send(self,@RemoveSectorFlagChange,#id=i);
+         Send(self,@SetSector,#sector=i,#animation=ANIMATE_FLOOR_LIFT,#height=995,#speed=0);
+         Send(self,@ChangeTexture,#id=i,#new_texture=maze_lava_texture,#flags=CTF_FLOOR);
+         %Send(self,@SetSectorLight,#sector=i,#light_effect=FLICKER_ON);
+      }
+
+      if plLavaSectors <> $
+      {
+         ptLavaBurnTimer = CreateTimer(self,@DoLava,LAVA_BURN_TIME);
+      }
+
+      return;
+   }
+
+   DoLava(timer=$)
+   {
+      local i, each_obj;
+
+      ptLavaBurnTimer = $;
+
+      foreach i in Send(self,@GetHolderActive)
+      {
+         each_obj = Send(self,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&Player)
+            AND FindListElem(plLavaSectors,Send(self,@GetSection,#who=each_obj)) <> 0
+            AND NOT Send(each_obj,@IsInCannotInteractMode)
+         {
+            Send(each_obj,@MsgSendUser,#message_rsc=lava_applying_burn);
+            Send(each_obj,@EffectSendUserDurationAndXlat,#effect=EFFECT_FLASHXLAT,#duration=100,#xlat=81);
+            Send(each_obj,@ApplyElementalStatusEffects,#damage=LAVA_BURN_APPLIED*Send(SETTINGS_OBJECT,@GetElementalMultiple,#type=STATUS_BURNING),#aspell=ATCK_SPELL_FIRE);
+         }
+      }
+
+      ptLavaBurnTimer = CreateTimer(self,@DoLava,LAVA_BURN_TIME);
+      return;
+   }
+
+   EndLava()
+   {
+      local i;
+
+      foreach i in plLavaSectors
+      {
+         % Remove the lava
+         Send(self,@SetSector,#sector=i,#animation=ANIMATE_FLOOR_LIFT,#height=1000,#speed=0);
+         Send(self,@RemoveTextureChange,#id=i);
+      }
+
+      if ptLavaBurnTimer <> $
+      {
+         DeleteTimer(ptLavaBurnTimer);
+      }
+      ptLavaBurnTimer = $;
+      return;
+   }
+
+% ============
+% SAWBLADES
+% ============
+
+   TriggerSawblade(trap_data=$)
+   {
+      local i;
+      
+      % Ensure we are ready aka no activated or deactivated timer
+      if Nth(trap_data,5) = $
+      {
+         Send(self,@AnimateWall,#wall=Nth(trap_data,4),#animation=ANIMATE_NONE,#first_group=1,#passable=FALSE);
+         Send(self,@ChangeTexture,#id=Nth(trap_data,3),#new_texture=sawblade_trap_texture,#flags=CTF_NORMALWALL);
+         Send(self,@AnimateWall,#wall=Nth(trap_data,3),
+                                #animation=ANIMATE_CYCLE,
+                                #first_group=1,
+                                #second_group=241,
+                                #end_group=241,
+                                #speed=SAWBLADE_SPEED);
+         Send(self,@PlaySawbladeSound,#row=Nth(trap_data,7),#col=Nth(trap_data,8));
+
+         SetNth(trap_data,5,CreateTimer(self,@DeactivateSawblade,SAWBLADE_FULL_CYCLE_TIME));
+         SetNth(trap_data,6,CreateTimer(self,@DealSawbladeDamage,SAWBLADE_DAMAGE_TIME));
+      }
+
+      return;
+   }
+
+   DeactivateSawblade(timer=$)
+   {
+      local i;
+      
+      foreach i in plSawbladeStates
+      {
+         if timer = Nth(i,5)
+         {
+            SetNth(i,5,$);
+
+            Send(self,@ChangeTexture,#id=Nth(i,3),#new_texture=blank_texture,#flags=CTF_NORMALWALL);
+            Send(self,@AnimateWall,#wall=Nth(i,3),
+                                   #animation=ANIMATE_NONE,
+                                   #first_group=1,
+                                   #second_group=1,
+                                   #end_group=1);
+            Send(self,@AnimateWall,#wall=Nth(i,4),#animation=ANIMATE_NONE,#first_group=1,#passable=TRUE);
+            
+            % Turn off damage timer
+            if Nth(i,6) <> $
+               AND IsTimer(Nth(i,6))
+            {
+               DeleteTimer(Nth(i,6));
+            }
+            SetNth(i,6,$);
+            
+            SetNth(i,5,CreateTimer(self,@ReactivateSawblade,SAWBLADE_DORMANT_TIME));
+         }
+      }
+
+      return;
+   }
+
+   DealSawbladeDamage(timer=$)
+   {
+      local i, n, each_obj;
+
+      foreach i in plSawbladeStates
+      {
+         if timer = Nth(i,6)
+         {
+            SetNth(i,6,$);
+            foreach n in Send(self,@GetHolderActive)
+            {
+               each_obj = Send(self,@HolderExtractObject,#data=n);
+               if IsClass(each_obj,&Player)
+                  AND FindListElem(Nth(i,2), Send(self,@GetSection,#who=each_obj)) <> 0
+               {
+                  Send(each_obj,@EffectSendUserDuration,#effect=EFFECT_PAIN,#duration=1000);
+                  Send(each_obj,@LoseHealth,#amount=SAWBLADE_DAMAGE);
+                  if Send(each_obj,@GetExactHealth) <= 0
+                  {
+                     Send(self,@TrapsKilledPlayer,#who=each_obj);
+                  }
+               }
+            }
+            SetNth(i,6,CreateTimer(self,@DealSawbladeDamage,SAWBLADE_DAMAGE_TIME));
+         }
+      }
+      return;
+   }
+   
+   ReactivateSawblade(timer=$)
+   {
+      local i;
+      
+      foreach i in plSawbladeStates
+      {
+         if timer = Nth(i,5)
+         {
+            SetNth(i,5,$);
+         }
+      }
+
+      return;
+   }
+
+% ============
+% ROOMS
+% ============
+
+   SomethingTryGo(what = $,row = $,col = $)
+   {
+      if what <> $
+         AND IsClass(what,&Player)
+      {
+         return Send(self,@AttemptExit,#who=what,#iSection=Send(self,@GetSection,#who=what));
+      }
+
+      propagate;
+   }
+   
+   AttemptExit(who=$,iSection=0)
+   {
+      if who <> $
+         AND IsClass(who,&Player)
+      {         
+         switch(iSection)
+         {
+            case NORTH_EXIT_SECTOR:
+               Send(self,@MazeExit,#who=who,#from_direction=MAZE_DIRECTION_NORTH);
+               return TRUE;
+            case EAST_EXIT_SECTOR:
+               Send(self,@MazeExit,#who=who,#from_direction=MAZE_DIRECTION_EAST);
+               return TRUE;
+            case SOUTH_EXIT_SECTOR:
+               Send(self,@MazeExit,#who=who,#from_direction=MAZE_DIRECTION_SOUTH);
+               return TRUE;
+            case WEST_EXIT_SECTOR:
+               Send(self,@MazeExit,#who=who,#from_direction=MAZE_DIRECTION_WEST);
+               return TRUE;
+         }
+      }
+   
+      return FALSE;
+   }
+
+   MazeExit(who=$,from_direction=0)
+   {
+      switch(from_direction)
+      {
+         case MAZE_DIRECTION_NORTH:
+            if poNorthExit = $
+            {
+               poNorthExit = Send(Send(SYS,@GetMazeRoomMaintenance),@GetRoomAtCoords,
+                                                                    #x_coord=piXCoord,
+                                                                    #y_coord=piYCoord+1);
+            }
+            if poNorthExit <> $
+            {
+               Send(poNorthExit,@MazeEnter,#who=who,#from_direction=from_direction);
+            }
+            else
+            {
+               Send(who,@MsgSendUser,#message_rsc=psNorthExitMsg);
+            }
+            break;
+         case MAZE_DIRECTION_SOUTH:
+            if poSouthExit = $
+            {
+               poSouthExit = Send(Send(SYS,@GetMazeRoomMaintenance),@GetRoomAtCoords,
+                                                                    #x_coord=piXCoord,
+                                                                    #y_coord=piYCoord-1);
+            }
+            if poSouthExit <> $
+            {
+               Send(poSouthExit,@MazeEnter,#who=who,#from_direction=from_direction);
+            }
+            else
+            {
+               Send(who,@MsgSendUser,#message_rsc=psSouthExitMsg);
+            }
+            break;
+         case MAZE_DIRECTION_EAST:
+            if poEastExit = $
+            {
+               poEastExit = Send(Send(SYS,@GetMazeRoomMaintenance),@GetRoomAtCoords,
+                                                                    #x_coord=piXCoord+1,
+                                                                    #y_coord=piYCoord);
+            }
+            if poEastExit <> $
+            {
+               Send(poEastExit,@MazeEnter,#who=who,#from_direction=from_direction);
+            }
+            else
+            {
+               Send(who,@MsgSendUser,#message_rsc=psEastExitMsg);
+            }
+            break;
+         case MAZE_DIRECTION_WEST:
+            if poWestExit = $
+            {
+               poWestExit = Send(Send(SYS,@GetMazeRoomMaintenance),@GetRoomAtCoords,
+                                                                    #x_coord=piXCoord-1,
+                                                                    #y_coord=piYCoord);
+            }
+            if poWestExit <> $
+            {
+               Send(poWestExit,@MazeEnter,#who=who,#from_direction=from_direction);
+            }
+            else
+            {
+               Send(who,@MsgSendUser,#message_rsc=psWestExitMsg);
+            }
+            break;
+      }
+      
+      
+      return;
+   }
+
+   SetConnectedRoom(from_room=$,from_direction=0)
+   {
+      switch(from_direction)
+      {
+         case MAZE_DIRECTION_NORTH:
+            poSouthExit = from_room;
+            break;
+         case MAZE_DIRECTION_EAST:
+            poWestExit = from_room;
+            break;
+         case MAZE_DIRECTION_SOUTH:
+            poNorthExit = from_room;
+            break;
+         case MAZE_DIRECTION_WEST:
+            poEastExit = from_room;
+            break;
+      }
+      return;
+   }
+
+   MazeEnter(who=$,from_direction=0)
+   {
+      local oQuadrantTargetRoom, bInform, rInformMsg;
+
+      switch(from_direction)
+      {
+         case MAZE_DIRECTION_NORTH:
+            Post(SYS,@UtilGoNearSquare,#what=who,
+                 #where=self,
+                 #new_row=piSouthEntranceRow,
+                 #new_col=piSouthEntranceCol,
+                 #fine_row=piSouthEntranceFineRow,
+                 #fine_col=piSouthEntranceFineCol,
+                 #new_angle=Send(who,@GetAngle));
+            break;
+         case MAZE_DIRECTION_SOUTH:
+            Post(SYS,@UtilGoNearSquare,#what=who,
+                 #where=self,
+                 #new_row=piNorthEntranceRow,
+                 #new_col=piNorthEntranceCol,
+                 #fine_row=piNorthEntranceFineRow,
+                 #fine_col=piNorthEntranceFineCol,
+                 #new_angle=Send(who,@GetAngle));
+            break;
+         case MAZE_DIRECTION_EAST:
+            Post(SYS,@UtilGoNearSquare,#what=who,
+                 #where=self,
+                 #new_row=piWestEntranceRow,
+                 #new_col=piWestEntranceCol,
+                 #fine_row=piWestEntranceFineRow,
+                 #fine_col=piWestEntranceFineCol,
+                 #new_angle=Send(who,@GetAngle));
+            break;
+         case MAZE_DIRECTION_WEST:
+            Post(SYS,@UtilGoNearSquare,#what=who,
+                 #where=self,
+                 #new_row=piEastEntranceRow,
+                 #new_col=piEastEntranceCol,
+                 #fine_row=piEastEntranceFineRow,
+                 #fine_col=piEastEntranceFineCol,
+                 #new_angle=Send(who,@GetAngle));
+            break;
+      }
+
+      % Here we give the player environmental hints to find major rooms
+      if piXCoord > 5
+         AND piYCoord > 5
+      {
+         % Northeast quadrant. Ice dragon.
+         oQuadrantTargetRoom = Send(Send(SYS,@GetMazeRoomMaintenance),@GetBossRoom);
+         rInformMsg = maze_headed_towards_boss_room;
+      }
+      if piXCoord > 5
+         AND piYCoord <= 5
+      {
+         % Southeast quadrant. Armor room.
+         oQuadrantTargetRoom = Send(Send(SYS,@GetMazeRoomMaintenance),@GetArmorRoom);
+         rInformMsg = maze_headed_towards_armor_room;
+      }
+      if piXCoord <= 5
+         AND piYCoord > 5
+      {
+         % Northwest quadrant. Lava frog.
+         oQuadrantTargetRoom = Send(Send(SYS,@GetMazeRoomMaintenance),@GetShrineRoom);
+         rInformMsg = maze_headed_towards_shrine_room;
+      }
+      if piXCoord <= 5
+         AND piYCoord <= 5
+      {
+         % Southwest quadrant. Test of Mind and Body.
+         oQuadrantTargetRoom = Send(Send(SYS,@GetMazeRoomMaintenance),@GetTreasureRoom);
+         rInformMsg = maze_headed_towards_treasure_room;
+      }
+
+      bInform = FALSE;
+      switch(from_direction)
+      {
+         case MAZE_DIRECTION_NORTH:
+            if Send(oQuadrantTargetRoom,@GetYCoord) > piYCoord
+            {
+               bInform = TRUE;
+            }
+            break;
+         case MAZE_DIRECTION_SOUTH:
+            if Send(oQuadrantTargetRoom,@GetYCoord) < piYCoord
+            {
+               bInform = TRUE;
+            }
+            break;
+         case MAZE_DIRECTION_WEST:
+            if Send(oQuadrantTargetRoom,@GetXCoord) < piXCoord
+            {
+               bInform = TRUE;
+            }
+            break;
+         case MAZE_DIRECTION_EAST:
+            if Send(oQuadrantTargetRoom,@GetXCoord) > piXCoord
+            {
+               bInform = TRUE;
+            }
+            break;
+      }
+
+      if bInform
+      {
+         Post(who,@MsgSendUser,#message_rsc=rInformMsg);
+      }
+      return;
+   }
+
+% ============
+% GENERAL
+% ============
+
+   TrapsKilledPlayer(who=$)
+   {
+      if who <> $
+         AND IsClass(who,&Player)
+      {
+         Send(who,@Killed,#what=self);
+      }
+      return;
+   }
+
+   SetCustomSectors()
+   {
+      local i, iCurRow, iCurCol, iMaxRows, iMaxCols, iSectionResult, lAlreadySelectedSectors,
+            lSawbladesTriggerSectors, lCrusherTriggerSectors, lSpikeDamageSectors, lSecretDoorTriggerSectors,
+            lLavaSectors, lTotemSectors, lDesertSpawnSectors, lStatueSpawnSectors, lDesertThreatSectors,
+            lFeretorySectors, lExitMsgs;
+
+      % Let's start this with an element of zero so it's never nil
+      lAlreadySelectedSectors = [0];
+      lSawbladesTriggerSectors = [SAWBLADES_ONE_TRIGGER_SECTOR,
+                                  SAWBLADES_TWO_TRIGGER_SECTOR,
+                                  SAWBLADES_THREE_TRIGGER_SECTOR,
+                                  SAWBLADES_FOUR_TRIGGER_SECTOR,
+                                  SAWBLADES_FIVE_TRIGGER_SECTOR,
+                                  SAWBLADES_SIX_TRIGGER_SECTOR,
+                                  SAWBLADES_SEVEN_TRIGGER_SECTOR,
+                                  SAWBLADES_EIGHT_TRIGGER_SECTOR,
+                                  SAWBLADES_NINE_TRIGGER_SECTOR,
+                                  SAWBLADES_TEN_TRIGGER_SECTOR];
+      lCrusherTriggerSectors = [CRUSHER_ONE_TRIGGER_SECTOR,
+                                CRUSHER_TWO_TRIGGER_SECTOR,
+                                CRUSHER_THREE_TRIGGER_SECTOR,
+                                CRUSHER_FOUR_TRIGGER_SECTOR,
+                                CRUSHER_FIVE_TRIGGER_SECTOR,
+                                CRUSHER_SIX_TRIGGER_SECTOR,
+                                CRUSHER_SEVEN_TRIGGER_SECTOR,
+                                CRUSHER_EIGHT_TRIGGER_SECTOR,
+                                CRUSHER_NINE_TRIGGER_SECTOR,
+                                CRUSHER_TEN_TRIGGER_SECTOR];
+      lSpikeDamageSectors = [SPIKES_ONE_DAMAGE_SECTOR,
+                             SPIKES_TWO_DAMAGE_SECTOR,
+                             SPIKES_THREE_DAMAGE_SECTOR,
+                             SPIKES_FOUR_DAMAGE_SECTOR,
+                             SPIKES_FIVE_DAMAGE_SECTOR,
+                             SPIKES_SIX_DAMAGE_SECTOR,
+                             SPIKES_SEVEN_DAMAGE_SECTOR,
+                             SPIKES_EIGHT_DAMAGE_SECTOR,
+                             SPIKES_NINE_DAMAGE_SECTOR,
+                             SPIKES_TEN_DAMAGE_SECTOR];
+      lSecretDoorTriggerSectors = [SECRET_DOOR_ONE_TRIGGER_SECTOR,
+                                   SECRET_DOOR_TWO_TRIGGER_SECTOR,
+                                   SECRET_DOOR_THREE_TRIGGER_SECTOR,
+                                   SECRET_DOOR_FOUR_TRIGGER_SECTOR,
+                                   SECRET_DOOR_FIVE_TRIGGER_SECTOR,
+                                   SECRET_DOOR_SIX_TRIGGER_SECTOR,
+                                   SECRET_DOOR_SEVEN_TRIGGER_SECTOR,
+                                   SECRET_DOOR_EIGHT_TRIGGER_SECTOR,
+                                   SECRET_DOOR_NINE_TRIGGER_SECTOR,
+                                   SECRET_DOOR_TEN_TRIGGER_SECTOR];
+      lLavaSectors = [LAVA_ONE_SECTOR,
+                      LAVA_TWO_SECTOR,
+                      LAVA_THREE_SECTOR,
+                      LAVA_FOUR_SECTOR,
+                      LAVA_FIVE_SECTOR,
+                      LAVA_SIX_SECTOR,
+                      LAVA_SEVEN_SECTOR,
+                      LAVA_EIGHT_SECTOR,
+                      LAVA_NINE_SECTOR,
+                      LAVA_TEN_SECTOR];
+      lTotemSectors = [TOTEM_ONE_SECTOR,
+                       TOTEM_TWO_SECTOR,
+                       TOTEM_THREE_SECTOR,
+                       TOTEM_FOUR_SECTOR,
+                       TOTEM_FIVE_SECTOR,
+                       TOTEM_SIX_SECTOR,
+                       TOTEM_SEVEN_SECTOR,
+                       TOTEM_EIGHT_SECTOR,
+                       TOTEM_NINE_SECTOR,
+                       TOTEM_TEN_SECTOR];
+      lDesertSpawnSectors = [DESERT_SPAWN_ONE,
+                             DESERT_SPAWN_TWO,
+                             DESERT_SPAWN_THREE,
+                             DESERT_SPAWN_FOUR,
+                             DESERT_SPAWN_FIVE,
+                             DESERT_SPAWN_SIX,
+                             DESERT_SPAWN_SEVEN,
+                             DESERT_SPAWN_EIGHT,
+                             DESERT_SPAWN_NINE,
+                             DESERT_SPAWN_TEN];
+      lStatueSpawnSectors = [STATUE_SPAWN_ONE,
+                             STATUE_SPAWN_TWO,
+                             STATUE_SPAWN_THREE,
+                             STATUE_SPAWN_FOUR,
+                             STATUE_SPAWN_FIVE,
+                             STATUE_SPAWN_SIX,
+                             STATUE_SPAWN_SEVEN,
+                             STATUE_SPAWN_EIGHT,
+                             STATUE_SPAWN_NINE,
+                             STATUE_SPAWN_TEN];
+      lDesertThreatSectors = [SNOW_SECTOR,
+                              ICE_SECTOR];
+      lFeretorySectors = [RELIC_TREASURE_SECTOR];
+      lExitMsgs = [maze_exit_blocked1,
+                   maze_exit_blocked2,
+                   maze_exit_blocked3,
+                   maze_exit_blocked4,
+                   maze_exit_blocked5,
+                   maze_exit_blocked6,
+                   maze_exit_blocked7,
+                   maze_exit_blocked8,
+                   maze_exit_blocked9,
+                   maze_exit_blocked10,
+                   maze_exit_blocked11,
+                   maze_exit_blocked12,
+                   maze_exit_blocked13];
+
+      iCurRow = 0;
+      iCurCol = 0;
+      iMaxRows = Send(self,@GetRoomRows);
+      iMaxCols = Send(self,@GetRoomCols);
+
+      while iCurRow <= iMaxRows
+      {
+         while iCurCol <= iMaxCols
+         {
+            iSectionResult = Send(self,@GetSection,#iRow=iCurRow,#iCol=iCurCol,#iFineRow=0,#iFineCol=0);
+
+            if FindListElem(lSawbladesTriggerSectors,iSectionResult)
+               AND NOT FindListElem(lAlreadySelectedSectors,iSectionResult)
+            {
+               plSawbladeStates = Cons([[iSectionResult,iSectionResult+1],   % Trigger sectors
+                                        [iSectionResult+1],                  % Damage sectors
+                                        iSectionResult+2,                    % Sawblade walls ID
+                                        iSectionResult+2,                    % Sawblade no pass ID
+                                        $,
+                                        $,
+                                        iCurRow,                             % Sound row
+                                        iCurCol                              % Sound col
+                                        ],plSawbladeStates);
+               lAlreadySelectedSectors = Cons(iSectionResult,lAlreadySelectedSectors);
+            }
+            
+            if FindListElem(lCrusherTriggerSectors,iSectionResult)
+               AND NOT FindListElem(lAlreadySelectedSectors,iSectionResult)
+            {
+               plCrusherStates = Cons([[iSectionResult],                % Trigger sectors
+                                       [iSectionResult+1],              % Crusher sectors
+                                       $,
+                                       TRAP_READY,
+                                       ANIMATE_CEILING_LIFT,
+                                       CRUSHER_UP_HEIGHTS_HERE-110,     % down height
+                                       220,                             % down speed
+                                       CRUSHER_UP_HEIGHTS_HERE,         % up height
+                                       11,                              % up speed
+                                       iSectionResult+2                 % nopass Wall ID for Crusher
+                                       ],plCrusherStates);
+               lAlreadySelectedSectors = Cons(iSectionResult,lAlreadySelectedSectors);
+            }
+            
+            if FindListElem(lSpikeDamageSectors,iSectionResult)
+               AND NOT FindListElem(lAlreadySelectedSectors,iSectionResult)
+            {
+               plSpikeStates = Cons([[iSectionResult],                            % Pain sectors
+                                     iSectionResult+1,                            % down wall ID
+                                     iSectionResult+2,                            % Up wall ID
+                                     $,
+                                     SPIKES_DORMANT,
+                                     SPIKES_SIMULTANEOUS,
+                                     iCurRow,                                     % sound row
+                                     iCurCol                                      % sound col
+                                     ],plSpikeStates);
+               lAlreadySelectedSectors = Cons(iSectionResult,lAlreadySelectedSectors);
+            }
+            
+            if FindListElem(lSecretDoorTriggerSectors,iSectionResult)
+               AND NOT FindListElem(lAlreadySelectedSectors,iSectionResult)
+            {
+               plSecretDoors = Cons([[iSectionResult],                        % Trigger sectors
+                                     [iSectionResult+1],                      % Door sector
+                                     ANIMATE_FLOOR_LIFT,
+                                     SECRET_DOORS_LOWER_TO_THIS_HEIGHT_HERE,  % Height
+                                     50,                                      % Speed
+                                     SECRET_DOOR_ONLY_ONCE],plSecretDoors);
+               lAlreadySelectedSectors = Cons(iSectionResult,lAlreadySelectedSectors);
+            }
+            
+            if FindListElem(lLavaSectors,iSectionResult)
+               AND NOT FindListElem(lAlreadySelectedSectors,iSectionResult)
+            {
+               plLavaSectors = Cons(iSectionResult,plLavaSectors);           % Lava pain sectors
+               lAlreadySelectedSectors = Cons(iSectionResult,lAlreadySelectedSectors);
+            }
+            
+            if FindListElem(lTotemSectors,iSectionResult)
+               AND NOT FindListElem(lAlreadySelectedSectors,iSectionResult)
+            {
+               plTotems = Cons([Send(self,@GetTotemSpellNum),         % Spell ID
+                                $,
+                                $,
+                                iCurRow,                              % Row
+                                iCurCol,                              % Col
+                                0,                                    % Fine Row
+                                0                                     % Fine Col
+                                ],plTotems);
+               lAlreadySelectedSectors = Cons(iSectionResult,lAlreadySelectedSectors);
+            }
+            
+            if FindListElem(lFeretorySectors,iSectionResult)
+               AND NOT FindListElem(lAlreadySelectedSectors,iSectionResult)
+            {
+               plFeretorySpawnPoints = Cons([iCurRow,iCurCol],plFeretorySpawnPoints);
+               lAlreadySelectedSectors = Cons(iSectionResult,lAlreadySelectedSectors);
+            }
+            
+            if FindListElem(lStatueSpawnSectors,iSectionResult)
+               AND NOT FindListElem(lAlreadySelectedSectors,iSectionResult)
+            {
+               % We do spawn monsters now.
+               vbSpawnMonsters = TRUE;
+               plStatueSpawnPoints = Cons([iCurRow,iCurCol],plStatueSpawnPoints);
+               lAlreadySelectedSectors = Cons(iSectionResult,lAlreadySelectedSectors);
+            }
+            
+            if FindListElem(lDesertSpawnSectors,iSectionResult)
+               AND NOT FindListElem(lAlreadySelectedSectors,iSectionResult)
+            {
+               % We do spawn monsters now.
+               vbSpawnMonsters = TRUE;
+               plDesertSpawnPoints = Cons([iCurRow,iCurCol],plDesertSpawnPoints);
+               lAlreadySelectedSectors = Cons(iSectionResult,lAlreadySelectedSectors);
+            }
+            
+            if FindListElem(lDesertThreatSectors,iSectionResult)
+               AND NOT FindListElem(lAlreadySelectedSectors,iSectionResult)
+            {
+               % This area is open to the sky and has desert threats.
+               vbDesertThreatsHere = TRUE;
+               lAlreadySelectedSectors = Cons(iSectionResult,lAlreadySelectedSectors);
+            }
+
+            Switch(iSectionResult)
+            {
+               case THIS_AREA_HAS_FALL_THREAT:
+                  pbFallThreatHere = TRUE;
+                  Send(self,@SetWadingSound,#type=MAZE_LAVA_WALKING);
+                  break;
+               case NORTH_ENTRANCE_SECTOR:
+                  % Entrance hasn't been set, so let's set it now
+                  if piNorthEntranceRow = 0
+                  {
+                     piNorthEntranceRow = iCurRow;
+                     piNorthEntranceCol = iCurCol;
+                     piNorthEntranceFineRow = 0;
+                     piNorthEntranceFineCol = 0;
+                  }
+                  break;
+               case EAST_ENTRANCE_SECTOR:
+                  if piEastEntranceRow = 0
+                  {
+                     piEastEntranceRow = iCurRow;
+                     piEastEntranceCol = iCurCol;
+                     piEastEntranceFineRow = 0;
+                     piEastEntranceFineCol = 0;
+                  }
+                  break;
+               case SOUTH_ENTRANCE_SECTOR:
+                  if piSouthEntranceRow = 0
+                  {
+                     piSouthEntranceRow = iCurRow;
+                     piSouthEntranceCol = iCurCol;
+                     piSouthEntranceFineRow = 0;
+                     piSouthEntranceFineCol = 0;
+                  }
+                  break;
+               case WEST_ENTRANCE_SECTOR:
+                  if piWestEntranceRow = 0
+                  {
+                     piWestEntranceRow = iCurRow;
+                     piWestEntranceCol = iCurCol;
+                     piWestEntranceFineRow = 0;
+                     piWestEntranceFineCol = 0;
+                  }
+                  break;
+               case BLINK_SECTOR:
+                  if piCustomTeleportRow = 0
+                  {
+                     piCustomTeleportRow = iCurRow;
+                     piCustomTeleportCol = iCurCol;
+                  }
+                  break;
+            }
+
+            iCurCol++;
+         }
+         iCurCol = 0;
+         iCurRow++;
+      }
+      
+      if piNorthEntranceRow = 0
+         AND piNorthEntranceCol = 0
+      {
+         piNorthEntranceRow = viNorthEntranceRow;
+         piNorthEntranceCol = viNorthEntranceCol;
+         piNorthEntranceFineRow = viNorthEntranceFineRow;
+         piNorthEntranceFineCol = viNorthEntranceFineCol;
+      }
+      
+      if piEastEntranceRow = 0
+         AND piEastEntranceCol = 0
+      {
+         piEastEntranceRow = viEastEntranceRow;
+         piEastEntranceCol = viEastEntranceCol;
+         piEastEntranceFineRow = viEastEntranceFineRow;
+         piEastEntranceFineCol = viEastEntranceFineCol;
+      }
+      
+      if piSouthEntranceRow = 0
+         AND piSouthEntranceCol = 0
+      {
+         piSouthEntranceRow = viSouthEntranceRow;
+         piSouthEntranceCol = viSouthEntranceCol;
+         piSouthEntranceFineRow = viSouthEntranceFineRow;
+         piSouthEntranceFineCol = viSouthEntranceFineCol;
+      }
+      
+      if piWestEntranceRow = 0
+         AND piWestEntranceCol = 0
+      {
+         piWestEntranceRow = viWestEntranceRow;
+         piWestEntranceCol = viWestEntranceCol;
+         piWestEntranceFineRow = viWestEntranceFineRow;
+         piWestEntranceFineCol = viWestEntranceFineCol;
+      }
+      
+      if piCustomTeleportRow = 0
+         AND piCustomTeleportCol = 0
+      {
+         piCustomTeleportRow = viTeleport_row;
+         piCustomTeleportCol = viTeleport_col;
+      }
+
+      if vbDesertThreatsHere
+      {
+         prMusic = Send(self,@GetPhaseMusic);
+      }
+      else if vbSpawnMonsters
+      {
+         prMusic = maze_music2;
+      }
+      else
+      {
+         prMusic = maze_music1;
+      }
+      
+      if psSouthExitMsg = $
+      {
+         psSouthExitMsg = Nth(lExitMsgs,Random(1,Length(lExitMsgs)));
+      }
+      
+      if psNorthExitMsg = $
+      {
+         psNorthExitMsg = Nth(lExitMsgs,Random(1,Length(lExitMsgs)));
+      }
+      
+      if psWestExitMsg = $
+      {
+         psWestExitMsg = Nth(lExitMsgs,Random(1,Length(lExitMsgs)));
+      }
+      
+      if psEastExitMsg = $
+      {
+         psEastExitMsg = Nth(lExitMsgs,Random(1,Length(lExitMsgs)));
+      }
+
+      return;
+   }
+
+   GetTotemSpellNum()
+   {
+      local lPossibleSpells;
+      
+      lPossibleSpells = [SID_LIGHTNING_BOLT,
+                         SID_FIREBALL,
+                         SID_HEX_EXHAUSTION,
+                         SID_HEX_FESTER,
+                         SID_HEX_SEVER];
+                         
+      
+      return Nth(lPossibleSpells,Random(1,Length(lPossibleSpells)));
+   }
+
+   NewHoldObject(what = $,new_pos = $)
+   {
+      if IsClass(what,&Player)
+      {
+         Send(self,@RemoveLightSources,#who=what);
+      }
+      propagate;
+   }
+
+   RemoveLightSources(who=$)
+   {
+      local i, each_obj, oGlow, iCurrentGlow, bInform;
+
+      bInform = FALSE;
+
+      if Send(who,@IsEnchanted,#byClass=&NightVision)
+      {
+         Post(who,@RemoveEnchantmentClass,#class=&NightVision);
+         bInform = TRUE;
+      }
+      
+      oGlow = Send(SYS,@FindItemAttByNum,#num=WA_GLOWING);
+
+      foreach i in Send(who,@GetHolderPassive)
+      {
+         each_obj = Send(who,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&Weapon)
+         {
+            iCurrentGlow = Send(each_obj,@GetAttributeData,#ItemAtt=WA_GLOWING);
+            if iCurrentGlow <> $
+            {
+               Send(oGlow,@RemoveFromItem,#oItem=each_obj);
+               bInform = TRUE;
+            }
+         }
+      }
+      
+      if bInform
+      {
+         Post(who,@MsgSendUser,#message_rsc=maze_clinging_darkness);
+      }
+      
+      return;
+   }
+
+   ReqSpellCast(who = $, oSpell = $, lItems = $)
+   {
+      if IsClass(oSpell,&Blink)
+         AND vbCannotBlinkHere
+      {
+         Send(self,@TellUserTheyCannotBlink,#who=who);
+         return FALSE;
+      }
+
+      if IsClass(oSpell,&Firewall)
+         OR IsClass(oSpell,&LightningWall)
+         OR IsClass(oSpell,&RingOfFlames)
+         OR IsClass(oSpell,&NightVision)
+         OR IsClass(oSpell,&GlowWeapon)
+         OR IsClass(oSpell,&Light)
+      {
+         Post(who,@MsgSendUser,#message_rsc=maze_clinging_darkness);
+         return FALSE;
+      }
+
+      if IsClass(oSpell,&DeathRift)
+         OR IsClass(oSpell,&PortalOfLife)
+      {
+         Send(who,@MsgSendUser,#message_rsc=maze_cannot_death_rift_or_pol);
+         return FALSE;
+      }
+
+      propagate;
+   }
+
+   TellUserTheyCannotBlink(who=$)
+   {
+      Send(who,@MsgSendUser,#message_rsc=cannot_blink_in_this_room);
+      return;
+   }
+
+   CanHavePlayerPortal()
+   {
+      return FALSE;
+   }
+
+   CanTokenEnterRoom()
+   {
+      return FALSE;
+   }
+
+   GetTeleportRow()
+   {
+      if piCustomTeleportRow > 0
+         AND piCustomTeleportRow < Send(self,@GetRoomRows)
+      {
+         return piCustomTeleportRow;
+      }
+      return viTeleport_row;
+   }
+
+   GetTeleportCol()
+   {
+      if piCustomTeleportCol > 0
+         AND piCustomTeleportCol < Send(self,@GetRoomCols)
+      {
+         return piCustomTeleportCol;
+      }
+      return viTeleport_col;
+   }
+
+% ==================================================================================================================
+% ==================================================================================================================
+% SPECIFIC FUNCTIONS
+% ==================================================================================================================
+% ==================================================================================================================
+
+% ============
+% DESERT
+% ============
+
+   GetRegion()
+   {
+      return RID_DESERT;
+   }
+   
+   OverrideDeathFunction(who=$,what=$,stroke_obj=$)
+   {
+      local oAfterlife, bDrop, oRoom, iRow, iCol, iFine_Row, iFine_Col, iAngle, iRoom,
+            oBody, lReagentBagContents, lInventoryContents, lItems, i, oSoldierShield;
+
+      Send(who,@ClearStance);
+      % Stop any rescue attempts that were going on.
+      Send(who,@CancelRescue);
+      Send(who,@RemoveAllEnchantments,#report=FALSE);
+      
+      Send(who,@SetDeathTime,#iTime=GetTime());
+
+      % Grab the location of the deceased.
+      % Might need to grab the old location if logged off.
+
+      if Send(who,@IsLoggedOn)
+      {
+         oRoom = Send(who,@GetOwner);
+         iRow = Send(who,@GetRow);
+         iCol = Send(who,@GetCol);
+         iFine_Row = Send(who,@GetFineRow);
+         iFine_Col = Send(who,@GetFineCol);
+         iAngle = Send(who,@GetAngle);
+         iRoom = Send(Send(who,@GetOwner),@GetRoomNum);
+      }
+      else
+      {
+         iRoom = Send(who,@GetSaveRoom);
+         oRoom = Send(SYS,@FindRoomByNum,#num=iRoom);
+         iRow = Send(who,@GetSaveRow);
+         iCol = Send(who,@GetSaveCol);
+         iFine_Row = Send(who,@GetSaveFineRow);
+         iFine_Col = Send(who,@GetSaveFineCol);
+         iAngle = Send(who,@GetSaveAngle);
+      }
+
+      % Record-keeping. Keep this before the token check,
+      % so we can give proper message.
+      Send(SYS,@UserKilled,#what=who,#killer=what,#oRoom=oRoom,#stroke_obj=stroke_obj);
+      Send(Send(SYS,@GetStatistics),@PlayerDiedCounter);
+
+      % Create the corpse.
+      if what <> $
+         AND IsClass(what,&User)
+      {
+         oBody = Send(who,@CreateCorpse,#oPlayerKiller=what);
+      }
+      else
+      {
+         oBody = Send(who,@CreateCorpse);
+      }
+      Send(who,@AddCorpse,#corpse=oBody);
+
+      Send(oRoom,@NewHold,#what=oBody,#new_row=iRow,#new_col=iCol,
+            #fine_row=iFine_Row,#fine_col=iFine_Col,#new_angle=iAngle);
+
+      bDrop = TRUE;
+      % Start losing stuff if applicable.
+      if bDrop
+      {
+         lReagentBagContents = Send(who,@GetReagentBagContents);
+         if lReagentBagContents <> $
+         {
+            lInventoryContents = [Send(who,@GetHolderActive),Send(who,@GetHolderPassive),lReagentBagContents];
+         }
+         else
+         {
+            lInventoryContents = [Send(who,@GetHolderActive),Send(who,@GetHolderPassive)];
+         }
+
+         foreach lItems in lInventoryContents
+         {
+            foreach i in lItems
+            {
+               % Let the item know we died, in case it does something special.
+               Send(i,@OwnerKilled);
+
+               if Send(i,@DropOnDeath)
+               {
+                  if Send(oRoom,@ReqNewHold,#what=i,#new_row=iRow,#new_col=iCol)
+                  {
+                     Send(oBody,@NewHold,#what=i);
+                  }
+               }
+            }
+         }
+
+         Post(who,@EvaluatePKStatus);
+
+         % Let SoldierShields know we died. It handles itself as appropriate.
+         oSoldierShield = Send(who,@FindUsing,#what=&SoldierShield);
+         if oSoldierShield <> $
+         {
+            Send(oSoldierShield,@OwnerDied,#what=what);
+         }
+      }
+
+      % Give out your dying scream.
+      if Send(who,@GetGender) = GENDER_FEMALE
+      {
+         i = Send(who,@GetFemaleDeathWav);
+      }
+      else
+      {
+         i = Send(who,@GetMaleDeathWav);
+      }
+
+      Send(oRoom,@SomethingWaveRoom,#what=oBody,#wave_rsc=i);
+      if Send(who,@IsLoggedOn)
+      {
+         Send(who,@WaveSendUser,#what=who,#wave_rsc=i);
+      }
+
+      Send(who,@SetHealth,#amount=1);
+
+      Send(who,@NewHealth);
+      Send(who,@NewMana);
+      Send(who,@NewVigor);
+      
+      Send(who,@SetDeathCost,#DeathCost=Send(Send(SYS,@GetDesertRoomMaintenance),@GetDeathCost),#bOverride=TRUE);
+      Send(who,@ApplyDeathPenalties);
+
+      % Refresh the client with what's really going on.
+      if Send(who,@IsLoggedOn)
+      {
+         Send(who,@ToCliStats,#group=1);
+         Send(who,@ToCliStats,#group=2);
+         Send(who,@ToCliStats,#group=3);
+         Send(who,@ToCliStats,#group=4);
+
+         % Wake up with red foggy hangover.
+         Send(who,@EffectSendUserDuration,#effect=EFFECT_PAIN,#duration=5000);
+      }
+      
+      oAfterlife = Send(SYS,@FindRoomByNum,#num=RID_DESERTALDUNES);
+      
+      if IsClass(self,&DesertDunesRoom)
+      {
+         Send(SYS,@UtilGoNearSquare,#what=who,
+                                    #where=oAfterlife,
+                                    #new_row=iRow,
+                                    #new_col=iCol,
+                                    #fine_row=iFine_Row,
+                                    #fine_col=iFine_Col,
+                                    #new_angle=iAngle);
+      }
+      else
+      {
+         Send(oAfterlife,@Teleport,#what=who);
+      }
+      return;
+   }
+
+   OverridesDeathAllowPhasing()
+   {
+      return TRUE;
+   }
+
+   StartSnow(bOnGround=TRUE)
+   {
+      Send(self,@ChangeTexture,#id=SNOW_SECTOR,#new_texture=61015,#flags=CTF_FLOOR);
+      Send(self,@ChangeTexture,#id=ICE_SECTOR,#new_texture=61017,#flags=CTF_FLOOR);
+      Send(self,@ChangeTexture,#id=WATER_SECTOR_NO_DEPTH_CHANGE,#new_texture=61017,#flags=CTF_FLOOR);
+      Send(self,@AnimateWall,#wall=FROZEN_WATERFALL_SECTOR,#animation=ANIMATE_NONE,#first_group=1,#second_group=1,#end_group=1);
+      Send(self,@ChangeTexture,#id=FROZEN_WATERFALL_SECTOR,#new_texture=61017,#flags=CTF_NORMALWALL);
+      Send(self,@AnimateWall,#wall=FROZEN_LOWER_WATERFALL_SECTOR,#animation=ANIMATE_NONE,#first_group=1,#second_group=1,#end_group=1);
+      Send(self,@ChangeTexture,#id=FROZEN_LOWER_WATERFALL_SECTOR,#new_texture=61017,#flags=CTF_BELOWWALL);
+      Send(self,@SetSectorFlags,#sector=ICE_SECTOR,#depth=SF_DEPTH0,#scrollSpeed=SCROLL_NONE);
+      Send(self,@SetSectorFlags,#sector=WATER_SECTOR_NO_DEPTH_CHANGE,#depth=SF_DEPTH0,#scrollSpeed=SCROLL_NONE);
+
+      Send(self,@SetSectorFlags,#sector=SNOW_SECTOR,#depth=SF_DEPTH1,#scrollSpeed=SCROLL_NONE);
+      vrWading_Sound = snow_walk_sound;
+
+      propagate;
+   }
+
+   EndSnow(override=FALSE)
+   "Use override if rooms have manually placed textures."
+   {
+      Send(self,@RemoveTextureChange,#id=SNOW_SECTOR);
+      Send(self,@RemoveTextureChange,#id=ICE_SECTOR);
+      Send(self,@RemoveTextureChange,#id=WATER_SECTOR_NO_DEPTH_CHANGE);
+      Send(self,@RemoveTextureChange,#id=FROZEN_WATERFALL_SECTOR);
+      Send(self,@RemoveAnimateWallChange,#wall=FROZEN_WATERFALL_SECTOR);
+      Send(self,@RemoveTextureChange,#id=FROZEN_LOWER_WATERFALL_SECTOR);
+      Send(self,@RemoveAnimateWallChange,#wall=FROZEN_LOWER_WATERFALL_SECTOR);
+      Send(self,@RemoveSectorFlagChange,#id=ICE_SECTOR);
+      Send(self,@RemoveSectorFlagChange,#id=WATER_SECTOR_NO_DEPTH_CHANGE);
+
+      Send(self,@RemoveSectorFlagChange,#id=SNOW_SECTOR);
+      vrWading_Sound = water_wading_sound;
+
+      propagate;
+   }
+
+   StartRain()
+   {
+      % Acid rain darkens the sand and pock marks rock.
+      Send(self,@ChangeTexture,#id=SNOW_SECTOR,#new_texture=09080,#flags=CTF_FLOOR);
+      % Acid rain makes the water gross.
+      Send(self,@ChangeTexture,#id=ICE_SECTOR,#new_texture=09363,#flags=CTF_FLOOR);
+      Send(self,@ChangeTexture,#id=WATER_SECTOR_NO_DEPTH_CHANGE,#new_texture=09363,#flags=CTF_FLOOR);
+      Send(self,@ChangeTexture,#id=FROZEN_WATERFALL_SECTOR,#new_texture=09363,#flags=CTF_NORMALWALL);
+      Send(self,@ChangeTexture,#id=FROZEN_LOWER_WATERFALL_SECTOR,#new_texture=09363,#flags=CTF_BELOWWALL);
+      Send(self,@SetSectorFlags,#sector=ICE_SECTOR,#depth=SF_DEPTH1,#scrollSpeed=SCROLL_SLOW);
+      Send(self,@SetSectorFlags,#sector=WATER_SECTOR_NO_DEPTH_CHANGE,#scrollSpeed=SCROLL_SLOW);
+
+      propagate;
+   }
+   
+   EndRain()
+   {
+      % Remove gross sand.
+      Send(self,@RemoveTextureChange,#id=SNOW_SECTOR);
+      % Remove sludge water textures.
+      Send(self,@RemoveTextureChange,#id=ICE_SECTOR);
+      Send(self,@RemoveTextureChange,#id=WATER_SECTOR_NO_DEPTH_CHANGE);
+      % Remove sludge water sides.
+      Send(self,@RemoveTextureChange,#id=FROZEN_WATERFALL_SECTOR);
+      Send(self,@RemoveTextureChange,#id=FROZEN_LOWER_WATERFALL_SECTOR);
+      % Reset sector flag changes to sludge water.
+      Send(self,@RemoveSectorFlagChange,#id=ICE_SECTOR);
+      Send(self,@RemoveSectorFlagChange,#id=WATER_SECTOR_NO_DEPTH_CHANGE);
+
+      propagate;
+   }
+
+   DoPhaseWeather()
+   "Called to simulate weather by some rooms."
+   {
+      switch(Send(SYS,@GetDayPhase))
+      {
+         case DAY_PHASE_DAWN:
+            % Some rooms rain instead of snow.
+            if Send(self,@CheckRoomFlag,#flag=ROOM_SNOWING)
+               OR Send(self,@CheckRoomFlag,#flag=ROOM_RAINING)
+            {
+               Send(self,@EndSnow);
+               Send(self,@EndRain);
+            }
+            break;
+         case DAY_PHASE_DAY:
+            break;
+         case DAY_PHASE_DUSK:
+            if NOT Send(self,@CheckRoomFlag,#flag=ROOM_RAINING)
+            {
+               Send(self,@StartRain);
+            }
+            break;
+         case DAY_PHASE_NIGHT:
+            if Send(self,@CheckRoomFlag,#flag=ROOM_RAINING)
+            {
+               Send(self,@EndRain);
+            }
+            if NOT Send(self,@CheckRoomFlag,#flag=ROOM_SNOWING)
+            {
+               Send(self,@StartSnow);
+            }
+            break;
+      }
+      return;
+   }
+
+   RecalcLightAndWeather()
+   {
+      local SysDayPhase, i, iElementType;
+
+      SysDayPhase = Send(SYS,@GetDayPhase);
+
+      % We're crossing over into a new quarter.
+      if piPreviousPhase <> SysDayPhase
+         AND vbDesertThreatsHere
+      {
+         Send(self,@EndAllThreats);
+         Send(self,@StartThreat,#cClasses=Send(self,@GetPhaseThreats));
+         
+         % Don't accidentally lose this on the change-over
+         if pbFallThreatHere
+         {
+            Post(self,@StartThreat,#cClasses=[&FallThreat],#report=FALSE);
+         }
+         
+         Send(self,@RecalculateRoomMusic);
+
+         switch(Send(SYS,@GetDayPhase))
+         {
+            case DAY_PHASE_DAWN:
+               iElementType = ATCK_SPELL_SHOCK;
+               break;
+            case DAY_PHASE_DAY:
+               iElementType = ATCK_SPELL_FIRE;
+               break;
+            case DAY_PHASE_DUSK:
+               iElementType = ATCK_SPELL_ACID;
+               break;
+            case DAY_PHASE_NIGHT:
+               iElementType = ATCK_SPELL_COLD;
+               break;
+         }
+
+         foreach i in plActive
+         {
+            if IsClass(First(i),&User)
+            {
+               Send(First(i),@DamageTypeFlashEffect,#aspell=iElementType,#duration=1500);
+            }
+         }
+
+         if pbUser_in_room
+            AND vbSpawnMonsters
+            AND pbResetWhilePlayersAreInRoom
+         {
+            Post(self,@DepopulateArea);
+            Post(self,@PopulateArea);
+         }
+      }
+
+      piPreviousPhase = SysDayPhase;
+
+      propagate;
+   }
+
+   GetPhaseMusic()
+   {
+      if vbDesertThreatsHere
+      {
+         switch(Send(SYS,@GetDayPhase))
+         {
+            case DAY_PHASE_DAWN:
+               return maze_desert_music_static_shock;
+            case DAY_PHASE_DAY:
+               return maze_desert_music;
+            case DAY_PHASE_DUSK:
+               return maze_desert_music_acid_rain;
+            case DAY_PHASE_NIGHT:
+               return maze_desert_music_snow;
+         }
+      }
+      else if vbSpawnMonsters
+      {
+         return maze_music2;
+      }
+
+      return maze_music1;
+   }
+   
+   GetPhaseThreats()
+   {
+      if NOT vbDesertThreatsHere
+      {
+         return [&ChaosThreat];
+      }
+
+      switch(Send(SYS,@GetDayPhase))
+      {
+         case DAY_PHASE_DAWN:
+            return [&ShockStorm, &ChaosThreat];
+         case DAY_PHASE_DAY:
+            if Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTRIVER2),
+                     @GetPrismOfFireDefeated)
+            {
+               return [&HeatStorm, &ChaosThreat];
+            }
+            return [&HeatThreat, &ChaosThreat];
+         case DAY_PHASE_DUSK:
+            if Send(Send(SYS,@FindRoomByNum,#num=RID_ACIDPATH),
+                     @GetPrismOfAcidDefeated)
+            {
+               return [&AcidStorm, &RainThreat, &ChaosThreat];
+            }
+            return [&AcidThreat, &RainThreat, &ChaosThreat];
+         case DAY_PHASE_NIGHT:
+            if Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTSANDBAR),@GetPrismOfIceDefeated)
+            {
+               return [&ColdStorm, &SnowThreat, &ChaosThreat];
+            }
+            return [&ColdThreat, &SnowThreat, &ChaosThreat];
+      }
+      return [&ShockStorm, &ChaosThreat];
+   }
+
+   StartThreat(cClasses=$,report=TRUE)
+   {
+      local i;
+
+      % Don't start same threat if one already exists.
+      % Don't start threats with no players present.
+      if pbUser_in_room
+         AND cClasses <> $
+      {
+         foreach i in cClasses
+         {
+            if NOT Send(self,@HasObjectAttribute,#cClass=i)
+            {
+               Create(i,#host_object=self,#iDuration=$,#report=report);
+            }
+         }
+      }
+
+      return;
+   }
+
+   EndThreat(cClass=&ShockStorm)
+   {
+      if Send(self,@HasObjectAttribute,#cClass=cClass)
+      {
+         Send(Send(self,@GetObjectAttribute,#cClass=cClass),@Delete);
+      }
+      return;
+   }
+   
+   EndAllThreats()
+   {
+      local i;
+      
+      foreach i in plObject_attributes
+      {
+         if IsClass(i,&RoomThreat)
+            OR IsClass(i,&RoomStorm)
+         {
+            Send(i,@Delete);
+         }
+      }
+
+      return;
+   }
+
+   PopulateArea()
+   {
+      local i, lClasses, iChosenAngle, oFeretory;
+
+      switch(Send(SYS,@GetDayPhase))
+      {
+         case DAY_PHASE_DAWN:
+            lClasses = [&XeoAir, &EvilEnt];
+            break;
+         case DAY_PHASE_DAY:
+            lClasses = [&FireElemental,&XeoFire];
+            break;
+         case DAY_PHASE_DUSK:
+            lClasses = [&EarthElemental,&XeoAcid];
+            break;
+         case DAY_PHASE_NIGHT:
+            lClasses = [&IceElemental,&XeoWater,&Iceperson];
+            break;
+      }
+
+      foreach i in plDesertSpawnPoints
+      {
+         iChosenAngle = ANGLE_EAST;
+         switch(Random(1,4))
+         {
+            case 1:
+               iChosenAngle = ANGLE_WEST;
+               break;
+            case 2:
+               iChosenAngle = ANGLE_NORTH;
+               break;
+            case 3:
+               iChosenAngle = ANGLE_SOUTH;
+               break;
+            case 4:
+               iChosenAngle = ANGLE_EAST;
+               break;
+         }
+         Send(self,@NewHold,#what=Create(Nth(lClasses,Random(1,Length(lClasses))),#piSurvivalLevel=Send(Send(SYS,@GetDesertRoomMaintenance),@GetBoostDesertLevel)),
+               #new_row=Nth(i,1),
+               #new_col=Nth(i,2),
+               #fine_row=0,
+               #fine_col=0,
+               #new_angle=iChosenAngle);
+      }
+      
+      foreach i in plStatueSpawnPoints
+      {
+         iChosenAngle = ANGLE_EAST;
+         switch(Random(1,4))
+         {
+            case 1:
+               iChosenAngle = ANGLE_WEST;
+               break;
+            case 2:
+               iChosenAngle = ANGLE_NORTH;
+               break;
+            case 3:
+               iChosenAngle = ANGLE_SOUTH;
+               break;
+            case 4:
+               iChosenAngle = ANGLE_EAST;
+               break;
+         }
+         Send(self,@NewHold,#what=Create(&SorcererStatue),
+               #new_row=Nth(i,1),
+               #new_col=Nth(i,2),
+               #fine_row=0,
+               #fine_col=0,
+               #new_angle=iChosenAngle);
+      }
+      
+      foreach i in plFeretorySpawnPoints
+      {
+         if NOT pbCreatedFeretory
+         {
+            oFeretory = Create(&MazeChest);
+            Send(self,@NewHold,#what=oFeretory,
+                  #new_row=Nth(i,1),
+                  #new_col=Nth(i,2),
+                  #fine_row=0,
+                  #fine_col=0,
+                  #new_angle=ANGLE_SOUTH);
+            Post(self,@FillMazeChest,#maze_chest=oFeretory);
+            pbCreatedFeretory = TRUE;
+         }
+      }
+
+      return;
+   }
+
+   PopulateChest()
+   {
+      local i, oFeretory;
+      
+      foreach i in plFeretorySpawnPoints
+      {
+         if NOT pbCreatedFeretory
+         {
+            oFeretory = Create(&MazeChest);
+            Send(self,@NewHold,#what=oFeretory,
+                  #new_row=Nth(i,1),
+                  #new_col=Nth(i,2),
+                  #fine_row=0,
+                  #fine_col=0,
+                  #new_angle=ANGLE_SOUTH);
+            Post(self,@FillMazeChest,#maze_chest=oFeretory);
+            pbCreatedFeretory = TRUE;
+         }
+      }
+
+      return;
+   }
+
+   FillMazeChest(maze_chest=$)
+   {
+      local lLootClasses, lMajorLootClasses, oWeapon, iRandomTrashNum;
+      if maze_chest <> $
+      {
+         lLootClasses = [&BanditScimitar,
+                         &Dagger,
+                         &Flail,
+                         &Maul,
+                         &Hatchet,
+                         &ElfShield,
+                         &KnightHelm,
+                         &RunedHelm,
+                         &SteelShield,
+                         &SpikedHelm];
+         lMajorLootClasses = [&BanditScimitar,
+                              &Dagger,
+                              &Flail,
+                              &Maul,
+                              &Hatchet];
+
+         % We create trash before and after the item to avoid the chest looking too empty
+         iRandomTrashNum = Random(0,11);
+         
+         while iRandomTrashNum > 0
+         {
+            Send(maze_chest,@NewHold,#what=Create(Nth(lLootClasses,Random(1,Length(lLootClasses))),#level=Random(50,150)));
+            iRandomTrashNum--;
+         }
+         
+         % These chests also contain one imbued weapon of power
+         oWeapon = Create(Nth(lMajorLootClasses,Random(1,Length(lMajorLootClasses))),#level=210);
+         Send(maze_chest,@NewHold,#what=oWeapon);
+         Send(maze_chest,@MajorImbue,#oItem=oWeapon);
+         % And add a proc of power
+         Create(&WeaponSpellProc,#host_object=oWeapon,#use_profile=MAZE_WEAPON_SPELL_PROC_PROFILE);
+                              
+         iRandomTrashNum = Random(0,7);
+         
+         while iRandomTrashNum > 0
+         {
+            Send(maze_chest,@NewHold,#what=Create(Nth(lLootClasses,Random(1,Length(lLootClasses))),#level=Random(50,150)));
+            iRandomTrashNum--;
+         }
+      }
+      
+
+      return;
+   }
+   
+   DepopulateArea()
+   {
+      local i, each_obj;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         each_obj = Send(self,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&Monster)
+            AND NOT IsClass(each_obj,&Towns) % don't delete NPCs
+         {
+            Send(each_obj,@Delete);
+         }
+      }
+      
+      return;
+   }
+   
+   SpecialPhaseConditionsSatisfied()
+   {
+      return FALSE;
+   }
+
+   GetYellZone()  % Includes THIS ROOM in list!!
+   {
+      return Send(Send(SYS,@GetMazeRoomMaintenance),@GetYellZone);
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

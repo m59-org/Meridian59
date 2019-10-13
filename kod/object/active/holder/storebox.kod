@@ -93,7 +93,7 @@ messages:
       ptClean = $;
       if poOwner = $
       {
-         Debug("Self-cleaning excess chests.");
+         %Debug("Self-cleaning excess chests.");
          Send(self,@Delete);
       }
 
@@ -157,7 +157,7 @@ messages:
 
       if IsClass(oTakerOwner,&GuildHall)
       {
-         return Send(oTakerOwner,@ReqUseGuildChest,#who=taker);
+         return Send(oTakerOwner,@ReqUseGuildChest,#who=taker,#oBox=self);
       }
 
       propagate;
@@ -200,7 +200,7 @@ messages:
 
       if IsClass(oWhoOwner,&GuildHall)
       {
-         return Send(oWhoOwner,@ReqUseGuildChest,#who=who);
+         return Send(oWhoOwner,@ReqUseGuildChest,#who=who,#oBox=self);
       }
 
       propagate;
@@ -223,6 +223,11 @@ messages:
       Send(poOwner,@SomethingChanged,#what=self);
 
       return;
+   }
+
+   GetLocked()
+   {
+      return pbLocked;
    }
 
 end

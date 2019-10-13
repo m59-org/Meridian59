@@ -10,6 +10,13 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 GuildHall2 is GuildHall
 
+% The Hall of Explorers' specialty is a good array of portals that
+%    allow quick access to the four corners of the world.
+%
+% Notably, HoE has no reliquaries.
+%
+% This is definitely a hall for newbies and builders.
+
 constants:
 
    include blakston.khd
@@ -22,6 +29,8 @@ constants:
    SOUTHDOOR = 6
    WESTDOOR = 7
    RAIDDOOR = 8
+   
+   OUTDOOR = 10
 
    DOOR_DELAY = 10000
 
@@ -33,6 +42,20 @@ resources:
    room_guildh2 = guildh2.roo
 
    guildhall2_sound = down2.wav
+   
+   gh2_northwest_corner_desc = \
+      "The northwest corner of the Meridian world lies beyond this gate. "
+      "Only the weakest of explorers need fear this region of the world."
+   gh2_northeast_corner_desc = \
+      "The northeast corner of the Meridian world lies beyond this gate. "
+      "The savage dangers of the untamed jungle are only for strong explorers."
+   gh2_southeast_corner_desc = \
+      "The southeast corner of the Meridian world lies beyond this gate. "
+      "The Cragged Mountains are a good hunting ground for moderately new explorers."
+   gh2_southwest_corner_desc = \
+      "The southwest corner of the Meridian world used to lie beyond this gate, "
+      "but something has gone severely wrong with the portal's magic. "
+      "Only the strongest explorers should brave it, for there is no telling what lies beyond."
 
 classvars:
 
@@ -40,6 +63,9 @@ classvars:
 
    viTeleport_row = 18
    viTeleport_col = 32
+
+   viLongitude = 22
+   viLatitude = 12
 
    viNews_row = 8
    viNews_col = 28
@@ -60,8 +86,88 @@ classvars:
    viInner_teleport_col = 25
 
    viQuality = 5
-   viTerrain_type = TERRAIN_CITY | TERRAIN_GUILDHALL
+   viTerrain_type = TERRAIN_CITY | TERRAIN_GUILDHALL | TERRAIN_FOUNTAIN
    viSeconds_til_close = 13
+   
+   viPortalOneRow = 2
+   viPortalOneCol = 2
+   viPortalOneFineRow = 16
+   viPortalOneFineCol = 16
+   viPortalOneAngle = ANGLE_SOUTH_EAST
+   viPortalOneDestRID = RID_A5
+   viPortalOneDestRow = 33
+   viPortalOneDestCol = 24
+   viPortalOneDestFineRow = 30
+   viPortalOneDestFineCol = 34
+   viPortalOneDestAngle = ANGLE_EAST
+   vsPortalOneDesc = gh2_northwest_corner_desc
+   
+   viPortalTwoRow = 2
+   viPortalTwoCol = 16
+   viPortalTwoFineRow = 16
+   viPortalTwoFineCol = 32
+   viPortalTwoAngle = ANGLE_SOUTH_WEST
+   viPortalTwoDestRID = RID_KC2
+   viPortalTwoDestRow = 7
+   viPortalTwoDestCol = 4
+   viPortalTwoDestFineRow = 50
+   viPortalTwoDestFineCol = 56
+   viPortalTwoDestAngle = ANGLE_NORTH_EAST
+   vsPortalTwoDesc = gh2_northeast_corner_desc
+   
+   viPortalThreeRow = 10
+   viPortalThreeCol = 16
+   viPortalThreeFineRow = 48
+   viPortalThreeFineCol = 32
+   viPortalThreeAngle = ANGLE_NORTH_WEST
+   viPortalThreeDestRID = RID_I9
+   viPortalThreeDestRow = 25
+   viPortalThreeDestCol = 55
+   viPortalThreeDestFineRow = 5
+   viPortalThreeDestFineCol = 13
+   viPortalThreeDestAngle = ANGLE_SOUTH_EAST
+   vsPortalThreeDesc = gh2_southeast_corner_desc
+   
+   viPortalFourRow = 11
+   viPortalFourCol = 2
+   viPortalFourFineRow = 0
+   viPortalFourFineCol = 32
+   viPortalFourAngle = ANGLE_NORTH_EAST
+   viPortalFourDestRID = RID_DESERTCLIFFNOACCESS3
+   viPortalFourDestRow = 8
+   viPortalFourDestCol = 54
+   viPortalFourDestFineRow = 63
+   viPortalFourDestFineCol = 22
+   viPortalFourDestAngle = ANGLE_SOUTH_WEST
+   vsPortalFourDesc = gh2_southwest_corner_desc
+   
+   % Fusing device rates go from 8 (worst) to 4 (best) 
+   viShardFusingDeviceRow = 7
+   viShardFusingDeviceCol = 22
+   viShardFusingDeviceFineRow = 63
+   viShardFusingDeviceFineCol = 38
+   viShardFusingDeviceRate = 7
+   
+   % Shattering device rates go from 2 (worst) to 4 (best) 
+   viShardShatteringDeviceRow = 7
+   viShardShatteringDeviceCol = 24
+   viShardShatteringDeviceFineRow = 63
+   viShardShatteringDeviceFineCol = 31
+   viShardShatteringDeviceRate = 2
+   
+   viFociOneRow = 18
+   viFociOneCol = 19
+   viFociOneFineRow = 32
+   viFociOneFineCol = 38
+   viFociOnePower = 198
+   viFociOneRange = 3
+   viFociOneSpellNum = SID_INVIGORATE
+   
+   viMarketRow = 8
+   viMarketCol = 23
+   viMarketFineRow = 9
+   viMarketFineCol = 29
+   viMarketRate = 100
 
 properties:
 
@@ -79,6 +185,11 @@ properties:
    ptEastDoor = $
    ptSouthDoor = $
    ptWestDoor = $
+   ptOutDoor = $
+   
+   piGuildHallMeditateEffiency = 100
+   % The Hall of Explorers boosts meditation of spells and skills level 3 and below.
+   piSpecialGuildHallMeditateEfficiency = 130
 
 messages:
 
@@ -151,6 +262,9 @@ messages:
       Send(self,@NewHold,#what=Create(&WoodenBox),#new_row=8,#new_col=19,
             #fine_row=16,#fine_col=48,#new_angle=ANGLE_SOUTH);
 
+      Send(self,@NewHold,#what=Create(&Fountain,#iSoundRadius=0,#iSoundIntensity=0,#bIsLit=TRUE),
+           #new_row=6,#new_col=8,#fine_row=8,#fine_col=24,#new_angle=ANGLE_EAST);
+
       propagate;
    }
 
@@ -187,6 +301,16 @@ messages:
          AND ptEntrance = $
       {
          Send(self,@OpenEntranceDoor);
+      }
+
+      if (row = 7 OR row = 8) AND (col = 30 OR col = 31) AND ptOutDoor = $
+      {
+         Send(self,@SomethingWaveRoom,#wave_rsc=guildhall2_sound);
+         ptOutDoor = CreateTimer(self,@CloseOutDoor,DOOR_DELAY);
+         Send(self,@SetSector,#sector=OUTDOOR,#animation=ANIMATE_CEILING_LIFT,
+               #height=104,#speed=100);
+
+         return TRUE;
       }
 
       if (row = 11 OR row = 12) AND col = 28 AND ptEastDoor = $
@@ -260,6 +384,16 @@ messages:
       ptCloset = $;
       Send(self,@SomethingWaveRoom,#wave_rsc=guildhall2_sound);
       Send(self,@SetSector,#sector=CLOSET,#animation=ANIMATE_CEILING_LIFT,
+            #height=24,#speed=100);
+
+      return;
+   }
+
+   CloseOutDoor()
+   {
+      ptOutDoor = $;
+      Send(self,@SomethingWaveRoom,#wave_rsc=guildhall2_sound);
+      Send(self,@SetSector,#sector=OUTDOOR,#animation=ANIMATE_CEILING_LIFT,
             #height=24,#speed=100);
 
       return;
@@ -401,8 +535,26 @@ messages:
          DeleteTimer(ptWestDoor);
          ptWestDoor = $;
       }
+      
+      if ptOutDoor <> $
+      {
+         DeleteTimer(ptOutDoor);
+         ptOutDoor = $;
+      }
 
       propagate;
+   }
+   
+   DoesPlayerQualifyForSpecialMeditateRatio(who=$,oSpell=$,oSkill=$)
+   {
+      if (oSpell <> $
+         AND Send(oSpell,@GetLevel) <= 3)
+         OR (oSkill <> $
+         AND Send(oSkill,@GetLevel) <= 3)
+      {
+         return TRUE;
+      }
+      return FALSE;
    }
 
 end

@@ -82,6 +82,8 @@ properties:
    piAttack_bonus = 200
    pbScaleHitrollBonus = TRUE
 
+   piItemLevel = 200
+
 messages:
 
    Constructor()
@@ -142,7 +144,17 @@ messages:
 
    ModifyHitRoll(who=$,what=$,hit_roll=$,stroke_obj=$)
    {
-      local iBonus, iScale;
+      local iBonus, iScale, i, oWeapon, oOffenseMod;
+
+      foreach i in plEnchantmentMods
+      {
+         if Nth(i,1) = &OffenseMod
+         {
+            oOffenseMod = Send(SYS,@GetMagicMod,#class=&OffenseMod);
+            hit_roll = Send(oOffenseMod,@ModifyHitRoll,#who=who,#what=what,
+                        #hit_roll=hit_roll,#iState=Nth(i,2));
+         }
+      }
 
       if piHits <= 0
       {
@@ -173,7 +185,7 @@ messages:
    {
       local i, iMana;
 
-      piHits = piHits - 1;
+      % piHits = piHits - 1;
 
       if piHits <= 0
       {
@@ -405,6 +417,110 @@ messages:
       }
 
       return;
+   }
+
+   GetPrefixes()
+   {
+      return [[&ManaMod,200],
+              [&VigorMod,300],
+              [&AcidEmpowermentMod,100],
+              [&ShockEmpowermentMod,100],
+              [&FireEmpowermentMod,100],
+              [&ColdEmpowermentMod,100],
+              [&HolyEmpowermentMod,100],
+              [&UnholyEmpowermentMod,100]];
+   }
+   
+   GetSuffixes()
+   {
+      return [[&FireResistanceMod,100],
+              [&ColdResistanceMod,100],
+              [&ShockResistanceMod,100],
+              [&AcidResistanceMod,100],
+              [&PierceResistanceMod,100],
+              [&SlashResistanceMod,100],
+              [&BludgeonResistanceMod,100],
+              [&CasterIntMod,50],
+              [&CasterMystMod,50]];
+   }
+
+   GetLightIntensity(oWeapon=$)
+   {
+      if oWeapon <> $
+         AND IsClass(oWeapon,&IllusionaryGrasp)
+      {
+         return 0;
+      }
+
+      if oWeapon = $
+         OR NOT IsClass(oWeapon,&TouchAttackSpell)
+      {
+         return 15;
+      }
+      return 25;
+   }
+
+   GetLightColor(oWeapon=$)
+   {
+      if oWeapon = $
+         OR NOT IsClass(oWeapon,&TouchAttackSpell)
+      {
+         return LIGHT_RED;
+      }
+
+      if IsClass(oWeapon,&AcidTouch)
+      {
+         return LIGHT_GREEN;
+      }
+      if IsClass(oWeapon,&TouchOfFlame)
+      {
+         return LIGHT_FIRE;
+      }
+      if IsClass(oWeapon,&HolyTouch)
+      {
+         return LIGHT_WHITE;
+      }
+      if IsClass(oWeapon,&IcyFingers)
+      {
+         return LIGHT_BLUE;
+      }
+      if IsClass(oWeapon,&TouchOfFlame)
+      {
+         return LIGHT_FIRE;
+      }
+      if IsClass(oWeapon,&UnholyTouch)
+      {
+         return LIGHT_PURPLE;
+      }
+      if IsClass(oWeapon,&Zap)
+      {
+         return LIGHT_LIGHTNING;
+      }
+      if IsClass(oWeapon,&IllusionaryGrasp)
+      {
+         return LIGHT_LIGHTNING;
+      }
+      if IsClass(oWeapon,&SeismicFist)
+      {
+         return LIGHT_BRED;
+      }
+      return LIGHT_RED;
+   }
+
+   NewUsed(what=$)
+   {
+      Send(poOwner,@SetFlickerFlag);
+      Send(poOwner,@SomethingChanged,#what=self);
+
+      propagate;
+   }
+
+   NewUnused(what=$)
+   {
+      Send(poOwner,@RecalcFlickerFlag);
+      Send(poOwner,@SomethingChanged,#what=self);
+
+      propagate;
    }
 
 end

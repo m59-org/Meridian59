@@ -5,6 +5,6 @@
 !include $(TOPDIR)\common.mak
 
 DEPEND = ..\woffensemod.bof
-BOFS = offensemod.bof wdamagemod.bof
+BOFS = offensemod.bof wdamagemod.bof rangedoffensemod.bof
 
 !include $(KODDIR)\kod.mak

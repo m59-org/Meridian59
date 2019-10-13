@@ -17,8 +17,11 @@ constants:
 resources:
 
    forgetpotionXaerdunWitchery_desc_rsc = \
-      "Quaffing this elixir will break your alliance with Xaerdun, "
+      "Quaffing this elixir will break your alliance with Xaerdun "
       "and erase any knowledge of his granted powers from your mind."
+
+   forgetpotionxaerdun_forget_skill = \
+      "The art of '%s' slips from your mind!"
 
 classvars:
 
@@ -32,7 +35,7 @@ messages:
 
    QuaffTimer()
    {
-      local i, lSpells, oSpell, iSpellnum;
+      local i, lSpells, oSpell, iSpellnum, Skills, oSkill, iSkillNum;
 
       ptQuaff = $;
       lSpells = Send(poApply_target,@GetSpellList);
@@ -52,6 +55,28 @@ messages:
                  #parm1=send(oSpell,@GetName));
             piCount = piCount + 1;
          }
+      }
+
+      Skills = Send(poApply_target,@GetSkillList);
+      foreach i in Skills
+      {
+         iSkillNum = Send(poApply_target,@DecodeSkillNum,#compound=i);
+
+         oSkill = Send(SYS,@FindSkillByNum,#num=iSkillNum);
+
+         if Send(oSkill,@GetSchool) <> viForget_school
+            OR Send(oSkill,@GetSubSchool) <> viForget_subschool
+            OR Send(oSkill,@IsUtilitySkill)
+         {
+            continue;
+         }
+
+         % Delete all skills!
+         Send(poApply_target,@RemoveSkill,#num=iSkillNum);
+         Send(poApply_target,@MsgSendUser,
+               #message_rsc=forgetpotionxaerdun_forget_skill,
+               #parm1=Send(oSkill,@GetName));
+         piCount = piCount + 1;
       }
       
       if piCount = 0

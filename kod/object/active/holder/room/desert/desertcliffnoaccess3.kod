@@ -28,6 +28,9 @@ classvars:
    viTeleport_row = 50
    viTeleport_col = 40
 
+   vbSpawnMonsters = TRUE
+   viMaxSpawnCol = 65
+
 properties:
 
    piBaseLight = LIGHT_DARK
@@ -42,14 +45,14 @@ messages:
 
    SomethingMoved(what = $,new_row = $, new_col = $)
    {
+      local oTargetRoom;
       if new_col < 2
       {
+         oTargetRoom = Send(Send(SYS,@GetDesertRoomMaintenance),@GetDesertDunes3);
          Send(SYS,@UtilGoNearSquare,#what=what,
-              #where=Send(SYS,@FindRoomByNum,#num=RID_DESERTDUNES),
-              #new_row=Send(what,@GetRow),
-              #new_col=Send(self,@GetRoomCols)-3,
-              #fine_row=0,
-              #fine_col=Send(what,@GetFineCol),
+              #where=oTargetRoom,
+              #new_row=Send(oTargetRoom,@GetTeleportRow,#direction=ANGLE_WEST),
+              #new_col=Send(oTargetRoom,@GetTeleportCol,#direction=ANGLE_WEST),
               #new_angle=Send(what,@GetAngle));
          return;
       }
@@ -58,10 +61,10 @@ messages:
       {
          Send(SYS,@UtilGoNearSquare,#what=what,
               #where=Send(SYS,@FindRoomByNum,#num=RID_DESERTCLIFFACCESS),
-              #new_row=Send(self,@GetRoomRows)-3,
-              #new_col=Bound(Send(what,@GetCol),0,60),
+              #new_row=Send(self,@GetRoomRows)-6,
+              #new_col=40,
               #fine_row=0,
-              #fine_col=Send(what,@GetFineCol),
+              #fine_col=0,
               #new_angle=Send(what,@GetAngle));
          return;
       }
@@ -70,10 +73,10 @@ messages:
       {
          Send(SYS,@UtilGoNearSquare,#what=what,
               #where=Send(SYS,@FindRoomByNum,#num=RID_DESERTCLIFFNOACCESS2),
-              #new_row=3,
-              #new_col=Bound(Send(what,@GetCol),0,60),
+              #new_row=6,
+              #new_col=40,
               #fine_row=0,
-              #fine_col=Send(what,@GetFineCol),
+              #fine_col=0,
               #new_angle=Send(what,@GetAngle));
          return;
       }

@@ -52,8 +52,11 @@ classvars:
    viGround_group = 3
    viInventory_group = 1
 
-   viDefense_base = 20
+   viDefense_base = 40
    viDamage_base = 2
+   
+   viHexIncEffect = 33
+   viHexResistance = 33
 
 properties:
 
@@ -75,12 +78,12 @@ messages:
    {
       if send(oSpell,@GetSchool) = SS_SHALILLE
       {
-         return -15;
+         return -20;
       }
       
       if send(oSpell,@GetSchool) = SS_QOR
       {
-         return 15;
+         return 20;
       }
 
       return 0;
@@ -88,9 +91,17 @@ messages:
 
    GetResistanceModifiers()
    {
-      return [ [ATCK_WEAP_PIERCE,15],
-               [-ATCK_SPELL_HOLY,-20]
-             ];
+      if Send(SETTINGS_OBJECT,@GetDirectArmorEnabled)
+      {
+         return [ [ATCK_WEAP_PIERCE,15],
+                  [-ATCK_SPELL_HOLY,-20]
+                ];
+      }
+
+      return [ [ATCK_WEAP_ALL,5],
+               [-ATCK_SPELL_HOLY,-10],
+               [-ATCK_SPELL_UNHOLY,15]
+               ];
    }
 
    SendOverlayAnimation(animation = $)
@@ -104,6 +115,15 @@ messages:
       return;
    }   
 
+   GetHexResistance()
+   {
+      return viHexResistance;
+   }
+
+   GetHexIncEffect()
+   {
+      return viHexIncEffect;
+   }
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

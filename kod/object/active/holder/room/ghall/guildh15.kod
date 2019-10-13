@@ -10,6 +10,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 GuildHall15 is GuildHall
 
+   % The Necromancer hall has its own unique abilities.
+
 constants:
 
    SECRET_SECTOR = 1
@@ -48,12 +50,18 @@ resources:
    guildh15_guildwarning = \
       "Your amulet vibrates vigorously for a moment.  Something is amiss."
 
+   the_world_is_not_ready = \
+      "The world is not ready for the horrors that lie beyond this gate; be patient, for the time of the Necromancers shall come again."
+
 classvars:
 
    vrName = room_name_guildh15
 
-   viTeleport_row = 13
-   viTeleport_col = 14
+   viTeleport_row = 3
+   viTeleport_col = 4
+
+   viLongitude = 11
+   viLatitude = 48
 
    viNews_row = 16
    viNews_col = 47
@@ -97,6 +105,16 @@ properties:
 
    plChestArea1 = $
    plChestArea2 = $
+   
+   % There is only one spherical prism per server, and it is here.
+   % It cannot be moved.
+   % It can only be used by the Necromancer Guild.
+   % Coordinates same as Ao3: 13,14,29,22
+   poSphericalPrism = $
+   
+   piGuildHallMeditateEffiency = 10
+   % Boosts Qor, Riija, and Faren by 100%
+   piSpecialGuildHallMeditateEfficiency = 200
 
 messages:
 
@@ -114,6 +132,16 @@ messages:
       plChestArea1 = [1951, 2240, 1371, 1501];
       plChestArea2 = [2187, 2612, 1125, 1750];
 
+      propagate;
+   }
+   
+   Constructed()
+   {
+      poSphericalPrism = Create(&SpherePrism);
+      Send(self,@NewHold,#what=poSphericalPrism,#new_row=13,
+                                                #new_col=14,
+                                                #fine_row=29,
+                                                #fine_col=22);
       propagate;
    }
 
@@ -194,6 +222,23 @@ messages:
 
    SomethingTryGo(what=$, row=$,  col = $)
    {
+      local i;
+
+      % Delete this entire section once the Necromancer guild crash bug is fixed.
+      % Delete this entire section once the Necromancer guild crash bug is fixed.
+      % Delete this entire section once the Necromancer guild crash bug is fixed.
+      foreach i in plGuild_doors
+      {
+         if row = First(i) AND col = Nth(i,2)
+         {
+            Send(what,@MsgSendUser,#message_rsc=the_world_is_not_ready);
+            return TRUE;
+         }
+      }
+      % Delete this entire section once the Necromancer guild crash bug is fixed.
+      % Delete this entire section once the Necromancer guild crash bug is fixed.
+      % Delete this entire section once the Necromancer guild crash bug is fixed.
+
       if ((row = 12) OR (row = 13) OR (row = 14) )
          AND ((col = 31) OR (col = 32) OR (col = 33))
       {
@@ -539,6 +584,36 @@ messages:
    GetRegion()
    {
       return RID_BRAX;
+   }
+
+   GetSphericalPrism()
+   {
+      local i, each_obj;
+      
+      foreach i in Send(self,@GetHolderPassive)
+      {
+         each_obj = Send(self,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&SpherePrism)
+         {
+            return each_obj;
+         }
+      }
+
+      return $;
+   }
+   
+   DoesPlayerQualifyForSpecialMeditateRatio(who=$,oSpell=$,oSkill=$)
+   {
+      if (oSpell <> $
+         AND Send(oSpell,@GetSchool) = SS_RIIJA)
+         OR (oSpell <> $
+         AND Send(oSpell,@GetSchool) = SS_QOR)
+         OR (oSpell <> $
+         AND Send(oSpell,@GetSchool) = SS_FAREN)
+      {
+         return TRUE;
+      }
+      return FALSE;
    }
 
 end

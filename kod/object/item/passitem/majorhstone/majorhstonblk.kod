@@ -1,0 +1,71 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+MajorBlackHeartStone is MajorHeartStone
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   MajorBlackHeartStone_name_rsc = "major black heartstone"
+   MajorBlackHeartStone_name_plural = "major black heartstones"
+   MajorBlackHeartStone_desc_rsc = \
+      "This is a 'heartstone'.  It is a black gem taken from "
+      "the body of a fallen Vix'Zi'Xeochicatl.  It wiggles slightly and is cool "
+      "to the touch.  The uses for this gem are not widely known."
+
+classvars:
+
+   vrName = MajorBlackHeartStone_name_rsc
+   vrDesc = MajorBlackHeartStone_desc_rsc
+   
+   vrName_plural = MajorBlackHeartStone_name_plural
+
+   viValue_average = 100
+   viWeight = 20
+   viBulk = 10
+
+   viColor = PT_REDTODKBLACK1
+
+properties:
+
+messages:
+
+   CreateXeo()
+   {
+      return Create(&XeoUnholy,#InAttack=Send(self,@IsInAttack));
+   }
+
+   WeightPrefixes()
+   {
+      return $;
+   }
+   
+   WeightSuffixes()
+   {
+      return [[&UnholyResistanceMod,100]
+             ];
+   }
+
+   EmpowerAffixes()
+   {
+      return [[&UnholyResistanceMod,3]
+             ];
+   }
+   
+   GetForgeType()
+   {
+      return FORGE_UNHOLY;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

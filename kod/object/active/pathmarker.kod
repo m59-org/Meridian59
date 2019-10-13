@@ -1,0 +1,62 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+PathMarker is ActiveObject
+
+% This is an inert active object that players can't see.
+%
+% It's entirely for minimap indications of exits.
+% This is generally used as a part of quests.
+% Uses longitude / latitude to indicate which direction the exits go?
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   path_marker_name_rsc = "path marker"
+   path_marker_icon_rsc = invistotem.bgf
+   path_marker_desc_rsc = \
+      "Travel in this direction!"
+
+classvars:
+
+   vrName = path_marker_name_rsc
+   vrIcon = path_marker_icon_rsc
+   vrDesc = path_marker_desc_rsc
+   
+properties:
+
+   viObject_flags = OF_NOEXAMINE
+
+messages:
+
+   DestroyDisposable()
+   {
+      return FALSE;
+   }
+
+   CanSweep()
+   {
+      return FALSE;
+   }
+
+   SendAnimation()
+   {
+      % Send animation info to user.  Default is no animation, display with
+      %  group 1.
+      AddPacket(1, ANIMATE_NONE, 2, 10);
+
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

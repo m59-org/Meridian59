@@ -1,0 +1,143 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+WeaponPoisonProc is WeaponObjectAttribute 
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   poison_proc_them = \
+      "The %s wielded by %s bites deeply. You shiver as poison courses through your veins!"
+   poison_proc_you = \
+      "Your %s bites deeply. %s%s shivers from the onset of poison!"
+   poison_req_poison_blade = \
+      "It would be dangerous to wield this weapon without knowledge of poison blades."
+   poison_wears_off = \
+      "The coating of poison on your %s has been completely expended."
+
+   poison_attribute_desc = \
+      "  It has a %i%% chance to apply poison of strength %i for %i seconds; it looks "
+      "to have enough coating left for %i more poisonings.\n"
+
+classvars:
+
+properties:
+
+   poPoisonSID = 0
+   piPoisonPower = 70
+   piProcChance = 15
+   piPoisonDuration = 1000
+   piPoisonCharges = 10
+
+messages:
+
+   Constructor(host_object=$,set_poison=0,set_poison_power=1,set_poison_duration=1000,set_proc_chance=0,set_charges=10)
+   {
+      poPoisonSID = set_poison;
+      piPoisonPower = set_poison_power;
+      piProcChance = set_proc_chance;
+      piPoisonDuration = set_poison_duration;
+      piPoisonCharges = set_charges;
+
+      propagate;
+   }
+
+   GetPoison()
+   {
+      return Send(SYS,@FindSpellByNum,#num=poPoisonSID);
+   }
+
+   GetPoisonDuration()
+   {
+      return piPoisonDuration;
+   }
+
+   GetPoisonPower()
+   {
+      return piPoisonPower;
+   }
+
+   GetProcChance()
+   {
+      return piProcChance;
+   }
+
+   ModifyDamage(damage = $,who = $,what = $)
+   {
+      local i, each_obj, oPoison;
+
+      if who = $
+      {
+         return damage;
+      }
+
+      oPoison = Send(self,@GetPoison);
+
+      if oPoison <> $
+         AND piPoisonCharges > 0
+         AND Random(1,100) <= piProcChance
+      {
+         if IsClass(what,&Monster)
+         {
+            Send(oPoison,@MakePoisoned,#who=what,#lossrate=piPoisonPower*2,#duration=piPoisonDuration*2);
+         }
+         else
+         {
+            Send(oPoison,@MakePoisoned,#who=what,#lossrate=piPoisonPower,#duration=piPoisonDuration);
+         }
+
+         if IsClass(who,&Player)
+         {
+            Send(who,@MsgSendUser,#message_rsc=poison_proc_you,#parm1=Send(poHostObject,@GetName),#parm2=Send(what,@GetCapDef),#parm3=Send(what,@GetName));
+         }
+         if IsClass(what,&Player)
+         {
+            Send(what,@MsgSendUser,#message_rsc=poison_proc_them,#parm1=Send(poHostObject,@GetName),#parm2=Send(who,@GetName));
+         }
+
+         --piPoisonCharges;
+         if piPoisonCharges <= 0
+         {
+            Send(who,@MsgSendUser,#message_rsc=poison_wears_off,#parm1=Send(poHostObject,@GetName));
+            Post(self,@Delete);
+         }
+      }
+
+      return damage;
+   }
+
+   ItemReqUse(oItem=$,oPlayer=$)
+   {
+      if oItem <> $
+         AND oPlayer <> $
+      {
+         if Send(oPlayer,@HasSkill,#num=SKID_POISON_BLADE)
+         {
+            return TRUE;
+         }
+      }
+
+      Send(oPlayer,@MsgSendUser,#message_rsc=poison_req_poison_blade);
+
+      return FALSE;
+   }
+
+   AttributeDesc()
+   {
+      AddPacket(4,poison_attribute_desc, 4,piProcChance, 4,piPoisonPower/1000, 4,piPoisonDuration/1000, 4,piPoisonCharges);
+
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

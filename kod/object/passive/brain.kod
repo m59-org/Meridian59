@@ -56,6 +56,7 @@ properties:
    piInvis_reduction = 100
    piShadForm_reduction = 60
    piSneak_reduction = 100
+   piSpoken_reduction = 400
 
 messages:
 
@@ -721,6 +722,15 @@ messages:
 
             return;
          }
+         else if iRange > ((iOpt_range+(64*5)) * (iOpt_range+(64*5)))
+         {
+            Send(mob,@MoveTowards,#oTarget=target,#face_target=TRUE);
+            return;
+         }
+         else
+         {
+            return;
+         }
       }
 
       % Okay, at this point, we want the monster to move,
@@ -839,8 +849,17 @@ messages:
          iRange = Send(mob,@SquaredFineDistanceTo3D,#what=target);
          if iRange < (iOpt_range * iOpt_range)
          {
-            Send(mob,@MoveAway,#oTarget=target,#face_away=TRUE);
+            Send(mob,@MoveAway,#oTarget=target,#face_target=TRUE,#face_away=FALSE);
 
+            return;
+         }
+         else if iRange > ((iOpt_range+(64*5)) * (iOpt_range+(64*5)))
+         {
+            Send(mob,@MoveTowards,#oTarget=target,#face_target=TRUE);
+            return;
+         }
+         else
+         {
             return;
          }
       }
@@ -987,6 +1006,11 @@ messages:
          if Send(Send(SYS,@FindSkillByNum,#num=SKID_SNEAK),@IsSneaking,#who=what)
          {
             iHatred = iHatred - piSneak_reduction;
+         }
+         
+         if Send(mob,@IsEnchanted,#byClass=&CreatureSpeak)
+         {
+            iHatred = iHatred - piSpoken_reduction;
          }
       }
 

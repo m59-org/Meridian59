@@ -1,0 +1,120 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+IcewaterThreat is RoomThreat 
+
+% The icy water in the Prism of Ice drains drains drains.
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   icewater_threat_name_rsc = "icy waters"
+   icewater_threat_icon_rsc = iexfrost.bgf
+   icewater_threat_desc_rsc = \
+      "The proximity to the mortal realm has melted a pocket in the elemental "
+      "plane of ice, but the waters are still deathly cold. Survival here "
+      "means limiting exposure to the elemental meltwaters."
+
+   icewater_threat_begin_msg = \
+      "You can feel deathly cold pulling at your vitality."
+   icewater_threat_end_msg = \
+      "The elemental chill fades."
+   icewater_threat_damage_msg = \
+      "~b~BThe elemental chill scrapes like raw daggers down the bones in your legs."
+
+   remove_all_minions_icewater = \
+      "~bThe extreme cold drains all the energy from your connection to your minions!"
+
+   icewater_remove_shadow_form = \
+      "~b~BThe shadows clinging to your body make you more vulnerable to the cold here!"
+
+   icewater_death_msg = \
+      "~B~U~k[###]~n ~B~v%s froze to death in the Prism of Ice."
+
+classvars:
+
+   vrName = icewater_threat_name_rsc
+   vrIcon = icewater_threat_icon_rsc
+   vrDesc = icewater_threat_desc_rsc
+
+   viThreatBeginMsg = icewater_threat_begin_msg
+   viThreatEndMsg = icewater_threat_end_msg
+   viThreatDamageMsg = icewater_threat_damage_msg
+   viGoodItemUseMsg = cold_good_item_use_msg
+   viGoodSpellUseMsg = cold_good_spell_use_msg
+   
+   viDeathMsg = cold_death_msg
+
+properties:
+
+   % What type of damage do we do?
+   piDamageTypeAttack = 0
+   piDamageTypeSpell = ATCK_SPELL_COLD
+   
+   % How much damage do we do?
+   piDamageMin = 1
+   piDamageMax = 2
+   
+   % How often do we deal damage?
+   piDamageTime = 3000
+   ptDamageTimer = $
+   
+   % How long does the threat last?
+   piThreatTime = 10 * 60 * 1000
+   ptThreatTimer = $
+
+   % Do we report the damage?
+   piReport = FALSE
+
+   % This threat drains vigor.
+   piVigorDrop = 50000
+
+messages:
+
+   ReqDealDamage(who=$)
+   {
+      % Alter this to create exemptions to the threat.
+      
+      if who <> $
+         AND IsClass(who,&Player)
+      {
+         if Send(who,@GetControlledMinions) <> $
+         {
+            Send(who,@MsgSendUser,#message_rsc=remove_all_minions_icewater);
+            Send(who,@RemoveAllMinions);
+         }
+         if Send(who,@IsEnchanted,#byClass=&ShadowForm)
+         {
+            % Let them get hit by the ice water anywhere if shadow formed.
+            Send(who,@MsgSendUser,#message_rsc=icewater_remove_shadow_form);
+            return TRUE;
+         }
+         % Undine are hardy against cold, never hit them.
+         if Send(who,@GetHeightAtObject) >= 0
+            OR Send(who,@GetPlayerRace) = RACE_HALF_UNDINE
+         {
+            return FALSE;
+         }
+      }
+
+      propagate;
+   }
+
+   ApplyDirectEffect(who=$)
+   {
+      Send(who,@AddExertion,#amount=piVigorDrop);
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

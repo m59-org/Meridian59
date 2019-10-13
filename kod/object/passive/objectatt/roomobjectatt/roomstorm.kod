@@ -116,8 +116,13 @@ messages:
    CreateBubble(timer=$)
    {
       local i, oLight, iIncrement;
-
+      
       ptBubblesTimer = $;
+      if NOT Send(SETTINGS_OBJECT,@GetLightEffectsEnabled)
+      {
+         return;
+      }
+
       if Length(plBubbles) < piBubblesMax
       {
          oLight = Create(&DynamicLight,#iIntensity=piIntensityMin,
@@ -281,6 +286,11 @@ messages:
       }
 
       propagate;
+   }
+   
+   KilledSomething()
+   {
+      return;
    }
 
 end

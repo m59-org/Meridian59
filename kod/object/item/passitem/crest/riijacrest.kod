@@ -1,0 +1,76 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+RiijaCrest is Crest
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   Riija_Crest_name_rsc = "Crest of the Trickster"
+   Riija_Crest_icon_rsc = rjcharm.bgf
+   Riija_Crest_desc_rsc = \
+      "You are quite the spinner of illusions. Smarter than them all, really. "
+      "This crest signifies that you are the master of Riija. "
+      "While wearing it, your victims never realize your illusionary damage wasn't real."
+
+   Riija_Crest_equipped = \
+      "The Crest of the Trickster empowers your illusionary damage."
+   Riija_Crest_unequipped = \
+      "The power of the Crest of the Trickster leaves you."
+
+classvars:
+
+   vrName = Riija_Crest_name_rsc
+   vrIcon = Riija_Crest_icon_rsc
+   vrDesc = Riija_Crest_desc_rsc
+
+   viValue_average = 10
+
+   viBulk = 25
+   viWeight = 25
+
+   viGround_group = 2
+
+properties:
+   
+   pbIn_use = False
+
+   piItemLevel = 300
+
+messages:
+
+   NewUsed(what = $)
+   {
+      if IsClass(what,&User)
+      {
+         Send(what,@MsgSendUser,#message_rsc=Riija_Crest_equipped);
+      }
+      
+      propagate;
+   }
+
+   NewUnused(what = $)
+   {
+      if IsClass(what,&User)
+      {
+         Send(what,@MsgSendUser,#message_rsc=Riija_Crest_unequipped);
+      }
+
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+

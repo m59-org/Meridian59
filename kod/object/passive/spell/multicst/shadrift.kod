@@ -22,12 +22,14 @@ resources:
    DeathsDoor_name_rsc = "shadow rift"
    DeathsDoor_icon_rsc = irift.bgf
    DeathsDoor_desc_rsc = \
-      "Summons the darkest of magics to warp the fabric of space.  "
-      "Forms a magical bond between a prism and the area in which it "
-      "is cast.  Subsequent castings with the same prism cause a mystical "
+      "Summons the darkest of magics to warp the fabric of space. "
+      "Only the specially designed foyer of the Inner Sanctum of Queen Venya'cyr "
+      "and its centuries of dark rituals can host such a strong incantation. This spell will cause a mystical "
       "portal to form which will transport all who enter it to the exact spot "
-      "to which the prism was bound.  "
-      "Requires the feathers of a dark angel and a prism. "
+      "to which the spherical prism is bound. "
+      "Requires the feathers of a dark angel and membership in the Guild of Necromancers. "
+      "The Master of the Order of Necromancers may say \"Bind our will here.\" to change the bound "
+      "destination to his or her current location."
    
    DeathsDoor_sound = qdthdoor.wav
 
@@ -49,6 +51,11 @@ resources:
    deathsDoor_necros_only = \
       "Without an Amulet to summon the power of the Three, you cannot "
       "hope to summon a shadow rift."
+
+   must_be_foyer_sanctum = \
+      "This spell is crafted to work only within a very special structure "
+      "full of ancient rituals and dark magics. Even a standard prism "
+      "would not be enough."
 
 classvars:
 
@@ -72,13 +79,17 @@ classvars:
    viDrainTime = 1000    % Drain some mana every viDrainTime milliseconds
 
    viCast_time = 0    % in milliseconds
+   
+   viPrimaryStat = STAT_ID_MYSTICISM
+   viSecondaryStat = STAT_ID_KARMA
 
 
 properties:
 
-   pbAccessible = FALSE
-   pbEnabled = FALSE
+   pbAccessible = TRUE
+   pbEnabled = TRUE
    viMultiCast_Spellpower = 1500 % 5 minutes for 3 @ 20%, 70 secs for 7 @ 99%
+
 messages:      
 
 
@@ -90,8 +101,62 @@ messages:
       return;
    }
 
+   FindPrism(who=$)
+   {
+      local oRoom, i, cPrism, cDist, Dist, each_obj;
+
+      % This spell only works with the spherical prism in the Necromancer Guildhall.
+      % The caster must also be in the foyer, aka vulnerable.
+
+      oRoom = Send(who,@GetOwner);
+      cPrism = $;
+      cDist = 100000;
+
+      if NOT Send(Send(SYS,@FindRoomByNum,#num=RID_GUILDH15),@InFoyer,#who=who)
+      {
+         Send(who,@MsgSendUser,#message_rsc=must_be_foyer_sanctum);
+         return $;
+      }
+
+      foreach i in Send(oRoom,@GetHolderPassive)
+      {
+         each_obj = Send(oRoom,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&SpherePrism)
+            AND (Send(each_obj,@GetSpell) = $ OR Send(each_obj,@GetSpell) = self)
+         {
+            Dist = Send(who,@SquareddistanceTo,#what=each_obj);
+            if Dist < cDist
+            {
+               cDist = Dist;
+               cPrism = each_obj;
+            }
+         }
+      }
+
+      return cPrism;
+   }
+
    CanPayCosts(who=$,lTargets=$,iSpellPower=0)
    {
+      local i, each_obj;
+      if IsClass(who,&Player)
+         AND NOT Send(who,@IsUndead)
+         AND NOT IsClass(who,&DM)
+      {
+         Send(who,@MsgSendUser,#message_rsc=deathsDoor_necros_only);
+         return FALSE;
+      }
+      
+      foreach i in Send(Send(who,@GetOwner),@GetHolderActive)
+      {
+         each_obj = Send(Send(who,@GetOwner),@HolderExtractObject,#data=i);
+         
+         if IsClass(each_obj,&NecropolisPortal)
+         {
+            Send(who,@MsgSendUser,#message_rsc=DeathsDoor_already);
+            return FALSE;
+         }
+      }
       propagate;
    }
 
@@ -111,18 +176,18 @@ messages:
          return;
       }
 
-      % Ask room if we're allowed to cast here.  For example, portals into
-      % guild halls are a bad idea.
-      if (NOT Send(Send(oPrism,@GetOwner),@CanHavePlayerPortal))
-      {
-         foreach oCaster in lCasters
-         {
-            Send(oCaster,@MsgSendUser,#message_rsc=spell_bad_location,
-                  #parm1=vrName);
-         }
-
-         return;
-      }
+%      % Ask room if we're allowed to cast here.  For example, portals into
+%      % guild halls are a bad idea.
+%      if (NOT Send(Send(oPrism,@GetOwner),@CanHavePlayerPortal))
+%      {
+%         foreach oCaster in lCasters
+%         {
+%            Send(oCaster,@MsgSendUser,#message_rsc=spell_bad_location,
+%                  #parm1=vrName);
+%         }
+%
+%         return;
+%      }
 
       if Send(oPrism,@GetTeleportLocation)
       {

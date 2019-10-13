@@ -21,8 +21,14 @@ resources:
    ProfaneResonance_name_rsc = "profane resonance"
    ProfaneResonance_icon_rsc = iprofres.bgf
    ProfaneResonance_desc_rsc = \
-      "The foreboding sound of this song hinders the casting the holy spells of Shal'ille.  "
+      "The foreboding sound of this song hinders the casting the holy spells of Shal'ille "
+      "and protects all who hear it from blinding and dazzling magics. "
+      "Listeners will also be strongly protected from holy attacks. "
       "A ruby and some herbs are required to begin performing this song."
+      
+   profane_resist_rsc = \
+      "\n\nIn addition to hindering the magics of Shal'ille, the song of Profane Resonance currently affecting "
+      "you adds %i\% holy resistance."
 
    ProfaneResonance_song = nec02.mp3
 
@@ -42,6 +48,10 @@ classvars:
 
    viHinderedSchool = SS_SHALILLE
 
+   viResistOne = -ATCK_SPELL_HOLY
+
+   viDivisorOne = 3
+
 properties:
 
    prMusic = ProfaneResonance_song
@@ -55,6 +65,44 @@ messages:
       plReagents = Cons([&Herbs,1],plReagents);
 
       return;
+   }
+
+   AddBlindResistance(power=0,resistance=0)
+   {
+      return resistance + power/3;
+   }
+
+   SendStatsDesc(who=$)
+   {
+      if who <> $
+         AND IsClass(who,&User)
+         AND Send(who,@GetMostPowerfulRadiusEnchantmentState,#byClass=&ProfaneResonance) <> $
+      {
+         Send(self,@EffectDesc,#who=who);
+
+         return;
+      }
+
+      propagate;
+   }
+
+   EffectDesc(who=$)
+   {
+      local lState, iDivisorOne;
+      
+      lState = Send(who,@GetMostPowerfulRadiusEnchantmentState,#byClass=&ProfaneResonance);
+
+      if lState <> $
+      {
+         iDivisorOne = viDivisorOne;
+         if iDivisorOne = 0
+         {
+            iDivisorOne = 1;
+         }
+         AddPacket(4,profane_resist_rsc, 4,Nth(lState,2)/iDivisorOne);
+      }
+
+      propagate;
    }
 
 end

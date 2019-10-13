@@ -25,9 +25,9 @@ resources:
    room_desertALdunes = desertaldunes.roo
    room_name_desertALdunes = "Eternal Wastes"
    
-   brighter_going_east_msg = \
+   brighter_going_west_msg = \
       "It seems slightly brighter in this direction somehow."
-   darker_going_west_msg = \
+   darker_going_east_msg = \
       "It seems slightly darker in this direction somehow."
 
 classvars:
@@ -71,7 +71,7 @@ messages:
       {
          if IsClass(what,&User)
          {
-            Send(what,@MsgSendUser,#message_rsc=brighter_going_east_msg);
+            Send(what,@MsgSendUser,#message_rsc=darker_going_east_msg);
          }
          Send(SYS,@UtilGoNearSquare,#what=what,
               #where=Send(SYS,@FindRoomByNum,#num=RID_DESERTALDUNES2E),
@@ -85,8 +85,12 @@ messages:
 
       if new_col < 2
       {
+         if IsClass(what,&User)
+         {
+            Send(what,@MsgSendUser,#message_rsc=brighter_going_west_msg);
+         }
          Send(SYS,@UtilGoNearSquare,#what=what,
-              #where=Send(SYS,@FindRoomByNum,#num=RID_DESERTALDUNES),
+              #where=Send(SYS,@FindRoomByNum,#num=RID_DESERTALDUNESVECKA),
               #new_row=Send(what,@GetRow),
               #new_col=Send(self,@GetRoomCols)-3,
               #fine_row=0,
@@ -119,6 +123,20 @@ messages:
          return;
       }
 
+      propagate;
+   }
+
+   RecalcLightAndWeather()
+   {
+      local i;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&XaerdunAfterlife)
+         {
+            Send(First(i),@SayRandom);
+         }
+      }
       propagate;
    }
 

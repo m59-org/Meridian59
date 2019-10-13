@@ -1,0 +1,601 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+AncientTomb1 is Room
+
+constants:
+
+   include blakston.khd
+   
+   HALLS_BEGIN = 1
+   HALLS_END = 112
+
+resources:
+
+   room_ancienttomb1 = ancienttomb1.roo
+   room_name_ancienttomb1 = "An Ancient Tomb"
+
+   ancienttomb1_music = castle.mp3
+  
+   tomb_open_sound = stoneup2.wav
+
+   cannot_debuff_here = \
+      "The altered flow of magic in this place makes your spell contort and fail."
+   walk_back_out = \
+      "You trek back out into the desert."
+
+classvars:
+
+   vrName = room_name_ancienttomb1
+
+   viTeleport_row = 4
+   viTeleport_col = 4
+
+   vcMonsterClass = &SorcererStatue
+
+properties:
+
+   prMusic = ancienttomb1_music
+
+   prRoom = room_ancienttomb1
+   piRoom_num = RID_ANCIENT_TOMB_START
+   
+   piTombCount = 0
+   pbComplete = FALSE
+   
+   plStatueLocations = $
+   plStatueLocations2 = $
+   plSecretPathway = $
+
+   piAttachedToDesertDunesRoom = 1
+
+   piOverridesDeathFunction = TRUE
+
+messages:
+
+   Constructor(iRID=RID_ANCIENT_TOMB_START)
+   {
+      piRoom_num = iRID;
+      
+      piAttachedToDesertDunesRoom = Random(1,Send(Send(SYS,@GetDesertRoomMaintenance),@GetNumberOfDunesRooms));
+
+      propagate;
+   }
+
+   Constructed()
+   {
+      local iCount, iRandom;
+      
+      iCount = HALLS_BEGIN;
+      while iCount <= HALLS_END
+      {
+         Send(self,@SetSector,#sector=iCount,#animation=ANIMATE_FLOOR_LIFT,#height=380,#speed=10);
+         ++iCount;
+      }
+      
+      iRandom = Random(1,9);
+      switch(iRandom)
+      {
+         case 1:
+            plSecretPathway = [1,9,17,25,33,41,49,57,65,73,81,80,87,95,103,111,104,97,105];
+            break;
+         case 2:
+            plSecretPathway = [8,23,38,53,68,83,98,106,107,108,109,110,111,112];
+            break;
+         case 3:
+            plSecretPathway = [1,9,24,39,54,62,63,64,65,73,81,82,90,105];
+            break;
+         case 4:
+            plSecretPathway = [1,2,3,4,5,6,7,15,22,21,20,19,26,41,48,55,63,64,65,66,67,75,90,105];
+            break;
+         case 5:
+            plSecretPathway = [8,16,17,25,40,55,63,71,86,101,109,110,111,112];
+            break;
+         case 6:
+            plSecretPathway = [8,16,24,39,54,69,77,78,79,72,57,50,51,52,60,75,90,97,104,112];
+            break;
+         case 7:
+            plSecretPathway = [1,9,16,23,38,46,47,48,49,50,58,66,74,89,104,112];
+            break;
+         case 8:
+            plSecretPathway = [1,2,3,4,5,6,7,15,30,45,60,75,90,105];
+            break;
+         case 9:
+            plSecretPathway = [1,9,24,39,54,62,70,85,100,108,109,110,111,112];
+            break;
+      }
+
+      plStatueLocations = [[5,13,0,0],
+                           [5,21,0,0],
+                           [5,29,0,0],
+                           [5,37,0,0],
+                           [5,45,0,0],
+                           [5,53,0,0],
+                           [5,61,0,0],
+                           [13,5,0,0],
+                           [13,13,0,0],
+                           [13,21,0,0],
+                           [13,29,0,0],
+                           [13,37,0,0],
+                           [13,45,0,0],
+                           [13,53,0,0],
+                           [13,61,0,0],
+                           [21,5,0,0],
+                           [21,13,0,0],
+                           [21,21,0,0],
+                           [21,29,0,0],
+                           [21,37,0,0],
+                           [21,45,0,0],
+                           [21,53,0,0],
+                           [21,61,0,0]
+                          ];
+      plStatueLocations2 = [[29,5,0,0],
+                           [29,13,0,0],
+                           [29,21,0,0],
+                           [29,29,0,0],
+                           [29,37,0,0],
+                           [29,45,0,0],
+                           [29,53,0,0],
+                           [29,61,0,0],
+                           [37,5,0,0],
+                           [37,13,0,0],
+                           [37,21,0,0],
+                           [37,29,0,0],
+                           [37,37,0,0],
+                           [37,45,0,0],
+                           [37,53,0,0],
+                           [37,61,0,0],
+                           [45,5,0,0],
+                           [45,13,0,0],
+                           [45,21,0,0],
+                           [45,29,0,0],
+                           [45,37,0,0],
+                           [45,45,0,0],
+                           [45,53,0,0],
+                           [45,61,0,0],
+                           [53,5,0,0],
+                           [53,13,0,0],
+                           [53,21,0,0],
+                           [53,29,0,0],
+                           [53,37,0,0],
+                           [53,45,0,0],
+                           [53,53,0,0],
+                           [53,61,0,0],
+                           [61,5,0,0],
+                           [61,13,0,0],
+                           [61,21,0,0],
+                           [61,29,0,0],
+                           [61,37,0,0],
+                           [61,45,0,0],
+                           [61,53,0,0]];
+      propagate;
+   }
+
+   FirstUserEntered()
+   {
+      Post(self,@PopulateStatues);
+      Post(self,@OpenNextTomb);
+      
+      propagate;
+   }
+   
+   PopulateStatues()
+   {
+      local i, oStatue;
+      
+      foreach i in plStatueLocations
+      {
+         oStatue = Create(vcMonsterClass);
+         Send(self,@NewHold,#what=oStatue,#new_row=Nth(i,1),#new_col=Nth(i,2),#fine_row=Nth(i,3),#fine_col=Nth(i,4));
+         Send(self,@SomethingTurned,#what=oStatue,#new_angle=ANGLE_NORTH);
+      }
+      
+      foreach i in plStatueLocations2
+      {
+         oStatue = Create(vcMonsterClass);
+         Send(self,@NewHold,#what=oStatue,#new_row=Nth(i,1),#new_col=Nth(i,2),#fine_row=Nth(i,3),#fine_col=Nth(i,4));
+         Send(self,@SomethingTurned,#what=oStatue,#new_angle=ANGLE_NORTH);
+      }
+
+      return;
+   }
+
+   OpenNextTomb()
+   {
+      local i, iChoice;
+      
+      if plSecretPathway = $
+         OR pbComplete
+      {
+         return;
+      }
+      
+      ++piTombCount;
+      if piTombCount <= Length(plSecretPathway)
+      {
+         Post(self,@SetSector,#sector=Nth(plSecretPathway,piTombCount),#animation=ANIMATE_FLOOR_LIFT,#height=300,#speed=10);
+      }
+      else
+      {
+         Send(self,@TombCompleted);
+      }
+
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&Player)
+         {
+            Send(First(i),@WaveSendUser,#wave_rsc=tomb_open_sound);
+         }
+      }
+
+      return;
+   }
+
+   SomethingKilled(what=$,victim=$)
+   {
+      if victim <> $
+         AND IsClass(victim,vcMonsterClass)
+      {
+         Send(self,@OpenNextTomb);
+      }
+
+      propagate;
+   }
+
+   TombCompleted()
+   {
+      pbComplete = TRUE;
+      return;
+   }
+   
+   ReqSpellCast(oSpell=$,who=$)
+   {
+      if IsClass(oSpell,&DeathRift)
+         OR IsClass(oSpell,&PortalOfLife)
+      {
+         return FALSE;
+      }
+
+      if IsClass(oSpell,&Debuff)
+      {
+         if who <> $
+            AND IsClass(who,&Player)
+         {
+            Send(who,@MsgSendUser,#message_rsc=cannot_debuff_here);
+         }
+         return FALSE;
+      }
+
+      propagate;
+   }
+
+   SomethingMoved(what = $,new_row = $, new_col = $)
+   {
+      if IsClass(what,&Player)
+      {
+         if new_col < 2
+         {
+            Send(what,@MsgSendUser,#message_rsc=walk_back_out);
+            if piAttachedToDesertDunesRoom = 1
+            {
+               Send(SYS,@UtilGoNearSquare,#what=what,
+                    #where=Send(Send(SYS,@GetDesertRoomMaintenance),@GetDesertDunes1),
+                    #new_row=60,
+                    #new_col=102,
+                    #new_angle=Send(what,@GetAngle));
+               return;
+            }
+            if piAttachedToDesertDunesRoom = 2
+            {
+               Send(SYS,@UtilGoNearSquare,#what=what,
+                    #where=Send(Send(SYS,@GetDesertRoomMaintenance),@GetDesertDunes2),
+                    #new_row=60,
+                    #new_col=102,
+                    #new_angle=Send(what,@GetAngle));
+               return;
+            }
+            if piAttachedToDesertDunesRoom = 3
+            {
+               Send(SYS,@UtilGoNearSquare,#what=what,
+                    #where=Send(Send(SYS,@GetDesertRoomMaintenance),@GetDesertDunes3),
+                    #new_row=60,
+                    #new_col=102,
+                    #new_angle=Send(what,@GetAngle));
+               return;
+            }
+            return;
+         }
+
+         if new_col > (Send(self,@GetRoomCols)-2)
+         {
+            Send(Send(SYS,@GetDesertRoomMaintenance),@CreateSorcerersTomb,#who=what);
+            return;
+         }
+      }
+
+      propagate;
+   }
+
+   CanHavePlayerPortal()
+   {
+      return FALSE;
+   }
+
+   Delete()
+   {
+      local i, oThing, oPlayer;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&LogoffGhost)
+         {
+            Send(Send(First(i),@GetGhostedPlayer),@AdminGoToDesertShore2WhileOffline);
+            Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTSHORE2),@Teleport,#what=First(i));
+         }
+      }
+
+      foreach i in Send(self,@GetHolderPassive)
+      {
+         oThing = Send(self,@HolderExtractObject,#data=i);
+         if IsClass(oThing,&DeadBody)
+            AND NOT Send(oThing,@GetPbMob)
+         {
+            % is a player corpse! Let's move it.
+            Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTDUNES),@Teleport,#what=oThing);
+         }
+      }
+
+      Send(Send(SYS,@GetDesertRoomMaintenance),@TombDeleted,#what=self);
+
+      propagate;
+   }
+
+   LastUserLeft()
+   {
+      Post(self,@Delete);
+
+      propagate;
+   }
+
+   StartSnow(bOnGround=TRUE)
+   {
+      % Add snow to floor.
+      Send(self,@ChangeTexture,#id=200,#new_texture=61015,#flags=CTF_FLOOR);
+
+      Send(self,@SetRoomFlag,#flag=ROOM_SNOWING,#value=TRUE);
+      Send(self,@WeatherChanged);
+
+      return;
+   }
+
+   EndSnow(override=FALSE)
+   "Use override if rooms have manually placed textures."
+   {
+      if Send(self,@CheckRoomFlag,#flag=ROOM_SNOWING)
+      {
+         Send(self,@SetRoomFlag,#flag=ROOM_SNOWING,#value=FALSE);
+         Send(self,@WeatherChanged);
+         % Remove snow from floor.
+         Send(self,@RemoveTextureChange,#id=200);
+      }
+
+      return;
+   }
+
+   StartRain()
+   {
+      Send(self,@SetRoomFlag,#flag=ROOM_RAINING,#value=TRUE);
+      Send(self,@WeatherChanged);
+      Send(self,@ChangeTexture,#id=200,#new_texture=09080,#flags=CTF_FLOOR);
+
+      return;
+   }
+
+   EndRain()
+   {
+      if Send(self,@CheckRoomFlag,#flag=ROOM_RAINING)
+      {
+         Send(self,@SetRoomFlag,#flag=ROOM_RAINING,#value=FALSE);
+         Send(self,@RemoveTextureChange,#id=200);
+         Send(self,@WeatherChanged);
+      }
+
+      return;
+   }
+
+   DoPhaseWeather()
+   "Called to simulate weather by some rooms."
+   {
+      switch(Send(SYS,@GetDayPhase))
+      {
+         case DAY_PHASE_DAWN:
+            % Some rooms rain instead of snow.
+            if Send(self,@CheckRoomFlag,#flag=ROOM_SNOWING)
+               OR Send(self,@CheckRoomFlag,#flag=ROOM_RAINING)
+            {
+               Send(self,@EndSnow);
+               Send(self,@EndRain);
+            }
+            break;
+         case DAY_PHASE_DAY:
+            break;
+         case DAY_PHASE_DUSK:
+            if NOT Send(self,@CheckRoomFlag,#flag=ROOM_RAINING)
+            {
+               Send(self,@StartRain);
+            }
+            break;
+         case DAY_PHASE_NIGHT:
+            if Send(self,@CheckRoomFlag,#flag=ROOM_RAINING)
+            {
+               Send(self,@EndRain);
+            }
+            if NOT Send(self,@CheckRoomFlag,#flag=ROOM_SNOWING)
+            {
+               Send(self,@StartSnow);
+            }
+            break;
+      }
+      return;
+   }
+   
+   OverrideDeathFunction(who=$,what=$,stroke_obj=$)
+   {
+      local oAfterlife, bDrop, oRoom, iRow, iCol, iFine_Row, iFine_Col, iAngle, iRoom,
+            oBody, lReagentBagContents, lInventoryContents, lItems, i, oSoldierShield;
+
+      Send(who,@ClearStance);
+
+      % Stop any rescue attempts that were going on.
+      Send(who,@CancelRescue);
+      Send(who,@RemoveAllEnchantments,#report=FALSE);
+      
+      Send(who,@SetDeathTime,#iTime=GetTime());
+
+      % Grab the location of the deceased.
+      % Might need to grab the old location if logged off.
+
+      if Send(who,@IsLoggedOn)
+      {
+         oRoom = Send(who,@GetOwner);
+         iRow = Send(who,@GetRow);
+         iCol = Send(who,@GetCol);
+         iFine_Row = Send(who,@GetFineRow);
+         iFine_Col = Send(who,@GetFineCol);
+         iAngle = Send(who,@GetAngle);
+         iRoom = Send(Send(who,@GetOwner),@GetRoomNum);
+      }
+      else
+      {
+         iRoom = Send(who,@GetSaveRoom);
+         oRoom = Send(SYS,@FindRoomByNum,#num=iRoom);
+         iRow = Send(who,@GetSaveRow);
+         iCol = Send(who,@GetSaveCol);
+         iFine_Row = Send(who,@GetSaveFineRow);
+         iFine_Col = Send(who,@GetSaveFineCol);
+         iAngle = Send(who,@GetSaveAngle);
+      }
+
+      % Record-keeping. Keep this before the token check,
+      % so we can give proper message.
+      Send(SYS,@UserKilled,#what=who,#killer=what,#oRoom=oRoom,#stroke_obj=stroke_obj);
+      Send(Send(SYS,@GetStatistics),@PlayerDiedCounter);
+
+      % Create the corpse.
+      if what <> $
+         AND IsClass(what,&User)
+      {
+         oBody = Send(who,@CreateCorpse,#oPlayerKiller=what);
+      }
+      else
+      {
+         oBody = Send(who,@CreateCorpse);
+      }
+      Send(who,@AddCorpse,#corpse=oBody);
+
+      Send(oRoom,@NewHold,#what=oBody,#new_row=iRow,#new_col=iCol,
+            #fine_row=iFine_Row,#fine_col=iFine_Col,#new_angle=iAngle);
+
+      bDrop = TRUE;
+      % Start losing stuff if applicable.
+      if bDrop
+      {
+         lReagentBagContents = Send(who,@GetReagentBagContents);
+         if lReagentBagContents <> $
+         {
+            lInventoryContents = [Send(who,@GetHolderActive),Send(who,@GetHolderPassive),lReagentBagContents];
+         }
+         else
+         {
+            lInventoryContents = [Send(who,@GetHolderActive),Send(who,@GetHolderPassive)];
+         }
+
+         foreach lItems in lInventoryContents
+         {
+            foreach i in lItems
+            {
+               % Let the item know we died, in case it does something special.
+               Send(i,@OwnerKilled);
+
+               if Send(i,@DropOnDeath)
+               {
+                  if Send(oRoom,@ReqNewHold,#what=i,#new_row=iRow,#new_col=iCol)
+                  {
+                     Send(oBody,@NewHold,#what=i);
+                  }
+               }
+            }
+         }
+
+         Post(who,@EvaluatePKStatus);
+
+         % Let SoldierShields know we died. It handles itself as appropriate.
+         oSoldierShield = Send(who,@FindUsing,#what=&SoldierShield);
+         if oSoldierShield <> $
+         {
+            Send(oSoldierShield,@OwnerDied,#what=what);
+         }
+      }
+
+      % Give out your dying scream.
+      if Send(who,@GetGender) = GENDER_FEMALE
+      {
+         i = Send(who,@GetFemaleDeathWav);
+      }
+      else
+      {
+         i = Send(who,@GetMaleDeathWav);
+      }
+
+      Send(oRoom,@SomethingWaveRoom,#what=oBody,#wave_rsc=i);
+      if Send(who,@IsLoggedOn)
+      {
+         Send(who,@WaveSendUser,#what=who,#wave_rsc=i);
+      }
+
+      Send(who,@SetHealth,#amount=1);
+
+      Send(who,@NewHealth);
+      Send(who,@NewMana);
+      Send(who,@NewVigor);
+      
+      Send(who,@SetDeathCost,#DeathCost=Send(Send(SYS,@GetDesertRoomMaintenance),@GetDeathCost),#bOverride=TRUE);
+      Send(who,@ApplyDeathPenalties);
+
+      % Refresh the client with what's really going on.
+      if Send(who,@IsLoggedOn)
+      {
+         Send(who,@ToCliStats,#group=1);
+         Send(who,@ToCliStats,#group=2);
+         Send(who,@ToCliStats,#group=3);
+         Send(who,@ToCliStats,#group=4);
+
+         % Wake up with red foggy hangover.
+         Send(who,@EffectSendUserDuration,#effect=EFFECT_PAIN,#duration=5000);
+      }
+      
+      oAfterlife = Send(SYS,@FindRoomByNum,#num=RID_DESERTALDUNES);
+      Send(oAfterlife,@Teleport,#what=who);
+      return;
+   }
+
+   OverridesDeathAllowPhasing()
+   {
+      return TRUE;
+   }
+
+   GetRegion()
+   {
+      return RID_DESERT;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+

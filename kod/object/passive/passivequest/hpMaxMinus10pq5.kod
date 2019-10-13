@@ -1,0 +1,92 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+hpMaxMinus10pq5 is PassiveQuest
+
+% The fifth quest for max minus ten players is to:
+%   Speak to the desert wise man
+%
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   hpMaxMinus10pq5_icon_rsc = mrelder.bgf
+   hpMaxMinus10pq5_name_rsc = "Speak to Korath"
+   hpMaxMinus10pq5_desc_rsc = \
+      "Now that you have reached the center of the region, it is time to gather information "
+      "about exactly what has happened to this once-thriving land. "
+      "Thanks to the new treaty set up by heralds of Princess Kateriina, "
+      "you are safe as long as you stand on the dark sand of the nomads' caves. "
+      "It is the only protection you will find in this realm. "
+      "Use that respite to ask around about banditry, witchery, sorcery, "
+      "the desert, the elements, and an event called the Diffraction that devastated Biskalane "
+      "centuries ago. When you feel you understand enough about the history, magics, and factions here, "
+      "ask Korath how you can help."
+   
+   hpMaxMinus10pq5_new_quest_msg = \
+      "Now that you have reached the center of the region, it is time to gather information "
+      "about exactly what has happened to this once-thriving land. "
+      "Thanks to the new treaty set up by heralds of Princess Kateriina, "
+      "you are safe as long as you stand on the dark sand of the nomads' caves. "
+      "It is the only protection you will find in this realm. "
+      "Use that respite to ask around about banditry, witchery, sorcery, "
+      "the desert, the elements, and an event called the Diffraction that devastated Biskalane "
+      "centuries ago. When you feel you understand enough about the history, magics, and factions here, "
+      "ask Korath how you can ~o~Bhelp."
+
+   hpMaxMinus10pq5_trigger_msg = \
+      "help"
+
+   hpMaxMinus10pq5_complete_msg = \
+      "~kKorath peers at you with eyes that are, for a moment, completely clear. \"Young one, "
+      "we have lived with the fallout of hubris for generations. Do you believe you can save "
+      "this land all on your own? Bah, pride. Vecka, my daughter, broke from our traditions and tried to "
+      "change things all by herself. She did manage to seal the Prism of Lightning to the east, so our mornings are "
+      "no longer as deadly, but the cost was dear.\" He turns away sadly. \"I do not wish to talk any more about this. Vrinna can advise you further. "
+      "All of the Prisms must be defeated if this land is ever to heal.\""
+      
+
+classvars:
+
+   vrIcon = hpMaxMinus10pq5_icon_rsc
+   vrName = hpMaxMinus10pq5_name_rsc
+   vrDesc = hpMaxMinus10pq5_desc_rsc
+   
+   vrNewThisQuestMsg = hpMaxMinus10pq5_new_quest_msg
+   vrCompletedMsg = hpMaxMinus10pq5_complete_msg
+   
+   vbReinform = FALSE
+   
+   vbSaySomething = TRUE
+   vsSayTrigger = hpMaxMinus10pq5_trigger_msg
+   vcSayTargetClass = &NomadWiseMan
+   
+   viChain = MAX_HP_MINUS_10_INVESTIGATE_DESERT_CHAIN
+   cNextQuestClass = &hpMaxMinus10pq6
+
+properties:
+
+messages:
+
+   Completed()
+   {
+      Create(&hpMaxMinus10pq5a,#quester=poQuester);
+      Create(&hpMaxMinus10pq5b,#quester=poQuester);
+      Create(&hpMaxMinus10pq5c,#quester=poQuester);
+      Create(&hpMaxMinus10pq5d,#quester=poQuester);
+      Create(&hpMaxMinus10pq5e,#quester=poQuester);
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

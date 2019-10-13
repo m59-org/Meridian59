@@ -1,0 +1,189 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+BattleShout is RadiusProjectile
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   Shout_name_rsc = "battle shout"
+   Shout_icon_rsc = iholysym.bgf
+   Shout_projectile_rsc = poisoncl.bgf
+   Shout_desc_rsc = \
+      "Knockback enemies around you with a mighty shout. "
+      "The power of the knockback depends on skill, your size, and your Might."
+
+   Shout_first_rsc = \
+      "You channel your determination and unleash a massive shout!"
+   Shout_third_rsc = \
+      "%s%s unleashes a determined shout!"
+
+   Battle_shout_sound = maleshout.wav
+   Female_battle_shout_sound = femaleshout.wav
+
+classvars:
+
+   vrName = Shout_name_rsc
+   vrDesc = Shout_desc_rsc
+   vrIcon = Shout_icon_rsc
+
+   viSpell_num = SKID_BATTLE_SHOUT
+   viSchool = SKS_KNIGHTCRAFT
+   viSpell_level = 2
+   viMana = 0
+   viSpellExertion = 10
+
+   viChance_to_increase = 30
+   viMeditate_ratio = 40
+   vrSucceed_wav = Battle_shout_sound
+
+   viAttack_spell = ATCK_SPELL_ALL+ATCK_SPELL_QUAKE
+   viOutlaw = TRUE
+   viHarmful = TRUE
+   viNoNewbieOffense = TRUE
+
+   % Projectile lighting information.
+   viProjectileLightFlags = LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC
+   % Medium light range, out of 255.
+   viProjectileLightIntensity = 0
+   % Color is orange.
+   viProjectileLightColor = LIGHT_WHITE
+
+   vrProjectile_icon = Shout_projectile_rsc
+   vbIsAreaEffect = TRUE
+   
+   viPrimaryStat = STAT_ID_MIGHT
+   viSecondaryStat = 0
+
+properties:
+
+   % Range in FINENESS units, default 6 row/col units.
+   piRange = 640
+
+   piSpeed = 6
+
+   piDamageMin = 0
+   piDamageMax = 0
+
+   piNumber = 16
+
+   pbAccessible = TRUE
+   pbEnabled = TRUE
+
+messages:
+
+   ResetReagents()
+   {
+      plReagents = $;
+
+      return;
+   }
+
+   SendProjectileAnimation()
+   {
+      AddPacket(1, ANIMATE_CYCLE, 4,80, 2,1, 2,2);  % 40ms between animations
+
+      return;
+   }
+
+   CastSpell(who=$,lTargets=$,iSpellPower=0,bItemCast=FALSE)
+   {
+      % This is an area damage spell, so add room messages
+      % showing the spell being cast.
+      Send(self,@DoShout,#who=who,#bItemCast=bItemCast);
+
+      propagate;
+   }
+
+   DoShout(who=$,bItemCast=FALSE)
+   {
+      local i, oRoom, lActive, each_obj;
+
+      if who <> $
+      {
+         oRoom = Send(who,@GetOwner);
+      }
+      else
+      {
+         return;
+      }
+
+      lActive = Send(oRoom,@GetHolderActive);
+
+      % Send a message to all in room of spellcasters actions
+      foreach i in lActive
+      {
+         each_obj = Send(oRoom,@HolderExtractObject,#data=i);
+
+         if isClass(each_obj,&Player)
+         {
+            if each_obj = who
+            {
+               Send(each_obj,@MsgSendUser,#message_rsc=Shout_first_rsc);
+            }
+            else
+            {
+               Send(each_obj,@MsgSendUser,#message_rsc=Shout_third_rsc,
+                     #parm1=Send(who,@GetCapDef),#parm2=Send(who,@GetName));
+            }
+         }
+      }
+
+      return;
+   }
+
+   % The chance to do something in addition to normal damage.
+   DoSideEffect(who=$,victim=$,damage=0,iSpellPower=0)
+   {
+      Send(victim,@ApplyKnockback,#what=who,#knockback_power=(Send(who,@GetKnockbackPower)*(iSpellPower+1)*2)/100);
+      return;
+   }
+
+   SuccessChance(who=$)
+   "This is actually a skill."
+   {
+      return TRUE;
+   }
+
+   PlaySpellSound(room_obj = $,what = $)
+   {
+      local wave_rsc;
+
+      if room_obj <> $
+      {
+         if what <> $
+            AND IsClass(what,&Player)
+            AND Send(what,@GetGender) = GENDER_FEMALE
+         {
+            wave_rsc = Female_battle_shout_sound;
+         }
+         else
+         {
+            wave_rsc = Battle_shout_sound;
+         }
+
+         if wave_rsc <> $
+         {
+            Send(room_obj,@SomethingWaveRoom,#what=what,#wave_rsc=wave_rsc);
+         }
+         else
+         {
+            debug("Spell has no spell sound defined, is not a jala song!");
+         }
+      }
+
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

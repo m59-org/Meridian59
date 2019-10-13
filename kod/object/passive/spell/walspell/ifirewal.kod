@@ -22,7 +22,7 @@ resources:
    IllusionaryFireWall_icon_rsc = iwallill.bgf
    IllusionaryFireWall_desc_rsc = \
       "Creates an illusionary wall of fire.  This wall will cause illusionary "
-      "wounds, which are never lethal, to victims walking through it.  "
+      "wounds to victims walking through it.  "
       "Requires rainbow ferns and firesand to cast."
 
    IllusionaryFireWall_cast_rsc = \
@@ -56,6 +56,9 @@ classvars:
    viNumElements = 9
 
    vrSummonLimitMsg = IllusionaryFireWall_failed_rsc
+   
+   viPrimaryStat = STAT_ID_INTELLECT
+   viSecondaryStat = 0
 
 properties:
 
@@ -82,10 +85,12 @@ messages:
    {
       local oRoom, iRow, iCol, iFine_Row, iFine_Col, iXStep, iYStep, iAngle,
             iDuration, iHalfrow, iHalfCol, iHalfFine_Row, iHalfFine_Col,
-            oElement;
+            oElement, iMaxDamage;
 
       iAngle = Send(who,@GetAngle);
-      iDuration = (iSpellPower * 2) + 30;
+      iMaxDamage = iSpellPower / 6;
+      iMaxDamage = Bound(iMaxDamage,1,16);
+      iDuration = (iSpellPower * 2) + 30 + Random(-20,20);
       iDuration = Bound(iDuration,30,180);
 
       % Facing East
@@ -221,55 +226,55 @@ messages:
          }
       }
 
-      oElement = Create(&WallOfFire,#MaxDamage=iSpellPower,#Caster=who,
+      oElement = Create(&WallOfFire,#MaxDamage=iMaxDamage,#Caster=who,
                         #Duration=iDuration,#Illusionary=TRUE);
       Send(oRoom,@NewHold,#what=oElement,
            #new_row=iRow,#new_col=iCol,
            #fine_row=iFine_Row,#fine_col=iFine_Col);
 
-      oElement = Create(&PassiveWallOfFire,#MaxDamage=iSpellPower,#Caster=who,
+      oElement = Create(&PassiveWallOfFire,#MaxDamage=iMaxDamage,#Caster=who,
                         #Duration=iDuration,#Illusionary=TRUE);
       Send(oRoom,@NewHold,#what=oElement,
            #new_row=iRow+iHalfRow,#new_col=iCol+iHalfCol,
            #fine_row=iHalfFine_Row,#fine_col=iHalfFine_Col);
 
-      oElement = Create(&WallOfFire,#MaxDamage=iSpellPower,#Caster=who,
+      oElement = Create(&WallOfFire,#MaxDamage=iMaxDamage,#Caster=who,
                         #Duration=iDuration,#Illusionary=TRUE);
       Send(oRoom,@NewHold,#what=oElement,
            #new_row=iRow+iYStep,#new_col=iCol+iXStep,
            #fine_row=iFine_Row,#fine_col=iFine_Col);
 
-      oElement = Create(&PassiveWallOfFire,#MaxDamage=iSpellPower,#Caster=who,
+      oElement = Create(&PassiveWallOfFire,#MaxDamage=iMaxDamage,#Caster=who,
                         #Duration=iDuration,#Illusionary=TRUE);
       Send(oRoom,@NewHold,#what=oElement,
            #new_row=iRow+iYStep+iHalfRow,#new_col=iCol+iXStep+iHalfCol,
            #fine_row=iHalfFine_Row,#fine_col=iHalfFine_Col);
 
-      oElement = Create(&WallOfFire,#MaxDamage=iSpellPower,#Caster=who,
+      oElement = Create(&WallOfFire,#MaxDamage=iMaxDamage,#Caster=who,
                         #Duration=iDuration,#Illusionary=TRUE);
       Send(oRoom,@NewHold,#what=oElement,
            #new_row=iRow+2*iYStep,#new_col=iCol+2*iXStep,
            #fine_row=iFine_Row,#fine_col=iFine_Col);
 
-      oElement = Create(&PassiveWallOfFire,#MaxDamage=iSpellPower,#Caster=who,
+      oElement = Create(&PassiveWallOfFire,#MaxDamage=iMaxDamage,#Caster=who,
                         #Duration=iDuration,#Illusionary=TRUE);
       Send(oRoom,@NewHold,#what=oElement,
            #new_row=iRow+(2*iYStep)+iHalfRow,#new_col=iCol+(2*iXStep)+iHalfCol,
            #fine_row=iHalfFine_Row,#fine_col=iHalfFine_Col);
 
-      oElement = Create(&WallOfFire,#MaxDamage=iSpellPower,#Caster=who,
+      oElement = Create(&WallOfFire,#MaxDamage=iMaxDamage,#Caster=who,
                         #Duration=iDuration,#Illusionary=TRUE);
       Send(oRoom,@NewHold,#what=oElement,
            #new_row=iRow+3*iYStep,#new_col=iCol+3*iXStep,
            #fine_row=iFine_Row,#fine_col=iFine_Col);
 
-      oElement = Create(&PassiveWallOfFire,#MaxDamage=iSpellPower,#Caster=who,
+      oElement = Create(&PassiveWallOfFire,#MaxDamage=iMaxDamage,#Caster=who,
                         #Duration=iDuration,#Illusionary=TRUE);
       Send(oRoom,@NewHold,#what=oElement,
            #new_row=iRow+(3*iYStep)+iHalfRow,#new_col=iCol+(3*iXStep)+iHalfCol,
            #fine_row=iHalfFine_Row,#fine_col=iHalfFine_Col);
 
-      oElement = Create(&WallOfFire,#MaxDamage=iSpellPower,#Caster=who,
+      oElement = Create(&WallOfFire,#MaxDamage=iMaxDamage,#Caster=who,
                         #Duration=iDuration,#Illusionary=TRUE);
       Send(oRoom,@NewHold,#what=oElement,
            #new_row=iRow+4*iYStep,#new_col=iCol+4*iXStep,

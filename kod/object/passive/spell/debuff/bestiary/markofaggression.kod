@@ -1,0 +1,154 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+MarkOfAggression is BestiarySpell
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   mark_of_aggression_sound = smarkdis.wav
+
+   mark_of_aggression_name_rsc = "mark of aggression"
+   mark_of_aggression_icon_rsc = imarkdis.bgf
+   mark_of_aggression_desc_rsc = \
+      "Marks the target as an object of aggression "
+      "for your minions, who will attack the victim "
+      "regardless of any other concerns. The only "
+      "command that can override a mark of aggression is "
+      "another mark. "
+      "Requires an uncut seraphym to cast. "
+
+   mark_of_aggression_already_enchanted = "%s%s is already marked for aggression."
+   mark_of_aggression_caster = "%s%s has been marked for aggression."
+   mark_of_aggression_on = "A primal mark rises in the air in front of you, making you a target for aggression."
+   mark_of_aggression_off = "The primal mark fades."
+
+classvars:
+
+   vrName = mark_of_aggression_name_rsc
+   vrIcon = mark_of_aggression_icon_rsc
+   vrDesc = mark_of_aggression_desc_rsc
+
+   vrAlreadyEnchanted = mark_of_aggression_already_enchanted
+   vrEnchantment_On = mark_of_aggression_on
+   vrEnchantment_Off = mark_of_aggression_off
+   vrSuccess = mark_of_aggression_caster
+
+   viSchool = SS_BESTIARY
+   viSpell_num = SID_MARK_OF_AGGRESSION
+   viSpell_level = 1
+
+   viFlash = FLASH_BAD
+
+   viSpellExertion = 2
+   viMana = 15
+
+   viChance_To_Increase = 10
+   viMeditate_ratio = 30
+
+   vrSucceed_wav = mark_of_aggression_sound
+   
+   viPrimaryStat = STAT_ID_INTELLECT
+   viSecondaryStat = 0
+
+   vbIsRangedAttack = FALSE
+
+properties:
+
+   piBaseDuration = 5000
+   piSpellPowerModifier = 500
+   piDeviation = 50
+   viCast_time = 0
+
+messages:
+
+   ResetReagents()
+   {
+      plReagents = $;
+      plReagents = Cons([&UncutSeraphym,1],plReagents);
+
+      return;
+   }
+
+   CastSpell(who=$,wielder=$,lTargets=$,iSpellpower=0,report=TRUE,oDeflectImpact=$,bDeflectCast=FALSE)
+   {
+      local oTarget;
+
+      oTarget = First(lTargets);
+
+      % Spell effects.
+      Send(self,@DoSpell,#what=who,#oTarget=oTarget,#report=report,
+            #iDuration=Send(self,@GetDuration,#iSpellPower=iSpellPower));
+
+      propagate;
+   }
+
+   DoSpell(what=$,oTarget=$,iDuration=$,report=TRUE,iSpellPower=0)
+   {
+      local i, oSpell, lMinions;
+
+      if oTarget = $
+      {
+         return FALSE;
+      }
+
+      % Check for enchantment already applied
+      if Send(oTarget,@IsEnchanted,#what=self)
+      {
+         return FALSE;
+      }
+
+      % Check for spell called with $ iDuration, apply default time if so.
+      if iDuration = $
+      {
+         iDuration = 5000;
+      }
+
+      Send(oTarget,@StartEnchantment,#what=self,#time=iDuration,#report=report,
+            #state=report);
+
+      Send(what,@CommandMinionAttack,#oMaster=what,#oTarget=oTarget);
+      
+%      lMinions = Send(what,@GetControlledMinions);
+%      foreach i in lMinions
+%      {
+%         Send(i,@TargetSwitch,#what=oTarget,#iHatred=iSpellPower*3);
+%         Send(i,@EnterStateChase,#target=oTarget,#actnow=True);
+%      }
+
+      if report
+      {
+         Send(what,@MsgSendUser,#message_rsc=vrSuccess,
+               #parm1=Send(oTarget,@GetCapDef),#parm2=Send(oTarget,@GetName));
+      }
+
+      propagate;
+   }
+
+   GetDuration(iSpellPower=0)
+   {
+      local iDuration;
+
+      iDuration = piBaseDuration + iSpellPower * piSpellPowerModifier;
+      iDuration = Random(iDuration * (100 - piDeviation) / 100,iDuration);
+
+      return iDuration;
+   }
+
+   EndEnchantment(who=$,report=TRUE,state=$)
+   {
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -1,0 +1,83 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Determination is KnightcraftSkill
+
+constants:
+
+   include blakston.khd
+   include protocol.khd   
+
+resources:
+
+   Determination_name_rsc = "determination"
+   Determination_icon_rsc = iboonagi.bgf
+   Determination_desc_rsc = \
+      "The most dogged of knights refuse to let anything stop them. "
+      "Weak blows are nothing to a determined warrior, and even heavy "
+      "attacks can be shrugged off somewhat by those with the proper spirit."
+      "\n\nDetermination lowers the damage a knight takes from attacks and spells. "
+      "Very light attacks may not even damage him at all."
+
+   Determination_skill_intro = \
+      "Knightcraft Lv. 4: Ignore weak blows."
+
+classvars:
+
+   vrName = Determination_name_rsc
+   vrIcon = Determination_icon_rsc
+   vrDesc = Determination_desc_rsc
+
+   vrSkill_intro = Determination_skill_intro
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+
+   viSkill_num = SKID_DETERMINATION
+   viSchool = SKS_KNIGHTCRAFT
+   viSkill_Level = 4
+   viChance_to_Increase = 3
+   viMeditate_ratio = 80
+
+   viSkillExertion = 0
+   vbCheck_exertion = FALSE
+
+   vbAutomatic = TRUE
+   
+   viPrimaryStat = STAT_ID_STAMINA
+   viSecondaryStat = 0
+
+properties:
+
+messages:
+
+   GetRequisiteStat(who=$)
+   {
+      return Send(who,@GetStamina);
+   }
+
+   ModifyDamageTaken(who=$, bonus=0)
+   {
+      local iSkillAbility, iStat;
+
+      iSkillAbility = Send(who,@GetSkillAbility,#skill_num=viSkill_num);
+      iStat = Send(self,@GetRequisiteStat,#who=who);
+
+      Send(self,@ImproveAbility,#who=who);
+
+      % Damage is precision at this point.
+      % Reduction goes up to 3 points at 99% and 100 stamina.
+      % Fortunately, we can give fractions of a point thanks to precision.
+
+      return bonus - (iSkillAbility*iStat)/33;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

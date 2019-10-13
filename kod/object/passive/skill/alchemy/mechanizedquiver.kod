@@ -1,0 +1,136 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+MechanizedQuiver is AlchemySkill
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   mechanized_quiver_name_rsc = "mechanized ammunition"
+   mechanized_quiver_icon_rsc = archrico.bgf
+   mechanized_quiver_desc_rsc = \
+      "One of the first mechanisms the gnomes ever designed for the Merchant Princes "
+      "of Biskalane was a simple series of gears and vials that could automatically "
+      "melt down gold to replace arrows. Centuries of refinement replaced those "
+      "gears and vials with small magical constructs, similar in nature to created weapons "
+      "or armor, used only on demand. Those alchemists skilled in the basic art "
+      "of mechanizing their quiver often take up archery themselves, "
+      "for the synergy is obvious. Other types of ammo, such as throwing knives, "
+      "can also be constructed as used."
+      "\n\nAlchemical creation depends upon the essence of gold, "
+      "so each process consumes some number of transmuted shillings. "
+      "More skilled alchemists can consume less gold with each transmutation."
+      "\n\nThe more of a type of ammo the alchemist has, the greater the "
+      "chance of a successful replication. If there are only a handful of "
+      "existing prototypes to analyze, proper replication is exponentially more difficult. "
+      "Make sure to keep well-stocked at all times."
+
+   mechanized_quiver_skill_intro = \
+      "Alchemy Lv. 2: Automatically replace used ammunition by melting and transmuting gold."
+
+   not_enough_shillings_mechanized_quiver = \
+      "You don't have the %i shillings required to replicate your used ammunition!"
+   transmute_shillings_mechanized_quiver = \
+      "You alchemically melt %i shillings to replicate your used ammunition."
+
+classvars:
+
+   vrName = mechanized_quiver_name_rsc
+   vrIcon = mechanized_quiver_icon_rsc
+   vrDesc = mechanized_quiver_desc_rsc
+
+   vrSkill_intro = mechanized_quiver_skill_intro
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+
+   viSkill_num = SKID_MECHANIZED_QUIVER
+   viSchool = SKS_ALCHEMY
+   viSkill_Level = 2
+   viChance_to_Increase = 20
+   viMeditate_ratio = 40
+
+   viSkillExertion = 0
+   vbCheck_exertion = FALSE
+   
+   viPrimaryStat = STAT_ID_INTELLECT
+   viSecondaryStat = 0
+
+properties:
+
+messages:
+
+   GetRequisiteStat(who=$)
+   {
+      return Send(who,@GetIntellect);
+   }
+
+   DoSkill(who=$, oAmmo=$)
+   {
+      local iAbility, iStat, iAmmoAmount, iChance, oMoney, iCash, iFee;
+
+      iAbility = Send(who,@GetSkillAbility,#Skill_num=viSkill_num);
+      iStat = Send(self,@GetRequisiteStat,#who=who);
+      iAmmoAmount = Send(oAmmo,@GetNumber);
+      
+      if iAmmoAmount < 1
+      {
+         return FALSE;
+      }
+
+      % First: 1 in iAmmoAmount, incentivizing carrying high ammo counts rather than just a few
+      if Random(1,iAmmoAmount) = 1
+      {
+         return FALSE;
+      }
+
+      iChance = Bound(iAbility + iStat/5,10,100);
+      if Random(1,100) > iChance
+      {
+         return FALSE;
+      }
+      
+      % We succeeded! Or, rather, didn't fail. Shilling cost time.
+
+      oMoney = Send(who,@GetMoneyObject);
+      if oMoney = $
+      {
+         % No cash.
+         iCash = 0;
+      }
+      else
+      {
+         iCash = Send(oMoney,@GetValue);
+      }
+      
+      % Fee ranges from 4x down to 2x.
+      iFee = Send(oAmmo,@GetInitValue);
+      iFee = iFee + iFee + iFee + iFee - (iFee*2*(iAbility+1))/100;
+
+      if iCash < iFee AND iFee <> 0
+      {
+         Send(who,@MsgSendUser,#message_rsc=not_enough_shillings_mechanized_quiver,#parm1=iFee);
+         return FALSE;
+      }
+
+      if iFee <> 0
+      {
+         Send(oMoney,@SubtractNumber,#number=iFee);
+         %Send(who,@MsgSendUser,#message_rsc=transmute_shillings_mechanized_quiver,#parm1=iFee);
+      }
+
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

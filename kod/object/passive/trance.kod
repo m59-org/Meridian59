@@ -62,7 +62,7 @@ messages:
    " 1) Casting time expires, time to call CastSpell"
    " 2) Spell expires"
    {
-      local oSpell, oCaster, lTargets, iSpellPower;
+      local oSpell, oCaster, lTargets, iSpellPower, oDeflectImpact;
       
       oSpell = Nth(state,1);
       oCaster = Nth(state,2);
@@ -78,24 +78,29 @@ messages:
       if Send(oSpell,@DoubleCheckAfterTrance,#who=oCaster,#lTargets=lTargets,
               #iSpellPower=iSpellPower)
       {
+
+         oDeflectImpact = $;
          if lTargets <> $
-            AND isClass(First(lTargets),&Battler)
-            AND Send(First(lTargets),@TryDeflect,#what=oSpell,#caster=oCaster)
+            AND IsClass(First(lTargets),&Battler)
          {
-            Send(oSpell,@CastSpell,#who=oCaster,#lTargets=[oCaster],
-                 #iSpellPower=iSpellPower/2);
+            oDeflectImpact = Send(First(lTargets),@TryDeflect,#what=oSpell,#caster=oCaster);
+         }
+         
+         if oDeflectImpact <> $
+         {
+            Send(oSpell,@CastSpell,#who=oCaster,#lTargets=[oCaster],#iSpellPower=iSpellPower/2,#oDeflectImpact=oDeflectImpact,#bDeflectCast=TRUE);
          }             
          else
          {
             Send(oSpell,@CastSpell,#who=oCaster,#lTargets=lTargets,
-                 #iSpellPower=iSpellPower);
+                 #iSpellpower=iSpellpower);
          }
       }
       
       return;
    }
 
-   BreakTrance(who = $, state = $, event = 1,time_remaining=0)
+   BreakTrance(who = $, state = $, event = EVENT_CAST,time_remaining=0)
    {
       local oSpell, oCaster;
 
@@ -107,7 +112,6 @@ messages:
 
       oSpell = First(state);
       oCaster = Nth(state,2);
-      Send(oCaster,@ClearTranceFlag);
       
       if event <> EVENT_STEER
       {
@@ -118,15 +122,23 @@ messages:
                         #who=oCaster,
                         #oSpell=oSpell,
                         #iSpellPower=Send(oSpell,@GetSpellPower,#who=oCaster),
-                        #time_remaining=time_remaining)
+                        #time_remaining=time_remaining,
+                        #event=event)
             {
-               Send(oCaster,@FinishTranceEarly,#oTrance=self);
+               % We successfully avoided a disruption.
                return;
             }
          }
 
+         Send(oCaster,@ClearTranceFlag);
          Send(oSpell,@TranceBroken,#oCaster=oCaster,#state=state);
       }
+      else
+      {
+         Send(oCaster,@ClearTranceFlag);
+      }
+      
+      Send(oCaster,@CastOrFizzledNoteBloodMagic);
       
       Send(oCaster,@RemoveEnchantment,#what=self);
       
@@ -160,6 +172,21 @@ messages:
       return resistance_list;
    }
 
+   % Just here because sometimes trance acts like a spell
+   UseHexBehavior()
+   {
+      return FALSE;
+   }
+   
+   ModifyEmpowerment(empowerment_list=$)
+   {
+      return empowerment_list;
+   }
+
+   AltersLightLevel()
+   {
+      return FALSE;
+   }
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

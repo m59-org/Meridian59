@@ -1,0 +1,131 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Leeches is DrainHex
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   leeches_cast_rsc = "%s%s becomes infested with phantom leeches."
+   leeches_already_enchanted = \
+      "That poor soul is already afflicted by leeches."
+   leeches_start = "Phantom leeches appear on your skin!"
+   leeches_stop  = "The phantom leeches crawling upon you disappear."
+   has_been_hexed_leeches = \
+      "%s%s becomes infested with phantom leeches!"
+
+   leeched_msg = "Your strike leeches %i health!"
+   leeched_from_msg = "You shiver as %i health drains away."
+
+   leeches_intro = \
+      "Witchery through Xaerdun lv. 2: Leech health from cursed victim."
+
+   leeches_name_rsc = "leeches"
+   leeches_icon_rsc = ihexleeches.bgf
+   leeches_desc_rsc = \
+      "Afflicts your victim with phantom leeches that grant all who strike them "
+      "a bit of sapped health. "
+      "This hex requires a fire fragment to cast."
+
+   leeches_sound = qenfeebl.wav
+
+   leeches_hex_effect_report = \
+      "At that effectiveness, your leeches hex will cause those attacking the victim to drain ~r~B%i ~nhealth."
+
+classvars:
+
+   vrName = leeches_name_rsc
+   vrIcon = leeches_icon_rsc
+   vrDesc = leeches_desc_rsc
+
+   vrHexEffectReport = leeches_hex_effect_report
+
+   vrAlreadyEnchanted = leeches_already_enchanted
+   vrEnchantment_On = leeches_start
+   vrEnchantment_Off = leeches_stop
+   vrSuccess = leeches_cast_rsc
+   vrInformRoom = has_been_hexed_leeches
+
+   vrSpell_intro = leeches_intro
+
+   viSpell_num = SID_HEX_LEECHES
+   viSchool = SS_WITCHERY
+   viSubSchool = SSS_WITCHERY_XAERDUN
+   viSpell_level = 2
+   viMana = 5
+   viSpell_Exertion = 5
+
+   viFlash = FLASH_BAD
+
+   vrSucceed_wav = leeches_sound
+   viChance_To_Increase = 10
+   viMeditate_ratio = 70
+
+properties:
+
+   % Take and give this much health when struck (/100)
+   piBaseEffect = 200
+
+messages:
+
+   ResetReagents()
+   {
+      plReagents = $;
+      plReagents = Cons([&FireFragment,1],plReagents);
+
+      return;
+   }
+   
+   StealStat(who=$,what=$,state=0)
+   {
+      local iStealAmount;
+      
+      if NOT IsClass(what,&Monster)
+         AND NOT IsClass(what,&Player)
+      {
+         return;
+      }
+      
+      iStealAmount = piBaseEffect * state / 100;
+      if Send(what,@GetExactHealth) > iStealAmount
+      {
+         if IsClass(what,&Player)
+         {
+            Send(what,@LoseHealth,#amount=iStealAmount,#precision=TRUE);
+         }
+
+         Send(who,@GainHealthNormal,#amount=iStealAmount,#precision=TRUE);
+
+         if IsClass(who,&User)
+         {
+            Send(who,@MsgSendUser,#message_rsc=leeched_msg,
+                                  #parm1=iStealAmount/100);
+         }
+      }
+
+      return;
+   }
+
+   OfferToNewCharacters()
+   {
+      return TRUE;
+   }
+
+   DoHexEffectReport(what=$,iHexEffect=0)
+   {
+      Send(what,@MsgSendUser,#message_rsc=vrHexEffectReport,#parm1=(piBaseEffect * iHexEffect / 100)/100);
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

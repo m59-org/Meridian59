@@ -1,0 +1,422 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+FrostBreath is WaveSpell
+
+constants:
+   include blakston.khd
+
+resources:
+
+   FrostBreath_name_rsc = "frost breath"
+   FrostBreath_icon_rsc = iicenova.bgf
+   FrostBreath_desc_rsc = \
+      "The famed Ice Dragon of Biskalane has a breath of freezing winds "
+      "beyond any cold mortals know."
+
+   FrostBreath_cast_rsc = "You release the breath of the Ice Dragon!"
+   FrostBreath_failed_rsc = \
+      "There is too much summoning magic focused here to release frost breath." 
+   FrostBreath_sound = icedragonroar6.wav
+
+classvars:
+
+   vrName = FrostBreath_name_rsc
+   vrIcon = FrostBreath_icon_rsc
+   vrDesc = FrostBreath_desc_rsc
+
+   viSpell_num = SID_FROST_BREATH
+   viSchool = SS_FAREN
+   viSpell_level = 6
+   viMana = 40
+   viSpellExertion = 17
+   viMeditate_ratio = 300
+
+   viCast_time = 0
+   vrSucceed_wav = FrostBreath_sound
+
+properties:
+
+messages:
+
+   ResetReagents()
+   {
+      plReagents = $;
+
+      return;
+   }
+
+   CastSpell(who = $, lTargets = $, iSpellPower = 1)
+   {
+      Send(who,@MsgSendUser,#message_rsc=FrostBreath_cast_rsc);
+
+      propagate;
+   }
+
+   PlaceWaveElements(who = $, iSpellPower = 0)
+   {
+      local oRoom, iRow, iCol, iFine_Row, iFine_Col, iXStep, iYStep,
+            iAngle, iMaxDamage, iHalfrow, iHalfCol, iHalfFine_Row,
+            iHalfFine_Col, oElement, iWaveOneAngle, iWaveTwoAngle, iWaveThreeAngle;
+
+      iAngle = Send(who,@GetAngle);
+      iMaxDamage = iSpellPower / 6;
+      iMaxDamage = Bound(iMaxDamage,1,16);
+
+      iWaveOneAngle = Send(who,@GetAngle) - 256;        % left wave
+      if iWaveOneAngle < 0
+      {
+         iWaveOneAngle = iWaveOneAngle + MAX_ANGLE;
+      }
+      
+      iWaveTwoAngle = Send(who,@GetAngle);              % center wave
+
+      iWaveThreeAngle = Send(who,@GetAngle) + 256;      % right wave
+      if iWaveThreeAngle >= MAX_ANGLE
+      {
+         iWaveThreeAngle = iWaveThreeAngle - MAX_ANGLE;
+      }
+
+      % Facing East
+      if iAngle >= ANGLE_ENE OR iAngle < ANGLE_ESE
+      {
+         iRow = Send(who,@GetRow) - 2;
+         iCol = Send(who,@GetCol) + 1;
+         iXStep = 0;
+         iyStep = 1;
+      }
+
+      % Facing SouthEast
+      if iAngle >= ANGLE_ESE AND iAngle < ANGLE_SSE
+      {
+         iRow = Send(who,@GetRow) - 1;
+         iCol = Send(who,@GetCol) + 3;
+         iXStep = -1;
+         iyStep = 1;
+      }
+
+      % Facing South
+      if iAngle >= ANGLE_SSE AND iAngle < ANGLE_SSW
+      {
+         iRow = Send(who,@GetRow) + 1;
+         iCol = Send(who,@GetCol) - 2;
+         iXStep = 1;
+         iyStep = 0;
+      }
+
+      % Facing SouthWest
+      if iAngle >= ANGLE_SSW AND iAngle < ANGLE_WSW
+      {
+         iRow = Send(who,@GetRow) + 3;
+         iCol = Send(who,@GetCol) + 1;
+         iXStep = -1;
+         iyStep = -1;
+      }
+
+      % Facing West
+      if iAngle >= ANGLE_WSW AND iAngle < ANGLE_WNW
+      {
+         iRow = Send(who,@GetRow) - 2;
+         iCol = Send(who,@GetCol) - 1;
+         iXStep = 0;
+         iYStep = 1;
+      }
+
+      % Facing NorthWest
+      if iAngle >= ANGLE_WNW AND iAngle < ANGLE_NNW
+      {
+         iRow = Send(who,@GetRow) + 1;
+         iCol = Send(who,@GetCol) - 3;
+         iXStep = 1;
+         iyStep = -1;
+      }
+
+      % Facing North
+      if iAngle >= ANGLE_NNW AND iAngle < ANGLE_NNE
+      {
+         iRow = Send(who,@GetRow) - 1;
+         iCol = Send(who,@GetCol) - 2;
+         iXStep = 1;
+         iyStep = 0;
+      }
+
+      % Facing NorthEast
+      if iAngle >= ANGLE_NNE AND iAngle < ANGLE_ENE
+      {
+         iRow = Send(who,@GetRow) - 3;
+         iCol = Send(who,@GetCol) - 1;
+         iXStep = 1;
+         iyStep = 1;
+      }
+
+      oRoom = Send(who,@GetOwner);
+
+      iFine_Row = Send(who,@GetFineRow);
+      iFine_Col = Send(who,@GetFineCol);
+
+      iHalfRow = 0;
+      iHalfCol = 0;
+      iHalfFine_Row = iFine_Row;
+      iHalfFine_Col = iFine_Col;
+
+      if iYStep < 0 
+      {
+         if iHalfFine_Row > (FINENESS_HALF - 1)
+         {
+            iHalfFine_Row = iHalfFine_Row - FINENESS_HALF;
+         }
+         else
+         {
+            iHalfRow = -1;
+            iHalfFine_Row = FINENESS_HALF + iHalfFine_Row;
+         }
+      }
+
+      if iYStep > 0 
+      {
+         if iHalfFine_Row < (FINENESS_HALF + 1)
+         {
+            iHalfFine_Row = iHalfFine_Row + FINENESS_HALF;
+         }
+         else
+         {
+            iHalfRow = 1;
+            iHalfFine_Row = iHalfFine_Row - FINENESS_HALF;
+         }
+      }
+      if iXStep < 0 
+      {
+         if iHalfFine_Col > (FINENESS_HALF - 1)
+         {
+            iHalfFine_Col = iHalfFine_Col - FINENESS_HALF;
+         }
+         else
+         {
+            iHalfCol = -1;
+            iHalfFine_Col = FINENESS_HALF + iHalfFine_Col;
+         }
+      }
+
+      if iXStep > 0 
+      {
+         if iHalfFine_Col < (FINENESS_HALF + 1)
+         {
+            iHalfFine_Col = iHalfFine_Col + FINENESS_HALF;
+         }
+         else
+         {
+            iHalfCol = 1;
+            iHalfFine_Col = iHalfFine_Col - FINENESS_HALF;
+         }
+      }
+
+%      oElement = Create(&FreezingWinds,#MaxDamage=iMaxDamage,#Caster=who,
+%                        #Illusionary=FALSE,
+%                        #movement_angle=iWaveOneAngle);
+%      Send(oRoom,@NewHold,#what=oElement,
+%           #new_row=iRow,#new_col=iCol,
+%           #fine_row=iFine_Row,#fine_col=iFine_Col);
+
+%      oElement = Create(&FreezingWinds,#MaxDamage=iMaxDamage,#Caster=who,
+%                        #Illusionary=FALSE,
+%                        #movement_angle=iWaveOneAngle);
+%      Send(oRoom,@NewHold,#what=oElement,
+%           #new_row=iRow+iHalfRow,#new_col=iCol+iHalfCol,
+%           #fine_row=iHalfFine_Row,#fine_col=iHalfFine_Col);
+
+%      oElement = Create(&FreezingWinds,#MaxDamage=iMaxDamage,#Caster=who,
+%                        #Illusionary=FALSE,
+%                        #movement_angle=iWaveOneAngle);
+%      Send(oRoom,@NewHold,#what=oElement,
+%           #new_row=iRow+iYStep,#new_col=iCol+iXStep,
+%           #fine_row=iFine_Row,#fine_col=iFine_Col);
+
+%      oElement = Create(&FreezingWinds,#MaxDamage=iMaxDamage,#Caster=who,
+%                        #Illusionary=FALSE,
+%                        #movement_angle=iWaveOneAngle);
+%      Send(oRoom,@NewHold,#what=oElement,
+%           #new_row=iRow+iYStep+iHalfRow,#new_col=iCol+iXStep+iHalfCol,
+%           #fine_row=iHalfFine_Row,#fine_col=iHalfFine_Col);
+
+%      oElement = Create(&FreezingWinds,#MaxDamage=iMaxDamage,#Caster=who,
+%                        #Illusionary=FALSE,
+%                        #movement_angle=iWaveOneAngle);
+%      Send(oRoom,@NewHold,#what=oElement,
+%           #new_row=iRow+2*iYStep,#new_col=iCol+2*iXStep,
+%           #fine_row=iFine_Row,#fine_col=iFine_Col);
+
+%      oElement = Create(&FreezingWinds,#MaxDamage=iMaxDamage,#Caster=who,
+%                        #Illusionary=FALSE,
+%                        #movement_angle=iWaveOneAngle);
+%      Send(oRoom,@NewHold,#what=oElement,
+%           #new_row=iRow+(2*iYStep)+iHalfRow,#new_col=iCol+(2*iXStep)+iHalfCol,
+%           #fine_row=iHalfFine_Row,#fine_col=iHalfFine_Col);
+
+%      oElement = Create(&FreezingWinds,#MaxDamage=iMaxDamage,#Caster=who,
+%                        #Illusionary=FALSE,
+%                        #movement_angle=iWaveOneAngle);
+%      Send(oRoom,@NewHold,#what=oElement,
+%           #new_row=iRow+3*iYStep,#new_col=iCol+3*iXStep,
+%           #fine_row=iFine_Row,#fine_col=iFine_Col);
+
+%      oElement = Create(&FreezingWinds,#MaxDamage=iMaxDamage,#Caster=who,
+%                        #Illusionary=FALSE,
+%                        #movement_angle=iWaveOneAngle);
+%      Send(oRoom,@NewHold,#what=oElement,
+%           #new_row=iRow+(3*iYStep)+iHalfRow,#new_col=iCol+(3*iXStep)+iHalfCol,
+%           #fine_row=iHalfFine_Row,#fine_col=iHalfFine_Col);
+
+%      oElement = Create(&FreezingWinds,#MaxDamage=iMaxDamage,#Caster=who,
+%                        #Illusionary=FALSE,
+%                        #movement_angle=iWaveOneAngle);
+%      Send(oRoom,@NewHold,#what=oElement,
+%           #new_row=iRow+4*iYStep,#new_col=iCol+4*iXStep,
+%           #fine_row=iFine_Row,#fine_col=iFine_Col);
+           
+      
+      
+      %%%%%%%%%%%%%%%% SECOND WAVE
+
+      oElement = Create(&FreezingWinds,#MaxDamage=iMaxDamage,#Caster=who,
+                        #Illusionary=FALSE,
+                        #movement_angle=iWaveTwoAngle);
+      Send(oRoom,@NewHold,#what=oElement,
+           #new_row=iRow,#new_col=iCol,
+           #fine_row=iFine_Row,#fine_col=iFine_Col);
+
+      oElement = Create(&FreezingWinds,#MaxDamage=iMaxDamage,#Caster=who,
+                        #Illusionary=FALSE,
+                        #movement_angle=iWaveTwoAngle);
+      Send(oRoom,@NewHold,#what=oElement,
+           #new_row=iRow+iHalfRow,#new_col=iCol+iHalfCol,
+           #fine_row=iHalfFine_Row,#fine_col=iHalfFine_Col);
+
+      oElement = Create(&FreezingWinds,#MaxDamage=iMaxDamage,#Caster=who,
+                        #Illusionary=FALSE,
+                        #movement_angle=iWaveTwoAngle);
+      Send(oRoom,@NewHold,#what=oElement,
+           #new_row=iRow+iYStep,#new_col=iCol+iXStep,
+           #fine_row=iFine_Row,#fine_col=iFine_Col);
+
+      oElement = Create(&FreezingWinds,#MaxDamage=iMaxDamage,#Caster=who,
+                        #Illusionary=FALSE,
+                        #movement_angle=iWaveTwoAngle);
+      Send(oRoom,@NewHold,#what=oElement,
+           #new_row=iRow+iYStep+iHalfRow,#new_col=iCol+iXStep+iHalfCol,
+           #fine_row=iHalfFine_Row,#fine_col=iHalfFine_Col);
+
+      oElement = Create(&FreezingWinds,#MaxDamage=iMaxDamage,#Caster=who,
+                        #Illusionary=FALSE,
+                        #movement_angle=iWaveTwoAngle);
+      Send(oRoom,@NewHold,#what=oElement,
+           #new_row=iRow+2*iYStep,#new_col=iCol+2*iXStep,
+           #fine_row=iFine_Row,#fine_col=iFine_Col);
+
+      oElement = Create(&FreezingWinds,#MaxDamage=iMaxDamage,#Caster=who,
+                        #Illusionary=FALSE,
+                        #movement_angle=iWaveTwoAngle);
+      Send(oRoom,@NewHold,#what=oElement,
+           #new_row=iRow+(2*iYStep)+iHalfRow,#new_col=iCol+(2*iXStep)+iHalfCol,
+           #fine_row=iHalfFine_Row,#fine_col=iHalfFine_Col);
+
+      oElement = Create(&FreezingWinds,#MaxDamage=iMaxDamage,#Caster=who,
+                        #Illusionary=FALSE,
+                        #movement_angle=iWaveTwoAngle);
+      Send(oRoom,@NewHold,#what=oElement,
+           #new_row=iRow+3*iYStep,#new_col=iCol+3*iXStep,
+           #fine_row=iFine_Row,#fine_col=iFine_Col);
+
+      oElement = Create(&FreezingWinds,#MaxDamage=iMaxDamage,#Caster=who,
+                        #Illusionary=FALSE,
+                        #movement_angle=iWaveTwoAngle);
+      Send(oRoom,@NewHold,#what=oElement,
+           #new_row=iRow+(3*iYStep)+iHalfRow,#new_col=iCol+(3*iXStep)+iHalfCol,
+           #fine_row=iHalfFine_Row,#fine_col=iHalfFine_Col);
+
+      oElement = Create(&FreezingWinds,#MaxDamage=iMaxDamage,#Caster=who,
+                        #Illusionary=FALSE,
+                        #movement_angle=iWaveTwoAngle);
+      Send(oRoom,@NewHold,#what=oElement,
+           #new_row=iRow+4*iYStep,#new_col=iCol+4*iXStep,
+           #fine_row=iFine_Row,#fine_col=iFine_Col);
+           
+      
+      
+      %%%%%%%%%%%%%%%% Third WAVE
+
+%      oElement = Create(&FreezingWinds,#MaxDamage=iMaxDamage,#Caster=who,
+%                        #Illusionary=FALSE,
+%                        #movement_angle=iWaveThreeAngle);
+%      Send(oRoom,@NewHold,#what=oElement,
+%           #new_row=iRow,#new_col=iCol,
+%           #fine_row=iFine_Row,#fine_col=iFine_Col);
+
+%      oElement = Create(&FreezingWinds,#MaxDamage=iMaxDamage,#Caster=who,
+%                        #Illusionary=FALSE,
+%                        #movement_angle=iWaveThreeAngle);
+%      Send(oRoom,@NewHold,#what=oElement,
+%           #new_row=iRow+iHalfRow,#new_col=iCol+iHalfCol,
+%           #fine_row=iHalfFine_Row,#fine_col=iHalfFine_Col);
+
+%      oElement = Create(&FreezingWinds,#MaxDamage=iMaxDamage,#Caster=who,
+%                        #Illusionary=FALSE,
+%                        #movement_angle=iWaveThreeAngle);
+%      Send(oRoom,@NewHold,#what=oElement,
+%           #new_row=iRow+iYStep,#new_col=iCol+iXStep,
+%           #fine_row=iFine_Row,#fine_col=iFine_Col);
+
+%      oElement = Create(&FreezingWinds,#MaxDamage=iMaxDamage,#Caster=who,
+%                        #Illusionary=FALSE,
+%                        #movement_angle=iWaveThreeAngle);
+%      Send(oRoom,@NewHold,#what=oElement,
+%           #new_row=iRow+iYStep+iHalfRow,#new_col=iCol+iXStep+iHalfCol,
+%           #fine_row=iHalfFine_Row,#fine_col=iHalfFine_Col);
+
+%      oElement = Create(&FreezingWinds,#MaxDamage=iMaxDamage,#Caster=who,
+%                        #Illusionary=FALSE,
+%                        #movement_angle=iWaveThreeAngle);
+%      Send(oRoom,@NewHold,#what=oElement,
+%           #new_row=iRow+2*iYStep,#new_col=iCol+2*iXStep,
+%           #fine_row=iFine_Row,#fine_col=iFine_Col);
+
+%      oElement = Create(&FreezingWinds,#MaxDamage=iMaxDamage,#Caster=who,
+%                        #Illusionary=FALSE,
+%                        #movement_angle=iWaveThreeAngle);
+%      Send(oRoom,@NewHold,#what=oElement,
+%           #new_row=iRow+(2*iYStep)+iHalfRow,#new_col=iCol+(2*iXStep)+iHalfCol,
+%           #fine_row=iHalfFine_Row,#fine_col=iHalfFine_Col);
+
+%      oElement = Create(&FreezingWinds,#MaxDamage=iMaxDamage,#Caster=who,
+%                        #Illusionary=FALSE,
+%                        #movement_angle=iWaveThreeAngle);
+%      Send(oRoom,@NewHold,#what=oElement,
+%           #new_row=iRow+3*iYStep,#new_col=iCol+3*iXStep,
+%           #fine_row=iFine_Row,#fine_col=iFine_Col);
+
+%      oElement = Create(&FreezingWinds,#MaxDamage=iMaxDamage,#Caster=who,
+%                        #Illusionary=FALSE,
+%                        #movement_angle=iWaveThreeAngle);
+%      Send(oRoom,@NewHold,#what=oElement,
+%           #new_row=iRow+(3*iYStep)+iHalfRow,#new_col=iCol+(3*iXStep)+iHalfCol,
+%           #fine_row=iHalfFine_Row,#fine_col=iHalfFine_Col);
+
+%      oElement = Create(&FreezingWinds,#MaxDamage=iMaxDamage,#Caster=who,
+%                        #Illusionary=FALSE,
+%                        #movement_angle=iWaveThreeAngle);
+%      Send(oRoom,@NewHold,#what=oElement,
+%           #new_row=iRow+4*iYStep,#new_col=iCol+4*iXStep,
+%           #fine_row=iFine_Row,#fine_col=iFine_Col);
+
+      propagate;
+   }
+
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

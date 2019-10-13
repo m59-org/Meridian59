@@ -18,6 +18,14 @@ resources:
 
    room_desertALdunes4e = desertaldunes2.roo
    room_name_desertALdunes4e = "Eternal Wastes"
+   
+   prism_of_death_closed = \
+      "The void that would normally be found here has been driven back by intrepid adventurers. "
+      "You wander your way back to Xaerdun's central location."
+
+   prism_of_death_defeated = \
+      "~BThe Prism of Death in the Eternal Wastes has been defeated by a band of brave spirits. "
+      "For a time, dying in the land of Biskalane will be much less harsh."
 
 classvars:
 
@@ -43,6 +51,12 @@ properties:
    piInit_count_max = 25
 
    piMonster_count_max = 25
+   
+   pbPrismOpen = TRUE
+   pbPrismOfDeathDefeated = FALSE
+
+   ptPrismOfDeathReset = $
+   piHoursLeftReset = 71
 
 messages:
 
@@ -85,13 +99,27 @@ messages:
    {
       if new_col > (Send(self,@GetRoomCols)-2)
       {
-         Send(SYS,@UtilGoNearSquare,#what=what,
-              #where=Send(SYS,@FindRoomByNum,#num=RID_DESERTALDUNES4E),
-              #new_row=Send(what,@GetRow),
-              #new_col=3,
-              #fine_row=Send(what,@GetFineRow),
-              #fine_col=0,
-              #new_angle=Send(what,@GetAngle));
+         if pbPrismOpen
+         {
+            Send(SYS,@UtilGoNearSquare,#what=what,
+                 #where=Send(SYS,@FindRoomByNum,#num=RID_PRISM_OF_DEATH),
+                 #new_row=93,
+                 #new_col=145,
+                 #fine_row=0,
+                 #fine_col=0,
+                 #new_angle=Send(what,@GetAngle));
+         }
+         else
+         {
+            Send(what,@MsgSendUser,#message_rsc=prism_of_death_closed);
+            Send(SYS,@UtilGoNearSquare,#what=what,
+                 #where=Send(SYS,@FindRoomByNum,#num=RID_DESERTALDUNES),
+                 #new_row=Send(what,@GetRow),
+                 #new_col=3,
+                 #fine_row=Send(what,@GetFineRow),
+                 #fine_col=0,
+                 #new_angle=Send(what,@GetAngle));
+         }
          return;
       }
 
@@ -99,7 +127,7 @@ messages:
       {
          if IsClass(what,&User)
          {
-            Send(what,@MsgSendUser,#message_rsc=darker_going_west_msg);
+            Send(what,@MsgSendUser,#message_rsc=brighter_going_west_msg);
          }
          Send(SYS,@UtilGoNearSquare,#what=what,
               #where=Send(SYS,@FindRoomByNum,#num=RID_DESERTALDUNES3E),
@@ -136,6 +164,58 @@ messages:
       }
 
       propagate;
+   }
+
+   Delete()
+   {
+      if ptPrismOfDeathReset <> $
+      {
+         DeleteTimer(ptPrismOfDeathReset);
+         ptPrismOfDeathReset = $;
+      }
+      propagate;
+   }
+
+   PrismOfDeathDefeated()
+   {
+      local i;
+
+      pbPrismOfDeathDefeated = TRUE;
+      pbPrismOpen = FALSE;
+      
+      piHoursLeftReset = 71;
+      ptPrismOfDeathReset = CreateTimer(self,@PrismOfDeathReset,60000 * 60);
+      
+      foreach i in Send(SYS,@GetUsersLoggedOn)
+      {
+         Send(i,@MsgSendUser,#message_rsc=prism_of_death_defeated);
+      }
+      return;
+   }
+
+   PrismOfDeathReset()
+   {
+      local i;
+
+      ptPrismOfDeathReset = $;
+      
+      if piHoursLeftReset > 0
+      {
+         --piHoursLeftReset;
+         ptPrismOfDeathReset = CreateTimer(self,@PrismOfDeathReset,60000 * 60); % 1 hour, counts down 72 times
+         return;
+      }
+
+      pbPrismOpen = TRUE;
+      pbPrismOfDeathDefeated = FALSE;
+      Send(Send(SYS,@FindRoomByNum,#num=RID_MAZE_EXIT_ROOM),@CloseUnholyWall);
+      
+      return;
+   }
+
+   GetPrismOfDeathDefeated()
+   {
+      return pbPrismOfDeathDefeated;
    }
 
 end

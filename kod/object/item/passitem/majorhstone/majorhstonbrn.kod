@@ -1,0 +1,73 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+MajorBrownHeartStone is MajorHeartStone
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   MajorBrownHeartStone_name_rsc = "major brown heartstone"
+   MajorBrownHeartStone_name_plural = "major brown heartstones"
+   MajorBrownHeartStone_desc_rsc = \
+      "This is a 'heartstone'.  It is a brown gem taken from "
+      "the body of a fallen Vix'Te'Xeochicatl.  It feels much like a normal "
+      "stone.  The uses for this gem are not widely known."
+
+classvars:
+
+   vrName = MajorBrownHeartStone_name_rsc
+   vrDesc = MajorBrownHeartStone_desc_rsc
+   
+   vrName_plural = MajorBrownHeartStone_name_plural
+
+   viValue_average = 100
+   viWeight = 25
+   viBulk = 10
+
+   viColor = XLAT_TO_SKIN4
+
+properties:
+
+messages:
+
+   CreateXeo()
+   {
+      return Create(&XeoEarth,#InAttack=Send(self,@IsInAttack));
+   }
+
+   WeightPrefixes()
+   {
+      return [[&DefenseMod,200]
+             ];
+   }
+   
+   WeightSuffixes()
+   {
+      return [[&WeaponAgilityMod,200]
+             ];
+   }
+
+   EmpowerAffixes()
+   {
+      return [[&DefenseMod,40],
+              [&WeaponAgilityMod,3]
+             ];
+   }
+   
+   GetForgeType()
+   {
+      return FORGE_QUAKE;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

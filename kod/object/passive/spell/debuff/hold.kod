@@ -33,6 +33,12 @@ resources:
    hold_break_rod_active = \
       "Flowing energies dissipate your spell before you even begin!"
 
+   hold_player_rsc = \
+      holdrings.bgf
+
+   hold_ring_projectile_rsc = \
+      blindring.bgf
+
 classvars:
 
    vrName = hold_name_rsc
@@ -58,6 +64,28 @@ classvars:
 
    % In seconds, since it works off GetTime()
    viPostCast_time = 2 % Recommended value 1.
+
+   vrHoldRings = hold_player_rsc
+
+   viLayer = 9
+
+   vrProjectile_Icon = hold_ring_projectile_rsc
+
+   vbIsRangedAttack = FALSE
+
+   viProjectileFlag = PROJ_FLAG_LIGHT_SOURCE
+
+   % Projectile lighting information.
+   viProjectileLightFlags = LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC
+   % Medium light range, out of 255.
+   viProjectileLightIntensity = 100
+   % Default color is lightning.
+   viProjectileLightColor = LIGHT_BPURPLE
+   
+   viProjectileSpeed = 5
+
+   viPrimaryStat = STAT_ID_MYSTICISM
+   viSecondaryStat = STAT_ID_KARMA
 
 properties:
 
@@ -122,11 +150,68 @@ messages:
       propagate;
    }
 
-   CastSpell(who=$,lTargets=$,iSpellpower=0,report=TRUE)
+   CastSpell(who=$,wielder=$,lTargets=$,iSpellpower=0,report=TRUE,oDeflectImpact=$,bDeflectCast=FALSE)
    {
-      local oTarget;
+      local oTarget, oRoom, i, iDeflectSpeed;
 
       oTarget = First(lTargets);
+      % Is this a proc from a weapon?
+      if wielder = $
+      {
+         oRoom = Send(who,@GetOwner);
+         if oDeflectImpact <> $
+            AND oRoom <> $
+         {
+            % Don't send to oDeflectImpact, it's not a NoMoveOn!
+            iDeflectSpeed = Send(who,@SquaredFineDistanceTo,#what=oDeflectImpact);
+               
+            if iDeflectSpeed = 0
+            {
+               iDeflectSpeed = $;
+            }
+
+            if iDeflectSpeed <> $
+            {
+               iDeflectSpeed = (Sqrt(iDeflectSpeed) / 64) * 2;
+            }
+            Send(oRoom,@SomethingShot,#who=who,#target=oDeflectImpact,#projectile=self,#flags=viProjectileFlag,#iDeflectSpeed=iDeflectSpeed);
+         }
+         else
+         {
+            if oRoom <> $
+            {
+               Send(oRoom,@SomethingShot,#who=who,#target=oTarget,#projectile=self,#flags=viProjectileFlag);
+            }
+         }
+      }
+      else
+      {
+         oRoom = Send(wielder,@GetOwner);
+         if oDeflectImpact <> $
+            AND oRoom <> $
+         {
+            % Don't send to oDeflectImpact, it's not a NoMoveOn!
+            iDeflectSpeed = Send(wielder,@SquaredFineDistanceTo,#what=oDeflectImpact);
+               
+            if iDeflectSpeed = 0
+            {
+               iDeflectSpeed = $;
+            }
+
+            if iDeflectSpeed <> $
+            {
+               iDeflectSpeed = (Sqrt(iDeflectSpeed) / 64) * 2;
+            }
+            Send(oRoom,@SomethingShot,#who=wielder,#target=oDeflectImpact,#projectile=self,#flags=viProjectileFlag,#iDeflectSpeed=iDeflectSpeed);
+         }
+         else
+         {
+            if oRoom <> $
+            {
+               Send(oRoom,@SomethingShot,#who=wielder,#target=oTarget,#projectile=self,#flags=viProjectileFlag);
+            }
+         }
+      }
 
       % Spell effects.
       Send(self,@DoSpell,#what=who,#oTarget=oTarget,#report=report,
@@ -171,13 +256,19 @@ messages:
                return FALSE;
             }
       
-            if IsClass(oTarget,&Monster)
-               AND Send(oTarget,@GetHoldResistance) <> 0
+            if Send(oTarget,@GetHoldResistance) <> 0
             {
                iDuration = (iDuration * (100-Send(oTarget,@GetHoldResistance)))/100;
             }
 
-            iDuration = Bound(iDuration,500,10000);
+            if IsClass(oTarget,&Player)
+            {
+               iDuration = Bound(iDuration,500,10000);
+            }
+            else
+            {
+               iDuration = Bound(iDuration,50,$);
+            }
          }
       }
 
@@ -200,6 +291,11 @@ messages:
       else
       {
          Send(oTarget,@ResetBehaviorFlags);
+         if Send(oTarget,@GetOwner) <> $
+         {
+            Send(Send(oTarget,@GetOwner),@SomethingChanged,#what=oTarget);
+         }
+         Post(oTarget,@WasHeld);
       }
 
       if report
@@ -226,6 +322,12 @@ messages:
 
    EndEnchantment(who=$,report=TRUE,state=$)
    {
+      if who <> $
+         AND IsClass(who,&Player)
+      {
+         Send(who,@RemoveOverlay,#what=self);
+      }
+      
       if IsClass(who,&Player)
       {
          % Don't override phasing hold.
@@ -245,6 +347,10 @@ messages:
          % This has to be done AFTER the enchantment is gone from the
          % monster's ench list - Post it
          Post(who,@ResetBehaviorFlags);
+         if Send(who,@GetOwner) <> $
+         {
+            Post(Send(who,@GetOwner),@SomethingChanged,#what=who);
+         }
       }
 
       return;
@@ -276,6 +382,121 @@ messages:
       }
 
       return;
+   }
+
+   GetLayer()
+   {
+      return viLayer;
+   }
+   
+   GetOverlayHotspot()
+   {
+      return HS_LEGS;
+   }
+
+   SendOverlayAnimation()
+   {
+      AddPacket(1,ANIMATE_CYCLE, 4,80, 2,1, 2,5);
+    %  AddPacket(1,ANIMATE_NONE,2,1); % group 2 is the player-overlay group
+      
+      return;
+   }
+
+   SendInventoryOverlays()
+   {
+      AddPacket(1, 0);
+      
+      return;
+   }
+
+   SendOverlayInformation()
+   {
+      AddPacket(4,Send(self,@GetOverlay));
+      AddPacket(1,Send(self,@GetOverlayHotspot));
+      Send(self,@SendOverlayAnimation);
+      
+      return;
+   }
+
+   GetNumberOverlays()
+   {
+      % Most overlay items only offer one overlay.
+      %  Some items like weapons and bows may offer two.
+      return 1;
+   }
+
+   GetOverlay(animation = $)
+   {
+      return hold_player_rsc;
+   }
+
+   % Return the icon used to display a spell shooting through the air.
+   GetProjectileIcon()
+   {
+      return vrProjectile_Icon;
+   }
+
+   % Return the speed at which a particular spell should appear to shoot through the air.
+   GetProjectileSpeed(who=$, target=$)
+   {
+      local iDist;
+
+      if who <> $
+         AND target <> $
+      {
+         % only NoMoveOns can calculate distances
+         if IsClass(who,&NoMoveOn)
+         {
+            iDist = Send(who,@SquaredFineDistanceTo,#what=target);
+         }
+         else if IsClass(target,&NoMoveOn)
+         {
+            iDist = Send(target,@SquaredFineDistanceTo,#what=who);
+         }
+         else
+         {
+            % Neither is a NoMoveOn? Give up!
+            return viProjectileSpeed;
+         }
+
+         if iDist <> $
+            AND iDist <> 0
+         {
+            iDist = Sqrt(iDist);
+
+            % Check sqrt value for 0
+            if iDist = 0
+            {
+               return viProjectileSpeed;
+            }
+            else
+            {
+               return Bound((iDist / 64) * 2,viProjectileSpeed,$);
+            }
+         }
+      }
+      return viProjectileSpeed;
+   }
+
+   SendProjectileAnimation()
+   {
+      AddPacket(1, ANIMATE_CYCLE, 4, 40, 2, 1, 2, 6);   % 40ms between animations
+      return;
+   }
+
+   GetProjectileLightFlags()
+   {
+      return viProjectileLightFlags;
+   }
+
+   GetProjectileLightIntensity()
+   {
+      return viProjectileLightIntensity;
+   }
+
+   GetProjectileLightColor()
+   {
+      return viProjectileLightColor;
    }
 
 end

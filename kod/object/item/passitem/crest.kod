@@ -1,0 +1,247 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Crest is PassiveItem
+
+constants:
+   
+   include blakston.khd
+
+resources:
+
+classvars:
+
+   viUse_type = ITEM_USE_CREST
+   viItem_type = ITEMTYPE_CREST
+
+   viUse_Amount = 1
+
+properties:
+
+   pbGrantedSpell = FALSE
+
+messages:
+
+   ReqUseSomething(what = $)
+   {
+      
+      propagate;
+   }
+
+   NewUsed(what = $)
+   {
+      if IsClass(what,&User)
+      {
+         Send(what,@AddDefenseModifier,#what=self);
+         Send(what,@AddAttackModifier,#what=self);
+      }
+      
+      propagate;
+   }
+
+   NewUnused(what = $)
+   {
+      if IsClass(what,&User)
+      {
+         Send(what,@RemoveDefenseModifier,#what=self);
+         Send(what,@RemoveAttackModifier,#what=self);
+      }
+
+      propagate;
+   }
+
+   DestroyDisposable()
+   {
+      return FALSE;
+   }
+
+   GetMinimapDotFlags()
+   {
+      % Special item, add minimap dot.
+      return MM_RARE_ITEM;
+   }
+
+   CanBeGivenToNPC()
+   {
+      return FALSE;
+   }
+
+   ReqNewOwner(what=$)
+   {
+      return FALSE;
+   }
+
+   CanSwap()
+   {
+      return FALSE;
+   }
+
+   CanShatter()
+   {
+      return FALSE;
+   }
+   
+   CanBeStoredInVault()
+   {
+      return FALSE;
+   }
+
+   DropOnDeath()
+   {
+      return FALSE;
+   }
+
+   GetPrefixes()
+   {
+      return $;
+   }
+   
+   GetSuffixes()
+   {
+      return $;
+   }
+
+   ModifyHitRoll(who = $,what = $,hit_roll = $)
+   {
+      local i, oWeapon, oOffenseMod;
+
+      foreach i in plEnchantmentMods
+      {
+         if Nth(i,1) = &OffenseMod
+         {
+            oOffenseMod = Send(SYS,@GetMagicMod,#class=&OffenseMod);
+            hit_roll = Send(oOffenseMod,@ModifyHitRoll,#who=who,#what=what,
+                        #hit_roll=hit_roll,#iState=Nth(i,2));
+         }
+      }
+
+      return hit_roll;
+   }
+
+   ModifyDamage(who = $,what = $,damage = $)
+   {
+      local oWeapon, i, oWeaponDamageMod;
+
+      foreach i in plEnchantmentMods
+      {
+         if Nth(i,1) = &WeaponDamageMod
+         {
+            oWeaponDamageMod = Send(SYS,@GetMagicMod,#class=&WeaponDamageMod);
+            damage = Send(oWeaponDamageMod,@ModifyDamage,#who=who,#what=what,
+                        #damage=damage,#iState=Nth(i,2));
+         }
+      }
+
+      return damage;
+   }
+
+   ModifyDefensePower(defense_power=$)
+   {
+      local i, oDefenseMod;
+
+      foreach i in plEnchantmentMods
+      {
+         if Nth(i,1) = &DefenseMod
+         {
+            oDefenseMod = Send(SYS,@GetMagicMod,#class=&DefenseMod);
+            defense_power = Send(oDefenseMod,@ModifyDefensePower,
+                        #defense_power=defense_power,#iState=Nth(i,2));
+         }
+      }
+
+      return defense_power;
+   }
+
+   ModifyDefenseDamage(who=$,what=$,damage=$,atype=0,aspell=0)
+   {
+      local i, sum, oArmorMod;
+      sum = 0;
+
+      foreach i in plEnchantmentMods
+      {
+         if Nth(i,1) = &ArmorMod
+         {
+            oArmorMod = Send(SYS,@GetMagicMod,#class=&ArmorMod);
+            damage = Send(oArmorMod,@ModifyDefenseDamage,#who=who,#what=what,
+                        #damage=damage,#atype=atype,#aspell=aspell,
+                        #iState=Nth(i,2));
+         }
+      }
+
+      return damage;
+   }
+
+   GetDefenseBonus()
+   {
+      local i, sum;
+      sum = 0;
+
+      foreach i in plEnchantmentMods
+      {
+         if Nth(i,1) = &DefenseMod
+         {
+            sum = sum + Nth(i,2);
+         }
+      }
+      
+      return sum;
+   }
+
+   GetDamageReduction()
+   {
+      local i, sum;
+      sum = 0;
+
+      foreach i in plEnchantmentMods
+      {
+         if Nth(i,1) = &ArmorMod
+         {
+            sum = sum + Nth(i,2);
+         }
+      }
+
+      return sum;
+   }
+
+   GetHitBonus()
+   {
+      return Send(self,@ModifyHitRoll,#who=poOwner,#hit_roll=0);
+   }
+
+   GetMeleeDamageBonus()
+   {
+      local i, sum;
+      sum = 0;
+
+      foreach i in plEnchantmentMods
+      {
+         if Nth(i,1) = &WeaponDamageMod
+         {
+            sum = sum + Nth(i,2);
+         }
+      }
+
+      return sum;
+   }
+
+   % No alterations when we hit the target....
+   WeaponHitTarget()
+   {
+      return;
+   }
+
+   DefendingHit()
+   {
+      % Return here so we don't damage the crest!
+      return;
+   }
+   
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

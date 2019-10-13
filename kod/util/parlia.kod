@@ -1103,11 +1103,12 @@ messages:
          iSchool = send(theSpell,@GetSchool);
    
          if (iFaction <> FACTION_NEUTRAL)
-            AND ((iFaction = FACTION_REBEL)
+            AND (((iFaction = FACTION_REBEL)
+                     AND (iSchool <> SKS_KNIGHTCRAFT))
                  OR ((iFaction = FACTION_DUKE)
-                     AND ((iSchool <> SS_QOR) AND (iSchool <> SS_RIIJA) AND (iSchool <> SS_KRAANAN)))
+                     AND ((iSchool <> SKS_ALCHEMY) AND (iSchool <> SS_QOR) AND (iSchool <> SS_RIIJA) AND (iSchool <> SS_KRAANAN) AND (iSchool <> SS_WITCHERY)))
                  OR ((iFaction = FACTION_PRINCESS)
-                     AND ((iSchool <> SS_SHALILLE) AND (iSchool <> SS_FAREN) AND (iSchool <> SS_JALA))))
+                     AND ((iSchool <> SS_BESTIARY) AND (iSchool <> SS_SHALILLE) AND (iSchool <> SS_FAREN) AND (iSchool <> SS_JALA))))
          {
             return 0;
          }
@@ -1247,17 +1248,13 @@ messages:
 
       if theskill <> $
       {
-         iSchool = $;
-         if isClass(theskill,&Spell)
-         {
-            iSchool = send(theskill,@GetSchool);
-         }
+         iSchool = Send(theskill,@GetSchool);
    
          if (iFaction <> FACTION_NEUTRAL)
-            AND (((iFaction = FACTION_REBEL) AND (iSchool<>$))
-                  OR ((iFaction = FACTION_DUKE) AND ((iSchool <> SS_QOR) AND (iSchool <> SS_RIIJA) AND (iSchool <> SS_KRAANAN)))
+            AND (((iFaction = FACTION_REBEL) AND (iSchool <> SKS_SHADOWCRAFT) AND (iSchool <> SKS_FENCING) AND (iSchool <> SKS_BANDITRY) AND (iSchool <> SKS_KNIGHTCRAFT))
+                  OR ((iFaction = FACTION_DUKE) AND ((iSchool <> SKS_ALCHEMY) AND (iSchool <> SS_QOR) AND (iSchool <> SS_RIIJA) AND (iSchool <> SS_KRAANAN) AND (iSchool <> SS_WITCHERY)))
                   OR ((iFaction = FACTION_PRINCESS)
-                      AND ((iSchool <> SS_SHALILLE) AND (iSchool <> SS_FAREN) AND (iSchool <> SS_JALA))))
+                      AND ((iSchool <> SS_BESTIARY) AND (iSchool <> SS_SHALILLE) AND (iSchool <> SS_FAREN) AND (iSchool <> SS_JALA) AND (iSchool <> SKS_SORCERY))))
          {
             return 0;
          }

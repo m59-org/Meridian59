@@ -1,0 +1,89 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+HolyStormBuff is ResistanceEnchantment
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   HolyStormBuff_name_rsc = "surging purity"
+   HolyStormBuff_icon_rsc = iresgood.bgf
+   HolyStormBuff_desc_rsc = \
+      "Strange white energies race around you, protecting you from holy damage."
+
+   HolyStormBuff_already_enchanted = \
+      "You are already resistant to holy damage."
+
+   HolyStormBuff_on = \
+      "Eerie white energies race around your body."
+   HolyStormBuff_off = \
+      "The eerie white energies depart."
+
+   HolyStormBuff_sound = shalille.wav
+
+classvars:
+
+   vrName = HolyStormBuff_name_rsc
+   vrIcon = HolyStormBuff_icon_rsc
+   vrDesc = HolyStormBuff_desc_rsc
+   vrSucceed_wav = HolyStormBuff_sound
+
+   viSpell_num = SID_HOLY_STORM_BUFF
+   viSchool = SS_SHALILLE
+   viSpell_level = 1
+   viMana = 0
+
+   viPersonal_ench = True
+   viChance_To_Increase = 30
+
+   viFlash = FLASH_GOOD_SELF
+
+   viResistanceType = -ATCK_SPELL_HOLY
+   vrAlreadyEnchanted = HolyStormBuff_already_enchanted
+   vrEnchantment_On = HolyStormBuff_on
+   vrEnchantment_Off = HolyStormBuff_off
+   
+   viPrimaryStat = 0
+   viSecondaryStat = 0
+
+properties:
+
+messages:
+
+   GetResistanceStrength(iSpellpower = 0)
+   {
+      %% strength varies from 1 to 99
+      return iSpellPower;
+   }
+
+   GetDuration(iSpellPower = 0)
+   {
+      local iDuration;	   %%% 60 to 120 seconds
+      iDuration = 60000 + (iSpellPower+1)*600;
+      return iDuration;
+   }
+
+   DirectDMAccess()
+   {
+      % When a DM does 'dm get spell', does he get this spell?
+      return FALSE;
+   }
+
+   OfferToNewCharacters()
+   {
+      return FALSE;
+   }
+
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

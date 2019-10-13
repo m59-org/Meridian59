@@ -30,14 +30,6 @@ constants:
 
    % Number of ms to lose one boosted health or mana point.
    BOOST_DECAY_TIME = 30000 
-
-   % Champion mob types
-   NORMAL_MOB = 0
-   CHAMPION_TOUGH = 1
-   CHAMPION_SWIFT = 2
-   CHAMPION_DEADLY = 3
-   CHAMPION_INDOMITABLE = 4
-   CHAMPION_LEGENDARY = 5
    
    TIER_ONE_CHAMPION_REWARD_MULTIPLIER = 3
    TIER_TWO_CHAMPION_REWARD_MULTIPLIER = 10
@@ -45,13 +37,18 @@ constants:
    
    % Champion abilities 
    % Stored in the form [type, value] in plChampionAbilities
-   CHAMPION_ABIL_MAGIC_RESISTANCE = 1
-   CHAMPION_ABIL_WEAPON_RESISTANCE = 2
-   CHAMPION_ABIL_EAGLE_EYES = 3
-   CHAMPION_ABIL_FREE_ACTION = 4
-   CHAMPION_ABIL_ELEMENTAL_DAMAGE_TYPE = 5
-   CHAMPION_ABIL_PURGE = 6
-   CHAMPION_ABIL_DISARM = 7
+   %CHAMPION_ABIL_MAGIC_RESISTANCE = 1
+   %CHAMPION_ABIL_WEAPON_RESISTANCE = 2
+   %CHAMPION_ABIL_EAGLE_EYES = 3
+   %CHAMPION_ABIL_FREE_ACTION = 4
+   %CHAMPION_ABIL_ELEMENTAL_DAMAGE_TYPE = 5
+   %CHAMPION_ABIL_PURGE = 6
+   %CHAMPION_ABIL_DISARM = 7
+   
+   % Every 20 loyalty is 1 minute on an average monster
+   % So 200 loyalty is 10 minutes per binding level
+   % Binding level 9 is roughly 90 minutes
+   % LOYALTY_PER_BINDING_LEVEL = 200
 
 resources:
 
@@ -116,7 +113,16 @@ resources:
    monster_division_magic = "Shal'ille, Faren, and Qor magic"
 
    monster_anonymous_response = \
-      "%s looks at you with a peculiar expression, and does not respond." 
+      "%s looks at you with a peculiar expression and does not respond." 
+
+   player_has_ventdal = \
+      "I do not teach pathetic Ventdal traditionalists."
+   player_has_xaerdun = \
+      "A greedy follower of Xaerdun will learn nothing from me."
+   player_has_iwodach = \
+      "Collection protocols deny cross-contamination of data."
+   player_has_nequzon = \
+      "A wild-witch of Nequzon has no use for scholarly knowledge. Begone."
 
    LS_Cant_part = \
       "I cannot see how you could bear to part with %s%s!  I certainly "
@@ -171,15 +177,16 @@ resources:
    champion_nothing = \
       ""
    
-   monster_desc_level = "This monster will take you to %i hitpoints."
-   Lm_condition_healthy = "%s\n\n%r%r"
+   monster_blank_level = ""
+   monster_desc_level = "This monster is level %i."
+   Lm_condition_healthy = "%r%s\n\n%r%r"
    Lm_condition_good = \
-      "%s\n\n%r\n\n%s%s is injured, but is still relatively strong.%r"
+      "%r%s\n\n%r\n\n%s%s is injured, but is still relatively strong.%r"
    Lm_condition_fair = \
-      "%s\n\n%r\n\n%s%s is wounded, but is still relatively strong.%r"
-   Lm_condition_poor = "%s\n\n%r\n\n%s%s is suffering from deep wounds.%r"
+      "%r%s\n\n%r\n\n%s%s is wounded, but is still relatively strong.%r"
+   Lm_condition_poor = "%r%s\n\n%r\n\n%s%s is suffering from deep wounds.%r"
    Lm_condition_bad = \
-      "%s\n\n%r\n\n%s%s is weak and seems unlikely to survive much longer.%r"
+      "%r%s\n\n%r\n\n%s%s is weak and seems unlikely to survive much longer.%r"
 
    Lm_cant_remove_item = "You can't give %s%s away right now."
    Lm_mrcnt_not_selling = "You tried to buy something that is not being sold."
@@ -314,10 +321,57 @@ resources:
    indomitable_arrived = "An indomitable %s steps forward, ready for combat!"
    legendary_arrived = "~BA legendary %s appears, intent on destroying you!"
 
+   minion_breaks_free = \
+      "~B%s%s is no longer under your control!"
+      
+   minion_breaks_bind_level_high = \
+      "~B%s%s seems a little restless."
+   minion_breaks_bind_level_low = \
+      "~B%s%s seems to be breaking free of your control!"
+
+   minion_bind_level_blank = \
+      ""
+   minion_bind_level_10 = \
+      "%s%s is permanently bound as a minion of %s%s.\n\n"
+   minion_bind_level_9 = \
+      "%s%s is a fanatical minion of %s%s.\n\n"
+   minion_bind_level_8 = \
+      "%s%s is a minion of %s%s.\n\n"
+   minion_bind_level_7 = \
+      "%s%s is an eager servant of %s%s.\n\n"
+   minion_bind_level_6 = \
+      "%s%s is a servant of %s%s.\n\n"
+   minion_bind_level_5 = \
+      "%s%s is strongly bound to fight for %s%s.\n\n"
+   minion_bind_level_4 = \
+      "%s%s is bound to fight for %s%s.\n\n"
+   minion_bind_level_3 = \
+      "%s%s is bound to fight alongside %s%s.\n\n"
+   minion_bind_level_2 = \
+      "%s%s is compelled to aid %s%s.\n\n"
+   minion_bind_level_1 = \
+      "%s%s is lightly compelled to aid %s%s.\n\n"
+   minion_bind_level_0 = \
+      "%s%s is barely compelled to aid %s%s.\n\n"
+   minion_bind_level_nothing = \
+      "%s%s%s%s"
+
+   monster_spell_build_1_sound = monsterspellbuild1.wav
+   monster_spell_build_2_sound = monsterspellbuild2.wav
+   monster_spell_build_3_sound = monsterspellbuild3.wav
+   monster_spell_build_4_sound = monsterspellbuild4.wav
+   
+   monster_jailer_you_cannot_control_it = \
+      "Can't sell you that one. It'd turn on you in a second. Try a weaker one maybe, or getting rid of some existing minions..."
+   monster_jailer_sold_to_you = \
+      "Good luck with that one... we gave it a complementary creature binding for you, but you never know..."
+   
 classvars:
 
    vrKocName = monster_koc_name
    viGender = GENDER_NEUTER
+   
+   viLanguage = LANGUAGE_NONE
    
    vbNamedMob = FALSE
    
@@ -348,6 +402,9 @@ classvars:
 
    % If the monster is undead, set this to TRUE.
    vbIsUndead = FALSE
+   
+   % If the monster is shadow or darkness, set this to TRUE.
+   vbIsShadow = FALSE
 
    % viLevel ranges from 25 to 200 (150 and above is for "boss" mobs)
    %  determines hit points.
@@ -420,6 +477,24 @@ classvars:
 
    viCanSpawnAsChampion = TRUE
    viHasLegendaryNames = FALSE
+   
+   vbIgnoresAnonAndMorph = TRUE
+   
+   viBonusBaseTP = 0
+
+   % between 1 and 10000
+   viCriticalHitRate = 0
+   vbCanCauseStun = FALSE
+   vbCanCauseKnockback = FALSE
+   vbCanCauseBleed = FALSE
+   
+   % Squared fine range limit on reacting to heals?
+   viReactToHealFineDist = 6 * 64
+   
+   % Typically used for bosses, but also any hard monster is fine.
+   % Does not change gain divisors for player hp vs monster hp.
+   % For example, can't keep leveling up off an orc pit boss at 100+ hp.
+   vbBonusXPGain = 0
 
 properties:
 
@@ -517,8 +592,32 @@ properties:
    piSweepCounter = 0
 
    % List of spells this monster can cast. Has the format:
-   % [ Spell num, mana cost, number req. from Random(1,100) to cast ]
-   plSpellBook = $
+   % [ Spell num, mana cost, number req. from Random(1,100) to cast, base spellpower for this spell ]
+   % Melee spell book occurs instead of close range attacks
+   % Ranged spell book occurs instead of chase movement
+   % Ally spell book includes spells to cast on allies
+   % Other spell book includes custom spells for custom AI
+   plMeleeSpellBook = $
+   plRangedSpellBook = $
+   plSelfSpellBook = $
+   plAllySpellBook = $
+   plOtherSpellBook = $
+   
+   % Use to trigger actions that aren't instant
+   piQueuedSpellType = 0
+   
+   % What are the monster's chances to cast spells each check?
+   % Number is out of one hundred
+   piMeleeSpellChance = 10
+   piRangedSpellChance = 10
+   piAllySpellChance = 10
+   piSelfSpellChance = 10
+   piOtherSpellChance = 10
+   
+   % Let's limit monster casting to prevent classic Meridian spell spam.
+   ptSpellCastTimer = $
+   % Minimum time in MS between monster casts.
+   piMonsterCastDelayMinimum = 2000
 
    % 1 in x chance to cast a spell. Default 10% chance. Set
    % from classvar in Constructor.
@@ -540,6 +639,9 @@ properties:
    % Was this monster boosted by a Survival Room?
    piBoostedLevel = 0
 
+   % Was this monster boosted by a Chaos Stratum?
+   piChaosLevel = 0
+   
    piLastTimeAttacked = 0
    poLastAttacker = $
 
@@ -548,7 +650,16 @@ properties:
    plChampionAbilities = $
    
    % Usually taken from monster's viSpeed
-   piSpeed = 0
+   piAttackSpeed = $
+   piMoveSpeed = $
+
+   % 6 = 4000 ms, 8 = 3000 ms, 12 = 2000 ms, 24 = 1000 ms
+   piCastSpeed = 6
+   ptCastingAnimationTimer = $
+   piCastPower = 0
+   piCastingSID = 0
+   piCastingRequiredPower = 240
+   piCastingColor = 0
 
    % some monsters are created on the fly (ex: avar) we may need to set this at
    % runtime
@@ -558,22 +669,59 @@ properties:
    % 20 seconds default for players, 60 for monsters
    piHurtMeTime = 60000
 
+   piLevel = 20
+   
+   piApplyElementalImbalancePower = 0
+   
+   % Level of binding as a charmed monster
+   piLoyalty = 0
+   ptLoyaltyTimer = $
+   
+   piAmountAddedToMonsterChasers = 0
+
 messages:
 
-   Constructor(template=FALSE, color=0, piSurvivalLevel=0, iBrain = 0)
+   Constructor(template=FALSE, color=0, piSurvivalLevel=0, iBrain = 0, iChaosLevel = 0)
    "Simple enough, we create a monster. If they are questworthy, we note it."
    {
       local iStatPoints, iMin, iMax;
 
+      if iChaosLevel > 0
+      {
+         piLevel = Bound(180 + iChaosLevel/2,20,250);
+      }
+      else
+      {
+         piLevel = viLevel;
+      }
       piMax_Hit_points = Send(Self,@Fuzzy,#num=Send(self,@GetMaxHitPoints))
-                         + piSurvivalLevel*viDifficulty;
+                         + piSurvivalLevel*viDifficulty
+                         + iChaosLevel * Send(Send(SYS,@GetChaosStrataMaintenance),@GetChaosDifficulty);
       piHit_points = piMax_hit_points*100;
-      piMana = piMax_mana;
+      
+      if iChaosLevel > 0
+      {
+         piMana = Bound(piMax_mana,20,$) + iChaosLevel;
+      }
+      else
+      {
+         piMana = piMax_mana;
+      }
       piAttackRange = viAttackRange;
       piSpellChance = viSpellChance;
-      piVisionDistance = viVisionDistance + piSurvivalLevel;
+      piVisionDistance = viVisionDistance + piSurvivalLevel + iChaosLevel;
       piBoostedLevel = piSurvivalLevel;
-      piSpeed = viSpeed;
+      piChaosLevel = iChaosLevel;
+      
+      if piAttackSpeed = $
+      {
+         piAttackSpeed = viSpeed;
+      }
+      
+      if piMoveSpeed = $
+      {
+         piMoveSpeed = viSpeed;
+      }
 
       if Send(self,@MobIsSeller)
       {
@@ -639,23 +787,68 @@ messages:
          iMin = iStatpoints - 50;
       }
 
-      piAgility = Random(iMin,iMax);
+      if iMin > iMax
+      {
+         piAgility = iMax;
+      }
+      else
+      {
+         piAgility = Random(iMin,iMax);
+      }
       piAim = iStatPoints - piAgility;
 
       if piSurvivalLevel > 0
       {
-         piOffense = Send(self,@GetOffense) + piSurvivalLevel*viDifficulty;
-         piDefense = Send(self,@GetDefense) + piSurvivalLevel*viDifficulty;
-         piMinDamage = viLevel/15 + piSurvivalLevel/2;
-         piMaxDamage = viLevel/10 + piSurvivalLevel/2;
-         piArmor = piSurvivalLevel/5;
+         piOffense = Send(self,@GetOffense) + piSurvivalLevel*viDifficulty + piChaosLevel*Send(Send(SYS,@GetChaosStrataMaintenance),@GetChaosDifficulty);
+         piDefense = Send(self,@GetDefense) + piSurvivalLevel*viDifficulty + piChaosLevel*Send(Send(SYS,@GetChaosStrataMaintenance),@GetChaosDifficulty);
+         piMinDamage = piLevel/15 + piSurvivalLevel/2 + piChaosLevel/2;
+         piMaxDamage = piLevel/10 + piSurvivalLevel/2 + piChaosLevel/2;
+         piArmor = piSurvivalLevel/5 + piChaosLevel/5;
+      }
+
+      if piChaosLevel > 0
+      {
+         piOffense = Send(self,@GetOffense) + piChaosLevel*Send(Send(SYS,@GetChaosStrataMaintenance),@GetChaosDifficulty);
+         piDefense = Send(self,@GetDefense) + piChaosLevel*Send(Send(SYS,@GetChaosStrataMaintenance),@GetChaosDifficulty);
+         piMinDamage = piLevel/15 + piChaosLevel/2;
+         piMaxDamage = piLevel/10 + piChaosLevel/2;
+         piArmor = piChaosLevel/5;
+      }
+
+
+      if viBonusBaseTP <> 0
+      {
+         % for special bonuses, keep track up to five minutes.
+         piHurtMeTime = 60000 * 5;
       }
 
       if color <> 0
       {
          piColor_translation = color;
       }
+      
+      plCreatureTypes = Cons(CREATURE_TYPE_MONSTER,plCreatureTypes);
 
+      propagate;
+   }
+   
+   Constructed()
+   {
+      local lSpells;
+      Post(self,@AddChampionAbility,#ability=CHAMPION_ABIL_EAGLE_EYES,#value=piLevel/4);
+      
+      if piChaosLevel > 0
+      {
+         lSpells = [SID_BLAST_OF_FIRE,
+                    SID_EXPLOSIVE_FROST,
+                    SID_SPLASH_OF_ACID,
+                    SID_ILLUSIONARY_WOUNDS,
+                    SID_PURGE,
+                    SID_HOLD,
+                    SID_HEX_FRAILTY,
+                    SID_HEX_VULNERABILITY];
+         Send(self,@CreateMeleeSpellBookIfNew,#iSID=Nth(lSpells,Random(1,Length(lSpells))),#iManaCost=Random(2,5),#iChance=100,#iSpellpower=piChaosLevel);
+      }
       propagate;
    }
 
@@ -781,6 +974,18 @@ messages:
          poApparitionOriginal = $;
          poApparitionCaster = $;
       }
+      
+      if ptSpellCastTimer <> $
+      {
+         DeleteTimer(ptSpellCastTimer);
+         ptSpellCastTimer = $;
+      }
+      
+      if ptCastingAnimationTimer <> $
+      {
+         DeleteTimer(ptCastingAnimationTimer);
+         ptCastingAnimationTimer = $;
+      }
 
       % Under rare conditions delete is called twice in succession
       if poBrain <> $
@@ -835,7 +1040,11 @@ messages:
          ptMana = $;
       }
 
-      plSpellBook = $;
+      plMeleeSpellBook = $;
+      plRangedSpellBook = $;
+      plSelfSpellBook = $;
+      plAllySpellBook = $;
+      plOtherSpellBook = $;
 
       Send(self,@RemoveAllEnchantments);
       poMaster = $;
@@ -844,6 +1053,12 @@ messages:
       {
          deleteTimer(ptUnturn);
          ptUnturn = $;
+      }
+
+      if ptLoyaltyTimer <> $
+      {
+         DeleteTimer(ptLoyaltyTimer);
+         ptLoyaltyTimer = $;
       }
 
       poLastAttacker = $;
@@ -990,7 +1205,7 @@ messages:
          AND isClass(poTarget,&User)
       {
          Send(poTarget,@SubtractFromMonsterChasers,
-              #level=viLevel);
+              #level=piAmountAddedToMonsterChasers);
       }
 
       poTarget = $;
@@ -1008,7 +1223,7 @@ messages:
          AND isClass(poTarget,&user)
       {
          Send(poTarget,@SubtractFromMonsterChasers,
-              #level=viLevel);
+              #level=piAmountAddedToMonsterChasers);
       }
 
       poTarget = $;
@@ -1031,6 +1246,7 @@ messages:
 
    EnterStateMove( actnow=FALSE )
    {
+      local iGetTime;
       % Note: All monsters "move" even the ones who physically can't.
       Send(self,@SetState,#bit=STATE_MOVE);
 
@@ -1039,7 +1255,7 @@ messages:
          AND isClass(poTarget,&User)
       {
          Send(poTarget,@SubtractFromMonsterChasers,
-              #level=viLevel);
+              #level=piAmountAddedToMonsterChasers);
       }
 
       poTarget = $;
@@ -1053,7 +1269,9 @@ messages:
       }
       else
       {
-         ptBehavior = CreateTimer(self,@MoveTimer,Send(self,@GetMoveTime));
+         iGetTime = Send(self,@GetMoveTime);
+       %  Debug(Send(self,@GetName), " making timer of ", iGetTime, " ms");
+         ptBehavior = CreateTimer(self,@MoveTimer,iGetTime);
       }
 
       return;
@@ -1079,8 +1297,21 @@ messages:
    {
       if poTarget <> target AND vrSound_aware <> $
       {
-         Send(poOwner,@SomethingWaveRoom,#what=self,#wave_rsc=vrSound_aware,
-              #flags=SOUND_RANDOM_PITCH);
+         if target <> $
+            AND NOT (IsClass(target,&Player)
+               AND Send(target,@GetSkillAbility,#skill_num=SKID_HIDE) >= piLevel/2
+               AND Send(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@IsHiding,#who=target))
+         {
+            if poOwner <> $
+            {
+               Send(poOwner,@SomethingWaveRoom,#what=self,#wave_rsc=vrSound_aware,
+                    #flags=SOUND_RANDOM_PITCH);
+            }
+            else
+            {
+               Post(self,@Delete);
+            }
+         }
       }
 
       Send(self,@SetState,#bit=STATE_CHASE);
@@ -1104,7 +1335,7 @@ messages:
    "Monster just entered this room. Right now, thats only possible on a"
    "creation. So, lets pause for a few beats if we got users."
    {
-      local iRand;
+      local iRand, i, iOverrideChampion, iLevelChange, bOverride;
 
       if what = $
       {
@@ -1134,13 +1365,53 @@ messages:
 
       Send(poBrain,@NewOwner,#mob=self,#state=piState,#what=what);
       
+      if what <> $
+         AND IsClass(what,&ChaosStratumRoom)
+      {
+         if Send(what,@GetMonsterAttackSpeed) > 0
+         {
+            piAttackSpeed = (piAttackSpeed * (100+Send(what,@GetMonsterAttackSpeed)))/100;
+         }
+         if Send(what,@GetMonsterMoveSpeed) > 0
+         {
+            piMoveSpeed = (piMoveSpeed * (100+Send(what,@GetMonsterMoveSpeed)))/100;
+         }
+      }
+      
       if NOT ((piBehavior & AI_NOFIGHT) OR (piBehavior & AI_NPC))
          AND viCanSpawnAsChampion
          AND IsClass(what,&Room)
          AND Send(what,@GetCanSpawnChampions)
          AND Send(SETTINGS_OBJECT,@GetChampionSpawnsEnabled)
+         AND Send(self,@GetMaster) = $
+         AND NOT pbIllusion
       {
          iRand = Random(0,9999);
+         
+         iLevelChange = 0;
+         bOverride = FALSE;
+         foreach i in Send(what,@GetObjectAttributes)
+         {
+            if IsClass(i,&RoomThreat)
+            {
+               iLevelChange = iLevelChange + Send(i,@GetMonsterLevelChange);
+
+               iOverrideChampion = Send(i,@GetOverrideChampion);
+               if iOverrideChampion <> 0
+               {
+                  Post(self,@LoseChampionStatus);
+                  Post(self,@GainChampionStatus,#iType=iOverrideChampion);
+                  bOverride = TRUE;
+               }
+            }
+         }
+
+         Send(self,@AddLevel,#value=iLevelChange);
+
+         if bOverride
+         {
+            propagate;
+         }
          
          if iRand > 450 AND iRand <= 650
          {
@@ -1274,6 +1545,20 @@ messages:
       return piLastTimeAttacked;
    }
 
+   RecordTimeCasted()
+   "This records the last time the monster cast a spell."
+   {
+      ptSpellCastTimer = CreateTimer(self,@SpellCastTimer,piMonsterCastDelayMinimum);
+
+      return;
+   }
+   
+   SpellCastTimer(timer=$)
+   {
+      ptSpellCastTimer = $;
+      return;
+   }
+
    GetLastAttacker()
    {
       return poLastAttacker;
@@ -1327,15 +1612,7 @@ messages:
          if iRow <> 0 AND iCol <> 0
             AND Send(poMaster,@GetOwner) <> $
          {
-            if ((piRow - iRow) <= 3
-               AND (piCol - iCol) <= 3
-               AND NOT (IsClass(self,&EvilTwin)
-                  AND (NOT Send(self,@IsEnchanted,#byClass=&Seduce))))
-               OR IsClass(self,&Reflection) % Flecs follow.
-               OR vbIsUndead % So do undead (Animate).
-            {
-               Post(self,@GotoMaster);
-            }
+            Post(self,@GotoMaster);
          }
 
          % Seduced minions and dragonfly queens are loyal,
@@ -1346,9 +1623,11 @@ messages:
             if IsClass(poMaster,&Player)
                AND NOT Send(poMaster,@IsLoggedOn)
             {
+               Send(poMaster,@SaveMinionOnLogoff,#oMonster=self);
                % Send this rather than post, otherwise the master's
                % piMonsterChasers isn't updated properly.
                Send(self,@SetMaster,#oMaster=$);
+               Post(self,@Delete);
             }
          }
       }
@@ -1375,10 +1654,11 @@ messages:
          return;
       }
 
-      if (Send(oNewRoom,@CountMonsters,#mastered=TRUE) < 25)
+      if (Send(oNewRoom,@CountMonsters,#mastered=TRUE) < 50)
       {
          Send(oNewRoom,@NewHold,#what=self,
                #new_row=Send(poMaster,@GetRow),#new_col=Send(poMaster,@GetCol),
+               #fine_row=Send(poMaster,@GetFineRow),#fine_col=Send(poMaster,@GetFineCol),
                #new_angle=Send(poMaster,@GetAngle));
       }
 
@@ -1505,7 +1785,7 @@ messages:
       % sanity checks
       if poOwner = $
       {
-         Debug("Unreachable. Null Owner");
+         %Debug("Unreachable. Null Owner");
          Send(self,@EnterStateLimbo);
 
          return;
@@ -1513,16 +1793,18 @@ messages:
 
       if poTarget = $ OR NOT IsClass(poTarget,&Battler)
       {
-         Debug("Unreachable. Null poTarget","monster",self);
+         %Debug("Unreachable. Null poTarget","monster",self);
          poTarget = $;
          Send(self,@EnterStateWait);
 
          return;
       }
 
-      % Victim phased out or is now in spectator mode, break aggro.
+      % Victim phased out, is now in spectator mode, or hiding, break aggro.
       if IsClass(poTarget,&User)
-         AND Send(poTarget,@IsInCannotInteractMode)
+         AND (Send(poTarget,@IsInCannotInteractMode)
+             OR (Send(poTarget,@GetSkillAbility,#skill_num=SKID_HIDE) >= piLevel/2
+               AND Send(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@IsHiding,#who=poTarget)))
       {
          Send(self,@EnterStateMove);
 
@@ -1558,8 +1840,15 @@ messages:
          piState = piState & ESTATE_CCLK_MASK;
       }
 
-      % Carry out attack
-      Send(self,@TryAttack,#what=poTarget,#stroke_obj=self);
+      % Are we attacking or casting a melee spell?
+      if NOT (Send(self,@MonsterCanCastSpell)
+            AND (Random(1,100) <= piMeleeSpellChance OR (poTarget <> $ AND Send(poTarget,@IsEnchanted,#byClass=&MarkOfMagic)))
+            AND NOT (poTarget <> $ AND Send(poTarget,@IsEnchanted,#byClass=&MarkOfAggression))
+            AND Send(self,@AttemptSpell,#type=CAST_TYPE_MELEE))
+      {
+         % AttemptSpell returns TRUE if everything works out. If not, we attack.
+         Send(self,@TryAttack,#what=poTarget,#stroke_obj=self);
+      }
       
       % Sanity check, in rare occurrences mob dies before this can execute 
       if poBrain <> $
@@ -1569,7 +1858,318 @@ messages:
 
       return;
    }
- 
+
+   QueueSpellType(type=CAST_TYPE_ALLY)
+   {
+      piQueuedSpellType = type;
+      return;
+   }
+   
+   AttemptSpell(type=CAST_TYPE_MELEE)
+   {
+      local lSpell, oSpell, iSpellPower, oAntiMagicAura, lRadiusState, iDistance, lTargets, iRange, oTarget;
+      
+      if poTarget = $
+         AND (type = CAST_TYPE_MELEE
+            OR type = CAST_TYPE_RANGED)
+      {
+         % Why are we casting offensively if we have no enemy?
+         return FALSE;
+      }
+      
+      if (type = CAST_TYPE_MELEE
+         OR type = CAST_TYPE_RANGED)
+            AND piQueuedSpellType <> 0
+      {
+         type = piQueuedSpellType;
+         piQueuedSpellType = 0;
+      }
+      
+      lSpell = Send(self,@PickSpell,#type=type);
+      
+      if type = CAST_TYPE_ALLY
+         AND poMaster <> $
+      {
+         oTarget = poMaster;
+      }
+      else
+      {
+         oTarget = poTarget;
+      }
+
+      if lSpell <> $
+         AND piMana >= Nth(lSpell,2)
+         AND oTarget <> $
+      {
+         oSpell = Send(SYS,@FindSpellByNum,#num=Nth(lSpell,1));
+         if oSpell <> $
+         {
+            if Length(lSpell) > 3
+            {
+               iSpellPower = Send(self,@GetSpellPower,#base_power=Nth(lSpell,4),#oSpell=oSpell);
+            }
+            else
+            {
+               iSpellPower = Send(self,@GetSpellPower,#base_power=Random(1,99),#oSpell=oSpell);
+            }
+
+            % Get distance to target.
+            iDistance = Send(self,@SquaredFineDistanceTo3D,#what=oTarget);
+
+            % Check LoS to target here so we don't waste mana casting
+            % when we can't get our target.
+
+            iRange = Send(oSpell,@GetRange);
+            if iRange = $
+            {
+               iRange = 9999;
+            }
+            if iDistance <= iRange * iRange
+               AND Send(poOwner,@LineOfSight,#obj1=self,#obj2=oTarget)
+               AND Send(poOwner,@ReqSomethingAttack,#what=self,#victim=oTarget,
+                        #use_weapon=self)
+            {
+               piMana = piMana - Nth(lSpell,2);
+               Send(self,@NewMana);
+         
+               % Find the valid targets.
+               lTargets = [oTarget];
+               lTargets = Send(oSpell,@GetTargets,#who=self,#lTargets=lTargets);
+
+               % See if we can cast the spell here.
+               if Send(oSpell,@CanPayMonsterCosts,#who=self,#lTargets=lTargets,
+                        #iSpellPower=iSpellPower)
+                  AND Send(poOwner,@ReqSpellCast,#who=self,#oSpell=oSpell,
+                           #lItems=lTargets)
+               {
+                  % Do any special cast animations; send spell for specific ones.
+                  Send(self,@MonsterCastAnimation,#iSpellNum=Send(oSpell,@GetSpellNum));
+
+                  % Cast the spell.
+                  Send(oSpell,@CastSpell,#who=self,#lTargets=lTargets,
+                        #iSpellPower=iSpellPower);
+               }
+
+               Send(self,@RecordTimeCasted);
+               return TRUE;
+            }
+         }
+      }
+
+      return FALSE;
+   }
+
+   GetSpellPower(base_power=0, oSpell=$, lTargets=$)
+   {
+      local iSpellPower, i, iTerrain, oRoom, oModifierSpell, iAbilityLoss,
+            iAbilityGain, iItemModifier, iBase, iPrimaryBonus, iSecondaryBonus,
+            iPowerBonus, iShrines, lRadiusState, iSchool;
+
+      if oSpell = $
+      {
+         return SPELLPOWER_MINIMUM;
+      }
+
+      oRoom = Send(self,@GetOwner);  
+
+      % Check the monster's in use items to see if they affect anything.
+      % Note that this also checks itematts.
+      iItemModifier = 0;
+      foreach i in Send(self,@GetPlayerUsing)
+      {
+         iItemModifier = iItemModifier + Send(i,@GetSpellModifier,
+                                              #oSpell=oSpell);
+      }
+   
+      % Each school has a bonus for different things.
+      iPrimaryBonus = 0;
+      iSecondaryBonus = 0;
+
+      iSchool = Send(oSpell,@GetSchool);
+      if iSchool = SS_SHALILLE
+      {
+         % Shal'ille gives bonuses depending on the room setting,
+         %  prefers natural settings.
+         iPrimaryBonus = Send(oRoom,@GetShalilleBonus);
+         % Secondary bonus based on Karma.
+         iSecondaryBonus = abs(Send(self,@GetKarma)/10);
+
+         % Forces of Light boosts Shal'ille
+         if Send(oRoom,@IsEnchanted,#what=SID_FORCES_OF_LIGHT)
+         {
+            % Add a function of the spellpower.
+            iAbilityGain = Send(oRoom,@GetEnchantmentState,
+                                 #what=SID_FORCES_OF_LIGHT);
+            iAbilityGain = iAbilityGain/10;
+            iSecondaryBonus = iSecondaryBonus + iAbilityGain;
+         }
+      }
+      
+      if iSchool = SS_QOR
+      {
+         % Qor strength determined by day or night.
+         iPrimaryBonus =  (2 + Send(SYS,@GetHour));
+         % Secondary bonus comes from Karma.
+         iSecondaryBonus = abs(Send(self,@GetKarma)/10);
+
+         % Darkness boosts Qor
+         if Send(oRoom,@IsEnchanted,#what=SID_DARKNESS)
+         {
+            % This reconstructs the darkness spellpower.
+            iAbilityGain = Send(oRoom,@GetEnchantmentState,
+                                 #what=SID_DARKNESS);
+            iAbilityGain = -(iAbilityGain - 25);
+            iAbilityGain = iAbilityGain/10;
+            iSecondaryBonus = iSecondaryBonus + iAbilityGain;
+         }
+      }
+      
+      if iSchool = SS_RIIJA
+      {
+         % Riija's bonuses are a bit random seeming.
+         % Riija strength determined by moon position - range is -16 to 30
+         foreach i in Send(SYS,@GetBackgroundObjects)
+         {
+            if IsClass(i,&Moon)  
+            {
+               iPrimaryBonus = Send(i,@GetBackgroundOverlayHeight)/12;
+            }
+         }
+
+         % Riija's secondary bonus depends on the number of items you're holding.
+         iSecondaryBonus = 10;
+      }
+      
+      if iSchool = SS_FAREN
+      {
+         % Faren prefers water and fire.  If he finds water and fire, he gets stronger.
+         iPrimaryBonus = Send(oRoom,@GetFarenBonus);
+         % Faren also rewards the vigorous warrior.
+         iSecondaryBonus = Send(self,@GetHealth)/Send(self,@GetMaxHealth);
+      }
+      
+      if iSchool = SS_KRAANAN
+      {
+         % Kraanan favors adversity and armies.  More people in a room, the better.
+         iPrimaryBonus = Length(Send(oRoom,@GetHolderActive));
+         % Kraanan also favors the healthy warrior.  Full hps = more bonus.
+         iSecondaryBonus = ((Send(self,@GetHealth)*100)/Send(self,@GetMaxHealth))/10;
+      }
+      
+      if iSchool = SS_JALA
+      {
+         iSecondaryBonus = Send(self,@GetMaxHealth)/12;
+      }
+
+      % Bind the bonuses to reasonable values.
+      if iSchool <> SS_JALA
+      {
+         iPrimaryBonus = bound(iPrimaryBonus,0,30);
+      }
+      iSecondaryBonus = bound(iSecondaryBonus,0,10);
+
+      iSpellPower = iPrimaryBonus + iSecondaryBonus + base_power;
+
+      lRadiusState = Send(self,@GetMostPowerfulRadiusEnchantmentState,#byClass=&AntiMagicAura);
+      if lRadiusState <> $
+      {
+         iSpellPower = Send(Nth(lRadiusState,1),@ModifySpellpower,#who=self,#oSpell=oSpell,#state=lRadiusState,#iSpellPower=iSpellPower);
+      }
+
+      lRadiusState = Send(self,@GetMostPowerfulRadiusEnchantmentState,#byClass=&ManaConvergence);
+      if lRadiusState <> $
+      {
+         iSpellPower = Send(Nth(lRadiusState,1),@ModifySpellpower,#who=self,#oSpell=oSpell,#state=lRadiusState,#iSpellPower=iSpellPower);
+      }
+
+      % Bound the lower end so that the stuff that follows is truly a bonus.
+      iSpellPower = bound(iSpellPower,0,$);
+
+      % This number is based on the number of shrines this god controls.
+      iShrines = Send(SYS,@GetShrineBonus,#school=iSchool);
+
+      % These bonuses (shrine, items) can boost spell power after all other modifiers.
+      iSpellPower = iSpellPower + iShrines + iItemModifier;
+
+      % Then, add bonus from the system object, set by admins
+      iSpellPower = iSpellPower + Send(SYS,@GetBonusSpellpower,#school=iSchool);
+
+      % Affected by the Dement spell?
+      oModifierSpell = Send(SYS,@FindSpellByNum,#num=SID_DEMENT);
+      if Send(self,@IsEnchanted,#what=oModifierSpell)
+      {
+         iAbilityLoss = first(Send(self,@GetEnchantedState,#what=oModifierSpell));
+         iAbilityLoss = Random(iAbilityLoss, iAbilityLoss*2);
+         iSpellpower = iSpellpower - iAbilityLoss;
+      }
+
+      % Bound the result.
+      iSpellPower = bound(iSpellPower,SPELLPOWER_MINIMUM,SPELLPOWER_MAXIMUM);
+
+      return iSpellPower;
+   }
+
+   PickSpell(type=CAST_TYPE_MELEE)
+   {
+      local iRandom, lSpell;
+
+      iRandom = Random(1,100);
+
+      % [ Spell num, mana cost, number req. from Random(1,100) to cast ]
+      if type = CAST_TYPE_MELEE
+      {
+         foreach lSpell in plMeleeSpellBook
+         {
+            if iRandom <= Nth(lSpell,3)
+            {
+               return lSpell;
+            }
+         }
+      }
+      if type = CAST_TYPE_RANGED
+      {
+         foreach lSpell in plRangedSpellBook
+         {
+            if iRandom <= Nth(lSpell,3)
+            {
+               return lSpell;
+            }
+         }
+      }
+      if type = CAST_TYPE_SELF
+      {
+         foreach lSpell in plSelfSpellBook
+         {
+            if iRandom <= Nth(lSpell,3)
+            {
+               return lSpell;
+            }
+         }
+      }
+      if type = CAST_TYPE_ALLY
+      {
+         foreach lSpell in plAllySpellBook
+         {
+            if iRandom <= Nth(lSpell,3)
+            {
+               return lSpell;
+            }
+         }
+      }
+      if type = CAST_TYPE_OTHER
+      {
+         foreach lSpell in plOtherSpellBook
+         {
+            if iRandom <= Nth(lSpell,3)
+            {
+               return lSpell;
+            }
+         }
+      }
+      
+      return $;
+   }
+
    ChaseTimer( timer = $ )
    "We're in Hot pursuit, so either we keep chasing, or we attack."
    "Note that even if we can't move, we can be 'chasing'...."
@@ -1582,8 +2182,14 @@ messages:
       % Sanity checks
       if poOwner = $
       {
-         Debug("Unreachable. Null owner.");
+         % Suppress survival mob messages. Happens sometimes.
+         if piBoostedLevel = 0
+         {
+            Debug("Unreachable. Null owner.");
+            Debug(self);
+         }
          Send(self,@EnterStateLimbo);
+         Post(self,@Delete);
 
          return;
       }
@@ -1596,10 +2202,19 @@ messages:
 
          return;
       }
+      
+      % Sometimes we don't know if target left, however.
+      if Send(oVictim,@GetOwner) <> Send(self,@GetOwner)
+      {
+         Send(self,@EnterStateWait);
+         return;
+      }
 
-      % Victim phased out or is now in spectator mode, break aggro.
+      % Victim phased out, is now in spectator mode, or hiding, break aggro.
       if IsClass(oVictim,&User)
-         AND Send(oVictim,@IsInCannotInteractMode)
+         AND (Send(oVictim,@IsInCannotInteractMode)
+             OR (Send(oVictim,@GetSkillAbility,#skill_num=SKID_HIDE) >= piLevel/2
+               AND Send(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@IsHiding,#who=oVictim)))
       {
          Send(self,@EnterStateMove);
 
@@ -1617,12 +2232,14 @@ messages:
       {
          Send(self,@HealHitPoint);
       }
-      
+
       bCast = FALSE;
       if Send(self,@MonsterCanCastSpell)
+         AND (Random(1,100) <= piRangedSpellChance OR (poTarget <> $ AND Send(poTarget,@IsEnchanted,#byClass=&MarkOfMagic)))
+         AND NOT (poTarget <> $ AND Send(poTarget,@IsEnchanted,#byClass=&MarkOfAggression))
       {
-         bCast = Send(self,@MonsterCastSpell);
-      }         
+         bCast = Send(self,@AttemptSpell,#type=CAST_TYPE_RANGED);
+      }
 
       % If we can move, we physically try to get closer
       if not bCast
@@ -1657,6 +2274,9 @@ messages:
 
       % Sanity checks
       if poOwner = $
+         OR NOT IsClass(poOwner,&Room)
+         OR (IsClass(poOwner,&Room)
+             AND NOT Send(poOwner,@IsUserInRoom))
       {
          Send(self,@EnterStateLimbo);
 
@@ -1937,7 +2557,7 @@ messages:
                Send(poOwner,@SomethingMoved,#what=self,
                      #new_row=iNew_row,#new_col=iNew_col,
                      #fine_row=iNew_finerow,#fine_col=iNew_finecol,
-                     #speed=(0x80|piSpeed),#non_monsters_only=TRUE);
+                     #speed=(0x80|piMoveSpeed),#non_monsters_only=TRUE);
             }
          }
       }
@@ -2077,6 +2697,15 @@ messages:
       % Seduced and Animated monsters here. If the master can't attack,
       % we can't either. If they can, we treat it as if they personally
       % attacked the target.
+      
+      if IsClass(what,&Monster)
+         AND Send(what,@GetMaster) <> $
+         AND IsClass(Send(what,@GetMaster),&Player)
+         AND Send(Send(what,@GetMaster),@IsInCannotInteractMode)
+      {
+         % Monsters whose masters are phased out cannot be attacked
+         return FALSE;
+      }
 
       if poMaster <> $
          AND IsClass(poMaster,&Player)
@@ -2129,15 +2758,29 @@ messages:
    GetOffense(what = $, stroke_obj=$)
    "This returns the battler's ability to-hit.  Ranges from 1 to 2000."
    {
-      local iAttack;
+      local iAttack, i, iChilled;
 
       if piOffense = $
       {
-         iAttack = 4*viLevel + 8*piAim;
+         iAttack = 4*piLevel + 8*piAim;
+         
+         if piLevel >= 150
+         {
+            iAttack = iAttack + viBaseSize/2;
+         }
       }
       else
       {
          iAttack = piOffense;
+      }
+
+      % Check for Chilled status effect, which lowers offense.
+      iChilled = Send(self,@GetStatusEffect,#type=STATUS_CHILLED);
+      if iChilled > 0
+      {
+         iAttack = iAttack - (iChilled * Send(SETTINGS_OBJECT,
+                                                @GetElementalMultiple,
+                                                #type=STATUS_CHILLED));
       }
 
       if piChampionStatus = CHAMPION_DEADLY
@@ -2156,22 +2799,45 @@ messages:
          iAttack = iAttack * 3 / 4;
       }
 
-      return Bound(iAttack,1,2000);
+      foreach i in Send(self,@GetEnchantmentsByClass,#enchClass=&Hex)
+      {
+         iAttack = Send(Nth(i,2),@ModifyHitRoll,
+                                  #who=self,#what=what,#hit_roll=iAttack,
+                                  #state=Nth(i,3));
+      }
+
+      return Bound(iAttack,1,$);
    }
 
    GetDefense(what = $, stroke_obj=$)
    "This returns the battler's ability to avoid being hit.  Ranges from "
    "1 to 2000."
    {
-      local iDefense, iShocked;
+      local iDefense, iShocked, i;
 
       if piDefense = $
       {
-         iDefense = 4*viLevel + 8*piAgility;
+         iDefense = 4*piLevel + 8*piAgility;
       }
       else
       {
          iDefense = piDefense;
+      }
+
+      % Check for Shocked status effect, which lowers defense.
+      iShocked = Send(self,@GetStatusEffect,#type=STATUS_SHOCKED);
+      if iShocked > 0
+      {
+         iDefense = iDefense - (iShocked * Send(SETTINGS_OBJECT,
+                                                @GetElementalMultiple,
+                                                #type=STATUS_SHOCKED));
+      }
+
+      foreach i in Send(self,@GetEnchantmentsByClass,#enchClass=&Hex)
+      {
+         iDefense = Send(Nth(i,2),@ModifyDefensePower,
+                                 #who=self,#what=what,#defense_power=iDefense,
+                                 #state=Nth(i,3));
       }
 
       if piChampionStatus = CHAMPION_TOUGH
@@ -2185,16 +2851,7 @@ messages:
          iDefense = (iDefense * 3) / 2;
       }
 
-      % Check for Shocked status effect, which lowers defense.
-      iShocked = Send(self,@GetStatusEffect,#type=STATUS_SHOCKED);
-      if iShocked > 0
-      {
-         iDefense = iDefense - (iShocked * Send(SETTINGS_OBJECT,
-                                                @GetElementalMultiple,
-                                                #type=STATUS_SHOCKED));
-      }
-
-      return Bound(iDefense,1,2000);
+      return Bound(iDefense,1,$);
    }
 
    % The next message deals with the three defense skills.  These messages
@@ -2214,13 +2871,13 @@ messages:
    % This returns the damage done to target "what"
    GetDamage(what = $, stroke_obj=$)
    {
-      local iDamage, iMultiplier;
+      local iDamage, iMultiplier, i;
 
       iMultiplier = 1;
 
       if piMinDamage = $ and piMaxDamage = $
       {
-         iDamage = Send(Self,@Fuzzy,#num=viLevel*100/Random(10,15));
+         iDamage = Send(Self,@Fuzzy,#num=piLevel*100/Random(10,15));
       }
       else
       {
@@ -2251,12 +2908,33 @@ messages:
          iMultiplier = 3;
       }
       
+      if poMaster = $
+         AND poOwner <> $
+         AND IsClass(poOwner,&ChaosStratumRoom)
+      {
+         iDamage = (iDamage * (100+Send(poOwner,@GetAddedMonsterDamage)))/100;
+      }
+      
+      % Check for Charmed status.
+      iDamage = iDamage - ((iDamage * Send(self,@GetStatusEffect,#type=STATUS_CHARMED))/Bound(Send(self,@GetHealth),1,$));
+
+      foreach i in Send(self,@GetEnchantmentsByClass,#enchClass=&Hex)
+      {
+         iDamage = Send(Nth(i,2),@ModifyDamage,
+                                 #who=self,#what=what,#damage=iDamage,
+                                 #state=Nth(i,3));
+      }
+
       return Bound(iDamage,0,$) * iMultiplier;
    }
 
    % This is the type of damage done.
    GetDamageType(what = $)
    {
+      if pbIllusion
+      {
+         return 0;
+      }
       return viAttack_type;
    }
 
@@ -2265,12 +2943,25 @@ messages:
    {
       local i;
       
+      if pbIllusion
+      {
+         return ATCK_SPELL_ILLUSION;
+      }
+      
       foreach i in plChampionAbilities
       {
          if First(i) = CHAMPION_ABIL_ELEMENTAL_DAMAGE_TYPE
          {
             return Nth(i,2);
          }
+      }
+      
+      if poMaster = $
+         AND poOwner <> $
+         AND IsClass(poOwner,&ChaosStratumRoom)
+         AND Send(poOwner,@GetMonsterElements) <> $
+      {
+         return Nth(Send(poOwner,@GetMonsterElements),Random(1,Length(Send(poOwner,@GetMonsterElements))));
       }
 
       return viAttack_spell;
@@ -2291,11 +2982,28 @@ messages:
    % calculations. Most notably, damage from attackspells and melee is now 
    % handled with high precision. Eventually, all damage calculations should 
    % be handled in high precision mode.
-   AssessDamage(what=$,damage=$,atype=0,aspell=0,bonus=0,scalefactor=1000,
-      absolute=FALSE,precision=FALSE)
+   AssessDamage(what=$,damage=0,atype=0,aspell=0,bonus=0,scalefactor=1000,
+      absolute=FALSE,precision=FALSE,bDoingBackstab=FALSE,bSecondary=FALSE)
    {
-      local iDamage, iResist, iPercentClass, i, each_obj, bAttackerEmpowered,
-            iCorrode, iCorrodeMultiple, iCorrodeReduction;
+      local iDamage, iResist, iPercentClass, i, each_obj,
+            iCorrode, iCorrodeMultiple, iCorrodeReduction, iEmpowermentPercentage;
+      
+      if what <> $
+         AND IsClass(what,&Player)
+         AND Send(what,@HasSkill,#num=SKID_DESECRATION)
+      {
+         aspell = Send(Send(SYS,@FindSkillByNum,#num=SKID_DESECRATION),@ConvertDamageTypes,#who=what,#aspell=aspell);
+      }
+
+      % Check for stat steals
+      foreach i in Send(self,@GetEnchantmentsByClass,#enchClass=&DrainHex)
+      {
+         if what <> self
+            AND IsClass(what,&Battler)
+         {
+            Send(Nth(i,2),@StealStat,#who=what,#what=self,#state=Nth(i,3));
+         }
+      }
 
       if NOT precision
       {
@@ -2309,10 +3017,67 @@ messages:
          return 0;
       }
 
+      % Check for Damage to Mana from Spirit Shackles Hex.
+      if what <> $
+         AND (IsClass(what,&Player)
+             OR IsClass(what,&Monster))
+      {
+         foreach i in Send(what,@GetEnchantmentsByClass,#enchClass=&Hex)
+         {
+            damage = Send(Nth(i,2),@AttackerDealsDamageToMana,#who=self,#what=what,#state=Nth(i,3),#damage=damage);
+         }
+      }
+      if damage = 0
+      {
+         % Spirit Shackles took all the damage.
+         return 0;
+      }
+
       % Attacks against a minion master will cause minions to defend the master
       Send(self,@CommandMinionAttack,#oMaster=self,#oTarget=what);
+      
+      if poOwner <> $
+      {
+         foreach i in Send(poOwner,@GetObjectAttributes)
+         {
+            if IsClass(i,&RoomThreat)
+            {
+               damage = Send(i,@ThreatModifyDamage,#damage=damage,#atype=atype,#aspell=aspell);
+            }
+         }
+      }
+
+      if (IsClass(what,&Battler)
+         OR IsClass(what,&AlchemyBomb))
+         AND Send(SETTINGS_OBJECT,@GetEmpowermentsEnabled)
+         AND NOT bSecondary
+      {
+         % Empowerments e.g. 6% increased acid damage
+         iEmpowermentPercentage = 0;
+         foreach i in Send(what,@GetCurrentEmpowerments)
+         {
+            if Nth(i,1) > 0
+            {
+               % Weapon empowerment.
+               if atype & Nth(i,1)
+               {
+                  iEmpowermentPercentage = iEmpowermentPercentage + Nth(i,2);
+               }
+            }
+            else
+            {
+               % Spell empowerment.
+               if aspell & -Nth(i,1)
+               {
+                  iEmpowermentPercentage = iEmpowermentPercentage + Nth(i,2);
+               }
+            }
+         }
+         damage = (damage * (100+iEmpowermentPercentage))/100;
+      }
 
       if IsClass(what,&Player)
+         AND NOT bSecondary
       {
          if (aspell & ATCK_SPELL_HOLY
             OR aspell & ATCK_SPELL_UNHOLY)
@@ -2344,31 +3109,27 @@ messages:
                                   #damage=bonus,
                                   #aspell=aspell);
          }
-      }
-
-      % Increase initial damage by 35 percent if attacker damage rod is active
-      bAttackerEmpowered = FALSE;
-      if what <> $
-         AND IsClass(what,&Player)
-      {
-         foreach i in Send(what,@GetHolderPassive)
+         if (aspell & ATCK_SPELL_ILLUSION)
+            AND Send(what,@GetSkillAbility,#Skill_num=SKID_HONESTY) > 0
          {
-            if IsClass(i,&DamageRod)
-               AND Send(i,@IsActive)
-            {
-               bAttackerEmpowered = TRUE;
-            }
+            % Players with Honesty do significantly less damage with illusions
+            bonus = bonus - (Send(what,@GetSkillAbility,#Skill_num=SKID_HONESTY)*100)/9;
+            Send(Send(SYS,@FindSkillByNum,#num=SKID_HONESTY),@DoSkill,#who=what);
          }
       }
-
-      if bAttackerEmpowered
+      
+      if NOT bSecondary
       {
-         damage = damage * 135 / 100;
+         foreach i in Send(self,@GetEnchantmentsByClass,#enchClass=&Bleed)
+         {
+            bonus = Send(Nth(i,2),@ModifyDamageTaken,#who=self,#bonus=bonus,#power=Nth(i,3));
+         }
       }
 
       % check for any applicable resistances.
 
       if NOT absolute
+         AND NOT bDoingBackstab
       {
          iDamage = Send(self,@ArmorCheck,#what=what,#bonus=bonus,#atype=atype,
             #aspell=aspell,#damage=damage);
@@ -2383,7 +3144,7 @@ messages:
             iDamage = bound(iDamage + iCorrodeReduction*100,1,damage);
          }
 
-         iResist = Send(self,@ResistanceCheck,#atype=atype,#aspell=aspell);
+         iResist = Send(self,@ResistanceCheck,#atype=atype,#aspell=aspell,#what=what);
          iDamage = Send(self,@GetDamageFromResistance,#what=iDamage,#value=iResist);
          iDamage = iDamage + bonus;
          iDamage = iDamage * scalefactor / 1000;
@@ -2392,7 +3153,7 @@ messages:
       {
          iDamage = damage;
       }
-      
+
       foreach i in plChampionAbilities
       {
          if First(i) = CHAMPION_ABIL_MAGIC_RESISTANCE
@@ -2409,6 +3170,7 @@ messages:
 
       if IsClass(what,&Player)
          AND Send(what,@GetStance) <> $
+         AND NOT bSecondary
       {
          iDamage = Send(Send(what,@GetStance),@LastPriorityModifyDamage,
                          #who=what,#what=self,#damage=iDamage);
@@ -2419,12 +3181,31 @@ messages:
 
       % Make sure we don't deal negative damage.
       iDamage = Bound(iDamage,0,$);
+
+      % Petrified monsters take no damage
+      if Send(self,@IsEnchanted,#byClass=&Petrified)
+      {
+         iDamage = 0;
+      }
       
       % I hate my target more if he hits me.
       if what = poTarget
       {
          % Should scale based on damage?
          piHatred = piHatred + 1;
+      }
+      else
+      {
+         % Our target is not the one that hit us
+         if what <> $
+            AND poTarget <> $
+            AND IsClass(what,&Player)
+            AND IsClass(poTarget,&Player)
+            AND Send(what,@HasSkill,#num=SKID_BRAVERY)
+            AND NOT Send(poTarget,@HasSkill,#num=SKID_BRAVERY)
+         {
+            Post(Send(SYS,@FindSkillByNum,#num=SKID_BRAVERY),@DoSkill,#who=what,#what=self);
+         }
       }
 
       piHit_points = piHit_points - iDamage;
@@ -2474,7 +3255,7 @@ messages:
          if aspell <> 0
          {
             Send(self,@ApplyElementalStatusEffects,#damage=damage/100,
-                      #aspell=aspell,#what=what);
+                      #aspell=aspell,#what=what,#bSecondary=bSecondary);
          }
       }
       else
@@ -2483,9 +3264,17 @@ messages:
          if aspell <> 0
          {
             Send(self,@ApplyElementalStatusEffects,#damage=(damage/100/2),
-                      #aspell=aspell,#what=what);
+                      #aspell=aspell,#what=what,#bSecondary=bSecondary);
          }
       }
+
+      if NOT bSecondary
+      {
+         Send(self,@ApplyElementalImbalance,#aspell=aspell,#power=Send(what,@GetElementalImbalancePower,#aspell=aspell));
+      }
+
+      Post(self,@ReportHealthToAllies,#what=what,#damage=damage,#atype=atype,#aspell=aspell,#bonus=bonus,#scalefactor=scalefactor,
+         #absolute=absolute,#precision=precision,#bDoingBackstab=bDoingBackstab,#bSecondary=bSecondary);
 
       return iDamage;
    }
@@ -2528,7 +3317,7 @@ messages:
       return damage - iDamageReduce;
    }
 
-   AssessHit(what = $, stroke_obj = $, damage = $)
+   AssessHit(what = $, stroke_obj = $, damage = $, use_weapon=$)
    "This does the fallout of a hit, gives appropriate message, etc.  "
    "Called on self when hit opponent."
    {
@@ -2538,7 +3327,9 @@ messages:
          propagate;
       }
 
-      if vrSound_miss <> $
+      % If use_weapon isn't $, usually because we're casting a spell or doing some other form of damage
+      if use_weapon = $
+         AND vrSound_miss <> $
       {
          Send(poOwner,@SomethingWaveRoom,#what=what,#wave_rsc=vrSound_miss,
                #flags=SOUND_RANDOM_PITCH);
@@ -2575,6 +3366,7 @@ messages:
    DidDamage(what = $, amount = 0)
    {
       Send(self,@HitSideEffect,#what=what);
+      Send(self,@DoCrit,#what=what);
 
       return;
    }
@@ -2838,7 +3630,7 @@ messages:
 
       % aiming towards a target or away from it
       if (NOT (poTarget = $)) AND (face_target OR face_away)
-      { 
+      {
          % build face towards (in fine-units)
          drow = (Send(poTarget,@GetRow) * FINENESS) + Send(poTarget,@GetFineRow);
          dcol = (Send(poTarget,@GetCol) * FINENESS) + Send(poTarget,@GetFineCol);
@@ -2847,7 +3639,7 @@ messages:
 
          % rotate 180??, if we face away
          if face_away
-         { 
+         {
             drow = -drow;
             dcol = -dcol;
          }
@@ -2911,7 +3703,7 @@ messages:
                  #new_finerow=iFineRow,#new_finecol=iFineCol,
                  #face_target=face_target,#face_away=face_away);
 		
-            Send(poOwner,@SomethingMoved,#what=self,#speed=viSpeed,
+            Send(poOwner,@SomethingMoved,#what=self,#speed=piMoveSpeed,
                  #new_row=iRow,#new_col=iCol,
                  #fine_row=iFineRow,#fine_col=iFineCol,
                  #non_monsters_only=TRUE);
@@ -3364,6 +4156,12 @@ messages:
             propagate;
          }
       }
+      
+      if IsClass(what,&Player)
+      {
+         % Let the user's passive quests know he/she said something to this npc.
+         Send(what,@PassiveQuestUserSaidToMe,#what=self,#type=type,#string=string);
+      }
 
       oLibrary = Send(SYS,@GetLibrary);
 
@@ -3375,6 +4173,7 @@ messages:
          AND (Send(what,@CheckPlayerFlag,#flag=PFLAG_ANONYMOUS)
               OR Send(what,@CheckPlayerFlag,#flag=PFLAG_MORPHED))
          AND type <> SAY_DM
+         AND vbIgnoresAnonAndMorph
       {
          Send(what,@MsgSendUser,#message_rsc=monster_anonymous_response,
               #parm1=Send(self,@GetName));
@@ -3567,7 +4366,7 @@ messages:
       AddPacket(1,BP_SAID, 4,self, 4,Send(self,@GetName), 1,SAY_RESOURCE,
                 4,monster_said_resource_str, 4,Send(self,@GetCapDef),
                 4,Send(self,@GetName));
-                
+
       if lAvailable = $
       {
          AddPacket(4, vrTeach_nothing);
@@ -3810,7 +4609,7 @@ messages:
                      Send(what,@MsgSendUser,#message_rsc=champion_purge_msg);
                   }
                   % Chances equal to a purge weapon
-                  Send(oPurge,@DoPurge,#who=what,#iSpellPower=Random(25,75));
+                  Send(oPurge,@DoPurge,#who=what,#iSpellPower=Random(25,75),#caster=self);
                }
             }
          }
@@ -3825,6 +4624,26 @@ messages:
          }
       }
 
+      return;
+   }
+
+   DoCrit(what=$)
+   {
+      if Random(1,10000) <= viCriticalHitRate
+      {
+         if vbCanCauseStun
+         {
+            Send(what,@ApplyStun,#what=self,#stun_power=Send(self,@GetSize));
+         }
+         if vbCanCauseKnockback
+         {
+            Send(what,@ApplyKnockback,#what=self,#knockback_power=Send(self,@GetSize));
+         }
+         if vbCanCauseBleed
+         {
+            Send(what,@ApplyBleed,#what=self,#bleed_power=Send(self,@GetSize));
+         }
+      }
       return;
    }
 
@@ -3932,6 +4751,8 @@ messages:
       }
 
       Send(self,@ClearAllStatusEffects);
+
+      Send(self,@CancelCastingAnimation);
 
       if (viDefault_behavior & AI_NPC)
       {
@@ -4292,6 +5113,8 @@ messages:
          return FALSE;            
       }
 
+      Send(who,@MadeItemDeposit,#with=self,#lItems=lItems);
+      
       % passed all checks.  put the stuff in.      
       Send(oVault,@DepositItems,#lItems=lItems,#who=who);
 
@@ -4642,6 +5465,8 @@ messages:
       Post(who,@SomeoneSaid,#what=self,#type=SAY_RESOURCE,
            #string=Lm_bnkr_did_deposit,
            #parm1=Send(oBank,@GetAccount,#what=who));
+      
+      Post(who,@MadeMoneyDeposit,#with=self,#amount=amount);
 
       Send(self,@AffectMood,#why=MOODMOD_BANK_DEPOSIT);
 
@@ -4921,6 +5746,7 @@ messages:
 
                % Add item to buyer's inventory
                Send(what,@NewHold,#what=oBuy);
+               Send(what,@BoughtAnItem,#bought_from=self,#what=oBuy);
                Send(oMoney,@SubtractNumber,#number=iPrice);
                Send(self,@RemoveFromConditionalList,
                      #obj=Send(self,@GetObjectOnConditionalList,
@@ -4952,6 +5778,7 @@ messages:
                               #number=iPriceOne * Send(oSplit,@GetNumber));
                         Send(i,@SubtractNumber,#Number=Send(oSplit,@GetNumber));
                         Send(what,@NewHold,#what=oSplit);
+                        Send(what,@BoughtAnItem,#bought_from=self,#what=oSplit);
                         Post(poOwner,@SomeoneSaid,#what=self,
                               #string=Lm_mrcnt_can_give_some,
                               #type=SAY_RESOURCE,#parm1=Send(oBuy,@GetDef),
@@ -4992,12 +5819,46 @@ messages:
             if IsClass(i,&Skill)
             {
                Send(what,@AddSkill,#num=Send(i,@GetSkillNum));
+               Send(oMoney,@SubtractNumber,#number=iPrice);
             }
-            else
+            else if IsClass(i,&Spell)
             {
                Send(what,@AddSpell,#num=Send(i,@GetSpellNum));
+               Send(self,@TaughtPlayerSpell,#who=what,#num=Send(i,@GetSpellNum));
+               Send(oMoney,@SubtractNumber,#number=iPrice);
             }
-            Send(oMoney,@SubtractNumber,#number=iPrice);
+            else if IsClass(i,&Monster)
+            {
+               if Send(what,@CanControlNewMinion,#oMonster=i,#bCharming=FALSE)
+               {
+                  SetNth(plFor_Sale,1,DelListElem(First(plFor_Sale),i));
+                  Send(i,@SetMaster,#oMaster=what);
+                  Send(poOwner,@NewHold,#what=i,
+                                        #new_row=Send(what,@GetRow),
+                                        #new_col=Send(what,@GetCol),
+                                        #fine_row=Send(what,@GetFineRow),
+                                        #fine_col=Send(what,@GetFineCol));
+                                     
+                     % Add this creature to their minion list
+                     Send(what,@NewControlledMinion,#minion=i);
+
+                     % Set initial minion behavior
+                     Send(i,@ResetBehaviorFlags);
+                     Send(i,@SetBehaviorFlag,#flag=AI_MOVE_FOLLOW_MASTER,#value=TRUE);
+                     Send(i,@SetBehaviorFlag,#flag=AI_FIGHT_AGGRESSIVE,#value=FALSE);
+                     Send(i,@SetBehaviorFlag,#flag=AI_FIGHT_NEWBIESAFE);
+                     Send(i,@SetBehaviorFlag,#flag=AI_FIGHT_MONSTERS);
+                     Send(Send(SYS,@FindSpellByNum,#num=SID_CREATURE_BINDING),@DoSpell,#what=what,
+                                                                                       #oTarget=i,
+                                                                                       #iDuration=$,#report=FALSE,#iSpellPower=15);
+                     Send(oMoney,@SubtractNumber,#number=iPrice);
+                     Post(poOwner,@SomeoneSaid,#what=self,#string=monster_jailer_sold_to_you,#type=SAY_RESOURCE);
+               }
+               else
+               {
+                  Post(poOwner,@SomeoneSaid,#what=self,#string=monster_jailer_you_cannot_control_it,#type=SAY_RESOURCE);
+               }
+            }
          }
       }
 
@@ -5026,7 +5887,7 @@ messages:
 
       if amount = $
       {
-         return;
+         return 0;
       }
 
       if NOT precision
@@ -5044,6 +5905,46 @@ messages:
 
       piHit_points = Bound(piHit_points+amount,1,piMax_hit_points*100);
 
+      return 0;
+   }
+
+   GainHealthNormalAndReportGained(amount = $, precision = FALSE)
+   {
+      local iMantled, iMantledDivisor, iInitial;
+
+      if amount = $
+      {
+         return 0;
+      }
+
+      if NOT precision
+      {
+         amount = amount * 100;
+      }
+
+      iMantled = Send(self,@GetStatusEffect,#type=STATUS_MANTLED);
+      if iMantled > 0
+      {
+         iMantledDivisor = Send(SETTINGS_OBJECT,
+                            @GetElementalMultiple,#type=STATUS_MANTLED);
+         amount = amount - (iMantled/iMantledDivisor)*100;
+      }
+
+      iInitial = piHit_points;
+      piHit_points = Bound(piHit_points+amount,1,piMax_hit_points*100);
+
+      return piHit_points - iInitial;
+   }
+
+   LoseHealth(amount = $, decay = FALSE, precision = FALSE)
+   {
+      if NOT precision
+      {
+         amount = amount*100;
+      }
+
+      piHit_points = Bound(piHit_points - amount,1,$);
+
       return;
    }
 
@@ -5060,7 +5961,7 @@ messages:
    CalculateManaTime()
    "Calculate # of milliseconds until monster will gain a mana point."
    {
-      local iTime, oSpell;
+      local iTime, oSpell, i;
 
       % Old system had monsters regenerating 1 mana point per second.
       % Do the same here for now.
@@ -5070,7 +5971,16 @@ messages:
       }
       else
       {
-         iTime =  1000;
+         iTime = 1000;
+      }
+
+      if iTime = 1000
+      {
+         foreach i in Send(self,@GetEnchantmentsByClass,#enchClass=&Hex)
+         {
+            iTime = Send(Nth(i,2),@ModifyManaRegenTime,
+                                 #state=Nth(i,3),#regen=iTime);
+         }
       }
 
       return iTime;
@@ -5084,97 +5994,13 @@ messages:
          return FALSE;
       }
 
+      if ptSpellCastTimer <> $
+      {
+         % Hasn't been long enough. In MS.
+         return FALSE;
+      }
+
       return TRUE;
-   }
-
-   MonsterCastSpell()
-   "Handle monster spellcasting here."
-   {
-      local i, iDistance, oSpell, iRandom, lTargets, iSpellNum, iManaCost;
-
-      % If monster knows no spells, or has no target, return.
-      if plSpellBook = $
-         OR poTarget = $
-      {
-         return FALSE;
-      }
-
-      % Get the adjusted chance to cast, based on whether we're demented
-      % or if AmA is up. Multiply this by 6 because we've decreased the
-      % time between chase behavior checks by a factor of 4-7x.
-      iRandom = Send(self,@AdjustedChanceBase,#base=(piSpellChance*6));
-
-      % Do the random check now, so we don't go any further
-      % if we don't have to.
-      if Random(1,iRandom) <> 1
-      {
-         return FALSE;
-      }
-
-      % Get distance to target.
-      iDistance = Send(self,@SquaredFineDistanceTo3D,#what=poTarget);
-
-      % Check LoS to target here so we don't waste mana casting
-      % when we can't get our target. Instead, we use that time
-      % walking to the target.
-
-      if iDistance > (piAttackRange * piAttackRange)
-         AND iDistance <= piSpellRange * piSpellRange
-         AND Send(poOwner,@LineOfSight,#obj1=self,#obj2=poTarget)
-         AND Send(poOwner,@ReqSomethingAttack,#what=self,#victim=poTarget,
-                  #use_weapon=self)
-      {
-         % We go through the monster's spellbook and pick the spell
-         % that corresponds to the random number picked. This is used
-         % to give a % chance for each spell to be picked.
-         iRandom = Random(1,100);
-         foreach i in plSpellBook
-         {
-            if iRandom <= Nth(i,3)
-            {
-               iSpellNum = Nth(i,1);
-               iManaCost = Nth(i,2);
-
-               break;
-            }
-         }
-
-         % If no spell returned or cannot pay mana costs, spell fails.
-         if iSpellNum = $
-            OR piMana < iManaCost
-         {
-            return FALSE;
-         }
-
-         % Take mana from monster.
-         piMana = piMana - iManaCost;
-         Send(self,@NewMana);
-
-         % Get the spell object.
-         oSpell = Send(SYS,@FindSpellByNum,#num=iSpellNum);
-         
-         % Find the valid targets, defaulting to poTarget.
-         lTargets = [poTarget];
-         lTargets = Send(oSpell,@GetTargets,#who=self,#lTargets=lTargets);
-
-         % See if we can cast the spell here.
-         if Send(oSpell,@CanPayMonsterCosts,#who=self,#lTargets=lTargets,
-                  #iSpellPower=piSpellPower)
-            AND Send(poOwner,@ReqSpellCast,#who=self,#oSpell=oSpell,
-                     #lItems=lTargets)
-         {
-            % Do any special cast animations; send spell for specific ones.
-            Send(self,@MonsterCastAnimation,#iSpellNum=iSpellNum);
-
-            % Cast the spell.
-            Send(oSpell,@CastSpell,#who=self,#lTargets=lTargets,
-                  #iSpellPower=piSpellPower);
-         }
-
-         return TRUE;
-      }
-
-      return FALSE;
    }
 
    MonsterCastAnimation(iSpellNum=$)
@@ -5219,6 +6045,7 @@ messages:
          each_obj = First(i);
          if IsClass(each_obj,&User)
             AND Send(each_obj,@GetKillTarget) = self
+            AND NOT IsClass(self,&Marauder)
          {
             Post(each_obj,@MsgSendUser,#what=self,#message_rsc=rDamage_report,
                   #parm1=Send(self,@GetCapDef),#parm2=Send(self,@GetName));
@@ -5235,16 +6062,32 @@ messages:
 
    HealHitPoint()
    {
-      local iPercentClass, i, each_obj;
+      local iPercentClass, i, each_obj, iModifiedGain;
 
       if piHit_points >= piMax_Hit_points * 100
       {
          return;
       }
 
+      % Start with full 100% of hit point
+      iModifiedGain = 100;
+
+      foreach i in Send(self,@GetEnchantmentsByClass,#enchClass=&Hex)
+      {
+         iModifiedGain = Send(Nth(i,2),@ModifyHealthRegenAmount,
+                                 #state=Nth(i,3),#regen=iModifiedGain);
+      }
+
+      % Don't drain below zero
+      if iModifiedGain < 0
+         AND piHit_points <= 100
+      {
+         iModifiedGain = 0;
+      }
+
       % We set a mark to see if the healing changes our threshold
       iPercentClass = piHit_points / (piMax_Hit_points * 20);
-      piHit_points = piHit_points + 100;
+      piHit_points = piHit_points + iModifiedGain;
       if iPercentClass <> (piHit_points / (piMax_Hit_points * 20))
       {
          Send(self,@HitPointThresholdHeal);
@@ -5305,7 +6148,8 @@ messages:
    ShowDesc(iHitPoint_Percent = $)
    "Adds max HP that can be gained from monster, followed by its condition."
    {
-      local iHit_Percent, rMonster_condition, rChampionStatus;
+      local iHit_Percent, rMonster_condition, rChampionStatus, iBindingLevel, rBindingLevel,
+            rMobDef, rMobName, rMasterIndef, rMasterName;
 
       if iHitPoint_Percent = $
       {
@@ -5314,6 +6158,70 @@ messages:
       else
       {
          iHit_Percent = iHitPoint_Percent;
+      }
+      
+      iBindingLevel = piLoyalty/LOYALTY_PER_BINDING_LEVEL;
+      if poMaster = $
+         OR piLoyalty = 0
+      {
+         rMobDef = minion_bind_level_blank;
+         rMobName = minion_bind_level_blank;
+         rMasterIndef = minion_bind_level_blank;
+         rMasterName = minion_bind_level_blank;
+      }
+      else
+      {
+         rMobDef = Send(self,@GetCapDef);
+         rMobName = Send(self,@GetName);
+         rMasterIndef = Send(poMaster,@GetIndef);
+         rMasterName = Send(poMaster,@GetName);
+      }
+
+      switch(iBindingLevel)
+      {
+         case 0:
+            if piLoyalty = 0
+            {
+               rBindingLevel = minion_bind_level_nothing;
+            }
+            else
+            {
+               rBindingLevel = minion_bind_level_0;
+            }
+            break;
+         case 1:
+            rBindingLevel = minion_bind_level_1;
+            break;
+         case 2:
+            rBindingLevel = minion_bind_level_2;
+            break;
+         case 3:
+            rBindingLevel = minion_bind_level_3;
+            break;
+         case 4:
+            rBindingLevel = minion_bind_level_4;
+            break;
+         case 5:
+            rBindingLevel = minion_bind_level_5;
+            break;
+         case 6:
+            rBindingLevel = minion_bind_level_6;
+            break;
+         case 7:
+            rBindingLevel = minion_bind_level_7;
+            break;
+         case 8:
+            rBindingLevel = minion_bind_level_8;
+            break;
+         case 9:
+            rBindingLevel = minion_bind_level_9;
+            break;
+         case 10:
+            rBindingLevel = minion_bind_level_10;
+            break;
+         case 11:
+            rBindingLevel = minion_bind_level_10;
+            break;
       }
 
       if piChampionStatus <> 0
@@ -5348,19 +6256,33 @@ messages:
       {
          if piBehavior & AI_NPC
          {
-            AddPacket(4,vrCondition_healthy, 4,vrDesc, 4,monster_nothing, 4,rChampionStatus);
+            AddPacket(4,vrCondition_healthy,
+                      4,rBindingLevel, 4,rMobDef, 4,rMobName, 4,rMasterIndef, 4,rMasterName,
+                      4,vrDesc, 4,monster_nothing, 4,rChampionStatus);
          }
          else
          {
+            if IsClass(self,&Marauder)
+            {
+               AddPacket(4,vrCondition_healthy,
+                         4,rBindingLevel, 4,rMobDef, 4,rMobName, 4,rMasterIndef, 4,rMasterName,
+                         4,vrDesc, 4,monster_blank_level,
+                         4,rChampionStatus);
+            }
+
             if piChampionStatus = 0
             {
-               AddPacket(4,vrCondition_healthy, 4,vrDesc, 4,monster_desc_level,
-                         4,Bound(viLevel,20,150), 4,rChampionStatus);
+               AddPacket(4,vrCondition_healthy,
+                         4,rBindingLevel, 4,rMobDef, 4,rMobName, 4,rMasterIndef, 4,rMasterName,
+                         4,vrDesc, 4,monster_desc_level,
+                         4,piLevel, 4,rChampionStatus);
             }
             else
             {
-               AddPacket(4,vrCondition_healthy, 4,vrDesc, 4,monster_desc_level,
-                         4,Bound(viLevel,20,150), 4,rChampionStatus, 4, Send(self,@GetName));
+               AddPacket(4,vrCondition_healthy,
+                         4,rBindingLevel, 4,rMobDef, 4,rMobName, 4,rMasterIndef, 4,rMasterName,
+                         4,vrDesc, 4,monster_desc_level,
+                         4,piLevel, 4,rChampionStatus, 4, Send(self,@GetName));
             }
          }
 
@@ -5385,21 +6307,35 @@ messages:
 
       if piBehavior & AI_NPC
       {
-         AddPacket(4,rMonster_Condition, 4,vrDesc, 4,monster_nothing,
-                   4,Send(self,@GetCapDef), 4,Send(self,@GetName), 4,rChampionStatus);
+         AddPacket(4,rMonster_Condition,
+                      4,rBindingLevel, 4,rMobDef, 4,rMobName, 4,rMasterIndef, 4,rMasterName,
+                      4,vrDesc, 4,monster_nothing,
+                      4,Send(self,@GetCapDef), 4,Send(self,@GetName), 4,rChampionStatus);
       }
       else
       {
+         if IsClass(self,&Marauder)
+         {
+            AddPacket(4,vrCondition_healthy,
+                      4,rBindingLevel, 4,rMobDef, 4,rMobName, 4,rMasterIndef, 4,rMasterName,
+                      4,vrDesc, 4,monster_blank_level,
+                      4,rChampionStatus);
+         }
+
          if piChampionStatus = 0
          {
-            AddPacket(4,rMonster_Condition, 4,vrDesc, 4,monster_desc_level,
-                      4,Bound(viLevel,20,150), 4,Send(self,@GetCapDef),
+            AddPacket(4,rMonster_Condition,
+                      4,rBindingLevel, 4,rMobDef, 4,rMobName, 4,rMasterIndef, 4,rMasterName,
+                      4,vrDesc, 4,monster_desc_level,
+                      4,piLevel, 4,Send(self,@GetCapDef),
                       4,Send(self,@GetName), 4,rChampionStatus);
          }
          else
          {
-            AddPacket(4,rMonster_Condition, 4,vrDesc, 4,monster_desc_level,
-                      4,Bound(viLevel,20,150), 4,Send(self,@GetCapDef),
+            AddPacket(4,rMonster_Condition,
+                      4,rBindingLevel, 4,rMobDef, 4,rMobName, 4,rMasterIndef, 4,rMasterName,
+                      4,vrDesc, 4,monster_desc_level,
+                      4,piLevel, 4,Send(self,@GetCapDef),
                       4,Send(self,@GetName), 4,rChampionStatus, 4,Send(Self,@GetName));
          }
       }
@@ -5426,12 +6362,12 @@ messages:
          iMultiplier = 10;
       }
 
-      if viLevel < 40
+      if piLevel < 40
       {
-         return viLevel * iMultiplier;
+         return piLevel * iMultiplier;
       }
 
-      return ((120 * viLevel) / 100) * iMultiplier;
+      return ((120 * piLevel) / 100) * iMultiplier;
    }
    
    ReturnMaxHitPoints()
@@ -5464,6 +6400,12 @@ messages:
       return;
    }
 
+   SetHealth(amount=0)
+   {
+      piHit_points = amount;
+      return;
+   }
+
    % Returns the number of remaining hit points.
    GetHealth()
    {
@@ -5481,9 +6423,14 @@ messages:
       return (viAttributes & MOB_FULL_TALK) AND TRUE;
    }
 
-   GetLevel()
+   GetBaseLevel()
    {
       return viLevel;
+   }
+
+   GetLevel()
+   {
+      return piLevel;
    }
 
    GetDifficulty()
@@ -5670,19 +6617,15 @@ messages:
 
    GetAttackTime()
    {
-      local iChilled, iChilledTotal, iChilledMultiple;
+      local i, iWait;
 
-      iChilledTotal = 0;
-      iChilled = Send(self,@GetStatusEffect,#type=STATUS_CHILLED);
-      if iChilled > 0
+      iWait = Bound(Send(self,@Fuzzy,#num=MOB_ATTACK_TIMER_WAIT) + 3500-70*(3*viDifficulty+piAttackSpeed),250,$);
+
+      foreach i in Send(self,@GetEnchantmentsByClass,#enchClass=&Hex)
       {
-         iChilledMultiple = Send(SETTINGS_OBJECT,
-                             @GetElementalMultiple,#type=STATUS_CHILLED);
-         iChilledTotal = iChilled * iChilledMultiple;
+         iWait = Send(Nth(i,2),@ModifyDelay,#state=Nth(i,3),#iDelay=iWait);
       }
-
-      return Bound(Send(self,@Fuzzy,#num=MOB_ATTACK_TIMER_WAIT)
-             + 3500-70*(3*viDifficulty+piSpeed),250,$) + iChilledTotal;
+      return iWait;
    }
 
    GetMoveTime()
@@ -5706,10 +6649,10 @@ messages:
       % avoid division by zero, if objects teleport
       % objects with viSpeed = 0 don't need seamless movements in the client
       % so we just assume it is enough to teleport them once a second
-      if piSpeed > 0
+      if piMoveSpeed > 0
       {
          % see formula above  
-         iTime = 10000 / (piSpeed * 4);
+         iTime = 10000 / (piMoveSpeed * 4);
 
          % finally we reduce the timer a bit (right now it's exact at ms)
          % why? the client should get a new position before the last destination
@@ -5884,33 +6827,33 @@ messages:
          return FALSE;
       }
 
-      if (NOT bSkill) AND IsClass(self,&Temples)
-         AND Send(oAbility,@GetLevel) > 2
-         AND NOT Send(self,@HasDoneLearnQuest,#who=who)
-      {
-         % Player needs to do a quest for the priestess to gain this spell or
-         %  skill.
-         
-         Send(poOwner,@SomeoneSaid,#type=SAY_RESOURCE,#what=self,
-              #string=vrTeach_quest_needed,#parm1=Send(oAbility,@GetName));
-
-         return FALSE;
-      }
+%      if (NOT bSkill) AND IsClass(self,&Temples)
+%         AND Send(oAbility,@GetLevel) > 2
+%         AND NOT Send(self,@HasDoneLearnQuest,#who=who)
+%      {
+%         % Player needs to do a quest for the priestess to gain this spell or
+%         %  skill.
+%         
+%         Send(poOwner,@SomeoneSaid,#type=SAY_RESOURCE,#what=self,
+%              #string=vrTeach_quest_needed,#parm1=Send(oAbility,@GetName));
+%
+%         return FALSE;
+%      }
 
       % KLUDGE: This should be handled in the individual subclasses.
       %         This makes baby Jesus cry.
-      if (IsClass(self,&JasperBlacksmith) OR IsClass(self,&JasperElder)
-          OR IsClass(self,&BarloqueApothecary) OR IsClass(self,&Minstrel))
-         AND NOT Send(self,@HasDoneLearnQuest,#who=who)
-      {
-         % Player needs to do a quest for the seller to gain this spell or
-         %  skill.
-         
-         Send(poOwner,@SomeoneSaid,#type=SAY_RESOURCE,#what=self,
-              #string=vrTeach_quest_needed,#parm1=Send(oAbility,@GetName));
-
-         return FALSE;
-      }
+%      if (IsClass(self,&JasperBlacksmith) OR IsClass(self,&JasperElder)
+%          OR IsClass(self,&BarloqueApothecary) OR IsClass(self,&Minstrel))
+%         AND NOT Send(self,@HasDoneLearnQuest,#who=who)
+%      {
+%         % Player needs to do a quest for the seller to gain this spell or
+%         %  skill.
+%         
+%         Send(poOwner,@SomeoneSaid,#type=SAY_RESOURCE,#what=self,
+%              #string=vrTeach_quest_needed,#parm1=Send(oAbility,@GetName));
+%
+%         return FALSE;
+%      }
 
       if bSkill
       {
@@ -5923,6 +6866,38 @@ messages:
 
       if iVal = PLAYER_LEARN_ERROR
       {
+         return FALSE;
+      }
+
+      if iVal = PLAYER_LEARN_HAS_VENTDAL
+      {
+         Send(poOwner,@SomeoneSaid,#type=SAY_RESOURCE,#what=self,
+              #string=player_has_ventdal);
+
+         return FALSE;
+      }
+
+      if iVal = PLAYER_LEARN_HAS_XAERDUN
+      {
+         Send(poOwner,@SomeoneSaid,#type=SAY_RESOURCE,#what=self,
+              #string=player_has_xaerdun);
+
+         return FALSE;
+      }
+
+      if iVal = PLAYER_LEARN_HAS_IWODACH
+      {
+         Send(poOwner,@SomeoneSaid,#type=SAY_RESOURCE,#what=self,
+              #string=player_has_iwodach);
+
+         return FALSE;
+      }
+
+      if iVal = PLAYER_LEARN_HAS_NEQUZON
+      {
+         Send(poOwner,@SomeoneSaid,#type=SAY_RESOURCE,#what=self,
+              #string=player_has_nequzon);
+
          return FALSE;
       }
 
@@ -5962,7 +6937,6 @@ messages:
       {
          Send(poOwner,@SomeoneSaid,#type=SAY_RESOURCE,#what=self,
               #string=monster_teach_impossible);
-         Send(who,@SetLearnCapped,#value=TRUE);
 
          return FALSE;
       }
@@ -6362,7 +7336,8 @@ messages:
       
       % A survival mob
       if poOwner <> $
-         AND IsClass(poOwner,&SurvivalRoom)
+         AND (IsClass(poOwner,&SurvivalRoom)
+            OR IsClass(poOwner,&ChaosStratumRoom))
       {
          return 0;
       }
@@ -6380,7 +7355,8 @@ messages:
       local i, j, oReagent, iNumberItems, oTreasure, oTreasure_type,
             lTreasureItems, iNumberOfItemsDropped, iNumberOfItemsLooted,
             iRandomCashAmount, oMoney, iGetResult, bCapacityFailure,
-            bRangeFailure, iSurvivalLoot, iNumShards, oShard, iRand;
+            bRangeFailure, iSurvivalLoot, iNumShards, oShard, iRand,
+            oBestiaryBook;
 
       % Apparitions, etc, provide no treasure
       if pbIllusion
@@ -6401,9 +7377,10 @@ messages:
       % TreasureType now handles putting together the treasure list.
       % Returns a list of items to drop, or $.
       lTreasureItems = Send(oTreasure_Type,@CreateMobTreasure,#mob=self,
-                              #who=who,#level=viLevel,#difficulty=viDifficulty,
+                              #who=who,#level=piLevel,#difficulty=viDifficulty,
                               #corpse=corpse,#attributes=viAttributes,
-                              #boostedlevel=piBoostedLevel);
+                              #boostedlevel=piBoostedLevel,
+                              #iChaosLevel=piChaosLevel);
 
       % Add in our inventory
       foreach i in plActive
@@ -6430,7 +7407,8 @@ messages:
          }
 
          oMoney = Create(&Money,#corpse=corpse,#number=(iRandomCashAmount + (piBoostedLevel
-                     * Send(Send(SYS,@GetSurvivalRoomMaintenance),@GetSurvivalCash)))
+                     * Send(Send(SYS,@GetSurvivalRoomMaintenance),@GetSurvivalCash)) + (piChaosLevel
+                     * Send(Send(SYS,@GetChaosStrataMaintenance),@GetChaosCash)))
                      * Send(self,@GetChampionRewardMultiplier));
 
          Send(Send(SYS,@GetStatistics),@MoneyCreated,#amount=Send(oMoney,@GetNumber));
@@ -6441,6 +7419,16 @@ messages:
       if Send(self,@GetChampStatus) > 0
       {
          iNumShards = Send(self,@GetChampionRewardMultiplier);
+         if poOwner <> $
+         {
+            foreach i in Send(poOwner,@GetObjectAttributes)
+            {
+               if IsClass(i,&RoomThreat)
+               {
+                  iNumShards = Send(i,@AlterShardDrops,#iNumShards=iNumShards);
+               }
+            }
+         }
          if Send(self,@GetLevel) < 50
          {
             --iNumShards;
@@ -6483,7 +7471,40 @@ messages:
                      }
                      else
                      {
-                        oShard = Create(&ShardImbueMinor);
+                        if IsClass(poOwner,&DesertRoom)
+                           OR IsClass(poOwner,&MinotaurMazeRoom)
+                           OR IsClass(poOwner,&AncientTomb1)
+                        {
+                           iRand = Random(1,Send(SETTINGS_OBJECT,@GetInstillingShardProbability)/10);
+                           if iRand = 1
+                           {
+                              oShard = Create(&ShardReroll);
+                           }
+                           else
+                           {
+                              iRand = Random(1,Send(SETTINGS_OBJECT,@GetImprovementShardProbability)/10);
+                              if iRand = 1
+                              {
+                                 oShard = Create(&ShardImprovement);
+                              }
+                              else
+                              {
+                                 iRand = Random(1,Send(SETTINGS_OBJECT,@GetDisruptionShardProbability)/10);
+                                 if iRand = 1
+                                 {
+                                    oShard = Create(&ShardReImbueMajor);
+                                 }
+                                 else
+                                 {
+                                    oShard = Create(&ShardReImbueMinor);
+                                 }
+                              }
+                           }
+                        }
+                        else
+                        {
+                           oShard = Create(&ShardImbueMinor);
+                        }
                      }
                   }
                }
@@ -6491,6 +7512,139 @@ messages:
             
             lTreasureItems = Cons(oShard,lTreasureItems);
             --iNumShards;
+         }
+         
+         if Random(1,20) = 1
+         {
+            if Random(1,2) = 1
+            {
+               oBestiaryBook = Create(&BestiarySpellBook);
+            }
+            else
+            {
+               oBestiaryBook = Create(&BestiarySkillBook);
+            }
+            lTreasureItems = Cons(oBestiaryBook,lTreasureItems);
+         }
+      }
+
+      % Add shards to chaos stratum treasure
+      if piChaosLevel > 0
+      {
+         iNumShards = Random(-5,piChaosLevel/40);
+         
+         if poOwner <> $
+            AND Send(poOwner,@IsBoss,#what=self)
+         {
+            iNumShards = 4 + piChaosLevel/40;
+         }
+
+         if Send(self,@GetLevel) < 50
+         {
+            --iNumShards;
+         }
+         if Send(self,@GetLevel) < 100
+         {
+            --iNumShards;
+         }
+         if Send(self,@GetLevel) < 150
+         {
+            --iNumShards;
+         }
+         while iNumShards > 0
+         {
+            iRand = Random(1,Send(SETTINGS_OBJECT,@GetEmpowerShardProbability)/100);
+            if iRand = 1
+            {
+               oShard = Create(&ShardEmpowerment);
+            }
+            else
+            {
+               iRand = Random(1,Send(SETTINGS_OBJECT,@GetMajorShardProbability)/100);
+               if iRand = 1
+               {
+                  oShard = Create(&ShardImbueMajor);
+               }
+               else
+               {
+                  iRand = Random(1,Send(SETTINGS_OBJECT,@GetDrainShardProbability)/100);
+                  if iRand = 1
+                  {
+                     oShard = Create(&ShardRemove);
+                  }
+                  else
+                  {
+                     iRand = Random(1,Send(SETTINGS_OBJECT,@GetAugmentShardProbability)/100);
+                     if iRand = 1
+                     {
+                        oShard = Create(&ShardAugment);
+                     }
+                     else
+                     {
+                        if IsClass(poOwner,&DesertRoom)
+                           OR IsClass(poOwner,&MinotaurMazeRoom)
+                           OR IsClass(poOwner,&AncientTomb1)
+                        {
+                           iRand = Random(1,Send(SETTINGS_OBJECT,@GetInstillingShardProbability)/10);
+                           if iRand = 1
+                           {
+                              oShard = Create(&ShardReroll);
+                           }
+                           else
+                           {
+                              iRand = Random(1,Send(SETTINGS_OBJECT,@GetImprovementShardProbability)/10);
+                              if iRand = 1
+                              {
+                                 oShard = Create(&ShardImprovement);
+                              }
+                              else
+                              {
+                                 iRand = Random(1,Send(SETTINGS_OBJECT,@GetDisruptionShardProbability)/10);
+                                 if iRand = 1
+                                 {
+                                    oShard = Create(&ShardReImbueMajor);
+                                 }
+                                 else
+                                 {
+                                    oShard = Create(&ShardReImbueMinor);
+                                 }
+                              }
+                           }
+                        }
+                        else
+                        {
+                           oShard = Create(&ShardImbueMinor);
+                        }
+                     }
+                  }
+               }
+            }
+            
+            lTreasureItems = Cons(oShard,lTreasureItems);
+            --iNumShards;
+         }
+         
+         if poOwner <> $
+            AND Send(poOwner,@IsBoss,#what=self)
+         {
+            if piChaosLevel = 140
+            {
+               lTreasureItems = Cons(Create(&QorCharm),lTreasureItems);
+            }
+            else if Random(1,100) <= Send(Send(SYS,@GetChaosStrataMaintenance),@GetBaseScryingCrystalDropChance) + Send(poOwner,@GetQuality)
+            {
+               lTreasureItems = Cons(Create(&ScryingCrystal,#iTier=Bound(Send(poOwner,@GetTier)+Random(-1,1),1,5),
+                                                            #iChaosLevel=piChaosLevel+1,
+                                                            #level=180+piChaosLevel),lTreasureItems);
+      
+               if Send(poOwner,@GetQuality) >= 100
+                  AND Random(1,100) <= Send(poOwner,@GetQuality) - 100
+               {
+                  lTreasureItems = Cons(Create(&ScryingCrystal,#iTier=Bound(Send(poOwner,@GetTier)+Random(-1,1),1,5),
+                                                               #iChaosLevel=piChaosLevel+1,
+                                                               #level=180+piChaosLevel),lTreasureItems);
+               }
+            }
          }
       }
 
@@ -6632,7 +7786,7 @@ messages:
       {
          if who <> $
          {
-            Send(who,@MsgSendUser,#message_rsc=LS_nofight_attacked);
+            %Send(who,@MsgSendUser,#message_rsc=LS_nofight_attacked);
          }
 
          return FALSE;
@@ -6907,6 +8061,11 @@ messages:
       }
 
       pbIllusion = value;
+      
+      if value = TRUE
+      {
+         Send(self,@LoseChampionStatus);
+      }
 
       return;
    }
@@ -7136,6 +8295,11 @@ messages:
          if poMaster <> $
          {
             Send(poMaster,@RemoveControlledMinion,#what=self);
+            
+            if Send(self,@IsEnchanted,#byClass=&CreatureBinding)
+            {
+               Send(self,@RemoveEnchantment,#what=Send(SYS,@FindSpellByNum,#num=SID_CREATURE_BINDING));
+            }
 
             % After the honeymoon is over, go after the master!
             Send(self,@SetBehaviorFlag,#flag=AI_MOVE_FOLLOW_MASTER,
@@ -7200,7 +8364,17 @@ messages:
       if what = $
          OR poOwner = $
       {
-         Debug("BAD target we're switching to here!");
+         % Suppress survival messages, because this happens sometimes there.
+         if piBoostedLevel = 0
+         {
+            Debug("BAD target we're switching to here!");
+            Debug(self);
+         }
+         
+         if poOwner = $
+         {
+            Post(self,@Delete);
+         }
 
          return;
       }
@@ -7211,6 +8385,13 @@ messages:
          % Trying to switch to someone logged off. Can't do that.
          return;
       }
+      if IsClass(what,&Player)
+            AND Send(what,@GetSkillAbility,#skill_num=SKID_HIDE) >= piLevel/2
+            AND Send(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@IsHiding,#who=what)
+      {
+         % Trying to switch to a hidden player
+         return;
+      }
 
       piHatred = iHatred;
 
@@ -7219,13 +8400,14 @@ messages:
          AND IsClass(poTarget,&user)
       {
          Send(poTarget,@SubtractFromMonsterChasers,
-              #level=viLevel);
+              #level=piAmountAddedToMonsterChasers);
       }
 
       poTarget = what;
       if IsClass(poTarget,&user)
       {
-         Send(poTarget,@AddToMonsterChasers,#level=viLevel);
+         piAmountAddedToMonsterChasers = piLevel;
+         Send(poTarget,@AddToMonsterChasers,#level=piAmountAddedToMonsterChasers);
       }
 
       piState = (piState & VSTATE_VALIDITY_MASK);
@@ -7480,6 +8662,10 @@ messages:
             Send(who,@NewHold,#what=oMoney);
             Send(Send(SYS,@GetStatistics),@MoneyCreated,#amount=Send(oMoney,@GetNumber));
          }
+         else
+         {
+            Send(oMoney,@Delete);
+         }
       }
       
       return;
@@ -7500,6 +8686,11 @@ messages:
    GetBoostedLevel()
    {
       return piBoostedLevel;
+   }
+   
+   GetChaosLevel()
+   {
+      return piChaosLevel;
    }
 
    % GainLight and LoseLight here so (some) mobs can use touch spells.
@@ -7548,11 +8739,12 @@ messages:
       return piChampionStatus;
    }
    
-   GainChampionStatus(iType=0)
+   GainChampionStatus(iType=0, bJailed=FALSE)
    {
       local i, each_obj;
 
       if poOwner = $
+         AND NOT bJailed
       {
          return;
       }
@@ -7560,13 +8752,15 @@ messages:
       piChampionStatus = iType;
 
       piMax_Hit_points = Send(Self,@Fuzzy,#num=Send(self,@GetMaxHitPoints))
-                         + piBoostedLevel*viDifficulty;
+                         + piBoostedLevel*viDifficulty
+                         + piChaosLevel * Send(Send(SYS,@GetChaosStrataMaintenance),@GetChaosDifficulty);
       piHit_points = piMax_hit_points*100;
       
       if iType = CHAMPION_SWIFT
          OR iType = CHAMPION_INDOMITABLE
       {
-         piSpeed = viSpeed * 2;
+         piMoveSpeed = viSpeed * 2;
+         piAttackSpeed = viSpeed * 2;
       }
       
       if iType = CHAMPION_TOUGH
@@ -7581,41 +8775,58 @@ messages:
          Send(self,@AddRandomChampionAbility);
          Send(self,@AddRandomChampionAbility);
 
-         foreach i in Send(poOwner,@GetHolderActive)
+         if NOT bJailed
          {
-            each_obj = Send(poOwner,@HolderExtractObject,#data=i);
-            if IsClass(each_obj,&Player)
+            foreach i in Send(poOwner,@GetHolderActive)
             {
-               Send(each_obj,@MsgSendUser,#message_rsc=indomitable_arrived,
-                                          #parm1=Send(self,@GetName));
+               each_obj = Send(poOwner,@HolderExtractObject,#data=i);
+               if IsClass(each_obj,&Player)
+               {
+                  Send(each_obj,@MsgSendUser,#message_rsc=indomitable_arrived,
+                                             #parm1=Send(self,@GetName));
+               }
             }
          }
       }
       
       if iType = CHAMPION_LEGENDARY
       {
-         piSpeed = viSpeed * 3;
+         piAttackSpeed = viSpeed * 3;
+         piMoveSpeed = viSpeed * 3;
          
          Send(self,@AddRandomChampionAbility);
          Send(self,@AddRandomChampionAbility);
          Send(self,@AddRandomChampionAbility);
 
-         foreach i in Send(poOwner,@GetHolderActive)
+         if NOT bJailed
          {
-            each_obj = Send(poOwner,@HolderExtractObject,#data=i);
-            if IsClass(each_obj,&Player)
+            foreach i in Send(poOwner,@GetHolderActive)
             {
-               Send(each_obj,@MsgSendUser,#message_rsc=legendary_arrived,
-                                          #parm1=Send(self,@GetName));
+               each_obj = Send(poOwner,@HolderExtractObject,#data=i);
+               if IsClass(each_obj,&Player)
+               {
+                  Send(each_obj,@MsgSendUser,#message_rsc=legendary_arrived,
+                                             #parm1=Send(self,@GetName));
+               }
             }
          }
       }
 
-      Send(poOwner,@SomethingChanged,#what=self);
+      if NOT bJailed
+      {
+         Send(poOwner,@SomethingChanged,#what=self);
+      }
 
       return;
    }
-   
+
+   AddChampionAbility(ability=0,value=0)
+   {
+      plChampionAbilities = Cons([ability,value],
+                                  plChampionAbilities);
+      return;
+   }
+
    AddRandomChampionAbility()
    {
       local lAbilities, iRandomAbility, iValue, lElements, i;
@@ -7681,10 +8892,12 @@ messages:
       plChampionAbilities = $;
 
       piMax_Hit_points = Send(Self,@Fuzzy,#num=Send(self,@GetMaxHitPoints))
-                         + piBoostedLevel*viDifficulty;
+                         + piBoostedLevel*viDifficulty
+                         + piChaosLevel * Send(Send(SYS,@GetChaosStrataMaintenance),@GetChaosDifficulty);
       piHit_points = piMax_hit_points*100;
       
-      piSpeed = viSpeed;
+      piAttackSpeed = viSpeed;
+      piMoveSpeed = viSpeed;
       
       if poOwner <> $
       {
@@ -7696,11 +8909,98 @@ messages:
 
    SendLightingInformation()
    {
+      if piCastPower > 0
+      {
+         AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC));
+         % cast power intensity
+         AddPacket(1,piCastPower);
+         AddPacket(2,LIGHT_DRED);
+         
+         % Can we slide up the color scale?
+         return;
+      }
+
+      if piChampionStatus > 0
+         AND poOwner <> $
+         AND Send(poOwner,@LightingColorOverride)
+      {
+         AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC));
+         % 50 out of 255 intensity of light
+         if piChampionStatus = 4
+         {
+            AddPacket(1,75);
+         }
+         else if piChampionStatus = 5
+         {
+            AddPacket(1,125);
+         }
+         else
+         {
+            AddPacket(1,50);
+         }
+         % Override color
+         AddPacket(2,Send(poOwner,@GetLightingColorOverride,#what=self));
+         return;
+      }
+
+      % Petrified gives off no light
+      if Send(self,@IsEnchanted,#byClass=&Petrified)
+      {
+         if Send(poOwner,@LightingColorOverride)
+         {
+            AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC),1,0, 2,Send(poOwner,@GetLightingColorOverride,#what=self));
+         }
+         else
+         {
+            AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC),1,0, 2,LIGHT_WHITE);
+         }
+         return;
+      }
+      % Hold gives off a purple glow
+      if Send(self,@IsEnchanted,#byClass=&Hold)
+      {
+         if Send(poOwner,@LightingColorOverride)
+         {
+            AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC),1,100, 2,Send(poOwner,@GetLightingColorOverride,#what=self));
+         }
+         else
+         {
+            AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC),1,100, 2,LIGHT_BPURPLE);
+         }
+         return;
+      }
+      % Blind gives off a dim green glow
+      if Send(self,@IsEnchanted,#byClass=&Blind)
+      {
+         if Send(poOwner,@LightingColorOverride)
+         {
+            AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC),1,50, 2,Send(poOwner,@GetLightingColorOverride,#what=self));
+         }
+         else
+         {
+            AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC),1,50, 2,LIGHT_BGREEN);
+         }
+         return;
+      }
+      % Dazzle is blazing white
+      if Send(self,@IsEnchanted,#byClass=&Dazzle)
+      {
+         if Send(poOwner,@LightingColorOverride)
+         {
+            AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC),1,255, 2,Send(poOwner,@GetLightingColorOverride,#what=self));
+         }
+         else
+         {
+            AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC),1,255, 2,LIGHT_WHITE);
+         }
+         return;
+      }
+
       if piChampionStatus = 1
       {
          AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC));
-         % 125 out of 255 intensity of light
-         AddPacket(1,125);
+         % 50 out of 255 intensity of light
+         AddPacket(1,50);
          % Blue 'shield' glow.
          AddPacket(2,LIGHT_BBLUE);
          return;
@@ -7708,8 +9008,8 @@ messages:
       if piChampionStatus = 2
       {
          AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC));
-         % 255 out of 255 intensity of light
-         AddPacket(1,255);
+         % 50 out of 255 intensity of light
+         AddPacket(1,50);
          % Orange 'speedy' glow.
          AddPacket(2,LIGHT_BORANGE);
          return;
@@ -7717,8 +9017,8 @@ messages:
       if piChampionStatus = 3
       {
          AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC));
-         % 255 out of 255 intensity of light
-         AddPacket(1,255);
+         % 50 out of 255 intensity of light
+         AddPacket(1,50);
          % Red 'danger' glow.
          AddPacket(2,LIGHT_BRED);
          return;
@@ -7726,8 +9026,8 @@ messages:
       if piChampionStatus = 4
       {
          AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC));
-         % 255 out of 255 intensity of light
-         AddPacket(1,255);
+         % 75 out of 255 intensity of light
+         AddPacket(1,75);
          % Green 'everything' glow.
          AddPacket(2,LIGHT_BGREEN);
          return;
@@ -7735,10 +9035,20 @@ messages:
       if piChampionStatus = 5
       {
          AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC));
-         % 255 out of 255 intensity of light
-         AddPacket(1,255);
-         % Gold 'we're all gonna die' glow.
-         AddPacket(2,LIGHT_BYELLOW);
+         % 125 out of 255 intensity of light
+         AddPacket(1,125);
+         % Purple 'we're all gonna die' glow.
+         AddPacket(2,LIGHT_BPURPLE);
+         return;
+      }
+      
+      if poOwner <> $
+         AND IsClass(poOwner,&ChaosStratumRoom)
+         AND NOT IsClass(poOwner,&OutdoorsF8)
+      {
+         AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC));
+         AddPacket(1,50);
+         AddPacket(2,LIGHT_BRED);
          return;
       }
 
@@ -7782,6 +9092,8 @@ messages:
    
    GetChampionRewardMultiplier()
    {
+      local i;
+
       if piChampionStatus = CHAMPION_TOUGH
          OR piChampionStatus = CHAMPION_SWIFT
          OR piChampionStatus = CHAMPION_DEADLY
@@ -7805,6 +9117,582 @@ messages:
    GetTumbling()
    {
       return piTumbling;
+   }
+
+   GetBossStatus()
+   {
+      return FALSE;
+   }
+
+   DrawResistances()
+   {
+      return;
+   }
+
+   ApplyMaximumResistances(resistance_list=$)
+   {
+      % Monster resistances are not capped.
+      return resistance_list;
+   }
+
+   DrawDefense()
+   {
+      return;
+   }
+   
+   DrawOffense()
+   {
+      return;
+   }
+   
+   PlayerPhasedOut(who=$)
+   {
+      return;
+   }
+   
+   PlayerPhasedIn(who=$)
+   {
+      return;
+   }
+
+   HasMasteredThisSkill()
+   {
+      return FALSE;
+   }
+
+   HasMasteredThisSpell()
+   {
+      return FALSE;
+   }
+
+   GetCanSpawnAsChampion()
+   {
+      return viCanSpawnAsChampion;
+   }
+
+   AddLevel(value=10)
+   {
+      piLevel = Bound(piLevel + value,20,$);
+      return piLevel;
+   }
+
+   ResetLevel()
+   {
+      piLevel = viLevel;
+      return;
+   }
+
+   TaughtPlayerSpell(who=$,num=0)
+   {
+      return;
+   }
+
+   GetBonusBaseTP()
+   {
+      return viBonusBaseTP;
+   }
+
+   ApplyKnockback(what=$, iRow=0, iCol=0, iFineRow=0, iFineCol=0, knockback_power=0, knockback_angle=0)
+   {
+      if (piBehavior & AI_NPC)
+      {
+         return FALSE;
+      }
+      propagate;
+   }
+
+   ApplyStun(what=$, stun_power=0)
+   {
+      if (piBehavior & AI_NPC)
+      {
+         return FALSE;
+      }
+      propagate;
+   }
+
+   ApplyBleed(what=$, bleed_power = 0)
+   {
+      if (piBehavior & AI_NPC)
+      {
+         return FALSE;
+      }
+      propagate;
+   }
+
+   RecalcLight()
+   {
+      return;
+   }
+
+   PlayerHealedSomeone(caster=$, oTarget=$, iHealAmount=0)
+   {
+      if caster = $
+         OR oTarget = $
+      {
+         return;
+      }
+
+      if NOT (piBehavior & AI_FIGHT_SINGLEMINDED)
+         AND NOT (piBehavior & AI_NOFIGHT)
+         AND NOT (piBehavior & AI_NPC)
+      {
+         % Caster healed our target!
+         if oTarget = poTarget
+         {
+            Send(self,@PlayerHealedOurTarget,#caster=caster,#oTarget=oTarget,#iHealAmount=iHealAmount);
+         }
+         else
+         {
+            Send(self,@PlayerHealedNotOurTarget,#caster=caster,#oTarget=oTarget,#iHealAmount=iHealAmount);
+         }
+      }
+      return;
+   }
+
+   PlayerHealedOurTarget(caster=$, oTarget=$, iHealAmount=0)
+   {
+      if caster <> oTarget
+      {
+         % Someone's healing our target!
+         if Random(1,100) < iHealAmount
+         {
+            Send(self,@TargetSwitch,#what=caster,#iHatred=iHealAmount*10);
+            Send(self,@EnterStateChase,#target=caster,#actnow=TRUE);
+         }
+      }
+      return;
+   }
+
+   PlayerHealedNotOurTarget(caster=$, oTarget=$, iHealAmount=0)
+   {
+      if caster <> oTarget
+         AND poTarget = $
+      {
+         if piHatred < iHealAmount
+            AND Random(1,100) < iHealAmount
+            AND Send(self,@SquaredFineDistanceTo3D,#what=caster) <= viReactToHealFineDist * viReactToHealFineDist
+         {
+            Send(self,@TargetSwitch,#what=caster,#iHatred=iHealAmount*10);
+            Send(self,@EnterStateChase,#target=caster,#actnow=TRUE);
+         }
+      }
+      return;
+   }
+
+   IsShadow()
+   {
+      % This is a type like Undead, except representing shadows and darkness.
+      return vbIsShadow;
+   }
+
+   GetElementalImbalancePower()
+   {
+      return piApplyElementalImbalancePower;
+   }
+
+   GetBonusXPGain()
+   {
+      return vbBonusXPGain;
+   }
+
+   GetPlayerUsing()
+   {
+      % Human monsters can equip items.
+      return $;
+   }
+
+   WasHeld()
+   {
+      return;
+   }
+
+   WasBlinded()
+   {
+      return;
+   }
+
+   GetLoyalty()
+   {
+      return piLoyalty;
+   }
+
+   AddLoyalty(amount=0, cap_at=MAX_LOYALTY)
+   {
+      piLoyalty = Bound(piLoyalty + amount, 0, cap_at);
+      
+      if piLoyalty > 0
+         AND ptLoyaltyTimer = $
+      {
+         ptLoyaltyTimer = CreateTimer(self,@LoyaltyTimer,3000);
+      }
+      
+      return;
+   }
+
+   LoyaltyTimer(timer=$)
+   {
+      local iPreviousLoyalty;
+
+      ptLoyaltyTimer = $;
+      
+      if poMaster = $
+      {
+         Send(self,@BreakAllegiance);
+         return;
+      }
+      
+      if piLoyalty >= 10 * LOYALTY_PER_BINDING_LEVEL
+      {
+         % We're a permanent minion.
+         ptLoyaltyTimer = CreateTimer(self,@LoyaltyTimer,60000);
+         return;
+      }
+      
+      if poOwner <> $
+         AND Send(poOwner,@CheckRoomFlag,#flag=ROOM_NO_COMBAT)
+      {
+         % No loyalty loss in safe areas.
+         ptLoyaltyTimer = CreateTimer(self,@LoyaltyTimer,60000);
+         return;
+      }
+      
+      if IsClass(poMaster,&Player)
+         AND Send(poMaster,@IsInCannotInteractMode)
+      {
+         ptLoyaltyTimer = CreateTimer(self,@LoyaltyTimer,60000);
+         return;
+      }
+      
+      iPreviousLoyalty = piLoyalty;
+      
+      if Send(self,@HasCreatureType,#type=CREATURE_TYPE_INTELLIGENT)
+      {
+         % Intelligent mobs shrug off charms faster
+         piLoyalty--;
+      }
+
+      if Send(poMaster,@GetKarma) > 0
+         AND Send(self,@HasCreatureType,#type=CREATURE_TYPE_UNDEAD)
+      {
+         % Undead don't like positive karma masters
+         piLoyalty--;
+      }
+
+      if Send(poMaster,@GetKarma) < 0
+         AND Send(self,@HasCreatureType,#type=CREATURE_TYPE_HUMANOID)
+      {
+         % Humanoids don't generally trust negative karma masters
+         piLoyalty--;
+      }
+
+      % Generic drop
+      piLoyalty--;
+      
+      if piLoyalty <= 0
+      {
+         piLoyalty = 0;
+         Send(self,@BreakAllegiance);
+      }
+      else
+      {
+         if poMaster <> $
+            AND IsClass(poMaster,&Player)
+            AND iPreviousLoyalty/LOYALTY_PER_BINDING_LEVEL <> piLoyalty/LOYALTY_PER_BINDING_LEVEL
+         {
+            if piLoyalty/LOYALTY_PER_BINDING_LEVEL > 2
+            {
+               Send(poMaster,@MsgSendUser,#message_rsc=minion_breaks_bind_level_high,#parm1=Send(self,@GetCapDef),#parm2=Send(self,@GetName));
+            }
+            else
+            {
+               Send(poMaster,@MsgSendUser,#message_rsc=minion_breaks_bind_level_low,#parm1=Send(self,@GetCapDef),#parm2=Send(self,@GetName));
+            }
+         }
+         ptLoyaltyTimer = CreateTimer(self,@LoyaltyTimer,3000);
+      }
+      
+      return;
+   }
+
+   BreakAllegiance()
+   {
+      local oPreviousMaster;
+      
+      if ptLoyaltyTimer <> $
+      {
+         DeleteTimer(ptLoyaltyTimer);
+         ptLoyaltyTimer = $;
+      }
+      
+      piLoyalty = 0;
+
+      if poMaster <> $
+      {
+         Send(poMaster,@MsgSendUser,#message_rsc=minion_breaks_free,#parm1=Send(self,@GetCapDef),#parm2=Send(self,@GetName));
+         oPreviousMaster = poMaster;
+      }
+      Send(self,@SetMaster,#oMaster=$);
+      Send(self,@ResetBehaviorFlags);
+      if poOwner <> $
+      {
+         if IsClass(poOwner,&AdventurersGuild)
+            AND Send(Send(SYS,@GetLeagueMaintenance),@GetFundingLevel) >= 1
+         {
+            Send(poOwner,@MonsterBrokeAllegiance,#what=self,#oPreviousMaster=oPreviousMaster);
+            return;
+         }
+         Send(poOwner,@SomethingChanged,#what=self);
+      }
+      return;
+   }
+   
+   GetCharmResistance()
+   {
+      % This is a percentage value
+      return piLevel/4;
+   }
+
+   StartSwimming()
+   {
+      piDrawEffectFlag = piDrawEffectFlag | OF_BOUNCING;
+      
+      if poOwner <> $
+      {
+         Send(poOwner,@SomethingChanged,#what=self);
+      }
+      return;
+   }
+   
+   StopSwimming()
+   {
+      piDrawEffectFlag = (piDrawEffectFlag & (~OF_BOUNCING));
+      
+      if poOwner <> $
+      {
+         Send(poOwner,@SomethingChanged,#what=self);
+      }
+      return;
+   }
+
+   GetLanguage()
+   {
+      return viLanguage;
+   }
+
+   AttemptConversation(who=$)
+   {
+      local oLanguageMaintenance;
+      
+      oLanguageMaintenance = Send(SYS,@GetLanguageMaintenance);
+      
+      Send(oLanguageMaintenance,@AttemptConversation,#who=who,#oMonster=self);
+      return;
+   }
+   
+   GetMeleeSpellBook()
+   {
+      return plMeleeSpellBook;
+   }
+   
+   GetRangedSpellBook()
+   {
+      return plRangedSpellBook;
+   }
+   
+   GetSelfSpellBook()
+   {
+      return plSelfSpellBook;
+   }
+   
+   GetAllySpellBook()
+   {
+      return plAllySpellBook;
+   }
+   
+   GetOtherSpellBook()
+   {
+      return plOtherSpellBook;
+   }
+
+   GainHealth(amount = $, precision = FALSE)
+   "Vamp drain & heal"
+   {
+      if NOT precision
+      {
+         amount = amount*100;
+      }
+
+      piHit_points = piHit_points + amount;
+
+      return;
+   }
+
+   ReportHealthToAllies(what=$,damage=0,atype=0,aspell=0,bonus=0,scalefactor=1000,
+      absolute=FALSE,precision=FALSE,bDoingBackstab=FALSE,bSecondary=FALSE)
+   {
+      local i, oRoom;
+      
+      oRoom = Send(self,@GetOwner);
+      if oRoom <> $
+      {
+         foreach i in Send(oRoom,@GetHolderActive)
+         {
+            if First(i) <> self
+               AND IsClass(First(i),&Monster)
+               AND Send(self,@IsAlly,#target=First(i))
+            {
+               Send(First(i),@AllyReportsHealth,#who=self,#health_ratio=(Send(self,@GetHealth)*100)/Send(self,@GetMaxHealth),
+                                                #what=what,#damage=damage,#atype=atype,#aspell=aspell,#bonus=bonus,#scalefactor=scalefactor,
+                                                #absolute=absolute,#precision=precision,#bDoingBackstab=bDoingBackstab,#bSecondary=bSecondary);
+            }
+         }
+      }
+      return;
+   }
+   
+   AllyReportsHealth(who=$, health_ratio=100,what=$,damage=0,atype=0,aspell=0,bonus=0,scalefactor=1000,
+      absolute=FALSE,precision=FALSE,bDoingBackstab=FALSE,bSecondary=FALSE)
+   {
+      return;
+   }
+
+   CancelCastingAnimation()
+   {
+      if ptCastingAnimationTimer <> $
+      {
+         DeleteTimer(ptCastingAnimationTimer);
+         ptCastingAnimationTimer = $;
+         piCastPower = 0;
+         Send(self,@UpdateCastingLightLevel);
+      }
+      return;
+   }
+
+   CastingAnimationStep(timer=$)
+   {
+      ptCastingAnimationTimer = $;
+      
+      piCastPower = piCastPower + piCastSpeed;
+      
+      if piCastPower >= piCastingRequiredPower
+      {
+         Send(self,@CastingComplete);
+         return;
+      }
+      else
+      {
+         Send(self,@UpdateCastingLightLevel);
+      }
+
+      ptCastingAnimationTimer = CreateTimer(self,@CastingAnimationStep,100);
+      return;
+   }
+
+   CastingComplete()
+   {
+      local oSpell;
+      if poTarget <> $
+         AND Send(poTarget,@GetOwner) = poOwner
+         AND isClass(poTarget,&User)
+      {
+         oSpell = Send(SYS,@FindSpellByNum,#num=SID_BLAST_OF_FIRE);
+                  Send(oSpell,@CastSpell,#who=self,#lTargets=[poTarget],
+                        #iSpellPower=90);
+      }
+      piCastPower = 0;
+      Send(self,@UpdateCastingLightLevel);
+      return;
+   }
+
+   CastingTest()
+   {
+      % How long is our casting step?
+      % We go from 0 to 240 light level at 100 ms per step
+      % 1000 ms casting time = 10 steps of 24
+      % 2000 ms casting time = 20 steps of 12
+      % 3000 ms casting time = 30 steps of 8
+      % 4000 ms casting time = 40 steps of 6
+      
+      piCastPower = 0;
+      piCastingSID = SID_BLAST_OF_FIRE;
+      piCastingColor = LIGHT_RED;
+      piCastingRequiredPower = 240;
+      
+      if ptCastingAnimationTimer <> $
+      {
+         DeleteTimer(ptCastingAnimationTimer);
+         ptCastingAnimationTimer = $;
+      }
+
+      Send(self,@PlayCastingSound,#sound_num=4);
+      ptCastingAnimationTimer = CreateTimer(self,@CastingAnimationStep,100);
+      
+      return;
+   }
+
+   UpdateCastingLightLevel()
+   {
+      if poOwner <> $
+      {
+         Send(poOwner,@SomethingChanged,#what=self);
+      }
+      return;
+   }
+
+   PlayCastingSound(sound_num=1)
+   {
+      local i;
+
+      switch(sound_num)
+      {
+         case 1:
+            i = monster_spell_build_1_sound;
+            break;
+         case 2:
+            i = monster_spell_build_2_sound;
+            break;
+         case 3:
+            i = monster_spell_build_3_sound;
+            break;
+         case 4:
+            i = monster_spell_build_4_sound;
+            break;
+      }
+      if poOwner <> $
+         AND IsClass(poOwner,&Room)
+      {
+         Send(poOwner,@SomethingWaveRoom,#what=self,#wave_rsc=i);
+      }
+      if poTarget <> $
+         AND IsClass(poTarget,&User)
+      {
+         Send(poTarget,@WaveSendUser,#what=self,#wave_rsc=i);
+      }
+      return;
+   }
+
+   GetMoveOnType()
+   {
+      local iFlags;
+
+      iFlags = viMoveOn_type;
+
+      % Minions cannot block other players.
+      if poMaster <> $
+      {
+         iFlags = (iFlags & ~MOVEON_NO);
+      }
+
+      return iFlags;
+   }
+   
+   CreateMeleeSpellBookIfNew(iSID = 0, iManaCost = 0, iChance = 100, iSpellpower = 0)
+   {
+      if plMeleeSpellBook = $
+      {
+         plMeleeSpellBook = [[iSID, iManaCost,iChance,iSpellpower]];
+      }
+      return;
    }
 
 end

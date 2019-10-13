@@ -54,6 +54,8 @@ classvars:
    vrSound_aware = bunny_sound_aware
    vrSound_death = bunny_sound_death
 
+   viBaseSize = 5
+
 properties:
 
    viTreasure_type = TID_ZOMBIE
@@ -73,6 +75,9 @@ messages:
       % child classes. The blend translations *do* work, and give
       % the parent Bunny class a small chance to change color.
       Send(self,@ChangeColor);
+
+      plCreatureTypes = Cons(CREATURE_TYPE_ANIMAL,plCreatureTypes);
+      plCreatureTypes = Cons(CREATURE_TYPE_MUNDANE,plCreatureTypes);
 
       propagate;
    }

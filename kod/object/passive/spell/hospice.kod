@@ -26,6 +26,13 @@ resources:
       "another good soul.  "
       "Requires three herbs to cast."
 
+   hospice_heal_harm_rsc = \
+      "%s%s's corrupted spell harms you for ~r~B%i~B~n hitpoints!"
+   hospice_heal_harm_self_rsc = \
+      "Your corrupted spell harms you for ~r~B%i~B~n hitpoints!"
+   hospice_heal_harm_other_rsc = \
+      "Your corrupted heal harms %s%s for ~r~B%i~B~n hitpoints!"
+
    hospice_cast_rsc = \
       "%s%s's spell rejuvenates you, restoring ~g~B%i~B~n hitpoints."
    hospice_cast_self = \
@@ -47,6 +54,9 @@ classvars:
    viMeditate_ratio = 40
 
    viFlash = FLASH_GOOD
+   
+   viPrimaryStat = STAT_ID_MYSTICISM
+   viSecondaryStat = STAT_ID_KARMA
 
 properties:
 
@@ -107,14 +117,66 @@ messages:
 
    CastSpell(who = $, lTargets = $, iSpellPower = 0)
    {
-      local iHeal, oTarget;
+      local iHeal, oTarget, i, oRoom, iResult;
 
       oTarget = First(lTargets);
 
-      iHeal = Random(-300,300) + iSpellPower*20 + Send(oTarget,@GetKarma)*10;
+      iHeal = Random(-300,300) + iSpellPower*20 + 10000*10;
       iHeal = Bound(iHeal,0,2500);
 
-      iHeal = Send(oTarget,@GainHealthNormal,#amount=iHeal,#precision=TRUE);
+      foreach i in Send(oTarget,@GetEnchantmentsByClass,#enchClass=&Hex)
+      {
+         iHeal = Send(Nth(i,2),@ModifyHeal,#amount=iHeal,#state=Nth(i,3));
+      }
+
+      if iHeal < 0
+         AND Send(who,@AllowPlayerAttack,#victim=oTarget)
+      {
+         iResult = 0;
+         iResult = Send(oTarget,@AssessDamage,#what=who,
+                                #damage=-iHeal,
+                                #aspell=ATCK_SPELL_ALL+ATCK_SPELL_HOLY,
+                                #precision=TRUE);
+
+         if iResult = $
+         {
+            % The target died!
+            if IsClass(who,&Battler)
+            {
+               Send(who,@KilledSomething,#what=oTarget,#use_weapon=self);
+            }
+         }
+         else
+         {
+            if who <> oTarget
+            {
+               Send(who,@MsgSendUser,#message_rsc=hospice_heal_harm_other_rsc,
+                                     #parm1=Send(oTarget,@GetDef),
+                                     #parm2=Send(oTarget,@GetName),
+                                     #parm3=iResult/100);
+               Send(oTarget,@MsgSendUser,#message_rsc=hospice_heal_harm_rsc,
+                                         #parm1=Send(who,@GetCapDef),
+                                         #parm2=Send(who,@GetName),
+                                         #parm3=iResult/100);
+            }
+            else
+            {
+               Send(who,@MsgSendUser,#message_rsc=hospice_heal_harm_self_rsc,
+                                     #parm1=iResult/100);
+            }
+         }
+
+         propagate;
+      }
+      else
+      {
+         iHeal = Send(oTarget,@GainHealthNormal,#amount=iHeal,#precision=TRUE);
+         if IsClass(oTarget,&Player)
+         {
+            Send(oTarget,@RemoveEnchantmentClass,#class=&Bleed);
+         }
+      }
+
       if who <> oTarget 
       {
          Send(who,@MsgSendUser,#message_rsc=hospice_cast_on_other,
@@ -132,10 +194,30 @@ messages:
                   #karma_doer=Send(who,@GetKarma),#karma_act=Send(oTarget,@GetKarma),
                   #Swing_factor=2));
          }
+         
+         oRoom = Send(oTarget,@GetOwner);
+         if oRoom <> $
+            AND Send(oRoom,@IsInBuilderGroup,#who=oTarget)
+         {
+            Send(who,@JoinBuilderGroup);
+         }
+         
+         % Notify room we healed someone.
+         if oRoom <> $
+         {
+            Send(oRoom,@PlayerHealedSomeone,#caster=who,#oTarget=oTarget,#iHealAmount=iHeal/100);
+         }
       }
       else
       {
          Send(who,@MsgSendUser,#message_rsc=hospice_cast_self,#parm1=iHeal/100);
+         
+         oRoom = Send(oTarget,@GetOwner);
+         % Notify room we healed someone.
+         if oRoom <> $
+         {
+            Send(oRoom,@PlayerHealedSomeone,#caster=who,#oTarget=oTarget,#iHealAmount=iHeal/100);
+         }
       }
 
       propagate;

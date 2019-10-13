@@ -20,7 +20,7 @@ resources:
    Dagger_name_rsc = "dagger"
    Dagger_icon_rsc = bkswd.bgf
    Dagger_desc_rsc = \
-   "This elegant blade looks like it would fit snugly between a pair of shoulder blades."
+      "This elegant blade looks like it would fit snugly between a pair of shoulder blades."
 
    dagger_ammo_name = "throwing dagger"
 
@@ -48,6 +48,14 @@ classvars:
    
    vcAmmo = &ThrowingDagger
 
+   vbCanApplyPoison = TRUE
+   
+   viIncHexEffect = 11
+   
+   % Chance to apply knockbacks, stuns, and bleeds
+   viCriticalHitRate = 5
+   vbCanBleed = TRUE
+
 properties:
 
    piAttack_type = ATCK_WEAP_NONMAGIC+ATCK_WEAP_PIERCE
@@ -56,12 +64,29 @@ messages:
 
    GetParryAbility(who=$)
    {
-      return send(who,@GetSkillAbility,#skill_num=SKID_PARRY) * 2;
+      local iInverseHealthPercentage;
+      if Send(who,@HasMasteredThisSkill,#num=viProficiency_Needed)
+      {
+         % Up to double the parry defense as health gets lower
+         iInverseHealthPercentage = 100 - ((Send(who,@GetHealth)*100)/(Send(who,@GetMaxHealth)));
+         return (Send(who,@GetSkillAbility,#skill_num=SKID_PARRY) * 2) + (Send(who,@GetSkillAbility,#skill_num=SKID_PARRY)*2*iInverseHealthPercentage)/100;
+      }
+      return Send(who,@GetSkillAbility,#skill_num=SKID_PARRY) * 2;
    }
 
    GetAmmoType()
    {
       return vcAmmo;
+   }
+
+   GetDefaultStrokeNumber()
+   {
+      return SKID_STAB;
+   }
+
+   GetHexIncEffect()
+   {
+      return viIncHexEffect;
    }
 
 end

@@ -87,7 +87,15 @@ messages:
 
    ReqNewApply(what=$,apply_on=$)
    {
-      if NOT Send(apply_on,@ReqEatSomething,#filling=viFilling)
+      local iFilling;
+      
+      iFilling = viFilling;
+      if Send(apply_on,@HasSkill,#num=SKID_POTION_PRESERVATION)
+      {
+         iFilling = (iFilling * (99-Send(apply_on,@GetSkillAbility,#skill_num=SKID_POTION_PRESERVATION))) / 100;
+      }
+      
+      if NOT Send(apply_on,@ReqEatSomething,#filling=iFilling)
       {
          return FALSE;
       }
@@ -102,7 +110,7 @@ messages:
 
    NewApplied(what=$,apply_on=$)
    {
-      local oSpell;
+      local oSpell, iFilling;
 
       if isClass(apply_on,&User)
       {
@@ -133,8 +141,14 @@ messages:
 
          return;
       }
+      
+      iFilling = viFilling;
+      if Send(apply_on,@HasSkill,#num=SKID_POTION_PRESERVATION)
+      {
+         iFilling = (iFilling * (99-Send(apply_on,@GetSkillAbility,#skill_num=SKID_POTION_PRESERVATION))) / 100;
+      }
 
-      Send(apply_on,@EatSomething,#nutrition=0,#filling=viFilling);
+      Send(apply_on,@EatSomething,#nutrition=0,#filling=iFilling);
 
       propagate;
    }

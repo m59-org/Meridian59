@@ -73,6 +73,9 @@ classvars:
    viTeleport_row = 56
    viTeleport_col = 39
 
+   viLongitude = 6
+   viLatitude = 18
+
    viTerrain_type = TERRAIN_CITY | TERRAIN_ROAD | TERRAIN_FIELDS | TERRAIN_FOREST
 
    viFlag_row = 36
@@ -106,6 +109,11 @@ messages:
       if what = $
       {
          propagate;
+      }
+ 
+      if IsClass(what,&Player)
+      {
+         Post(Send(SYS,@GetGameQuestMaintenance),@EvaluatePlayer,#who=what,#vbTriggered=TRUE);
       }
 
       who = send(what,@GetOwner);
@@ -154,12 +162,27 @@ messages:
 
    SomethingMoved(what = $,new_row = $, new_col = $)
    {
+      local oChaosStrata, oRoom;
+
       if (new_row > 83) and (new_col > 48)
       {
-         Send(SYS,@UtilGoNearSquare,#what=what,
-              #where=Send(SYS,@FindRoomByNum,#num=RID_C5),
+         oRoom = Send(SYS,@FindRoomByNum,#num=RID_C5);
+         
+         oChaosStrata = Send(SYS,@FindRoomByNum,#num=RID_CHAOS_STRATA_START);
+         if Send(oChaosStrata,@IsActive)
+            AND Send(oChaosStrata,@GetBaseRoom) = oRoom
+            AND Send(what,@GetNumReincarnations) >= Send(SETTINGS_OBJECT,@GetMinChaosStrataReincarnations)
+         {
+            Send(SYS,@UtilGoNearSquare,#what=what,
+              #where=oChaosStrata,
               #new_row=3,#new_col=23,#new_angle=ANGLE_SOUTH_WEST);
-              
+         }
+         else
+         {
+            Send(SYS,@UtilGoNearSquare,#what=what,
+                 #where=oRoom,
+                 #new_row=3,#new_col=23,#new_angle=ANGLE_SOUTH_WEST);
+         }
          return;
       }
 
@@ -218,6 +241,8 @@ messages:
       plExits = Cons([ 15, 23, ROOM_LOCKED_DOOR, marion_barn_rsc ],plExits);
       plExits = Cons([ 16, 22, ROOM_LOCKED_DOOR, marion_barn_rsc ],plExits);
       plExits = Cons([ 16, 23, ROOM_LOCKED_DOOR, marion_barn_rsc ],plExits);
+      
+      plExits = Cons([ 18, 72, ROOM_LOCKED_DOOR, marion_barn_rsc ],plExits);
 
       plExits = Cons([ 80, 15, RID_MAR_CRYPT1, 11, 17, ROTATE_NONE ],plExits);
 

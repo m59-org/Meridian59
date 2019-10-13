@@ -1,0 +1,76 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+SkyHeartStone is HeartStone
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   include hstonsky.lkod
+
+   SkyHeartStone_name_rsc = "sky heartstone shard"
+   SkyHeartStone_name_plural = "sky heartstone shards"
+   SkyHeartStone_desc_rsc = \
+      "This is a shard of a 'heartstone'.  It is a sky blue gem taken from "
+      "the body of a fallen Ve'Xeochicatl.  The heartstone feels very light "
+      "in your hands.  The uses for this gem are not widely known."
+
+classvars:
+
+   vrName = SkyHeartStone_name_rsc
+   vrDesc = SkyHeartStone_desc_rsc
+   
+   vrName_plural = SkyHeartStone_name_plural
+
+   viValue_average = 100
+   viWeight = 5
+   viBulk = 10
+
+   viColor = XLAT_TO_SKY
+
+properties:
+
+messages:
+
+   CreateXeo()
+   {
+      return Create(&XeoAir,#InAttack=Send(self,@IsInAttack));
+   }
+
+   WeightPrefixes()
+   {
+      return [[&OffenseMod,100],
+              [&ShockEmpowermentMod,200]
+             ];
+   }
+   
+   WeightSuffixes()
+   {
+      return [[&ShockResistanceMod,200]
+             ];
+   }
+
+   EmpowerAffixes()
+   {
+      return [[&OffenseMod,50],
+              [&ShockResistanceMod,5]
+             ];
+   }
+   
+   GetForgeType()
+   {
+      return FORGE_SHOCK;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

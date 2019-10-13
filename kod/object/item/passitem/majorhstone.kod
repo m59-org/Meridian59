@@ -1,0 +1,424 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+MajorHeartStone is PassiveItem
+
+constants:
+
+   include blakston.khd
+
+   RESPAWN_MIN = 30000     % Minimum respawn time in milliseconds, 30 seconds
+   RESPAWN_MAX = 300000    % Maximum respawn time in milliseconds, 5 minutes
+
+   APPLY_SUCCESS = 1
+   THIS_SHARD_CANNOT_APPLY = 2
+   NO_SPACE_FOR_MODS = 3
+   NO_MODS_FOUND = 4
+   UNKNOWN_ERROR = 5
+   NO_ITEM = 6
+   NO_PLAYER = 7
+   WEIGHT_TEST_FAILED = 8
+   MOD_NOT_FOUND = 9
+
+resources:
+
+   Major_HeartStone_icon_rsc = xeogem.bgf
+   Major_HeartStone_name_rsc = "major heartstone"
+   Major_HeartStone_desc_rsc = \
+      "This is called a 'heartstone'.  It is a huge gem taken from the "
+      "body of a fallen Vix'Xeochicatl."
+
+   Major_HeartStone_applied_rsc = \
+      "The %s momentarily glows with the same color as the heartstone."
+
+   major_invalid_item_msg = \
+      "You need to apply the shard to an item!"
+   major_no_mods_found_msg = \
+      "There are no available modifications remaining to apply to this item."
+   major_no_space_for_mods_msg = \
+      "This item has no more capacity for magical modifications!"
+   major_weight_test_failed_msg = "The shard didn't do its math correctly!"
+
+   
+classvars:
+
+   vrName = Major_HeartStone_name_rsc
+   vrDesc = Major_HeartStone_desc_rsc
+   vrIcon = Major_HeartStone_icon_rsc
+
+   viValue_average = 100
+   viWeight = 20
+   viBulk = 10
+
+   viColor = 0
+   viUse_type = ITEM_SINGLE_USE
+
+   vrApplied = Major_HeartStone_applied_rsc
+
+properties:
+
+   ptRespawn = $           % Time until dropped stone respawns.
+   
+   viObject_flags = OF_APPLYABLE | OF_GETTABLE
+   
+   piForgeValue = 1500
+
+messages:
+
+   Constructor()
+   {
+      piItem_flags = Send(SYS,@EncodeTwoColorXLAT,#color1=viColor);
+      
+      piForgeValue = Random(1000,2500);
+
+      propagate;
+   }
+
+   NewOwner(what = $)
+   {
+      if (IsClass(what,&Room))
+         AND (NOT Send(what,@CheckRoomFlag,#flag=ROOM_NO_COMBAT))
+      {
+         if Send(Send(SYS,@GetNodeAttack),@GetRespawn)
+         {
+            ptRespawn = CreateTimer(self,@RespawnXeoTimer,
+                                 Random(RESPAWN_MIN,RESPAWN_MAX));
+         }
+      }
+      else
+      {
+         if ptRespawn <> $
+         {
+            DeleteTimer(ptRespawn);
+         }
+
+         ptRespawn = $;
+      }
+
+      propagate;
+   }
+
+   RespawnXeoTimer()
+   {
+      ptRespawn = $;
+      Send(self,@RespawnXeo);
+
+      return;
+   }
+
+   RespawnXeo()
+   {
+      local oXeochicatl, iRow, iCol;
+
+      if ptRespawn <> $
+      {
+         DeleteTimer(ptRespawn);
+
+         ptRespawn = $;
+      }
+
+      oXeochicatl = Send(self,@CreateXeo);
+      iRow = Send(self,@GetRow);
+      iCol = Send(self,@GetCol);
+
+      if NOT IsClass(poOwner,&Room)
+      {
+         Debug("HStone::RespawnXeo called while not in a room!");
+
+         return;
+      }
+
+      if Send(poOwner,@ReqNewHold,#what=oXeochicatl,#new_row=iRow,#new_col=iCol)
+      {
+         Send(poOwner,@NewHold,#what=oXeochicatl,#new_row=iRow,#new_col=iCol);
+         Post(self,@Delete);
+      }
+      else
+      {
+         ptRespawn = CreateTimer(self,@RespawnXeoTimer,
+                              Random(RESPAWN_MIN,RESPAWN_MAX));
+      }
+
+      return;
+   }
+
+   IsInAttack()
+   {
+      return (Send(poOwner,@FindHolding,#class=&ManaNode)
+                  = Send(Send(SYS,@GetNodeAttack),@GetAttackedNode));
+   }
+
+   Delete()
+   {
+      if ptRespawn <> $
+      {
+         DeleteTimer(ptRespawn);
+      }
+
+      ptRespawn = $;
+
+      propagate;
+   }
+
+   CanBeStoredInVault()
+   {
+      return TRUE;
+   }
+
+   DestroyDisposable()
+   {
+      return FALSE;
+   }
+
+   ReqNewApply(what = $,apply_on = $)
+   {
+      local i;
+      
+      if what = $
+         OR NOT IsClass(what,&Player)
+      {
+         return;
+      }
+
+      foreach i in Send(what,@GetPlayerUsing)
+      {
+         if i = apply_on
+         {
+            return FALSE;
+         }
+      }
+
+      if apply_on <> $
+         AND (IsClass(apply_on,&Weapon)
+            OR IsClass(apply_on,&DefenseModifier)
+            OR IsClass(apply_on,&Ring)
+            OR IsClass(apply_on,&Gauntlet))
+         AND Send(apply_on,@GetMagicModsNumber) = 0
+      {
+         % This shard only applies to non-enchanted gear
+         return TRUE;
+      }
+
+      return FALSE;
+   }
+
+   NewApplied(what = $,apply_on = $)
+   {
+      Send(what,@MsgSendUser,#message_rsc=vrApplied,
+                             #parm1=Send(apply_on,@GetName));
+
+      if Send(self,@GenerateMod,#oItem=apply_on,#who=what) = 1
+      {
+         Post(self,@Delete);
+      }
+      Send(self,@GenerateMod,#oItem=apply_on,#who=what);
+      Send(self,@GenerateMod,#oItem=apply_on,#who=what);
+      if Random(1,2) = 1
+      {
+         Send(self,@GenerateMod,#oItem=apply_on,#who=what);
+      }
+      if Random(1,2) = 1
+      {
+         Send(self,@GenerateMod,#oItem=apply_on,#who=what);
+      }
+      if Random(1,2) = 1
+      {
+         Send(self,@GenerateMod,#oItem=apply_on,#who=what);
+      }
+
+      return;
+   }
+
+   WeightPrefixes()
+   {
+      % Some shards weight mod chances.
+      % For example, a red heartstone puts emphasis on fire resistance and health.
+      return $;
+   }
+   
+   WeightSuffixes()
+   {
+      return $;
+   }
+
+   EmpowerAffixes()
+   {
+      % Some shards improve the range of power of a mod.
+      % If the value is 3, for example, the rolled result of a mod is given +3.
+      return $;
+   }
+
+   GenerateMod(who=$,oItem=$)
+   {
+      local i, n, lPrefixes, lSuffixes, cChosenMod, oChosenMod, lCombined, iTotalWeight, iChosenWeight,
+            iRolledPower;
+      % If we fail to generate a mod, tell them why and don't consume the shard.
+      
+      if who = $
+      {
+         return NO_PLAYER;
+      }
+
+      if oItem = $
+      {
+         Post(who,@MsgSendUser,#message_rsc=major_invalid_item_msg);
+         return NO_ITEM;
+      }
+      
+      lPrefixes = Send(oItem,@GetPrefixes);
+      lSuffixes = Send(oItem,@GetSuffixes);
+
+      foreach i in lPrefixes
+      {
+         if Send(oItem,@HasMagicModOfClass,#class=Nth(i,1))
+         {
+            lPrefixes = DelListElem(lPrefixes,i);
+         }
+      }
+
+      foreach i in lSuffixes
+      {
+         if Send(oItem,@HasMagicModOfClass,#class=Nth(i,1))
+         {
+            lSuffixes = DelListElem(lSuffixes,i);
+         }
+      }
+
+      if lPrefixes = $
+         AND lSuffixes = $
+      {
+         Post(who,@MsgSendUser,#message_rsc=major_no_mods_found_msg);
+         return NO_MODS_FOUND;
+      }
+
+      if Send(oItem,@GetMagicModsNumberOfType,#type=MOD_PREFIX) >= 3
+      {
+         lPrefixes = $;
+      }
+      if Send(oItem,@GetMagicModsNumberOfType,#type=MOD_SUFFIX) >= 3
+      {
+         lSuffixes = $;
+      }
+
+      if lPrefixes = $
+         AND lSuffixes = $
+      {
+         Post(who,@MsgSendUser,#message_rsc=major_no_space_for_mods_msg);
+         return NO_SPACE_FOR_MODS;
+      }
+
+      % We've removed all mods the item already has.
+      % We've removed all mods from bins the item is maxed out on.
+      % Anything chosen now will be a mod the item doesn't have for a bin that is open.
+      % Let's combine into a list for easy random selection.
+      % We've also guaranteed at least one of these lists is not nil.
+      % Let's let the shard alter values.
+      
+      foreach i in lPrefixes
+      {
+         foreach n in Send(self,@WeightPrefixes)
+         {
+            if Nth(i,1) = Nth(n,1)
+            {
+               SetNth(i,2,Nth(i,2) + Nth(n,2));
+            }
+         }
+      }
+
+      foreach i in lSuffixes
+      {
+         foreach n in Send(self,@WeightSuffixes)
+         {
+            if Nth(i,1) = Nth(n,1)
+            {
+               SetNth(i,2,Nth(i,2) + Nth(n,2));
+            }
+         }
+      }
+
+      foreach i in lPrefixes
+      {
+         lCombined = Cons(i,lCombined);
+      }
+      foreach i in lSuffixes
+      {
+         lCombined = Cons(i,lCombined);
+      }
+
+      % Now we have a list of [Mod, Weight] with shard weighting factored in
+      % Let's get the sum of the weights
+      
+      iTotalWeight = 0;
+      foreach i in lCombined
+      {
+         iTotalWeight = iTotalWeight + Nth(i,2);
+      }
+
+      % Let's pinpoint our weight target.
+      iChosenWeight = Random(1,iTotalWeight);
+
+      % What have we pinpointed?
+      foreach i in lCombined
+      {
+         iChosenWeight = iChosenWeight - Nth(i,2);
+         if iChosenWeight <= 0
+         {
+            % Found it!
+            cChosenMod = Nth(i,1);
+            break;
+         }
+      }
+
+      if iChosenWeight > 0
+      {
+         % We never found a mod?
+         Post(who,@MsgSendUser,#message_rsc=major_weight_test_failed_msg);
+         return WEIGHT_TEST_FAILED;
+      }
+
+      oChosenMod = Send(SYS,@GetMagicMod,#class=cChosenMod);
+      if oChosenMod = $
+      {
+         Debug(cChosenMod," not found by SYS!");
+         return MOD_NOT_FOUND;
+      }
+      iRolledPower = Send(oChosenMod,@RollPower,#what=oItem);
+
+      % Let our shard empower the affix.
+      foreach i in Send(self,@EmpowerAffixes)
+      {
+         if Nth(i,1) = cChosenMod
+         {
+            iRolledPower = iRolledPower + Nth(i,2);
+         }
+      }
+
+      % Now we have a mod that has not already been applied, is in a bin with free space,
+      % and empowered by the shard. Let's apply it.
+      if Send(oItem,@ApplyMagicMod,#cClass=cChosenMod,#iPower=iRolledPower)
+      {
+         return APPLY_SUCCESS;
+      }
+
+      return UNKNOWN_ERROR;
+   }
+   
+   GetForgeValue()
+   {
+      return piForgeValue;
+   }
+   
+   GetForgeType()
+   {
+      return FORGE_FIRE;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

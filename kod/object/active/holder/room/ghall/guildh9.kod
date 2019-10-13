@@ -10,6 +10,10 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 GuildHall9 is GuildHall
 
+% The Abandoned Warehouse is extremely basic. Its portal goes to Jasper vaults.
+%    Crate layout allows for more dynamic combat.
+%    Blink spot is on top of some crates for height advantage.
+
 constants:
 
    MAINDOOR = 1
@@ -25,6 +29,10 @@ resources:
 
    room_name_guildh9 = "The Abandoned Warehouse"
    room_guildh9 = guildh9.roo
+   
+   room_guildh9_portal_desc = \
+      "This portal flickers with the logistical energies of vaults and tabulation. "
+      "A shimmering view of The Vault of Jasper can be seen in its inner distance."
 
 classvars:
 
@@ -32,6 +40,9 @@ classvars:
 
    viTeleport_row = 9
    viTeleport_col = 19
+
+   viLongitude = 21
+   viLatitude = 5
 
    viNews_row = 25
    viNews_col = 24
@@ -53,8 +64,47 @@ classvars:
 
    viQuality = 1
    viTerrain_type = TERRAIN_CITY | TERRAIN_GUILDHALL
-
    viSeconds_til_close = 7
+   
+   viPortalOneRow = 25
+   viPortalOneCol = 19
+   viPortalOneFineRow = 32
+   viPortalOneFineCol = 32
+   viPortalOneAngle = ANGLE_NORTH
+   viPortalOneDestRID = RID_JAS_VAULT
+   viPortalOneDestRow = 3
+   viPortalOneDestCol = 9
+   viPortalOneDestFineRow = 38
+   viPortalOneDestFineCol = 17
+   viPortalOneDestAngle = ANGLE_SOUTH_WEST
+   vsPortalOneDesc = room_guildh9_portal_desc
+   
+   viReliquaryOneRow = 25
+   viReliquaryOneCol = 5
+   viReliquaryOneFineRow = 47
+   viReliquaryOneFineCol = 15
+   
+   % Fusing device rates go from 8 (worst) to 4 (best) 
+   viShardFusingDeviceRow = 12
+   viShardFusingDeviceCol = 24
+   viShardFusingDeviceFineRow = 32
+   viShardFusingDeviceFineCol = 47
+   viShardFusingDeviceRate = 8
+   
+   % Fusing device rates go from 2 (worst) to 4 (best) 
+   viShardShatteringDeviceRow = 15
+   viShardShatteringDeviceCol = 24
+   viShardShatteringDeviceFineRow = 32
+   viShardShatteringDeviceFineCol = 47
+   viShardShatteringDeviceRate = 2
+   
+   viFociOneRow = 12
+   viFociOneCol = 5
+   viFociOneFineRow = 23
+   viFociOneFineCol = 15
+   viFociOnePower = 99
+   viFociOneRange = 2
+   viFociOneSpellNum = SID_REJUVENATE
 
 properties:
 
@@ -66,6 +116,14 @@ properties:
 
    ptSecret = $
    ptEntrance = $
+   
+   piTotemSpellNum = SID_REJUVENATE
+   poTotemOne = $
+   
+   % The Abandoned Warehouse boosts all skill and spell meditation by a tiny amount.
+   piGuildHallMeditateEffiency = 105
+   % This hall also boosts meditation of the spell Seduce by 4x for reasons beyond anyone's understanding.
+   piSpecialGuildHallMeditateEfficiency = 400
 
 messages:
 
@@ -93,6 +151,8 @@ messages:
 
    Delete()
    {
+      local oSpell;
+
       if ptSecret <> $
       {
          DeleteTimer(ptSecret);
@@ -174,6 +234,37 @@ messages:
             #new_row=6,#new_col=5,#fine_col=24,#new_angle=ANGLE_SOUTH_EAST);
 
       propagate;
+   }
+
+   GetTotemLightIntensity(what=$)
+   {
+      if poTotemOne <> $
+         AND what = poTotemOne
+      {
+         return 30;
+      }
+
+      return 0;
+   }
+
+   GetTotemLightColor(what=$)
+   {
+      if poTotemOne <> $
+         AND what = poTotemOne
+      {
+         return LIGHT_BLUE;
+      }
+      return LIGHT_GREEN;
+   }
+   
+   DoesPlayerQualifyForSpecialMeditateRatio(who=$,oSpell=$,oSkill=$)
+   {
+      if oSpell <> $
+         AND Send(oSpell,@GetSpellNum) = SID_SEDUCE
+      {
+         return TRUE;
+      }
+      return FALSE;
    }
 
 end

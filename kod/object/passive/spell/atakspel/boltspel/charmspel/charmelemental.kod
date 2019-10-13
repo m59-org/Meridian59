@@ -1,0 +1,109 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+CharmElemental is CharmSpell
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   CharmElemental_name_rsc = "prismatic charm"
+
+   CharmElemental_icon_rsc = charmprojectile.bgf
+
+   CharmElemental_desc_rsc = \
+      "Attempts to seize control of an elemental's connection to its plane to make it "
+      "follow you and fight for you. If you are a student of nature "
+      "and know how to focus your mana, this spell can be made more effective. "
+      "Requires ice dragon scales and yellow mushrooms to cast."
+
+   CharmElemental_sound = rdement.wav
+
+   CharmElemental_projectile_icon_rsc = charmprojectile.bgf
+
+classvars:
+
+   vrName = CharmElemental_name_rsc
+   vrIcon = CharmElemental_icon_rsc
+   vrDesc = CharmElemental_desc_rsc
+   
+   viSpell_num = SID_CHARM_ELEMENTAL
+
+   viAttack_spell = ATCK_SPELL_ALL + ATCK_SPELL_CHARM
+   viCharmedType = CREATURE_TYPE_ELEMENTAL
+
+   viSpell_level = 6
+   viMeditate_ratio = 60
+   viMana = 30
+
+   vrSucceed_wav = CharmElemental_sound
+
+   % In seconds, since it works off GetTime().
+   viPostCast_time = 2
+
+   viChance_To_Increase = 15
+
+   vrProjectile_Icon = CharmElemental_projectile_icon_rsc
+
+   % Short range blast
+   vbIsRangedAttack = FALSE
+
+   % Projectile lighting information.
+   viProjectileLightFlags = LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC
+   % Medium light range, out of 255.
+   viProjectileLightIntensity = 100
+   % Default color is lightning.
+   viProjectileLightColor = LIGHT_RED
+   
+   viProjectileSpeed = 10
+
+properties:
+
+   piDamageMin = 3
+   piDamageMax = 12
+   piRange = 8 * FINENESS
+
+   % Maximum amount of bonus damage mana focus gives us for casting this spell.
+   piManaFocusBonus = 5
+   
+   piExtraCharmMultiple = 4
+
+messages:
+
+   ResetReagents()
+   {
+      % separate message so can change, then set from admin mode
+
+      plReagents = $;
+      plReagents = Cons([&IceDragonScale,2],plReagents);
+      plReagents = Cons([&YellowMushroom,2],plReagents);
+ 
+      return;
+   }
+
+   SendLookAnimation()
+   {
+      AddPacket(1,ANIMATE_NONE, 2,2);
+
+      return;
+   }
+
+   SendProjectileAnimation()
+   {
+      % 40ms between animations, between frames 1-6
+      AddPacket(1,ANIMATE_CYCLE, 4,40, 2,1, 2,6);   
+
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

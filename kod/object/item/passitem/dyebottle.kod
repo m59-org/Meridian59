@@ -1,0 +1,187 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+DyeBottle is PassiveItem
+
+constants:
+
+   include blakston.khd
+
+   % set item flags to this for colors on instillinggem type
+   GREY_FIRST = 49
+   GREY_SECOND = 50
+   GREY_THIRD = 51
+   GREY_FOURTH = 54
+   GREY_FIFTH = 55
+   GREY_SIXTH = 56
+
+   GREEN_FIRST = 57
+
+   GREYISH_FIRST = 65
+
+   ANOTHER_GREY = 66
+
+   PEACH = 67
+   REDDER_PEACH = 68
+   REDDISH = 69
+   REDDER = 70
+   VERY_RED = 71
+   EVEN_MORE_RED = 72
+   ALL_RED = 73
+   ALL_DARK_RED = 74
+
+   % This one is great
+   EFFULGENT_RED = 77
+   EFFULGENT_BLUE = 78
+   EFFULGENT_GREEN = 79
+   
+   WEIRD_SILVER = 81
+   WEIRD_BLUE = 82
+   WEIRD_GREEN = 83
+   
+   WEIRDER_BLUE = 85
+   WEIRDER_GREEN = 86
+   WEIRDER_RED = 87
+   
+   BLOOD_GEM = 96
+   CLOUDED_GEM = 97
+   
+   WHITE_RANGE = 113
+   WHITE_MAX_RANGE = 120
+
+resources:
+
+   dye_bottle_name_rsc = "bottle of dye"
+   dye_bottle_icon_rsc = dyebottle.bgf
+   dye_bottle_desc_written_rsc = \
+      "This bottle of dye can be applied to color items. "
+      "The bottle and cap show the color or colors within, and can only be used once."
+
+   armor_too_big_msg = \
+      "There doesn't seem to be a viable way to dye an entire armor."
+   ranged_weapon_too_big_msg = \
+      "The wood of this bow was sealed during the manufacturing process and can't be dyed."
+   dye_item_msg = \
+      "You apply the dye to your %s."
+      
+   cannot_dye_equipped_item = \
+      "You can't dye an item while you're wearing it! You'd get all stained!"
+
+   cannot_dye_clothing = \
+      "This clothing has already been dyed during its manufacturing process. New dye won't stick."
+
+classvars:
+
+   vrName = dye_bottle_name_rsc
+   vrIcon = dye_bottle_icon_rsc
+   vrDesc = dye_bottle_desc_written_rsc
+
+   viUse_type = ITEM_SINGLE_USE
+
+properties:
+
+   viObject_flags = OF_APPLYABLE | OF_GETTABLE
+   piBottleColor = EFFULGENT_RED
+
+messages:
+
+   Constructor(iColor=$)
+   {
+      local lColors;
+
+      if iColor <> $
+      {
+         piBottleColor = iColor;
+      }
+      else
+      {
+         lColors = [EFFULGENT_RED,
+                    EFFULGENT_GREEN,
+                    EFFULGENT_BLUE,
+                    WEIRD_SILVER,
+                    WEIRD_BLUE,
+                    WEIRD_GREEN,
+                    BLOOD_GEM,
+                    GREEN_FIRST,
+                    PEACH,
+                    WEIRDER_BLUE,
+                    WEIRDER_GREEN,
+                    WEIRDER_RED,
+                    CLOUDED_GEM,
+                    WHITE_RANGE];
+         piBottleColor = Nth(lColors,Random(1,Length(lColors)));
+      }
+
+      propagate;
+   }
+
+   Constructed()
+   {
+      if piBottleColor <> 0
+      {
+         piItem_flags = piBottleColor;
+      }
+      propagate;
+   }
+
+   ReqNewApply(what = $,apply_on = $)
+   {
+      local i;
+
+      if apply_on <> $
+      {
+         if IsClass(apply_on,&Armor)
+         {
+            Send(what,@MsgSendUser,#message_rsc=armor_too_big_msg);
+            return FALSE;
+         }
+         if IsClass(apply_on,&RangedWeapon)
+         {
+            Send(what,@MsgSendUser,#message_rsc=ranged_weapon_too_big_msg);
+            return FALSE;
+         }
+
+         foreach i in Send(what,@GetPlayerUsing)
+         {
+            if i = apply_on
+            {
+               Send(what,@MsgSendUser,#message_rsc=cannot_dye_equipped_item);
+               return FALSE;
+            }
+         }
+
+         if IsClass(apply_on,&ShirtBase)
+            OR IsClass(apply_on,&Pants)
+         {
+            Send(what,@MsgSendUser,#message_rsc=cannot_dye_clothing);
+            return FALSE;
+         }
+         
+         if IsClass(apply_on,&DefenseModifier)
+            OR IsClass(apply_on,&Weapon)
+         {
+            return TRUE;
+         }
+      }
+      return FALSE;
+   }
+
+   NewApplied(what = $,apply_on = $)
+   {
+      Send(what,@MsgSendUser,#message_rsc=dye_item_msg,#parm1=Send(apply_on,@GetName));
+      Send(apply_on,@SetItemFlags,#value=piBottleColor);
+      Send(poOwner,@SomethingChanged,#what=apply_on);
+      Send(self,@Delete);
+
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

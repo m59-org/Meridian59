@@ -52,6 +52,9 @@ classvars:
    viMeditate_ratio = 30
 
    viFlash = FLASH_GOOD
+   
+   viPrimaryStat = STAT_ID_MYSTICISM
+   viSecondaryStat = STAT_ID_KARMA
 
 properties:
 
@@ -105,10 +108,10 @@ messages:
 
       % Start with the base time.  Reduce time by spellpower.
       iDelay = 1000 * Send(SETTINGS_OBJECT, @RescueBaseDelaySec);
-      iDelay = iDelay - (iSpellPower * iDelay) / 100 / 4;
+      iDelay = iDelay - (iSpellPower * iDelay) / 100 / 2;
 
       % Add a little delay in sometimes.
-      if random(1,2) = 1
+      if random(1,4) = 1
       {
          iDelay = iDelay + random(2000, 6000);
       }
@@ -129,40 +132,63 @@ messages:
 
       if oCurrentRoom <> $
       {
-         % Are they guilded with a guild hall?
-         oGuild = Send(who,@GetGuild);
-         if oGuild <> $
-            AND NOT Send(who,@CheckPlayerFlag,#flag=PFLAG_TEMPSAFE)
-         {
-            oTargetRoom = Send(oGuild,@GetGuildHall);
-
-            % If we have a guild hall, and not already in the guild hall,
-            %  and we're in the same region as the hall, go there.
-            if oTargetRoom <> $
-               AND oTargetRoom <> oCurrentRoom
-               AND Send(oTargetRoom,@GetRegion) = Send(oCurrentRoom,@GetRegion)
-            {
-               Post(oTargetRoom,@Teleport,#what=who);
-
-               return;
-            }
-         }
-
-         % Teleport to Ko'catan Inn if we're in Kocatan, or at Vigor Pool.
+         % Teleport to Ko'catan Inn if we're in Kocatan.
          if Send(oCurrentRoom,@GetRegion) = RID_KOCATAN
-            OR Send(oCurrentRoom,@GetRoomNum) = RID_ORC_CAVE5_EXT
          {
             oTargetRoom = Send(SYS,@FindRoomByNum,#num=RID_KOC_INN);
             Post(oTargetRoom,@Teleport,#what=who);
 
             return;
          }
-
-         % If we're in the orc caves, teleport to the Pool of Vigor.
-         % Except: actually being in the Pool of Vigor is handled above.
-         if Send(oCurrentRoom,@GetRegion) = RID_ORC_CAVE1
+         % Teleport to Xaerdun if we're in the Desert afterlife
+         if Send(oCurrentRoom,@GetRegion) = RID_DESERTALDUNES
          {
-            oTargetRoom = Send(SYS,@FindRoomByNum,#num=RID_ORC_CAVE5_EXT);
+            oTargetRoom = Send(SYS,@FindRoomByNum,#num=RID_DESERTALDUNES);
+            Post(oTargetRoom,@Teleport,#what=who);
+
+            return;
+         }
+
+         % Teleport to desert drop if we're in Waylay Oasis
+         if Send(oCurrentRoom,@GetRoomNum) = RID_WAYLAYOASIS
+         {
+            oTargetRoom = Send(SYS,@FindRoomByNum,#num=RID_DESERTSHORE2);
+            Post(oTargetRoom,@Teleport,#what=who);
+            return;
+         }
+
+         % Teleport back to Cess Castle from drop
+         if Send(oCurrentRoom,@GetRoomNum) = RID_DESERTSHORE2
+         {
+            oTargetRoom = Send(SYS,@FindRoomByNum,#num=RID_CASTLE2F);
+            Post(oTargetRoom,@Teleport,#what=who);
+            return;
+         }
+
+         % Teleport to Waylay Oasis if we're past it
+         if Send(oCurrentRoom,@GetRoomNum) >= RID_DESERTRIVER1
+            AND Send(oCurrentRoom,@GetRoomNum) <= RID_DESERT_END
+         {
+            oTargetRoom = Send(SYS,@FindRoomByNum,#num=RID_WAYLAYOASIS);
+            Post(oTargetRoom,@Teleport,#what=who);
+
+            return;
+         }
+
+         % Teleport to Cisterns if we're in the maze
+         if Send(oCurrentRoom,@GetRoomNum) >= RID_MAZE_SEWER
+            AND Send(oCurrentRoom,@GetRoomNum) <= RID_FROZEN_CISTERN
+         {
+            oTargetRoom = Send(SYS,@FindRoomByNum,#num=RID_DESERTCANAL);
+            Post(oTargetRoom,@Teleport,#what=who);
+
+            return;
+         }
+
+         % Teleport to drop if we're in the Biskalane desert
+         if Send(oCurrentRoom,@GetRegion) = RID_DESERT
+         {
+            oTargetRoom = Send(SYS,@FindRoomByNum,#num=RID_DESERTSHORE2);
             Post(oTargetRoom,@Teleport,#what=who);
 
             return;

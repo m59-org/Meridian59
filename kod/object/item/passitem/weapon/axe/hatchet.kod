@@ -1,0 +1,71 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Hatchet is Weapon
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   hatchet_name_rsc = "hatchet"
+   hatchet_icon_rsc = balta.bgf
+   hatchet_desc_rsc = \
+      "Designed for a different style of combat than the traditional axe, "
+      "the hatchet serves a quick and lethal purpose."
+
+   hatchet_window_overlay_rsc = povbalta.bgf
+   hatchet_player_overlay = baltaov.bgf
+
+classvars:
+   vrName = hatchet_name_rsc
+   vrIcon = hatchet_icon_rsc
+   vrDesc = hatchet_desc_rsc
+
+   % Hatchets are normal quality slashing weapons.
+   viWeaponType = WEAPON_TYPE_SLASH
+   viWeaponQuality = WEAPON_QUALITY_NORMAL
+
+   viProficiency_Needed = SKID_PROFICIENCY_AXE
+
+   viValue_average = 1200
+   viWeight = 70
+   viBulk = 70
+
+   vrWeapon_window_overlay = hatchet_window_overlay_rsc
+   vrWeapon_overlay = hatchet_player_overlay
+
+   viGround_group = 1
+   viInventory_group = 3
+   viBroken_group = 2
+   
+   % Chance to apply knockbacks, stuns, and bleeds
+   viCriticalHitRate = 800
+   vbCanBleed = TRUE
+
+properties:
+
+   piAttack_type = ATCK_WEAP_NONMAGIC+ATCK_WEAP_SLASH
+
+messages:
+
+   CanCleave()
+   {
+      return TRUE;
+   }
+
+   GetCleaveModifier()
+   {
+      return 80;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

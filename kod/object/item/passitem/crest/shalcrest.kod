@@ -1,0 +1,87 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ShalilleCrest is Crest
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   Shalille_Crest_name_rsc = "Crest of the Healer"
+   Shalille_Crest_icon_rsc = shcharm.bgf
+   Shalille_Crest_desc_rsc = \
+      "You are the wisest among all of Shal'ille's followers. "
+      "This crest signifies that you are the master of her magics. "
+      "While wearing it, you will have access to an extremely powerful form of healing."
+
+   Shalille_Crest_learned_group_heal = \
+      "Shal'ille's blessing flows through the crest, granting you incredible healing magics."
+   Shalille_Crest_lost_group_heal = \
+      "Shal'ille's blessing leaves you."
+
+classvars:
+
+   vrName = Shalille_Crest_name_rsc
+   vrIcon = Shalille_Crest_icon_rsc
+   vrDesc = Shalille_Crest_desc_rsc
+
+   viValue_average = 10
+
+   viBulk = 25
+   viWeight = 25
+
+   viGround_group = 2
+
+properties:
+   
+   pbIn_use = False
+
+   piItemLevel = 300
+
+messages:
+
+   NewUsed(what = $)
+   {
+      if NOT Send(what,@HasSpell,#num=SID_GROUP_HEAL)
+         AND NOT Send(what,@HasSpell,#num=SID_STONE_TO_FLESH)
+      {
+         Send(what,@AddSpell,#num=SID_GROUP_HEAL,#iability=Send(what,@GetMysticism));
+         Send(what,@AddSpell,#num=SID_STONE_TO_FLESH,#iability=Send(what,@GetMysticism));
+         pbGrantedSpell = TRUE;
+         Send(what,@MsgSendUser,#message_rsc=Shalille_Crest_learned_group_heal);
+      }
+      
+      propagate;
+   }
+
+   NewUnused(what = $)
+   {
+      if pbGrantedSpell
+      {
+         Send(what,@RemoveSpell,#num=SID_GROUP_HEAL);
+         Send(what,@RemoveSpell,#num=SID_STONE_TO_FLESH);
+         pbGrantedSpell = FALSE;
+         
+         if Send(what,@IsLoggedOn)
+         {
+            Send(what,@MsgSendUser,#message_rsc=Shalille_Crest_lost_group_heal);
+            Post(what,@ToCliSpells);
+         }
+      }
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+

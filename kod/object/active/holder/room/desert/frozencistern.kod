@@ -1,0 +1,451 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+FrozenCistern is DesertRoom
+
+constants:
+
+   include blakston.khd
+   
+   MAIN_CEILING_SECTOR = 1
+   
+   DOOR_SECTOR = 2
+   
+   NORTH_BARRIER_BORDER = 100
+   NORTH_BARRIER_SECTOR = 101
+   DEFAULT_NORTH_BARRIER_HEIGHT = 100
+   
+   EAST_BARRIER_BORDER = 110
+   EAST_BARRIER_SECTOR = 111
+   DEFAULT_EAST_BARRIER_HEIGHT = 150
+   
+   SOUTH_BARRIER_BORDER = 120
+   SOUTH_BARRIER_SECTOR = 121
+   DEFAULT_SOUTH_BARRIER_HEIGHT = 70
+
+resources:
+  
+   room_name_FrozenCistern = "Frozen Cistern"
+   room_FrozenCistern = frozencistern.roo
+   FrozenCistern_music = bossfight.wav
+
+   fire_sound_FrozenCistern = wind-strong-01.wav
+   
+   ice_dragon_challenge_msg = \
+      "~kThe spirit of Vecka tells you, \"This is the nest of the beast. The ice dragon has taken many of our tribe over the years. "
+      "Kill the monstrous thing and take its eggs for your own!\""
+
+   ice_dragon_slain = \
+      "~BThe dragon falls, shattering to pieces across the ice it once called home."
+
+   hack_away_ice_msg = \
+      "You hack away the elemental ice to return to the maze."
+
+classvars:
+
+   vrName = room_name_FrozenCistern
+
+   viTeleport_row = 64
+   viTeleport_col = 18
+
+   viTerrain_Type = TERRAIN_LAKE | TERRAIN_LAIR | TERRAIN_TUNDRA
+
+properties:
+
+   prRoom = room_FrozenCistern
+   piRoom_num = RID_FROZEN_CISTERN
+
+   piBaseLight = LIGHT_NICE
+   piOutside_factor = 3
+
+   prMusic = FrozenCistern_music
+   
+   piNorthBarrierHeight = 100
+   piEastBarrierHeight = 150
+   piSouthBarrierHeight = 70
+   
+   pbIceDragonDefeated = FALSE
+   ptRespawnIceDragon = $
+   
+   vbSpawnMonsters = TRUE
+
+messages:
+
+   Constructed()
+   {
+      %  each sound is [wave_file, row, col, cutoff radius, maximum volume]
+      plLooping_sounds = [[ fire_sound_FrozenCistern, 15, 15, 10, 100 ]];
+
+      propagate;
+   }
+
+   CreateStandardExits()
+   {
+      plExits = $;
+  
+      propagate;
+   }
+
+   SomethingTryGo(what = $,row = $,col = $)
+   {
+      if what <> $
+         AND IsClass(what,&Player)
+      {
+         return Send(self,@AttemptExit,#who=what,#iSection=Send(self,@GetSection,#who=what));
+      }
+
+      propagate;
+   }
+   
+   AttemptExit(who=$,iSection=0)
+   {
+      if who <> $
+         AND IsClass(who,&Player)
+      {         
+         switch(iSection)
+         {
+            case DOOR_SECTOR:
+               Send(self,@ExitCistern,#who=who);
+               return TRUE;
+               break;
+         }
+      }
+   
+      return FALSE;
+   }
+   
+   ExitCistern(who=$)
+   {
+      local oRoom;
+      
+      oRoom = Send(SYS,@FindRoomByNum,#num=RID_MAZE_BOSS_ROOM);
+      if oRoom <> $
+      {
+         Send(SYS,@UtilGoNearSquare,#what=who,
+              #where=oRoom,
+              #new_row=11,#new_col=8,#new_angle=ANGLE_SOUTH);
+         Send(who,@MsgSendUser,#message_rsc=hack_away_ice_msg);
+         return TRUE;
+      }
+      return FALSE;
+   }
+
+   SomethingKilled(what=$,victim=$)
+   {
+      local i;
+
+      if victim <> $
+         AND IsClass(victim,&Monster)
+      {
+         if IsClass(victim,&Dragon)
+         {
+            foreach i in Send(self,@GetHolderActive)
+            {
+               if IsClass(First(i),&Player)
+               {
+                  Send(First(i),@MsgSendUser,#message_rsc=ice_dragon_slain);
+                  Send(First(i),@GroupSlayedMonster,#cClass=&Dragon);
+               }
+            }
+            Send(self,@IceDragonKilled);
+            propagate;
+         }
+      }
+
+      propagate;
+   }
+   
+   IceDragonKilled()
+   {
+      local i;
+
+      pbIceDragonDefeated = TRUE;
+      Send(self,@RecalculateRoomMusic);
+      
+      if ptRespawnIceDragon = $
+      {
+         % Six hours
+         ptRespawnIceDragon = CreateTimer(self,@RespawnIceDragon, 6 * 60 * 60 * 1000);
+      }
+      return;
+   }
+
+   RespawnIceDragon(timer=$)
+   {
+      ptRespawnIceDragon = $;
+      pbIceDragonDefeated = FALSE;
+      Send(self,@RecalculateRoomMusic);
+      return;
+   }
+
+   NewHold(what=$)
+   {
+      if what <> $
+         AND IsClass(what,&User)
+         AND Send(what,@GetVeckaAdvice)
+      {
+         Send(what,@MsgSendUser,#message_rsc=ice_dragon_challenge_msg);
+      }
+ 
+      if IsClass(what,&Player)
+      {
+         Post(Send(SYS,@GetGameQuestMaintenance),@EvaluatePlayer,#who=what,#vbTriggered=TRUE);
+      }
+
+      propagate;
+   }
+
+   GetPhaseMusic()
+   {
+      if NOT pbIceDragonDefeated
+      {
+         return FrozenCistern_music;
+      }
+
+      switch(Send(SYS,@GetDayPhase))
+      {
+         case DAY_PHASE_DAWN:
+            return desert_music_static_shock;
+         case DAY_PHASE_DAY:
+            return desert_music;
+         case DAY_PHASE_DUSK:
+            return desert_music_acid_rain;
+         case DAY_PHASE_NIGHT:
+            return desert_music_snow;
+      }
+      return desert_music;
+   }
+   
+   GetPhaseThreats()
+   {
+      switch(Send(SYS,@GetDayPhase))
+      {
+         case DAY_PHASE_DAWN:
+            return [&ShockStorm, &ChaosThreat];
+         case DAY_PHASE_DAY:
+            if Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTRIVER2),
+                     @GetPrismOfFireDefeated)
+            {
+               return [&HeatStorm, &ChaosThreat];
+            }
+            return [&HeatThreat, &ChaosThreat];
+         case DAY_PHASE_DUSK:
+            if Send(Send(SYS,@FindRoomByNum,#num=RID_ACIDPATH),
+                     @GetPrismOfAcidDefeated)
+            {
+               return [&AcidStorm,&RainThreat, &ChaosThreat];
+            }
+            return [&AcidThreat,&RainThreat, &ChaosThreat];
+         case DAY_PHASE_NIGHT:
+            if Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTSANDBAR),@GetPrismOfIceDefeated)
+            {
+               return [&ColdStorm,&SnowThreat, &ChaosThreat];
+            }
+            return [&ColdThreat,&SnowThreat, &ChaosThreat];
+      }
+      return [&ShockStorm, &ChaosThreat];
+   }
+
+   CreateStandardObjects()
+   {
+      propagate;
+   }
+   
+   LastUserLeft()
+   {
+      Send(self,@ResetBarriers);
+      propagate;
+   }
+   
+   ResetBarriers()
+   {
+      Send(self,@SetSector,#sector=NORTH_BARRIER_SECTOR,#animation=ANIMATE_FLOOR_LIFT,#height=DEFAULT_NORTH_BARRIER_HEIGHT,#speed=0);
+      Send(self,@SetSector,#sector=EAST_BARRIER_SECTOR,#animation=ANIMATE_FLOOR_LIFT,#height=DEFAULT_EAST_BARRIER_HEIGHT,#speed=0);
+      Send(self,@SetSector,#sector=SOUTH_BARRIER_SECTOR,#animation=ANIMATE_FLOOR_LIFT,#height=DEFAULT_SOUTH_BARRIER_HEIGHT,#speed=0);
+      
+      Send(self,@SetSector,#sector=NORTH_BARRIER_SECTOR,#animation=ANIMATE_CEILING_LIFT,#height=300,#speed=0);
+      Send(self,@SetSector,#sector=EAST_BARRIER_SECTOR,#animation=ANIMATE_CEILING_LIFT,#height=300,#speed=0);
+      Send(self,@SetSector,#sector=SOUTH_BARRIER_SECTOR,#animation=ANIMATE_CEILING_LIFT,#height=300,#speed=0);
+      Send(self,@SetSector,#sector=MAIN_CEILING_SECTOR,#animation=ANIMATE_CEILING_LIFT,#height=300,#speed=0);
+      Send(self,@SetSector,#sector=DOOR_SECTOR,#animation=ANIMATE_CEILING_LIFT,#height=300,#speed=0);
+      return;
+   }
+   
+   AdjustHeight(new_height=600)
+   {
+      Send(self,@SetSector,#sector=MAIN_CEILING_SECTOR,#animation=ANIMATE_CEILING_LIFT,#height=new_height,#speed=100);
+      Send(self,@SetSector,#sector=DOOR_SECTOR,#animation=ANIMATE_CEILING_LIFT,#height=new_height,#speed=100);
+      
+      Send(self,@SetSector,#sector=NORTH_BARRIER_BORDER,#animation=ANIMATE_CEILING_LIFT,#height=new_height,#speed=100);
+      Send(self,@SetSector,#sector=NORTH_BARRIER_SECTOR,#animation=ANIMATE_CEILING_LIFT,#height=new_height,#speed=100);
+      
+      Send(self,@SetSector,#sector=EAST_BARRIER_BORDER,#animation=ANIMATE_CEILING_LIFT,#height=new_height,#speed=100);
+      Send(self,@SetSector,#sector=EAST_BARRIER_SECTOR,#animation=ANIMATE_CEILING_LIFT,#height=new_height,#speed=100);
+      
+      Send(self,@SetSector,#sector=SOUTH_BARRIER_BORDER,#animation=ANIMATE_CEILING_LIFT,#height=new_height,#speed=100);
+      Send(self,@SetSector,#sector=SOUTH_BARRIER_SECTOR,#animation=ANIMATE_CEILING_LIFT,#height=new_height,#speed=100);
+      return;
+   }
+
+   SomethingExploded(what=$)
+   {
+      local iSection;
+      
+      if what = $
+         OR (piNorthBarrierHeight = 0
+            AND piEastBarrierHeight = 0
+            AND piSouthBarrierHeight = 0)
+      {
+         return;
+      }
+
+      iSection = Send(self,@GetSection,#who=what);
+      
+      Switch(iSection)
+      {
+         case NORTH_BARRIER_BORDER:
+            if piNorthBarrierHeight > 0
+            {
+               piNorthBarrierHeight--;
+               Send(self,@SetSector,#sector=NORTH_BARRIER_SECTOR,#animation=ANIMATE_FLOOR_LIFT,#height=piNorthBarrierHeight,#speed=0);
+            }
+            break;
+         case NORTH_BARRIER_SECTOR:
+            if piNorthBarrierHeight > 0
+            {
+               piNorthBarrierHeight--;
+               Send(self,@SetSector,#sector=NORTH_BARRIER_SECTOR,#animation=ANIMATE_FLOOR_LIFT,#height=piNorthBarrierHeight,#speed=0);
+            }
+            break;
+         case EAST_BARRIER_BORDER:
+            if piEastBarrierHeight > 0
+            {
+               piEastBarrierHeight--;
+               Send(self,@SetSector,#sector=EAST_BARRIER_SECTOR,#animation=ANIMATE_FLOOR_LIFT,#height=piEastBarrierHeight,#speed=0);
+            }
+            break;
+         case EAST_BARRIER_SECTOR:
+            if piEastBarrierHeight > 0
+            {
+               piEastBarrierHeight--;
+               Send(self,@SetSector,#sector=EAST_BARRIER_SECTOR,#animation=ANIMATE_FLOOR_LIFT,#height=piEastBarrierHeight,#speed=0);
+            }
+         case SOUTH_BARRIER_BORDER:
+            if piSouthBarrierHeight > 0
+            {
+               piSouthBarrierHeight--;
+               Send(self,@SetSector,#sector=SOUTH_BARRIER_SECTOR,#animation=ANIMATE_FLOOR_LIFT,#height=piSouthBarrierHeight,#speed=0);
+            }
+            break;
+         case SOUTH_BARRIER_SECTOR:
+            if piSouthBarrierHeight > 0
+            {
+               piSouthBarrierHeight--;
+               Send(self,@SetSector,#sector=SOUTH_BARRIER_SECTOR,#animation=ANIMATE_FLOOR_LIFT,#height=piSouthBarrierHeight,#speed=0);
+            }
+            break;
+      }
+      
+      return;
+   }
+
+   GetSection(who=$,iRow=$,iCol=$,iFineRow=$,iFineCol=$,bCheckForPool=FALSE)
+   {
+      local iQflags, iRflags, iHeightF, iHeightFWD, iHeightC, iServerID;
+      
+      if iRow = $
+         OR iCol = $
+         OR iFineRow = $
+         OR iFineCol = $
+      {
+         if who <> $
+         {
+            iRow = Send(who,@GetRow);
+            iCol = Send(who,@GetCol);
+            iFineRow = Send(who,@GetFineRow);
+            iFineCol = Send(who,@GetFineCol);
+         }
+         else
+         {
+            return 0;
+         }
+         if iRow = $
+            OR iCol = $
+            OR iFineRow = $
+            OR iFineCol = $
+         {
+            % Who gave us some nil coords.
+            return 0;
+         }
+      }
+
+      iQflags = LIQ_GET_SECTORINFO;
+
+      if GetLocationInfoBSP(
+                      prmRoom, iQflags, iRow, iCol, iFineRow, iFineCol,
+                      *iRflags, *iHeightF, *iHeightFWD, *iHeightC, *iServerID)
+      {
+         return iServerID;
+      }
+
+      return 0;
+   }
+
+   RecalcBackgroundSkyGraphic(iSkyBox=0)
+   {
+      prBackground = background_chaos_night;
+
+      return;
+   }
+
+   PopulateArea()
+   {
+      local i, each_obj;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         each_obj = Send(self,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&Dragon)
+         {
+            % Ice dragon already present.
+            return;
+         }
+      }
+
+      if NOT pbIceDragonDefeated
+      {
+         Send(self,@NewHold,#what=Create(&Dragon),
+               #new_row=64,
+               #new_col=68,
+               #fine_row=47,
+               #fine_col=27,
+               #new_angle=ANGLE_NORTH);
+      }
+      return;
+   }
+   
+   DepopulateArea()
+   {
+      % Don't delete ice dragon.      
+      return;
+   }
+   
+   Delete()
+   {
+      if ptRespawnIceDragon <> $
+      {
+         DeleteTimer(ptRespawnIceDragon);
+         ptRespawnIceDragon = $;
+      }
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -1,0 +1,107 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ShockBomb is Spell
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   Shock_Bomb_name_rsc = "lightning bomb"
+   Shock_Bomb_icon_rsc = iflash.bgf
+   Shock_Bomb_desc_rsc = \
+      "Silently lays a prepared bag of magically-enhanced electrochemical catalysts. "
+      "On their journey to mastery of the alchemical talents, "
+      "alchemists often discover the many and varied uses of electricity. "
+      "The first thing most do, of course, is create a new type of bomb. "
+      "When laid, a lightning bomb is harmless until stepped on or until the alchemist casts 'detonate bombs.' "
+      "Once that is done, the triggered explosion will cause everything "
+      "nearby to become electrocuted, and some patches of ground will become imbued with electrical charge. "
+      "The explosion itself is also "
+      "bright enough to dazzle victims for a time. "
+      "\n\nThe bag and the elements for the bomb are transmuted "
+      "directly from gold, so only shillings are required."
+      "\n\nOnly a certain number of bombs can be magically controlled "
+      "at once. Any above this limit are designed to harmlessly defuse, "
+      "so that no innocents wander past and get harmed."
+
+   Shock_Bomb_sound = Fzap.wav
+
+classvars:
+
+   vrSucceed_wav = Shock_Bomb_sound
+
+   vrName = Shock_Bomb_name_rsc
+   vrIcon = Shock_Bomb_icon_rsc
+   vrDesc = Shock_Bomb_desc_rsc
+
+   viSpell_num = SID_CREATE_SHOCK_BOMB
+   viSchool = SKS_ALCHEMY
+   viSpell_level = 4
+   viMana = 7
+   viSpellExertion = 1
+   viChance_To_Increase = 15
+   viMeditate_ratio = 20
+
+   viOutlaw = FALSE
+   viHarmful = FALSE
+   viNoNewbieOffense = FALSE
+   
+   vbSafetyReport = FALSE
+   
+   viPrimaryStat = STAT_ID_INTELLECT
+   viSecondaryStat = 0
+
+properties:
+
+messages:
+
+   ResetReagents()
+   {
+      plReagents = $;
+      plReagents = Cons([&Money,800],plReagents);
+
+      return;
+   }
+
+   GetNumSpellTargets()
+   {
+      return 0;
+   }
+
+   CastSpell(who=$, lTargets = $, iSpellPower=0)
+   {
+      local oBomb, oRoom;
+      
+      oRoom = Send(who,@GetOwner);
+      if oRoom <> $
+         AND IsClass(oRoom,&Room)
+      {
+         oBomb = Create(&AlchemyBomb,#oCreator=who,#iType=BOMB_SHOCK,#bProximityTrigger=TRUE,#iBombPower=iSpellPower);
+         Send(who,@AddBomb,#oBomb=oBomb);
+         Send(oRoom,@NewHold,#what=oBomb,
+                             #new_row=Send(who,@GetRow),
+                             #new_col=Send(who,@GetCol),
+                             #fine_row=Send(who,@GetFineRow),
+                             #fine_col=Send(who,@GetFineCol));
+      }
+
+      propagate;
+   }
+
+   PlaySpellSound()
+   {
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

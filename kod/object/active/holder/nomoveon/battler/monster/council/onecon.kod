@@ -26,6 +26,8 @@ resources:
       "proudly before you.  You can feel the conflicting will of four separate "
       "gods within him.  As one of the oldest friends of King Zarcos V, he has "
       "been counselling the princess since birth."
+      "\n\nIf you are a student with room to grow, he may help you improve "
+      "your intellect if you ask him to 'train' you."
 
    onecon_true_ideal_rsc = \
       "I have great respect for your knowledge of magic, and having you "
@@ -40,6 +42,17 @@ resources:
    onecon_unwanted_give = \
       "~k%s%s tells you, \"What possible use could a wizard of my stature "
       "have for that?~n~k\""
+
+   major_shard_delivered = \
+      "Thank you. This will help greatly in my research."
+
+   cannot_train_intellect_msg = \
+      "You seem to have full command of your mind's potential. I cannot train you further."
+   teach_intellect_msg = \
+      "Fetch a book from one of my shelves. I used to instruct in my younger days; "
+      "teaching a princess and teaching an adventurer such as yourself should not be "
+      "too different. Turn to page forty-five and begin reading. We shall test "
+      "your knowledge of the material afterward, so pay attention."
 
 classvars:
 
@@ -90,8 +103,24 @@ messages:
 
    Constructor()
    {
-      plWantedItems = [&OneToken];
+      plWantedItems = [&OneToken, &ShardImbueMajor];
 
+      propagate;
+   }
+
+   ReqGive(what = $, item_list = $)
+   {
+      if item_list <> $
+         AND Length(item_list) = 1
+      {
+         if IsClass(First(item_list),&ShardImbueMajor)
+         {
+            Send(poOwner,@SomeoneSaid,#what=self,#type=SAY_RESOURCE,
+                  #string=major_shard_delivered);
+            Send(what,@GavePassiveQuestItem,#obj=First(item_list),#the_npc=self);
+            return TRUE;
+         }
+      }
       propagate;
    }
 
@@ -185,6 +214,31 @@ messages:
          return FALSE;
       }
 
+      propagate;
+   }
+
+   SomeoneSaid(what = $,type = $,string = $)
+   {
+      local iResult;
+
+      if what <> $
+         AND IsClass(what,&User)
+         AND StringContain(string,"train")
+      {
+         
+         iResult = Send(what,@AttemptTrainStatPoint,#type=STAT_ID_INTELLECT);
+
+         if iResult
+         {
+            Send(self,@SayToOne,#target=what,#message_rsc=teach_intellect_msg);
+         }
+         else
+         {
+            Send(self,@SayToOne,#target=what,#message_rsc=cannot_train_intellect_msg);
+         }
+         return;
+      }
+      
       propagate;
    }
 

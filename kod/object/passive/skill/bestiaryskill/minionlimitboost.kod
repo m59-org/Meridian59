@@ -1,0 +1,58 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+MinionLimitBoost is BestiarySkill
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   limit_boost = iboonagi.bgf
+
+classvars:
+
+   vrIcon = language_icon_rsc
+
+   viSchool = SS_BESTIARY
+
+   viPrimaryStat = STAT_ID_INTELLECT
+   viSecondaryStat = STAT_ID_MYSTICISM
+
+properties:
+
+messages:
+
+   GetMinionLimitBoost(who = $, oMonster = $, bCharming=TRUE)
+   {
+      local iAbility, iIntellect, iMysticism;
+      
+      iIntellect = Send(self,@GetRequisiteStat,#who=who);
+      iMysticism = Send(who,@GetMysticism);
+      iAbility = Send(who,@GetSkillAbility,#skill_num=viSkill_num);
+      
+      if iAbility + iIntellect/10 + iMysticism/10 >= Random(1,99)
+      {
+         % Check for advancement conditions.
+         if bCharming
+         {
+            Send(self,@ImproveAbility,#who=who,#target=oMonster);
+         }
+         
+         % 100 is no improvement, 150 increases by fifty percent, 200 is double
+         return Bound(100 + iAbility - 19 + iIntellect/10 + iMysticism/10,100,200);         
+      }
+
+      return 100;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -43,11 +43,14 @@ classvars:
    viMana = 8
    viSpellExertion = 2
 
-   viCast_time = 2000
+   viCast_time = 0
    viChance_To_Increase = 15
    viMeditate_ratio = 20
 
    vrSucceed_wav = Bait_sound
+   
+   viPrimaryStat = STAT_ID_INTELLECT
+   viSecondaryStat = 0
 
 properties:
 
@@ -108,7 +111,8 @@ messages:
 	            %% don't allow in happyland, unless the monster has no master.
 	            if send(SYS,@IsPKAllowed) or send(first(oMonster),@GetMaster) = $
 	            {
-                    if Send(who,@SquaredDistanceTo,#what=First(oMonster)) < (piBaitRange * piBaitRange)
+                    if Send(who,@GetOwner) = Send(First(oMonster),@GetOwner)
+                       AND Send(who,@SquaredDistanceTo,#what=First(oMonster)) < (piBaitRange * piBaitRange)
                     {
                        send(first(oMonster), @TargetSwitch, #what=who, #iHatred=100);
                        send(first(oMonster), @EnterStateChase, #target=who, #actnow=True);

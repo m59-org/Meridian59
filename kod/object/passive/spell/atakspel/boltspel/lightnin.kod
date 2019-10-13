@@ -24,6 +24,15 @@ resources:
    lightning_desc_rsc = \
       "Hurls a bolt of lightning at the target.  "
       "Requires blue mushrooms and orc teeth to cast."
+   lightning_mastered_desc_rsc = \
+      "\n\n"
+      "You possess exceptional mastery of this spell, allowing your lightning bolt to chain to the nearest "
+      "enemy in line of sight from your target. You do not need line of sight to the chained victim, "
+      "allowing your lightning to strike around corners. This ability also prioritizes enemy adventurers, "
+      "so monsters will only be struck if there are no valid enemy players in range."
+
+   your_bolt_chains = \
+      "Your mastered lightning bolt chains to another enemy!"
 
    lightning_sound = fbolt.wav
 
@@ -32,6 +41,7 @@ classvars:
    vrIcon = lightning_look_icon
    vrDesc = lightning_desc_rsc
    vrProjectile_icon = lightning_icon_rsc
+   vrMasteredDesc = lightning_mastered_desc_rsc
 
    viSpell_num = SID_LIGHTNING_BOLT
 
@@ -54,6 +64,8 @@ classvars:
    viProjectileLightIntensity = 100
    % Color is lightning.
    viProjectileLightColor = LIGHT_LIGHTNING
+   
+   viProjectileSpeed = 12
 
 properties:
 
@@ -75,9 +87,79 @@ messages:
       return;
    }
 
-   GetProjectileSpeed()
+   CastSpell(who=$,lTargets=$,iSpellPower=0,bSecondaryCast=FALSE,bDeflectCast=FALSE)
    {
-      return 12;
+      local oOwner, i, each_obj, oChainTarget, lBattlers, iClosestDist, iCurDist;
+
+      if Send(who,@HasMasteredThisSpell,#num=viSpell_num)
+         AND NOT bSecondaryCast
+         AND NOT bDeflectCast
+      {
+         oOwner = Send(who,@GetOwner);
+         lBattlers = $;
+
+         % For our chain target, we attempt to find a closest enemy player first.
+         %    This enemy player must be in line of sight from the enemy target,
+         %    not the caster. In other words, this can chain around corners.
+         % If there are no enemy players, then we look at monsters the same way.
+         
+         foreach i in Send(oOwner,@GetHolderActive)
+         {
+            each_obj = Send(oOwner,@HolderExtractObject,#data=i);
+            if IsClass(each_obj,&Player)
+               AND each_obj <> who
+               AND each_obj <> First(lTargets)
+               AND Send(oOwner,@LineOfSight,#obj1=First(lTargets),#obj2=each_obj)
+               AND Send(who,@AllowPlayerAttack,#victim=each_obj,#report=FALSE,#actual=FALSE)
+            {
+               lBattlers = Cons(each_obj,lBattlers);
+            }
+         }
+         
+         if lBattlers = $
+         {
+            foreach i in Send(oOwner,@GetHolderActive)
+            {
+               each_obj = Send(oOwner,@HolderExtractObject,#data=i);
+               if IsClass(each_obj,&Monster)
+                  AND each_obj <> First(lTargets)
+                  AND Send(oOwner,@LineOfSight,#obj1=First(lTargets),#obj2=each_obj)
+                  AND Send(who,@AllowPlayerAttack,#victim=each_obj,#report=FALSE,#actual=FALSE)
+               {
+                  lBattlers = Cons(each_obj,lBattlers);
+               }
+            }
+         }
+         
+         if lBattlers = $
+         {
+            % No suitable enemy players or monsters in line of sight from target
+            propagate;
+         }
+
+         oChainTarget = $;
+         iClosestDist = 999999;
+         iCurDist = 1000000;
+         foreach i in lBattlers
+         {
+            iCurDist = Send(First(lTargets),@SquaredFineDistanceTo3D,#what=i);
+            if iCurDist < iClosestDist
+            {
+               oChainTarget = i;
+               iClosestDist = iCurDist;
+            }
+         }
+         
+         % Show bolt from target to new target
+         if oChainTarget <> $
+         {
+            Send(oOwner,@SomethingShot,#who=First(lTargets),#target=oChainTarget,#projectile=self,#flags=viProjectileFlag);
+            Post(who,@MsgSendUser,#message_rsc=your_bolt_chains);
+            Post(self,@CastSpell,#who=who,#lTargets=[oChainTarget],#iSpellPower=iSpellPower,#bSecondaryCast=TRUE);
+         }
+      }
+
+      propagate;
    }
 
    SendProjectileAnimation()

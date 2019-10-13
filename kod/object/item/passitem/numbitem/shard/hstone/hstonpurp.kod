@@ -1,0 +1,74 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+PurpleHeartStone is HeartStone
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   include hstonpurp.lkod
+
+   PurpleHeartStone_name_rsc = "purple heartstone shard"
+   PurpleHeartStone_name_plural = "purple heartstone shards"
+   PurpleHeartStone_desc_rsc = \
+      "This is a shard of a 'heartstone'.  It is a purple gem taken from "
+      "the body of a fallen Re'Xeochicatl.  It wiggles slightly and is cool "
+      "to the touch.  The uses for this gem are not widely known."
+
+classvars:
+
+   vrName = PurpleHeartStone_name_rsc
+   vrDesc = PurpleHeartStone_desc_rsc
+   
+   vrName_plural = PurpleHeartStone_name_plural
+
+   viValue_average = 100
+   viWeight = 20
+   viBulk = 10
+
+   viColor = XLAT_TO_PURPLE
+properties:
+
+messages:
+
+   CreateXeo()
+   {
+      return Create(&XeoIll,#InAttack=Send(self,@IsInAttack));
+   }
+
+   WeightPrefixes()
+   {
+      return [[&ManaMod,300],
+              [&VigorMod,100]
+             ];
+   }
+   
+   WeightSuffixes()
+   {
+      return $;
+   }
+
+   EmpowerAffixes()
+   {
+      return [[&ManaMod,16],
+              [&VigorMod,8]
+             ];
+   }
+   
+   GetForgeType()
+   {
+      return FORGE_ILLUSION;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

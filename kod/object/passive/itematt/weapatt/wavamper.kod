@@ -29,7 +29,9 @@ resources:
    include wavamper.lkod
 
    weapattVamper_desc = \
-      "  An unholy glow seems to suck all life from the air around the weapon."
+      "  An unholy glow seems to suck all life from the air around the weapon, "
+      "allowing the wielder to heal themselves with vitality stolen from enemies, "
+      "an effect which will be stronger if the victim is bleeding."
    Vamper_dm = "Vamper"
    Vamper_fail_use = "You are not ready to use %s%s."
    Vamper_fail_use_karma = \
@@ -37,6 +39,9 @@ resources:
    vamper_worked = "%s%s shudders as %s life is sucked away!"
    vamper_worked_target = \
       "%s%s seems enervated as the metal of %s weapon touches your flesh!"
+
+   fail_to_drain_not_bleeding = \
+      "The unholy glow around your weapon pulses, but finds no freely flowing blood to absorb."
 
 classvars:
 
@@ -65,9 +70,9 @@ messages:
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
    ModifyDamage(damage=0,target=$,wielder=$,lData=$)
-   "Wielder has a 10% chance of stealing life from target with any hit."
+   "Wielder has a 10% chance of stealing life from a bleeding target with any hit."
    {
-      local oSpell;
+      local oSpell, iBleedingBonus;
       
       if target = $
          OR wielder = $
@@ -77,8 +82,16 @@ messages:
 
       if Random(1,100) <= piEffect_percent
       {
+         if Send(target,@IsBleeding)
+         {
+            iBleedingBonus = 2;
+         }
+         else
+         {
+            iBleedingBonus = 1;
+         }
          Send(wielder,@GainHealth,
-               #amount=Bound(damage,piMinHealthGain,piMaxHealthGain));
+               #amount=Bound(damage,piMinHealthGain,piMaxHealthGain)*iBleedingBonus);
          Send(wielder,@MsgSendUser,#message_rsc=vamper_worked,
                #parm1=send(target,@GetCapDef),#parm2=Send(target,@GetName),
                #parm3=send(target,@GetHisHer));

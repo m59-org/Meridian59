@@ -55,6 +55,12 @@ properties:
 
 messages:
 
+   Constructed()
+   {
+      piItemLevel = 200;
+      propagate;
+   }
+
    NewUsed()
    {
       Send(poOwner,@RemoveHair,#what=self);
@@ -71,8 +77,15 @@ messages:
 
    GetResistanceModifiers()
    {
-      return [ [-ATCK_SPELL_ALL,15]
-             ];
+      if Send(SETTINGS_OBJECT,@GetDirectArmorEnabled)
+      {
+         return [ [-ATCK_SPELL_ALL,15]
+                ];
+      }
+      
+      return [ [ATCK_WEAP_ALL,5],
+               [-ATCK_SPELL_ALL,5]
+               ];
    }
 
    CanShatter()
@@ -96,6 +109,11 @@ messages:
    {
       % Special item, add minimap dot.
       return MM_RARE_ITEM;
+   }
+
+   GetStunResistance()
+   {
+      return 30;
    }
 
 end

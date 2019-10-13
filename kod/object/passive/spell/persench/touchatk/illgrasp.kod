@@ -1,0 +1,135 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+IllusionaryGrasp is TouchAttackSpell
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   IllusionaryGrasp_name_rsc = "illusionary grasp"
+   IllusionaryGrasp_icon_rsc = iicyfing.bgf
+   IllusionaryGrasp_desc_rsc = \
+         "Sheathes your hands in rippling illusionary forces, causing your touch "
+         "to become anathema to sentient entities. "
+         "Requires one bag of firesand."
+
+   IllusionaryGrasp_already_enchanted_rsc = "Your hands are already sheathed in illusion."
+   IllusionaryGrasp_On_rsc = "Your hands began to ripple and waver."
+   IllusionaryGrasp_Off_rsc = "Your hands are no longer sheathed in illusion."
+
+   IllusionaryGrasp_player_was_hit = "%s%s grasps you, sending pain straight into your mind."
+   IllusionaryGrasp_player_hit_something = "%sYour illusionary grasp agonizes %s%s's mind."
+
+   IllusionaryGrasp_player_killed_something = "%s%s dies screaming at unseen terrors."
+   IllusionaryGrasp_player_was_killed = "At the illusionary grasp of %s%s, you begin to scream at unseen terrors."
+
+   IllusionaryGrasp_spell_intro = "Riija Lv. 2: Sheathes your hands in rippling illusions, making them anathema to sentient beings."
+
+   IllusionaryGrasp_sound = riija.wav
+
+classvars:
+
+   vrName = IllusionaryGrasp_name_rsc
+   vrIcon = IllusionaryGrasp_icon_rsc
+   vrDesc = IllusionaryGrasp_desc_rsc
+
+   vrAlreadyEnchanted = IllusionaryGrasp_already_enchanted_rsc
+   vrEnchantment_On = IllusionaryGrasp_On_rsc
+   vrEnchantment_Off = IllusionaryGrasp_Off_rsc
+
+   vrPlayer_was_hit = IllusionaryGrasp_player_was_hit
+   vrPlayer_hit_something = IllusionaryGrasp_player_hit_something
+
+   vrPlayer_was_killed = IllusionaryGrasp_player_was_killed
+   vrPlayer_killed_something = IllusionaryGrasp_player_killed_something
+
+   vrSpell_intro = IllusionaryGrasp_spell_intro
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+
+   viSchool = SS_RIIJA
+   viSpell_num = SID_ILLUSIONARY_GRASP
+   viSpellExertion = 4
+   viSpell_level = 2
+   viMana = 8
+
+   viMin_Damage = 5         %% touch spells typically do good damage    
+   viMax_Damage = 8         %% but are unaffected by weapon or strength bonuses
+
+   % Max amount of damage that punch or 2*int can add
+   viMaxProficiencyDamage = 7
+
+   viSpellType = ATCK_SPELL_ILLUSION + ATCK_SPELL_ALL
+   viStroke = STROKE_ILLUSIONARY_GRASP
+
+   vbAutomatic = FALSE
+
+   vrSucceed_wav = IllusionaryGrasp_sound
+
+   viEnchantmentLight = 0
+   
+   viPrimaryStat = STAT_ID_INTELLECT
+   viSecondaryStat = STAT_ID_INTELLECT
+
+properties:
+
+   plPrerequisites = $
+   plReagents = $
+
+messages:
+
+  ResetReagents()
+  {
+     plReagents = $;
+     plReagents = cons([&FireSand,1],plReagents);
+     
+     return;
+  }
+
+   DamageFactors(damage = 0, who = $)
+   {
+      local iDamage, iIntellect;
+
+      % Proficiency damage adjusted to high precision
+      iDamage = damage + (Send(self,@GetProf,#who=who)+1)*viMaxProficiencyDamage;
+      
+      % Get int damage bonus.
+      iIntellect = Send(who,@GetIntellect);
+      iDamage = ((100+bound(iIntellect-25,0,100))*iDamage)/100;
+
+      return iDamage;
+   }
+
+   GetProf(who=$)
+   {
+      local iProf, iIntellect;
+
+      iProf = Send(who,@GetSkillAbility,#skill_num=SKID_PUNCH);
+      Send(who,@FlipSkillAtrophyFlag,#SKID=SKID_PUNCH);
+      iProf = iProf + Send(who,@GetSkillAbility,#skill_num=SKID_WAY_OF_THE_SERPENT);
+      Send(who,@FlipSkillAtrophyFlag,#SKID=SKID_WAY_OF_THE_SERPENT);
+      Send(Send(SYS,@FindSkillByNum,#num=SKID_WAY_OF_THE_SERPENT),@ImproveAbility,#who=who);
+      
+      iIntellect = (Send(who,@GetIntellect)*2);
+      
+      if iProf < iIntellect
+      {
+         iProf = iIntellect;
+      }
+
+      return bound(iProf,1,99);
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

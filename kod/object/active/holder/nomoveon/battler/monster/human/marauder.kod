@@ -1,0 +1,183 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Marauder is Human
+
+constants:
+
+   include blakston.khd
+
+   EQUIPMENT_DROP_PERCENT = 100
+
+resources:
+
+   % in increasing order of agony
+   marauder_sound_male_ouch1 = ouchm1.wav
+   marauder_sound_male_ouch2 = ouchm2.wav
+   marauder_sound_male_ouch3 = ouchm3.wav
+   marauder_sound_male_ouch4 = ouchm4.wav
+
+   marauder_sound_female_ouch1 = ouchf1.wav
+   marauder_sound_female_ouch2 = ouchf2.wav
+   marauder_sound_female_ouch3 = ouchf3.wav
+   marauder_sound_female_ouch4 = ouchf4.wav
+
+classvars:
+
+   vrName = NomadBandit_name_rsc
+   vrDesc = NomadBandit_desc_rsc
+   vrDead_name = NomadBandit_dead_name_rsc
+
+   viTreasure_type = TID_NONE
+
+   viSpeed = SPEED_FASTER
+   viAttack_type = ATCK_WEAP_SLASH
+   viAttributes = 0
+   viDefault_behavior = AI_MOVE_REGROUP
+
+   viColorTranslate1 = XLAT_TO_ORANGE     % Shirt
+   viColorTranslate2 = XLAT_TO_ORANGE   % Pants
+
+   vcShieldClass = &GuildShield
+   viShieldColor1 = XLAT_TO_RED
+   viShieldColor2 = XLAT_TO_RED
+   viShieldShape = SHIELDSHAPE_SLASH
+   viInsignia = $
+
+   viVisionDistance = 12
+
+   viCashMin = 200
+   viCashMax = 1600
+
+   viCanSpawnAsChampion = FALSE
+
+properties:
+
+   piBaseLevel = 150
+   piBaseDifficulty = 6
+
+   %Here so they can be set
+   vrIcon = human_male_icon_rsc
+   vrDead_Icon = human_dead_male_icona_rsc
+   vrDead_Legs = human_dead_male_iconb_rsc
+   viLevel = 150         % piBaseLevel
+   viDifficulty = 6     % piBaseDifficulty
+   piGender = GENDER_MALE
+   viKarma = 0
+   
+   psURL = $
+
+messages:
+
+   IsAlly(target = $, regroup = FALSE)
+   {
+      if IsClass(target,&Monster)
+      {
+         return TRUE;
+      }
+
+      propagate;
+   }
+
+   GetObjectFlags()
+   {
+      local iFlags, oIllusion;
+
+      iFlags = OF_ATTACKABLE | OF_PLAYER | OF_DISPLAY_NAME;
+
+      % Get the flashing/flickering/phasing/bouncing flags.
+      iFlags = iFlags | piDrawEffectFlag;
+
+      return iFlags;
+   }
+
+   GetPlayerNameColor()
+   {
+      local iDrawFX, iFlags;
+
+      iFlags = 0;
+
+      % Check for any shadow form effects.
+      iDrawfX = Send(self,@GetDrawingEffects);
+      if (iDrawFX & DRAWFX_BLACK) = DRAWFX_BLACK
+      {
+         iFlags = iFlags | NC_SHADOW;
+      }
+
+      iFlags = iFlags | NC_KILLER;
+
+      return iFlags;
+   }
+
+   GetClientObjectType()
+   {
+      return OT_KILLER;
+   }
+
+   GetURL()
+   {
+      return psURL;
+   }
+
+   GetOuchSound()
+   {
+      local iHealthFraction;
+
+      % Since piHealth is inflated by a factor of 100, 
+      % this returns the correct fraction.
+      if piMax_Hit_points > 0
+      {
+         iHealthFraction = piHit_points / piMax_Hit_points;
+      }
+      else
+      {
+         iHealthFraction = 0;
+      }
+
+      if piGender = GENDER_MALE
+      {
+         if iHealthFraction > 75
+         {
+            return marauder_sound_male_ouch1;
+         }
+
+         if iHealthFraction > 50
+         {
+            return marauder_sound_male_ouch2;
+         }
+
+         if iHealthFraction > 25
+         {
+            return marauder_sound_male_ouch3;
+         }
+
+         return marauder_sound_male_ouch4;
+      }
+
+      if iHealthFraction > 75
+      {
+         return marauder_sound_female_ouch1;
+      }
+
+      if iHealthFraction > 50
+      {
+         return marauder_sound_female_ouch2;
+      }
+
+      if iHealthFraction > 25
+      {
+         return marauder_sound_female_ouch3;
+      }
+
+      return marauder_sound_female_ouch4;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

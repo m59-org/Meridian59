@@ -26,6 +26,15 @@ resources:
       "his opinions and knowledge by pilgrims and travellers.  Whether he is "
       "considered a wise man or the village idiot locally really depends on "
       "who you talk to."
+      "\n\nHe can also help you change your stats with training "
+      "if you are a newbie, if you are holding an Ancient Trinket, or "
+      "if you have a free stat reset from recently reincarnating. "
+      "First, reset all your stats to one by saying 'reset stats'. "
+      "Then, you may say 'train might', for example, to train a point of Might. "
+      "You can also say 'train five might' or 'train ten might.' "
+      "The same is true for intellect, stamina, agility, mysticism, and aim. "
+      "Once you begin this process, finish it before you leave the area. "
+      "Your free stat reset or Ancient Trinket will be consumed when you leave. "
 
    MrEl_entry_welcome = \
       "Another traveller through Marion. Perhaps %s%s will come tell me of "
@@ -37,6 +46,15 @@ resources:
       "I’m a bit of a ~Icollector~I."
 
    MrEl_stat_window_trigger = "change stats"
+
+   mar_elder_cannot_train_msg = \
+      "You seem to have full command of your potential in that stat. I cannot train you further."
+   mar_elder_teach_msg = \
+      "You may have heard this tale of wisdom, but I'll tell it again."
+   mar_elder_clear_stats_first_msg = \
+      "You must say 'reset stats' first to clear your stats. "
+      "That will begin the training process. Once it has started, "
+      "do not leave before you finish training."
 
 classvars:
 
@@ -64,6 +82,8 @@ messages:
    SomeoneSaid(what = $,type = $,string = $,parm1 = $,parm2 = $,parm3 = $,
                parm4 = $, parm5 = $,parm6 = $,parm7 = $,parm8 = $)
    {
+      local iResult;
+
       if StringEqual(string,MrEl_stat_window_trigger)
       {
          if Send(what,@FindHolding,#class=&StatsResetToken) <> $
@@ -73,6 +93,111 @@ messages:
          {
             Send(what,@SendStatChange);
          }
+      }
+
+      if what <> $
+         AND IsClass(what,&User)
+         AND (Send(what,@FindHolding,#class=&StatsResetToken) <> $
+            OR (Send(what,@GetBaseMaxHealth)
+               <= Send(SETTINGS_OBJECT,@GetFreeStatsResetCap))
+            OR Send(what,@HasReincarnationStatsReset))
+      {
+         if StringContain(string,"reset stats")
+         {
+            Send(what,@ClearStats);
+            return;
+         }
+         
+         if NOT Send(what,@ClearedStatsRecently)
+         {
+            Send(self,@SayToOne,#target=what,#message_rsc=mar_elder_clear_stats_first_msg);
+            return;
+         }
+
+         if StringContain(string,"train might")
+         {
+            iResult = Send(what,@AttemptTrainStatPoint,#type=STAT_ID_MIGHT);
+         }
+         if StringContain(string,"train intellect")
+         {
+            iResult = Send(what,@AttemptTrainStatPoint,#type=STAT_ID_INTELLECT);
+         }
+         if StringContain(string,"train stamina")
+         {
+            iResult = Send(what,@AttemptTrainStatPoint,#type=STAT_ID_STAMINA);
+         }
+         if StringContain(string,"train agility")
+         {
+            iResult = Send(what,@AttemptTrainStatPoint,#type=STAT_ID_AGILITY);
+         }
+         if StringContain(string,"train mysticism")
+         {
+            iResult = Send(what,@AttemptTrainStatPoint,#type=STAT_ID_MYSTICISM);
+         }
+         if StringContain(string,"train aim")
+         {
+            iResult = Send(what,@AttemptTrainStatPoint,#type=STAT_ID_AIM);
+         }
+
+         if StringContain(string,"train five might")
+         {
+            iResult = Send(what,@AttemptTrainStatPoints,#type=STAT_ID_MIGHT);
+         }
+         if StringContain(string,"train five intellect")
+         {
+            iResult = Send(what,@AttemptTrainStatPoints,#type=STAT_ID_INTELLECT);
+         }
+         if StringContain(string,"train five stamina")
+         {
+            iResult = Send(what,@AttemptTrainStatPoints,#type=STAT_ID_STAMINA);
+         }
+         if StringContain(string,"train five agility")
+         {
+            iResult = Send(what,@AttemptTrainStatPoints,#type=STAT_ID_AGILITY);
+         }
+         if StringContain(string,"train five mysticism")
+         {
+            iResult = Send(what,@AttemptTrainStatPoints,#type=STAT_ID_MYSTICISM);
+         }
+         if StringContain(string,"train five aim")
+         {
+            iResult = Send(what,@AttemptTrainStatPoints,#type=STAT_ID_AIM);
+         }
+
+         if StringContain(string,"train ten might")
+         {
+            iResult = Send(what,@AttemptTrainStatPoints,#type=STAT_ID_MIGHT,#amount=10);
+         }
+         if StringContain(string,"train ten intellect")
+         {
+            iResult = Send(what,@AttemptTrainStatPoints,#type=STAT_ID_INTELLECT,#amount=10);
+         }
+         if StringContain(string,"train ten stamina")
+         {
+            iResult = Send(what,@AttemptTrainStatPoints,#type=STAT_ID_STAMINA,#amount=10);
+         }
+         if StringContain(string,"train ten agility")
+         {
+            iResult = Send(what,@AttemptTrainStatPoints,#type=STAT_ID_AGILITY,#amount=10);
+         }
+         if StringContain(string,"train ten mysticism")
+         {
+            iResult = Send(what,@AttemptTrainStatPoints,#type=STAT_ID_MYSTICISM,#amount=10);
+         }
+         if StringContain(string,"train ten aim")
+         {
+            iResult = Send(what,@AttemptTrainStatPoints,#type=STAT_ID_AIM,#amount=10);
+         }
+         
+         if iResult
+         {
+            Send(self,@SayToOne,#target=what,#message_rsc=mar_elder_teach_msg);
+         }
+         else
+         {
+            Send(self,@SayToOne,#target=what,#message_rsc=mar_elder_cannot_train_msg);
+         }
+         return;
       }
 
       propagate;
@@ -103,7 +228,8 @@ messages:
       plFor_sale = [
          $,$,
          [
-            SID_TRUCE
+            SID_TRUCE,
+            SID_RIGHTEOUS_INHERITANCE
          ],
       $];
 

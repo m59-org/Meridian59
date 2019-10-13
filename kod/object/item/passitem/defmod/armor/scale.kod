@@ -22,9 +22,11 @@ resources:
    scalearmor_icon_rsc = scaleamr.bgf
    scalearmor_desc_rsc = \
       "Thousands of overlapping steel scales give this armor "
-      "its strength.  This armor is stronger than chain mail "
-      "and lighter than plate.  Markings suggest it was made "
-      "by Quintor, master armor maker."
+      "its strength. This armor is stronger than chain mail "
+      "and lighter than plate. Markings suggest it was made "
+      "by Quintor, master armor maker. His inlaid runes "
+      "can be expected to absorb small amounts of magical damage, as "
+      "well as moderately mitigating knockbacks, stuns, and bleeds."
 
    scalearmor_male_icon_rsc = bti.bgf
    scalearmor_female_icon_rsc = btj.bgf
@@ -41,12 +43,12 @@ classvars:
    viWeight = 330
    viBulk = 350
 
-   viSpell_modifier = -20
+   viSpell_modifier = -10
 
    vrIcon_male = scalearmor_male_icon_rsc
    vrIcon_female = scalearmor_female_icon_rsc
 
-   viDefense_base = -100
+   viDefense_base = -50
    viDamage_base = 4
 
 properties:
@@ -60,9 +62,16 @@ messages:
 
    GetResistanceModifiers()
    {
-      return [ [ATCK_WEAP_BLUDGEON,10],
-               [ATCK_WEAP_SLASH,10]
-             ];
+      if Send(SETTINGS_OBJECT,@GetDirectArmorEnabled)
+      {
+         return [ [ATCK_WEAP_BLUDGEON,10],
+                  [ATCK_WEAP_SLASH,10]
+                ];
+      }
+      
+      return [ [ATCK_WEAP_ALL,25],
+               [-ATCK_SPELL_ALL,5]
+               ];
    }
 
    GetHeatDamage()
@@ -70,6 +79,15 @@ messages:
       return 3;
    }
 
+   GetKnockbackResistance()
+   {
+      return 20;
+   }
+
+   GetStunResistance()
+   {
+      return 20;
+   }
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

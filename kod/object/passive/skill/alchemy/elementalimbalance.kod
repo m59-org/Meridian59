@@ -1,0 +1,127 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ElementalImbalance is AlchemySkill
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   elemental_imbalance_name_rsc = "elemental imbalance"
+   elemental_imbalance_icon_rsc = imanafoc.bgf
+   elemental_imbalance_desc_rsc = \
+      "Students of alchemy know that disruption can be just as powerful as "
+      "balance. By striking at the underlying planes inherent in all "
+      "living things, masters of alchemy can achieve something strange "
+      "and otherwise impossible: a temporary elemental imbalance within an enemy. "
+      "The scales become tipped by the type of damage the master alchemist deals. "
+      "For any given element conveyed by damage, the enemy will actually gain "
+      "resistance to that element for a short time. However, the enemy's resistances to "
+      "the other energetic elements drop in proportion. "
+      "\n\nFor example, a hit that deals fire damage, however weak or strong, "
+      "could give the victim a temporary 17\% boost to his fire resistance. At the same time, "
+      "and for the same duration, his resistances to cold, shock, and acid will drop 17\%. "
+      "The same is true of a more skilled alchemist, who might strike with acid damage "
+      "and raise his opponent's acid resistance by 25\%, but lower fire, cold, and shock "
+      "resistances by an equal 25\%."
+      "\n\nThe imbalance never affects the hit that causes it."
+      "\n\nIt is possible for this imbalance to lower resistances below zero."
+      "\n\nStriking with holy or unholy damage will not have any effect, "
+      "for alchemy involves science, not faith."
+
+   elemental_imbalance_worked_fire_msg = \
+      "You cause a ~f~B%i\% ~nelemental imbalance in your victim!"
+   elemental_imbalance_worked_shock_msg = \
+      "You cause a ~c~B%i\% ~nelemental imbalance in your victim!"
+   elemental_imbalance_worked_cold_msg = \
+      "You cause a ~b~B%i\% ~nelemental imbalance in your victim!"
+   elemental_imbalance_worked_acid_msg = \
+      "You cause a ~l~B%i\% ~nelemental imbalance in your victim!"
+   
+classvars:
+
+   vrName = elemental_imbalance_name_rsc
+   vrIcon = elemental_imbalance_icon_rsc
+   vrDesc = elemental_imbalance_desc_rsc
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+
+   viSkill_num = SKID_ELEMENTAL_IMBALANCE
+   viSchool = SKS_ALCHEMY
+   viSkill_Level = 5
+   viChance_to_Increase = 15
+   viMeditate_ratio = 80
+
+   viSkillExertion = 0
+   vbCheck_exertion = FALSE
+   
+   viPrimaryStat = STAT_ID_INTELLECT
+   viSecondaryStat = 0
+
+properties:
+
+messages:
+
+   GetRequisiteStat(who=$)
+   {
+      return Send(who,@GetIntellect);
+   }
+
+   GetElementalImbalancePower(who=$, aspell=0)
+   {
+      local iAbility, iStat, iElementalImbalancePower;
+
+      iAbility = Send(who,@GetSkillAbility,#Skill_num=viSkill_num);
+      iStat = Send(self,@GetRequisiteStat,#who=who);
+
+      if (aspell & ATCK_SPELL_FIRE) = 0
+         AND (aspell & ATCK_SPELL_SHOCK) = 0
+         AND (aspell & ATCK_SPELL_COLD) = 0
+         AND (aspell & ATCK_SPELL_ACID) = 0
+      {
+         return 0;
+      }
+      
+      % Up to 20% from ability and up to 5% from stat
+      iElementalImbalancePower = (iAbility+1)/5 + iStat/20;
+
+      if iElementalImbalancePower > 0
+      {
+         if (aspell & ATCK_SPELL_FIRE) <> 0
+         {
+            Send(who,@MsgSendUser,#message_rsc=elemental_imbalance_worked_fire_msg,
+                                  #parm1=iElementalImbalancePower);
+         }
+         if (aspell & ATCK_SPELL_SHOCK) <> 0
+         {
+            Send(who,@MsgSendUser,#message_rsc=elemental_imbalance_worked_shock_msg,
+                                  #parm1=iElementalImbalancePower);
+         }
+         if (aspell & ATCK_SPELL_COLD) <> 0
+         {
+            Send(who,@MsgSendUser,#message_rsc=elemental_imbalance_worked_cold_msg,
+                                  #parm1=iElementalImbalancePower);
+         }
+         if (aspell & ATCK_SPELL_ACID) <> 0
+         {
+            Send(who,@MsgSendUser,#message_rsc=elemental_imbalance_worked_acid_msg,
+                                  #parm1=iElementalImbalancePower);
+         }
+         Send(self,@ImproveAbility,#who=who);
+      }
+
+      return iElementalImbalancePower;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

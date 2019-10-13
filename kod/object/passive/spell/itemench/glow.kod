@@ -56,6 +56,9 @@ classvars:
    viSpellExertion = 2
 
    viChance_To_Increase = 20
+   
+   viPrimaryStat = STAT_ID_STAMINA
+   viSecondaryStat = 0
 
 properties:
 
@@ -175,7 +178,7 @@ messages:
       Send(oWeapAtt,@AddToItem,#oItem=oWeapon,#random_gen=FALSE,
             #timer_duration=Send(self,@GetDuration,#iSpellPower=iSpellPower),
             #state1=Send(self,@GetLightLevel,#iSpellpower=iSpellPower),
-            #state3=Send(self,@GetMakerInfo,#who=who));
+            #state3=Send(self,@GetMakerInfo,#who=who,#iSpellPower=iSpellPower));
 
       Send(who,@MsgSendUser,#message_rsc=GlowWeapon_cast_rsc,
             #parm1=Send(oWeapon,@GetCapDef),#parm2=Send(oWeapon,@GetName));
@@ -208,7 +211,7 @@ messages:
    {
       local iPower;
 
-      iPower = 20 + (iSpellPower / 3);
+      iPower = (iSpellPower / 3)/2;
 
       return Random(iPower/2,iPower);
    }

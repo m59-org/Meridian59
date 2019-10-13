@@ -94,6 +94,7 @@ messages:
    ReqUseSomething(what = $)
    {
       if IsClass(what,&Gauntlet)
+         OR IsClass(what,&Glove)
       {
          if Send(poOwner,@TryUnuseItem,#what=self)
          {
@@ -272,7 +273,7 @@ messages:
       return;
    }
 
-   ModifyHitRoll(who = $,what = $,hit_roll = $)
+   ModifyHitRoll(who = $,what = $,hit_roll = 0)
    {
       local i, oWeapon, oOffenseMod;
 
@@ -285,6 +286,17 @@ messages:
                         #hit_roll=hit_roll,#iState=Nth(i,2));
          }
       }
+      
+      if who <> $
+         AND NOT IsClass(who,&User)
+      {
+         return hit_roll + piAttack_bonus;
+      }
+      
+      if who = $
+      {
+         return hit_roll + piAttack_bonus;
+      }
 
       oWeapon = Send(who,@GetWeapon);
       if (oWeapon = $)
@@ -296,7 +308,7 @@ messages:
       return hit_roll;
    }
 
-   ModifyDamage(who = $,what = $,damage = $)
+   ModifyDamage(who = $,what = $,damage = 0)
    {
       local oWeapon, i, oWeaponDamageMod;
 
@@ -309,7 +321,12 @@ messages:
                         #damage=damage,#iState=Nth(i,2));
          }
       }
-      
+ 
+      if who = $
+      {
+         return damage + piDamage_bonus;
+      }
+ 
       % Add damage to non-ranged weapons (and punch)
       oWeapon = Send(who,@GetWeapon);
       if oWeapon = $
@@ -343,14 +360,17 @@ messages:
       local i, sum, oArmorMod;
       sum = 0;
 
-      foreach i in plEnchantmentMods
+      if Send(SETTINGS_OBJECT,@GetDirectArmorEnabled)
       {
-         if Nth(i,1) = &ArmorMod
+         foreach i in plEnchantmentMods
          {
-            oArmorMod = Send(SYS,@GetMagicMod,#class=&ArmorMod);
-            damage = Send(oArmorMod,@ModifyDefenseDamage,#who=who,#what=what,
-                        #damage=damage,#atype=atype,#aspell=aspell,
-                        #iState=Nth(i,2));
+            if Nth(i,1) = &ArmorMod
+            {
+               oArmorMod = Send(SYS,@GetMagicMod,#class=&ArmorMod);
+               damage = Send(oArmorMod,@ModifyDefenseDamage,#who=who,#what=what,
+                           #damage=damage,#atype=atype,#aspell=aspell,
+                           #iState=Nth(i,2));
+            }
          }
       }
 
@@ -362,11 +382,14 @@ messages:
       local i, sum;
       sum = 0;
 
-      foreach i in plEnchantmentMods
+      if Send(SETTINGS_OBJECT,@GetDirectArmorEnabled)
       {
-         if Nth(i,1) = &ArmorMod
+         foreach i in plEnchantmentMods
          {
-            sum = sum + Nth(i,2);
+            if Nth(i,1) = &ArmorMod
+            {
+               sum = sum + Nth(i,2);
+            }
          }
       }
 
@@ -399,18 +422,7 @@ messages:
 
    GetHitBonus()
    {
-      local i, sum;
-      sum = 0;
-
-      foreach i in plEnchantmentMods
-      {
-         if Nth(i,1) = &OffenseMod
-         {
-            sum = sum + Nth(i,2);
-         }
-      }
-
-      return piAttack_bonus + sum;
+      return Send(self,@ModifyHitRoll,#who=poOwner,#hit_roll=0);
    }
 
    GetDefenseBonus()
@@ -445,12 +457,23 @@ messages:
       return piDamage_bonus + sum;
    }
 
+   IsPlural()
+   {
+      return TRUE;
+   }
+
    GetPrefixes()
    {
-      return [[&ArmorMod,100],
-              [&DefenseMod,100],
+      return [[&DefenseMod,100],
               [&OffenseMod,100],
-              [&WeaponDamageMod,100]];
+              [&WeaponDamageMod,100],
+              [&ManaMod,200],
+              [&VigorMod,300],
+              [&BludgeonEmpowermentMod,100],
+              [&ThrustEmpowermentMod,100],
+              [&PierceEmpowermentMod,100],
+              [&PunchEmpowermentMod,300],
+              [&SlashEmpowermentMod,100]];
    }
    
    GetSuffixes()
@@ -461,7 +484,20 @@ messages:
               [&AcidResistanceMod,100],
               [&PierceResistanceMod,100],
               [&SlashResistanceMod,100],
-              [&BludgeonResistanceMod,100]];
+              [&BludgeonResistanceMod,100],
+              [&CasterIntMod,50],
+              [&CasterMystMod,50]];
+   }
+
+   GetResistanceModifiers()
+   {
+      if Send(SETTINGS_OBJECT,@GetDirectArmorEnabled)
+      {
+         propagate;
+      }
+
+      return [ [ATCK_WEAP_ALL,2]
+               ];
    }
 
 end

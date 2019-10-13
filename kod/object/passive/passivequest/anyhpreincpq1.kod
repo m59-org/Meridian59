@@ -1,0 +1,68 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+anyhpreincpq1 is PassiveQuest
+
+% The first quest for the reincarnation is to:
+%   Speak to Alzahakar
+%
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   anyhpreincpq1_icon_rsc = onecon.bgf
+   anyhpreincpq1_name_rsc = "Respond to Alzahakar"
+   anyhpreincpq1_desc_rsc = \
+      "Alzahakar, most powerful wizard in the land and member of the Council, "
+      "requests your presence on a matter of great importance. He can be found at his humble abode in the Twisted Woods. "
+      "Find him and ask about the important matter."
+   
+   anyhpreincpq1_new_quest_msg = \
+      "Alzahakar, most powerful wizard in the land and member of the Council, "
+      "requests your presence on a matter of great importance. He can be found at his humble abode in the Twisted Woods. "
+      "Find him and ask about the important ~o~Bmatter."
+
+   anyhpreincpq1_trigger = \
+      "matter"
+
+   anyhpreincpq1_complete_msg = \
+      "~kAlzahakar says, \"You may be aware that strange crystal shards have begun appearing in our land. "
+      "These shards appear to be discrete objects, but are in fact simply facets of one enormous crystal "
+      "somewhere outside the realms of space and time. I believe we should study these shards with utmost haste. "
+      "I have already obtained a Minor Shard and a Shard of Augmentation. Bring me a Major Shard that I may "
+      "continue my research.\""
+
+classvars:
+
+   vrIcon = anyhpreincpq1_icon_rsc
+   vrName = anyhpreincpq1_name_rsc
+   vrDesc = anyhpreincpq1_desc_rsc
+   
+   vrNewThisQuestMsg = anyhpreincpq1_new_quest_msg
+   vrCompletedMsg = anyhpreincpq1_complete_msg
+   
+   vbReinform = FALSE
+   
+   vbSaySomething = TRUE
+   vsSayTrigger = anyhpreincpq1_trigger
+   vcSayTargetClass = &OneCouncilor
+
+   viChain = ANY_HP_REINCARNATION_CHAIN
+   cNextQuestClass = &anyhpreincpq2
+
+properties:
+
+messages:
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

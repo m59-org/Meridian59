@@ -156,9 +156,17 @@ resources:
    desert_music_acid_rain = desertrain.mp3
    desert_music_static_shock = desertdawn.mp3
 
+   cannot_death_rift_or_pol = "Death does not seem to work the same way in this land. Your spell is useless."
+
 classvars:
 
    viTerrain_type = TERRAIN_BADLANDS 
+
+   vbSpawnMonsters = FALSE
+   viMinSpawnRow = 1
+   viMaxSpawnRow = 0
+   viMinSpawnCol = 1
+   viMaxSpawnCol = 0
 
 properties:
 
@@ -169,11 +177,13 @@ properties:
 
    piPreviousPhase = 0
 
+   piOverridesDeathFunction = TRUE
+
 messages:
 
    RecalcLightAndWeather()
    {
-      local SysDayPhase, i;
+      local SysDayPhase, i, iElementType;
 
       SysDayPhase = Send(SYS,@GetDayPhase);
 
@@ -183,17 +193,44 @@ messages:
          Send(self,@EndAllThreats);
          Send(self,@StartThreat,#cClasses=Send(self,@GetPhaseThreats));
          
-         prMusic = Send(self,@GetPhaseMusic);
+         Send(self,@RecalculateRoomMusic);
+
+         switch(Send(SYS,@GetDayPhase))
+         {
+            case DAY_PHASE_DAWN:
+               iElementType = ATCK_SPELL_SHOCK;
+               break;
+            case DAY_PHASE_DAY:
+               iElementType = ATCK_SPELL_FIRE;
+               break;
+            case DAY_PHASE_DUSK:
+               iElementType = ATCK_SPELL_ACID;
+               break;
+            case DAY_PHASE_NIGHT:
+               iElementType = ATCK_SPELL_COLD;
+               break;
+         }
+
          foreach i in plActive
          {
             if IsClass(First(i),&User)
             {
-               Send(First(i),@SendRoomMusic,#music_rsc=prMusic);
+               Send(First(i),@DamageTypeFlashEffect,#aspell=iElementType,#duration=1500);
             }
+         }
+
+         if pbUser_in_room
+            AND vbSpawnMonsters
+         {
+            Post(self,@DepopulateArea);
+            Post(self,@PopulateArea);
          }
       }
 
+
+
       piPreviousPhase = SysDayPhase;
+
       propagate;
    }
 
@@ -227,9 +264,18 @@ messages:
             }
             return [&HeatThreat];
          case DAY_PHASE_DUSK:
-            return [&AcidThreat];
+            if Send(Send(SYS,@FindRoomByNum,#num=RID_ACIDPATH),
+                     @GetPrismOfAcidDefeated)
+            {
+               return [&AcidStorm,&RainThreat];
+            }
+            return [&AcidThreat,&RainThreat];
          case DAY_PHASE_NIGHT:
-            return [&ColdThreat];
+            if Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTSANDBAR),@GetPrismOfIceDefeated)
+            {
+               return [&ColdStorm,&SnowThreat];
+            }
+            return [&ColdThreat,&SnowThreat];
       }
       return [&ShockStorm];
    }
@@ -282,17 +328,114 @@ messages:
 
    FirstUserEntered()
    {
-      Post(self,@StartThreat,#cClasses=Send(self,@GetPhaseThreats),
-            #report=FALSE);
+      if vbSpawnMonsters
+      {
+         Post(self,@PopulateArea);
+      }
 
       propagate;
    }
    
    LastUserLeft()
    {
-      Post(self,@EndAllThreats);
+      if vbSpawnMonsters
+      {
+         Post(self,@DepopulateArea);
+      }
 
       propagate;
+   }
+
+   PopulateArea()
+   {
+      local i, iNumMonsters, oMonster, lMonsters, lClasses, iMinRow, iMinCol, iMaxRow, iMaxCol, iChosenAngle;
+
+      switch(Send(SYS,@GetDayPhase))
+      {
+         case DAY_PHASE_DAWN:
+            lClasses = [&XeoAir, &EvilEnt];
+            break;
+         case DAY_PHASE_DAY:
+            lClasses = [&FireElemental,&XeoFire];
+            break;
+         case DAY_PHASE_DUSK:
+            lClasses = [&EarthElemental,&XeoAcid];
+            break;
+         case DAY_PHASE_NIGHT:
+            lClasses = [&IceElemental,&XeoWater,&Iceperson];
+            break;
+      }
+
+      iNumMonsters = Random(5,15);
+      lMonsters = $;
+
+      while iNumMonsters > 0
+      {
+         lMonsters = Cons(Nth(lClasses,Random(1,Length(lClasses))),lMonsters);
+         --iNumMonsters;
+      }
+
+      if viMaxSpawnRow = 0
+      {
+         iMaxRow = Send(self,@GetRoomRows)-1;
+      }
+      else
+      {
+         iMaxRow = viMaxSpawnRow;
+      }
+
+      if viMaxSpawnCol = 0
+      {
+         iMaxCol = Send(self,@GetRoomCols)-1;
+      }
+      else
+      {
+         iMaxCol = viMaxSpawnCol;
+      }
+
+      iChosenAngle = ANGLE_EAST;
+      switch(Random(1,4))
+      {
+         case 1:
+            iChosenAngle = ANGLE_WEST;
+            break;
+         case 2:
+            iChosenAngle = ANGLE_NORTH;
+            break;
+         case 3:
+            iChosenAngle = ANGLE_SOUTH;
+            break;
+         case 4:
+            iChosenAngle = ANGLE_EAST;
+            break;
+      }
+
+      foreach i in lMonsters
+      {
+         Send(self,@NewHold,#what=Create(i,#piSurvivalLevel=Send(Send(SYS,@GetDesertRoomMaintenance),@GetBoostDesertLevel)),
+               #new_row=Random(viMinSpawnRow,iMaxRow),
+               #new_col=Random(viMinSpawnCol,iMaxCol),
+               #new_angle=iChosenAngle);
+      }
+
+      return;
+   }
+   
+   DepopulateArea()
+   {
+      local i, each_obj;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         each_obj = Send(self,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&Monster)
+            AND NOT IsClass(each_obj,&Towns) % don't delete NPCs
+         {
+            Send(each_obj,@Delete);
+         }
+      }
+      
+      return;
    }
 
    StartSnow(bOnGround=TRUE)
@@ -414,6 +557,19 @@ messages:
 
    Delete()
    {
+      local i, oThing;
+
+      foreach i in Send(self,@GetHolderPassive)
+      {
+         oThing = Send(self,@HolderExtractObject,#data=i);
+         if IsClass(oThing,&DeadBody)
+            AND NOT Send(oThing,@GetPbMob)
+         {
+            % is a player corpse! Let's move it.
+            Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTDUNES),@Teleport,#what=oThing);
+         }
+      }
+
       Send(self,@EndAllThreats);
       propagate;
    }
@@ -459,6 +615,186 @@ messages:
    GetRegion()
    {
       return RID_DESERT;
+   }
+   
+   OverrideDeathFunction(who=$,what=$,stroke_obj=$)
+   {
+      local oAfterlife, bDrop, oRoom, iRow, iCol, iFine_Row, iFine_Col, iAngle, iRoom,
+            oBody, lReagentBagContents, lInventoryContents, lItems, i, oSoldierShield;
+
+      Send(who,@ClearStance);
+      % Stop any rescue attempts that were going on.
+      Send(who,@CancelRescue);
+      Send(who,@RemoveAllEnchantments,#report=FALSE);
+      
+      Send(who,@SetDeathTime,#iTime=GetTime());
+
+      % Grab the location of the deceased.
+      % Might need to grab the old location if logged off.
+
+      if Send(who,@IsLoggedOn)
+      {
+         oRoom = Send(who,@GetOwner);
+         iRow = Send(who,@GetRow);
+         iCol = Send(who,@GetCol);
+         iFine_Row = Send(who,@GetFineRow);
+         iFine_Col = Send(who,@GetFineCol);
+         iAngle = Send(who,@GetAngle);
+         iRoom = Send(Send(who,@GetOwner),@GetRoomNum);
+      }
+      else
+      {
+         iRoom = Send(who,@GetSaveRoom);
+         oRoom = Send(SYS,@FindRoomByNum,#num=iRoom);
+         iRow = Send(who,@GetSaveRow);
+         iCol = Send(who,@GetSaveCol);
+         iFine_Row = Send(who,@GetSaveFineRow);
+         iFine_Col = Send(who,@GetSaveFineCol);
+         iAngle = Send(who,@GetSaveAngle);
+      }
+
+      % Record-keeping. Keep this before the token check,
+      % so we can give proper message.
+      Send(SYS,@UserKilled,#what=who,#killer=what,#oRoom=oRoom,#stroke_obj=stroke_obj);
+      Send(Send(SYS,@GetStatistics),@PlayerDiedCounter);
+
+      % Create the corpse.
+      if what <> $
+         AND IsClass(what,&User)
+      {
+         oBody = Send(who,@CreateCorpse,#oPlayerKiller=what);
+      }
+      else
+      {
+         oBody = Send(who,@CreateCorpse);
+      }
+      Send(who,@AddCorpse,#corpse=oBody);
+
+      Send(oRoom,@NewHold,#what=oBody,#new_row=iRow,#new_col=iCol,
+            #fine_row=iFine_Row,#fine_col=iFine_Col,#new_angle=iAngle);
+
+      bDrop = TRUE;
+      % Start losing stuff if applicable.
+      if bDrop
+      {
+         lReagentBagContents = Send(who,@GetReagentBagContents);
+         if lReagentBagContents <> $
+         {
+            lInventoryContents = [Send(who,@GetHolderActive),Send(who,@GetHolderPassive),lReagentBagContents];
+         }
+         else
+         {
+            lInventoryContents = [Send(who,@GetHolderActive),Send(who,@GetHolderPassive)];
+         }
+
+         foreach lItems in lInventoryContents
+         {
+            foreach i in lItems
+            {
+               % Let the item know we died, in case it does something special.
+               Send(i,@OwnerKilled);
+
+               if Send(i,@DropOnDeath)
+               {
+                  if Send(oRoom,@ReqNewHold,#what=i,#new_row=iRow,#new_col=iCol)
+                  {
+                     Send(oBody,@NewHold,#what=i);
+                  }
+               }
+            }
+         }
+
+         Post(who,@EvaluatePKStatus);
+
+         % Let SoldierShields know we died. It handles itself as appropriate.
+         oSoldierShield = Send(who,@FindUsing,#what=&SoldierShield);
+         if oSoldierShield <> $
+         {
+            Send(oSoldierShield,@OwnerDied,#what=what);
+         }
+      }
+
+      % Give out your dying scream.
+      if Send(who,@GetGender) = GENDER_FEMALE
+      {
+         i = Send(who,@GetFemaleDeathWav);
+      }
+      else
+      {
+         i = Send(who,@GetMaleDeathWav);
+      }
+
+      Send(oRoom,@SomethingWaveRoom,#what=oBody,#wave_rsc=i);
+      if Send(who,@IsLoggedOn)
+      {
+         Send(who,@WaveSendUser,#what=who,#wave_rsc=i);
+      }
+
+      Send(who,@SetHealth,#amount=1);
+
+      Send(who,@NewHealth);
+      Send(who,@NewMana);
+      Send(who,@NewVigor);
+      
+      Send(who,@SetDeathCost,#DeathCost=Send(Send(SYS,@GetDesertRoomMaintenance),@GetDeathCost),#bOverride=TRUE);
+      Send(who,@ApplyDeathPenalties);
+
+      % Refresh the client with what's really going on.
+      if Send(who,@IsLoggedOn)
+      {
+         Send(who,@ToCliStats,#group=1);
+         Send(who,@ToCliStats,#group=2);
+         Send(who,@ToCliStats,#group=3);
+         Send(who,@ToCliStats,#group=4);
+
+         % Wake up with red foggy hangover.
+         Send(who,@EffectSendUserDuration,#effect=EFFECT_PAIN,#duration=5000);
+      }
+      
+      oAfterlife = Send(SYS,@FindRoomByNum,#num=RID_DESERTALDUNES);
+      
+      if IsClass(self,&DesertDunesRoom)
+      {
+         Send(SYS,@UtilGoNearSquare,#what=who,
+                                    #where=oAfterlife,
+                                    #new_row=iRow,
+                                    #new_col=iCol,
+                                    #fine_row=iFine_Row,
+                                    #fine_col=iFine_Col,
+                                    #new_angle=iAngle);
+      }
+      else
+      {
+         Send(oAfterlife,@Teleport,#what=who);
+      }
+      return;
+   }
+
+   CanHavePlayerPortal()
+   {
+      return FALSE;
+   }
+
+   CanTokenEnterRoom()
+   {
+      return FALSE;
+   }
+
+   ReqSpellCast(who = $, oSpell = $, lItems = $)
+   {
+      if IsClass(oSpell,&DeathRift)
+         OR IsClass(oSpell,&PortalOfLife)
+      {
+         Send(who,@MsgSendUser,#message_rsc=cannot_death_rift_or_pol);
+         return FALSE;
+      }
+
+      propagate;
+   }
+
+   OverridesDeathAllowPhasing()
+   {
+      return TRUE;
    }
 
 end

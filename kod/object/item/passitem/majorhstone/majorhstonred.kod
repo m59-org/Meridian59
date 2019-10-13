@@ -1,0 +1,68 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+MajorRedHeartStone is MajorHeartStone
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   MajorRedHeartStone_name_rsc = "major red heartstone"
+   MajorRedHeartStone_name_plural = "major red heartstones"
+   MajorRedHeartStone_desc_rsc = \
+      "This is a 'heartstone'.  It is a red gem taken from the "
+      "body of a fallen Vix'Ro'Xeochicatl.  It glows softly and is warm to the "
+      "touch.  The uses for this gem are not widely known."
+
+classvars:
+
+   vrName = MajorRedHeartStone_name_rsc
+   vrDesc = MajorRedHeartStone_desc_rsc
+   
+   vrName_plural = MajorRedHeartStone_name_plural
+
+   viValue_average = 100
+   viWeight = 20
+   viBulk = 10
+
+   viColor = XLAT_TO_RED
+
+properties:
+
+messages:
+
+   CreateXeo()
+   {
+      return Create(&XeoFire,#InAttack=Send(self,@IsInAttack));
+   }
+
+   WeightPrefixes()
+   {
+      return [[&HealthMod,100]
+             ];
+   }
+   
+   WeightSuffixes()
+   {
+      return [[&FireResistanceMod,200]
+             ];
+   }
+
+   EmpowerAffixes()
+   {
+      return [[&HealthMod,3],
+              [&FireResistanceMod,5]
+             ];
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

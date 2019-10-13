@@ -22,8 +22,9 @@ resources:
    goldshield_icon_rsc = rshield.bgf
    goldshield_desc_rsc = \
       "Finely made, this hefty gold shield offers a fair "
-      "measure of protection.  Delicate engravings, the mark "
-      "of Quintor, adorn its circumference."
+      "measure of protection. Delicate engravings, the marks "
+      "of Quintor, adorn its circumference. These marks will provide "
+      "slight magical absorption."
 
    goldshield_window_overlay_rsc = povshldD.bgf
 
@@ -48,7 +49,7 @@ classvars:
    viInventory_group = 1
    viBroken_group = 4
 
-   viDefense_base = 10
+   viDefense_base = 50
    viDamage_base = 1
 
 properties:
@@ -57,12 +58,23 @@ messages:
 
    GetResistanceModifiers()
    {
-      return [ [ATCK_WEAP_SLASH,10],
-               [ATCK_WEAP_BLUDGEON,10],
-               [ATCK_WEAP_THRUST,10]
-             ];
+      if Send(SETTINGS_OBJECT,@GetDirectArmorEnabled)
+      { 
+         return [ [ATCK_WEAP_SLASH,10],
+                  [ATCK_WEAP_BLUDGEON,10],
+                  [ATCK_WEAP_THRUST,10]
+                ];
+      }
+      
+      return [ [ATCK_WEAP_ALL,5],
+               [-ATCK_SPELL_ALL,2]
+               ];
    }
 
+   GetKnockbackResistance()
+   {
+      return 10;
+   }
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

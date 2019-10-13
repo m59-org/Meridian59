@@ -10,6 +10,9 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 GuildHall6 is GuildHall
 
+   % The ivory chapel has very limited upgrades, but it has
+   %    rather incredible spell totems.
+
 constants:
 
    GH6ENTRANCE = 2
@@ -34,6 +37,9 @@ classvars:
    viTeleport_row = 11
    viTeleport_col = 10
 
+   viLongitude = 18
+   viLatitude = 28
+
    viNews_row = 15
    viNews_col = 18
    viNews_finerow = 16
@@ -56,6 +62,50 @@ classvars:
 
    viTerrain_type = TERRAIN_CITY | TERRAIN_GUILDHALL
    viSeconds_til_close = 14
+   
+   % Fusing device rates go from 8 (worst) to 4 (best) 
+   viShardFusingDeviceRow = 8
+   viShardFusingDeviceCol = 7
+   viShardFusingDeviceFineRow = 40
+   viShardFusingDeviceFineCol = 5
+   viShardFusingDeviceRate = 8
+   
+   % Shattering device rates go from 2 (worst) to 4 (best) 
+   viShardShatteringDeviceRow = 8
+   viShardShatteringDeviceCol = 4
+   viShardShatteringDeviceFineRow = 40
+   viShardShatteringDeviceFineCol = 61
+   viShardShatteringDeviceRate = 2
+   
+   viFociOneRow = 7
+   viFociOneCol = 10
+   viFociOneFineRow = 31
+   viFociOneFineCol = 59
+   viFociOnePower = 297
+   viFociOneRange = 20
+   viFociOneSpellNum = SID_INVIGORATE
+   
+   viFociTwoRow = 7
+   viFociTwoCol = 10
+   viFociTwoFineRow = 31
+   viFociTwoFineCol = 59
+   viFociTwoPower = 297
+   viFociTwoRange = 20
+   viFociTwoSpellNum = SID_RESTORATE
+   
+   viFociThreeRow = 7
+   viFociThreeCol = 10
+   viFociThreeFineRow = 31
+   viFociThreeFineCol = 59
+   viFociThreePower = 297
+   viFociThreeRange = 20
+   viFociThreeSpellNum = SID_REJUVENATE
+   
+   viMarketRow = 14
+   viMarketCol = 13
+   viMarketFineRow = 47
+   viMarketFineCol = 31
+   viMarketRate = 100
 
 properties:
 
@@ -66,6 +116,10 @@ properties:
 
    ptSecret = $
    ptEntrance = $
+   
+   piGuildHallMeditateEffiency = 100
+   % The Ivory Chapel boosts Shal'ille and Knightcraft learning.
+   piSpecialGuildHallMeditateEfficiency = 125
 
 messages:
 
@@ -177,6 +231,26 @@ messages:
       Send(self,@NewHold,#what=Create(&Brazier),#new_row=4,#new_col=10);
 
       propagate;
+   }
+   
+   DoesPlayerQualifyForSpecialMeditateRatio(who=$,oSpell=$,oSkill=$)
+   {
+      if (oSpell <> $
+         AND Send(oSpell,@GetSchool) = SS_SHALILLE)
+      {
+         return TRUE;
+      }
+      if (oSpell <> $
+         AND Send(oSpell,@GetSchool) = SKS_KNIGHTCRAFT)
+      {
+         return TRUE;
+      }
+      if (oSkill <> $
+         AND Send(oSkill,@GetSchool) = SKS_KNIGHTCRAFT)
+      {
+         return TRUE;
+      }
+      return FALSE;
    }
 
 end

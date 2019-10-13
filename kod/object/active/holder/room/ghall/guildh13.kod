@@ -10,6 +10,9 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 GuildHall13 is GuildHall
 
+   % Massive reliquary focus, since this is a hall showing reverence for those lost in the line of duty.
+   %    Small number of portals, but useful destinations.
+
 constants:
 
    MAIN_DOOR  = 4
@@ -30,10 +33,17 @@ resources:
    room_name_guildh13 = "The Hall of the Slaughtered Command"
    room_guildh13 = guildh13.roo
 
-   guildh13_locked = "The door is firmly locked"
+   guildh13_locked = "The door is firmly locked."
 
    guildh13_gong = pdeath.wav
    guildh13_ocean_sound = ocean.wav
+   
+   gh13_trading_post_portal_desc = \
+      "You see a warm jungle trading post beyond."
+   gh13_abandoned_building_desc = \
+      "You see garbage and dung beyond."
+   gh13_old_schoolhouse_desc = \
+      "You see a dusty abandoned schoolhouse beyond."
 
 classvars:
 
@@ -41,6 +51,9 @@ classvars:
 
    viTeleport_row = 9
    viTeleport_col = 3
+
+   viLongitude = 22
+   viLatitude = 57
 
    viNews_row = 2
    viNews_col = 12
@@ -68,6 +81,117 @@ classvars:
 
    viWeatherZone = WEATHER_ZONE_KOC_TOWN
    viWeatherMask = WEATHER_MASK_JUNGLE_NS
+   
+   viPortalOneRow = 13
+   viPortalOneCol = 17
+   viPortalOneFineRow = 53
+   viPortalOneFineCol = 20
+   viPortalOneAngle = ANGLE_SOUTH_EAST
+   viPortalOneDestRID = RID_JUNGLE_TRADING_POST
+   viPortalOneDestRow = 12
+   viPortalOneDestCol = 13
+   viPortalOneDestFineRow = 44
+   viPortalOneDestFineCol = 14
+   viPortalOneDestAngle = ANGLE_NORTH
+   vsPortalOneDesc = gh13_trading_post_portal_desc
+   
+   viPortalTwoRow = 14
+   viPortalTwoCol = 30
+   viPortalTwoFineRow = 47
+   viPortalTwoFineCol = 47
+   viPortalTwoAngle = ANGLE_NORTH_WEST
+   viPortalTwoDestRID = RID_TOS_GREY
+   viPortalTwoDestRow = 7
+   viPortalTwoDestCol = 2
+   viPortalTwoDestFineRow = 47
+   viPortalTwoDestFineCol = 15
+   viPortalTwoDestAngle = ANGLE_NORTH_EAST
+   vsPortalTwoDesc = gh13_abandoned_building_desc
+   
+   viPortalThreeRow = 14
+   viPortalThreeCol = 23
+   viPortalThreeFineRow = 48
+   viPortalThreeFineCol = 16
+   viPortalThreeAngle = ANGLE_NORTH_EAST
+   viPortalThreeDestRID = RID_JAS_AB3
+   viPortalThreeDestRow = 17
+   viPortalThreeDestCol = 11
+   viPortalThreeDestFineRow = 20
+   viPortalThreeDestFineCol = 29
+   viPortalThreeDestAngle = ANGLE_NORTH_WEST
+   vsPortalThreeDesc = gh13_old_schoolhouse_desc
+   
+   viReliquaryOneRow = 2
+   viReliquaryOneCol = 23
+   viReliquaryOneFineRow = 16
+   viReliquaryOneFineCol = 15
+   
+   viReliquaryTwoRow = 8
+   viReliquaryTwoCol = 23
+   viReliquaryTwoFineRow = 52
+   viReliquaryTwoFineCol = 15
+   
+   viReliquaryThreeRow = 2
+   viReliquaryThreeCol = 15
+   viReliquaryThreeFineRow = 17
+   viReliquaryThreeFineCol = 31
+   
+   viReliquaryFourRow = 2
+   viReliquaryFourCol = 19
+   viReliquaryFourFineRow = 17
+   viReliquaryFourFineCol = 32
+   
+   viReliquaryFiveRow = 13
+   viReliquaryFiveCol = 9
+   viReliquaryFiveFineRow = 54
+   viReliquaryFiveFineCol = 34
+   
+   viReliquarySixRow = 13
+   viReliquarySixCol = 6
+   viReliquarySixFineRow = 52
+   viReliquarySixFineCol = 37
+   
+   % Fusing device rates go from 8 (worst) to 4 (best) 
+   viShardFusingDeviceRow = 10
+   viShardFusingDeviceCol = 18
+   viShardFusingDeviceFineRow = 21
+   viShardFusingDeviceFineCol = 3
+   viShardFusingDeviceRate = 4
+   
+   % Shattering device rates go from 2 (worst) to 4 (best) 
+   viShardShatteringDeviceRow = 11
+   viShardShatteringDeviceCol = 16
+   viShardShatteringDeviceFineRow = 40
+   viShardShatteringDeviceFineCol = 50
+   viShardShatteringDeviceRate = 4
+   
+   viFociOneRow = 7
+   viFociOneCol = 7
+   viFociOneFineRow = 35
+   viFociOneFineCol = 56
+   viFociOnePower = 198
+   viFociOneRange = 2
+   viFociOneSpellNum = SID_REJUVENATE
+   
+   viFociTwoRow = 7
+   viFociTwoCol = 7
+   viFociTwoFineRow = 35
+   viFociTwoFineCol = 56
+   viFociTwoPower = 198
+   viFociTwoRange = 2
+   viFociTwoSpellNum = SID_INVIGORATE
+
+   viBartenderRow = 4
+   viBartenderCol = 17
+   viBartenderFineRow = 2
+   viBartenderFineCol = 44
+   viBartenderRate = 100
+   
+   viMarketRow = 10
+   viMarketCol = 17
+   viMarketFineRow = 63
+   viMarketFineCol = 24
+   viMarketRate = 100
 
 properties:
 
@@ -81,6 +205,10 @@ properties:
 
    ptSecret = $
    ptEntrance = $
+
+   piGuildHallMeditateEffiency = 100
+   % The Hall of the Slaughtered Command boosts meditation of all spells and skills level 4 and above by 40%.
+   piSpecialGuildHallMeditateEfficiency = 140
 
 messages:
 
@@ -116,18 +244,6 @@ messages:
       %% teleport in to (12, 7) -- to secure porch
       plExits = Cons([ 13, 7, RID_KOC_SOUTH, 47, 43, ROTATE_NONE ],plExits);
       plExits = Cons([ 13, 8, RID_KOC_SOUTH, 47, 43, ROTATE_NONE ],plExits);
-
-      propagate;
-   }
-
-   NewHold(what=$)
-   {
-      if what <> $ AND IsClass(what,&User)
-      {
-         Send(self,@SetSector,#sector=SECRET_DOOR,
-               #animation=ANIMATE_CEILING_LIFT,
-               #height=SECRET_DOOR_OPEN,#speed=0);
-      }
 
       propagate;
    }
@@ -413,6 +529,18 @@ messages:
       }
 
       return;
+   }
+   
+   DoesPlayerQualifyForSpecialMeditateRatio(who=$,oSpell=$,oSkill=$)
+   {
+      if (oSpell <> $
+         AND Send(oSpell,@GetLevel) >= 4)
+         OR (oSkill <> $
+         AND Send(oSkill,@GetLevel) >= 4)
+      {
+         return TRUE;
+      }
+      return FALSE;
    }
 
 end

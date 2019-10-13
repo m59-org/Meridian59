@@ -1,0 +1,111 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+WayOfTheSerpent is Unarmed
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   way_of_the_serpent_name_rsc = "way of the serpent"
+   way_of_the_serpent_icon_rsc = punchico.bgf
+   way_of_the_serpent_desc_rsc = \
+      "The most basic combat move in existence, the punch, has been improved "
+      "and refined for centuries by practitioners of Shadowcraft. "
+      "Using only their fists, monks can control the flow of battle."
+
+   way_of_the_serpent_player_was_hit = "%s%s connects a punch solidly on your jaw."
+   way_of_the_serpent_player_hit_something = "%sYou hit %s%s with a hard right cross."
+
+   way_of_the_serpent_player_killed_something = "%s%s crumples to the ground, never to rise again."
+   way_of_the_serpent_player_was_killed = "The last thing you see is %s%s's fist speeding towards your nose."
+
+   way_of_the_serpent_skill_intro = "Shadowcraft Lv. 1: Advanced hand-to-hand combat."
+
+classvars:
+
+   vrName = way_of_the_serpent_name_rsc
+   vrIcon = way_of_the_serpent_icon_rsc
+   vrDesc = way_of_the_serpent_desc_rsc
+
+   vrPlayer_was_hit = way_of_the_serpent_player_was_hit
+   vrPlayer_hit_something = way_of_the_serpent_player_hit_something
+   vrPlayer_was_killed = way_of_the_serpent_player_was_killed
+   vrPlayer_killed_something = way_of_the_serpent_player_killed_something
+
+   vrSkill_intro = way_of_the_serpent_skill_intro
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+   viSchool = SKS_FENCING
+
+   viSkill_num = SKID_WAY_OF_THE_SERPENT
+   viSchool = SKS_SHADOWCRAFT
+   viSkillExertion = 1
+   viSkill_level = 1
+   vbCheck_exertion = FALSE
+
+   viChance_to_increase = 60
+   viMeditate_ratio = 30
+
+
+   viMin_Damage = 2         % Damage_min here replaces a weapon    
+   viMax_Damage = 6         % Damage_max replaces the weapon's stats.
+
+   VbAutomatic = FALSE  %  If this is set to TRUE, then the effects of this
+                        %  skill happen automatically, and are not accessible
+                        %  via menu.
+
+   viAttack_Type = ATCK_WEAP_UNARMED+ATCK_WEAP_PUNCH
+   
+   viPrimaryStat = STAT_ID_AIM
+   viSecondaryStat = 0
+
+properties:
+
+messages:
+
+   GetRequisiteStat(who=$)
+   {
+      return Send(who,@GetAim);
+   }
+
+   PlayerWasHitMsg(who=$,attacker=$,damage=$)
+   "The stroke may choose it's own damage give or recieve message.  Otherwise"
+   "player.kod will just choose a default."
+   {
+       send(who,@msgsenduser,#message_rsc=vrPlayer_was_hit,
+                #parm1=send(attacker,@getcapdef),#parm2=send(attacker,@getname));
+       return TRUE;
+   }
+
+   PlayerKilledSomethingMsg(who=$,victim=$,damage=$)
+   "The stroke may choose it's own damage give or recieve message.  Otherwise"
+   "player.kod will offer the default 'You killed the whatever' message."
+   {
+      if (Send(who,@GetWeapon) <> $)
+      {
+         % They have a weapon, probably a touch attack.  Let that do it's own damage message.
+         return FALSE;
+      }
+      send(who,@msgsenduser,#message_rsc=vrPlayer_killed_something,
+           #parm1=send(victim,@getCapdef),#parm2=send(victim,@getname));
+      return TRUE;
+   }
+
+   OfferToNewCharacters()
+   {
+      return FALSE;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

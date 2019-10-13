@@ -64,7 +64,13 @@ messages:
          AND (IsClass(apply_on,&Weapon)
             OR IsClass(apply_on,&DefenseModifier)
             OR IsClass(apply_on,&Ring)
-            OR IsClass(apply_on,&Gauntlet))
+            OR IsClass(apply_on,&Gauntlet)
+            OR IsClass(apply_on,&NecromancerAmulet)
+            OR IsClass(apply_on,&Necklace)
+            OR IsClass(apply_on,&Instrument)
+            OR IsClass(apply_on,&JewelofFroz)
+            OR IsClass(apply_on,&AdventurerCrest)
+            OR IsClass(apply_on,&ScryingCrystal))
          AND Send(apply_on,@GetMagicModsNumber) = 0
       {
          % This shard only applies to non-enchanted gear
@@ -76,7 +82,24 @@ messages:
 
    NewApplied(what = $,apply_on = $)
    {
-      Send(apply_on,@AddMagicMods,#min_num_mods=3,#max_num_mods=6);
+      if Send(self,@GenerateMod,#oItem=apply_on,#who=what) = 1
+      {
+         Send(self,@SubtractNumber,#number=1);
+      }
+      Send(self,@GenerateMod,#oItem=apply_on,#who=what);
+      Send(self,@GenerateMod,#oItem=apply_on,#who=what);
+      if Random(1,2) = 1
+      {
+         Send(self,@GenerateMod,#oItem=apply_on,#who=what);
+      }
+      if Random(1,2) = 1
+      {
+         Send(self,@GenerateMod,#oItem=apply_on,#who=what);
+      }
+      if Random(1,2) = 1
+      {
+         Send(self,@GenerateMod,#oItem=apply_on,#who=what);
+      }
 
       propagate;
    }

@@ -13,6 +13,10 @@ DesertShore2 is DesertRoom
 constants:
 
    include blakston.khd
+   
+   
+   TOWER_TRAPDOOR = 9998
+   TOWER_LADDER = 9997
 
 resources:
 
@@ -25,12 +29,28 @@ resources:
       "If something interesting once existed out there, it's certainly "
       "been gone for a long time."
 
+   angeleds_are_not_allowed_here = \
+      "Your guardian angel roughly yanks you back from a place where it "
+      "cannot protect you from untold horrors!"
+      
+   climb_ladder_msg_ds2 = \
+      "You climb the ladder."
+   descend_msg_ds2 = \
+      "You climb back down the ladder."
+
 classvars:
 
    vrName = room_name_desertshore2
 
-   viTeleport_row = 60
-   viTeleport_col = 102
+   viTeleport_row = 57
+   viTeleport_col = 30
+   
+   viTeleport_finerow = 48
+   viTeleport_finecol = 60
+
+   % Princess Guards now defend this area
+   vbSpawnMonsters = FALSE
+   viMinSpawnCol = 49
 
 properties:
 
@@ -46,14 +66,14 @@ messages:
 
    SomethingMoved(what = $,new_row = $, new_col = $)
    {
+      local oTargetRoom;
       if new_col > (Send(self,@GetRoomCols)-2)
       {
+         oTargetRoom = Send(Send(SYS,@GetDesertRoomMaintenance),@GetDesertDunes2);
          Send(SYS,@UtilGoNearSquare,#what=what,
-              #where=Send(SYS,@FindRoomByNum,#num=RID_DESERTDUNES),
-              #new_row=Send(what,@GetRow),
-              #new_col=3,
-              #fine_row=Send(what,@GetFineRow),
-              #fine_col=0,
+              #where=oTargetRoom,
+              #new_row=Send(oTargetRoom,@GetTeleportRow,#direction=ANGLE_EAST),
+              #new_col=Send(oTargetRoom,@GetTeleportCol,#direction=ANGLE_EAST),
               #new_angle=Send(what,@GetAngle));
          return;
       }
@@ -71,10 +91,10 @@ messages:
       {
          Send(SYS,@UtilGoNearSquare,#what=what,
               #where=Send(SYS,@FindRoomByNum,#num=RID_DESERTSHORE3),
-              #new_row=Send(self,@GetRoomRows)-3,
-              #new_col=Send(what,@GetCol),
+              #new_row=Send(self,@GetRoomRows)-6,
+              #new_col=60,
               #fine_row=0,
-              #fine_col=Send(what,@GetFineCol),
+              #fine_col=0,
               #new_angle=Send(what,@GetAngle));
          return;
       }
@@ -83,15 +103,164 @@ messages:
       {
          Send(SYS,@UtilGoNearSquare,#what=what,
               #where=Send(SYS,@FindRoomByNum,#num=RID_DESERTSHORE1),
-              #new_row=3,
-              #new_col=Send(what,@GetCol),
+              #new_row=6,
+              #new_col=60,
               #fine_row=0,
-              #fine_col=Send(what,@GetFineCol),
+              #fine_col=0,
               #new_angle=Send(what,@GetAngle));
          return;
       }
 
       propagate;
+   }
+
+   Teleport(what=$)
+   {
+      Send(SYS,@UtilGoNearSquare,#what=what,#where=self,
+           #new_row=viTeleport_row,
+           #new_col=viTeleport_col,
+           #fine_row=viTeleport_finerow,
+           #fine_col=viTeleport_finecol,
+           #new_angle=ANGLE_EAST);
+
+      return;
+   }
+   
+   NewHold(what = $)
+   {
+      % Boot angeleds.
+      if IsClass(what,&Player)
+         AND NOT Send(what,@CheckPlayerFlag,#flag=PFLAG_PKILL_ENABLE)
+      {
+         Send(what,@MsgSendUser,#message_rsc=angeleds_are_not_allowed_here);
+         Post(what,@AdminGoToSafety);
+         propagate;
+      }
+
+      if IsClass(what,&Player)
+      {
+         Send(Send(SYS,@GetGameQuestMaintenance),@EvaluatePlayer,#who=what,#vbTriggered=TRUE);
+      }
+      propagate;
+   }
+
+   CreateStandardObjects()
+   {
+      Send(self,@NewHold,#what=Create(&DesertGuard),
+           #new_row=55,#new_col=33,#fine_row=26,#fine_col=10);
+      Send(self,@NewHold,#what=Create(&DesertGuard),
+           #new_row=59,#new_col=33,#fine_row=37,#fine_col=10);
+      Send(self,@NewHold,#what=Create(&DesertGuard),
+           #new_row=53,#new_col=45,#fine_row=10,#fine_col=20);
+      Send(self,@NewHold,#what=Create(&DesertGuard),
+           #new_row=63,#new_col=48,#fine_row=15,#fine_col=36);
+           
+      Send(self,@NewHold,#what=Create(&DesertGuard),
+           #new_row=59,#new_col=54,#fine_row=0,#fine_col=40);
+      propagate;
+   }
+   
+   StartSnow()
+   {
+      Send(self,@NewHold,#what=Create(&Firepit,#iSoundRadius=0),#new_row=54,#new_col=44,
+           #fine_row=15,#fine_col=18);
+      Send(self,@NewHold,#what=Create(&Firepit,#iSoundRadius=0),#new_row=63,#new_col=46,
+           #fine_row=19,#fine_col=56);
+      Send(self,@NewHold,#what=Create(&Firepit,#iSoundRadius=0),#new_row=59,#new_col=53,
+           #fine_row=0,#fine_col=32);
+
+      propagate;
+   }
+   
+   EndSnow()
+   {
+      local i;
+      
+      foreach i in Send(self,@GetHolderPassive)
+      {
+         if IsClass(First(i),&Firepit)
+         {
+            % Delete fires
+            Send(First(i),@Delete);
+         }
+      }
+      propagate;
+   }
+
+   SomethingTryGo(what = $,row = $,col = $)
+   {
+      local iSection;
+      
+      iSection = Send(self,@GetSection,#who=what);
+
+      Switch(iSection)
+      {
+         case TOWER_LADDER:
+            Post(SYS,@UtilGoNearSquare,#what=what,
+                 #where=self,
+                 #new_row=59,
+                 #new_col=52,
+                 #fine_row=8,
+                 #fine_col=48,
+                 #new_angle=Send(what,@GetAngle));
+            Send(what,@MsgSendUser,#message_rsc=climb_ladder_msg_ds2);
+            return TRUE;
+            break;
+         case TOWER_TRAPDOOR:
+            Post(SYS,@UtilGoNearSquare,#what=what,
+                 #where=self,
+                 #new_row=60,
+                 #new_col=51,
+                 #fine_row=8,
+                 #fine_col=0,
+                 #new_angle=Send(what,@GetAngle));
+            Send(what,@MsgSendUser,#message_rsc=descend_msg_ds2);
+            return TRUE;
+            break;
+      }
+      propagate;
+   }
+
+   GetSection(who=$,iRow=$,iCol=$,iFineRow=$,iFineCol=$,bCheckForPool=FALSE)
+   {
+      local iQflags, iRflags, iHeightF, iHeightFWD, iHeightC, iServerID;
+      
+      if iRow = $
+         OR iCol = $
+         OR iFineRow = $
+         OR iFineCol = $
+      {
+         if who <> $
+         {
+            iRow = Send(who,@GetRow);
+            iCol = Send(who,@GetCol);
+            iFineRow = Send(who,@GetFineRow);
+            iFineCol = Send(who,@GetFineCol);
+         }
+         else
+         {
+            return 0;
+         }
+         if iRow = $
+            OR iCol = $
+            OR iFineRow = $
+            OR iFineCol = $
+         {
+            % Who gave us some nil coords.
+            return 0;
+         }
+      }
+
+      iQflags = LIQ_GET_SECTORINFO;
+
+      if GetLocationInfoBSP(
+                      prmRoom, iQflags, iRow, iCol, iFineRow, iFineCol,
+                      *iRflags, *iHeightF, *iHeightFWD, *iHeightC, *iServerID)
+      {
+         return iServerID;
+      }
+
+      return 0;
    }
 
 end

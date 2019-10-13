@@ -20,7 +20,9 @@ resources:
    blood_magic_icon_rsc = imajheal.bgf
    blood_magic_desc_rsc = \
       "By the sacrifice of some of one's own life essence, a mage can replace "
-      "the need for physical reagents."
+      "the need for physical reagents. Unfortunately, the pain involved "
+      "makes it impossible to pay attention, so spells cast in such a manner "
+      "cannot be improved."
 
    blood_magic_skill_intro = \
       "Sorcery Lv. 2: Sacrifice health to cast spells without the need for reagents."
@@ -30,6 +32,8 @@ resources:
    sacrifice_health = \
       "You spill your own blood in place of physical reagents, "
       "losing %i health."
+   already_bleeding_sacrifice = \
+      "In place of physical reagents, you catalyze some of the fluid from your bleeding wounds."
 
 classvars:
 
@@ -46,10 +50,13 @@ classvars:
    viSchool = SKS_SORCERY
    viSkill_Level = 2
    viChance_to_Increase = 8
-   viMeditate_ratio = 180
+   viMeditate_ratio = 40
 
    viSkillExertion = 0
    vbCheck_exertion = FALSE
+   
+   viPrimaryStat = STAT_ID_STAMINA
+   viSecondaryStat = 0
 
 properties:
 
@@ -87,9 +94,16 @@ messages:
 
    DoSkill(who=$,iSacrifice=0)
    {
-      Send(who,@LoseHealth,#amount=iSacrifice);
-      Send(who,@MsgSendUser,#message_rsc=sacrifice_health,
-                            #parm1=iSacrifice);
+      % Decay is true to avoid breaking focus immediately upon casting
+      if NOT Send(who,@IsBleeding)
+      {
+         Send(who,@LoseHealth,#amount=iSacrifice,#decay=TRUE);
+         Send(who,@MsgSendUser,#message_rsc=sacrifice_health,#parm1=iSacrifice);
+      }
+      else
+      {
+         Send(who,@MsgSendUser,#message_rsc=already_bleeding_sacrifice);
+      }
       
       propagate;
    }

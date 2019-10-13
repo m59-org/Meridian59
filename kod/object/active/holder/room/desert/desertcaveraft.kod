@@ -19,6 +19,14 @@ resources:
    room_desertcaveraft = desertcaveraft.roo
    room_name_desertcaveraft = "Underground River"
 
+   climb_onto_raft_msg = \
+      "You nearly fall into the rushing rapids of an underground river, but "
+      "the raft holds true. "
+      "This danger is not over, however, for a swarm of Xeochicatl turn and attack!"
+
+   advance_to_prism_of_acid_msg = \
+      "With the ambush defeated, you float the rest of the way and moor the raft on the rocks."
+
 classvars:
 
    vrName = room_name_desertcaveraft
@@ -32,6 +40,8 @@ classvars:
 
    viTerrain_type = TERRAIN_CAVES
 
+   vbSpawnMonsters = TRUE
+
 properties:
 
    piBaseLight = LIGHT_MIN
@@ -40,10 +50,183 @@ properties:
    prRoom = room_desertcaveraft
    piRoom_num = RID_DESERTCAVERAFT
 
-messages:
+   ptAggroXeoTimer = $
 
-   RecalcLightAndWeather()
+messages:
+   
+   NewHold(what = $)
    {
+      % Warn players of the danger.
+      if IsClass(what,&Player)
+      {
+         Send(what,@MsgSendUser,#message_rsc=climb_onto_raft_msg);
+      }
+      propagate;
+   }
+
+   GetPhaseThreats()
+   {
+      return $;
+   }
+
+   PopulateArea()
+   {
+      local i, iNumMonsters, oMonster, lMonsters, lClasses, iMinRow, iMinCol, iMaxRow, iMaxCol, iChosenAngle;
+
+      lClasses = [&XeoAcid];
+
+      iNumMonsters = Random(5,15);
+      lMonsters = $;
+
+      while iNumMonsters > 0
+      {
+         lMonsters = Cons(Nth(lClasses,Random(1,Length(lClasses))),lMonsters);
+         --iNumMonsters;
+      }
+
+      if viMaxSpawnRow = 0
+      {
+         iMaxRow = Send(self,@GetRoomRows)-1;
+      }
+      else
+      {
+         iMaxRow = viMaxSpawnRow;
+      }
+
+      if viMaxSpawnCol = 0
+      {
+         iMaxCol = Send(self,@GetRoomCols)-1;
+      }
+      else
+      {
+         iMaxCol = viMaxSpawnCol;
+      }
+
+      iChosenAngle = ANGLE_EAST;
+      switch(Random(1,4))
+      {
+         case 1:
+            iChosenAngle = ANGLE_WEST;
+            break;
+         case 2:
+            iChosenAngle = ANGLE_NORTH;
+            break;
+         case 3:
+            iChosenAngle = ANGLE_SOUTH;
+            break;
+         case 4:
+            iChosenAngle = ANGLE_EAST;
+            break;
+      }
+
+      foreach i in lMonsters
+      {
+         Send(self,@NewHold,#what=Create(i),
+               #new_row=Random(viMinSpawnRow,iMaxRow),
+               #new_col=Random(viMinSpawnCol,iMaxCol),
+               #new_angle=iChosenAngle);
+      }
+
+      Send(self,@AggroXeos);
+
+      return;
+   }
+
+   DepopulateArea()
+   {
+      if ptAggroXeoTimer <> $
+      {
+         DeleteTimer(ptAggroXeoTimer);
+         ptAggroXeoTimer = $;
+      }
+      propagate;
+   }
+
+   AggroXeos()
+   {
+      local i, oRandomPlayer;
+
+      ptAggroXeoTimer = $;
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&Monster)
+         {
+            oRandomPlayer = $;
+            oRandomPlayer = Send(self,@GetRandomPlayerInRoom);
+            
+            if oRandomPlayer <> $
+               AND IsClass(oRandomPlayer,&Player)
+            {
+               Send(First(i), @TargetSwitch, #what=oRandomPlayer, #iHatred=100);
+               Send(First(i), @EnterStateChase, #target=oRandomPlayer, #actnow=True);
+            }
+         }
+      }
+
+      ptAggroXeoTimer = CreateTimer(self,@AggroXeos,5000);
+      return;
+   }
+
+   Delete()
+   {
+      if ptAggroXeoTimer <> $
+      {
+         DeleteTimer(ptAggroXeoTimer);
+         ptAggroXeoTimer = $;
+      }
+      propagate;
+   }
+
+   SomethingKilled(what=$,victim=$)
+   {
+      Post(self,@CheckForXeos,#what=what,#victim=victim);
+   
+      propagate;
+   }
+
+   CheckForXeos(what=$,victim=$)
+   {
+      local i, bFound;
+
+      bFound = FALSE;
+      if victim <> $
+         AND IsClass(victim,&Monster)
+      {
+         if IsClass(victim,&XeoAcid)
+         {
+            foreach i in Send(self,@GetHolderActive)
+            {
+               if IsClass(First(i),&XeoAcid)
+               {
+                  bFound = TRUE;
+                  break;
+               }
+            }
+            if NOT bFound
+            {
+               Send(self,@AdvanceToPrismOfAcid);
+            }
+         }
+      }
+   
+      return;
+   }
+
+   AdvanceToPrismOfAcid()
+   {
+      local i;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&Player)
+         {
+            Send(First(i),@MsgSendUser,#message_rsc=advance_to_prism_of_acid_msg);
+            Send(Send(SYS,@FindRoomByNum,#num=RID_ACIDPATH),@RaiseRaftTwo);
+            Send(SYS,@UtilGoNearSquare,#what=First(i),
+                 #where=Send(SYS,@FindRoomByNum,#num=RID_ACIDPATH),
+                 #new_row=95,#new_col=164,#fine_row=60,#fine_col=0,#new_angle=ANGLE_NORTH);
+         }
+      }
       return;
    }
 

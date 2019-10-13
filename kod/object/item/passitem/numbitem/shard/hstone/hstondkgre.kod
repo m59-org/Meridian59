@@ -1,0 +1,78 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+DarkGreenHeartStone is HeartStone
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   include hstondkgre.lkod
+
+   DarkGreenHeartStone_name_rsc = "dark green heartstone shard"
+   DarkGreenHeartStone_name_plural = "dark green heartstone shards"
+   DarkGreenHeartStone_desc_rsc = \
+      "This is a shard of a 'heartstone'.  It is a dark green gem taken from "
+      "the body of a fallen Ne'Xeochicatl.  It wiggles slightly and is cool "
+      "to the touch.  The uses for this gem are not widely known."
+
+classvars:
+
+   vrName = DarkGreenHeartStone_name_rsc
+   vrDesc = DarkGreenHeartStone_desc_rsc
+   
+   vrName_plural = DarkGreenHeartStone_name_plural
+
+   viValue_average = 100
+   viWeight = 20
+   viBulk = 10
+
+   viColor = PT_REDTODGREEN3
+properties:
+
+messages:
+
+   CreateXeo()
+   {
+      return Create(&XeoNeru,#InAttack=Send(self,@IsInAttack));
+   }
+
+   WeightPrefixes()
+   {
+      return $;
+   }
+   
+   WeightSuffixes()
+   {
+      return [[&FireResistanceMod,200],
+              [&ColdResistanceMod,200],
+              [&AcidResistanceMod,200],
+              [&ShockResistanceMod,200]
+             ];
+   }
+
+   EmpowerAffixes()
+   {
+      return [[&FireResistanceMod,3],
+              [&ColdResistanceMod,3],
+              [&AcidResistanceMod,3],
+              [&ShockResistanceMod,3]
+             ];
+   }
+   
+   GetForgeType()
+   {
+      return FORGE_NERUDITE;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

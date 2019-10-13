@@ -16,13 +16,16 @@ constants:
 
 resources:
 
+   weapon_damage_mod_name = "melee weapon damage"
+
 classvars:
 
+   viModName = weapon_damage_mod_name
    viModType = MOD_PREFIX
    viModGroup = GROUP_DAMAGE
 
    viModRangeMin = 1
-   viModRangeMax = 3
+   viModRangeMax = 6
    
    viPowerDivisor = 50
 
@@ -34,7 +37,7 @@ messages:
    ModifyDamage(who = $,what = $, damage = $,iState=0)
    {
       local oWeapon;
-      
+
       if who = $
       {
          % No conditions, so just return the bonus
@@ -42,8 +45,9 @@ messages:
       }
 
       oWeapon = Send(who,@GetWeapon);
-      if (oWeapon = $)
-         or (not IsClass(oWeapon,&RangedWeapon))
+      if oWeapon <> $
+         AND IsClass(oWeapon,&Weapon)
+         AND NOT IsClass(oWeapon,&RangedWeapon)
       {
          return damage + iState;
       }

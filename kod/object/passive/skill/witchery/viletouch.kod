@@ -1,0 +1,186 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+VileTouch is WitcherySkill
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   viletouch_name_rsc = "noxious strike"
+   viletouch_icon_rsc = iseance.bgf
+   viletouch_desc_rsc = \
+      "The battle witches of Iwodach learned long ago that casting spells "
+      "was a strength better mastered by the disciples of Nequzon. "
+      "Preferring to strike with weapons, followers of Iwodach "
+      "researched and crafted the ability to deliver hexes "
+      "through damaging blows. "
+      "An Iwodach battle witch with such skills can hex an enemy "
+      "merely by hitting them. The greater the skill, the "
+      "greater the vile malady applied."
+      "\n\nTo choose which hex to apply on striking, state thus:"
+      "\n'I wish my noxious strikes to hex my enemy with ' followed by the name of a hex."
+      "\n\nIf you have the capability to cast a second hex with Blood Runes, state thus:"
+      "\n'I wish my noxious strikes to also hex my enemy with ' followed by the name of a hex."
+      "\n\nYou cannot apply hexes you do not know."
+      "\n\nTo see which hexes your noxious strikes apply, state thus:"
+      "\n'I wish to know which hexes my noxious strikes apply.'"
+      "\n\nLastly, to stop applying hexes with noxious strikes, state:"
+      "\n'I wish my noxious strikes to apply no hexes.'"
+
+   viletouch_proc = \
+      "Your strike channels a vile hex!"
+
+classvars:
+
+   vrName = viletouch_name_rsc
+   vrIcon = viletouch_icon_rsc
+   vrDesc = viletouch_desc_rsc
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+
+   viSkill_Num = SKID_VILE_TOUCH
+   viSubSchool = SSS_WITCHERY_IWODACH
+   viSkill_level = 4
+   viChance_to_increase = 15
+   viMeditate_ratio = 44
+   
+   viPrimaryStat = STAT_ID_MYSTICISM
+   viSecondaryStat = 0
+
+properties:
+   
+   piBaseEffect = 33
+
+messages:
+
+   GetRequisiteStat(who=$)
+   "Varies from skill to skill and spell to spell."
+   {
+      return Send(who,@GetMysticism);
+   }
+
+   HexOpponentOnStrike(oAttacker=$,oDefender=$,damage=0,stroke_obj=$,oWeapon=$)
+   {
+      local iAbility, iStat, iEffect, iChosenHexOne, iChosenHexTwo, iHexAbilityOne, iHexAbilityTwo, bHexed, iResult,
+            oChosenHexOne, oChosenHexTwo, iChosenHexThree, iHexAbilityThree, oChosenHexThree;
+
+      if oAttacker = $
+         OR oDefender = $
+         OR damage = $
+         OR damage <= 0
+      {
+         return;
+      }
+
+      % What does Vile Touch work with?
+      % We are only called by AssessHit, so that includes only attacks.
+      % Let's block touch spells, but let through Punch and any melee weapon attack.
+      if oWeapon <> $
+         AND (IsClass(oWeapon,&TouchAttackSpell)
+            OR IsClass(oWeapon,&RangedWeapon))
+      {
+         return;
+      }
+
+      bHexed = FALSE;
+
+      iAbility = Send(oAttacker,@GetSkillAbility,#Skill_num=viSkill_num);
+      iStat = Send(self,@GetRequisiteStat,#who=oAttacker);
+
+      iChosenHexOne = Send(oAttacker,@GetChosenHexOne);
+      iChosenHexTwo = Send(oAttacker,@GetChosenHexTwo);
+      iChosenHexThree = Send(oAttacker,@GetChosenHexThree);
+      
+      if iChosenHexOne <> $
+      {
+         iHexAbilityOne = Send(oAttacker,@GetSpellAbility,#spell_num=iChosenHexOne);
+         if iHexAbilityOne > 0
+         {
+            iEffect = (piBaseEffect + iHexAbilityOne/3 + iAbility/3 + iStat/3)/4;
+
+            oChosenHexOne = Send(SYS,@FindSpellByNum,#num=iChosenHexOne);
+            
+            if oChosenHexOne <> $
+               AND Send(oDefender,@GetNumHexes) < 1
+               AND NOT Send(oDefender,@IsEnchanted,#what=oChosenHexOne)
+            {
+               Send(oChosenHexOne,@CastSpell,#who=oAttacker,#lTargets=[oDefender],#iSpellPower=iEffect,#bItemCast=TRUE);
+            }
+            bHexed = TRUE;
+         }
+      }
+      
+      if iChosenHexTwo <> $
+      {
+         iHexAbilityTwo = Send(oAttacker,@GetSpellAbility,#spell_num=iChosenHexTwo);
+         if iHexAbilityTwo > 0
+         {
+            iEffect = (piBaseEffect + iHexAbilityTwo/3 + iAbility/3 + iStat/3)/4;
+
+            oChosenHexTwo = Send(SYS,@FindSpellByNum,#num=iChosenHexTwo);
+            
+            if oChosenHexTwo <> $
+               AND Send(oDefender,@GetNumHexes) < 2
+               AND NOT Send(oDefender,@IsEnchanted,#what=oChosenHexTwo)
+            {
+               Send(oChosenHexTwo,@CastSpell,#who=oAttacker,#lTargets=[oDefender],#iSpellPower=iEffect,#bItemCast=TRUE);
+            }
+            bHexed = TRUE;
+         }
+      }
+      
+      if iChosenHexThree <> $
+      {
+         iHexAbilityThree = Send(oAttacker,@GetSpellAbility,#spell_num=iChosenHexThree);
+         if iHexAbilityThree > 0
+         {
+            iEffect = (piBaseEffect + iHexAbilityThree/3 + iAbility/3 + iStat/3)/4;
+
+            oChosenHexThree = Send(SYS,@FindSpellByNum,#num=iChosenHexThree);
+            
+            if oChosenHexThree <> $
+               AND Send(oDefender,@GetNumHexes) < 3
+               AND NOT Send(oDefender,@IsEnchanted,#what=oChosenHexThree)
+            {
+               Send(oChosenHexThree,@CastSpell,#who=oAttacker,#lTargets=[oDefender],#iSpellPower=iEffect,#bItemCast=TRUE);
+            }
+            bHexed = TRUE;
+         }
+      }
+
+      if bHexed
+      {
+         Send(self,@ImproveAbility,#who=oAttacker,#target=oDefender);
+      }
+      return;
+   }
+
+
+   DoSkill(who=$)
+   {
+      local iAbility, iStat;
+      
+      iAbility = Send(who,@GetSkillAbility,#Skill_num=viSkill_num);
+      iStat = Send(self,@GetRequisiteStat,#who=who);
+
+      if bound(iAbility-6,1,93) + iStat/10 <= Random(1,100)
+      {
+         return FALSE;
+      }
+
+      return TRUE;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -16,15 +16,22 @@ constants:
 
 resources:
 
+   armor_mod_name = "armor"
+
 classvars:
 
+   viModName = armor_mod_name
    viModRangeMin = 1
-   viModRangeMax = 3
+   viModRangeMax = 6
    
    viPowerDivisor = 50
+   viResistanceType = ATCK_WEAP_ALL
+   viModGroup = GROUP_ARMOR
 
 properties:
 
+   piNumerator = 1
+   piDivisor = 3
 
 messages:
 
@@ -33,29 +40,53 @@ messages:
       local iDamageReduce;
 
       iDamageReduce = 0;
-      if iState <> 0
+      if Send(SETTINGS_OBJECT,@GetDirectArmorEnabled)
       {
-         iDamageReduce = random(iState*33,iState*100);
-         iDamageReduce = bound(iDamageReduce,0,(damage-100));
-      }
-
-      if aspell <> 0
-      {
-         % Reduce damage if part of the damage is spell
-         if atype <> 0
+         if iState <> 0
          {
-            % Only 2/3 of the damage reduction if we're doing both weapon
-            % and spell damage types.
-            iDamageReduce = iDamageReduce * 2 / 3;
+            iDamageReduce = random(iState*33,iState*100);
+            iDamageReduce = bound(iDamageReduce,0,(damage-100));
          }
-         else
+
+         if aspell <> 0
          {
-            % If we're doing pure spell damage, we get no reduction.
-            iDamageReduce = 0;
+            % Reduce damage if part of the damage is spell
+            if atype <> 0
+            {
+               % Only 2/3 of the damage reduction if we're doing both weapon
+               % and spell damage types.
+               iDamageReduce = iDamageReduce * 2 / 3;
+            }
+            else
+            {
+               % If we're doing pure spell damage, we get no reduction.
+               iDamageReduce = 0;
+            }
          }
       }
       
       return damage - iDamageReduce;
+   }
+
+   ModifyResistance(resistance_list=$,iState=0)
+   {
+      if piDivisor = 0
+      {
+         % Avoid div errors
+         piDivisor = 1;
+      }
+
+      resistance_list = Send(SYS,@AddResistance,#what=viResistanceType,#value=bound((iState*piNumerator)/piDivisor,1,$),#resistance_list=resistance_list);
+      return resistance_list;
+   }
+
+   GetNumber(iPower=0)
+   {
+      if piDivisor = 0
+      {
+         piDivisor = 1;
+      }
+      return Bound((iPower*piNumerator)/piDivisor,1,$);
    }
 
 end

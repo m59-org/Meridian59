@@ -1,0 +1,238 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+MazeLavaFrogRoom is MinotaurMazeRoom
+
+% This room contains a mini boss, the lava frog.
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   room_lava_frog_room = mazelavafrogroom.roo
+   room_maze_lava_frog_room_name = "Shrine of the Harnessed Flame"
+   
+   lava_frog_challenge_msg = \
+      "~kThe spirit of Vecka tells you, \"This place is real?! The Shrine of the Harnessed Flame is supposed to be a myth! "
+      "It is home to a greater flame entity of immense power. According to the stories, in ancient times, "
+      "they would feed the creature rune-engraved equipment and later, ahem, collect it. The stomach of the creature somehow "
+      "empowers the runes with spells.\""
+
+   lava_frog_slain = \
+      "~BThe lava frog gasps its last and begins melting into formless molten rock."
+   
+   shrine_music1 = ferambie.mp3
+   
+   LavaFrog_music = walk2.mp3
+
+classvars:
+
+   vrName = room_maze_lava_frog_room_name
+
+   viTeleport_row = 38
+   viTeleport_col = 33
+
+   viTerrain_Type = TERRAIN_LAVA | TERRAIN_LAIR
+
+properties:
+
+   prRoom = room_lava_frog_room
+   piRoom_num = RID_MAZE_LAVA_FROG_ROOM
+
+   pbLavaFrogDefeated = FALSE
+   
+   % We modify these functions for our purposes here
+   vbSpawnMonsters = TRUE
+   vbDesertThreatsHere = TRUE
+   ptRespawnLavaFrog = $
+
+messages:
+
+   CreateMazeRoomObjects()
+   {
+      plTotems = Cons([SID_HEX_FLAMMABILITY,                   % Spell ID
+                       $,
+                       $,
+                       21,                                   % Row
+                       18,                                   % Col
+                       44,                                    % Fine Row
+                       24                                    % Fine Col
+                       ],plTotems);
+                       
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BRED,#iIntensity=70),#new_row=8,#new_col=7,#fine_row=16,#fine_col=0);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BRED,#iIntensity=70),#new_row=12,#new_col=7,#fine_row=40,#fine_col=0);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BRED,#iIntensity=70),#new_row=16,#new_col=7,#fine_row=40,#fine_col=0);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BRED,#iIntensity=70),#new_row=20,#new_col=7,#fine_row=40,#fine_col=0);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BRED,#iIntensity=70),#new_row=24,#new_col=7,#fine_row=40,#fine_col=0);
+      
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BRED,#iIntensity=70),#new_row=8,#new_col=13,#fine_row=48,#fine_col=56);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BRED,#iIntensity=70),#new_row=8,#new_col=17,#fine_row=48,#fine_col=56);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BRED,#iIntensity=70),#new_row=8,#new_col=21,#fine_row=48,#fine_col=56);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BRED,#iIntensity=70),#new_row=8,#new_col=25,#fine_row=48,#fine_col=56);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BRED,#iIntensity=70),#new_row=8,#new_col=29,#fine_row=48,#fine_col=56);
+      
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BRED,#iIntensity=70),#new_row=17,#new_col=13,#fine_row=40,#fine_col=44);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BRED,#iIntensity=70),#new_row=17,#new_col=21,#fine_row=40,#fine_col=56);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BRED,#iIntensity=70),#new_row=25,#new_col=13,#fine_row=8,#fine_col=28);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BRED,#iIntensity=70),#new_row=25,#new_col=21,#fine_row=8,#fine_col=60);
+      
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BRED,#iIntensity=70),#new_row=17,#new_col=30,#fine_row=36,#fine_col=32);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BRED,#iIntensity=70),#new_row=21,#new_col=30,#fine_row=36,#fine_col=32);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BRED,#iIntensity=70),#new_row=25,#new_col=30,#fine_row=36,#fine_col=32);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BRED,#iIntensity=70),#new_row=29,#new_col=30,#fine_row=36,#fine_col=32);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BRED,#iIntensity=70),#new_row=33,#new_col=30,#fine_row=36,#fine_col=32);
+      
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BRED,#iIntensity=70),#new_row=33,#new_col=21,#fine_row=36,#fine_col=36);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BRED,#iIntensity=70),#new_row=33,#new_col=17,#fine_row=36,#fine_col=36);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BRED,#iIntensity=70),#new_row=33,#new_col=13,#fine_row=36,#fine_col=36);
+      
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BRED,#iIntensity=70),#new_row=24,#new_col=7,#fine_row=32,#fine_col=4);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BRED,#iIntensity=70),#new_row=28,#new_col=6,#fine_row=52,#fine_col=60);
+      
+      return;
+   }
+   
+   CheckMoveBorders(what=$, new_row=$, new_col=$)
+   {
+      return;
+   }
+
+   NewHold(what=$)
+   {
+      if what <> $
+         AND IsClass(what,&User)
+         AND Send(what,@GetVeckaAdvice)
+      {
+         Send(what,@MsgSendUser,#message_rsc=lava_frog_challenge_msg);
+      }
+ 
+      if IsClass(what,&Player)
+      {
+         Post(Send(SYS,@GetGameQuestMaintenance),@EvaluatePlayer,#who=what,#vbTriggered=TRUE);
+      }
+
+      propagate;
+   }
+
+   SomethingKilled(what=$,victim=$)
+   {
+      local i;
+      if victim <> $
+         AND IsClass(victim,&LavaFrog)
+      {
+         foreach i in Send(self,@GetHolderActive)
+         {
+            if IsClass(First(i),&Player)
+            {
+               Send(First(i),@MsgSendUser,#message_rsc=lava_frog_slain);
+               Send(First(i),@GroupSlayedMonster,#cClass=&LavaFrog);
+            }
+         }
+         Send(self,@LavaFrogKilled);
+      }
+
+      propagate;
+   }
+
+   LavaFrogKilled()
+   {
+      local i;
+
+      pbLavaFrogDefeated = TRUE;
+      Send(self,@RecalculateRoomMusic);
+      
+      if ptRespawnLavaFrog = $
+      {
+         % Six hours
+         ptRespawnLavaFrog = CreateTimer(self,@RespawnLavaFrog, 6 * 60 * 60 * 1000);
+      }
+      
+      return;
+   }
+
+   RespawnLavaFrog(timer=$)
+   {
+      ptRespawnLavaFrog = $;
+      pbLavaFrogDefeated = FALSE;
+      Send(self,@RecalculateRoomMusic);
+      return;
+   }
+
+   PopulateArea()
+   {
+      local i, each_obj;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         each_obj = Send(self,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&LavaFrog)
+         {
+            % Don't make a duplicate lava frog
+            return;
+         }
+      }
+
+      if NOT pbLavaFrogDefeated
+      {
+         Send(self,@NewHold,#what=Create(&LavaFrog),
+               #new_row=Random(14,28),
+               #new_col=Random(11,24),
+               #fine_row=0,
+               #fine_col=0,
+               #new_angle=ANGLE_EAST);
+      }
+      return;
+   }
+   
+   DepopulateArea()
+   {
+      local i, each_obj;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         each_obj = Send(self,@HolderExtractObject,#data=i);
+         if NOT IsClass(each_obj,&LavaFrog) % don't delete lava frog
+         {
+            Send(each_obj,@Delete);
+         }
+      }
+      
+      return;
+   }
+   
+   GetPhaseThreats()
+   {
+      return [&VigorThreat, &ChaosThreat];
+   }
+
+   GetPhaseMusic()
+   {
+      if NOT pbLavaFrogDefeated
+      {
+         return LavaFrog_music;
+      }
+
+      return shrine_music1;
+   }
+   
+   Delete()
+   {
+      if ptRespawnLavaFrog <> $
+      {
+         DeleteTimer(ptRespawnLavaFrog);
+         ptRespawnLavaFrog = $;
+      }
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

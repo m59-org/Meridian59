@@ -1,0 +1,73 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+BanditScimitar is Weapon
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   banditscimitar_name_rsc = "bandit scimitar"
+   banditscimitar_icon_rsc = banditscimitar.bgf
+   banditscimitar_desc_rsc = \
+      "A crude and unwieldy weapon made for a sole purpose: "
+      "causing maximum pain and suffering to victims. Or, "
+      "at the very least, threatening to do so in exchange for "
+      "gold."
+
+   banditscimitar_window_overlay_rsc = povbanditscimitar.bgf
+   banditscimitar_player_overlay = banditscimitarov.bgf
+
+classvars:
+   vrName = banditscimitar_name_rsc
+   vrIcon = banditscimitar_icon_rsc
+   vrDesc = banditscimitar_desc_rsc
+
+   % Bandit scimitars are low quality slashing weapons.
+   viWeaponType = WEAPON_TYPE_SLASH
+   viWeaponQuality = WEAPON_QUALITY_LOW
+
+   viProficiency_Needed = SKID_PROFICIENCY_SCIMITAR
+
+   viValue_average = 240
+   viWeight = 90
+   viBulk = 90
+
+   vrWeapon_window_overlay = banditscimitar_window_overlay_rsc
+   vrWeapon_overlay = banditscimitar_player_overlay
+
+   viGround_group = 1
+   viInventory_group = 3
+   viBroken_group = 2
+   
+   % Chance to apply knockbacks, stuns, and bleeds
+   viCriticalHitRate = 800
+   vbCanBleed = TRUE
+
+properties:
+
+   piAttack_type = ATCK_WEAP_NONMAGIC+ATCK_WEAP_SLASH
+
+messages:
+
+   CanCleave()
+   {
+      return TRUE;
+   }
+
+   GetCleaveModifier()
+   {
+      return 70;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

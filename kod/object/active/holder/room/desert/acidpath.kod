@@ -1,0 +1,559 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+AcidPath is DesertRoom
+
+constants:
+
+   include blakston.khd
+   
+   PRISM_ENTRANCE = 101
+   PRISM_WHITE = 07702
+   RAFT_TWO = 102
+   RAFT_ONE = 103
+   WATER_AREAS = 110
+
+   RAFT_TEXTURE = 09074
+   WATER_TEXTURE = 08968
+   ACID_TEXTURE = 08912
+
+resources:
+
+   room_acidpath = acidpath.roo
+   room_name_acidpath = "Poison Wellspring"
+   acidpath_music = main.mp3
+
+   acid_prism_opened_msg = \
+      "~g~BThe acidic waters surge as the plane of acid moves closer to the mortal realm."
+   acid_prism_closed_msg = \
+      "~g~BThe flow of acidic waters ebb as the plane of acid moves further from the mortal realm."
+
+   prism_of_acid_defeated_msg = \
+      "~BThe Prism of Acid in Biskalane has been defeated! Until the corrosive tide regenerates, "
+      "the element of acid will be an ally instead of an enemy."
+
+   inform_raft = \
+      "This raft is timeworn beyond compare, clearly heralding from a time when wood still existed "
+      "in Biskalane. Faded sorcerous runes preserve it against acid and age, but a few fresh symbols "
+      "spell out the name 'Vecka'. It seems that someone left this raft for you to take."
+
+   take_raft_back = \
+      "You take the raft back toward safety."
+
+classvars:
+
+   vrName = room_name_acidpath
+
+   viTeleport_row = 205
+   viTeleport_col = 152
+
+   viTerrain_type = TERRAIN_CAVES
+
+   vbSpawnMonsters = FALSE
+
+properties:
+
+   prRoom = room_acidpath
+   prMusic = acidpath_music
+   piRoom_num = RID_ACIDPATH
+
+   piBaseLight = LIGHT_NICE
+
+   pbPrismOfAcidDefeated = FALSE
+   pbPrismOpen = FALSE
+
+   pbRaftOneUp = FALSE
+   pbRaftTwoUp = FALSE
+
+   ptCreateRandomFogTimer = $
+
+   piHoursLeftReset = 47
+   ptPrismOfAcidReset = $
+
+   pbInformed = FALSE
+   ptInformResetTimer = $
+
+messages:
+
+   Constructed()
+   {
+      Send(self,@PlaceAcidLights);
+      propagate;
+   }
+
+   FirstUserEntered()
+   {
+      if ptCreateRandomFogTimer = $
+         AND NOT pbPrismOfAcidDefeated
+      {
+         ptCreateRandomFogTimer = CreateTimer(self,@CreateRandomFogCloud,200);
+      }
+      Send(self,@RaiseRaftOne);
+      propagate;
+   }
+
+   LastUserLeft()
+   {
+      if ptCreateRandomFogTimer <> $
+      {
+         DeleteTimer(ptCreateRandomFogTimer);
+         ptCreateRandomFogTimer = $;
+      }
+      Send(self,@DeleteFogClouds);
+      Send(self,@LowerRaftOne);
+      Send(self,@LowerRaftTwo);
+      propagate;
+   }
+
+   RecalcLightAndWeather()
+   {
+      local SysDayPhase, i;
+
+      SysDayPhase = Send(SYS,@GetDayPhase);
+
+      % We're crossing over into a new quarter.
+      if piPreviousPhase <> SysDayPhase
+      {
+         % Simulate weather.
+         % It's always raining here.
+         if pbPrismOfAcidDefeated
+         {
+            Send(self,@DoPhaseWeather);
+         }
+
+         if SysDayPhase = DAY_PHASE_DUSK
+            AND NOT pbPrismOfAcidDefeated
+         {
+            Send(self,@OpenPrismOfAcidEntrance);
+            foreach i in plActive
+            {
+               if IsClass(First(i),&User)
+               {
+                  Send(First(i),@MsgSendUser,#message_rsc=acid_prism_opened_msg);
+               }
+            }
+         }
+         if SysDayPhase = DAY_PHASE_NIGHT
+            and pbPrismOpen
+         {
+            Send(self,@ClosePrismOfAcidEntrance);
+            foreach i in plActive
+            {
+               if IsClass(First(i),&User)
+               {
+                  Send(First(i),@MsgSendUser,#message_rsc=acid_prism_closed_msg);
+               }
+            }
+         }
+      }
+
+      propagate;
+   }
+
+   DoPhaseWeather()
+   "Called to simulate weather by some rooms."
+   {
+      switch(Send(SYS,@GetDayPhase))
+      {
+         case DAY_PHASE_DAWN:
+            if NOT Send(self,@CheckRoomFlag,#flag=ROOM_RAINING)
+            {
+               Send(self,@StartRain);
+            }
+            break;
+         case DAY_PHASE_DAY:
+            if NOT Send(self,@CheckRoomFlag,#flag=ROOM_RAINING)
+            {
+               Send(self,@StartRain);
+            }
+            break;
+         case DAY_PHASE_DUSK:
+            if NOT Send(self,@CheckRoomFlag,#flag=ROOM_RAINING)
+            {
+               Send(self,@StartRain);
+            }
+            break;
+         case DAY_PHASE_NIGHT:
+            if NOT Send(self,@CheckRoomFlag,#flag=ROOM_RAINING)
+            {
+               Send(self,@StartRain);
+            }
+            break;
+      }
+      return;
+   }
+
+   GetPhaseThreats()
+   {
+      if pbPrismOfAcidDefeated
+      {
+         return [&AcidStorm];
+      }
+
+      return [&AcidThreat, &PhaseThreat];
+   }
+
+   PlaceAcidLights()
+   {
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=83,#new_col=140,#fine_row=32,#fine_col=6);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=85,#new_col=140,#fine_row=29,#fine_col=9);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=87,#new_col=141,#fine_row=2,#fine_col=29);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=86,#new_col=143,#fine_row=61,#fine_col=34);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=85,#new_col=145,#fine_row=36,#fine_col=1);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=83,#new_col=145,#fine_row=25,#fine_col=6);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=81,#new_col=143,#fine_row=56,#fine_col=37);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_GREEN,
+           #iIntensity=85),#new_row=81,#new_col=141,#fine_row=56,#fine_col=27);
+      return;
+   }
+
+   RaiseRaftOne()
+   {
+      Send(self,@SetSector,#sector=RAFT_ONE,#animation=ANIMATE_FLOOR_LIFT,#height=1005,#speed=0);
+      Send(self,@ChangeTexture,#id=RAFT_ONE,#new_texture=RAFT_TEXTURE,#flags=CTF_FLOOR);
+      Send(self,@SetSectorFlags,#sector=RAFT_ONE,#depth=SF_DEPTH0,#scrollSpeed=SCROLL_NONE);
+      pbRaftOneUp = TRUE;
+      return;
+   }
+
+   LowerRaftOne()
+   {
+      Send(self,@SetSector,#sector=RAFT_ONE,#animation=ANIMATE_FLOOR_LIFT,#height=1000,#speed=0);
+      Send(self,@RemoveTextureChange,#id=RAFT_ONE);
+      Send(self,@RemoveSectorFlagChange,#id=RAFT_ONE);
+      pbRaftOneUp = FALSE;
+      return;
+   }
+
+   RaiseRaftTwo()
+   {
+      Send(self,@SetSector,#sector=RAFT_TWO,#animation=ANIMATE_FLOOR_LIFT,#height=1005,#speed=0);
+      Send(self,@ChangeTexture,#id=RAFT_TWO,#new_texture=RAFT_TEXTURE,#flags=CTF_FLOOR);
+      Send(self,@SetSectorFlags,#sector=RAFT_TWO,#depth=SF_DEPTH0,#scrollSpeed=SCROLL_NONE);
+      pbRaftTwoUp = TRUE;
+      return;
+   }
+
+   LowerRaftTwo()
+   {
+      Send(self,@SetSector,#sector=RAFT_TWO,#animation=ANIMATE_FLOOR_LIFT,#height=1000,#speed=0);
+      Send(self,@RemoveTextureChange,#id=RAFT_TWO);
+      Send(self,@RemoveSectorFlagChange,#id=RAFT_TWO);
+      pbRaftTwoUp = FALSE;
+      return;
+   }
+
+   OpenPrismOfAcidEntrance()
+   {
+      if NOT pbPrismOfAcidDefeated
+      {
+         Send(self,@SetSector,#sector=PRISM_ENTRANCE,#animation=ANIMATE_FLOOR_LIFT,#height=1300,#speed=0);
+         Send(self,@ChangeTexture,#id=PRISM_ENTRANCE,#new_texture=PRISM_WHITE,#flags=CTF_FLOOR);
+         pbPrismOpen = TRUE;
+      }
+      return;
+   }
+
+   ClosePrismOfAcidEntrance()
+   {
+      Send(self,@RemoveTextureChange,#id=PRISM_ENTRANCE);
+      Send(self,@SetSector,#sector=PRISM_ENTRANCE,#animation=ANIMATE_FLOOR_LIFT,#height=1305,#speed=0);
+      pbPrismOpen = FALSE;
+      return;
+   }
+
+   CreateRandomFogCloud()
+   {
+      local iRandomRow, iRandomCol, oElement, i, iQflags, iRflags, iHeightF, 
+            iHeightFWD, iHeightC, iServerID, iRandomFineRow, iRandomFineCol, iCount;
+      
+      ptCreateRandomFogTimer = $;
+
+      iCount = 3;
+      
+      while iCount > 0
+      {
+         iRandomRow = Random(0,169);
+         iRandomCol = Random(70,179);
+         iRandomFineRow = Random(0,63);
+         iRandomFineCol = Random(0,63);
+
+         iQflags = LIQ_GET_SECTORINFO;
+
+         if GetLocationInfoBSP(
+                   prmRoom, iQflags, iRandomRow, iRandomCol, iRandomFineRow,
+                   iRandomFineCol, *iRflags, *iHeightF, *iHeightFWD,
+                   *iHeightC, *iServerID)
+         {
+            % only place in acid
+            if iServerID = WATER_AREAS
+            {
+               Send(self,@NewHold,#what=Create(&FogCloud,#Duration=10,
+                     #Caster=self),
+                     #new_row=iRandomRow,#new_col=iRandomCol,
+                     #fine_row=iRandomFineRow,#fine_col=iRandomFineCol);
+            }
+         }
+         iCount--;
+      }
+
+      ptCreateRandomFogTimer = CreateTimer(self,@CreateRandomFogCloud,200);
+
+      return;
+   }
+
+   DeleteFogClouds()
+   {
+      local i;
+      
+      foreach i in plPassive
+      {
+         if IsClass(First(i),&FogCloud)
+         {
+            Send(First(i),@Delete);
+         }
+      }
+      
+      return;
+   }
+
+   DeleteLights()
+   {
+      local i;
+      
+      foreach i in plPassive
+      {
+         if IsClass(First(i),&DynamicLight)
+         {
+            Send(First(i),@Delete);
+         }
+      }
+
+      return;
+   }
+
+   Delete()
+   {
+      if ptCreateRandomFogTimer <> $
+      {
+         DeleteTimer(ptCreateRandomFogTimer);
+         ptCreateRandomFogTimer = $;
+      }
+      if ptPrismOfAcidReset <> $
+      {
+         DeleteTimer(ptPrismOfAcidReset);
+         ptPrismOfAcidReset = $;
+      }
+      if ptInformResetTimer <> $
+      {
+         DeleteTimer(ptInformResetTimer);
+         ptInformResetTimer = $;
+      }
+      Send(self,@DeleteFogClouds);
+      Send(self,@DeleteLights);
+      propagate;
+   }
+
+   SomethingMoved(what = $,new_row = $, new_col = $)
+   {
+      local iSectorID;
+
+      if NOT IsClass(what,&Player)
+      {
+         propagate;
+      }
+
+      if new_row > (Send(self,@GetRoomRows)-1)
+      {
+         Send(SYS,@UtilGoNearSquare,#what=what,
+              #where=Send(SYS,@FindRoomByNum,#num=RID_WAYLAYOASIS),
+              #new_row=3,#new_col=40,#fine_row=14,#fine_col=20,#new_angle=Send(what,@GetAngle));
+         return;
+      }
+
+      iSectorID = Send(self,@GetSectorID,#who=what,
+                              #iRow=Send(what,@GetRow),
+                              #iCol=Send(what,@GetCol),
+                              #iFineRow=Send(what,@GetFineRow),
+                              #iFineCol=Send(what,@GetFineCol));
+      
+      if iSectorID = RAFT_ONE
+         AND pbRaftOneUp
+      {
+         if NOT pbInformed
+         {
+            Send(what,@MsgSendUser,#message_rsc=inform_raft);
+            pbInformed = TRUE;
+            ptInformResetTimer = CreateTimer(self,@ResetInform,10000);
+         }
+      }
+
+      propagate;
+   }
+
+   ResetInform()
+   {
+      ptInformResetTimer = $;
+      pbInformed = FALSE;
+      return;
+   }
+
+   SomethingTryGo(what = $,row = $,col = $)
+   {
+      local iSectorID, i;
+
+      iSectorID = Send(self,@GetSectorID,#who=what,
+                              #iRow=Send(what,@GetRow),
+                              #iCol=Send(what,@GetCol),
+                              #iFineRow=Send(what,@GetFineRow),
+                              #iFineCol=Send(what,@GetFineCol));
+      
+      if iSectorID = RAFT_ONE
+         AND pbRaftOneUp
+      {
+         foreach i in Send(self,@GetHolderActive)
+         {
+            if IsClass(First(i),&Player)
+            {
+               iSectorID = Send(self,@GetSectorID,#who=First(i),
+                              #iRow=Send(First(i),@GetRow),
+                              #iCol=Send(First(i),@GetCol),
+                              #iFineRow=Send(First(i),@GetFineRow),
+                              #iFineCol=Send(First(i),@GetFineCol));
+               if iSectorID = RAFT_ONE
+               {
+                  Post(Send(SYS,@FindRoomByNum,#num=RID_DESERTCAVERAFT),@Teleport,#what=First(i));
+               }
+            }
+         }
+         Send(self,@LowerRaftOne);
+         return TRUE;
+      }
+      
+      if iSectorID = RAFT_TWO
+         AND pbRaftTwoUp
+      {
+         foreach i in Send(self,@GetHolderActive)
+         {
+            if IsClass(First(i),&Player)
+            {
+               iSectorID = Send(self,@GetSectorID,#who=First(i),
+                              #iRow=Send(First(i),@GetRow),
+                              #iCol=Send(First(i),@GetCol),
+                              #iFineRow=Send(First(i),@GetFineRow),
+                              #iFineCol=Send(First(i),@GetFineCol));
+               if iSectorID = RAFT_TWO
+               {
+                  Send(First(i),@MsgSendUser,#message_rsc=take_raft_back);
+                  Send(SYS,@UtilGoNearSquare,#what=First(i),
+                       #where=Send(SYS,@FindRoomByNum,#num=RID_ACIDPATH),
+                       #new_row=165,#new_col=129,#fine_row=62,#fine_col=32,#new_angle=ANGLE_EAST);
+               }
+            }
+         }
+         Send(self,@LowerRaftTwo);
+         return TRUE;
+      }
+
+      propagate;
+   }
+
+   GetPrismOfAcidDefeated()
+   {
+      return pbPrismOfAcidDefeated;
+   }
+
+   PrismOfAcidDefeated()
+   {
+      local i;
+      Send(self,@EndAllThreats);
+
+      Send(self,@ClosePrismOfAcidEntrance);
+      pbPrismOfAcidDefeated = TRUE;
+      
+      piHoursLeftReset = 47;
+      ptPrismOfAcidReset = CreateTimer(self,@PrismOfAcidReset,60000 * 60); % 1 hour, counts down 48 times
+
+      foreach i in Send(SYS,@GetUsersLoggedOn)
+      {
+         Send(i,@MsgSendUser,#message_rsc=prism_of_acid_defeated_msg);
+      }
+      Send(self,@StartThreat,#cClasses=Send(self,@GetPhaseThreats),#report=TRUE);
+
+      return;
+   }
+
+   PrismOfAcidReset()
+   {
+      local i;
+
+      ptPrismOfAcidReset = $;
+      
+      if piHoursLeftReset > 0
+      {
+         --piHoursLeftReset;
+         ptPrismOfAcidReset = CreateTimer(self,@PrismOfAcidReset,60000 * 60); % 1 hour, counts down 48 times
+         return;
+      }
+      
+      piHoursLeftReset = 47;
+      pbPrismOfAcidDefeated = FALSE;
+      
+      Send(Send(SYS,@FindRoomByNum,#num=RID_MAZE_EXIT_ROOM),@CloseAcidWall);
+
+      return;
+   }
+
+   ReqSpellCast(who = $, oSpell = $, lItems = $)
+   {
+      if IsClass(oSpell,&MovementSpell)
+      {
+         return FALSE;
+      }
+
+      propagate;
+   }
+   
+   SpecialPhaseConditionsSatisfied(sector=0)
+   {
+      % Special Phase conditions
+      if sector=PRISM_ENTRANCE
+         AND pbPrismOpen
+      {
+         return TRUE;
+      }
+
+      return FALSE;
+   }
+
+   GetSectorID(who=$,iRow=$,iCol=$,iFineRow=$,iFineCol=$)
+   {
+      local iQflags, iRflags, iHeightF, iHeightFWD, iHeightC, iServerID;
+
+      iQflags = LIQ_GET_SECTORINFO;
+      if GetLocationInfoBSP(
+                      prmRoom, iQflags, iRow, iCol, iFineRow, iFineCol,
+                      *iRflags, *iHeightF, *iHeightFWD, *iHeightC, *iServerID)
+      {
+         return iServerID;
+      }
+
+      return 0;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

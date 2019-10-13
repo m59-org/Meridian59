@@ -1,0 +1,151 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+RighteousInheritance is MultiCastSpell
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   RighteousInheritance_name_rsc = "righteous inheritance"
+   RighteousInheritance_icon_rsc = ibloodin.bgf
+   RighteousInheritance_desc_rsc = \
+      "Infuses a weapon with the righteous power of Shal'ille. "
+      "It is impossible to predict exactly what form this zealous "
+      "benediction will take, but it will always be forceful. "
+      "Requires emeralds, diamonds, and polished seraphym."
+   
+   RighteousInheritance_sound = sbond.wav
+
+   RighteousInheritance_bad_target = "You must target this spell at a melee weapon."
+   RighteousInheritance_bad_target2 = "You cannot give Shal'ille's gift to a weapon which is already enchanted."
+   RighteousInheritance_succeeded = "The righteous force of your spell lashes out at %s%s, infusing it with Shal'ille's power."
+
+classvars:
+
+   vrName = RighteousInheritance_name_rsc
+   vrIcon = RighteousInheritance_icon_rsc
+   vrDesc = RighteousInheritance_desc_rsc
+
+   vrSucceed_wav = RighteousInheritance_sound
+
+   viMana = 50
+
+   viSpell_num = SID_RIGHTEOUS_INHERITANCE
+   viSchool = SS_SHALILLE
+   viSpell_level = 5
+
+   viSpellExertion = 50
+   viCast_time = 20000
+   viChance_To_Increase = 35
+
+   viManaDrain = 1       % Drain is amount used every viDrainTime milliseconds
+   viDrainTime = 1000    % Drain some mana every viDrainTime milliseconds
+
+   viMultiCast_Spellpower = 3000  % 10 minutes for worst case, 2.3 mins for best case. 
+   
+   viPrimaryStat = STAT_ID_MYSTICISM
+   viSecondaryStat = STAT_ID_KARMA
+
+properties:                     
+
+messages:      
+
+
+   ResetReagents()
+   {
+      plReagents = $;
+      plReagents = Cons([&Emerald,2] ,plReagents);
+      plReagents = Cons([&Diamond,2] ,plReagents);
+      plReagents = Cons([&PolishedSeraphym,1] ,plReagents);
+
+      return;
+   }
+   
+   CastSpell(who = $, lTargets = $, iSpellPower = 0)
+   {
+      % Gotta be a melee weapon. This spell will only create magical weapons that
+      % can normally be obtained, so don't allow ranged weapon to be given procs.
+      if not isClass(first(lTargets),&Weapon)
+         OR isClass(first(lTargets),&RangedWeapon)
+      {
+         Send(who,@MsgSendUser,#message_rsc=RighteousInheritance_bad_target);
+         return;
+      }
+
+      % Can't have any other enchantments.
+      if send(first(lTargets),@HasAnyAttribute)
+      {
+         Send(who,@MsgSendUser,#message_rsc=RighteousInheritance_bad_target2);
+         return;
+      }
+      
+      propagate;
+   }
+
+   PrismCast(spellpower = 0, lCasters=$, lTargets=$) 
+   {
+      local oCaster, iRandom, ItemAtt;
+
+      % Can't have any other enchantments.
+      if Send(first(lTargets),@HasAnyAttribute)
+      {
+         foreach oCaster in lCasters
+         {
+            Send(oCaster,@MsgSendUser,#message_rsc=RighteousInheritance_bad_target2);
+         }
+         return;
+      }
+
+      foreach oCaster in lCasters
+      {
+         Send(oCaster,@MsgSendUser,#message_rsc=RighteousInheritance_succeeded,
+                  #parm1=send(first(lTargets),@GetIndef),
+                    #parm2=send(first(lTargets),@GetName));
+      }
+
+      iRandom = Random(1,10);
+
+      if iRandom = 1
+      {
+         ItemAtt = WA_SIPHON;
+      }
+
+      if iRandom = 2
+      {
+         ItemAtt = WA_SPELLCASTER;
+         send(send(SYS,@FindItemAttByNum,#Num=ItemAtt),@AddToItem,#oItem=first(lTargets),#spellNum=SID_MARK_OF_DISHONOR);
+         return;
+      }
+
+      if iRandom = 3
+      {
+         ItemAtt = WA_PURGER;
+      }
+
+      if iRandom >= 4
+      {
+         ItemAtt = WA_PUNISHER;
+      }
+
+      send(send(SYS,@FindItemAttByNum,#Num=ItemAtt),@AddToItem,#oItem=first(lTargets));
+
+      return;
+   }
+
+   GetNumSpellTargets()
+   {
+      return 1;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

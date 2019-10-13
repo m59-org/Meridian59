@@ -1,0 +1,61 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+MazeBossRoom is MinotaurMazeRoom
+
+% This room contains the access to the true boss area.
+
+constants:
+
+   include blakston.khd
+   
+   BOSS_ELEVATOR_SECTOR = 735
+   BOSS_GOTO_SECTOR = 736
+
+resources:
+
+   room_name_maze_boss_room = "The Minotaur's Chamber"
+
+   room_maze_boss_room = mazebossroom2.roo
+
+classvars:
+
+   vrName = room_name_maze_boss_room
+
+properties:
+
+   prRoom = room_maze_boss_room
+   piRoom_num = RID_MAZE_BOSS_ROOM
+
+messages:
+
+   CreateMazeRoomObjects()
+   {
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BBLUE,#iIntensity=255),
+            #new_row=5,#new_col=8,#fine_row=0,#fine_col=0);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BBLUE,#iIntensity=255),
+            #new_row=0,#new_col=8,#fine_row=32,#fine_col=0);
+      return;
+   }
+   
+   CheckMoveBorders(what=$, new_row=$, new_col=$)
+   {
+      if new_row < 2
+      {
+         Send(SYS,@UtilGoNearSquare,#what=what,
+              #where=Send(SYS,@FindRoomByNum,#num=RID_FROZEN_CISTERN),
+              #new_row=63,#new_col=16,#new_angle=ANGLE_EAST);
+         return;
+      }
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

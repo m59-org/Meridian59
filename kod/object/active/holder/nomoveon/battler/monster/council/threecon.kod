@@ -26,7 +26,9 @@ resources:
       "of combat.  Dressed in light armor and military formal regalia, he "
       "lounges at his hut as a general during disgusting peacetime.  Cylill "
       "has had a long past serving with the Duke's forces in protecting "
-      "the world from Trolls and has many war stories to tell.."
+      "the world from Trolls and has many war stories to tell."
+      "\n\nIf you are a student with room to grow, he may help you improve "
+      "your agility if you ask him to 'train' you."
 
    threecon_true_ideal_rsc = \
       "It is impressive to meet another who knows so much about combat skills."
@@ -37,6 +39,16 @@ resources:
    threecon_unwanted_give = \
       "~k%s%s tells you, \"I don't need it, chap.~n~k\""
 
+   cannot_train_agil_msg = \
+      "You seem to have full command of your dexterous potential. I cannot train you further."
+   cylill_emote_msg = \
+      "Cylill thwacks you suddenly!"
+   cylill_emote2_msg = \
+      "Cylill chases after you, whacking you with his crop!"
+   teach_agil_msg = \
+      "How can you ever hope to best an enemy in combat if you can't learn to dodge?!"
+   teach_agil2_msg = \
+      "~B~IDOOOOOOODGE!!!"
 
 classvars:
 
@@ -91,7 +103,28 @@ messages:
 
    SetForSale()
    {
-      plFor_Sale = [$,[ SKID_DISARM ],$,$];
+      plFor_Sale = [[Create(&ForgetPotionKnightcraft)],
+                      [ SKID_DISARM,
+                        SKID_CLEAVE,
+                        SKID_HONESTY,
+                        SKID_ACTIVE_BLOCKING_STANCE,
+                        SKID_MEDIUM_ARMOR,
+                        SKID_BRAVERY,
+                        SKID_LIGHT_ATTACK_STANCE,
+                        SKID_FORTITUDE,
+                        SKID_HEAVY_ARMOR,
+                        SKID_HEAVY_ATTACK_STANCE,
+                        SKID_DETERMINATION,
+                        SKID_ACTIVE_PARRYING_STANCE,
+                        SKID_PIETY,
+                        SKID_ZEALOUS_FERVOR,
+                        SKID_BASH,
+                        SKID_WEAPONMASTER
+                      ],
+                      [SKID_BATTLE_SHOUT,
+                        SKID_SHIELD_BASH,
+                        SKID_CHARGE_ATTACK
+                      ],$];
 
       return;
    }
@@ -112,6 +145,34 @@ messages:
       }
 
       return;
+   }
+
+   SomeoneSaid(what = $,type = $,string = $)
+   {
+      local iResult;
+
+      if what <> $
+         AND IsClass(what,&User)
+         AND StringContain(string,"train")
+      {
+         
+         iResult = Send(what,@AttemptTrainStatPoint,#type=STAT_ID_AGILITY);
+
+         if iResult
+         {
+            Send(what,@MsgSendUser,#message_rsc=cylill_emote_msg);
+            Send(self,@SayToOne,#target=what,#message_rsc=teach_agil_msg);
+            Send(what,@MsgSendUser,#message_rsc=cylill_emote2_msg);
+            Send(self,@SayToOne,#target=what,#message_rsc=teach_agil2_msg);
+         }
+         else
+         {
+            Send(self,@SayToOne,#target=what,#message_rsc=cannot_train_agil_msg);
+         }
+         return;
+      }
+      
+      propagate;
    }
 
 end

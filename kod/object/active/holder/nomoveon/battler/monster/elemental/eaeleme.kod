@@ -43,6 +43,10 @@ classvars:
 
    viAttack_Spell = ATCK_SPELL_QUAKE
 
+   % between 1 and 10000
+   viCriticalHitRate = 500
+   vbCanCauseStun = TRUE
+
 properties:
 
    piAnimation = ANIM_NONE
@@ -59,6 +63,19 @@ messages:
                            [-ATCK_SPELL_ALL, 50 ],
                            [ATCK_WEAP_BLUDGEON, -50],
                            [ATCK_WEAP_ALL, 50 ] ];
+      }
+
+      propagate;
+   }
+
+   IsAlly(target = $, regroup = FALSE)
+   {
+      if IsClass(target,&XeoBossAcid)
+         OR IsClass(target,&XeoAcid)
+         OR IsClass(target,&EarthElemental)
+         OR IsClass(target,&EarthElementalChampion)
+      {
+         return TRUE;
       }
 
       propagate;

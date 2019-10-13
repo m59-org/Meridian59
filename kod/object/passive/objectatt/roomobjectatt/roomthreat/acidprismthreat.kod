@@ -1,0 +1,146 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+AcidPrismThreat is RoomThreat 
+
+% Acid rain deals damage if players aren't wearing a helmet.
+% Also exempted if resist acid / ring.
+% Damage is small but very rapid to simulate ongoing rain drops.
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   acid_prism_threat_name_rsc = "acidic dominance"
+   acid_prism_threat_icon_rsc = isplacid.bgf
+   acid_prism_threat_desc_rsc = \
+      "The elemental plane of acid is not kind to organic life."
+
+   acid_prism_threat_begin_msg = \
+      "Horrendously noxious fumes reign here."
+   acid_prism_threat_end_msg = \
+      "The fumes dissipate."
+   acid_prism_threat_damage_msg = \
+      "~gOrganic life cannot survive here for long. Bit by bit, you are melting."
+
+   remove_all_minions_acid = \
+      "~B~gThe omnipresent acid melts away your minions!"
+   remove_shadow_form_acid = \
+      "~B~gThe omnipresent acid melts away the shadows clinging to your body!"
+   acid_prism_death_msg = \
+      "~B~U~k[###]~n ~B~v%s melted in the elemental plane of acid."
+
+classvars:
+
+   vrName = acid_prism_threat_name_rsc
+   vrIcon = acid_prism_threat_icon_rsc
+   vrDesc = acid_prism_threat_desc_rsc
+
+   viThreatBeginMsg = acid_prism_threat_begin_msg
+   viThreatEndMsg = acid_prism_threat_end_msg
+   viThreatDamageMsg = acid_prism_threat_damage_msg
+   viGoodItemUseMsg = acid_good_item_use_msg
+   viGoodSpellUseMsg = acid_good_spell_use_msg
+   
+   viDeathMsg = acid_prism_death_msg
+
+properties:
+
+   % What type of damage do we do?
+   piDamageTypeAttack = 0
+   piDamageTypeSpell = ATCK_SPELL_ACID
+
+   % How much damage do we do?
+   piDamageMin = 1
+   piDamageMax = 3
+   
+   % How often do we deal damage?
+   piDamageTime = 1000
+   ptDamageTimer = $
+   
+   % How long does the threat last?
+   piThreatTime = 10 * 60 * 1000
+   ptThreatTimer = $
+
+   % Do we report the damage?
+   piReport = FALSE
+
+   % This threat drains vigor.
+   piVigorDrop = 10000
+
+messages:
+
+   Constructor()
+   {
+%      plSpecialItemClasses = [&AcidRing,&SimpleHelm];
+%      plSpecialExemptItemClasses = [&RingOfLethargy];
+%      plSpecialSpellClasses = [&ResistAcid];
+
+      propagate;
+   }
+   
+   Constructed()
+   {
+      Send(poHostObject,@StartRain);
+      propagate;
+   }
+
+   ReqDealDamage(who=$)
+   {
+      if Send(who,@GetControlledMinions) <> $
+      {
+         Send(who,@MsgSendUser,#message_rsc=remove_all_minions_acid);
+         Send(who,@RemoveAllMinions);
+      }
+      if Send(who,@IsEnchanted,#byClass=&ShadowForm)
+      {
+         Send(who,@MsgSendUser,#message_rsc=remove_shadow_form_acid);
+         Send(who,@RemoveEnchantment,#what=Send(SYS,@FindSpellByNum,#num=SID_SHADOW_FORM));
+      }
+      if Send(who,@GetHeightAtObject) = 0
+      {
+         % If you fall, you get wrecked.
+         return TRUE;
+      }
+
+      % A helmet protects players.
+      % Magic spirit helms count, too.
+      % But don't use &Helmet class because that includes circlets & masks.
+      if Send(who,@IsUsingA,#class=&SimpleHelm)
+         OR Send(who,@IsUsingA,#class=&Helm)
+         OR Send(who,@IsUsingA,#class=&KnightHelm)
+         OR Send(who,@IsUsingA,#class=&RunedHelm)
+         OR Send(who,@IsUsingA,#class=&SpikedHelm)
+         OR Send(who,@GetPlayerRace) = RACE_DRACONIAN
+%         OR Send(who,@IsEnchanted,#byClass=&ResistAcid)
+%         OR Send(who,@IsUsingA,#class=&AcidRing)
+      {
+         return FALSE;
+      }
+
+      propagate;
+   }
+
+   ApplyDirectEffect(who=$)
+   {
+      Send(who,@AddExertion,#amount=piVigorDrop);
+      propagate;
+   }
+   
+   Delete()
+   {
+      Send(poHostObject,@EndRain);
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

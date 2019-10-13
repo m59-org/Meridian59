@@ -1,0 +1,332 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ZigguratAltar is DesertRoom
+
+constants:
+
+
+   include blakston.khd
+
+resources:
+
+   ziggurat_altar_room = ziggurataltar.roo
+   ziggurat_altar_room_name = "Apex of the Ziggurat"
+   ziggurat_altar_music = aamusic3.mp3
+
+%   high_sorcerers_challenge_msg = \
+%      "~kThe spirit of Vecka tells you, \"This is the nest of the beast. The ice dragon has taken many of our tribe over the years. "
+%      "Kill the monstrous thing and take its eggs for your own!\""
+ 
+   high_sorcerers_challenge_msg = \
+      "~kQua'Kornedrin, High Sorcerer of Fire shouts, \"We are quite aware of you, barbarian. Set foot on our level, and we will obliterate you. Or, you can still flee.\""
+
+   high_sorcerers_slain = \
+      "~bThe sky clears, and the world softens."
+
+   high_sorcerer_fire_dies = \
+      "~kQua'Kornedrin, High Sorcerer of Fire whispers, \"You fool. You have no idea what forces you've imbalanced!\""
+
+   crystal_being_slain = \
+      "~kWith the death of the otherworldly crystalline entity, the land of Biskalane can finally begin healing."
+
+classvars:
+
+   vrName = ziggurat_altar_room_name
+
+   viTeleport_row = 53
+   viTeleport_col = 28
+
+   viTerrain_type = TERRAIN_MYSTICAL
+   
+   vbSpawnMonsters = TRUE
+   
+   vbCanSneakHere = FALSE
+   vbCanHideHere = FALSE
+
+properties:
+
+   prRoom = ziggurat_altar_room
+   prMusic = ziggurat_altar_music
+   piRoom_num = RID_ZIGGURAT_ALTAR
+
+   piBaseLight = LIGHT_NICE
+   
+   ptAfterCombatTimer = $
+   piAfterCombatDelay = 15000
+   
+   ptRespawnTimer = $
+   piHoursLeftReset = 47
+   
+   pbHighSorcerersDefeated = FALSE
+   pbCrystalBeingKilled = FALSE
+
+messages:
+
+   SomethingTryGo(what = $,row = $,col = $,fine_row=$,fine_col=$)
+   {
+      if (row >= 135)
+         AND (row <= 137)
+         AND (col >= 26)
+         AND (col <= 31)
+      {
+         Send(SYS,@UtilGoNearSquare,#what=what,
+              #where=Send(SYS,@FindRoomByNum,#num=RID_PALACE_DUNGEON2),
+              #new_row=40,#new_col=44,#fine_row=60,#fine_col=61,#new_angle=ANGLE_WEST);
+
+         return TRUE;
+      }
+
+      propagate;
+   }
+
+   GetRegion()
+   {
+      return RID_DESERT;
+   }
+
+   GetPhaseMusic()
+   {
+      return ziggurat_altar_music;
+   }
+
+   RecalcBackgroundSkyGraphic(iSkyBox=0)
+   {
+      if NOT pbHighSorcerersDefeated
+      {
+         prBackground = background_chaos_night;
+         return;
+      }
+
+      propagate;
+   }
+   
+   GetPhaseThreats()
+   {
+      return [&ChaosThreat, &PhaseThreat];
+   }
+   
+   SpecialPhaseConditionsSatisfied(sector=0)
+   {
+      % Special Phase conditions
+      if pbCrystalBeingKilled
+      {
+         return TRUE;
+      }
+
+      return FALSE;
+   }
+
+   PopulateArea()
+   {
+      local i, lMonsters, iCol, each_obj;
+      
+      if pbHighSorcerersDefeated
+      {
+         return;
+      }
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         each_obj = Send(self,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&HighSorcerer)
+         {
+            % High sorcerers already present.
+            return;
+         }
+      }
+
+      lMonsters = [&HighSorcererFire,
+                   &HighSorcererCold,
+                   &HighSorcererLightning,
+                   &HighSorcererAcid,
+                   &HighSorcererDeath,
+                   &HighSorcererLife];
+      
+      iCol = 23;
+
+      foreach i in lMonsters
+      {
+         Send(self,@NewHold,#what=Create(i),
+               #new_row=15,
+               #new_col=iCol,
+               #new_angle=ANGLE_SOUTH);
+         iCol++;
+         iCol++;
+      }
+
+      return;
+   }
+   
+   DepopulateArea()
+   {
+      % Don't delete high sorcerers.      
+      return;
+   }
+
+   NewHold(what=$)
+   {
+      if what <> $
+         AND IsClass(what,&User)
+      {
+         if NOT pbHighSorcerersDefeated
+         {
+            Send(what,@MsgSendUser,#message_rsc=high_sorcerers_challenge_msg);
+         }
+         if NOT pbCrystalBeingKilled
+         {
+            if Send(what,@GetOwner) = $
+            {
+               Post(Send(SYS,@FindRoomByNum,#num=RID_PALACE_DUNGEON_ENTRANCE),@Teleport,#what=what);
+            }
+         }
+         Send(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@StopHiding,#who=what);
+         Send(Send(SYS,@FindSkillByNum,#num=SKID_SNEAK),@StopSneaking,#who=what);
+         Send(Send(SYS,@FindSkillByNum,#num=SKID_SPY),@StopSpying,#who=what);
+      }
+ 
+      if IsClass(what,&Player)
+      {
+         Post(Send(SYS,@GetGameQuestMaintenance),@EvaluatePlayer,#who=what,#vbTriggered=TRUE);
+      }
+
+      propagate;
+   }
+
+   SomethingKilled(what=$,victim=$)
+   {
+      local i, n, each_obj;
+
+      if victim <> $
+         AND IsClass(victim,&Monster)
+      {
+         if IsClass(victim,&HighSorcererFire)
+         {
+            foreach i in Send(self,@GetHolderActive)
+            {
+               if IsClass(First(i),&Player)
+               {
+                  Send(First(i),@GroupSlayedMonster,#cClass=&HighSorcererFire);
+                  Send(First(i),@MsgSendUser,#message_rsc=high_sorcerers_slain);
+                  Send(First(i),@MsgSendUser,#message_rsc=high_sorcerer_fire_dies);
+               }
+            }
+            Send(self,@HighSorcerersKilled);
+            propagate;
+         }
+         if IsClass(victim,&CrystalBeing)
+         {
+            foreach i in Send(self,@GetHolderActive)
+            {
+               if IsClass(First(i),&Player)
+               {
+                  Send(First(i),@GroupSlayedMonster,#cClass=&CrystalBeing);
+                  Send(First(i),@MsgSendUser,#message_rsc=crystal_being_slain);
+               }
+            }
+            Send(self,@CrystalBeingKilled);
+            propagate;
+         }
+      }
+
+      propagate;
+   }
+   
+   HighSorcerersKilled()
+   {
+      pbHighSorcerersDefeated = TRUE;
+      Send(self,@RecalcLightAndWeather);
+      Send(self,@RecalculateRoomMusic);
+      
+      if ptAfterCombatTimer = $
+      {
+         ptAfterCombatTimer = CreateTimer(self,@SpawnSurprise,piAfterCombatDelay);
+      }
+      
+      ptRespawnTimer = CreateTimer(self,@RespawnHighSorcerers,60000 * 60);
+
+      return;
+   }
+   
+   RespawnHighSorcerers(timer=$)
+   {
+      ptRespawnTimer = $;
+      
+      if piHoursLeftReset > 0
+      {
+         piHoursLeftReset--;
+         ptRespawnTimer = CreateTimer(self,@RespawnHighSorcerers,60000 * 60);
+         return;
+      }
+      
+      piHoursLeftReset = 47;
+      pbHighSorcerersDefeated = FALSE;
+      return;
+   }
+
+   CrystalBeingKilled()
+   {
+      pbCrystalBeingKilled = TRUE;
+
+      return;
+   }
+   
+   SpawnSurprise(timer=$)
+   {
+      ptAfterCombatTimer = $;
+      
+      Send(self,@Rumble,#duration=2000);
+      
+      Send(self,@NewHold,#what=Create(&CrystalBeing),
+            #new_row=29,
+            #new_col=29,
+            #new_angle=ANGLE_SOUTH);
+      Send(self,@NewHold,#what=Create(&BurningOrb),
+            #new_row=5,
+            #new_col=5);
+      Send(self,@NewHold,#what=Create(&BurningOrb),
+            #new_row=5,
+            #new_col=52);
+      Send(self,@NewHold,#what=Create(&BurningOrb),
+            #new_row=52,
+            #new_col=5);
+      Send(self,@NewHold,#what=Create(&BurningOrb),
+            #new_row=52,
+            #new_col=52);
+      return;
+   }
+   
+   Delete()
+   {
+      if ptAfterCombatTimer <> $
+      {
+         DeleteTimer(ptAfterCombatTimer);
+         ptAfterCombatTimer = $;
+      }
+      if ptRespawnTimer <> $
+      {
+         DeleteTimer(ptRespawnTimer);
+         ptRespawnTimer = $;
+      }
+      propagate;
+   }
+
+   GetHighSorcerersDefeated()
+   {
+      return pbHighSorcerersDefeated;
+   }
+
+   GetCrystalBeingKilled()
+   {
+      return pbCrystalBeingKilled;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

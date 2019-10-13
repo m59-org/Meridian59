@@ -1,0 +1,109 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ShardReroll is Shard
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   reroll_shard_name_rsc = "instilling shard"
+   reroll_shard_name_plural = "instilling shards"
+   reroll_shard_icon_rsc = purplegemshard.bgf
+   reroll_shard_desc = \
+      "This mysterious shard of some unknown crystal hums with energy. "
+      "Using it on a piece of magical equipment will instill the "
+      "existing modifications with randomized new values."
+
+   reroll_shard_applied = \
+      "The %s looks different."
+
+classvars:
+
+   vrName = reroll_shard_name_rsc
+   vrIcon = reroll_shard_icon_rsc
+   vrDesc = reroll_shard_desc
+   
+   vrName_plural = reroll_shard_name_plural
+
+   vrApplied = reroll_shard_applied
+   
+   viShardColor = 83
+
+properties:
+
+messages:
+
+   ReqNewApply(what = $,apply_on = $)
+   {
+      local i;
+      
+      if what = $
+         OR NOT IsClass(what,&Player)
+      {
+         return;
+      }
+
+      foreach i in Send(what,@GetPlayerUsing)
+      {
+         if i = apply_on
+         {
+            Send(what,@MsgSendUser,#message_rsc=vrMust_unequip);
+            return FALSE;
+         }
+      }
+
+      if apply_on <> $
+         AND (IsClass(apply_on,&Weapon)
+            OR IsClass(apply_on,&DefenseModifier)
+            OR IsClass(apply_on,&Ring)
+            OR IsClass(apply_on,&Gauntlet)
+            OR IsClass(apply_on,&NecromancerAmulet)
+            OR IsClass(apply_on,&Necklace)
+            OR IsClass(apply_on,&Instrument)
+            OR IsClass(apply_on,&JewelofFroz)
+            OR IsClass(apply_on,&AdventurerCrest)
+            OR IsClass(apply_on,&ScryingCrystal))
+         AND Send(apply_on,@GetMagicModsNumber) > 0
+      {
+         % This shard only applies to enchanted gear
+         return TRUE;
+      }
+
+      return FALSE;
+   }
+
+   NewApplied(what = $,apply_on = $)
+   {
+      local i, lMagicMods, lClasses, oMagicMod;
+
+      lMagicMods = Send(apply_on,@GetMagicMods);
+
+      foreach i in lMagicMods
+      {
+         lClasses = Cons(Nth(i,1),lClasses);
+      }
+
+      Send(apply_on,@ClearMagicMods);
+
+      foreach i in lClasses
+      {
+         Send(apply_on,@ApplyMagicMod,#cClass=i,#iPower=Send(Send(SYS,@GetMagicMod,#class=i),@RollPower,#what=apply_on));
+      }
+
+      Send(self,@SubtractNumber,#number=1);
+
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

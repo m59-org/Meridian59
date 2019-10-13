@@ -202,7 +202,15 @@ messages:
       local skill_ability, damage;
       
       % base weapon damage
-      damage = send(weapon_used,@GetDamage,#who=who,#target=victim);
+      if weapon_used = $
+         OR NOT IsClass(weapon_used,&Weapon)
+      {
+         return 0;
+      }
+      else
+      {
+         damage = send(weapon_used,@GetDamage,#who=who,#target=victim);
+      }
       
       % convert to high precision
       damage = damage*100;
@@ -334,6 +342,7 @@ messages:
 
       iDamage = damage;
       if weapon_used <> $
+         AND IsClass(weapon_used,&Weapon)
       {
          weapProf = Send(SYS,@FindSkillByNum,#num=Send(weapon_used,@GetProfNumber));
          profAbility = Send(weapon_used,@GetProf,#who=who)+1;
@@ -341,7 +350,8 @@ messages:
       else
       {
          weapProf = Send(SYS,@FindSkillByNum,#num=SKID_BRAWLING);
-         profAbility = send(who,@GetSkillAbility,#skill_num=SKID_BRAWLING)+1;
+         profAbility = send(who,@GetSkillAbility,#skill_num=SKID_BRAWLING)+1 + send(who,@GetSkillAbility,#skill_num=SKID_TOUCH_OF_DEATH)+1;
+         Send(Send(SYS,@FindSkillByNum,#num=SKID_TOUCH_OF_DEATH),@ImproveAbility,#who=who);
       }
 
       % Add a portion of the proficiency damage based on skill level. 
@@ -356,7 +366,7 @@ messages:
       
       % Scale down the bonus damage percentage if the user is not fully 
       % proficient in the weapon.
-      bonusPercentage = 100 + bound(iStat * profAbility / 100, 0, 40);
+      bonusPercentage = 100 + bound(iStat * profAbility / 100, 0, 100);
 
       iDamage = iDamage * bonusPercentage / 100;
       

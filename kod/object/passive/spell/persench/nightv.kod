@@ -53,6 +53,9 @@ classvars:
    viFlash = FLASH_GOOD_SELF
 
    viPercentManaReserved = 5
+   
+   viPrimaryStat = STAT_ID_STAMINA
+   viSecondaryStat = 0
 
 properties:
 
@@ -70,12 +73,7 @@ messages:
 
    GetStateValue(who=$,iSpellPower=0,target=$)
    {
-      local iState;
-
-      iState = iSpellPower + 50;
-      Send(target,@GainLight,#amount=iState);
-
-      return iState;
+      return iSpellPower/3;
    }
 
    GetDuration(iSpellpower=0)
@@ -91,7 +89,7 @@ messages:
 
    EndEnchantment(who=$,report=TRUE,state=0)
    {
-      Send(who,@LoseLight,#amount=state);
+      Post(who,@RecalcLight);
 
       propagate;
    }
@@ -107,6 +105,11 @@ messages:
                 4,Send(who,@GetEnchantedState,#what=self));
 
       return;
+   }
+
+   AltersLightLevel()
+   {
+      return TRUE;
    }
 
 end

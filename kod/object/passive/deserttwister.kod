@@ -1,0 +1,46 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+DesertTwister is PassiveObject
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   deserttwister_name_rsc = "desert twister"
+   deserttwister_icon_rsc = deserttwister.bgf
+   default_deserttwister_desc_rsc = \
+      "The air swirls here menacingly..."
+
+classvars:
+
+   vrName = deserttwister_name_rsc
+
+properties:
+
+   vrDesc = default_deserttwister_desc_rsc
+   vrIcon = deserttwister_icon_rsc
+
+   piDrawEffectFlag = OF_FLICKERING
+   piDrawfx = DRAWFX_TRANSLUCENT_75
+
+messages:
+
+   SendAnimation()
+   {
+      AddPacket(1,ANIMATE_CYCLE, 4,150, 2,1, 2,8);
+
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

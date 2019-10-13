@@ -20,6 +20,7 @@ BOFS = tree.bof spell.bof boulder.bof news.bof trestype.bof arsign01.bof \
    bell.bof dflycage.bof pillow.bof ghostitm.bof ventstem.bof shrinfog.bof \
    psporec.bof evntsign.bof maillist.bof objectatt.bof roomflagicon.bof \
    qormastree.bof snowman.bof heatshimmer.bof questtemplate.bof \
-   magicmod.bof lightningprism.bof
+   magicmod.bof lightningprism.bof deserttwister.bof \
+   passivequest.bof bestiarybookped.bof leaguesign.bof
 
 !include $(KODDIR)\kod.mak

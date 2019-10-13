@@ -144,8 +144,16 @@ classvars:
    vrCondition_med = weapon_condition_med 
    vrCondition_poor = weapon_condition_poor 
    vrCondition_broken = weapon_condition_broken
+   
+   vbCanApplyPoison = FALSE
 
    viRange = 2 * FINENESS
+   
+   % Chance to apply knockbacks, stuns, and bleeds
+   viCriticalHitRate = 0
+   vbCanStun = FALSE
+   vbCanKnockback = FALSE
+   vbCanBleed = FALSE
 
 properties:
 
@@ -283,7 +291,8 @@ messages:
       {
          if Nth(i,1) = &OffenseMod
          {
-            sum = sum + Nth(i,2);
+            sum = Send(Send(SYS,@GetMagicMod,#class=&OffenseMod),@ModifyHitRoll,
+                        #hit_roll=sum,#iState=Nth(i,2));
          }
       }
 
@@ -315,6 +324,16 @@ messages:
       else if viWeaponQuality = WEAPON_NERUDITE
       {
          iBaseHit = iBaseHit + WEAPON_NERUDITE_HITMOD;
+      }
+
+      foreach i in plItem_Attributes
+      {
+         oWeapAtt = Send(SYS,@FindItemAttByNum,#num=Send(self,@GetNumFromCompound,#compound=First(i)));
+         if IsClass(oWeapAtt,&WeaponAttribute)
+         {
+            iBaseHit = Send(oWeapAtt,@ModifyHitRoll,#hitroll=iBaseHit,#wielder=poOwner,
+                              #target=$,#lData=i);
+         }
       }
 
       iBaseHit = iBaseHit + piHitBonus;
@@ -359,7 +378,7 @@ messages:
 
    GetMinDamage()
    {
-      local iDamage, oSkill, i, oWeaponDamageMod;
+      local iDamage, oSkill, i, oWeaponDamageMod, oWeapAtt;
 
       % Weapon type
       if viWeaponType = WEAPON_TYPE_BLUDGEON
@@ -399,12 +418,24 @@ messages:
          }
       }
 
+      % Then check weapon attributes
+      %  Weapon Attributes in general should only + or - damage - no multipliers!
+      foreach i in plItem_Attributes
+      {
+         oWeapAtt = Send(SYS,@FindItemAttByNum,#num=Send(self,@GetNumFromCompound,#compound=First(i)));
+         if IsClass(oWeapAtt,&WeaponAttribute)
+         {
+            iDamage = Send(oWeapAtt,@ModifyDamage,#damage=iDamage,#wielder=poOwner,
+                           #target=$,#lData=i);
+         }
+      }
+
       return iDamage + piDamageBonus;
    }
 
    GetMaxDamage()
    {
-      local iDamage, oSkill, i, oWeaponDamageMod;
+      local iDamage, oSkill, i, oWeaponDamageMod, oWeapAtt;
 
       % Weapon type
       if viWeaponType = WEAPON_TYPE_BLUDGEON
@@ -441,6 +472,18 @@ messages:
             oWeaponDamageMod = Send(SYS,@GetMagicMod,#class=&WeaponDamageMod);
             iDamage = Send(oWeaponDamageMod,@ModifyDamage,
                         #damage=iDamage,#iState=Nth(i,2));
+         }
+      }
+
+      % Then check weapon attributes
+      %  Weapon Attributes in general should only + or - damage - no multipliers!
+      foreach i in plItem_Attributes
+      {
+         oWeapAtt = Send(SYS,@FindItemAttByNum,#num=Send(self,@GetNumFromCompound,#compound=First(i)));
+         if IsClass(oWeapAtt,&WeaponAttribute)
+         {
+            iDamage = Send(oWeapAtt,@ModifyDamage,#damage=iDamage,#wielder=poOwner,
+                           #target=$,#lData=i);
          }
       }
 
@@ -516,7 +559,18 @@ messages:
          }
       }
 
+      foreach i in plObject_attributes
+      {
+         iDamage = Send(i,@ModifyDamage,#damage=iDamage,#who=poOwner,#what=target);
+      }
+
       iDamage = iDamage + piDamageBonus;
+      
+      % Check for criticals
+      if iDamage > 0
+      {
+         Post(self,@CriticalHit,#target=target);
+      }
 
       % Send(Send(poOwner,@getOwner),@SomeoneSaid,#what=self,#type=SAY_RESOURCE,
       %      #string=weapon_do_damage,#parm1=iDamage,#parm2=baseDamage);
@@ -671,10 +725,26 @@ messages:
 
    WeaponHitTarget()
    {
+      if plEnchantmentMods <> $
+         AND NOT Send(SETTINGS_OBJECT,@GetLoseDurabilityMagicMods)
+      {
+         return;
+      }
+
       % 75% chance to be damaged, currently.
       if random(1,100) < WEAPON_TAKE_DAMAGE_PCT
       {
-         piHits = piHits - 1;
+         if poOwner <> $
+            AND IsClass(poOwner,&Player)
+            AND Send(poOwner,@HasSkill,#num=SKID_MAINTENANCE)
+            AND Send(Send(SYS,@FindSkillByNum,#num=SKID_MAINTENANCE),@DoSkill,#who=poOwner,#oEquipment=self)
+         {
+            return;
+         }
+         else
+         {
+            piHits = piHits - 1;
+         }
       }
 
       if piHits <= 0
@@ -715,13 +785,15 @@ messages:
    {
       local i, oItemAtt;
 
-      % Remove itematts from us, since we're not gonna use 'em anymore.
-      % This also lets cursed items finally remove themselves from us.
+      % Remove curse attribute so players aren't forced to keep a broken weapon
       foreach i in plItem_Attributes
       {
          oItemAtt = Send(SYS,@FindItemAttByNum,
                          #num=Send(self,@GetNumFromCompound,#compound=First(i)));
-         Send(oItemAtt,@RemoveFromItem,#oItem=self);
+         if IsClass(oItemAtt,&WeapAttCursed)
+         {
+            Send(oItemAtt,@RemoveFromItem,#oItem=self);
+         }
       }
 
       Send(poOwner,@SomethingChanged,#what=self);
@@ -1078,6 +1150,11 @@ messages:
          iNum = iNum + 1;
       }
 
+      if Send(self,@HasAttribute,#itematt=WA_CORRODE)
+      {
+         iNum = iNum + 1;
+      }
+
       if iNum > num
       {
          Post(self,@Delete);
@@ -1179,12 +1256,76 @@ messages:
    GetPrefixes()
    {
       return [[&OffenseMod,100],
-              [&WeaponDamageMod,100]];
+              [&WeaponDamageMod,100],
+              [&ThrustEmpowermentMod,100],
+              [&SlashEmpowermentMod,100],
+              [&BludgeonEmpowermentMod,100],
+              [&PierceEmpowermentMod,100],
+              [&WeaponEmpowermentMod,1]];
    }
    
    GetSuffixes()
    {
-      return $;
+      return [[&WeaponMightMod,100],
+              [&WeaponAgilityMod,100],
+              [&WeaponAimMod,100]];
+   }
+
+   CanApplyPoison()
+   {
+      return vbCanApplyPoison;
+   }
+
+   CanCleave()
+   {
+      return FALSE;
+   }
+
+   GetCleaveModifier()
+   {
+      return 0;
+   }
+
+   GetCriticalHitRate()
+   {
+      return viCriticalHitRate;
+   }
+
+   CriticalHit(target=$)
+   {
+      local iRoll;
+      
+      if target = $
+         OR NOT IsClass(target,&Battler)
+         OR poOwner = $
+         OR NOT IsClass(poOwner,&Player)
+      {
+         return;
+      }
+
+      iRoll = Random(1,10000);
+      
+      if iRoll <= Send(poOwner,@GetCriticalHitRate,#oWeapon=self)
+      {
+         % We've scored a crit.
+         
+         if vbCanKnockback
+         {
+            Send(target,@ApplyKnockback,#what=poOwner,#knockback_power=Send(poOwner,@GetKnockbackPower));
+         }
+         
+         if vbCanStun
+         {
+            Send(target,@ApplyStun,#what=poOwner,#stun_power=Send(poOwner,@GetStunPower));
+         }
+         
+         if vbCanBleed
+         {
+            Send(target,@ApplyBleed,#what=poOwner,#bleed_power=Send(poOwner,@GetBleedPower));
+         }
+      }
+
+      return;
    }
 
 end

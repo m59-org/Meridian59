@@ -48,11 +48,21 @@ static School schools[] = {
 { 0,   6,   0,   0,   1,   NULL },       // Riija
 { 0,   6,   0,   0,   1,   NULL },       // Jala
 { 0,   6,   0,   0,   1,   NULL },       // Weaponcraft
+{ 0,   6,   0,   0,   1,   NULL },       // Knightcraft
+{ 0,   6,   0,   0,   1,   NULL },       // Banditry
+{ 0,   6,   0,   0,   1,   NULL },       // Sorcery
+{ 0,   6,   0,   0,   1,   NULL },       // Witchery
+{ 0,   6,   0,   0,   1,   NULL },       // Alchemy
 };
 
 static int  stat_points = STAT_POINTS_INITIAL;   // # of stat points remaining
 static HWND hPoints;                             // Handle of "points left" graph control
+static HWND hMight;
 static HWND hIntellect;
+static HWND hStamina;
+static HWND hAgility;
+static HWND hMysticism;
+static HWND hAim;
 
 static Bool controls_created = False;     // True after graph controls have been created
 
@@ -127,7 +137,7 @@ int StatsIntellectNeeded()
    int levels_count = 0;
    int schools_count = 0;
    int level_ones = 0;
-   int intellect_needed = 99;
+   int intellect_needed = 100;
     
    for (i = 0; i < NUM_CHAR_SCHOOLS; ++i)
    {
@@ -178,6 +188,7 @@ void initStatsFromServer(int *stats_in, int *levels_in, int *maxstats_in)
    
    for (i = 0; i < NUM_CHAR_SCHOOLS; i++)
    {
+      debug(("Couldn't find graph control in list!\n"));
       schools[i].val = levels_in[i];
       schools[i].start = levels_in[i];
    }
@@ -213,8 +224,13 @@ void CharStatsInit(HWND hDlg)
    // initialize points left graph control
    hPoints = GetDlgItem(hDlg, IDC_POINTSLEFT);
    
-   // save handle of intellect control
+   // save handle of stat controls
+   hMight = GetDlgItem(hDlg, IDC_CHAR_GRAPH1);
    hIntellect = GetDlgItem(hDlg, IDC_CHAR_GRAPH2);
+   hStamina = GetDlgItem(hDlg, IDC_CHAR_GRAPH3);
+   hAgility = GetDlgItem(hDlg, IDC_CHAR_GRAPH4);
+   hMysticism = GetDlgItem(hDlg, IDC_CHAR_GRAPH5);
+   hAim = GetDlgItem(hDlg, IDC_CHAR_GRAPH6);
    
    SendMessage(hPoints, GRPH_COLORSET, GRAPHCOLOR_BAR, GetColor(COLOR_BAR2));
    SendMessage(hPoints, GRPH_COLORSET, GRAPHCOLOR_BKGND, GetColor(COLOR_BAR3));
@@ -250,7 +266,7 @@ void CharStatsGraphChanging(HWND hDlg, WPARAM wParam, LPARAM lParam)
 {
    Stat *s;
    School *sc;
-   int index, cost;
+   int index, cost, intdif;
 
    /* Update points graph */
    if ((HWND) wParam == GetDlgItem(hDlg, IDC_CHAR_GRAPH7) ||
@@ -259,7 +275,12 @@ void CharStatsGraphChanging(HWND hDlg, WPARAM wParam, LPARAM lParam)
        (HWND) wParam == GetDlgItem(hDlg, IDC_CHAR_GRAPH10) ||
        (HWND) wParam == GetDlgItem(hDlg, IDC_CHAR_GRAPH11) ||
        (HWND) wParam == GetDlgItem(hDlg, IDC_CHAR_GRAPH12) ||
-       (HWND) wParam == GetDlgItem(hDlg, IDC_CHAR_GRAPH13))
+       (HWND) wParam == GetDlgItem(hDlg, IDC_CHAR_GRAPH13) ||
+       (HWND) wParam == GetDlgItem(hDlg, IDC_CHAR_GRAPH14) ||
+       (HWND) wParam == GetDlgItem(hDlg, IDC_CHAR_GRAPH15) ||
+       (HWND) wParam == GetDlgItem(hDlg, IDC_CHAR_GRAPH16) ||
+       (HWND) wParam == GetDlgItem(hDlg, IDC_CHAR_GRAPH17) ||
+       (HWND) wParam == GetDlgItem(hDlg, IDC_CHAR_GRAPH18))
    {
       sc = CharFindSchoolControl((HWND) wParam);
       if (sc == NULL)
@@ -267,10 +288,58 @@ void CharStatsGraphChanging(HWND hDlg, WPARAM wParam, LPARAM lParam)
       sc->val = lParam;
       
       if (SendMessage((HWND) wParam, GRPH_POSGET, 0, 0) < lParam)
-         if(StatsIntellectNeeded() <=50)
-            SendMessage(hIntellect, GRPH_POSSET, 0, StatsIntellectNeeded());
-         else
-            SendMessage(hIntellect, GRPH_POSSET, 0, 50);
+         if(StatsIntellectNeeded() >= SendMessage(hIntellect, GRPH_POSGET, 0, 0))
+         {
+            if(StatsIntellectNeeded() <= stats[1].max)
+            {
+               intdif = (StatsIntellectNeeded() - SendMessage(hIntellect, GRPH_POSGET, 0, 0));
+               if(stat_points > intdif + 1)
+               {
+                  // We have enough free stat points to raise int.
+                  SendMessage(hIntellect, GRPH_POSSET, 0, StatsIntellectNeeded());
+               }
+               else
+               {
+                  // We don't have enough free stat points to raise int.
+                  // Take from some other source.
+                  
+                  // Check Might first.
+                  if(SendMessage(hMight, GRPH_POSGET, 0, 0) > intdif)
+                  {
+                     SendMessage(hMight, GRPH_POSSET, 0, SendMessage(hMight, GRPH_POSGET, 0, 0) - intdif);
+                     SendMessage(hIntellect, GRPH_POSSET, 0, StatsIntellectNeeded());
+                     return;
+                  }
+                  // No luck? Check the others.
+                  if(SendMessage(hStamina, GRPH_POSGET, 0, 0) > intdif)
+                  {
+                     SendMessage(hStamina, GRPH_POSSET, 0, SendMessage(hStamina, GRPH_POSGET, 0, 0) - intdif);
+                     SendMessage(hIntellect, GRPH_POSSET, 0, StatsIntellectNeeded());
+                     return;
+                  }
+                  if(SendMessage(hAgility, GRPH_POSGET, 0, 0) > intdif)
+                  {
+                     SendMessage(hAgility, GRPH_POSSET, 0, SendMessage(hAgility, GRPH_POSGET, 0, 0) - intdif);
+                     SendMessage(hIntellect, GRPH_POSSET, 0, StatsIntellectNeeded());
+                     return;
+                  }
+                  if(SendMessage(hMysticism, GRPH_POSGET, 0, 0) > intdif)
+                  {
+                     SendMessage(hMysticism, GRPH_POSSET, 0, SendMessage(hMysticism, GRPH_POSGET, 0, 0) - intdif);
+                     SendMessage(hIntellect, GRPH_POSSET, 0, StatsIntellectNeeded());
+                     return;
+                  }
+                  if(SendMessage(hAim, GRPH_POSGET, 0, 0) > intdif)
+                  {
+                     SendMessage(hAim, GRPH_POSSET, 0, SendMessage(hAim, GRPH_POSGET, 0, 0) - intdif);
+                     SendMessage(hIntellect, GRPH_POSSET, 0, StatsIntellectNeeded());
+                     return;
+                  }
+               }
+            }
+            else
+               SendMessage(hIntellect, GRPH_POSSET, 0, stats[1].max);
+         }
    }
    else
    {
@@ -308,7 +377,16 @@ void CharStatsGetChoices(int *buf)
 void CharSchoolsGetChoices(int *buf)
 {
    int i;
-   
+
+//   buf[0] = schools[0].val;
+//   buf[1] = schools[1].val;
+//   buf[2] = schools[2].val;
+//   buf[3] = schools[3].val;
+//   buf[4] = schools[4].val;
+//   buf[5] = schools[5].val;
+//   buf[6] = 444500;
+
+//   buf[6] = (100000 * (schools[6].val)) + (10000 * (schools[7].val)) + (1000 * (schools[8].val)) + (100 * (schools[9].val)) + (10 * (schools[10].val));
    for (i=0; i < NUM_CHAR_SCHOOLS; i++)
       buf[i] = schools[i].val;
 }

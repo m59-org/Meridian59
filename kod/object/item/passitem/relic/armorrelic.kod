@@ -1,0 +1,117 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ArmorRelic is Relic
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   ArmorRelic_desc_rsc = \
+      "This piece of equipment is far too old for use in combat, but "
+      "the residual magics it has absorbed over the ages have given it a "
+      "small radiant energy."
+
+   ArmorRelic_icon1_rsc = ancientarmorcomb.bgf
+
+   ArmorRelic2_name_rsc = "ancient greaves"
+   ArmorRelic3_name_rsc = "ancient black armor"
+   ArmorRelic4_name_rsc = "ancient gold armor"
+   ArmorRelic5_name_rsc = "ancient chain-leather armor"
+   ArmorRelic6_name_rsc = "ancient helmet"
+   
+   ArmorRelic_effect_desc_2 = \
+      "+3 maximum mana"
+   ArmorRelic_effect_desc_3 = \
+      "+1%% weapon resistance"
+   ArmorRelic_effect_desc_4 = \
+      "+1 maximum health"
+   ArmorRelic_effect_desc_5 = \
+      "+1%% magic resistance"
+   ArmorRelic_effect_desc_6 = \
+      "+20 defense"
+
+classvars:
+
+   vrDesc = ArmorRelic_desc_rsc
+   vrIcon = ArmorRelic_icon1_rsc
+
+properties:
+
+   vrName = ArmorRelic2_name_rsc
+   viInventory_group = 2
+
+messages:
+
+   Constructor(armor_type=0)
+   {
+      local iRand;
+      
+      if armor_type > 1
+      {
+         iRand = armor_type;
+      }
+      else
+      {
+         iRand = Random(2,6);
+      }
+      viInventory_group = iRand;
+
+      switch(iRand)
+      {
+         case 2:
+            vrName = ArmorRelic2_name_rsc;
+            propagate;
+         case 3:
+            vrName = ArmorRelic3_name_rsc;
+            propagate;
+         case 4:
+            vrName = ArmorRelic4_name_rsc;
+            propagate;
+         case 5:
+            vrName = ArmorRelic5_name_rsc;
+            propagate;
+         case 6:
+            vrName = ArmorRelic6_name_rsc;
+            propagate;
+      }
+
+      propagate;
+   }
+
+   AppendDesc()
+   {
+      switch(viInventory_group)
+      {
+         case 2:
+            AddPacket(4,ArmorRelic_effect_desc_2);
+            return;
+         case 3:
+            AddPacket(4,ArmorRelic_effect_desc_3);
+            return;
+         case 4:
+            AddPacket(4,ArmorRelic_effect_desc_4);
+            return;
+         case 5:
+            AddPacket(4,ArmorRelic_effect_desc_5);
+            return;
+         case 6:
+            AddPacket(4,ArmorRelic_effect_desc_6);
+            return;
+      }
+
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+

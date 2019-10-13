@@ -73,12 +73,12 @@ properties:
 
 messages:
 
-   Constructor(caster=$,duration=$)
+   Constructor(caster=$,duration=$,bMS=FALSE)
    {
       poCaster = caster;
 
       ptExpire = CreateTimer(self,@Expire,
-                        Send(self,@GetDuration,#duration=duration));
+                        Send(self,@GetDuration,#duration=duration,#bMS=bMS));
       ptPeriodic = CreateTimer(self,@PeriodicEffect,
                         Send(self,@GetPeriodicDuration));
 
@@ -331,7 +331,8 @@ messages:
    LocationCheck(where = $)
    {
       if (IsClass(where,&GuildHall)
-            AND Send(where,@InFoyer,#who=poCaster))
+            AND Send(where,@InFoyer,#who=poCaster)
+            AND send(where,@FoyerDissipatesWallElements))
          OR (Send(where,@IsArena)
             AND NOT Send(where,@InPlay,#what=self,#bNonPlayerOkay=TRUE))
       {

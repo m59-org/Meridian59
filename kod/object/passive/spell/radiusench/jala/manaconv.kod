@@ -37,6 +37,9 @@ resources:
    Mana_Convergence_enter = "The flow of magic in this place suddenly becomes stronger."
    Mana_Convergence_leave = "The empowered crackling of energy in the air around you fades."
 
+   Mana_Convergence_effect_msg = \
+      "\n\nThe charged notes of this song add %i spellpower to your attack spells."
+
 classvars:
 
    radius_ench_cast = Mana_Convergence_cast
@@ -62,6 +65,9 @@ classvars:
 
    viAffectsGuildmates = TRUE
    viAffectsEnemies = TRUE
+   
+   % What amount of mana does a Necklace-bound Jala song reserve?
+   viFlatManaReservation = 145
 
 properties:
 
@@ -88,6 +94,12 @@ messages:
       return iSpellPower;
    }
 
+   EffectDesc(who=$, lState=$)
+   {
+      AddPacket(4,Mana_Convergence_effect_msg, 4,Nth(lState,2));
+
+      propagate;
+   }
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

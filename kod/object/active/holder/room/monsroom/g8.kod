@@ -22,12 +22,18 @@ resources:
    room_name_OutdoorsG8 ="The Cragged Mountains"
    OutdoorsG8_music = walk4.mp3
 
+   cannot_lightning_strike_here_cragged = \
+      "Strange dampening magics prevent your lightning strike!"
+
 classvars:
 
    vrName = room_name_OutdoorsG8
 
    viTeleport_row = 16
    viTeleport_col = 11
+
+   viLongitude = 18
+   viLatitude = 34
 
    viTerrain_type = TERRAIN_MOUNTAIN
 
@@ -83,6 +89,22 @@ messages:
       plEdge_Exits = Cons([LEAVE_EAST, RID_NECROAREA1, 7, 2, ROTATE_NONE], plEdge_exits);
 
       return;
+   }
+   
+   CanHavePlayerPortal()
+   {
+      return FALSE;
+   }
+
+   ReqSpellCast(who = $, oSpell = $, lItems = $)
+   {
+      if IsClass(oSpell,&LightningStrike)
+      {
+         Send(who,@MsgSendUser,#message_rsc=cannot_lightning_strike_here_cragged);
+         return FALSE;
+      }
+
+      propagate;
    }
 
 end

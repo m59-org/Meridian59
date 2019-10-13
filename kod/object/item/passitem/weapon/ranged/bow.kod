@@ -64,6 +64,12 @@ classvars:
    % What's the basic color of the wood?
    viBaseXLAT = XLAT_TO_SKIN4
 
+   vbCanApplyPoison = TRUE
+   
+   % Chance to apply knockbacks, stuns, and bleeds
+   viCriticalHitRate = 200
+   vbCanBleed = TRUE
+
 properties:
 
    prBowTop = bow_top
@@ -126,6 +132,11 @@ messages:
    NewUsed()
    {
       local oSoldierShield, iFaction, iTranslation;
+
+      if IsClass(self,&FaerieBow)
+      {
+         propagate;
+      }
 
       if poOwner <> $
          AND IsClass(poOwner,&User)
@@ -300,7 +311,6 @@ messages:
 
       return;
    }
-
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

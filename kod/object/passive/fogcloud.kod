@@ -37,27 +37,36 @@ properties:
    poCaster = $
    ptExpire = $
    vbSummoned = TRUE
+   
+   % On the ceiling?
+   pbHanging = FALSE
+   
+   % On the floor? (only needed in depth override cases)
+   pbGrounded = FALSE
 
 messages:
 
-   constructor(Caster=$,Duration=75)
+   constructor(Caster=$,Duration=75,bHanging=FALSE,bGrounded=FALSE)
    {
-     local iDuration;
+      local iDuration;
      
-     if Duration=$
-     {
-        propagate;
-     }
+      pbHanging = bHanging;
+      pbGrounded = bGrounded;
      
-     iDuration = Random(Duration-15,Duration+15);
-     iDuration = iDuration * 750;
-     iDuration = bound(iDuration,22500,150000);
+      if Duration=$
+      {
+         propagate;
+      }
+     
+      iDuration = Random(Duration-15,Duration+15);
+      iDuration = iDuration * 750;
+      iDuration = bound(iDuration,22500,150000);
 
-     poCaster = Caster;
-     vbSummoned = isClass(Caster,&User);
-     ptExpire = CreateTimer(self,@Expire,iDuration);
+      poCaster = Caster;
+      vbSummoned = isClass(Caster,&User);
+      ptExpire = CreateTimer(self,@Expire,iDuration);
 
-     propagate;
+      propagate;
    }
 
    Constructed()
@@ -117,6 +126,20 @@ messages:
       return;
    }
 
+   GetObjectFlags()
+   {
+      if pbHanging
+      {
+         return (viObject_flags | OF_HANGING);
+      }
+      
+      if pbGrounded
+      {
+         return (viObject_flags | OF_GROUNDED);
+      }
+
+      propagate;
+   }
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

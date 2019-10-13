@@ -1,0 +1,89 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+UnholyStormBuff is ResistanceEnchantment
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   UnholyStormBuff_name_rsc = "corrupting energies"
+   UnholyStormBuff_icon_rsc = iholyres.bgf
+   UnholyStormBuff_desc_rsc = \
+      "Strange black energies race around you, protecting you from unholy damage."
+
+   UnholyStormBuff_already_enchanted = \
+      "You are already resistant to unholy damage."
+
+   UnholyStormBuff_on = \
+      "Eerie black energies race around your body."
+   UnholyStormBuff_off = \
+      "The eerie black energies depart."
+
+   UnholyStormBuff_sound = qor.wav
+
+classvars:
+
+   vrName = UnholyStormBuff_name_rsc
+   vrIcon = UnholyStormBuff_icon_rsc
+   vrDesc = UnholyStormBuff_desc_rsc
+   vrSucceed_wav = UnholyStormBuff_sound
+
+   viSpell_num = SID_UNHOLY_STORM_BUFF
+   viSchool = SS_QOR
+   viSpell_level = 1
+   viMana = 0
+
+   viPersonal_ench = True
+   viChance_To_Increase = 30
+
+   viFlash = FLASH_GOOD_SELF
+
+   viResistanceType = -ATCK_SPELL_UNHOLY
+   vrAlreadyEnchanted = UnholyStormBuff_already_enchanted
+   vrEnchantment_On = UnholyStormBuff_on
+   vrEnchantment_Off = UnholyStormBuff_off
+   
+   viPrimaryStat = 0
+   viSecondaryStat = 0
+
+properties:
+
+messages:
+
+   GetResistanceStrength(iSpellpower = 0)
+   {
+      %% strength varies from 1 to 99
+      return iSpellPower;
+   }
+
+   GetDuration(iSpellPower = 0)
+   {
+      local iDuration;	   %%% 60 to 120 seconds
+      iDuration = 60000 + (iSpellPower+1)*600;
+      return iDuration;
+   }
+
+   DirectDMAccess()
+   {
+      % When a DM does 'dm get spell', does he get this spell?
+      return FALSE;
+   }
+
+   OfferToNewCharacters()
+   {
+      return FALSE;
+   }
+
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

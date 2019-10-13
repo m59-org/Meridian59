@@ -21,10 +21,14 @@ resources:
    leatherarmor_name_rsc = "leather armor"
    leatherarmor_icon_rsc = leathamr.bgf
    leatherarmor_desc_rsc = \
-      "This armor is made from thick, cured troll hides "
-      "roughly stitched together.  Despite a smell reminiscent "
-      "of rotting troll meat, the armor provides some "
-      "protection."
+      "This armor is made from thick cured troll hides "
+      "roughly stitched together. Despite a smell reminiscent "
+      "of rotting troll meat, the process employed turns the great "
+      "toughness of trolls into an extremely light armor that aids "
+      "defense and casting while also absorbing moderate "
+      "amounts of magical damage. Latent trollish regeneration "
+      "energies will also greatly reduce the time it takes for "
+      "the wearer's bleeding to stop."
 
    leatherarmor_male_icon_rsc = btg.bgf
    leatherarmor_female_icon_rsc = bth.bgf
@@ -62,8 +66,15 @@ messages:
 
    GetResistanceModifiers()
    {
+      if Send(SETTINGS_OBJECT,@GetDirectArmorEnabled)
+      {
+         return [ [ATCK_WEAP_ALL,5],
+                  [-ATCK_SPELL_FIRE,10]
+                ];
+      }
+
       return [ [ATCK_WEAP_ALL,5],
-               [-ATCK_SPELL_FIRE,10]
+               [-ATCK_SPELL_ALL,15]
              ];
    }
 
@@ -72,6 +83,10 @@ messages:
       return 1;
    }
 
+   GetBleedResistance()
+   {
+      return 50;
+   }
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

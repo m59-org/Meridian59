@@ -1,0 +1,181 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+BurningOrb is Monster
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   burning_orb_name_rsc = "burning orb"
+   burning_orb_icon_rsc = fburningorb.bgf
+   burning_orb_desc_rsc = \
+      "A conduit for the power of the crystalline entity, "
+      "the burning orb must be destroyed!"
+
+   burning_orb_dead_icon_rsc = amoebaX.bgf
+   burning_orb_dead_name_rsc = "dead burning orb"
+
+   burning_orb_sound_hit = gst_atkh.wav
+   burning_orb_sound_miss = gst_atkm.wav
+   burning_orb_sound_death = gst_dth.wav
+   burning_orb_sound_aware = gst_awr.wav
+
+classvars:
+
+   vrName = burning_orb_name_rsc
+   vrIcon = burning_orb_icon_rsc
+   
+   vrDead_icon = burning_orb_dead_icon_rsc
+   vrDead_name = burning_orb_dead_name_rsc
+
+   viTreasure_type = TID_CRYSTAL_BEING
+   viSpeed = SPEED_VERY_FAST
+   viLevel = 300
+   viDifficulty = 9
+   viVisionDistance = 60
+   % Attack range of 192, or 3 row/col.
+   viAttackRange = 64
+   viAttack_spell = ATCK_SPELL_ALL
+   viKarma = 0
+   viCashmin = 35000
+   viCashmax = 75000
+   vrSound_hit = burning_orb_sound_hit
+   vrSound_miss = burning_orb_sound_miss
+   vrSound_aware = burning_orb_sound_aware
+   vrSound_death = burning_orb_sound_death
+
+   viDead_drawfx = DRAWFX_TRANSLUCENT_75
+   viDefault_behavior = \
+      AI_FIGHT_AGGRESSIVE | AI_MOVE_WALKTHROUGH_WALLS \
+      | AI_FIGHT_WIZARD_KILLER | AI_MOVE_FLEE_FRIGHTENERS
+
+   % crystal being is absurdly deadly
+   viBonusBaseTP = 100000
+
+   viBaseBleedPercentage = 0
+
+   viBaseSize = 225
+
+properties:
+
+   piAnimation = ANIM_NONE
+   piGroup = 1
+   piDrawEffectFlag = OF_FLICKERING | OF_BOUNCING
+   piDrawfx = DRAWFX_TRANSLUCENT_75
+   piMinDamage = 6
+   piMaxDamage = 15
+   vrDesc = burning_orb_desc_rsc
+
+   piMax_mana = 2000
+   piMeleeSpellChance = 100
+   piRangedSpellChance = 100
+   piMonsterCastDelayMinimum = 500
+   
+messages:
+
+   Constructed()
+   {
+      plResistances = [ [-ATCK_SPELL_FIRE, 90],
+                        [-ATCK_SPELL_COLD, 90],
+                        [-ATCK_SPELL_UNHOLY, 90],
+                        [-ATCK_SPELL_ACID, 90],
+                        [ATCK_WEAP_NONMAGIC, 90],
+                        [ATCK_WEAP_MAGIC, -50],
+                        [-ATCK_SPELL_HOLY, -50]
+                      ];
+                      
+      plMeleeSpellBook =  [ [ SID_MONSTER_EARTHQUAKE, 3, 5, 99 ],
+                            [ SID_SPLASH_OF_ACID, 3, 35, 99 ],
+                            [ SID_EXPLOSIVE_FROST, 3, 100, 99 ]];
+
+      plRangedSpellBook = [ [ SID_FROST_BREATH, 3, 5, 99 ],
+                            [ SID_SLITHERBOLT, 3, 25, 99 ],
+                            [ SID_ICICLE_VOLLEY, 3, 50, 99 ],
+                            [ SID_FIREBALL, 3, 75, 99 ],
+                            [ SID_LIGHTNING_BOLT, 3, 100, 99 ] ];
+      plAllySpellBook = [ [SID_RESIST_FIRE,2,25, 99],
+                          [SID_RESIST_COLD,2,55, 99],
+                          [SID_RESIST_ACID,2,75, 99],
+                          [SID_RESIST_SHOCK,2,100, 99]
+                             ];
+
+      plCreatureTypes = Cons(CREATURE_TYPE_ELEMENTAL,plCreatureTypes);
+      plCreatureTypes = Cons(CREATURE_TYPE_MAGICAL,plCreatureTypes);
+
+      propagate;
+   }
+
+   GetBaseEmpowerments()
+   {
+      return [[-ATCK_SPELL_ALL,300]];
+   }
+
+   MonsterAttack(what = $)
+   {
+      piAnimation = ANIM_ATTACK;
+      Send(poOwner,@SomethingChanged,#what=self);
+      piAnimation = ANIM_NONE;
+
+      return;
+   }
+
+   SendLookAnimation()
+   {
+      AddPacket(1,ANIMATE_CYCLE, 4,35, 2,1, 2,90);
+
+      return;
+   }
+
+   SendMoveAnimation()
+   {
+      AddPacket(1,ANIMATE_CYCLE, 4,25, 2,1, 2,90);
+
+      return;
+   }
+
+   SendAnimation()
+   {
+      if piAnimation = ANIM_ATTACK
+      {
+         AddPacket(1,ANIMATE_ONCE, 4,10, 2,1, 2,90, 2,1);
+
+         return;
+      }
+      
+      if piAnimation = ANIM_NONE
+      {
+         AddPacket(1,ANIMATE_CYCLE, 4,35, 2,1, 2,90);
+         return;
+      }
+
+      propagate;
+   }
+
+   SendLightingInformation()
+   {
+      if piChampionStatus <> 0
+      {
+         propagate;
+      }
+
+      AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC));
+      % 50 out of 255 intensity of light
+      AddPacket(1,255);
+      % Blue
+      AddPacket(2,LIGHT_FIRE);
+
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

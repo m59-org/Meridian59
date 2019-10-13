@@ -1,0 +1,75 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+WhiteHeartStone is HeartStone
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   include hstonwht.lkod
+
+   WhiteHeartStone_name_rsc = "white heartstone shard"
+   WhiteHeartStone_name_plural = "white heartstones shards"
+   WhiteHeartStone_desc_rsc = \
+      "This is a shard of a 'heartstone'.  It is a white gem taken from "
+      "the body of a fallen Si'Xeochicatl.  It wiggles slightly and is cool "
+      "to the touch.  The uses for this gem are not widely known."
+
+classvars:
+
+   vrName = WhiteHeartStone_name_rsc
+   vrDesc = WhiteHeartStone_desc_rsc
+   
+   vrName_plural = WhiteHeartStone_name_plural
+
+   viValue_average = 100
+   viWeight = 20
+   viBulk = 10
+
+   viColor = PT_BLBLK_REDWHT
+
+properties:
+
+messages:
+
+   CreateXeo()
+   {
+      return Create(&XeoHoly,#InAttack=Send(self,@IsInAttack));
+   }
+
+   WeightPrefixes()
+   {
+      return [[&OffenseMod,300],
+              [&HolyEmpowermentMod,200]];
+   }
+   
+   WeightSuffixes()
+   {
+      return [[&HolyResistanceMod,100]
+             ];
+   }
+
+   EmpowerAffixes()
+   {
+      return [[&OffenseMod,50],
+              [&HolyResistanceMod,3]
+             ];
+   }
+   
+   GetForgeType()
+   {
+      return FORGE_HOLY;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

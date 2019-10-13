@@ -1,0 +1,184 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ShardFusingDevice is StorageBox
+
+constants:
+
+   CHEST_ITEMS_MAX = 500
+
+   include blakston.khd
+
+resources:
+
+   ShardFusingDevice_name_rsc = "shard fusing device"
+   ShardFusingDevice_icon_rsc = sfpsmall.bgf
+
+   ShardFusingDevice_desc_rsc = \
+      "This peculiar artifact has the ability fuse shards together. Once employed, "
+      "the magic can only be undone with a shard shattering device."
+      "\n\nPut stacks of shards into this device to transmute them. They will immediately be returned to you transformed."
+      "\n\nMinor Shards will become Augmenting Shards."
+      "\nAugmenting Shards will become Shards of Improvement."
+      "\nShards of Improvement will become Major Shards."
+      "\nMajor Shards will become Shards of Disturbance."
+      "\nShards of Disturbance will become Shards of Disruption."
+      "\nShards of Disruption will become Draining Shards."
+      "\nDraining Shards will become Instilling Shards."
+      "\nInstilling Shards will become Shards of Empowerment."
+      "\n\nBased on the quality of this guild hall's magical field, "
+      "this device fuses %i lower shards into one higher shard."
+
+   fusing_device_glows = \
+      "The shard fusing device glows brightly for a moment as its magics operate."
+
+   no_guild_owner_cannot_fuse = \
+      "The shard fusing device cannot do anything while unpowered. You must purchase "
+      "this guild hall to use its magics."
+
+
+classvars:
+
+   vrName = ShardFusingDevice_name_rsc
+   vrIcon = ShardFusingDevice_icon_rsc
+   vrDesc = ShardFusingDevice_desc_rsc
+
+   viBulk_hold_max = $
+   viWeight_hold_max = $
+
+properties:
+
+   piInputRequired = 8
+
+messages:
+
+   Constructor(iInputRequired=0)
+   {
+      if iInputRequired > 0
+      {
+         piInputRequired = iInputRequired;
+      }
+      propagate;
+   }
+
+   ShowDesc()
+   {
+      AddPacket(4,vrDesc, 4,piInputRequired);
+
+      return;
+   }
+
+   ReqNewHold(what = $, who = $)
+   {
+      if NOT Send(self,@CanDepositItems,#lItems=[what])
+      {
+         return FALSE;
+      }
+      
+      if poOwner = $
+         OR Send(poOwner,@GetGuildOwner) = $
+      {
+         Send(who,@MsgSendUser,#message_rsc=no_guild_owner_cannot_fuse);
+         return FALSE;
+      }
+      
+      Post(self,@FuseInputItems,#what=what,#who=who);
+
+      propagate;
+   }
+
+   CanDepositItems(lItems = $)
+   {
+      local plItemsStored;
+
+      if lItems = $
+      {
+         return FALSE;
+      }
+      
+      if Length(lItems) = 1
+         AND NOT IsClass(First(lItems),&Shard)
+      {
+         return FALSE;
+      }
+
+      if Length(lItems) = 1
+         AND (IsClass(First(lItems),&HeartStone)
+            OR IsClass(First(lItems),&ShardEmpowerment))
+      {
+         return FALSE;
+      }
+
+      plItemsStored = Send(self,@GetHolderPassive);
+      if plItemsStored <> $
+         AND (Length(plItemsStored) + Length(lItems)) > CHEST_ITEMS_MAX
+         AND NOT (Length(lItems) = 1
+            AND IsClass(First(lItems),&NumberItem))
+      {
+         return FALSE;
+      }
+
+      return TRUE;
+   }
+
+   FuseInputItems(what=$,who=$)
+   {
+      local lShardTiers, i, each_obj, iCount;
+      
+      foreach i in Send(poOwner,@GetHolderActive)
+      {
+         each_obj = Send(poOwner,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&Player)
+         {
+            Send(each_obj,@MsgSendUser,#message_rsc=fusing_device_glows);
+         }
+      }
+
+      lShardTiers = [&ShardImbueMinor,
+                     &ShardAugment,
+                     &ShardImprovement,
+                     &ShardImbueMajor,
+                     &ShardReImbueMinor,
+                     &ShardReImbueMajor,
+                     &ShardRemove,
+                     &ShardReroll,
+                     &ShardEmpowerment];
+
+      iCount = 1;
+      while iCount < Length(lShardTiers)
+      {
+         if GetClass(what) = Nth(lShardTiers, iCount)
+         {
+            while Send(what,@GetNumber) > piInputRequired
+            {
+               Send(what,@SubtractNumber,#number=piInputRequired);
+               Send(who,@NewHold,#what=Create(Nth(lShardTiers,iCount+1)));
+            }
+
+            if Send(what,@GetNumber) = piInputRequired
+            {
+               Send(what,@SubtractNumber,#number=piInputRequired);
+               Send(who,@NewHold,#what=Create(Nth(lShardTiers,iCount+1)));
+            }
+            else
+            {
+               Send(who,@NewHold,#what=what);
+            }
+            
+            break;
+         }
+         iCount++;
+      }
+
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

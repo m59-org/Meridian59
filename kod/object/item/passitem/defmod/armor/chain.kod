@@ -21,9 +21,14 @@ resources:
    chainarmor_name_rsc = "chain armor"
    chainarmor_icon_rsc = chainamr.bgf
    chainarmor_desc_rsc = \
-      "Thousands of tiny, steel links make up this chain "
-      "armor.  Although light and reasonably comfortable, it "
-      "provides a fair measure of protection."
+      "Thousands of tiny steel links make up this chain "
+      "armor. The standard defense "
+      "of many of Meridian's soldiers and mercenaries, chain armor "
+      "allows the wearer to ably defend against attacks while also "
+      "providing general protection from both weapons and magic. "
+      "The tight pattern of the links also tends to pressure wounds, "
+      "somewhat reducing the time it takes for the wearer's "
+      "bleeding to stop."
 
    chainarmor_male_icon_rsc = btk.bgf
    chainarmor_female_icon_rsc = btl.bgf
@@ -36,12 +41,12 @@ classvars:
    viHits_init_min = 550
    viHits_init_max = 650
 
-   viSpell_modifier = -15
+   viSpell_modifier = 0
    viValue_average = 1000
    viWeight = 200
    viBulk = 250
 
-   viDefense_base = -50               
+   viDefense_base = 25
    viDamage_base = 2
 
 properties:
@@ -58,9 +63,15 @@ messages:
 
    GetResistanceModifiers()
    {
-      return [ [ATCK_WEAP_THRUST,5],
-               [ATCK_WEAP_PIERCE,10],
-               [ATCK_WEAP_SLASH,10]
+      if Send(SETTINGS_OBJECT,@GetDirectArmorEnabled)
+      {
+         return [ [ATCK_WEAP_THRUST,5],
+                  [ATCK_WEAP_PIERCE,10],
+                  [ATCK_WEAP_SLASH,10]
+                ];
+      }
+      return [ [ATCK_WEAP_ALL,15],
+               [-ATCK_SPELL_ALL,10]
              ];
    }
 
@@ -69,6 +80,10 @@ messages:
       return 2;
    }
 
+   GetBleedResistance()
+   {
+      return 30;
+   }
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

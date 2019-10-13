@@ -55,12 +55,27 @@ classvars:
 
    viRange = 3 * FINENESS
 
+   vbCanApplyPoison = TRUE
+   
+   % Chance to apply knockbacks, stuns, and bleeds
+   viCriticalHitRate = 700
+   vbCanBleed = TRUE
+
 properties:
 
    piAttack_type = ATCK_WEAP_THRUST + ATCK_WEAP_NERUDITE
    piAttack_Spell = 0
 
 messages:
+
+   GetParryAbility(who=$)
+   {
+      if Send(who,@HasMasteredThisSkill,#num=viProficiency_Needed)
+      {
+         return Send(who,@GetSkillAbility,#skill_num=SKID_PARRY) + Send(self,@GetHitBonus)/2;
+      }
+      return Send(who,@GetSkillAbility,#skill_num=SKID_PARRY);
+   }
 
    DoShatter()
    {
@@ -91,6 +106,15 @@ messages:
       propagate;
    }
 
+   CanCleave()
+   {
+      return TRUE;
+   }
+
+   GetCleaveModifier()
+   {
+      return 70;
+   }
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

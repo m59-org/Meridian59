@@ -1,0 +1,746 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+MazeRoomMaintenance is UtilityFunctions
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   maze_maint_interior1 = mazeinterior1.roo
+   maze_maint_interior2 = mazeinterior2.roo
+   maze_maint_interior3 = mazeinterior3.roo
+   maze_maint_interior4 = mazeinterior4.roo
+   maze_maint_interior5 = mazeinterior5.roo
+   maze_maint_interior6 = mazeinterior6.roo
+   maze_maint_interior7 = mazeinterior7.roo
+   maze_maint_interior8 = mazeinterior8.roo
+   maze_maint_interior9 = mazeinterior9.roo
+   maze_maint_interior10 = mazeinterior10.roo
+   maze_maint_interior11 = mazeinterior11.roo
+   maze_maint_interior12 = mazeinterior12.roo
+   maze_maint_interior13 = mazeinterior13.roo
+   maze_maint_interior14 = mazeinterior14.roo
+   maze_maint_interior15 = mazeinterior15.roo
+   maze_maint_interior16 = mazeinterior16.roo
+   maze_maint_interior17 = mazeinterior17.roo
+   maze_maint_interior18 = mazeinterior18.roo
+   maze_maint_interior19 = mazeinterior19.roo
+   maze_maint_interior20 = mazeinterior20.roo
+   maze_maint_interior21 = mazeinterior21.roo
+   maze_maint_interior22 = mazeinterior22.roo
+   maze_maint_interior23 = mazeinterior23.roo
+   maze_maint_interior24 = mazeinterior24.roo
+   maze_maint_interior25 = mazeinterior25.roo
+   maze_maint_interior26 = mazeinterior26.roo
+   maze_maint_interior27 = mazeinterior27.roo
+   maze_maint_interior28 = mazeinterior28.roo
+   maze_maint_interior29 = mazeinterior29.roo
+   maze_maint_interior30 = mazeinterior30.roo
+
+classvars:
+
+properties:
+
+   poFirstRoom = $
+   plMazeRooms = $
+   poTreasureRoom = $
+   poShrineRoom = $
+   poArmorRoom = $
+   poBossRoom = $
+   poReincarnationRoom = $
+   poMazeExitRoom = $
+   
+   plMazeClasses = $
+   plMazeRooFiles = $
+
+   % We only recreate the maze if players have seen it.
+   % Otherwise, no need to change the configuration all the time.
+   pbMazeHasBeenEnteredByPlayers = FALSE
+   
+   ptMazeChangeTimer = $
+
+messages:
+
+   Constructor()
+   {
+      Send(self,@Recreate);
+
+      return;
+   }
+
+   Recreate()
+   {
+      Send(self,@RecreateMap);
+      return;
+   }
+   
+   ClearMap()
+   {
+      local i;
+      
+      if ptMazeChangeTimer <> $
+      {
+         DeleteTimer(ptMazeChangeTimer);
+         ptMazeChangeTimer = $;
+      }
+
+      if poFirstRoom <> $
+      {
+         Send(poFirstRoom,@HustleUsersOutOfRoom);
+         Send(poFirstRoom,@Delete);
+         poFirstRoom = $;
+      }
+      if poBossRoom <> $
+      {
+         Send(poBossRoom,@HustleUsersOutOfRoom);
+         Send(poBossRoom,@Delete);
+         poBossRoom = $;
+      }
+      if poTreasureRoom <> $
+      {
+         Send(poTreasureRoom,@HustleUsersOutOfRoom);
+         Send(poTreasureRoom,@Delete);
+         poTreasureRoom = $;
+      }
+      if poShrineRoom <> $
+      {
+         Send(poShrineRoom,@HustleUsersOutOfRoom);
+         Send(poShrineRoom,@Delete);
+         poShrineRoom = $;
+      }
+      if poArmorRoom <> $
+      {
+         Send(poArmorRoom,@HustleUsersOutOfRoom);
+         Send(poArmorRoom,@Delete);
+         poArmorRoom = $;
+      }
+      if poMazeExitRoom <> $
+      {
+         Send(poMazeExitRoom,@HustleUsersOutOfRoom);
+         Send(poMazeExitRoom,@Delete);
+         poMazeExitRoom = $;
+      }
+      if poReincarnationRoom <> $
+      {
+         Send(poReincarnationRoom,@HustleUsersOutOfRoom);
+         Send(poReincarnationRoom,@Delete);
+         poReincarnationRoom = $;
+      }
+
+      foreach i in plMazeRooms
+      {
+         % Deleted rooms bounce back to RoomDeleted and remove themselves from plMazeRooms
+         Send(i,@HustleUsersOutOfRoom);
+         Send(i,@Delete);
+      }
+      plMazeRooms = $;
+      plMazeRooFiles = $;
+      
+     %plMazeClasses = [&Maze4a,&Maze4b,&Maze4c];
+      plMazeRooFiles = [maze_maint_interior1,
+                        %maze_maint_interior2, % this room is boring
+                        maze_maint_interior3,
+                        maze_maint_interior4,
+                        maze_maint_interior5,
+                        maze_maint_interior6,
+                        maze_maint_interior7,
+                        maze_maint_interior8,
+                        maze_maint_interior9,
+                        maze_maint_interior10,
+                        maze_maint_interior11,
+                        maze_maint_interior12,
+                        maze_maint_interior13,
+                        maze_maint_interior14,
+                        maze_maint_interior15,
+                        maze_maint_interior16,
+                        maze_maint_interior17,
+                        maze_maint_interior18,
+                        maze_maint_interior19,
+                        maze_maint_interior20,
+                        maze_maint_interior21,
+                        maze_maint_interior22,
+                        maze_maint_interior23,
+                        maze_maint_interior24,
+                        maze_maint_interior25,
+                        maze_maint_interior26,
+                        maze_maint_interior27,
+                        maze_maint_interior28,
+                        maze_maint_interior29,
+                        maze_maint_interior30];
+      
+      pbMazeHasBeenEnteredByPlayers = FALSE;
+      return;
+   }
+
+   RecreateMap()
+   {
+      local iTreasureXCoord, iTreasureYCoord, iBossXCoord, iBossYCoord, i, iX, iY, iShrineXCoord, iShrineYCoord, iArmorXCoord, iArmorYCoord;
+      
+      % Make sure the maze is deleted
+      Send(self,@ClearMap);
+      
+      % Create first room.
+      poFirstRoom = Send(self,@GenerateSpecificRoom,#bFirstRoom=TRUE);
+      poMazeExitRoom = Send(self,@GenerateSpecificRoom,#bExitRoom=TRUE);
+      poReincarnationRoom = Send(self,@GenerateSpecificRoom,#bReincarnationRoom=TRUE);
+
+      % Create special rooms at random coordinates.
+      % Each room has its own quadrant to help simplify this process (and ease player frustration)
+      iTreasureXCoord = Random(1,5);
+      iTreasureYCoord = Random(1,5);
+      
+      iBossXCoord = Random(6,10);
+      iBossYCoord = Random(6,10);
+      
+      iShrineXCoord = Random(1,5);
+      iShrineYCoord = Random(6,10);
+      
+      iArmorXCoord = Random(6,10);
+      iArmorYCoord = Random(1,5);
+
+      poTreasureRoom = Send(self,@GenerateSpecificRoom,#bTreasureRoom=TRUE,#x_coord=iTreasureXCoord,#y_coord=iTreasureYCoord);
+      poBossRoom = Send(self,@GenerateSpecificRoom,#bBossRoom=TRUE,#x_coord=iBossXCoord,#y_coord=iBossYCoord);
+      poShrineRoom = Send(self,@GenerateSpecificRoom,#bShrineRoom=TRUE,#x_coord=iShrineXCoord,#y_coord=iShrineYCoord);
+      poArmorRoom = Send(self,@GenerateSpecificRoom,#bArmorRoom=TRUE,#x_coord=iArmorXCoord,#y_coord=iArmorYCoord);
+      
+      % The rest of the rooms we'll only fill in as players enter the maze.
+      
+      return;
+   }
+   
+   PingMaze(x_coord=-1, y_coord=-1)
+   {
+      local i, lCheckTheseCoords;
+
+      pbMazeHasBeenEnteredByPlayers = TRUE;
+      
+      if ptMazeChangeTimer = $
+      {
+         ptMazeChangeTimer = CreateTimer(self,@CheckForMazeChange,Random(600000,1200000));
+      }
+
+      lCheckTheseCoords = $;
+      if x_coord = 5
+         AND y_coord = 0
+      {
+         % This is the first room. Ping only x = 5, y = 1
+         lCheckTheseCoords = [[5,1]];
+      }
+      else
+      {
+         lCheckTheseCoords = Cons([x_coord+1, y_coord],lCheckTheseCoords);
+         lCheckTheseCoords = Cons([x_coord-1, y_coord],lCheckTheseCoords);
+         lCheckTheseCoords = Cons([x_coord, y_coord+1],lCheckTheseCoords);
+         lCheckTheseCoords = Cons([x_coord, y_coord-1],lCheckTheseCoords);
+      }
+      
+      foreach i in lCheckTheseCoords
+      {
+         % Don't create rooms outside the bounds of the maze
+         if Nth(i,1) > 10
+            OR Nth(i,1) < 1
+            OR Nth(i,2) > 10
+            OR Nth(i,2) < 1
+         {
+            continue;
+         }
+
+         if Send(self,@GetRoomAtCoords,#x_coord=Nth(i,1),#y_coord=Nth(i,2)) = $
+         {
+            % This room doesn't exist! Let's make it.
+            Send(self,@GenerateSpecificRoom,#x_coord=Nth(i,1),#y_coord=Nth(i,2));
+         }
+      }
+
+      return;
+   }
+
+   FindNextOpenCoordinate()
+   {
+      local iX, iY, i, bOpen;
+      
+      iX = 2;
+      iY = 2;
+      while iX < 10
+      {
+         while iY < 10
+         {
+            bOpen = TRUE;
+            if poTreasureRoom <> $
+            {
+               if Send(poTreasureRoom,@GetXCoord) = iX
+                  AND Send(poTreasureRoom,@GetYCoord) = iY
+               {
+                  bOpen = FALSE;
+               }
+            }
+            if poBossRoom <> $
+            {
+               if Send(poBossRoom,@GetXCoord) = iX
+                  AND Send(poBossRoom,@GetYCoord) = iY
+               {
+                  bOpen = FALSE;
+               }
+            }
+            foreach i in plMazeRooms
+            {
+               if Send(i,@GetXCoord) = iX
+                  AND Send(i,@GetYCoord) = iY
+               {
+                  bOpen = FALSE;
+               }
+            }
+            if bOpen = TRUE
+            {
+               return [iX, iY];
+            }
+            iY++;
+         }
+         iX++;
+      }
+      return $;
+   }
+
+   RoomDeleted(what=$)
+   {
+      if what <> $
+      {
+         if what = poFirstRoom
+         {
+            poFirstRoom = $;
+         }
+         if what = poBossRoom
+         {
+            poBossRoom = $;
+         }
+         if what = poTreasureRoom
+         {
+            poTreasureRoom = $;
+         }
+         if what = poShrineRoom
+         {
+            poShrineRoom = $;
+         }
+         if what = poArmorRoom
+         {
+            poArmorRoom = $;
+         }
+         if what = poMazeExitRoom
+         {
+            poMazeExitRoom = $;
+         }
+         if what = poReincarnationRoom
+         {
+            poReincarnationRoom = $;
+         }
+         
+         if FindListElem(plMazeRooms,what)
+         {
+            plMazeRooms = DelListElem(plMazeRooms,what);
+         }
+      }
+      return;
+   }
+   
+   GetRoomAtCoords(x_coord=-1,y_coord=-1)
+   {
+      local i;
+      
+      if Send(poFirstRoom,@GetXCoord) = x_coord
+         AND Send(poFirstRoom,@GetYCoord) = y_coord
+      {
+         return poFirstRoom;
+      }
+      
+      if Send(poTreasureRoom,@GetXCoord) = x_coord
+         AND Send(poTreasureRoom,@GetYCoord) = y_coord
+      {
+         return poTreasureRoom;
+      }
+      
+      if Send(poBossRoom,@GetXCoord) = x_coord
+         AND Send(poBossRoom,@GetYCoord) = y_coord
+      {
+         return poBossRoom;
+      }
+      
+      if Send(poShrineRoom,@GetXCoord) = x_coord
+         AND Send(poShrineRoom,@GetYCoord) = y_coord
+      {
+         return poShrineRoom;
+      }
+      
+      if Send(poArmorRoom,@GetXCoord) = x_coord
+         AND Send(poArmorRoom,@GetYCoord) = y_coord
+      {
+         return poArmorRoom;
+      }
+      
+      if Send(poMazeExitRoom,@GetXCoord) = x_coord
+         AND Send(poMazeExitRoom,@GetYCoord) = y_coord
+      {
+         return poMazeExitRoom;
+      }
+      
+      if Send(poReincarnationRoom,@GetXCoord) = x_coord
+         AND Send(poReincarnationRoom,@GetYCoord) = y_coord
+      {
+         return poReincarnationRoom;
+      }
+      
+      foreach i in plMazeRooms
+      {
+         if Send(i,@GetXCoord) = x_coord
+            AND Send(i,@GetYCoord) = y_coord
+         {
+            return i;
+         }      
+      }
+
+      return $;
+   }
+
+   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+   %%%%%%%%%%%%%%%%%%% Maze Room Handling 
+   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+   NewDay()
+   {
+      local i;
+      
+      foreach i in plMazeRooms
+      {
+         Send(i,@NewDay);
+      }
+
+      return;
+   }
+
+   NewGameHour()
+   {
+      local i;
+      
+      foreach i in plMazeRooms
+      {
+         Send(i,@NewGameHour);
+      }
+
+      return;
+   }
+
+   GenerateSpecificRoom(x_coord=-1, y_coord=-1, bFirstRoom=FALSE, bTreasureRoom=FALSE, bBossRoom=FALSE, bShrineRoom=FALSE, bArmorRoom=FALSE, bExitRoom=FALSE, bReincarnationRoom=FALSE)
+   {
+      local iGeneratedNum, bInterior, oRoom;
+
+      % We use this function to create rooms where we want them.
+
+      if Send(self,@CheckForExistingRoom,#x_coord=x_coord,#y_coord=y_coord) <> $
+      {
+         return $;
+      }
+
+      if bFirstRoom
+      {
+         if poFirstRoom = $
+         {
+            Send(SYS,@CreateOneRoomIfNew,#num=RID_MAZE_ENTRANCE,#class=&MazeEntranceRoom);
+            poFirstRoom = Send(SYS,@FindRoomByNum,#num=RID_MAZE_ENTRANCE);
+            Send(Send(SYS,@GetStatistics),@AddToRoomCount,#iNum=RID_MAZE_ENTRANCE);
+            Send(poFirstRoom,@SetXCoord,#coord_value=5);
+            Send(poFirstRoom,@SetYCoord,#coord_value=0);
+            return poFirstRoom;
+         }
+      }
+      
+      if bExitRoom
+      {
+         if poMazeExitRoom = $
+         {
+            Send(SYS,@CreateOneRoomIfNew,#num=RID_MAZE_EXIT_ROOM,#class=&MazeExitRoom);
+            poMazeExitRoom = Send(SYS,@FindRoomByNum,#num=RID_MAZE_EXIT_ROOM);
+            Send(Send(SYS,@GetStatistics),@AddToRoomCount,#iNum=RID_MAZE_EXIT_ROOM);
+            Send(poMazeExitRoom,@SetXCoord,#coord_value=7);
+            Send(poMazeExitRoom,@SetYCoord,#coord_value=11);
+            return poMazeExitRoom;
+         }
+      }
+      
+      if bReincarnationRoom
+      {
+         if poReincarnationRoom = $
+         {
+            Send(SYS,@CreateOneRoomIfNew,#num=RID_MAZE_REINCARNATION_ROOM,#class=&MazeReincarnationRoom);
+            poReincarnationRoom = Send(SYS,@FindRoomByNum,#num=RID_MAZE_REINCARNATION_ROOM);
+            Send(Send(SYS,@GetStatistics),@AddToRoomCount,#iNum=RID_MAZE_REINCARNATION_ROOM);
+            Send(poReincarnationRoom,@SetXCoord,#coord_value=0);
+            Send(poReincarnationRoom,@SetYCoord,#coord_value=10);
+            return poReincarnationRoom;
+         }
+      }
+      
+      if bTreasureRoom
+      {
+         if poTreasureRoom = $
+         {
+            Send(SYS,@CreateOneRoomIfNew,#num=RID_MAZE_TREASURE_ROOM_SPEAR,#class=&MazeTreasureRoomSpear);
+            poTreasureRoom = Send(SYS,@FindRoomByNum,#num=RID_MAZE_TREASURE_ROOM_SPEAR);
+            Send(Send(SYS,@GetStatistics),@AddToRoomCount,#iNum=RID_MAZE_TREASURE_ROOM_SPEAR);
+            Send(poTreasureRoom,@SetXCoord,#coord_value=x_coord);
+            Send(poTreasureRoom,@SetYCoord,#coord_value=y_coord);
+            return poTreasureRoom;
+         }
+      }
+      
+      if bBossRoom
+      {
+         if poBossRoom = $
+         {
+            Send(SYS,@CreateOneRoomIfNew,#num=RID_MAZE_BOSS_ROOM,#class=&MazeBossRoom);
+            poBossRoom = Send(SYS,@FindRoomByNum,#num=RID_MAZE_BOSS_ROOM);
+            Send(Send(SYS,@GetStatistics),@AddToRoomCount,#iNum=RID_MAZE_BOSS_ROOM);
+            Send(poBossRoom,@SetXCoord,#coord_value=x_coord);
+            Send(poBossRoom,@SetYCoord,#coord_value=y_coord);
+            return poBossRoom;
+         }
+      }
+      
+      if bShrineRoom
+      {
+         if poShrineRoom = $
+         {
+            Send(SYS,@CreateOneRoomIfNew,#num=RID_MAZE_LAVA_FROG_ROOM,#class=&MazeLavaFrogRoom);
+            poShrineRoom = Send(SYS,@FindRoomByNum,#num=RID_MAZE_LAVA_FROG_ROOM);
+            Send(Send(SYS,@GetStatistics),@AddToRoomCount,#iNum=RID_MAZE_LAVA_FROG_ROOM);
+            Send(poShrineRoom,@SetXCoord,#coord_value=x_coord);
+            Send(poShrineRoom,@SetYCoord,#coord_value=y_coord);
+            return poShrineRoom;
+         }
+      }
+      
+      if bArmorRoom
+      {
+         if poArmorRoom = $
+         {
+            Send(SYS,@CreateOneRoomIfNew,#num=RID_MAZE_ARMOR_ROOM,#class=&MazeArmorRoom);
+            poArmorRoom = Send(SYS,@FindRoomByNum,#num=RID_MAZE_ARMOR_ROOM);
+            Send(Send(SYS,@GetStatistics),@AddToRoomCount,#iNum=RID_MAZE_ARMOR_ROOM);
+            Send(poArmorRoom,@SetXCoord,#coord_value=x_coord);
+            Send(poArmorRoom,@SetYCoord,#coord_value=y_coord);
+            return poArmorRoom;
+         }
+      }
+      
+      % Ok, we're not making a specific room. Let's randomize!
+      
+      iGeneratedNum = Send(self,@GetNextAvailableRID);
+      Send(SYS,@CreateOneRoomIfNew,#num=iGeneratedNum,#class=&MazeInteriorRoom,#base_room=Nth(plMazeRooFiles,Random(1,Length(plMazeRooFiles))));
+      Send(Send(SYS,@GetStatistics),@AddToRoomCount,#iNum=iGeneratedNum);
+      oRoom = Send(SYS,@FindRoomByNum,#num=iGeneratedNum);
+      Send(oRoom,@SetXCoord,#coord_value=x_coord);
+      Send(oRoom,@SetYCoord,#coord_value=y_coord);
+      
+      plMazeRooms = Cons(oRoom,plMazeRooms);
+
+      return $;
+   }
+
+   CheckForExistingRoom(x_coord=0,y_coord=0)
+   {
+      local i;
+      
+      foreach i in plMazeRooms
+      {
+         if Send(i,@GetXCoord) = x_coord
+            AND Send(i,@GetYCoord) = y_coord
+         {
+            return i;
+         }
+      }
+
+      return $;
+   }
+
+   ReverseDirection(direction=0)
+   {
+      switch(direction)
+      {
+         case MAZE_DIRECTION_NORTH:
+            return MAZE_DIRECTION_SOUTH;
+         case MAZE_DIRECTION_EAST:
+            return MAZE_DIRECTION_WEST;
+         case MAZE_DIRECTION_SOUTH:
+            return MAZE_DIRECTION_NORTH;
+         case MAZE_DIRECTION_WEST:
+            return MAZE_DIRECTION_EAST;
+      }
+      Debug("ReverseDirection returned 0!");
+      return 0;
+   }
+
+   GetNextAvailableRID()
+   {
+      local iRID, i, bExists;
+
+      iRID = RID_MAZE_ROOM_START;
+
+      if plMazeRooms = $
+      {
+         return iRID;
+      }
+
+      while iRID <= RID_MAZE_ROOM_END
+      {
+         bExists = FALSE;
+         foreach i in plMazeRooms
+         {
+            if Send(i,@GetRoomNum) = iRID
+            {
+               bExists = TRUE;
+            }
+         }
+
+         if NOT bExists
+         {
+            return iRID;
+         }
+
+         iRID = iRID + 1;
+      }
+
+      return 0;
+   }
+
+   GetExit()
+   {
+      return poMazeExitRoom;
+   }
+   
+   CheckForMazeChange(timer=$)
+   {
+      local i, bPlayerFound;
+
+      ptMazeChangeTimer = $;
+
+      bPlayerFound = FALSE;
+      foreach i in plMazeRooms
+      {
+         if Send(i,@IsUserInRoom)
+         {
+            bPlayerFound = TRUE;
+         }
+      }
+
+      if poFirstRoom <> $
+      {
+         if Send(poFirstRoom,@IsUserInRoom)
+         {
+            bPlayerFound = TRUE;
+         }
+      }
+      if poBossRoom <> $
+      {
+         if Send(poBossRoom,@IsUserInRoom)
+         {
+            bPlayerFound = TRUE;
+         }
+      }
+      if poTreasureRoom <> $
+      {
+         if Send(poTreasureRoom,@IsUserInRoom)
+         {
+            bPlayerFound = TRUE;
+         }
+      }
+      if poShrineRoom <> $
+      {
+         if Send(poShrineRoom,@IsUserInRoom)
+         {
+            bPlayerFound = TRUE;
+         }
+      }
+      if poArmorRoom <> $
+      {
+         if Send(poArmorRoom,@IsUserInRoom)
+         {
+            bPlayerFound = TRUE;
+         }
+      }
+      if poMazeExitRoom <> $
+      {
+         if Send(poMazeExitRoom,@IsUserInRoom)
+         {
+            bPlayerFound = TRUE;
+         }
+      }
+      if poReincarnationRoom <> $
+      {
+         if Send(poReincarnationRoom,@IsUserInRoom)
+         {
+            bPlayerFound = TRUE;
+         }
+      }
+
+      if bPlayerFound
+      {
+         ptMazeChangeTimer = CreateTimer(self,@CheckForMazeChange,Random(600000,1200000));
+         return;
+      }
+
+      Post(self,@Recreate);
+
+      return;
+   }
+
+   GetYellZone()
+   {
+      local lYell_Zone, i;
+
+      lYell_Zone = $;
+      lYell_Zone = Cons(Send(poFirstRoom,@GetRoomNum), lYell_Zone);
+      lYell_Zone = Cons(Send(poTreasureRoom,@GetRoomNum), lYell_Zone);
+      lYell_Zone = Cons(Send(poShrineRoom,@GetRoomNum), lYell_Zone);
+      lYell_Zone = Cons(Send(poArmorRoom,@GetRoomNum), lYell_Zone);
+      lYell_Zone = Cons(Send(poBossRoom,@GetRoomNum), lYell_Zone);
+      lYell_Zone = Cons(Send(poReincarnationRoom,@GetRoomNum), lYell_Zone);
+      lYell_Zone = Cons(Send(poMazeExitRoom,@GetRoomNum), lYell_Zone);
+
+      foreach i in plMazeRooms
+      {
+         lYell_Zone = Cons(Send(i,@GetRoomNum), lYell_Zone);
+      }
+
+      return lYell_Zone;
+   }
+
+   GetTreasureRoom()
+   {
+      return poTreasureRoom;
+   }
+   
+   GetShrineRoom()
+   {
+      return poShrineRoom;
+   }
+   
+   GetArmorRoom()
+   {
+      return poArmorRoom;
+   }
+   
+   GetBossRoom()
+   {
+      return poBossRoom;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

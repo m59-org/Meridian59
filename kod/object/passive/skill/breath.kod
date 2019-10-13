@@ -1,0 +1,104 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Breath is Skill
+
+% Breath skills are semi-permanent changeable techniques.
+% They require the player to rest, then finding a breathing rhythm takes four seconds.
+% Only one breath technique can be maintained at a time.
+%
+%
+
+constants:
+
+   include blakston.khd
+   include protocol.khd   
+
+resources:
+
+   Breath_name_rsc = "breath"
+   Breath_icon_rsc = isecwind.bgf
+   Breath_desc_rsc = "This is a breath technique employed by monks."
+
+   Breath_skill_intro = "Shadowcraft Lv. 1: A breathing technique alters fundamental rhythms."
+   
+   begin_breath_default_rsc = "You assume a default breath... cheater."
+   end_breath_default_rsc = "You fall out of a default breath."
+   default_breath_rsc = "I am a cheater."
+   breath_start_resting_default_rsc = "You start resting with a breath."
+   breath_end_resting_default_rsc = "You stop resting with a breath."
+
+classvars:
+
+   viSchool = SKS_SHADOWCRAFT
+
+   vrName = Breath_name_rsc
+   vrIcon = Breath_icon_rsc
+   vrDesc = Breath_desc_rsc
+   
+   breath_achieved_msg = begin_breath_default_rsc
+   breath_end_msg = end_breath_default_rsc
+   breath_start_resting = breath_start_resting_default_rsc
+   breath_end_resting = breath_end_resting_default_rsc
+   
+   vsBreathMantra = default_breath_rsc
+
+   vrSkill_intro = Breath_skill_intro
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+
+   viSkillExertion = 0
+   vbCheck_exertion = FALSE
+
+   vbAutomatic = TRUE
+   viShow_enchantment_icon = 0x02
+   viChance_to_Increase = 20
+
+properties:
+
+messages:
+
+   OfferToNewCharacters()
+   {
+      return FALSE;
+   }
+
+   GetRequisiteStat(who=$)
+   {
+      return Send(who,@GetStamina);
+   }
+
+   StartedResting(who=$)
+   {
+      %Send(who,@MsgSendUser,#message_rsc=breath_start_resting);
+      return;
+   }
+
+   StoppedResting(who=$)
+   {
+      %Send(who,@MsgSendUser,#message_rsc=breath_end_resting);
+      return;
+   }
+
+   SendTimeDesc(who=$)
+   {
+      if who <> $
+         AND Send(who,@HasMasteredThisSkill,#num=viSkill_num)
+      {
+         AddPacket(4,vrMasteredDesc);
+         return;
+      }
+      AddPacket(4,skill_nothing);
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

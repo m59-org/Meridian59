@@ -104,6 +104,8 @@ classvars:
    viDefense_base = 20
    viDamage_base = 2
 
+   viBaseItemLevel = 150
+
 properties:
 
    vrDesc = guildshield_desc_rsc
@@ -138,6 +140,13 @@ messages:
       Send(self,@ChangeGuildShieldColor,#color1=color1,#color2=color2,
             #shape=shape,#override=TRUE);
 
+      propagate;
+   }
+
+   Constructed()
+   {
+      % Herald shields are never dropped by monsters. Let's set them to a decent ilvl.
+      piItemLevel = viBaseItemLevel;
       propagate;
    }
 
@@ -642,7 +651,13 @@ messages:
 
    GetResistanceModifiers()
    {
-      return [ [ATCK_WEAP_PIERCE,10] ];
+      if Send(SETTINGS_OBJECT,@GetDirectArmorEnabled)
+      {
+         return [ [ATCK_WEAP_PIERCE,10] ];
+      }
+      
+      return [ [ATCK_WEAP_ALL,5]
+             ];
    }
 
    GetBaseSpellModifier(oSpell=$)
@@ -676,6 +691,11 @@ messages:
       }
 
       return 0;
+   }
+
+   GetKnockbackResistance()
+   {
+      return 20;
    }
 
 end

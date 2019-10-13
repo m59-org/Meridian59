@@ -1,0 +1,131 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ShieldBash is BoltSpell
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   ShieldBash_name_rsc = "shield bash"
+
+   ShieldBash_icon_rsc = iblock.bgf
+
+   ShieldBash_desc_rsc = \
+      "Strike an enemy in front of you with your shield and stun them. "
+      "A heavy shield is required, and the stun power is based on your skill "
+      "at shield bashing and your size versus the size of your enemy."
+
+   ShieldBash_sound = SwrdMtl2.wav
+
+   ShieldBash_projectile_icon_rsc = blank.bgf
+   
+   requires_shield_to_bash_msg = \
+      "You can't shield bash without a heavy shield!"
+
+classvars:
+
+   vrName = ShieldBash_name_rsc
+   vrIcon = ShieldBash_icon_rsc
+   vrDesc = ShieldBash_desc_rsc
+   
+   viSpell_num = SKID_SHIELD_BASH
+
+   viAttack_type = ATCK_WEAP_ALL+ATCK_WEAP_BLUDGEON
+   viAttack_spell = 0
+
+   viSchool = SKS_KNIGHTCRAFT
+   viSpell_level = 4
+   viMana = 0
+   viSpellExertion = 5
+
+   vrSucceed_wav = ShieldBash_sound
+
+   % In seconds, since it works off GetTime().
+   viPostCast_time = 2
+
+   viChance_To_Increase = 15
+
+   vrProjectile_Icon = ShieldBash_projectile_icon_rsc
+
+   % Short range blast
+   vbIsRangedAttack = FALSE
+
+   % Projectile lighting information.
+   viProjectileLightFlags = LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC
+   % Medium light range, out of 255.
+   viProjectileLightIntensity = 0
+   % Default color is lightning.
+   viProjectileLightColor = LIGHT_WHITE
+   
+   viPrimaryStat = STAT_ID_MIGHT
+   viSecondaryStat = 0
+   
+   viProjectileSpeed = 10
+
+properties:
+
+   piDamageMin = 1
+   piDamageMax = 5
+   piRange = 2 * FINENESS
+
+   % Maximum amount of bonus damage mana focus gives us for casting this spell.
+   piManaFocusBonus = 0
+
+messages:
+
+   CanPayCosts(who=$,lTargets=$,bItemCast=FALSE)
+   {
+      if who <> $
+         AND IsClass(who,&Player)
+         AND NOT Send(who,@IsUsingA,#class=&Knightshield)
+         AND NOT Send(who,@IsUsingA,#class=&GuildShield)
+         AND NOT Send(who,@IsUsingA,#class=&MithrilShield)
+      {
+         Send(who,@MsgSendUser,#message_rsc=requires_shield_to_bash_msg);
+         return FALSE;
+      }
+
+      propagate;
+   }
+
+   ResetReagents()
+   {
+      plReagents = $;
+ 
+      return;
+   }
+
+   SendLookAnimation()
+   {
+      AddPacket(1,ANIMATE_NONE, 2,2);
+
+      return;
+   }
+
+   SendProjectileAnimation()
+   {
+      % 40ms between animations, between frames 1-2
+      AddPacket(1,ANIMATE_CYCLE, 4,40, 2,1, 2,2);   
+
+      return;
+   }
+
+   % The chance to do something in addition to normal damage.
+   DoSideEffect(who=$,victim=$,damage=0,iSpellPower=0)
+   {
+      Send(victim,@ApplyStun,#what=who,#stun_power=(Send(who,@GetStunPower)*(iSpellPower+1)*2)/100);
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

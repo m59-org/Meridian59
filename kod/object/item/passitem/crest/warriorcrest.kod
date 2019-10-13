@@ -1,0 +1,111 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+WarriorCrest is Crest
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   Warrior_Crest_name_rsc = "Crest of the Warrior"
+   Warrior_Crest_icon_rsc = krcharm.bgf
+   Warrior_Crest_desc_rsc = \
+      "You are the greatest warrior in the land. "
+      "This crest signifies that none stand above you in the martial arts. "
+      "While wearing it, your attacks will be greatly enhanced."
+
+   Warrior_Crest_equipped = \
+      "The Crest of the Warrior energizes your limbs."
+   Warrior_Crest_unequipped = \
+      "The power of the Crest of the Warrior leaves you."
+
+classvars:
+
+   vrName = Warrior_Crest_name_rsc
+   vrIcon = Warrior_Crest_icon_rsc
+   vrDesc = Warrior_Crest_desc_rsc
+
+   viValue_average = 10
+
+   viBulk = 25
+   viWeight = 25
+
+   viGround_group = 2
+   
+   viDamageBonus = 5
+
+properties:
+   
+   pbIn_use = False
+
+   piItemLevel = 300
+
+messages:
+
+   NewUsed(what = $)
+   {
+      if IsClass(what,&User)
+      {
+         Send(what,@MsgSendUser,#message_rsc=Warrior_Crest_equipped);
+      }
+      
+      propagate;
+   }
+
+   NewUnused(what = $)
+   {
+      if IsClass(what,&User)
+      {
+         Send(what,@MsgSendUser,#message_rsc=Warrior_Crest_unequipped);
+      }
+
+      propagate;
+   }
+
+   ModifyDamage(who = $,what = $,damage = $)
+   {
+      local oWeapon, i, oWeaponDamageMod;
+
+      foreach i in plEnchantmentMods
+      {
+         if Nth(i,1) = &WeaponDamageMod
+         {
+            oWeaponDamageMod = Send(SYS,@GetMagicMod,#class=&WeaponDamageMod);
+            damage = Send(oWeaponDamageMod,@ModifyDamage,#who=who,#what=what,
+                        #damage=damage,#iState=Nth(i,2));
+         }
+      }
+
+      return damage + viDamageBonus;
+   }
+
+   GetMeleeDamageBonus()
+   {
+      local i, sum;
+      sum = 0;
+
+      foreach i in plEnchantmentMods
+      {
+         if Nth(i,1) = &WeaponDamageMod
+         {
+            sum = sum + Nth(i,2);
+         }
+      }
+
+      return sum + viDamageBonus;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+

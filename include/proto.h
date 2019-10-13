@@ -382,6 +382,7 @@ enum {
 #define OF_FLICKERING    0x00020000    // For players or objects if holding a flickering light.
 #define OF_FLASHING      0x00040000    // For players or objects if flashing with light.
 #define OF_PHASING       0x00080000    // For players or objects if phasing translucent/solid.
+#define OF_GROUNDED      0x00100000    // For players or objects forced to draw on the ground
 
 #define GetItemFlags(flags)   ((flags))
 

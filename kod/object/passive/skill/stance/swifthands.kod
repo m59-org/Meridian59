@@ -19,9 +19,9 @@ resources:
 
    SwiftHands_name_rsc = "swift hands"
    SwiftHands_icon_rsc = brawlico.bgf
-   SwiftHands_desc_rsc = "An intermediate stance that emphasizes offensive capability at the cost of defensive reaction speed."
+   SwiftHands_desc_rsc = "An intermediate stance that emphasizes offensive capability."
 
-   SwiftHands_skill_intro = "Banditry Lv. 2: A stance that improves one's offense at the cost of defense."
+   SwiftHands_skill_intro = "Banditry Lv. 2: A stance that improves one's offense."
    
    SwiftHands_begin = "You shift forward slightly, readying your limbs for offense."
    SwiftHands_end = "You return your limbs to their normal position."
@@ -47,12 +47,15 @@ classvars:
    viSchool = SKS_BANDITRY
    viSkill_Level = 2
    viChance_to_Increase = 5
-   viMeditate_ratio = 100
+   viMeditate_ratio = 50
 
    viSkillExertion = 0
    vbCheck_exertion = FALSE
 
    vbAutomatic = TRUE
+   
+   viPrimaryStat = STAT_ID_AIM
+   viSecondaryStat = 0
 
 properties:
 
@@ -70,9 +73,9 @@ messages:
       iSwiftHandsAbility = Send(who,@GetSkillAbility,#skill_num=viSkill_num);
       iStat = Send(self,@GetRequisiteStat,#who=who);
 
-      % Up to 25% from skill, 10% from stat
+      % Up to 25% from skill, 20% from stat
       iHitRollBonus = 100 + ((iSwiftHandsAbility+1) / 4) + (iStat/5);
-      iHitRollBonus = Bound(iHitRollBonus,100,135);
+      iHitRollBonus = Bound(iHitRollBonus,100,145);
 
       if what <> $
          AND IsClass(what,&Battler)
@@ -86,6 +89,9 @@ messages:
    LastPriorityModifyDefensePower(who=$,what=$,defense_power=0)
    {
       local iSwiftHandsAbility, iDefensePenalty;
+
+      % Trying out zero penalties
+      return defense_power;
 
       iSwiftHandsAbility = Send(who,@GetSkillAbility,#skill_num=viSkill_num);
 

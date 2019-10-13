@@ -1,0 +1,147 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+SingularFocus is PersonalEnchantment
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   singularfocus_on_rsc = \
+      "Even as you feel clumsier and weaker, the world sharpens around you. "
+      "The moving parts of the physical world animate themselves in your mind."
+   singularfocus_off_rsc  = \
+      "Even as aptitude returns to your limbs, the world feels more complex."
+   singularfocus_already_enchanted_rsc = \
+      "You already have singular focus."
+   singularfocus_success_rsc = \
+      "%s%s seems smarter yet clumsier."
+   singularfocus_enchantment_rsc = \
+      "\n\nYour %s expands your mind by %i Intellect at a cost to your body of %i Might, Agility, and Aim."
+   singularfocus_name_rsc = "singular focus"
+   singularfocus_icon_rsc = icounter.bgf
+   singularfocus_desc_rsc = \
+      "The most devout disciples of the Trickster God can see realms of knowledge "
+      "beyond mortal ken. This increased intellect comes at a heavy cost to the body, "
+      "but one which master illusionists are often willing to pay. "
+      "Requires two rainbow fern, two vials of solagh, and two bags of firesand."
+
+   singularfocus_spell_intro = \
+      "Riija Lv. 6: The most devout disciples of the Trickster God "
+      "can see realms of knowledge beyond mortal ken. This increased intellect "
+      "comes at a cost to the body."
+
+classvars:
+
+   viPersonal_ench = True
+   vrName = singularfocus_name_rsc
+   vrIcon = singularfocus_icon_rsc
+   vrDesc = singularfocus_desc_rsc
+
+   vrAlreadyEnchanted = singularfocus_already_enchanted_rsc
+   vrEnchantment_On = singularfocus_On_rsc
+   vrEnchantment_Off = singularfocus_Off_rsc
+   vrSuccess = singularfocus_Success_rsc
+
+   vrSpell_intro = singularfocus_spell_intro
+   viSpell_num = SID_SINGULAR_FOCUS
+   viSchool = SS_RIIJA
+   viSpell_level = 6
+   viMana = 60
+
+   viChance_To_Increase = 10
+   viMeditate_ratio = 140
+   viFlash = FLASH_GOOD_SELF
+   vbCanCastonOthers = FALSE
+
+   viOffensive = TRUE
+
+   viPercentManaReserved = 25
+   
+   viPrimaryStat = STAT_ID_INTELLECT
+   viSecondaryStat = 0
+
+properties:
+
+   viPurgeFactor = 2
+   piStatChangeDivisor = 5
+
+messages:
+
+   ResetReagents()
+   {
+      plReagents = $;
+      plReagents = Cons([&RainbowFern,2],plReagents);
+      plReagents = Cons([&FireSand,2],plReagents);
+      plReagents = Cons([&Solagh,2],plReagents);
+
+      return;
+   }
+
+
+   GetStateValue(who=$,iSpellPower=0,Target=$)
+   {
+      local iIntellectChange, iDivisor;
+      
+      iDivisor = piStatChangeDivisor;
+      if iDivisor <= 0
+      {
+         iDivisor = 1;
+      }
+      iIntellectChange = (iSpellPower/iDivisor)+1;
+
+      Send(Target,@AddIntellect,#points=iIntellectChange);
+      Send(Target,@AddMight,#points=-iIntellectChange);
+      Send(Target,@AddAgility,#points=-iIntellectChange);
+      Send(Target,@AddAim,#points=-iIntellectChange);
+
+      return iIntellectChange;
+   }
+
+   GetDuration(iSpellPower=0)
+   {
+      local iDuration;
+      iDuration = 300 + (iSpellpower * 6);
+      iDuration = iDuration * 1000 * 10;
+
+      return iDuration;
+   }
+
+   EndEnchantment(who=$,state=0,report=TRUE)
+   {
+      % Handle transition from 3-element enchantment list elements to
+      % 4-element ones.
+      if state = 0
+         OR state = $
+      {
+         state = Send(who,@GetRawState,#what=self);
+      }
+
+      Send(who,@AddIntellect,#points=-state);
+      Send(who,@AddMight,#points=state);
+      Send(who,@AddAgility,#points=state);
+      Send(who,@AddAim,#points=state);
+
+      propagate;
+   }
+
+   EffectDesc(who=$)
+   {
+      AddPacket(4,singularfocus_enchantment_rsc, 4,Send(self,@GetName),
+                4,Send(who,@GetEnchantedState,#what=self),
+                4,Send(who,@GetEnchantedState,#what=self));
+
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

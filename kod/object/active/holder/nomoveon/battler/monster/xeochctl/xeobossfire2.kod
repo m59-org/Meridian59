@@ -1,0 +1,129 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+XeoBossFire2 is Xeochicatl
+
+constants:
+
+   include blakston.khd
+
+   ANIM_CAST = 2     %% Cast spell animation.
+
+resources:
+
+   XeoBossFire2_name_rsc = "vix'ro'xeochicatl"
+   XeoBossFire2_koc_name_rsc = "vix'ro'xeo'chicatl"
+   XeoBossFire2_icon_rsc = Xeo.bgf
+   XeoBossFire2_desc_rsc = \
+      "Before you is a vix'ro'xeochicatl, a being from near the heart of the "
+      "elemental plane of fire. This is no minor xeochicatl; the vix are "
+      "far too strong to grace the mortal plane without visiting tremendous "
+      "destruction. This beast is an elemental incarnation of fire itself."
+
+   XeoBossFire2_sound_aware = xeo3awr.wav
+
+classvars:
+
+   vrIcon = bigger_Xeochicatl_icon_rsc
+   vrDead_icon = bigger_Xeochicatl_dead_icon_rsc
+
+   vrName = XeoBossFire2_name_rsc
+   vrDesc = XeoBossFire2_desc_rsc
+   vrKocName = XeoBossFire2_koc_name_rsc
+
+   viAttack_type = ATCK_WEAP_MAGIC
+   viLevel = 190
+   viDifficulty = 9
+   viSpeed = SPEED_FASTER
+   vrSound_aware = XeoBossFire2_sound_aware
+
+   viTreasure_type = TID_NONE
+   
+   viBaseSize = 1200
+   
+   viEnemyRangeBonus = 64 * 2
+
+properties:
+
+   piAnimation = ANIM_NONE
+   piDrawEffectFlag = OF_FLICKERING
+   piDrawfx = DRAWFX_TRANSLUCENT_50
+   piMinDamage = 14
+   piMaxDamage = 36
+
+   piMax_Mana = 100
+
+messages:
+
+   Constructed()
+   {
+      plResistances = [ [-ATCK_SPELL_FIRE, 160 ],
+                        [-ATCK_SPELL_COLD, 20 ],
+                        [-ATCK_SPELL_SHOCK, 60 ],
+                        [-ATCK_SPELL_ACID, 60 ],
+                        [-ATCK_SPELL_HOLY, 60 ],
+                        [-ATCK_SPELL_UNHOLY, 60 ],
+                        [ATCK_WEAP_MAGIC, -10 ],
+                        [ATCK_WEAP_ALL,30],
+                        [-ATCK_SPELL_QUAKE, 100 ]
+                      ];
+
+
+      % Permanent eagle eyes and free action
+      Post(self,@AddChampionAbility,#ability=3,#value=80);
+      Post(self,@AddChampionAbility,#ability=4,#value=80);
+
+      piColor_Translation = Send(SYS,@EncodeTwoColorXLAT,#color1=XLAT_TO_RED);
+
+      plMeleeSpellBook = [  [SID_FIREWALL,10,10, Random(70,99)],
+                            [SID_BLAST_OF_FIRE,3,100, Random(70,99)] ];
+      plRangedSpellBook = [ [SID_FIREBALL,90, Random(70,99)],
+                            [SID_HEAT,10,100, Random(70,99)] ];
+
+      propagate;
+   }
+
+   GetMaxHitPoints()
+   {
+      return 10000;
+   }
+
+   GetBossStatus()
+   {
+      return TRUE;
+   }
+
+   SendLightingInformation()
+   {
+      AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC));
+      % 255 out of 255 intensity of light
+      AddPacket(1,125);
+      AddPacket(2,LIGHT_BRED);
+
+      return;
+   }
+
+   IsAlly(target = $, regroup = FALSE)
+   {
+      if IsClass(target,&XeoBossFire)
+         OR IsClass(target,&XeoBossFire2)
+         OR IsClass(target,&XeoBossFire3)
+         OR IsClass(target,&XeoFire)
+         OR IsClass(target,&FireElemental)
+         OR IsClass(target,&FireElementalChampion)
+      {
+         return TRUE;
+      }
+
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

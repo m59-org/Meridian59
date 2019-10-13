@@ -1,0 +1,456 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+MazeReincarnationRoom is MinotaurMazeRoom
+
+% This room contains prestige races that a player can reincarnate into if they have the proper quest flags.
+
+constants:
+
+   include blakston.khd
+
+
+resources:
+
+   room_reincarnation_room = mazereincarnationroom.roo
+   room_maze_reincarnation_room_name = "Antechamber of Eternity"
+   
+   maze_reincarnation_room_challenge_msg = \
+      "~kThe spirit of Vecka tells you, \"Before the High Sorcerers went mad with power, "
+      "the common sorcerers of the land knew something of reincarnation. This was where "
+      "they came in the last days of health to meditate upon their next life.\""
+
+   genealogy_draconian_name = "One with the Primal"
+   genealogy_drow_name = "Eyes in the Dark"
+   genealogy_gnome_name = "Alchemical Artificers"
+   genealogy_automaton_name = "Immortal Regret"
+
+   genealogy_choose_draconian_trigger = "I wish to reincarnate as draconian."
+   genealogy_choose_drow_trigger = "I wish to reincarnate as drow."
+   genealogy_choose_gnome_trigger = "I wish to reincarnate as gnomish."
+   genealogy_choose_automaton_trigger = "I wish to reconstruct as automaton."
+   
+   maze_not_ready_reincarnate = \
+      "You cannot reincarnate until you have achieved enough potential "
+      "in this life."
+
+   genealogy_draconian = \
+      "Written by Qua Kornedrin, High Sorcerer of Fire"
+      "\n\n"
+      "ON DRACONIANS"
+      "\n\n"
+      "While the process of reincarnation is little understood, what "
+      "little we have observed shows that it is a crude process that destroys "
+      "all of the skills, knowledge, and toughness of spirit and body that "
+      "a person has acquired in his or her life. I myself am still researching "
+      "ways to reincarnate without loss of so much of the self, but that is "
+      "a writing for another time."
+      "\n\n"
+      "The first race we sorcerers were able to fuse our spirits with "
+      "was the dragon, mightiest of the beasts of Biskalane. This gave rise "
+      "to the Draconians, a primal half-human with animal intellect and the toughness "
+      "of a titan."
+      "\n\n"
+      "The life of a Draconian is one I myself would not choose, "
+      "but they have proven fantastic bodyguards and mercenaries. "
+      "When apprentice sorcerers try a life or two as a half-dragon, "
+      "they find that their claws greatly improve the effectiveness of "
+      "their touch spell attacks."
+      "\n\n"
+      "So there's that, at least. Toughness and claws."
+      "\n\n--¶"
+      "DRACONIAN TRAITS"
+      "\n\n"
+      "Racial Resistances & Empowerments:"
+      "\n"
+      "10% slash resistance\n"
+      "5% pierce resistance\n"
+      "5% thrust resistance\n"
+      "20% acid resistance\n"
+      "10% bludgeon vulnerability\n"
+      "15% increased punch damage\n"
+      "\nRacial Stat Maximums:"
+      "\n50 Might"
+      "\n30 Intellect"
+      "\n70 Stamina"
+      "\n30 Agility"
+      "\n50 Mysticism"
+      "\n50 Aim"
+      "\n\n"
+      "Draconians have extremely large appetites, and can eat an enormous amount "
+      "of food in one sitting. Their resting max vigor is also extremely high."
+      "\n\n--¶"
+      "REINCARNATION"
+      "\n\n"
+      "For each enlightenment you have achieved, you will have one additional "
+      "stat point to distribute. When you reincarnate, you have a chance to "
+      "choose your stats anew. Should you fail to choose at the time of "
+      "reincarnation, you will retain one free stat reset that you can use by "
+      "going to an Elder and saying 'change stats'."
+      "\n\n"
+      "Your guardian angel will never return once you reincarnate."
+      "\n\n"
+      "Draconians are part dragon. This defines everything about how "
+      "they live their lives. If a Draconian can get close with a claw "
+      "or touch attack, their opponent will suffer dearly for it."
+      "\n\n"
+      "Draconians have limited animal intellect which severely curtails "
+      "any chance of doing battle with spells. Most Draconians enter "
+      "the business of weapons, for ten intellect is all that is needed "
+      "for getting down and dirty. However, those Draconians that do manage "
+      "to learn some spells use them to augment their natural abilities."
+      "\n\n--¶"
+      "REINCARNATING AS DRACONIAN"
+      "\n\n"
+      "To reincarnate as draconian, state thus:"
+      "\n\n"
+      "I wish to reincarnate as draconian."
+      "\n\nThis process will destroy all of your worn and held items, "
+      "and you will forget everything you have learned in this life. "
+      "You will be as a newborn, save a little wiser for your experiences.\n"
+
+   genealogy_drow = \
+      "Written by Qua Kornedrin, High Sorcerer of Fire"
+      "\n\n"
+      "ON DROW"
+      "\n\n"
+      "The second race we sorcerers were able to fuse our souls with "
+      "was one whose spirits were already aching for hybridization. "
+      "The drow, also called dark elves, were found skulking about "
+      "deep inside the world under some of our trading partner countries "
+      "across the sea. "
+      "\n\n"
+      "Apparently created by some twisted experiment run by an order "
+      "called the Necromancers, these dark elves are the combination "
+      "of sylvan entities such as fairies and dryads fused with "
+      "amputated human souls."
+      "\n\n"
+      "They are incredibly xenophobic, and their crippled souls can "
+      "never channel holy energies. It is possible for them to employ "
+      "positively aligned magics taught to them by others, but they cannot "
+      "themselves ever deal holy damage. In addition to this, "
+      "their spiritual link with the world is practically null."
+      "\n\n"
+      "They are, however, the most cunning race we have encountered."
+      "\n\n--¶"
+      "DROW TRAITS"
+      "\n\n"
+      "Racial Resistances & Empowerments:"
+      "\n"
+      "10% cold resistance\n"
+      "10% pierce resistance\n"
+      "25% acid vulnerability\n"
+      "15% increased unholy damage\n"
+      "\nRacial Stat Maximums:"
+      "\n50 Might"
+      "\n70 Intellect"
+      "\n50 Stamina"
+      "\n50 Agility"
+      "\n10 Mysticism"
+      "\n50 Aim"
+      "\n\n"
+      "The drow survived for centuries underground, so they are not capable "
+      "of any great exertion beyond that of a human. They also eat somewhat less."
+      "\n\n--¶"
+      "REINCARNATION"
+      "\n\n"
+      "For each enlightenment you have achieved, you will have one additional "
+      "stat point to distribute. When you reincarnate, you have a chance to "
+      "choose your stats anew. Should you fail to choose at the time of "
+      "reincarnation, you will retain one free stat reset that you can use by "
+      "going to an Elder and saying 'change stats'."
+      "\n\n"
+      "Your guardian angel will never return once you reincarnate."
+      "\n\n"
+      "The drow are among the most cunning beings in existence. "
+      "This intelligence defines everything about their lives. "
+      "They have very little in the way of spiritual energy, "
+      "but what they do have can be employed in untold combinations."
+      "\n\n"
+      "They may not make the best mages due to their limited mysticism "
+      "and mana, but they can achieve more diversity than any other race."
+      "\n\n--¶"
+      "REINCARNATING AS DROW"
+      "\n\n"
+      "To reincarnate as drow, state thus:"
+      "\n\n"
+      "I wish to reincarnate as drow."
+      "\n\nThis process will destroy all of your worn and held items, "
+      "and you will forget everything you have learned in this life. "
+      "You will be as a newborn, save a little wiser for your experiences.\n"
+
+   genealogy_gnome = \
+      "Written by Qua Kornedrin, High Sorcerer of Fire"
+      "\n\n"
+      "ON GNOMES"
+      "\n\n"
+      "The third race found suitable for the soul-fusing process "
+      "was actually one of the first the Merchant Princes of Biskalane "
+      "encountered across the many oceans of the world. "
+      "That alliance was prosperous and led to an era of "
+      "rapid technological advancement. The gnomes were curious "
+      "and quite adept with small mechanisms; possessing "
+      "rather unique eyes, the gnomes were able to use Biskalane's "
+      "offered resources to create never-before-seen devices and techniques. "
+      "\n\n"
+      "Unfortunately, their curiosity led to political disaster. "
+      "Using a new extraordinary ore sourced from a distant jungle island, "
+      "the gnomes began to create equipment that was powerfully resistant "
+      "to magic. The Sorcerers of that era created false reasons to "
+      "cut off contact with the gnomes in order to hold on to the power of their "
+      "magical hegemony."
+      "\n\n"
+      "All that remains of the gnomes in Biskalane now are the ubiquitous anti-magical shields "
+      "that were mechanically mass-produced before the separation. "
+      "Without genuine gnomish lineage to draw from, we may only reincarnate "
+      "with portions of souls descended from human-gnome hybrids, "
+      "thus the spiritual line is quite diluted."
+      "\n\n"
+      "However, certain advantages yet remain."
+      "\n\n--¶"
+      "GNOME TRAITS"
+      "\n\n"
+      "Racial Resistances & Empowerments:"
+      "\n"
+      "10% resistance to clawing, biting, whipping, and stinging\n"
+      "20% resistance to blinding and dazzling effects\n"
+      "25% fire vulnerability\n"
+      "20% increased nerudite damage\n"
+      "\nRacial Stat Maximums:"
+      "\n50 Might"
+      "\n55 Intellect"
+      "\n10 Stamina"
+      "\n40 Agility"
+      "\n50 Mysticism"
+      "\n70 Aim"
+      "\n\n"
+      "The gnomes were a small race, and depended upon technology. "
+      "As a result, their physical prowess was extremely limited. "
+      "They cannot rest to high vigor, nor can they eat much."      
+      "\n\n--¶"
+      "REINCARNATION"
+      "\n\n"
+      "For each enlightenment you have achieved, you will have one additional "
+      "stat point to distribute. When you reincarnate, you have a chance to "
+      "choose your stats anew. Should you fail to choose at the time of "
+      "reincarnation, you will retain one free stat reset that you can use by "
+      "going to an Elder and saying 'change stats'."
+      "\n\n"
+      "Your guardian angel will never return once you reincarnate."
+      "\n\n"
+      "The gnomes are gifted in a way no other race can match. "
+      "They are, however, extremely limited in other ways. "
+      "It is up to you to determine how best to employ the gnomish traits."
+      "\n\n--¶"
+      "REINCARNATING AS GNOMISH"
+      "\n\n"
+      "To reincarnate as gnomish, state thus:"
+      "\n\n"
+      "I wish to reincarnate as gnomish."
+      "\n\nThis process will destroy all of your worn and held items, "
+      "and you will forget everything you have learned in this life. "
+      "You will be as a newborn, save a little wiser for your experiences.\n"
+
+   genealogy_automaton = \
+      "Throughout the history of Biskalane, there have been many misguided attempts at immortality. "
+      "The first and most obvious was that of fusing one's soul to a constructed chassis that naturally never ages. "
+      "These automatons were mostly machine, and came with the drawbacks any learned mage might expect. "
+      "The machine can be constructed to nearly any physical specification, but takes on no extra attributes regardless "
+      "of the bonded soul's level of enlightenment. The truths of enlightenment are instead used in the construction of "
+      "the chassis itself, improving resistances and durability."
+      "\n\n"
+      "Automatons live what many consider to be a tortured existence. "
+      "They cannot experience many of the earthly pleasures of being alive, since they are not technically alive, "
+      "yet they are subject to most harmful forces, since they are not technically dead. "
+      "Numerous automaton shells remain stored away in the tombs and catacombs of the Sorcerers, "
+      "because the first few fools to undergo the recreation process rightfully warned the rest against following suit."
+      "\n\n"
+      "Those who remain trapped in automaton form are indeed ageless, but should be pitied. "
+      "Many are rusted solid and unmoving in dark spaces under the earth for all time."
+      "\n\n--¶"
+      "AUTOMATON TRAITS"
+      "\n"
+      "\nRacial Resistances & Empowerments:"
+      "\nResistance to pierce, thrust, slash, and bludgeon equal to 20% + 1% per Enlightenment"
+      "\nVulnerability to acid, cold, shock, and fire, equal to -40% + 1% per Enlightenment (-39%, -38%, etc...)"
+      "\nImmune to Bleeding"
+      "\nCannot eat"
+      "\nCannot drink"
+      "\nRegain vigor at Enlightenment-influenced rate without resting"
+      "\n"
+      "\nRacial Stat Maximums:"
+      "\n100 Might"
+      "\n50 Intellect"
+      "\n100 Stamina"
+      "\n100 Agility"
+      "\n50 Mysticism"
+      "\n100 Aim"
+      "\n\n"
+      "Automatons are artificial forms that cannot eat or drink. "
+      "They cannot rest, and gain vigor regularly "
+      "whether they are working, fighting, or standing still. Their rate of vigor regeneration is heavily influenced by their Enlightenments."  
+      "\n\n--¶"
+      "RECONSTRUCTION"
+      "\n\n"
+      "You will not have any additional stat points to distribute, regardless of enlightenment level. "
+      "When you reconstruct, you have a chance to choose your stats anew. "
+      "Should you fail to choose at the time of reconstruction, you will retain one free stat reset that you can use by going to an Elder and saying 'change stats'."
+      "\n\n"
+      "Your guardian angel will never return once you reconstruct."
+      "\n\n"
+      "Automatons are unlike any living being. It is up to you to determine whether this torturous path is right for you."
+      "\n\n--¶"
+      "RECONSTRUCTING AS AUTOMATON"
+      "\n\n"
+      "To reconstruct as an automaton, state thus:"
+      "\n\n"
+      "I wish to reconstruct as automaton."
+      "\n\nThis process will destroy all of your worn and held items, "
+      "and you will forget everything you have learned in this life. "
+      "You will be as a newborn, save a little wiser for your experiences.\n"
+
+classvars:
+
+   vrName = room_maze_reincarnation_room_name
+
+   viTeleport_row = 5
+   viTeleport_col = 5
+
+properties:
+
+   prRoom = room_reincarnation_room
+   piRoom_num = RID_MAZE_REINCARNATION_ROOM
+
+messages:
+   CreateStandardObjects()
+   {
+      local oBook;
+
+      oBook = Create(&BookPedestal,#Name=genealogy_draconian_name,
+                     #Text=genealogy_draconian);
+      Send(self,@NewHold,#what=oBook,
+           #new_row=20,#new_col=17,#fine_col=26,#fine_row=52,
+           #new_angle=ANGLE_NORTH_EAST);
+      oBook = Create(&BookPedestal,#Name=genealogy_drow_name,
+                     #Text=genealogy_drow);
+      Send(self,@NewHold,#what=oBook,
+           #new_row=19,#new_col=17,#fine_col=3,#fine_row=19,
+           #new_angle=ANGLE_EAST);
+      oBook = Create(&BookPedestal,#Name=genealogy_gnome_name,
+                     #Text=genealogy_gnome);
+      Send(self,@NewHold,#what=oBook,
+           #new_row=17,#new_col=17,#fine_col=26,#fine_row=52,
+           #new_angle=ANGLE_SOUTH_EAST);
+      oBook = Create(&BookPedestal,#Name=genealogy_automaton_name,
+                     #Text=genealogy_automaton);
+      Send(self,@NewHold,#what=oBook,
+           #new_row=16,#new_col=18,#fine_col=43,#fine_row=34,
+           #new_angle=ANGLE_SOUTH);
+
+      propagate;
+   }
+
+   CreateMazeRoomObjects()
+   {
+      local lLights;
+
+      lLights = [Create(&DynamicLight,#iColor=LIGHT_BPURPLE,#iIntensity=70),
+                  Create(&DynamicLight,#iColor=LIGHT_BPURPLE,#iIntensity=70),
+                  Create(&DynamicLight,#iColor=LIGHT_BPURPLE,#iIntensity=70),
+                  Create(&DynamicLight,#iColor=LIGHT_BPURPLE,#iIntensity=70),
+                  Create(&DynamicLight,#iColor=LIGHT_BPURPLE,#iIntensity=70),
+                  Create(&DynamicLight,#iColor=LIGHT_BPURPLE,#iIntensity=70),
+                  Create(&DynamicLight,#iColor=LIGHT_BPURPLE,#iIntensity=70),
+                  Create(&DynamicLight,#iColor=LIGHT_BPURPLE,#iIntensity=70)];
+      
+      Send(self,@NewHold,#what=Nth(lLights,1),#new_row=9,#new_col=9,#fine_row=0,#fine_col=0);
+      Send(self,@NewHold,#what=Nth(lLights,2),#new_row=29,#new_col=9,#fine_row=0,#fine_col=0);
+      Send(self,@NewHold,#what=Nth(lLights,3),#new_row=29,#new_col=29,#fine_row=0,#fine_col=0);
+      Send(self,@NewHold,#what=Nth(lLights,4),#new_row=9,#new_col=29,#fine_row=0,#fine_col=0);
+      Send(self,@NewHold,#what=Nth(lLights,5),#new_row=19,#new_col=19,#fine_row=0,#fine_col=0);
+
+      return;
+   }
+
+   SomeoneSaid(what=$,string=$)
+   {
+      local bTryReincarnate, iReincarnateAsRace;
+
+      bTryReincarnate = FALSE;
+      iReincarnateAsRace = 0;
+      if StringEqual(string,genealogy_choose_draconian_trigger)
+      {
+         bTryReincarnate = TRUE;
+         iReincarnateAsRace = RACE_DRACONIAN;
+      }
+
+      if StringEqual(string,genealogy_choose_drow_trigger)
+      {
+         bTryReincarnate = TRUE;
+         iReincarnateAsRace = RACE_DROW;
+      }
+
+      if StringEqual(string,genealogy_choose_gnome_trigger)
+      {
+         bTryReincarnate = TRUE;
+         iReincarnateAsRace = RACE_GNOME;
+      }
+
+      if StringEqual(string,genealogy_choose_automaton_trigger)
+      {
+         bTryReincarnate = TRUE;
+         iReincarnateAsRace = RACE_AUTOMATON;
+      }
+
+      if bTryReincarnate
+         AND Send(what,@GetRow) >= 13
+         AND Send(what,@GetRow) <= 25
+         AND Send(what,@GetCol) >= 13
+         AND Send(what,@GetCol) <= 25
+         AND Send(SETTINGS_OBJECT,@GetReincarnationEnabled)
+      {
+         if Send(what,@CanReincarnate)
+         {
+            Post(what,@Reincarnate,#race=iReincarnateAsRace);
+         }
+         else
+         {
+            Post(what,@MsgSendUser,#message_rsc=maze_not_ready_reincarnate);
+            Post(what,@ReportReincarnationProgress);
+         }
+      }
+
+      propagate;
+   }
+   
+   CheckMoveBorders(what=$, new_row=$, new_col=$)
+   {
+      return;
+   }
+
+   NewHold(what=$)
+   {
+      if what <> $
+         AND IsClass(what,&User)
+         AND Send(what,@GetVeckaAdvice)
+      {
+         Send(what,@MsgSendUser,#message_rsc=maze_reincarnation_room_challenge_msg);
+      }
+ 
+      if IsClass(what,&Player)
+      {
+         Post(Send(SYS,@GetGameQuestMaintenance),@EvaluatePlayer,#who=what,#vbTriggered=TRUE);
+      }
+
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

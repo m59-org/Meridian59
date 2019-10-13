@@ -1,0 +1,165 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+UnderwaterThreat is RoomThreat 
+
+% Whenever it rains on the mainland, dampen fire and boost shock
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   underwater_threat_name_rsc = "Underwater"
+   underwater_threat_icon_rsc = underwatericon.bgf
+   underwater_threat_desc_rsc = \
+      "You are underwater! Move with purpose and keep your time "
+      "underwater limited. Without breath, you might drown!"
+
+   underwater_threat_begin_msg = \
+      "You plunge into chill waters."
+   underwater_threat_end_msg = \
+      "You rise into open air."
+   underwater_threat_dampens_msg = \
+      "Your fire seems incredibly ineffective!"
+   underwater_threat_boosts_msg = \
+      "Your lightning blazes its way through the water!"
+
+   underwater_good_item_use_msg = \
+      "Your item relieves the water around you somewhat."
+   underwater_good_spell_use_msg = \
+      "Your spell banishes the water in your vicinity."
+      
+   underwater_threat_damage_msg = \
+      "~B~rYou are drowning! Get to the surface!"
+
+   drown_death_msg = \
+      "~B~U~k[###]~n ~B~v%s drowned cold and alone in vast quiet darkness."
+
+   underwater_drowning_sound = ouchf2.wav
+   underwater_drowning_sound_male = ouchm2.wav
+   
+classvars:
+
+   vrName = underwater_threat_name_rsc
+   vrIcon = underwater_threat_icon_rsc
+   vrDesc = underwater_threat_desc_rsc
+
+   viThreatBeginMsg = underwater_threat_begin_msg
+   viThreatEndMsg = underwater_threat_end_msg
+   viThreatDamageMsg = underwater_threat_damage_msg
+   viGoodItemUseMsg = rain_good_item_use_msg
+   viGoodSpellUseMsg = rain_good_spell_use_msg
+   
+   viDeathMsg = drown_death_msg
+
+   vbDampenElement = TRUE
+   viDampenElement = ATCK_SPELL_FIRE
+   viDampenPercentage = 90
+   
+   viBoostElement = TRUE
+   viBoostElement = ATCK_SPELL_SHOCK
+   viBoostPercentage = 50
+   
+   vbReportMessages = FALSE
+
+properties:
+
+   pbDealDamage = TRUE
+   piReport = TRUE
+   
+   % What type of damage do we do?
+   piDamageTypeAttack = 0
+   piDamageTypeSpell = ATCK_SPELL_DRAIN
+   
+   % How much damage do we do?
+   piDamageMin = 13
+   piDamageMax = 33
+
+messages:
+
+   ReqDealDamage(who=$)
+   {
+      % Alter this to create exemptions to the threat.
+      
+      if who <> $
+         AND IsClass(who,&Player)
+      {
+         % Undine are part water spirit, never hit them.
+         % Automatons don't breathe.
+         if Send(who,@GetPlayerRace) = RACE_HALF_UNDINE
+            OR Send(who,@GetPlayerRace) = RACE_AUTOMATON
+            OR Send(who,@GetHasBreath)
+         {
+            return FALSE;
+         }
+      }
+
+      propagate;
+   }
+
+   PlayDamageSound(who=$)
+   {
+      if who <> $
+         AND IsClass(who,&Player)
+         AND Send(who,@GetGender) = GENDER_FEMALE
+      {
+         Send(poHostObject,@SomethingWaveRoom,#what=who,#wave_rsc=underwater_drowning_sound);
+      }
+      if who <> $
+         AND IsClass(who,&Player)
+         AND Send(who,@GetGender) = GENDER_MALE
+      {
+         Send(poHostObject,@SomethingWaveRoom,#what=who,#wave_rsc=underwater_drowning_sound_male);
+      }
+      return;
+   }
+
+   DealDamage(timer=$)
+   {
+      local i, iDamageResult;
+
+      ptDamageTimer = $;
+
+      foreach i in Send(poHostObject,@GetHolderActive)
+      {
+         if IsClass(First(i),&User)
+            AND Send(self,@ReqDealDamage,#who=First(i))
+         {
+            Send(First(i),@MsgSendUser,#message_rsc=viThreatDamageMsg);
+            
+            % Some threats apply other effects.
+            Send(self,@ApplyDirectEffect,#who=First(i));
+            
+            Send(self,@PlayDamageSound,#who=First(i));
+            iDamageResult = Send(First(i),@AssessDamage,#what=self,
+                  #damage=Random(piDamageMin,piDamageMax),
+                  #atype=piDamageTypeAttack,
+                  #aspell=piDamageTypeSpell,#report=piReport,
+                  #bSecondary=TRUE);
+            
+            % We killed someone!
+            if iDamageResult = $
+            {
+               Send(First(i),@Killed);
+               Send(self,@SendDeathMessage,#who=First(i));
+            }
+         }
+      }
+
+      % Some threats change the time dynamically.
+      Send(self,@AlterDamageTime);
+      ptDamageTimer = CreateTimer(self,@DealDamage,piDamageTime);
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

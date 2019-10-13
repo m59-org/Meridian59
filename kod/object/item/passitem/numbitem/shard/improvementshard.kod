@@ -1,0 +1,105 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ShardImprovement is Shard
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   improvement_shard_name_rsc = "shard of improvement"
+   improvement_shard_name_plural = "shards of improvement"
+   improvement_shard_icon_rsc = diamondshard.bgf
+   improvement_shard_desc = \
+      "This mysterious shard of some unknown crystal will add a third "
+      "magical modification to a piece of equipment that has two, "
+      "upgrading its classification from weak to strong."
+
+   improvement_shard_req = \
+      "This shard can only add modifications to items that currently have two."
+
+   improvement_shard_applied = \
+      "The %s takes on a much stronger aura of magic."
+
+classvars:
+
+   vrName = improvement_shard_name_rsc
+   vrIcon = improvement_shard_icon_rsc
+   vrDesc = improvement_shard_desc
+   
+   vrName_plural = improvement_shard_name_plural
+
+   vrApplied = improvement_shard_applied
+   
+   viShardColor = 67
+
+properties:
+
+messages:
+
+   ReqNewApply(what = $,apply_on = $)
+   {
+      local i;
+      
+      if what = $
+         OR NOT IsClass(what,&Player)
+      {
+         return;
+      }
+
+      foreach i in Send(what,@GetPlayerUsing)
+      {
+         if i = apply_on
+         {
+            Send(what,@MsgSendUser,#message_rsc=vrMust_unequip);
+            return FALSE;
+         }
+      }
+
+      if apply_on <> $
+         AND (IsClass(apply_on,&Weapon)
+            OR IsClass(apply_on,&DefenseModifier)
+            OR IsClass(apply_on,&Ring)
+            OR IsClass(apply_on,&Gauntlet)
+            OR IsClass(apply_on,&NecromancerAmulet)
+            OR IsClass(apply_on,&Necklace)
+            OR IsClass(apply_on,&Instrument)
+            OR IsClass(apply_on,&JewelofFroz)
+            OR IsClass(apply_on,&AdventurerCrest)
+            OR IsClass(apply_on,&ScryingCrystal))
+      {
+         % This shard only applies to gear with one mod
+         if Send(apply_on,@GetMagicModsNumber) = 2
+         {
+            return TRUE;
+         }
+         else
+         {
+            Send(what,@MsgSendUser,#message_rsc=improvement_shard_req);
+         }
+      }
+
+      return FALSE;
+   }
+
+   NewApplied(what = $,apply_on = $)
+   {
+      if Send(self,@GenerateMod,#oItem=apply_on,#who=what) = 1
+      {
+         Send(self,@SubtractNumber,#number=1);
+      }
+
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

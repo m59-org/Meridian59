@@ -32,14 +32,25 @@ constants:
 
    include blakston.khd
 
-   % South wall sectors: 6, 15, 22, 39, 46, 63, 70, 87, 94, 111, 118, 135, 142, 159, 165, 182
-   % Southeast wall sec: 110, 119, 120, 133, 132, 145, 146, 155, 153, 154, 152, 151
    % east wall sectors: 151-162
+   % Southeast wall sec: 110, 119, 120, 133, 132, 145, 146, 155, 153, 154, 152, 151
+   % South wall sectors: 6, 15, 22, 39, 46, 63, 70, 87, 94, 111, 118, 135, 142, 159, 165, 182
+   % Southwest wall sec: 71, 62, 61, 48, 49, 36, 35, 34, 33, 32, 31
+   % West wall sectors: 31-42
+   % northwest wall sectors: 59, 50, 49, 36, 37, 38, 39
+   % north wall sectors: 10, 27, 34, 51, 58, 75, 82, 99, 106, 123, 130, 147, 154, 171, 178, 192
+   % northeast wall sectors; 122, 131, 132, 145, 144, 157, 158, 159, 
    
 resources:
 
    room_desertsteppes = desertsteppes.roo
    room_name_desertsteppes = "Sandswept Steppes"
+
+   second_desert_incomplete = \
+      "Congratulations! You've reached the second area of the desert! "
+      "This area is not yet in to avoid it being spoiled by players looking at "
+      "the open source code on Github. Please inform the administrator it's time "
+      "to patch :)"
 
 classvars:
 
@@ -47,6 +58,8 @@ classvars:
 
    viTeleport_row = 60
    viTeleport_col = 102
+   
+   vbSpawnMonsters = TRUE
 
 properties:
 
@@ -56,22 +69,137 @@ properties:
    piDirectional_percent = DIRECTIONAL_PERCENT_OUTDOORS
 
    prRoom = room_desertsteppes
-   piRoom_num = $
+   piRoom_num = RID_DESERTSTEPPES
    
    piLatitude = 1
    piLongitude = 1
+   
+   piDrop = -8
+   piRaise = 8
 
 messages:
 
-   Constructor(iLatitude=$,iLongitude=$)
+   Constructor(iLatitude=1,iLongitude=1)
    {
       piLatitude = iLatitude;
       piLongitude = iLongitude;
+      
+      
       propagate;
+   }
+   
+   NewHold(what = $)
+   {
+      % Inform players of the situation.
+      if IsClass(what,&Player)
+      {
+         Send(what,@MsgSendUser,#message_rsc=second_desert_incomplete);
+      }
+      propagate;
+   }
+   
+   FirstUserEntered()
+   {
+      Send(self,@Randomize);
+
+      propagate;
+   }
+
+   PopulateArea()
+   {
+      local i, iNumMonsters, oMonster, lMonsters, lClasses, iMinRow, iMinCol, iMaxRow, iMaxCol, iChosenAngle;
+
+      lClasses = [&Chupacabra];
+
+      iNumMonsters = Random(5,15);
+      lMonsters = $;
+
+      while iNumMonsters > 0
+      {
+         lMonsters = Cons(Nth(lClasses,Random(1,Length(lClasses))),lMonsters);
+         --iNumMonsters;
+      }
+
+      if viMaxSpawnRow = 0
+      {
+         iMaxRow = Send(self,@GetRoomRows)-1;
+      }
+      else
+      {
+         iMaxRow = viMaxSpawnRow;
+      }
+
+      if viMaxSpawnCol = 0
+      {
+         iMaxCol = Send(self,@GetRoomCols)-1;
+      }
+      else
+      {
+         iMaxCol = viMaxSpawnCol;
+      }
+
+      iChosenAngle = ANGLE_EAST;
+      switch(Random(1,4))
+      {
+         case 1:
+            iChosenAngle = ANGLE_WEST;
+            break;
+         case 2:
+            iChosenAngle = ANGLE_NORTH;
+            break;
+         case 3:
+            iChosenAngle = ANGLE_SOUTH;
+            break;
+         case 4:
+            iChosenAngle = ANGLE_EAST;
+            break;
+      }
+
+      foreach i in lMonsters
+      {
+         Send(self,@NewHold,#what=Create(i,#piSurvivalLevel=Send(Send(SYS,@GetDesertRoomMaintenance),@GetBoostDesertLevel)),
+               #new_row=Random(viMinSpawnRow,iMaxRow),
+               #new_col=Random(viMinSpawnCol,iMaxCol),
+               #new_angle=iChosenAngle);
+      }
+
+      return;
+   }
+
+   Randomize()
+   {
+      local iCount, iLastHeight;
+      
+      iCount = 192;
+      iLastHeight = 100;
+      
+      while iCount >= 1
+      {
+         if Random(1,100) = 1
+         {
+            Send(self,@SetSector,#sector=iCount,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+         }
+         else
+         {
+            iLastHeight = iLastHeight + Random(piDrop,piRaise);
+            Send(self,@SetSector,#sector=iCount,#animation=ANIMATE_FLOOR_LIFT,#height=iLastHeight,#speed=0);
+         }
+         iCount--;
+      }
+      
+      prBackground = background_chaos_night;
+      Send(self,@BackgroundChanged);
+
+      return;
    }
 
    SomethingMoved(what = $,new_row = $, new_col = $)
    {
+      if IsClass(what,&Monster)
+      {
+         propagate;
+      }
+
       % GO EAST
       if new_col > (Send(self,@GetRoomCols)-2)
       {
@@ -97,6 +225,68 @@ messages:
       }
 
       propagate;
+   }
+
+   
+   RaiseEastWall()
+   {
+      Send(self,@SetSector,#sector=151,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=152,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=153,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=154,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=155,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=156,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=157,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=158,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=159,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=160,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=161,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=162,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      return;
+   }
+   
+   RaiseSouthEastWall()
+   {
+      Send(self,@SetSector,#sector=110,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=119,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=120,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=133,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=132,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=145,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=146,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=155,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=153,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=154,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=152,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=151,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      return;
+   }
+
+   % Southwest wall sec: 71, 62, 61, 48, 49, 36, 35, 34, 33, 32, 31
+   % West wall sectors: 31-42
+   % northwest wall sectors: 59, 50, 49, 36, 37, 38, 39
+   % north wall sectors: 10, 27, 34, 51, 58, 75, 82, 99, 106, 123, 130, 147, 154, 171, 178, 192
+   % northeast wall sectors; 122, 131, 132, 145, 144, 157, 158, 159, 
+   
+   RaiseSouthWall()
+   {
+      Send(self,@SetSector,#sector=6,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=15,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=22,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=39,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=46,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=63,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=70,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=87,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=94,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=111,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=118,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=135,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=142,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=159,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=165,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      Send(self,@SetSector,#sector=182,#animation=ANIMATE_FLOOR_LIFT,#height=500,#speed=0);
+      return;
    }
 
 end

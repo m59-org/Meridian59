@@ -1,0 +1,127 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+LifePrismThreat is RoomThreat 
+
+% The Prism of Life gives you health, even above your max.
+% If you reach 0 vigor here, you die.
+% Monsters here deal vigor damage.
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   overhealing_threat_name_rsc = "effulgent vitality"
+   overhealing_threat_icon_rsc = imajheal.bgf
+   overhealing_threat_desc_rsc = \
+      "You feel healthier than ever before. Your body glows with the pure essence of life. "
+      "In fact, your health just keeps rising. Don't let it reach triple your normal "
+      "maximum hit points, or you might just explode!"
+
+   overhealing_threat_begin_msg = \
+      "You feel fantastic!"
+   overhealing_threat_end_msg = \
+      "The effulgent vitality here dims."
+   overhealing_threat_damage_msg = \
+      "~B~wPure life essence jolts into you. If you reach triple your maximum health, you'll explode!"
+
+   overhealing_good_item_use_msg = \
+      "You sigh with relief as the overhealing stops."
+   overhealing_good_spell_use_msg = \
+      "Your magic protects you from the overwhelming life energy here."
+
+   overhealing_death_msg = \
+      "~B~U~k[###]~n ~B~v%s filled with life energy until they exploded!"
+
+classvars:
+
+   vrName = overhealing_threat_name_rsc
+   vrIcon = overhealing_threat_icon_rsc
+   vrDesc = overhealing_threat_desc_rsc
+
+   viThreatBeginMsg = overhealing_threat_begin_msg
+   viThreatEndMsg = overhealing_threat_end_msg
+   viThreatDamageMsg = overhealing_threat_damage_msg
+   viGoodItemUseMsg = overhealing_good_item_use_msg
+   viGoodSpellUseMsg = overhealing_good_spell_use_msg
+   
+   viDeathMsg = overhealing_death_msg
+
+properties:
+
+   % What type of damage do we do?
+   piDamageTypeAttack = 0
+   piDamageTypeSpell = ATCK_SPELL_HOLY
+
+   % How much damage do we do?
+   piDamageMin = 1
+   piDamageMax = 3
+   
+   % How often do we deal damage?
+   piDamageTime = 1000
+   ptDamageTimer = $
+   
+   % How long does the threat last?
+   piThreatTime = 10 * 60 * 1000
+   ptThreatTimer = $
+
+   % Do we report the damage?
+   piReport = FALSE
+
+   % This threat drains vigor.
+   piVigorDrop = 10000
+
+messages:
+
+   Constructor()
+   {
+%      plSpecialItemClasses = [&AcidRing,&SimpleHelm];
+%      plSpecialExemptItemClasses = [&RingOfLethargy];
+%      plSpecialSpellClasses = [&ResistAcid];
+
+      propagate;
+   }
+   
+   Constructed()
+   {
+      propagate;
+   }
+
+   ReqDealDamage(who=$)
+   {
+      local iSection;
+
+      % Ring of Lethargy protects players here.
+      if Send(who,@IsUsingA,#class=&RingOfLethargy)
+         OR Send(who,@GetPlayerRace) = RACE_HALF_ELF
+%         OR Send(who,@IsEnchanted,#byClass=&ResistAcid)
+%         OR Send(who,@IsUsingA,#class=&AcidRing)
+      {
+         return FALSE;
+      }
+
+      propagate;
+   }
+
+   ApplyDirectEffect(who=$)
+   {
+      Send(who,@AddExertion,#amount=piVigorDrop);
+      propagate;
+   }
+   
+   Delete()
+   {
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

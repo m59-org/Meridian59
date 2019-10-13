@@ -48,7 +48,7 @@ classvars:
    vrDead_icon = yeti_dead_icon_rsc
    vrDead_name = yeti_dead_name_rsc
 
-   viTreasure_type = TID_VERY_TOUGH
+   viTreasure_type = TID_YETI
    viSpeed = SPEED_SLOW
    viAttack_type = ATCK_WEAP_CLAW
    viAttributes = 0
@@ -70,11 +70,19 @@ classvars:
    % 1 in x chance to cast a spell.
    viSpellChance = 3
 
+   viBaseSize = 800
+
+   % Big monster
+   viEnemyRangeBonus = 64
+
+   vbBonusXPGain = 150
+
 properties:
 
    piAnimation = ANIM_NONE
 
    piMax_mana = 40
+   piOtherSpellChance = 100
 
 messages:
 
@@ -87,6 +95,12 @@ messages:
                         [ATCK_WEAP_PIERCE, 90],
                         [-ATCK_SPELL_FIRE, -45 ]
                       ];
+
+      plCreatureTypes = Cons(CREATURE_TYPE_HUMANOID,plCreatureTypes);
+      plCreatureTypes = Cons(CREATURE_TYPE_INTELLIGENT,plCreatureTypes);
+      plCreatureTypes = Cons(CREATURE_TYPE_MUNDANE,plCreatureTypes);
+
+      plOtherSpellBook = [ [ SID_DISCORDANCE, 3, 100, 99 ] ];
 
       propagate;
    }
@@ -146,47 +160,22 @@ messages:
 
       % Shake the ground when I take a step.
       Send(poOwner,@Rumble,#duration=250,#disruption=25);
+      Send(self,@MonsterSpecialAction);
 
       propagate;
    }
 
-   MonsterCastSpell()
+   MonsterSpecialAction()
    {
-      local oSpell;
-      if Random(1,piSpellChance) = 1
-         AND Send(poOwner,@IsEnchanted,#what=$)
+      if Send(poOwner,@IsEnchanted,#what=$)
       {
          Send(poOwner,@SomethingWaveRoom,#what=self,#wave_rsc=yeti_cast_sound);
          Send(poOwner,@SomeoneSaid,#type=SAY_MESSAGE,
                #string=yeti_cast_spell,#what=self);
          Send(self,@DoSlash);
-         oSpell = Send(SYS,@FindSpellByNum,#num=SID_DISCORDANCE);
-         Send(oSpell,@CastSpell,#who=self,#lTargets=$);
-
-         return TRUE;
+         Send(self,@AttemptSpell,#type=CAST_TYPE_OTHER);
       }
-
-      return FALSE;
-   }
-
-   MonsterCastAttackSpell()
-   {
-      local oSpell;
-
-      if Random(1,ATTACK_SPELL_CHANCE) = 1
-         AND Send(poOwner,@IsEnchanted,#what=$)
-      {
-         Send(poOwner,@SomethingWaveRoom,#what=self,#wave_rsc=yeti_cast_sound);
-         Send(poOwner,@SomeoneSaid,#type=SAY_MESSAGE,
-               #string=yeti_cast_spell,#what=self);
-         Send(self,@DoSlash);
-         oSpell = Send(SYS,@FindSpellByNum,#num=SID_DISCORDANCE);
-         Send(oSpell,@CastSpell,#who=self,#lTargets=$);
-
-         return TRUE;
-      }
-
-      return FALSE;
+      return;
    }
 
    AttackTimer(timer = $)
@@ -227,7 +216,7 @@ messages:
       oSpell = Send(SYS,@FindSpellByNum,#num=SID_TRUCE);
       if Send(poOwner,@IsEnchanted,#what=oSpell)
       {
-         Send(self,@MonsterCastAttackSpell);
+         Send(self,@MonsterSpecialAction);
       }
       else
       {

@@ -373,6 +373,16 @@ messages:
       return 0;
    }
 
+   SetAngle(angle=0)
+   {
+      if poOwner <> $
+         AND IsClass(poOwner,&Room)
+      {
+         Send(poOwner,@SetRoomAngle,#what=self,#angle=angle);
+      }
+      return;
+   }
+
    GetRow()
    {
       local lPos;
@@ -1352,6 +1362,33 @@ messages:
       }
 
       return $;
+   }
+
+   RemoveDrawingEffects(value=0)
+   {
+      piDrawfx = piDrawfx & ~value;
+      return;
+   }
+
+   AddDrawingEffects(value=0)
+   {
+      piDrawfx = piDrawfx | value;
+      return;
+   }
+   
+   GetProjectileLightColor()
+   {
+      return 0;
+   }
+
+   GetElementalImbalancePower()
+   {
+      return 0;
+   }
+   
+   GetEnemyRangeBonus()
+   {
+      return 0;
    }
 
 end

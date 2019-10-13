@@ -1,0 +1,125 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Sap is DrainHex
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   sap_cast_rsc = "%s%s becomes surrounded by a draining aura."
+   sap_already_enchanted = \
+      "That poor soul is already afflicted by sap."
+   sap_start = "A draining aura surrounds you!"
+   sap_stop  = "The draining aura around you vanishes."
+   has_been_hexed_sap = \
+      "%s%s becomes surrounded by a draining aura!"
+
+   sap_name_rsc = "sap"
+   sap_icon_rsc = ihexsap.bgf
+   sap_desc_rsc = \
+      "Surrounds your victim with a draining aura that steals vigor "
+      "and gives it to those that strike them. "
+      "This hex requires one acid fragment to cast."
+
+   sap_sound = qenfeebl.wav
+
+   sapped_msg = "Your attack drains %i vigor!"
+
+   sap_hex_effect_report = \
+      "At that effectiveness, your sap hex will cause those attacking the victim to drain ~r~B%i ~nvigor."
+
+classvars:
+
+   vrName = sap_name_rsc
+   vrIcon = sap_icon_rsc
+   vrDesc = sap_desc_rsc
+
+   vrHexEffectReport = sap_hex_effect_report
+
+   vrAlreadyEnchanted = sap_already_enchanted
+   vrEnchantment_On = sap_start
+   vrEnchantment_Off = sap_stop
+   vrSuccess = sap_cast_rsc
+   vrInformRoom = has_been_hexed_sap
+
+   viSpell_num = SID_HEX_SAP
+   viSchool = SS_WITCHERY
+   viSubSchool = SSS_WITCHERY_XAERDUN
+   viSpell_level = 3
+   viMana = 5
+   viSpell_Exertion = 0
+
+   viFlash = FLASH_BAD
+
+   vrSucceed_wav = sap_sound
+   viChance_To_Increase = 20
+   viMeditate_ratio = 40
+
+properties:
+
+   % Take and give this much vigor when struck (/10000)
+   piBaseEffect = 20000
+
+messages:
+
+   ResetReagents()
+   {
+      plReagents = $;
+      plReagents = Cons([&AcidFragment,1],plReagents);
+
+      return;
+   }
+   
+   StealStat(who=$,what=$,state=0)
+   {
+      local iStealAmount;
+      
+      if NOT IsClass(what,&Monster)
+         AND NOT IsClass(what,&Player)
+      {
+         return;
+      }
+      
+      iStealAmount = piBaseEffect * state / 100;
+      if IsClass(what,&Monster)
+         OR Send(what,@GetVigor)*1000 > iStealAmount
+      {
+         if IsClass(what,&Player)
+         { 
+            Send(what,@AddExertion,#amount=iStealAmount);
+         }
+
+         if IsClass(what,&Monster)
+         {
+            iStealAmount = iStealAmount / 2;
+         }
+
+         if IsClass(who,&Player)
+         {
+            Send(who,@AddExertion,#amount=-iStealAmount);
+            Send(who,@MsgSendUser,#message_rsc=sapped_msg,
+                                  #parm1=iStealAmount/10000);
+         }
+      }
+
+      return;
+   }
+
+   DoHexEffectReport(what=$,iHexEffect=0)
+   {
+      Send(what,@MsgSendUser,#message_rsc=vrHexEffectReport,#parm1=(piBaseEffect * iHexEffect / 100)/10000);
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

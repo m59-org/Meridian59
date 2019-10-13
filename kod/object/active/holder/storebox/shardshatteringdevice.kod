@@ -1,0 +1,183 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ShardShatteringDevice is StorageBox
+
+constants:
+
+   CHEST_ITEMS_MAX = 500
+
+   include blakston.khd
+
+resources:
+
+   ShardShatteringDevice_name_rsc = "shard shattering device"
+   ShardShatteringDevice_icon_rsc = sspsmall.bgf
+
+   ShardShatteringDevice_desc_rsc = \
+      "This ancient forge has the ability shatter shards apart. Once employed, "
+      "the magic can only be undone with a shard fusing device."
+      "\n\nPut stacks of shards into this device to transmute them. They will immediately be returned to you transformed."
+      "\n\nShards of Empowerment will become Instilling Shards."
+      "\nInstilling Shards will become Draining Shards."
+      "\nDraining Shards will become Shards of Disruption."
+      "\nShards of Disruption will become Shards of Disturbance."
+      "\nShards of Disturbance will become Major Shards."
+      "\nMajor Shards will become Shards of Improvement."
+      "\nShards of Improvement will become Augmenting Shards."
+      "\nAugmenting Shards will become Minor Shards."
+      "\n\nBased on the quality of this guild hall's magical field, "
+      "this device shatters one higher shard into %i lower shards."
+
+   shattering_device_glows = \
+      "The shard shattering device glows brightly for a moment as its magics operate."
+
+   no_guild_owner_cannot_shatter = \
+      "The shard shattering device cannot do anything while unpowered. You must purchase "
+      "this guild hall to use its magics."
+
+classvars:
+
+   vrName = ShardShatteringDevice_name_rsc
+   vrIcon = ShardShatteringDevice_icon_rsc
+   vrDesc = ShardShatteringDevice_desc_rsc
+
+   viBulk_hold_max = $
+   viWeight_hold_max = $
+
+properties:
+
+   piOutputCreated = 2
+
+messages:
+
+   Constructor(iOutputCreated=0)
+   {
+      if iOutputCreated > 0
+      {
+         piOutputCreated = iOutputCreated;
+      }
+      propagate;
+   }
+
+   ShowDesc()
+   {
+      AddPacket(4,vrDesc, 4,piOutputCreated);
+
+      return;
+   }
+
+   ReqNewHold(what = $, who = $)
+   {
+      if NOT Send(self,@CanDepositItems,#lItems=[what])
+      {
+         return FALSE;
+      }
+      
+      if poOwner = $
+         OR Send(poOwner,@GetGuildOwner) = $
+      {
+         Send(who,@MsgSendUser,#message_rsc=no_guild_owner_cannot_shatter);
+         return FALSE;
+      }
+      
+      Post(self,@FuseInputItems,#what=what,#who=who);
+
+      propagate;
+   }
+
+   CanDepositItems(lItems = $)
+   {
+      local plItemsStored;
+
+      if lItems = $
+      {
+         return FALSE;
+      }
+      
+      if Length(lItems) = 1
+         AND NOT IsClass(First(lItems),&Shard)
+      {
+         return FALSE;
+      }
+
+      if Length(lItems) = 1
+         AND (IsClass(First(lItems),&HeartStone)
+            OR IsClass(First(lItems),&ShardImbueMinor))
+      {
+         return FALSE;
+      }
+
+      plItemsStored = Send(self,@GetHolderPassive);
+      if plItemsStored <> $
+         AND (Length(plItemsStored) + Length(lItems)) > CHEST_ITEMS_MAX
+         AND NOT (Length(lItems) = 1
+            AND IsClass(First(lItems),&NumberItem))
+      {
+         return FALSE;
+      }
+
+      return TRUE;
+   }
+
+   FuseInputItems(what=$,who=$)
+   {
+      local lShardTiers, i, each_obj, iCount;
+      
+      foreach i in Send(poOwner,@GetHolderActive)
+      {
+         each_obj = Send(poOwner,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&Player)
+         {
+            Send(each_obj,@MsgSendUser,#message_rsc=shattering_device_glows);
+         }
+      }
+
+      lShardTiers = [&ShardImbueMinor,
+                     &ShardAugment,
+                     &ShardImprovement,
+                     &ShardImbueMajor,
+                     &ShardReImbueMinor,
+                     &ShardReImbueMajor,
+                     &ShardRemove,
+                     &ShardReroll,
+                     &ShardEmpowerment];
+
+      iCount = Length(lShardTiers);
+      while iCount > 1
+      {
+         if GetClass(what) = Nth(lShardTiers, iCount)
+         {
+            while Send(what,@GetNumber) > 1
+            {
+               Send(what,@SubtractNumber,#number=1);
+               Send(who,@NewHold,#what=Create(Nth(lShardTiers,iCount-1),#number=piOutputCreated));
+            }
+
+            if Send(what,@GetNumber) = 1
+            {
+               Send(what,@SubtractNumber,#number=1);
+               Send(who,@NewHold,#what=Create(Nth(lShardTiers,iCount-1),#number=piOutputCreated));
+            }
+            else
+            {
+               Send(who,@NewHold,#what=what);
+            }
+            
+            break;
+         }
+         iCount--;
+      }
+
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

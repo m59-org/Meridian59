@@ -1,0 +1,269 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+AdventurersLeagueSeer is LeagueTown
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   adventurers_league_seer_name_rsc = "The Seer"
+   adventurers_league_seer_icon_rsc = kcrjgirl.bgf
+   adventurers_league_seer_desc_rsc = \
+      "Nobody knows the Seer's real name. The only thing they know "
+      "about her is that she can see things others cannot. "
+      "From whence she hails, or what her agenda might be, "
+      "she has said little. "
+      "\n\nShe is willing to weave enchantments around you "
+      "for a small fee per spell. The power of her spells "
+      "is not on par with true masters, but she has the "
+      "unique ability to make her enchantments last far "
+      "longer than they would otherwise."
+
+classvars:
+
+   vrName = adventurers_league_seer_name_rsc
+   vrIcon = adventurers_league_seer_icon_rsc
+   vrDesc = adventurers_league_seer_desc_rsc
+   viAttributes = \
+      MOB_NOFIGHT | MOB_SELLER | MOB_BUYER | MOB_NOMOVE \
+      | MOB_RANDOM | MOB_LISTEN | MOB_COND_SELLER
+   viOccupation = MOB_ROLE_MERCHANT
+   viMerchant_markup = MERCHANT_RIPOFF
+
+properties:
+
+messages:
+
+   AffectMood(what=$,why=$)
+   {
+
+      return;
+   }
+
+   SetForSale()
+   {
+      plFor_sale = [
+         $,
+         $,
+         [
+          SID_BLESS,
+          SID_SUPER_STRENGTH,
+          SID_MAGIC_SHIELD,
+          SID_HASTE,
+          SID_FREE_ACTION,
+          SID_EAGLE_EYES,
+          SID_RESIST_POISON,
+          SID_NIGHT_VISION,
+          SID_RESIST_FIRE,
+          SID_RESIST_COLD,
+          SID_RESIST_SHOCK,
+          SID_RESIST_ACID
+         ],
+         $];
+
+      return;
+   }
+
+   Buy(what = $,item_list = $,number_list = $)
+   "Handle things having to do with mobs who have stuff to sell. "
+   "This is used for both teachers and sellers"
+   {
+      local i, j, bFound, oBuy, oMoney, iPrice, iPriceOne, lNumbers,
+            iAmount, oItemAtt, iCan_hold, oSplit, oSpell; 
+
+      % Ensure that buyer and seller are in the same room
+      if Send(what,@GetOwner) <> poOwner
+      {
+         Debug("ALERT! ",Send(what,@GetTrueName),what," tried to buy items "
+               "from ",Send(self,@GetTrueName)," while in distant RID ",
+               Send(Send(what,@GetOwner),@GetRoomNum));
+
+         return FALSE;
+      }
+
+      % The next line added to handle player specified amounts
+      lNumbers = number_list;
+
+      % Walk the objects the user selected as wanting to purchase from
+      % our Sale list
+      foreach i in item_list
+      {
+         % Find the dude's money.  Do this each time in case we exactly use it
+         % up.
+
+         % Get the amount of money for standard amount
+         oMoney = Send(what,@GetMoneyObject);
+
+         % Get the price for that amount
+         iPriceOne = Send(self,@GetPrice,#what=i,#who=what);
+
+         % Init iPrice to the cost of one item.
+         iPrice = iPriceOne;
+
+         % Does player have enough money to buy it?
+         if oMoney = $ OR Send(oMoney,@GetValue) < iPrice
+         {
+            Post(poOwner,@SomeoneSaid,#what=self,#string=vrMrcnt_too_costly,
+                  #type=SAY_RESOURCE,#parm1=Send(i,@GetDef),
+                  #parm2=Send(i,@GetName));
+
+            continue;
+         }
+
+         % Make sure the item is really for sale from this mob.
+         bFound = FALSE;
+         foreach j in Send(self,@GetForSale,#who=what)
+         {
+            if i = j
+            {
+               bFound = TRUE;
+            }
+         }
+
+         if NOT bFound
+         {
+            Post(poOwner,@SomeoneSaid,#what=self,
+                  #string=Lm_mrcnt_not_selling,#type=SAY_RESOURCE);
+
+            continue;
+         }
+
+         if IsClass(i,&Spell)
+         {
+            oSpell = Send(SYS,@FindSpellByNum,#num=Send(i,@GetSpellNum));
+            if oSpell <> $
+               AND NOT Send(what,@IsEnchanted,#what=oSpell)
+            {
+               Send(oSpell,@CastSpell,#who=self,#iSpellPower=Random(60,75),#lTargets=[what],#bSeer=1);
+               Send(oMoney,@SubtractNumber,#number=iPrice);
+            }
+         }
+      }
+
+      Send(self,@ItemBoughtHook,#buyer=what);
+
+      return;
+   }
+
+   GetForSale(who = $)
+   "Returns the list of objects the mob has for sale "
+   "(items, skills, spells, conditionals)"
+   {
+      local i,lForSale;
+    
+      if plFor_sale = $
+      {
+         return;
+      }
+
+      lForSale = $;
+
+      % first do conditional items
+      if Length(plFor_sale) = 4
+      {
+         foreach i in Nth(plFor_sale,4)
+         {
+            lForSale = cons(First(i),lForSale);
+         }
+      }
+
+      % now do spells
+      foreach i in Nth(plFor_sale,3)
+      {
+         lForSale = cons(Send(SYS,@FindSpellByNum,#num=i),lForSale);
+      }
+
+      % now do skills
+      foreach i in Nth(plFor_sale,2)
+      {
+         if Send(self,@CanAddSkill,#who=who,#num=i)
+            AND (Send(who,@GetSkillAbility,#skill_num=i) = 0)
+         {
+            lForSale = cons(Send(SYS,@FindSkillByNum,#num=i),lForSale);
+         }
+      }
+
+      % now do the items
+      foreach i in First(plFor_sale)
+      {
+         lForSale = cons(i,lForSale);
+      }
+
+      if lForSale=$ 
+      {
+         Send(poOwner,@SomeoneSaid,#what=self,#type=SAY_RESOURCE,
+               #string=vrNothing_for_sale);
+      }  
+
+      return lForSale;
+   }
+
+   ObjectDesired(what=$)
+   {
+
+      return FALSE;
+   }
+
+   InitCondSale()
+   {
+      return;
+   }
+
+   UserEntered(who=$)
+   {
+      propagate;
+   }
+   
+   GetPrice(what = $, who = $)
+   "Returns the value of an item, or the cost of a skill or spell"
+   "No markup for skills or spells"
+   {
+      local i, x, y;
+
+      if plFor_sale <> $ AND Length(plFor_sale) = 4
+      {
+         foreach i in Nth(plFor_sale,4)
+         {
+            if what=First(i)
+            {
+               return Nth(i,2);
+            }
+         }
+      }
+
+      if IsClass(what,&Item) 
+      {
+         x = Send(what,@GetInitValue) * (100 + 20*viMerchant_markup) / 100;
+         y = Send(Send(SYS,@GetParliament),@GetFactionPriceBonus,#who=who,
+                  #buying=TRUE);
+         return Bound(x*y/100, 1, $);
+      }
+
+      if IsClass(what,&Spell) OR IsClass(what,&Skill)
+      {
+         return Send(what,@GetValue)*3/4;
+      }
+
+      Debug("Strange item",what,":",Send(what,@GetName),"in GetPrice");
+
+      return 0;
+   }
+
+   SomeoneSaidLevel(what = $,type = $,string = $)
+   {
+      return FALSE;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+

@@ -20,7 +20,7 @@ resources:
    lightningprism_icon_rsc = lightningprismhuge.bgf
    default_lightningprism_desc_rsc = \
       "This raw pulsing sphere of energy appears kin to Meridian's mana nodes,"
-      " but there is clearly something otherworldly about it. It as if "
+      " but there is clearly something otherworldly about it. It is as if "
       "the pure concept of lightning has been made real in the physical "
       "plane. It is impossible to guess what might happen if you were to touch "
       "it."
@@ -64,6 +64,7 @@ messages:
          return TRUE;
       }
 
+      Send(who,@SetPrismDefeated,#num=NTH_LIGHTNING_PRISM,#value=1);
       Send(who,@MsgSendUser,#message_rsc=lightningprism_touched);   
       Post(Send(SYS,@FindRoomByNum,#num=RID_ELEMENTAL_DUNGEON2),
             @Teleport,#what=who);

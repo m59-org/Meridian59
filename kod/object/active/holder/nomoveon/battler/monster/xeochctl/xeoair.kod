@@ -48,6 +48,8 @@ resources:
 
    viTreasure_type = TID_XEO_AIR
 
+   viCanSpawnAsChampion = TRUE
+
 properties:
 
    piAnimation = ANIM_NONE
@@ -63,10 +65,17 @@ messages:
                         [-ATCK_SPELL_QUAKE, 100 ]
                       ];
 
+      plCreatureTypes = Cons(CREATURE_TYPE_SHOCK,plCreatureTypes);
+      plCreatureTypes = Cons(CREATURE_TYPE_AIR,plCreatureTypes);
+
       piColor_Translation = Send(SYS,@EncodeTwoColorXLAT,#color1=XLAT_TO_SKY);
 
-      plSpellBook = [ [SID_LIGHTNING,3,50], [SID_WINDS,5,60],
-                      [SID_LIGHTNINGWALL,10,70], [SID_FLASH,1,100] ];
+      plMeleeSpellBook = [ [ SID_SHOCKING_FURY, 3, 100, Random(70,99) ] ];
+
+      plRangedSpellBook = [ [SID_LIGHTNING_BOLT,3,50, Random(70,99) ],
+                            [SID_WINDS,5,60, Random(70,99) ],
+                            [SID_LIGHTNINGWALL,10,70, Random(70,99) ],
+                            [SID_FLASH,1,100, Random(70,99) ] ];
 
       propagate;
    }

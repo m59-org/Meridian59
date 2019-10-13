@@ -1,0 +1,127 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+MarkOfDefense is Spell
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   mark_of_defense_name_rsc = "mark of defense"
+   mark_of_defense_icon_rsc = armorico.bgf
+   mark_of_defense_desc_rsc = \
+      "Commands your minions to cast spells of assistance on "
+      "you. Studying "
+      "a creature's mystical abilities may reveal what magics "
+      "they can employ for allies. They must have "
+      "the proper line of sight, mana, and knowledge to aid you. "
+      "They may also resist spending their mana aiding you, "
+      "so more skilled bestiary mages will have more success "
+      "commanding their minions. "
+      "Requires two sapphires to cast."
+
+   mark_of_defense_cast = "%s%s makes a mystical sign of protection!"
+   
+   mark_of_defense_no_minions = \
+      "You have no minions to assist you!"
+
+   mark_of_defense_sound = kmbomb.wav
+
+classvars:
+
+   vrName = mark_of_defense_name_rsc
+   vrIcon = mark_of_defense_icon_rsc
+   vrDesc = mark_of_defense_desc_rsc
+
+   viSpell_num = SID_MARK_OF_DEFENSE
+   viMana = 15
+   viSchool = SS_BESTIARY
+   viSpell_level = 4
+
+   viHarmful = FALSE
+   viOutlaw = FALSE
+   viNoNewbieOffense = FALSE
+   viChance_To_Increase = 15
+   viMeditate_ratio = 30
+
+   vrSucceed_wav = mark_of_defense_sound
+   
+   vbSafetyReport = FALSE
+   
+   viPrimaryStat = STAT_ID_INTELLECT
+   viSecondaryStat = 0
+
+properties:
+
+messages:
+
+   ResetReagents()
+   {
+      plReagents = $;
+      plReagents = Cons([&Sapphire,2],plReagents);
+
+      return;
+   }
+
+   GetNumSpellTargets()
+   {
+      return 0;
+   }
+
+   CanPayCosts(who = $, lTargets = $)
+   {
+      local lMinions, i;
+
+      lMinions = Send(who,@GetControlledMinions);
+      
+      if lMinions = $
+      {
+         Send(who,@MsgSendUser,#message_rsc=mark_of_defense_no_minions);
+         return FALSE;
+      }
+
+      propagate;
+   }
+
+   CastSpell(who = $, lTargets = $, iSpellpower = 0)
+   {
+      local oRoom, iHealth, i, lMinions;
+
+      lMinions = Send(who,@GetControlledMinions);
+      
+      if lMinions = $
+      {
+         Send(who,@MsgSendUser,#message_rsc=mark_of_defense_no_minions);
+         propagate;
+      }
+
+      foreach i in lMinions
+      {
+         if Send(i,@GetAllySpellBook) <> $
+         {
+            if Random(1,99) <= iSpellpower
+            {
+               Post(i,@AttemptSpell,#type=CAST_TYPE_ALLY);
+            }
+         }
+      }
+
+      % Send message to all in room.
+      oRoom = Send(who,@GetOwner);
+      Send(oRoom,@SomeoneSaid,#type=SAY_MESSAGE,#string=mark_of_defense_cast,
+           #what=who,#parm1=Send(who,@GetCapDef),#parm2=Send(who,@GetName));
+
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

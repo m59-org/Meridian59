@@ -29,6 +29,9 @@ resources:
    deadbody_assassinated_rsc = \
       "Here lies %q, slain by an unknown assassin."
 
+   corpse_looting_max_reached = \
+      "The maximum looting of singular items has been reached for this corpse."   
+   
 classvars:
 
    vrDesc = deadbody_desc_rsc
@@ -71,6 +74,8 @@ properties:
    
    ptSummonDelayTimer = $
    piSummonable = FALSE
+   
+   piNumSingularItemsTaken = 0
 
 messages:
 
@@ -125,8 +130,11 @@ messages:
       % only the killer can pick up things for the first 25 seconds.
       ptNoSteal = CreateTimer(self,@NoStealTimer,25000);
       
-      % corpse cannot be summoned for 3 minutes
-      ptSummonDelayTimer = CreateTimer(self,@SummonDelayTimer,60000 * 3);
+      if NOT pbMob
+      {
+         % corpse cannot be summoned for 3 minutes
+         ptSummonDelayTimer = CreateTimer(self,@SummonDelayTimer,60000 * 3);
+      }
 
       propagate;
    }
@@ -148,6 +156,11 @@ messages:
       }
 
       return 0;
+   }
+
+   GetPbMob()
+   {
+      return pbMob;
    }
 
    GetSummonable()
@@ -187,9 +200,9 @@ messages:
       local i;
       
       if poDearlyDeparted <> $
-         AND Send(poDearlyDeparted,@GetCorpse) = self
       {
-         Send(poDearlyDeparted,@SetCorpse);
+         Send(poDearlyDeparted,@RemoveCorpse,#corpse=self);
+         poDearlyDeparted = $;
       }
 
       if ptDelete <> $
@@ -412,8 +425,21 @@ messages:
       }
 
       if taker = poDearlyDeparted
+         OR (Send(poDearlyDeparted,@GetGuild) <> $
+            AND Send(poDearlyDeparted,@GetGuild) = Send(taker,@GetGuild))
       {
          return TRUE;
+      }
+
+      if taker <> $
+         AND IsClass(taker,&Player)
+         AND NOT IsClass(what,&NumberItem)
+      {
+         if piNumSingularItemsTaken >= Send(SETTINGS_OBJECT,@GetSingularItemsLootMax)
+         {
+            Send(taker,@MsgSendUser,#message_rsc=corpse_looting_max_reached);
+            return FALSE;
+         }
       }
 
       if poPlayerKiller <> $
@@ -423,6 +449,12 @@ messages:
       }
 
       return TRUE;
+   }
+   
+   TookASingularItem()
+   {
+      piNumSingularItemsTaken++;
+      return;
    }
 
    ReqNewHold(what = $, who = $)
@@ -483,6 +515,11 @@ messages:
    }
    
    ChangeBulkAndWeight()
+   {
+      return;
+   }
+
+   SetPlayerLegs()
    {
       return;
    }

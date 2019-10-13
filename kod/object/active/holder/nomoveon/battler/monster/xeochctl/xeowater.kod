@@ -48,12 +48,16 @@ resources:
 
    viTreasure_type = TID_XEO_WATER
 
+   viCanSpawnAsChampion = TRUE
+
 properties:
 
    piAnimation = ANIM_NONE
 
    % percent of victim's max mana it will try to drain, double normal rate.
    piDrainAmount = 10
+   piMeleeSpellChance = 15
+   piRangedSpellChance = 5
 
 messages:
 
@@ -67,8 +71,22 @@ messages:
 
       piColor_Translation = Send(SYS,@EncodeTwoColorXLAT,#color1=XLAT_TO_BLUE);
 
-      plSpellBook = [ [SID_ICE_NOVA,5,30], [SID_HOLD,5,60],
-                      [SID_BRITTLE,10,100] ];
+      plMeleeSpellBook =  [ [SID_ICE_NOVA,5,30, Random(70,99) ],
+                            [SID_EXPLOSIVE_FROST,3,100, Random(70,99) ]];
+      plRangedSpellBook = [ [SID_HOLD,5,100, Random(70,99) ]];
+
+      propagate;
+   }
+
+   IsAlly(target = $, regroup = FALSE)
+   {
+      if IsClass(target,&XeoBossWater)
+         OR IsClass(target,&XeoWater)
+         OR IsClass(target,&IceElemental)
+         OR IsClass(target,&IceElementalChampion)
+      {
+         return TRUE;
+      }
 
       propagate;
    }

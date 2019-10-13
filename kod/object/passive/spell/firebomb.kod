@@ -1,0 +1,106 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+FireBomb is Spell
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   Fire_Bomb_name_rsc = "fire bomb"
+   Fire_Bomb_icon_rsc = iflash.bgf
+   Fire_Bomb_desc_rsc = \
+      "Silently lays a prepared bag of magically-enhanced explosive powder. "
+      "The first and most common of an alchemist's weapons is fire, "
+      "and the basic fire bomb will certainly deliver that. "
+      "When laid, it is harmless until stepped on or until the alchemist casts 'detonate bombs.' "
+      "Once that is done, the triggered explosion will cause everything "
+      "nearby to burn, including patches of ground. Monsters will take the full damage of the flames, "
+      "but alchemists should be aware that other adventurers "
+      "can only be afflicted with a certain amount of burning at once."
+      "\n\nThe bag and the elements for the bomb are transmuted "
+      "directly from gold, so only shillings are required."
+      "\n\nOnly a certain number of bombs can be magically controlled "
+      "at once. Any above this limit are designed to harmlessly defuse, "
+      "so that no innocents wander past and get harmed."
+
+   Fire_Bomb_sound = rflash.wav
+
+classvars:
+
+   vrSucceed_wav = Fire_Bomb_sound
+
+   vrName = Fire_Bomb_name_rsc
+   vrIcon = Fire_Bomb_icon_rsc
+   vrDesc = Fire_Bomb_desc_rsc
+
+   viSpell_num = SID_CREATE_FIRE_BOMB
+   viSchool = SKS_ALCHEMY
+   viSpell_level = 3
+   viMana = 7
+   viSpellExertion = 1
+   viChance_To_Increase = 15
+   viMeditate_ratio = 20
+
+   viOutlaw = FALSE
+   viHarmful = FALSE
+   viNoNewbieOffense = FALSE
+   
+   vbSafetyReport = FALSE
+   
+   viPrimaryStat = STAT_ID_INTELLECT
+   viSecondaryStat = 0
+
+properties:
+
+messages:
+
+   ResetReagents()
+   {
+      plReagents = $;
+      plReagents = Cons([&Money,800],plReagents);
+
+      return;
+   }
+
+   GetNumSpellTargets()
+   {
+      return 0;
+   }
+
+   CastSpell(who=$, lTargets = $, iSpellPower=0)
+   {
+      local oBomb, oRoom;
+      
+      oRoom = Send(who,@GetOwner);
+      if oRoom <> $
+         AND IsClass(oRoom,&Room)
+      {
+         oBomb = Create(&AlchemyBomb,#oCreator=who,#iType=BOMB_FIRE,#bProximityTrigger=TRUE,#iBombPower=iSpellPower);
+         Send(who,@AddBomb,#oBomb=oBomb);
+         Send(oRoom,@NewHold,#what=oBomb,
+                             #new_row=Send(who,@GetRow),
+                             #new_col=Send(who,@GetCol),
+                             #fine_row=Send(who,@GetFineRow),
+                             #fine_col=Send(who,@GetFineCol));
+      }
+
+      propagate;
+   }
+
+   PlaySpellSound()
+   {
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

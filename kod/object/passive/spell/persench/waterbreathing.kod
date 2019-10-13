@@ -1,0 +1,122 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+WaterBreathing is PersonalEnchantment
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   WaterBreathing_name_rsc = "water breathing"
+   WaterBreathing_icon_rsc = ifreeact.bgf
+   WaterBreathing_desc_rsc = \
+      "Knowledge of the many varieties of plant and animal respiration "
+      "has allowed you to craft magic mimicking those abilities. "
+      "Your water breathing enchantment will allow you to last underwater "
+      "for a great deal longer."
+      "\n\nRequires red and purple mushrooms to cast."
+
+   WaterBreathing_enchantment_rsc = \
+      "\n\nYour current %s enchantment will extend your time in places without air "
+      "by a multiplier of %i."
+   WaterBreathing_on_rsc = \
+      "You feel your blood begin working more efficiently."
+   WaterBreathing_off_rsc= "Your breathing returns to normal."
+   WaterBreathing_already_enchanted_rsc = "You already have water breathing."
+   WaterBreathing_succeed_rsc = "You grant water breathing to %s%s."
+
+   WaterBreathing_sound = kfreeact.wav
+
+classvars:
+
+   vrName = WaterBreathing_name_rsc
+   vrIcon = WaterBreathing_icon_rsc
+   vrDesc = WaterBreathing_desc_rsc
+   vrSucceed_wav = WaterBreathing_sound
+
+   vrAlreadyEnchanted = WaterBreathing_already_enchanted_rsc
+   vrEnchantment_On = WaterBreathing_On_rsc
+   vrEnchantment_Off = WaterBreathing_Off_rsc
+   vrSucceed = WaterBreathing_succeed_rsc
+
+   viSpell_num = SID_WATER_BREATHING
+   viSchool = SS_BESTIARY
+   viSpell_level = 3
+   viMana = 10
+   viSpellExertion = 3
+
+   viChance_To_Increase = 15
+   viMeditate_ratio = 30
+
+   viPercentManaReserved = 15
+   
+   viPrimaryStat = STAT_ID_STAMINA
+   viSecondaryStat = 0
+
+properties:
+
+   viPurgeFactor = 5
+
+messages:
+
+   ResetReagents()
+   {
+      plReagents = $;
+      plReagents = Cons([&RedMushroom,1],plReagents);
+      plReagents = Cons([&PurpleMushroom,1],plReagents);
+
+      return;
+   }
+
+   GetStateValue(iSpellpower=$)
+   {
+      local iFactor;
+
+      iFactor = Bound((iSpellPower+1) * 10,1,1000);
+
+      return iFactor;
+   }
+
+   GetDuration(iSpellpower=0)
+   {
+      local iDuration;
+
+      iDuration = 180 + (12 * iSpellPower);
+      iDuration = iDuration * 1000;
+
+      return iDuration;
+   }
+
+   ModifyBreathLoss(who=$,iBreathLoss=0,iSpellPower=0)
+   {
+      return Bound(iBreathLoss - ((iBreathLoss * iSpellPower)/132),0,1000);
+   }
+
+   OfferToNewCharacters()
+   {
+      return FALSE;
+   }
+
+   EffectDesc(who=$)
+   {
+      local iState;
+
+      iState = Send(who,@GetEnchantedState,#what=self);
+
+      AddPacket(4,WaterBreathing_enchantment_rsc, 4,Send(self,@GetName),
+                4,iState / 100);
+
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

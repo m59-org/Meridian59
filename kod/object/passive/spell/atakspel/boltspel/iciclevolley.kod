@@ -1,0 +1,99 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+IcicleVolley is BoltSpell
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   IcicleVolley_name_rsc = "icicle volley"
+
+   IcicleVolley_icon_rsc = iexfrost.bgf
+
+   IcicleVolley_desc_rsc = \
+      "Sends a shard of elemental ice soaring at an enemy."
+
+   IcicleVolley_sound = ficefing.wav
+
+   IcicleVolley_projectile_icon_rsc = explosivefrostproj.bgf
+
+classvars:
+
+   vrName = IcicleVolley_name_rsc
+   vrIcon = IcicleVolley_icon_rsc
+   vrDesc = IcicleVolley_desc_rsc
+   
+   viSpell_num = SID_ICICLE_VOLLEY
+
+   viAttack_type = ATCK_WEAP_PIERCE
+   viAttack_spell = ATCK_SPELL_ALL + ATCK_SPELL_COLD
+
+   viSchool = SS_FAREN
+   viSpell_level = 5
+   viMana = 22
+
+   vrSucceed_wav = IcicleVolley_sound
+
+   % In seconds, since it works off GetTime().
+   viPostCast_time = 1
+
+   viChance_To_Increase = 15
+
+   vrProjectile_Icon = IcicleVolley_projectile_icon_rsc
+
+   vbIsRangedAttack = TRUE
+
+   % Projectile lighting information.
+   viProjectileLightFlags = LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC
+   % Medium light range, out of 255.
+   viProjectileLightIntensity = 100
+   viProjectileLightColor = LIGHT_BBLUE
+   
+   viProjectileSpeed = 15
+
+properties:
+
+   piDamageMin = 13
+   piDamageMax = 25
+
+   % Maximum amount of bonus damage mana focus gives us for casting this spell.
+   piManaFocusBonus = 5
+
+messages:
+
+   ResetReagents()
+   {
+      % separate message so can change, then set from admin mode
+
+      plReagents = $;
+
+      return;
+   }
+
+   SendLookAnimation()
+   {
+      AddPacket(1,ANIMATE_NONE, 2,2);
+
+      return;
+   }
+
+   SendProjectileAnimation()
+   {
+      % 40ms between animations, between frames 1-2
+      AddPacket(1,ANIMATE_CYCLE, 4,40, 2,1, 2,2);   
+
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

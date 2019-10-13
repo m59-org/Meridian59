@@ -1,0 +1,131 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+BanditryCrest is Crest
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   Banditry_Crest_name_rsc = "Crest of the Bandit"
+   Banditry_Crest_icon_rsc = qrcharm.bgf
+   Banditry_Crest_desc_rsc = \
+      "You are the wisest Banditry user in Meridian. "
+      "This crest signifies that you are the master of Banditry. "
+      "While wearing it, your defense will be boosted, "
+      "and your tumbling ability will be doubled."
+
+   Banditry_Crest_equipped = \
+      "Strength flows through you, increasing your defense "
+      "and doubling your tumbling ability."
+   Banditry_Crest_unequipped = \
+      "The strength granted by the Crest of the Bandit leaves you."
+
+classvars:
+
+   vrName = Banditry_Crest_name_rsc
+   vrIcon = Banditry_Crest_icon_rsc
+   vrDesc = Banditry_Crest_desc_rsc
+
+   viValue_average = 10
+
+   viBulk = 25
+   viWeight = 25
+
+   viGround_group = 2
+
+   viOffenseBonus = 0
+   viDefenseBonus = 200
+
+properties:
+   
+   pbIn_use = False
+
+   piItemLevel = 300
+
+messages:
+
+   NewUsed(what = $)
+   {
+      if IsClass(what,&User)
+      {
+         Send(what,@MsgSendUser,#message_rsc=Banditry_Crest_equipped);
+      }
+      
+      propagate;
+   }
+
+   NewUnused(what = $)
+   {
+      if IsClass(what,&User)
+      {
+         Send(what,@MsgSendUser,#message_rsc=Banditry_Crest_unequipped);
+      }
+
+      propagate;
+   }
+
+   ModifyHitRoll(who = $,what = $,hit_roll = $)
+   {
+      local i, oOffenseMod;
+
+      foreach i in plEnchantmentMods
+      {
+         if Nth(i,1) = &OffenseMod
+         {
+            oOffenseMod = Send(SYS,@GetMagicMod,#class=&OffenseMod);
+            hit_roll = Send(oOffenseMod,@ModifyHitRoll,#who=who,#what=what,
+                        #hit_roll=hit_roll,#iState=Nth(i,2));
+         }
+      }
+
+      return hit_roll + viOffenseBonus;
+   }
+
+   ModifyDefensePower(defense_power=$)
+   {
+      local i, oDefenseMod;
+
+      foreach i in plEnchantmentMods
+      {
+         if Nth(i,1) = &DefenseMod
+         {
+            oDefenseMod = Send(SYS,@GetMagicMod,#class=&DefenseMod);
+            defense_power = Send(oDefenseMod,@ModifyDefensePower,
+                        #defense_power=defense_power,#iState=Nth(i,2));
+         }
+      }
+
+      return defense_power + viDefenseBonus;
+   }
+
+   GetDefenseBonus()
+   {
+      local i, sum;
+      sum = 0;
+
+      foreach i in plEnchantmentMods
+      {
+         if Nth(i,1) = &DefenseMod
+         {
+            sum = sum + Nth(i,2);
+         }
+      }
+      
+      return sum + viDefenseBonus;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+

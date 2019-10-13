@@ -1,0 +1,79 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+NomadLeader is NomadBandit
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   NomadLeader_name_rsc = "nomad leader"
+   NomadLeader_desc_rsc = \
+      "This is the leader of a local tribe."
+   NomadLeader_dead_name_rsc = "dead nomad leader"
+   
+   NomadLeader_open_chest = \
+      "The ornate chest pops open as the leader that sealed it dies!"
+
+classvars:
+
+   vrName = NomadLeader_name_rsc
+   vrDesc = NomadLeader_desc_rsc
+   vrDead_name = NomadLeader_dead_name_rsc
+
+properties:
+
+   piBaseLevel = 200
+   piBaseDifficulty = 9
+
+   viLevel = 200         % piBaseLevel
+   viDifficulty = 9     % piBaseDifficulty
+
+messages:
+
+   SetEquipment()
+   {
+      local oEquipmentItem;
+
+      oEquipmentItem = Create(&LongBow,#level=viLevel);
+      poArrow = Create(&NeruditeArrow);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      Send(self,@SetDemonSponsorEquipment);
+      Send(self,@SetPhaseEquipment);
+
+      return;
+   }
+
+   Killed()
+   {
+      local i;
+      
+      if poOwner <> $
+      {
+         foreach i in Send(poOwner,@GetHolderActive)
+         {
+            if IsClass(First(i),&NomadChest)
+            {
+               Send(First(i),@LockChest,#bLocked=FALSE);
+            }
+            else if IsClass(First(i),&Player)
+            {
+               Send(First(i),@MsgSendUser,#message_rsc=NomadLeader_open_chest);
+            }
+         }
+      }
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

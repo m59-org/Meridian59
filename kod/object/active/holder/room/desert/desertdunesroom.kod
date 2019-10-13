@@ -1,0 +1,1032 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+DesertDunesRoom is DesertRoom
+
+% Players enter a dunes area to find random encounters.
+% The area is instanced, but 'real', i.e. as long as you're there,
+% other players can enter the same area.
+% Once you leave, it will change.
+
+constants:
+
+   include blakston.khd
+   
+   ALTAR_SECTOR_ID = 150
+   ALTAR_PRAYER_ACTIVATE = 151
+
+resources:
+
+   DesertDunesRoom_name = "Desolate Dunes"
+   
+   prDunesNoTomb = desertdunes.roo
+   prDunesTomb1 = deserttomb1.roo
+   prDunesTomb2 = deserttomb2.roo
+   prDunesTomb3 = deserttomb3.roo
+   prDunesOasis = desertdunesoasis.roo
+   prDunesAltar1 = desertdunesaltar1.roo
+   prDunesAltar2 = desertdunesaltar2.roo
+   prDunesZiggurat = desertdunesziggurat.roo
+
+   cannot_fight_oasis_msg = \
+      "The fragment of a once mighty Equalization Obelisk still has enough residual power "
+      "to reach out and nullify your attack. For what centuries it has left, "
+      "this is a place of peace."
+
+   stable_calm_entrance_msg = \
+      "A fragment of an ancient and powerful Obelisk lies here, preventing combat and "
+      "resisting the elements with its residual power. Thanks to its magic, the water in "
+      "this rare oasis looks clean and invigorating."
+
+   ancient_sorrow_msg = \
+      "An air of ancient sorrow hangs over this place. For a moment, you see spectral silhouettes "
+      "of children splashing about, mothers gathering water for a summer day, and travelers stopping "
+      "to refresh themselves. The images fade into memory and dream a heartbeat later, leaving only "
+      "silence."
+
+   get_closer_water_oasis = \
+      "The water here is still tainted, but the water closer to the Obelisk looks healthier."
+   oasis_drink = "You drink from the life-giving waters and feel refreshed!"
+   oasis_drink_sound = drink.wav
+
+   altar_approach_msg = \
+      "The sands have ground away all symbols and glyphs from this timeworn altar. Echoes of magic "
+      "still remain, but it is impossible to determine which god or demon might respond to "
+      "your prayer. Approaching and touching it may bring either a dire curse or great aid."
+
+   altar_blessing_shillings = \
+      "Xaerdun, Demon of Greed responds to your prayer with a bit of capital to get you going. "
+      "Don't worry, you'll pay it back later in other ways. You feel richer!"
+   altar_blessing_experience = \
+      "An elder entity responds to your prayer. You feel wiser!"
+   altar_blessing_training_points = \
+      "A skilled entity responds to your prayer. You feel more capable!"
+
+   altar_curse_death = \
+      "Raumlar, Demon of Sadism hears your prayer and grins."
+   altar_curse_lose_experience = \
+      "The patron demon of leeches drains you. You feel less wise."
+   altar_curse_lose_training_points = \
+      "Elemental energies burn your recent memories! You feel less capable."
+   altar_curse_lose_food = \
+      "Phantoms assault you, stealing your food!"
+
+   ancient_ziggurat_approach_msg = \
+      "Buried by time and sand alike, the top of this ancient broken ziggurat "
+      "still towers above the dunes. Curiously, there are no signs of nomad passage here, "
+      "as if they purposely avoid this place..." 
+   enter_ziggurat_msg = \
+      "You slide the sand-laden door aside and enter the underhalls of the ancient ziggurat."
+
+classvars:
+
+   vrName = DesertDunesRoom_name
+   viTeleport_row = 60
+   viTeleport_col = 102
+
+   viOasisTeleportGoingEast_row = 60
+   viOasisTeleportGoingEast_col = 35
+   viOasisTeleportGoingWest_row = 58
+   viOasisTeleportGoingWest_col = 171
+
+   viAltar1StatueRow = 67
+   viAltar1StatueCol = 147
+   viAltar1StatueFineRow = 36
+   viAltar1StatueFineCol = 23
+   viAltar1StatueAngle = ANGLE_SOUTH
+   
+   viZigguratSpecialEntrance_row = 60
+   viZigguratSpecialEntrance_col_going_east = 32
+   viZigguratSpecialEntrance_col_going_west = 171
+
+   vbSpawnMonsters = TRUE
+
+   % Vigor oasis
+   viFilling = 20  
+   viNutrition = 40
+
+properties:
+
+   piBaseLight = LIGHT_DARK
+   piOutside_factor = OUTDOORS_5 
+
+   piDirectional_percent = DIRECTIONAL_PERCENT_OUTDOORS
+
+   prRoom = $
+   piRoom_num = $
+   
+   piConfiguration = 0
+
+   % Used for one-time messages
+   pbInformed = FALSE
+   % Used for one-time activations
+   pbTriggered = FALSE
+
+messages:
+
+   Constructor(iRID=RID_DYNAMIC_DESERT_DUNES1)
+   {
+      local iRandomizedEncounter;
+      piRoom_num = iRID;
+
+      % Default.
+      prRoom = prDunesNoTomb;
+      iRandomizedEncounter = Random(1,Send(Send(SYS,@GetDesertRoomMaintenance),@GetEncountersSpawnOutOf));
+      switch(iRandomizedEncounter)
+      {
+         case 1:
+            prRoom = prDunesTomb1;
+            piConfiguration = 1;
+            break;
+         case 2:
+            prRoom = prDunesTomb2;
+            piConfiguration = 2;
+            break;
+         case 3:
+            prRoom = prDunesTomb3;
+            piConfiguration = 3;
+            break;
+         case 4:
+            if Send(Send(SYS,@GetDesertRoomMaintenance),@GetOasis) = $
+            {
+               % Only one oasis can exist at a time to prevent players from rendering everything safe
+               prRoom = prDunesOasis;
+               piConfiguration = 4;
+               Post(self,@CreateOasisLights);
+               Send(self,@PostSetRoomFlags);
+            }
+            break;
+         case 5:
+            prRoom = prDunesAltar1;
+            piConfiguration = 5;
+            break;
+         case 6:
+            prRoom = prDunesAltar2;
+            piConfiguration = 6;
+            break;
+%         case 7:
+%            if Send(Send(SYS,@GetDesertRoomMaintenance),@GetZiggurat) = $
+%            {
+%               % Only one ziggurat can exist at a time
+%               prRoom = prDunesZiggurat;
+%               piConfiguration = 7;
+%            }
+            break;
+      }
+      
+      Send(self,@RecalcLightAndWeather);
+
+      propagate;
+   }
+
+   PostSetRoomFlags()
+   {
+      if piConfiguration = 4
+      {
+         Post(self,@SetRoomFlag,#flag=ROOM_NO_COMBAT,#value=TRUE);
+      }
+
+      return;
+   }
+
+   ReqSomethingAttack(what=$)
+   {
+      % No combat at oasis.
+      if piConfiguration = 4
+      {
+         if what <> $
+            AND IsClass(what,&Player)
+         {
+            Send(what,@MsgSendUser,#message_rsc=cannot_fight_oasis_msg);
+         }
+
+         return FALSE;
+      }
+
+      propagate;
+   }
+
+   PopulateArea()
+   {
+      local bSpawnNomads, iBandRow, iBandCol, iDemonSponsor, oNomad, iRandomBandits,
+            bSpawnCelegorm, i, bHasCelegorm, bHasIwodach;
+
+      bSpawnCelegorm = FALSE;            
+      if piConfiguration <> 7
+         AND Random(1,Send(Send(SYS,@GetDesertRoomMaintenance),@GetCelegormSpawnOutOf)) = 1
+      {
+         bSpawnCelegorm = TRUE;
+      }
+
+      if bSpawnCelegorm
+      {
+         bHasCelegorm = FALSE;
+         foreach i in Send(self,@GetHolderActive)
+         {
+            if IsClass(First(i),&DesertThief)
+            {
+               bHasCelegorm = TRUE;
+            }
+         }
+         if NOT bHasCelegorm
+         {
+            Post(self,@NewHold,#what=Create(&DesertThief),#new_row=Random(10,Send(self,@GetRoomRows)-10),#new_col=Random(10,Send(self,@GetRoomCols)-10));
+         }
+      }
+
+      % No monsters at oasis.
+      if piConfiguration = 4
+      {
+         bHasIwodach = FALSE;
+         foreach i in Send(self,@GetHolderActive)
+         {
+            if IsClass(First(i),&IwodachPriest)
+            {
+               bHasIwodach = TRUE;
+            }
+         }
+         
+         if NOT bHasIwodach
+         {
+            Post(self,@NewHold,#what=Create(&IwodachPriest),#new_row=54,#new_col=94,#fine_row=32,#fine_col=54);
+         }
+         return;
+      }
+      
+      % Nomad bands can spawn here.
+      bSpawnNomads = FALSE;
+      if piConfiguration <> 7
+         AND Random(1,Send(Send(SYS,@GetDesertRoomMaintenance),@GetNomadsSpawnOutOf)) = 1
+      {
+         bSpawnNomads = TRUE;
+      }
+      
+      if bSpawnNomads
+      {
+         iBandRow = Random(10,Send(self,@GetRoomRows)-10);
+         iBandCol = Random(10,Send(self,@GetRoomCols)-10);
+         
+         iDemonSponsor = Random(1,100);
+         if iDemonSponsor <= 25
+         {
+            iDemonSponsor = SSS_WITCHERY_VENTDAL;
+         }
+         else if iDemonSponsor <= 50
+         {
+            iDemonSponsor = SSS_WITCHERY_XAERDUN;
+         }
+         else if iDemonSponsor <= 75
+         {
+            iDemonSponsor = SSS_WITCHERY_NEQUZON;
+         }
+         else if iDemonSponsor <= 95
+         {
+            iDemonSponsor = SSS_WITCHERY_IWODACH;
+         }
+         else if iDemonSponsor <= 100
+         {
+            iDemonSponsor = SSS_WITCHERY_RAUMLAR;
+         }
+
+         % One leader.
+         oNomad = Create(&NomadLeader,#iDemonSponsor=iDemonSponsor,#piSurvivalLevel=Send(Send(SYS,@GetDesertRoomMaintenance),@GetBoostDesertLevel));
+         Post(self,@NewHold,#what=oNomad,#new_row=iBandRow,#new_col=iBandCol);
+         
+         % Leader's box.
+         oNomad = Create(&NomadChest,#bLocked=TRUE);
+         Post(self,@NewHold,#what=oNomad,#new_row=iBandRow-1,#new_col=iBandCol);
+         Post(self,@FillOrnateChest,#bandchest=oNomad,#iDemonSponsor=iDemonSponsor);
+         
+         % Leader's fire.
+         if Send(SYS,@GetDayPhase) = DAY_PHASE_NIGHT
+         {
+            Post(self,@NewHold,#what=Create(&Firepit,#iSoundRadius=0),
+                  #new_row=iBandRow-1,#new_col=iBandCol-1);
+         }
+
+         % Two mages.
+         oNomad = Create(&NomadMage,#iDemonSponsor=iDemonSponsor,#piSurvivalLevel=Send(Send(SYS,@GetDesertRoomMaintenance),@GetBoostDesertLevel));
+         Post(self,@NewHold,#what=oNomad,#new_row=iBandRow + Random(-2,2),#new_col=iBandCol + Random(-2,2));
+         oNomad = Create(&NomadMage,#iDemonSponsor=iDemonSponsor,#piSurvivalLevel=Send(Send(SYS,@GetDesertRoomMaintenance),@GetBoostDesertLevel));
+         Post(self,@NewHold,#what=oNomad,#new_row=iBandRow + Random(-2,2),#new_col=iBandCol + Random(-2,2));
+         
+         iRandomBandits = Random(3,7);
+         while iRandomBandits > 0
+         {
+            oNomad = Create(&NomadBandit,#iDemonSponsor=iDemonSponsor,#piSurvivalLevel=Send(Send(SYS,@GetDesertRoomMaintenance),@GetBoostDesertLevel));
+            Post(self,@NewHold,#what=oNomad,#new_row=iBandRow + Random(-8,8),#new_col=iBandCol + Random(-8,8));
+            --iRandomBandits;
+         }
+      }
+
+      propagate;
+   }
+
+   FillOrnateChest(bandchest=$,iDemonSponsor=SSS_WITCHERY_XAERDUN)
+   {
+      local lLootClasses, lMinorLootClasses;
+      if bandchest <> $
+      {
+         switch(iDemonSponsor)
+         {
+            case SSS_WITCHERY_XAERDUN:
+               lLootClasses = [&GoldShield,
+                               &ChainArmor,
+                               &LeatherArmor,
+                               &ScaleArmor];
+               break;
+            case SSS_WITCHERY_VENTDAL:
+               lLootClasses = [&DiscipleRobe,
+                               &Gauntlet,
+                               &UnholyRing,
+                               &HolyRing];
+               break;
+            case SSS_WITCHERY_NEQUZON:
+               lLootClasses = [&AcidRing,
+                               &ColdRing,
+                               &ShockRing,
+                               &FireRing];
+               break;
+            case SSS_WITCHERY_IWODACH:
+               lLootClasses = [&RingDefense,
+                               &Dagger,
+                               &Scimitar,
+                               &MysticSword,
+                               &Glove];
+               break;
+            case SSS_WITCHERY_RAUMLAR:
+               lLootClasses = [&NeruditeArmor,
+                               &Tanktop,
+                               &PantsD,
+                               &JalaNecklace,
+                               &BeerMug];
+         }
+         Send(bandchest,@NewHold,#what=Create(Nth(lLootClasses,Random(1,Length(lLootClasses))),#level=210));
+      }
+      
+      Send(bandchest,@NewHold,#what=Create(&Money,#number=Random(10000,50000)));
+
+      lMinorLootClasses = [&SimpleHelm,
+                           &Robe,
+                           &Longbow];
+      return;
+   }
+
+   Delete()
+   {
+      local i, oPlayer;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&LogoffGhost)
+         {
+            Send(Send(First(i),@GetGhostedPlayer),@AdminGoToDesertShore2WhileOffline);
+            Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTSHORE2),@Teleport,#what=First(i));
+         }
+      }
+      
+      Send(Send(SYS,@GetDesertRoomMaintenance),@RoomDeleted,#what=self);
+
+      propagate;
+   }
+
+   LastUserLeft()
+   {
+      Post(self,@Delete);
+
+      propagate;
+   }
+
+   SomethingMoved(what = $,new_row = $, new_col = $)
+   {
+      local iSectorID;
+
+      if IsClass(what,&Player)
+      {
+         if new_col > (Send(self,@GetRoomCols)-2)
+         {
+            Send(Send(SYS,@GetDesertRoomMaintenance),@Walk,#direction=ANGLE_EAST,#where=self,#what=what);
+            return;
+         }
+
+         if new_col < 2
+         {
+            Send(Send(SYS,@GetDesertRoomMaintenance),@Walk,#direction=ANGLE_WEST,#where=self,#what=what);
+            return;
+         }
+
+         if new_row < 2
+         {
+            Send(Send(SYS,@GetDesertRoomMaintenance),@Walk,#direction=ANGLE_NORTH,#where=self,#what=what);
+            return;
+         }
+
+         if new_row > (Send(self,@GetRoomRows)-2)
+         {
+            Send(Send(SYS,@GetDesertRoomMaintenance),@Walk,#direction=ANGLE_SOUTH,#where=self,#what=what);
+            return;
+         }
+
+         if piConfiguration = 5
+            OR piConfiguration = 6
+         {
+            if NOT pbInformed
+               OR NOT pbTriggered
+            {
+               iSectorID = Send(self,@GetSectorID,#who=what,
+                                       #iRow=Send(what,@GetRow),
+                                       #iCol=Send(what,@GetCol),
+                                       #iFineRow=Send(what,@GetFineRow),
+                                       #iFineCol=Send(what,@GetFineCol));
+                                       
+               if iSectorID = ALTAR_SECTOR_ID
+                  AND NOT pbInformed
+               {
+                  pbInformed = TRUE;
+                  Send(what,@MsgSendUser,#message_rsc=altar_approach_msg);
+                  propagate;
+               }
+               if iSectorID = ALTAR_PRAYER_ACTIVATE
+                  AND NOT pbTriggered
+               {
+                  pbTriggered = TRUE;
+                  Send(self,@ActivateAltar,#who=what);
+                  propagate;
+               }
+            }
+         }
+      }
+
+      propagate;
+   }
+
+   SomethingTryGo(what = $,row = $,col = $)
+   {
+      if piConfiguration = 1
+      {
+         if row = 37 
+            OR row = 36
+         {
+            if col = 121
+               OR col = 122
+            {
+               Send(what,@MsgSendUser,#message_rsc=enter_tomb_msg);
+               Send(Send(SYS,@GetDesertRoomMaintenance),@CreateAncientTomb,#who=what);
+            }
+
+            return TRUE;
+         }
+      }
+      if piConfiguration = 2
+      {
+         if row = 98
+         {
+            if col = 62
+               OR col = 63
+            {
+               Send(what,@MsgSendUser,#message_rsc=enter_tomb_msg);
+               Send(Send(SYS,@GetDesertRoomMaintenance),@CreateAncientTomb,#who=what);
+            }
+
+            return TRUE;
+         }
+      }
+      if piConfiguration = 3
+      {
+         if row = 13
+            OR row = 12
+         {
+            if col = 49
+               OR col = 48
+            {
+               Send(what,@MsgSendUser,#message_rsc=enter_tomb_msg);
+               Send(Send(SYS,@GetDesertRoomMaintenance),@CreateAncientTomb,#who=what);
+            }
+
+            return TRUE;
+         }
+      }
+      if piConfiguration = 4
+      {
+         if IsClass(what,&User)
+            AND Send(what,@GetHeightAtObject) = -38
+            AND Send(self,@UserDrink,#who=what)
+         {
+            return TRUE;
+         }
+         if IsClass(what,&User)
+            AND Send(what,@GetHeightAtObject) < 0
+         {
+            Send(what,@MsgSendUser,#message_rsc=get_closer_water_oasis);
+            return TRUE;
+         }
+      }
+      if piConfiguration = 7
+      {
+         if row = 100
+         {
+            if col >= 98
+               AND col <= 101
+            {
+               Send(what,@MsgSendUser,#message_rsc=enter_ziggurat_msg);
+               Send(Send(SYS,@FindRoomByNum,#num=RID_ANCIENT_ZIGGURAT),@Teleport,#what=what);
+            }
+
+            return TRUE;
+         }
+      }
+
+      propagate;
+   }
+
+   StartThreat(cClasses=$,report=TRUE)
+   {
+      % No threats at oasis
+      if piConfiguration = 4
+      {
+         return;
+      }
+
+      propagate;
+   }
+
+   RecalcLightAndWeather()
+   {
+      local i;
+
+      if piConfiguration = 4
+      {
+         Post(self,@DoPhaseWeather);
+         Post(self,@AdjustOasisLights);
+         
+         if Random(1,100) = 1
+         {
+            foreach i in Send(self,@GetHolderActive)
+            {
+               if IsClass(First(i),&Player)
+               {
+                  Send(First(i),@MsgSendUser,#message_rsc=ancient_sorrow_msg);
+               }
+            }
+         }
+      }
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&DesertThief)
+            OR IsClass(First(i),&IwodachPriest)
+         {
+            Send(First(i),@SayRandom);
+         }
+      }
+
+      propagate;
+   }
+
+   DoPhaseWeather()
+   {
+      switch(Send(SYS,@GetDayPhase))
+      {
+         case DAY_PHASE_DAWN:
+            if Send(self,@CheckRoomFlag,#flag=ROOM_SNOWING)
+            {
+               Post(self,@EndSnow);
+            }
+            break;
+         case DAY_PHASE_DAY:
+            break;
+         case DAY_PHASE_DUSK:
+            if NOT Send(self,@CheckRoomFlag,#flag=ROOM_RAINING)
+            {
+               Post(self,@StartRain);
+            }
+            break;
+         case DAY_PHASE_NIGHT:
+            if Send(self,@CheckRoomFlag,#flag=ROOM_RAINING)
+            {
+               Post(self,@EndRain);
+            }
+            if NOT Send(self,@CheckRoomFlag,#flag=ROOM_SNOWING)
+            {
+               Post(self,@StartSnow);
+            }
+            break;
+      }
+      return;
+   }
+
+   StartSnow(bOnGround=TRUE)
+   {
+      if bOnGround
+      {
+         if pbSnowGroundTexture
+         {
+            % Turn any water to ice. Water tagged as ID 13.
+            % Water sidedefs tagged as ID 14.
+            Send(self,@ChangeTexture,#id=13,#new_texture=61017,
+                  #flags=CTF_FLOOR);
+            % Stop vertically scrolling water from animating.
+            Send(self,@AnimateWall,#wall=14,#animation=ANIMATE_NONE,
+                  #first_group=1,#second_group=1,#end_group=1);
+            % Make unpassable
+            Send(self,@AnimateWall,#wall=14,#animation=ANIMATE_NONE,#first_group=2,
+                  #passable=FALSE);
+            % Change texture.
+            Send(self,@ChangeTexture,#id=14,#new_texture=61017,
+                  #flags=CTF_NORMALWALL);
+            % Stop water scroll effect and remove depth.
+            Send(self,@SetSectorFlags,#sector=13,#depth=SF_DEPTH0,
+                  #scrollSpeed=SCROLL_NONE);
+
+
+            % Give snow some depth and walking sounds.
+            Send(self,@SetSectorFlags,#sector=0,#depth=SF_DEPTH1,
+                  #scrollSpeed=SCROLL_NONE);
+            vrWading_Sound = snow_walk_sound;
+         }
+      }
+
+      propagate;
+   }
+
+   EndSnow(override=FALSE)
+   "Use override if rooms have manually placed textures."
+   {
+      if pbSnowGroundTexture
+         OR override
+      {
+         % Remove sludge water textures.
+         Send(self,@RemoveTextureChange,#id=13);
+         % Remove sludge water sides.
+         Send(self,@RemoveTextureChange,#id=14);
+         Send(self,@RemoveAnimateWallChange,#wall=14);
+         % Reset sector flag changes to sludge water.
+         Send(self,@RemoveSectorFlagChange,#id=13);
+
+         % Remove snow depth and walking sounds.
+         Send(self,@RemoveSectorFlagChange,#id=0);
+         vrWading_Sound = water_wading_sound;
+      }
+
+      propagate;
+   }
+
+   StartRain()
+   {
+      % Acid rain darkens the sand and pock marks rock.
+      Send(self,@ChangeTexture,#id=0,#new_texture=09080,#flags=CTF_FLOOR);
+      % Acid rain makes the water gross.
+      Send(self,@ChangeTexture,#id=13,#new_texture=09363,
+            #flags=CTF_FLOOR);
+      Send(self,@ChangeTexture,#id=14,#new_texture=09363,
+            #flags=CTF_NORMALWALL);
+      Send(self,@SetSectorFlags,#sector=13,#depth=SF_DEPTH1,
+            #scrollSpeed=SCROLL_SLOW);
+      propagate;
+   }
+   
+   EndRain()
+   {
+      % Remove gross sand.
+      Send(self,@RemoveTextureChange,#id=0);
+      % Remove sludge water textures.
+      Send(self,@RemoveTextureChange,#id=13);
+      % Remove sludge water sides.
+      Send(self,@RemoveTextureChange,#id=14);
+      % Reset sector flag changes to sludge water.
+      Send(self,@RemoveSectorFlagChange,#id=13);
+      propagate;
+   }
+
+   GetPhaseLightIntensity()
+   {
+      switch(Send(SYS,@GetDayPhase))
+      {
+         case DAY_PHASE_DAWN:
+            return 125;
+         case DAY_PHASE_DAY:
+            return 255;
+         case DAY_PHASE_DUSK:
+            return 125;
+         case DAY_PHASE_NIGHT:
+            return 140;
+      }
+
+      return 0;
+   }
+
+   GetPhaseLightColor()
+   {
+      switch(Send(SYS,@GetDayPhase))
+      {
+         case DAY_PHASE_DAWN:
+            return LIGHT_DGREEN;
+         case DAY_PHASE_DAY:
+            return LIGHT_DBLUE;
+         case DAY_PHASE_DUSK:
+            return LIGHT_DWHITE;
+         case DAY_PHASE_NIGHT:
+            return LIGHT_DRED;
+      }
+
+      return $;
+   }
+
+   AdjustOasisLights()
+   {
+      local i, iIntensity, iColor;
+      
+      iColor = Send(self,@GetPhaseLightColor);
+      iIntensity = Send(self,@GetPhaseLightIntensity);
+
+      foreach i in Send(self,@GetHolderPassive)
+      {
+         if IsClass(First(i),&DynamicLight)
+         {
+            Send(First(i),@SetLight,#iIntensity=iIntensity,#iColor=iColor);
+         }
+      }
+
+      return;
+   }
+
+   CreateOasisLights()
+   {
+      local iColor, iIntensity;
+
+      iColor = Send(self,@GetPhaseLightColor);
+      iIntensity = Send(self,@GetPhaseLightIntensity);
+
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=iColor,
+           #iIntensity=iIntensity),#new_row=58,#new_col=86,#fine_row=8,#fine_col=60);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=iColor,
+           #iIntensity=iIntensity),#new_row=60,#new_col=88,#fine_row=57,#fine_col=5);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=iColor,
+           #iIntensity=iIntensity),#new_row=61,#new_col=90,#fine_row=62,#fine_col=51);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=iColor,
+           #iIntensity=iIntensity),#new_row=60,#new_col=93,#fine_row=45,#fine_col=27);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=iColor,
+           #iIntensity=iIntensity),#new_row=58,#new_col=94,#fine_row=7,#fine_col=39);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=iColor,
+           #iIntensity=iIntensity),#new_row=55,#new_col=93,#fine_row=29,#fine_col=28);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=iColor,
+           #iIntensity=iIntensity),#new_row=54,#new_col=91,#fine_row=14,#fine_col=1);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=iColor,
+           #iIntensity=iIntensity),#new_row=55,#new_col=87,#fine_row=20,#fine_col=55);
+
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=iColor,
+           #iIntensity=iIntensity),#new_row=58,#new_col=93,#fine_row=4,#fine_col=52);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=iColor,
+           #iIntensity=iIntensity),#new_row=60,#new_col=92,#fine_row=16,#fine_col=58);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=iColor,
+           #iIntensity=iIntensity),#new_row=61,#new_col=90,#fine_row=4,#fine_col=62);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=iColor,
+           #iIntensity=iIntensity),#new_row=60,#new_col=88,#fine_row=13,#fine_col=93);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=iColor,
+           #iIntensity=iIntensity),#new_row=58,#new_col=87,#fine_row=7,#fine_col=47);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=iColor,
+           #iIntensity=iIntensity),#new_row=55,#new_col=88,#fine_row=61,#fine_col=39);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=iColor,
+           #iIntensity=iIntensity),#new_row=55,#new_col=90,#fine_row=3,#fine_col=48);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=iColor,
+           #iIntensity=iIntensity),#new_row=57,#new_col=93,#fine_row=21,#fine_col=29);
+      return;
+   }
+
+   IsBeverage()
+   {
+      if piConfiguration = 4
+      {
+         return TRUE;
+      }
+      
+      return FALSE;
+   }
+
+   UserDrink(who=$)
+   {
+      %% someone presses space bar in the pool, gets a cute little boost.
+      if NOT Send(who,@ReqEatSomething,#filling=viFilling,#what=self)
+      {
+         return TRUE;
+      }      
+
+      Send(who,@EatSomething,#nutrition=viNutrition,#filling=viFilling);
+      Send(who,@WaveSendUser,#wave_rsc=oasis_drink_sound);
+      Send(who,@MsgSendUser,#message_rsc=oasis_drink);
+
+      return TRUE;
+   }
+
+   NewHold(what=$)
+   {
+      if what <> $
+         AND IsClass(what,&Player)
+      {
+         if piConfiguration = 4
+         {
+            Send(what,@MsgSendUser,#message_rsc=stable_calm_entrance_msg);
+         }
+         if piConfiguration = 7
+         {
+            Send(what,@MsgSendUser,#message_rsc=ancient_ziggurat_approach_msg);
+         }
+      }
+      
+      propagate;
+   }
+
+   GetTeleportRow(direction=ANGLE_EAST)
+   {
+      if piConfiguration = 4
+      {
+         switch(direction)
+         {
+            case ANGLE_EAST:
+               return viOasisTeleportGoingEast_row;
+            case ANGLE_WEST:
+                return viOasisTeleportGoingWest_row;
+         }
+      }
+      else if piConfiguration = 7
+      {
+         return viZigguratSpecialEntrance_row;
+      }
+      else
+      {
+         return viTeleport_row + Random(-10,10);
+      }
+      
+      return viTeleport_row;
+   }
+
+   GetTeleportCol(direction=ANGLE_EAST)
+   {
+      if piConfiguration = 4
+      {
+         switch(direction)
+         {
+            case ANGLE_EAST:
+               return viOasisTeleportGoingEast_col;
+            case ANGLE_WEST:
+               return viOasisTeleportGoingWest_col;
+         }
+      }
+      else if piConfiguration = 7
+      {
+         switch(direction)
+         {
+            case ANGLE_EAST:
+               return viZigguratSpecialEntrance_col_going_east;
+            case ANGLE_WEST:
+               return viZigguratSpecialEntrance_col_going_west;
+         }
+      }
+      else
+      {
+         return viTeleport_col + Random(-10,10);
+      }
+
+      return viTeleport_col;
+   }
+
+   GetPermanentFlags()
+   {
+      if piConfiguration = 4
+      {
+         return (viPermanent_flags | ROOM_NO_COMBAT);
+      }
+
+      return viPermanent_flags;
+   }
+
+   GetConfiguration()
+   {
+      return piConfiguration;
+   }
+
+   GetSectorID(who=$,iRow=$,iCol=$,iFineRow=$,iFineCol=$)
+   {
+      local iQflags, iRflags, iHeightF, iHeightFWD, iHeightC, iServerID;
+
+      iQflags = LIQ_GET_SECTORINFO;
+      if GetLocationInfoBSP(
+                      prmRoom, iQflags, iRow, iCol, iFineRow, iFineCol,
+                      *iRflags, *iHeightF, *iHeightFWD, *iHeightC, *iServerID)
+      {
+         return iServerID;
+      }
+
+      return 0;
+   }
+
+   ActivateAltar(who=$)
+   {
+      if who <> $
+         AND IsClass(who,&Player)
+      {
+         if Random(1,2) = 1
+         {
+            Send(self,@DoBlessing,#who=who);
+         }
+         else
+         {
+            Send(self,@DoCurse,#who=who);
+         }
+         return;
+      }
+
+      return;
+   }
+
+   DoBlessing(who=$)
+   {
+      local iRandomBlessing;
+      
+      iRandomBlessing = Random(1,3);
+      switch(iRandomBlessing)
+      {
+         case 1:
+            Send(who,@MsgSendUser,#message_rsc=altar_blessing_experience);
+            Send(who,@AddExperience,#iAmount=5000);
+            break;
+         case 2:
+            Send(who,@MsgSendUser,#message_rsc=altar_blessing_shillings);
+            Send(who,@NewHold,#what=Create(&Money,#number=100000));
+            break;
+         case 3:
+            Send(who,@MsgSendUser,#message_rsc=altar_blessing_training_points);
+            Send(who,@AddTrainingPoints,#points=1000,#report=TRUE,#bCap=FALSE);
+            break;
+      }
+      return;
+   }
+   
+   DoCurse(who=$)
+   {
+      local iRandomCurse, i, oAfterlife;
+      
+      iRandomCurse = Random(1,4);
+      switch(iRandomCurse)
+      {
+         case 1:
+            Send(who,@MsgSendUser,#message_rsc=altar_curse_death);
+            oAfterlife = Send(SYS,@FindRoomByNum,#num=RID_DESERTALDUNES);
+            Send(oAfterlife,@Teleport,#what=who);
+            break;
+         case 2:
+            Send(who,@MsgSendUser,#message_rsc=altar_curse_lose_experience);
+            Send(who,@SetExperience,#iAmount=0);
+            break;
+         case 3:
+            Send(who,@MsgSendUser,#message_rsc=altar_curse_lose_training_points);
+            Send(who,@AddTrainingPoints,#points=-1000,#report=FALSE);
+            break;
+         case 4:
+            Send(who,@MsgSendUser,#message_rsc=altar_curse_lose_food);
+            foreach i in Send(who,@GetHolderPassive)
+            {
+               if IsClass(i,&Food)
+               {
+                  Send(i,@Delete);
+               }
+            }
+            break;
+      }
+      return;
+   }
+
+   DepopulateArea()
+   {
+      local i;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&NomadChest)
+            AND Send(First(i),@GetLocked)
+         {
+            % Delete unopened nomad chests
+            Send(First(i),@Delete);
+         }
+      }
+      
+      foreach i in Send(self,@GetHolderPassive)
+      {
+         if IsClass(First(i),&Firepit)
+         {
+            % Delete fires
+            Send(First(i),@Delete);
+         }
+      }
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -28,10 +28,14 @@ resources:
       "This necklace looks like it would fit tightly around your neck.  The "
       "golden musical note hints that this necklace may be of some value to "
       "those that call themselves Bards."
+      "\n\nTo imbue the resonating notes of a song into this necklace, "
+      "a Bard must wear it and begin to sing. Depending on the the song, "
+      "the necklace will reserve a set portion of the Bard's mana to emanate music "
+      "on an ongoing basis."
 
    JalaNecklace_used_rsc = \
-      "The necklace of Jala vibrates against your throat, giving your "
-      "voice a magical potence."
+      "The necklace of Jala vibrates against your throat, ready to imitate "
+      "the patterns of your voice."
    JalaNecklace_unused_rsc = "Your voice loses its potence."
 
 classvars:
@@ -43,8 +47,8 @@ classvars:
    vrInstrument_overlay = $
    viInstrument_strength = 5
 
-   viUse_type = ITEM_USE_NECK
-   viItem_type = ITEMTYPE_NECKLACE
+   viUse_type = ITEM_USE_THROAT
+   viItem_type = ITEMTYPE_THROAT
    viUse_amount = 1  % Only use one neck.  Heh.
 
    viGround_group = 2
@@ -55,22 +59,9 @@ classvars:
 
 properties:
 
+   piItemLevel = 200
+
 messages:
-
-   ReqUseSomething(what = $)
-   {
-      if IsClass(what,&Necklace)
-      {
-         if Send(poOwner,@TryUnuseItem,#what=self)
-         {
-            propagate;
-         }
-
-         return FALSE;
-      }
-
-      propagate;
-   }
 
    NewUsed(what=$)
    {
@@ -87,6 +78,7 @@ messages:
       if what <> $
       {
          Send(what,@MsgSendUser,#message_rsc=JalaNecklace_unused_rsc);
+         Send(what,@UnReserveAllSongs);
       }
 
       propagate;

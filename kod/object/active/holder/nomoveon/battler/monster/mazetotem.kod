@@ -1,0 +1,110 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+MazeTotem is Monster
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   maze_totem_name_rsc = "totem"
+   maze_totem_icon_rsc = mazetotem.bgf
+   maze_totem_desc_rsc = \
+      "This animated pillar appears to be immobile but hostile!"
+
+   maze_totem_dead_name_rsc = "dead remains of a totem trap"
+
+classvars:
+
+   vrName = maze_totem_name_rsc
+   vrIcon = maze_totem_icon_rsc
+   vrDesc = maze_totem_desc_rsc
+   vrDead_icon = $
+   vrDead_name = maze_totem_dead_name_rsc
+
+   viTreasure_type = TID_NONE
+   viAttack_type = ATCK_WEAP_BLUDGEON
+   viSpeed = SPEED_SLOW
+   viAttributes = MOB_NOMOVE
+   viDefault_behavior = AI_NOMOVE | AI_FIGHT_LASHOUT | AI_FIGHT_HYPERAGGRESSIVE
+   viLevel = 50
+   viDifficulty = 4
+   viVisionDistance = 14
+   viKarma = 0
+   viCashmin = 0
+   viCashmax = 0
+
+   % 1 in x chance to cast a spell.
+   viSpellChance = 1
+
+   vrSound_hit = $
+   vrSound_miss = $
+   vrSound_aware = $
+   vrSound_death = $
+   
+   viCanSpawnAsChampion = FALSE
+   
+   viBaseBleedPercentage = 0
+   viBaseKnockbackPercentage = 0
+   viBaseStunPercentage = 0
+
+properties:
+
+   piAnimation = ANIM_NONE
+
+   piMax_mana = 120
+   piMeleeSpellChance = 100
+   piRangedSpellChance = 100
+   
+   poPlayerTarget = $
+
+messages:
+
+   Constructor(iSpellID=SID_LIGHTNING)
+   {
+      plMeleeSpellBook = [ [ iSpellID, 1, 100, 90 ] ];
+      plRangedSpellBook = [ [ iSpellID, 1, 100, 90 ] ];
+   
+      propagate;
+   }
+
+   Constructed()
+   {
+      plResistances = [ [ATCK_WEAP_ALL, 5 ],
+                        [-ATCK_SPELL_ALL, 5 ] ];
+
+      plCreatureTypes = Cons(CREATURE_TYPE_MAGICAL,plCreatureTypes);
+
+      propagate;
+   }
+   
+   SomethingMoved(what=$,new_row=$,new_col=$,fine_row=$,fine_col=$)
+   "Check to see if we need to change our combat plan because someone moved."
+   {
+      if what <> $
+         AND IsClass(what,&Player)
+      {
+         Post(self,@TargetSwitch,#what=what,#iHatred=100);
+         Post(self,@EnterStateChase,#target=what,#actnow=TRUE);
+      }
+
+      propagate;
+   }
+
+   CreateDeadBody(killer=$)
+   {
+      Send(poOwner,@TotemKilled,#totem_object=self);
+      return $;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

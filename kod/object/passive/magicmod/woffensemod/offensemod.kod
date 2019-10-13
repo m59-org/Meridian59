@@ -16,39 +16,64 @@ constants:
 
 resources:
 
+   offense_mod_name = "melee offense"
+
 classvars:
 
+   viModName = offense_mod_name
    viModType = MOD_PREFIX
    viModGroup = GROUP_OFFENSE
 
    viModRangeMin = 1
-   viModRangeMax = 200
+   viModRangeMax = 300
    
    viPowerDivisor = 1
 
 properties:
 
+   piNumerator = 1
+   piDivisor = 3
 
 messages:
 
    ModifyHitRoll(who = $,what = $,hit_roll = $,iState=0)
    {
-      local oWeapon;
+      local oWeapon, iNumerator, iDivisor;
+      
+      iNumerator = piNumerator;
+      iDivisor = piDivisor;
+      
+      if iDivisor = 0
+      {
+         iDivisor = 1;
+      }
       
       if who = $
+         OR NOT IsClass(who,&Player)
       {
          % no who, just add bonus
-         return hit_roll + iState;
+         return hit_roll + ((iState*iNumerator)/iDivisor);
       }
 
       oWeapon = Send(who,@GetWeapon);
       if (oWeapon = $)
          or (not IsClass(oWeapon,&RangedWeapon))
       {
-         return hit_roll + iState;
+         return hit_roll + ((iState*iNumerator)/iDivisor);
       }
 
       return hit_roll;
+   }
+
+   GetNumber(iPower=0)
+   {
+      if piDivisor = 0
+      {
+         % Avoid div errors
+         piDivisor = 1;
+      }
+
+      return bound((iPower*piNumerator)/piDivisor,1,$);
    }
 
 end

@@ -1,0 +1,462 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+AlchemyBomb is ActiveObject
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   AlchemyBomb_name_rsc = "alchemical bomb"
+   AlchemyBomb_icon_rsc = baghold.bgf
+   AlchemyBomb_desc_rsc = \
+      "Stay back! It's an alchemy-enhanced bag of infused reagents - a bomb!"
+
+   fire_bomb_projectile_icon = woflame.bgf
+   shock_bomb_projectile_icon = wolightn.bgf
+
+   bomb_explode_no_burning = \
+      "Your bomb explodes harmlessly."
+   bomb_explode_applied_burning = \
+      "Your alchemical bomb explodes, applying ~B~r%i~n burning to nearby enemies!"
+      
+   bomb_explode_applied_shock = \
+      "Your alchemical bomb explodes, applying ~B~c%i~n shock to nearby enemies!"
+
+   fire_detonation_sound = ffirebal.wav
+   shock_detonation_sound = Fzap.wav
+
+classvars:
+
+   vrName = AlchemyBomb_name_rsc
+   vrIcon = AlchemyBomb_icon_rsc
+   vrDesc = AlchemyBomb_desc_rsc
+
+   vrProjectile_icon = fire_bomb_projectile_icon
+   viProjectileFlag = PROJ_FLAG_LIGHT_SOURCE
+   viProjectileLightFlags = LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC
+   viProjectileLightIntensity = 100
+   viProjectileLightColor = LIGHT_RED
+   viProjectileSpeed = 4
+   
+   viShockProjectile_icon = shock_bomb_projectile_icon
+   viShockProjectileLightColor = LIGHT_LIGHTNING
+   
+   viFireBombElement = ATCK_SPELL_FIRE
+   viShockBombElement = ATCK_SPELL_SHOCK
+
+properties:
+   
+   poCreator = $
+   piTriggerRadius = 64
+   pbProximityTrigger = FALSE
+   pbDetonating = FALSE
+   piType = BOMB_FIRE
+   piBombPower = 0
+   piBombRadius = 64
+
+messages:
+
+   Constructor(oCreator=$, iType=BOMB_FIRE, bProximityTrigger=FALSE, iBombPower=0)
+   {
+      poCreator = oCreator;
+      piType = iType;
+      pbProximityTrigger = bProximityTrigger;
+      piBombPower = iBombPower;
+      piBombRadius = 64 * 5;
+
+      if poCreator = $
+      {
+         Post(self,@Delete);
+      }
+      
+      propagate;
+   }
+   
+   GetCreator()
+   {
+      return poCreator;
+   }
+
+   Detonate()
+   {
+      switch(piType)
+      {
+         case BOMB_FIRE:
+            Send(self,@DetonateFire);
+            return;
+         case BOMB_SHOCK:
+            Send(self,@DetonateShock);
+            return;
+         case BOMB_SPELL:
+            Send(self,@DetonateSpell);
+            return;
+      }
+      return;
+   }
+   
+   DetonateSpell()
+   {
+      local oOwner, i, each_obj, lSplashTargets, lBattlers, lSpellList, oChosenTarget, oChosenSpell, iChosenSpellAbility;
+      
+      oOwner = Send(self,@GetOwner);
+      lBattlers = $;
+
+      % For our splash targets, we find all battlers in range of the target
+      %    that aren't the caster or target and which the caster can attack
+
+      foreach i in Send(oOwner,@GetHolderActive)
+      {
+         each_obj = Send(oOwner,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&Battler)
+            AND each_obj <> poCreator
+            AND Send(oOwner,@LineOfSight,#obj1=self,#obj2=each_obj)
+            AND Send(poCreator,@AllowPlayerAttack,#victim=each_obj,#report=FALSE,#actual=FALSE)
+            AND Send(each_obj,@SquaredFineDistanceTo3D,#what=self) <= piBombRadius*piBombRadius
+         {
+            lBattlers = Cons(each_obj,lBattlers);
+         }
+      }
+
+      if lBattlers <> $
+      {
+         lSpellList = $;
+         
+         if Send(poCreator,@HasSpell,#num=SID_BLAST_OF_FIRE)
+         {
+            lSpellList = Cons(Send(SYS,@FindSpellByNum,#num=SID_BLAST_OF_FIRE),lSpellList);
+         }
+         
+         if Send(poCreator,@HasSpell,#num=SID_EXPLOSIVE_FROST)
+         {
+            lSpellList = Cons(Send(SYS,@FindSpellByNum,#num=SID_EXPLOSIVE_FROST),lSpellList);
+         }
+         
+         if Send(poCreator,@HasSpell,#num=SID_SHOCKING_FURY)
+         {
+            lSpellList = Cons(Send(SYS,@FindSpellByNum,#num=SID_SHOCKING_FURY),lSpellList);
+         }
+
+         if Send(poCreator,@HasSpell,#num=SID_SPLASH_OF_ACID)
+         {
+            lSpellList = Cons(Send(SYS,@FindSpellByNum,#num=SID_SPLASH_OF_ACID),lSpellList);
+         }
+         
+         if lSpellList = $
+         {
+            % Alchemist knows no spells? Try to cast at the alchemist instead.
+            lSpellList = Cons(Send(SYS,@FindSpellByNum,#num=SID_LIGHTNING),lSpellList);
+            lSpellList = Cons(Send(SYS,@FindSpellByNum,#num=SID_FIREBALL),lSpellList);
+            Send(Nth(lSpellList,Random(1,Length(lSpellList))),@CastSpell,#who=self,#lTargets=[poCreator],#iSpellPower=Random(1,99));
+            Post(self,@Delete);
+            return;
+         }
+         
+         oChosenTarget = Nth(lBattlers,Random(1,Length(lBattlers)));
+         if Send(oChosenTarget,@GetOwner) = Send(poCreator,@GetOwner)
+         {
+            oChosenSpell = Nth(lSpellList,Random(1,Length(lSpellList)));
+            iChosenSpellAbility = Send(poCreator,@GetSpellAbility,#Spell_num=Send(oChosenSpell,@GetSpellNum));
+            Send(oChosenSpell,@CastSpell,#who=self,#lTargets=[oChosenTarget],#iSpellPower=(piBombPower+iChosenSpellAbility)/2);
+         }
+      }
+      else
+      {
+         Send(poCreator,@MsgSendUser,#message_rsc=bomb_explode_no_burning);
+      }
+      Post(self,@Delete);
+      return;
+   }
+   
+   DetonateShock()
+   {
+      local oOwner, i, each_obj, lSplashTargets, lBattlers, iShockDealt, iTotalShock,
+            oShockElement, iElements, oDazzle;
+      
+      oOwner = Send(self,@GetOwner);
+      lBattlers = $;
+      
+      iElements = Random(3,6);
+      
+      while iElements > 0
+      {
+         oShockElement = Create(&WallofLightning,#MaxDamage=piBombPower/6,#Caster=poCreator,
+                           #Duration=piBombPower/3,#Illusionary=FALSE);
+         Send(oOwner,@NewHold,#what=oShockElement,
+              #new_row=Bound(Send(self,@GetRow) + Random(-piBombRadius/64,piBombRadius/64),0,Send(oOwner,@GetRoomRows)),
+              #new_col=Bound(Send(self,@GetCol) + Random(-piBombRadius/64,piBombRadius/64),0,Send(oOwner,@GetRoomCols)),
+              #fine_row=Random(0,64),
+              #fine_col=Random(0,64));
+         iElements--;
+      }
+
+      % For our splash targets, we find all battlers in range of the target
+      %    that aren't the caster or target and which the caster can attack
+
+      foreach i in Send(oOwner,@GetHolderActive)
+      {
+         each_obj = Send(oOwner,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&Battler)
+            AND each_obj <> poCreator
+            AND Send(oOwner,@LineOfSight,#obj1=self,#obj2=each_obj)
+            AND Send(poCreator,@AllowPlayerAttack,#victim=each_obj,#report=FALSE,#actual=FALSE)
+            AND Send(each_obj,@SquaredFineDistanceTo3D,#what=self) <= piBombRadius*piBombRadius
+         {
+            lBattlers = Cons(each_obj,lBattlers);
+         }
+      }
+
+      iTotalShock = 0;
+      oDazzle = Send(SYS,@FindSpellByNum,#num=SID_DAZZLE);
+      % Show bolt from target to new targets
+      if lBattlers <> $
+      {
+         foreach i in lBattlers
+         {
+            Send(oOwner,@SomethingShot,#who=self,
+                                       #target=i,
+                                       #projectile=self,
+                                       #flags=viProjectileFlag);
+            if NOT Send(i,@IsEnchanted,#what=oDazzle)
+            {
+               Send(oDazzle,@DoSpell,#what=poCreator,#oTarget=i,#iDuration=1500 + (piBombPower+1)*45);
+            }
+            iShockDealt = Send(i,@ApplyElementalStatusEffects,
+                                   #damage=Bound((piBombPower*Random(7,13))/10,1,$),
+                                   #bSecondary=FALSE,
+                                   #aspell=viShockBombElement,
+                                   #what=poCreator);
+            iTotalShock = iTotalShock + iShockDealt;
+         }
+
+         if iTotalShock <= 0
+         {
+            Send(poCreator,@MsgSendUser,#message_rsc=bomb_explode_no_burning);
+         }
+         else
+         {
+            Send(poCreator,@MsgSendUser,#message_rsc=bomb_explode_applied_shock,#parm1=iTotalShock);
+         }
+      }
+      Post(self,@PlaySpellSound,#sound_type=piType);
+      Post(self,@Delete);
+      return;
+   }
+   
+   DetonateFire()
+   {
+      local oOwner, i, each_obj, lSplashTargets, lBattlers, iBurningDealt, iTotalBurning, iDealtDamage,
+            oFireElement, iFireElements;
+      
+      oOwner = Send(self,@GetOwner);
+      lBattlers = $;
+      
+      % Create random fire.
+      
+      iFireElements = Random(3,6);
+      
+      while iFireElements > 0
+      {
+         oFireElement = Create(&WallOfFire,#MaxDamage=piBombPower/6,#Caster=poCreator,
+                           #Duration=piBombPower/3,#Illusionary=FALSE);
+         Send(oOwner,@NewHold,#what=oFireElement,
+              #new_row=Bound(Send(self,@GetRow) + Random(-piBombRadius/64,piBombRadius/64),0,Send(oOwner,@GetRoomRows)),
+              #new_col=Bound(Send(self,@GetCol) + Random(-piBombRadius/64,piBombRadius/64),0,Send(oOwner,@GetRoomCols)),
+              #fine_row=Random(0,64),
+              #fine_col=Random(0,64));
+         iFireElements--;
+      }
+
+      % For our splash targets, we find all battlers in range of the target
+      %    that aren't the caster or target and which the caster can attack
+
+      foreach i in Send(oOwner,@GetHolderActive)
+      {
+         each_obj = Send(oOwner,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&Battler)
+            AND each_obj <> poCreator
+            AND Send(oOwner,@LineOfSight,#obj1=self,#obj2=each_obj)
+            AND Send(poCreator,@AllowPlayerAttack,#victim=each_obj,#report=FALSE,#actual=FALSE)
+            AND Send(each_obj,@SquaredFineDistanceTo3D,#what=self) <= piBombRadius*piBombRadius
+         {
+            lBattlers = Cons(each_obj,lBattlers);
+         }
+      }
+
+      iTotalBurning = 0;
+      % Show bolt from target to new targets
+      if lBattlers <> $
+      {
+         foreach i in lBattlers
+         {
+            Send(oOwner,@SomethingShot,#who=self,
+                                       #target=i,
+                                       #projectile=self,
+                                       #flags=viProjectileFlag);
+            % Deal damage
+            %iDealtDamage = Send(i,@AssessDamage,#what=poCreator,
+            %                     #damage=Bound(Random((piBombPower+1)/20,(piBombPower+1)/10),5,10),
+            %                     #aspell=viFireBombElement);
+            %if iDealtDamage = $
+            %{
+               % Killed somebody!
+            %}
+            iBurningDealt = Send(i,@ApplyElementalStatusEffects,
+                                   #damage=Bound((piBombPower*Random(7,13))/10,1,$),
+                                   #bSecondary=FALSE,
+                                   #aspell=viFireBombElement,
+                                   #what=poCreator);
+            Send(i,@AddHurtMeRecently,#who=poCreator,#amount=iBurningDealt);
+            iTotalBurning = iTotalBurning + iBurningDealt;
+         }
+
+         if iTotalBurning <= 0
+         {
+            Send(poCreator,@MsgSendUser,#message_rsc=bomb_explode_no_burning);
+         }
+         else
+         {
+            Send(poCreator,@MsgSendUser,#message_rsc=bomb_explode_applied_burning,#parm1=iTotalBurning);
+         }
+      }
+      Post(self,@PlaySpellSound,#sound_type=piType);
+      Post(self,@Delete);
+      return;
+   }
+
+   SomethingMoved(what = $,new_row = $,new_col = $)
+   {
+      if pbProximityTrigger
+         AND NOT pbDetonating
+         AND poCreator <> $
+         AND what <> poCreator
+         AND Send(poCreator,@AllowPlayerAttack,#victim=what,#report=FALSE,#actual=FALSE)
+         AND IsClass(what,&NoMoveOn)
+         AND Send(what,@SquaredFineDistanceTo,#what=self) <= piTriggerRadius * piTriggerRadius
+      {
+         pbDetonating = TRUE;
+         Post(self,@Detonate);
+      }
+
+      return;
+   }
+
+   ReqNewOwner(what = $)
+   {
+      return IsClass(what,&Room);
+   }
+   
+   Delete()
+   {
+      if poCreator <> $
+      {
+         Send(poCreator,@RemoveBomb,#oBomb=self);
+      }
+      propagate;
+   }
+
+   GetProjectileIcon()
+   {
+      switch(piType)
+      {
+         case BOMB_FIRE:
+            return vrProjectile_icon;
+         case BOMB_SHOCK:
+            return viShockProjectile_icon;
+      }
+      return vrProjectile_icon;
+   }
+
+   GetProjectileFlag()
+   {
+      return viProjectileFlag;
+   }
+
+   GetProjectileLightColor()
+   {
+      switch(piType)
+      {
+         case BOMB_FIRE:
+            return viProjectileLightColor;
+         case BOMB_SHOCK:
+            return viShockProjectileLightColor;
+      }
+      return viProjectileLightColor;
+   }
+
+   SendProjectileAnimation()
+   {
+      AddPacket(1,ANIMATE_CYCLE, 4,random(100,140), 2,1, 2,5);
+      return;
+   }
+   
+   GetProjectileSpeed()
+   {
+      return viProjectileSpeed;
+   }
+   
+   GetProjectileLightFlags()
+   {
+      return viProjectileLightFlags;
+   }
+   
+   GetProjectileLightIntensity()
+   {
+      return viProjectileLightIntensity;
+   }
+
+   PlaySpellSound(sound_type=BOMB_FIRE)
+   {
+      if poOwner <> $
+      {
+         switch(sound_type)
+         {
+            case BOMB_FIRE:
+               Send(poOwner,@SomethingWaveRoom,#what=self,#wave_rsc=fire_detonation_sound);
+               return;
+            case BOMB_SHOCK:
+               Send(poOwner,@SomethingWaveRoom,#what=self,#wave_rsc=shock_detonation_sound);
+               return;
+         }
+      }
+      return;
+   }
+
+   AssessHit(what=$, damage=$, use_weapon=$)
+   {
+      Send(poCreator,@AssessHit,#what=what,#damage=damage,#use_weapon=use_weapon);
+      return;
+   }
+
+   KilledSomething(what=$, use_weapon=$)
+   {
+      Send(poCreator,@KilledSomething,#what=what,#use_weapon=use_weapon);
+      return;
+   }
+
+   GetCurrentEmpowerments()
+   {
+      return Send(poCreator,@GetCurrentEmpowerments);
+   }
+
+   GetSkillAbility(skill_num=0)
+   {
+      return Send(poCreator,@GetSkillAbility,#skill_num=skill_num);
+   }
+   
+   GetElementalImbalancePower(aspell=0)
+   {
+      return Send(poCreator,@GetElementalImbalancePower,#aspell=aspell);
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

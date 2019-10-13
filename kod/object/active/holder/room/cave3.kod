@@ -52,6 +52,9 @@ classvars:
 
    viTerrain_Type = TERRAIN_LAKE | TERRAIN_WATERFALL | TERRAIN_CAVES
 
+   viLongitude = 23
+   viLatitude = 33
+
 properties:
 
    prRoom = room_cave3
@@ -71,6 +74,7 @@ messages:
    Constructed()
    {
       plLooping_sounds = [[ waterfall_soundCave3, 50, 67, 60, 100 ]];
+      Send(self,@StartRain);
 
       propagate;
    }
@@ -79,6 +83,9 @@ messages:
    {
       plExits = $;
       plExits = Cons([ 75, 34, RID_CAVE2, 19, 30, ROTATE_NONE ],plExits);
+
+      plEdge_exits = $;
+      plEdge_Exits = Cons([LEAVE_WEST, RID_ORC_PIT_B, 63, 55, ROTATE_NONE], plEdge_exits);
 
       propagate;
    }
@@ -169,7 +176,7 @@ messages:
          }
       }
 
-      send(self,@Newhold,#what=Create(&JewelOfFroz),
+      send(self,@Newhold,#what=Create(&JewelOfFroz,#level=200),
            #new_row=37,#new_col=38,#fine_row=16,#fine_col=0);
 
       % Create a light on the jewel, too.

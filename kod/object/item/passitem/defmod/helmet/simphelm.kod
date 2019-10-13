@@ -68,10 +68,20 @@ messages:
 
    GetResistanceModifiers()
    {
-      return [ [ATCK_WEAP_BLUDGEON,-10]
-             ];
+      if Send(SETTINGS_OBJECT,@GetDirectArmorEnabled)
+      {
+         return [ [ATCK_WEAP_BLUDGEON,-10]
+                ];
+      }
+      
+      return [ [ATCK_WEAP_ALL,3]
+               ];
    }
 
+   GetStunResistance()
+   {
+      return 20;
+   }
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

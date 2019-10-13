@@ -1,0 +1,191 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+CrystalBeing is Monster
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   crystal_being_name_rsc = "crystalline entity"
+   crystal_being_icon_rsc = crystalbeing.bgf
+   crystal_being_desc_rsc = \
+      "The being before you appears to exist in a pocket of interdimensional curvature. "
+      "Neither here nor absent, it channels energies untold from distances unimaginable, "
+      "wielding all of the six elements with might beyond reproach. "
+      "The true power behind the High Sorcerers' apocalyptic quest for immortality, "
+      "to challenge the living essence of elemental Diffraction itself is to court oblivion, "
+      "but if it can be defeated, the tortured land of Biskalane may finally be able to heal."
+
+   crystal_being_dead_icon_rsc = amoebaX.bgf
+   crystal_being_dead_name_rsc = "dead crystalline entity"
+
+   crystal_being_sound_hit = gst_atkh.wav
+   crystal_being_sound_miss = gst_atkm.wav
+   crystal_being_sound_death = gst_dth.wav
+   crystal_being_sound_aware = gst_awr.wav
+
+classvars:
+
+   vrName = crystal_being_name_rsc
+   vrIcon = crystal_being_icon_rsc
+   
+   vrDead_icon = crystal_being_dead_icon_rsc
+   vrDead_name = crystal_being_dead_name_rsc
+
+   viTreasure_type = TID_CRYSTAL_BEING
+   viSpeed = SPEED_VERY_FAST
+   viLevel = 300
+   viDifficulty = 9
+   viVisionDistance = 60
+   % Attack range of 192, or 3 row/col.
+   viAttackRange = 64
+   viAttack_spell = ATCK_SPELL_ALL
+   viKarma = 0
+   viCashmin = 35000
+   viCashmax = 75000
+   vrSound_hit = crystal_being_sound_hit
+   vrSound_miss = crystal_being_sound_miss
+   vrSound_aware = crystal_being_sound_aware
+   vrSound_death = crystal_being_sound_death
+
+   viDead_drawfx = DRAWFX_TRANSLUCENT_75
+   viDefault_behavior = \
+      AI_FIGHT_AGGRESSIVE | AI_MOVE_WALKTHROUGH_WALLS \
+      | AI_FIGHT_WIZARD_KILLER | AI_MOVE_FLEE_FRIGHTENERS
+
+   % crystal being is absurdly deadly
+   viBonusBaseTP = 15000
+
+   viBaseBleedPercentage = 0
+
+   viBaseSize = 225
+
+   % Big monster
+   viEnemyRangeBonus = 64 * 2
+
+properties:
+
+   piAnimation = ANIM_NONE
+   piGroup = 1
+   piDrawEffectFlag = OF_FLICKERING | OF_BOUNCING
+   piDrawfx = DRAWFX_TRANSLUCENT_75
+   piMinDamage = 6
+   piMaxDamage = 15
+   vrDesc = crystal_being_desc_rsc
+
+   piSpellPower = 99
+   piMax_mana = 2000
+
+   piMeleeSpellChance = 100
+   piRangedSpellChance = 50
+
+   % Is this Battler protected by a magical shield against projectiles?
+   pbMagicalShield = TRUE
+   % Fine units
+   piMagicalShieldRadius = 64 * 2
+   
+   piMonsterCastDelayMinimum = 500
+
+messages:
+
+   Constructed()
+   {
+      plResistances = [ [-ATCK_SPELL_FIRE, 90],
+                        [-ATCK_SPELL_COLD, 90],
+                        [-ATCK_SPELL_UNHOLY, 90],
+                        [-ATCK_SPELL_ACID, 90],
+                        [ATCK_WEAP_NONMAGIC, 90],
+                        [ATCK_WEAP_MAGIC, -50],
+                        [-ATCK_SPELL_HOLY, -50]
+                      ];
+
+      plMeleeSpellBook =  [ [ SID_SPLASH_OF_ACID, 3, 45, 99 ],
+                            [ SID_EXPLOSIVE_FROST, 3, 95, 99 ],
+                            [ SID_MONSTER_EARTHQUAKE,3,100,99]];
+
+      plRangedSpellBook = [ [ SID_FROST_BREATH, 3, 5, 99 ],
+                            [ SID_SLITHERBOLT, 3, 25, 99 ],
+                            [ SID_ICICLE_VOLLEY, 3, 50, 99 ],
+                            [ SID_FIREBALL, 3, 75, 99 ],
+                            [ SID_LIGHTNING_BOLT, 3, 100, 99 ] ];
+
+      plCreatureTypes = Cons(CREATURE_TYPE_ELEMENTAL,plCreatureTypes);
+      plCreatureTypes = Cons(CREATURE_TYPE_MAGICAL,plCreatureTypes);
+
+      propagate;
+   }
+
+   GetBaseEmpowerments()
+   {
+      return [[-ATCK_SPELL_ALL,300]];
+   }
+
+   MonsterAttack(what = $)
+   {
+      piAnimation = ANIM_ATTACK;
+      Send(poOwner,@SomethingChanged,#what=self);
+      piAnimation = ANIM_NONE;
+
+      return;
+   }
+
+   SendLookAnimation()
+   {
+      AddPacket(1,ANIMATE_CYCLE, 4,35, 2,1, 2,23);
+
+      return;
+   }
+
+   SendMoveAnimation()
+   {
+      AddPacket(1,ANIMATE_CYCLE, 4,25, 2,1, 2,23);
+
+      return;
+   }
+
+   SendAnimation()
+   {
+      if piAnimation = ANIM_ATTACK
+      {
+         AddPacket(1,ANIMATE_ONCE, 4,10, 2,1, 2,23, 2,1);
+
+         return;
+      }
+      
+      if piAnimation = ANIM_NONE
+      {
+         AddPacket(1,ANIMATE_CYCLE, 4,35, 2,1, 2,23);
+         return;
+      }
+
+      propagate;
+   }
+
+   SendLightingInformation()
+   {
+      if piChampionStatus <> 0
+      {
+         propagate;
+      }
+
+      AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC));
+      % 50 out of 255 intensity of light
+      AddPacket(1,255);
+      % Blue
+      AddPacket(2,LIGHT_LIGHTNING);
+
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

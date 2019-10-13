@@ -36,26 +36,52 @@ classvars:
    viChance_To_Increase = 20
    viMeditate_ratio = 40
 
+   viProjectileSpeed = 5
+
 properties:
 
-   piRange = $
+   piRange = 40 * FINENESS
 
    % Maximum amount of bonus damage mana focus gives us for casting this spell.
    piManaFocusBonus = 10
 
 messages:
 
-   CastSpell(who=$,lTargets=$)
+   CastSpell(who=$,lTargets=$,bChainCast=FALSE,bSecondaryCast=FALSE,oDeflectImpact=$,bDeflectCast=FALSE)
    {
-      local oOwner, i;
+      local oOwner, i, iDeflectSpeed;
 
       oOwner = Send(who,@GetOwner);
 
       % Show bolt flying through the air.
       foreach i in lTargets
       {
-         Send(oOwner,@SomethingShot,#who=who,#target=i,#projectile=self,
-               #flags=viProjectileFlag);
+         if NOT bSecondaryCast
+         {
+            if oDeflectImpact <> $
+            {
+               % Don't send to oDeflectImpact, it's not a NoMoveOn!
+               iDeflectSpeed = Send(who,@SquaredFineDistanceTo,#what=oDeflectImpact);
+               
+               if iDeflectSpeed = 0
+               {
+                  iDeflectSpeed = $;
+               }
+
+               if iDeflectSpeed <> $
+               {
+                  iDeflectSpeed = (Sqrt(iDeflectSpeed) / 64) * 2;
+               }
+
+               Send(oOwner,@SomethingShot,#who=who,#target=oDeflectImpact,#projectile=self,
+                     #flags=viProjectileFlag,#iDeflectSpeed=iDeflectSpeed);
+            }
+            else
+            {
+               Send(oOwner,@SomethingShot,#who=who,#target=i,#projectile=self,
+                     #flags=viProjectileFlag);
+            }
+         }
       }
 
       propagate;
@@ -68,9 +94,45 @@ messages:
    }
 
    % Return the speed at which a particular spell should appear to shoot through the air.
-   GetProjectileSpeed()
+   GetProjectileSpeed(who=$, target=$)
    {
-      return 5;
+      local iDist;
+
+      if who <> $
+         AND target <> $
+      {
+         % only NoMoveOns can calculate distances
+         if IsClass(who,&NoMoveOn)
+         {
+            iDist = Send(who,@SquaredFineDistanceTo,#what=target);
+         }
+         else if IsClass(target,&NoMoveOn)
+         {
+            iDist = Send(target,@SquaredFineDistanceTo,#what=who);
+         }
+         else
+         {
+            % Neither is a NoMoveOn? Give up!
+            return viProjectileSpeed;
+         }
+
+         if iDist <> $
+            AND iDist <> 0
+         {
+            iDist = Sqrt(iDist);
+
+            % Check sqrt value for 0
+            if iDist = 0
+            {
+               return viProjectileSpeed;
+            }
+            else
+            {
+               return Bound((iDist / 64) * 2,viProjectileSpeed,$);
+            }
+         }
+      }
+      return viProjectileSpeed;
    }
 
    SendProjectileAnimation()
@@ -94,6 +156,44 @@ messages:
    GetProjectileLightColor()
    {
       return viProjectileLightColor;
+   }
+
+   % For secondary effects such as splash or chain
+   
+   GetAlternateProjectileLightColor()
+   {
+      return viProjectileLightColor;
+   }
+   
+   GetAlternateProjectileIcon()
+   {
+      return vrProjectile_Icon;
+   }
+   
+   SendAlternateProjectileAnimation()
+   {
+      Send(self,@SendProjectileAnimation);
+      return;
+   }
+   
+   GetAlternateProjectileSpeed()
+   {
+      return Send(self,@GetProjectileSpeed);
+   }
+   
+   GetAlternateProjectileLightFlags()
+   {
+      return viProjectileLightFlags;
+   }
+   
+   GetAlternateProjectileLightIntensity()
+   {
+      return viProjectileLightIntensity;
+   }
+
+   GetProjectileFlag()
+   {
+      return viProjectileFlag;
    }
 
 end

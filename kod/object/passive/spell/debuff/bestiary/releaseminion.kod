@@ -1,0 +1,177 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ReleaseMinion is BestiarySpell
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   release_minion_sound = smarkdis.wav
+
+   release_minion_name_rsc = "release minion"
+   release_minion_icon_rsc = ifreeact.bgf
+   release_minion_desc_rsc = \
+      "Releases a minion from your control. Requires nothing but a moment of disdain."
+
+   release_minion_already_enchanted = "%s%s has already been released."
+   release_minion_caster = "%s%s is no longer under your control."
+   release_minion_on = "A magical tingling pulses through your body.  You are unable to move."
+   release_minion_off = "The magical hold lifts and you are able to move once more."
+
+   can_only_be_cast_on_your_minion = \
+      "You can only release a minion!"
+
+classvars:
+
+   vrName = release_minion_name_rsc
+   vrIcon = release_minion_icon_rsc
+   vrDesc = release_minion_desc_rsc
+
+   vrAlreadyEnchanted = release_minion_already_enchanted
+   vrEnchantment_On = release_minion_on
+   vrEnchantment_Off = release_minion_off
+   vrSuccess = release_minion_caster
+
+   viSchool = SS_BESTIARY
+   viSpell_num = SID_RELEASE_MINION
+   viSpell_level = 1
+
+   viFlash = FLASH_BAD
+
+   viSpellExertion = 2
+   viMana = 15
+
+   viChance_To_Increase = 40
+   viMeditate_ratio = 30
+
+   vrSucceed_wav = release_minion_sound
+   
+   viPrimaryStat = STAT_ID_INTELLECT
+   viSecondaryStat = 0
+
+   viHarmful = FALSE
+   viOutlaw = FALSE
+   vbIsRangedAttack = FALSE
+
+properties:
+
+   piBaseDuration = 6000 % Recommended value 2000.
+   piSpellPowerModifier = 40 % Recommended value 30.
+   piDeviation = 50 % Recommended value 10%.
+   viCast_time = 0 % Recommended value 600 (milliseconds).
+
+messages:
+
+   ResetReagents()
+   {
+      plReagents = $;
+
+      return;
+   }
+
+   CanPayCosts(who=$,lTargets=$,bItemCast=FALSE)
+   {
+      local target;
+
+      target = First(lTargets);
+
+      if NOT IsClass(target,&Monster)
+         OR Send(target,@GetMaster) <> who
+      {
+         Send(who,@MsgSendUser,#message_rsc=can_only_be_cast_on_your_minion);
+         return FALSE;
+      }
+
+      propagate;
+   }
+
+   CastSpell(who=$,wielder=$,lTargets=$,iSpellpower=0,report=TRUE,oDeflectImpact=$,bDeflectCast=FALSE)
+   {
+      local oTarget, oRoom, i, iDeflectSpeed;
+
+      oTarget = First(lTargets);
+
+      % Spell effects.
+      Send(self,@DoSpell,#what=who,#oTarget=oTarget,#report=report,
+            #iDuration=Send(self,@GetDuration,#iSpellPower=iSpellPower));
+
+      propagate;
+   }
+
+   DoSpell(what=$,oTarget=$,iDuration=$,report=TRUE)
+   "Holds target for duration seconds."
+   {
+      local i, oSpell;
+
+      if oTarget = $
+      {
+         return FALSE;
+      }
+
+      % Check for enchantment already applied
+      if Send(oTarget,@IsEnchanted,#what=self)
+      {
+         return FALSE;
+      }
+
+      % Check for spell called with $ iDuration, apply default time if so.
+      if iDuration = $
+      {
+         iDuration = 5000;
+      }
+
+      Send(oTarget,@StartEnchantment,#what=self,#time=iDuration,#report=report,
+            #state=report);
+
+      if IsClass(oTarget,&Monster)
+      {
+        Send(oTarget,@BreakAllegiance);
+      }
+
+%      if report
+%      {
+%         Send(what,@MsgSendUser,#message_rsc=vrSuccess,
+%               #parm1=Send(oTarget,@GetCapDef),#parm2=Send(oTarget,@GetName));
+%      }
+
+      propagate;
+   }
+
+   GetDuration(iSpellPower=0)
+   {
+      local iDuration;
+
+      iDuration = piBaseDuration + iSpellPower * piSpellPowerModifier;
+      iDuration = Random(iDuration * (100 - piDeviation) / 100,iDuration);
+
+      return iDuration;
+   }
+
+   EndEnchantment(who=$,report=TRUE,state=$)
+   {
+      if IsClass(who,&Monster)
+      {
+         % This has to be done AFTER the enchantment is gone from the
+         % monster's ench list - Post it
+         Post(who,@ResetBehaviorFlags);
+         if Send(who,@GetOwner) <> $
+         {
+            Post(Send(who,@GetOwner),@SomethingChanged,#what=who);
+         }
+      }
+
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

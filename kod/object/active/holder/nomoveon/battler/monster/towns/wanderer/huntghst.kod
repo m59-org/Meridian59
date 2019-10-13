@@ -22,7 +22,10 @@ resources:
    HunterGhost_icon_rsc = nnm01.bgf
    HunterGhost_desc_rsc =  \
      "This druidic mage's demeanor is so calm and peaceful that you can't "
-     "help but wonder why his ghostly shade still walks this plane."
+     "help but doubt the stories of his family's fate in the ancient city "
+     "of Brax. Born not of hate nor of fury but of righteous duty, "
+     "his resolve to destroy the Lich and her Necromancers is eternally unwavering. "
+     "\n\nTo join the hunt say, 'I wish to take up arms against evil.'"
 
    huntghost_hunt_only = \
       "I may only teach that to a wielder of a hunter's sword."
@@ -31,6 +34,25 @@ resources:
       "such powerful magics.\""
 
    huntghost_said_resource_str = "%s%s says, \"%s~n\""
+
+   not_strong_enough = \
+      "Mind your own safety, innocent traveler. Only those of considerable strength are worthy of our righteous duty."
+
+   angry_have_amulet = \
+      "Do you think to deceive me? I sense your foul undead presence. Begone, fiend!"
+   
+   already_have_soth = \
+      "You are already part of the eternal hunt."
+
+   already_placed_soth = \
+      "I have placed a Sword of the Hunt in the heart of the enemy's lair. If you are "
+      "truly worthy of joining the hunt, infiltrate the maze-like Dungeon of Castle Brax "
+      "and take up the living weapon of the hunters."
+
+   placing_soth = \
+      "You wish to join our holy crusade? I have placed a Sword of the Hunt in the heart of the enemy's lair. If you are "
+      "truly worthy of joining the hunt, infiltrate the maze-like Dungeon of Castle Brax "
+      "and take up the living weapon of the hunters."
 
 classvars:
 
@@ -68,7 +90,8 @@ messages:
             SID_LIGHTNINGWALL,
             SID_DEFLECT,
             SID_HUNT,
-            SID_GUILD_CONVEYANCE
+            SID_GUILD_CONVEYANCE,
+            SID_DETECT_INVIS
          ],
      $];
 
@@ -111,6 +134,49 @@ messages:
       }
 
       return TRUE;
+   }
+
+   SomeoneSaid(what=$,type=$,string=$)
+   {
+      if type = SAY_YELL OR NOT IsClass(what,&User)
+      {
+          propagate;
+      }
+
+      if StringContain(string,"I wish to take up arms against evil")
+         AND what <> $
+         AND IsClass(what,&User)
+      {
+         if Send(what,@HasAmuletOfTheThree)
+         {
+            Send(poOwner,@SomeoneSaid,#what=self,#type=SAY_RESOURCE,
+		          #string=angry_have_amulet);
+            propagate;
+         }
+         if Send(what,@HasSwordOfTheHunt)
+         {
+            Send(poOwner,@SomeoneSaid,#what=self,#type=SAY_RESOURCE,
+		          #string=already_have_soth);
+            propagate;
+         }
+         if Send(what,@GetBaseMaxHealth) < 61
+         {
+            Send(poOwner,@SomeoneSaid,#what=self,#type=SAY_RESOURCE,
+		          #string=not_strong_enough);
+            propagate;
+         }
+         if Send(Send(SYS,@FindRoomByNum,#num=RID_LICH_MAZE),@HasSwordOfTheHunt)
+         {
+            Send(poOwner,@SomeoneSaid,#what=self,#type=SAY_RESOURCE,
+		          #string=already_placed_soth);
+            propagate;
+         }
+            Send(poOwner,@SomeoneSaid,#what=self,#type=SAY_RESOURCE,
+		          #string=placing_soth);
+         Post(Send(SYS,@GetNecromancerBalance),@ForceGenerateSword);
+      }
+
+      propagate;
    }
 
 end

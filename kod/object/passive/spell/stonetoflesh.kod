@@ -1,0 +1,112 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+StoneToFlesh is Spell
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   stone_to_flesh_name_rsc = "stone to flesh"
+   stone_to_flesh_icon_rsc = ispectate.bgf
+   stone_to_flesh_desc_rsc = \
+      "The mightiest of Shal'ille's healing magics, greater even than resurrection itself, "
+      "is the complete reconstruction of an ally that has been turned to stone. "
+      "The original body is gone forever, but, through the grace of Shal'ille "
+      "and the extreme exertion of her most devoted follower, "
+      "a completely new form can be regenerated to replace the stone shape "
+      "that petrification left behind. "
+      "Requires four herbs, four elderberries, and four yellow mushrooms to cast."
+   
+   stone_to_flesh_on = "The power of Shal'ille regenerates your stone form into flesh!"
+   stone_to_flesh_abates = "You feel the stone changing."
+   
+classvars:
+
+   vrName = stone_to_flesh_name_rsc
+   vrIcon = stone_to_flesh_icon_rsc
+   vrDesc = stone_to_flesh_desc_rsc
+
+   viSpell_num = SID_STONE_TO_FLESH
+   viSchool = SS_SHALILLE
+   viMana = 33
+   viSpell_level = 5
+   
+   viCast_time = 10000
+
+   viChance_To_Increase = 20
+   viMeditate_ratio = 80
+
+   viFlash = FLASH_GOOD
+   
+   viPrimaryStat = STAT_ID_MYSTICISM
+   viSecondaryStat = STAT_ID_KARMA
+
+properties:
+
+messages:
+
+   ResetReagents()
+   {
+      plReagents = $;
+      plReagents = Cons([&Herbs,4],plReagents);
+      plReagents = Cons([&ElderBerry,4],plReagents);
+      plReagents = Cons([&YellowMushroom,4],plReagents);
+
+      return;
+   }
+
+   GetNumSpellTargets()
+   {
+      return 1;
+   }
+
+   CastSpell(who=$,lTargets=$,iSpellpower=0)
+   {
+      local oTarget, oDisease;
+
+      oTarget = First(lTargets);
+
+      Send(oTarget,@MsgSendUser,#message_rsc=stone_to_flesh_on);
+      Send(who,@MsgSendUser,#message_rsc=spell_cast_on_target,
+            #parm1=Send(self,@GetName),#parm2=Send(oTarget,@GetDef),
+            #parm3=Send(oTarget,@GetName));
+      Send(oTarget,@RemoveEnchantmentClass,#class=&Petrified);
+
+      propagate;
+   }
+
+   CanPayCosts(who=$,lTargets=$)
+   {
+      local i, target;
+
+      % Can cast spell if the 1 target item is a user
+      if Length(lTargets) <> 1
+      {
+         return FALSE;
+      }
+
+      target = First(lTargets);
+      if not IsClass(target, &User) or not Send(target,@IsEnchanted,#byClass=&Petrified)
+      {
+         Send(who, @MsgSendUser, #message_rsc=spell_bad_target,
+               #parm1=vrName,#parm2=Send(target,@GetDef),
+               #parm3=Send(target,@GetName));
+
+         return FALSE;
+      }
+
+      propagate;   % Check other things higher up
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

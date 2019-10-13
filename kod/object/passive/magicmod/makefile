@@ -5,6 +5,7 @@
 !include $(TOPDIR)\common.mak
 
 DEPEND = ..\magicmod.bof
-BOFS = resistancemod.bof protectionmod.bof woffensemod.bof
+BOFS = resistancemod.bof protectionmod.bof woffensemod.bof wstatmod.bof \
+       vitalmod.bof empmod.bof cstatmod.bof crystalmod.bof
 
 !include $(KODDIR)\kod.mak

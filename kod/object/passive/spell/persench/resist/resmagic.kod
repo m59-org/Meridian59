@@ -51,6 +51,9 @@ classvars:
    vrEnchantment_On = resistmagic_on
    vrEnchantment_Off = resistmagic_off
    vrSuccess  = resistmagic_success
+   
+   viPrimaryStat = STAT_ID_STAMINA
+   viSecondaryStat = 0
 
 properties:
 
@@ -66,8 +69,14 @@ messages:
 
    GetResistanceStrength(iSpellpower = 0)
    {
-      %% strength varies from 5 to 25
-      return (iSpellPower+1)/5 + 5;
+      if Send(SETTINGS_OBJECT,@GetDirectArmorEnabled)
+      {
+         %% strength varies from 5 to 25
+         return (iSpellPower+1)/5 + 5;
+      }
+
+      %% strength varies from 2 to 15
+      return bound((iSpellPower+1)/6,2,15);
    }
 
    GetDuration(iSpellPower = 0)

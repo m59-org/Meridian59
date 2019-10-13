@@ -60,6 +60,13 @@ resources:
 
    radius_ench_cant_fight_here = "You can't fight here."
 
+   not_enough_mana_necklace_reserve_song = \
+      "You don't have the %i mana needed to imbue this song into your necklace of Jala!"
+   reserved_song = \
+      "You imbue your necklace of Jala with the notes of %s using %i points of your maximum mana."
+   unreserve_song_msg = \
+      "You remove the notes of your %s song from your necklace of Jala."
+
 classvars:
 
    radius_ench_already_cast = radius_ench_default_already_cast
@@ -128,7 +135,7 @@ messages:
 
    CanPayCosts(who=$, lTargets=$)
    {
-      local i, each_obj, oRoom;
+      local i, each_obj, oRoom, iFlatManaReserved;
 
       oRoom = Send(who,@GetOwner);
       if oRoom = $
@@ -186,6 +193,31 @@ messages:
          return FALSE;
       }
 
+      if IsClass(self,&Jala)
+         AND who <> $
+         AND IsClass(who,&Player)
+         AND Send(who,@HasReservedSong,#oSpell=self)
+      {
+         % They've got the song already reserved. Cancel the song.
+         Post(self,@CancelRadiusEnchantment,#source=who);
+         return FALSE;
+      }
+      
+      if IsClass(self,&Jala)
+         AND who <> $
+         AND IsClass(who,&Player)
+         AND Send(who,@IsUsingA,#class=&JalaNecklace)
+      {
+         % Ok, we're casting a Jala song with a Necklace on. Look at reserved mana.
+         iFlatManaReserved = Send(self,@GetFlatManaReservation);
+         if iFlatManaReserved > Send(who,@GetMaxMana)
+            OR iFlatManaReserved > Send(who,@GetMana)
+         {
+            Send(who,@MsgSendUser,#message_rsc=not_enough_mana_necklace_reserve_song,#parm1=iFlatManaReserved);
+            return FALSE;
+         }
+      }
+
       propagate;
    }
 
@@ -229,7 +261,7 @@ messages:
 
    InitiateNewRadiusEnchantment(source=$, iSpellPower=0, iPower=0, iRange=0, iDuration=$)
    {
-      local oRoom;
+      local oRoom, iFlatManaReserved;
 
       if iPower = 0
       {
@@ -257,6 +289,37 @@ messages:
       }
 
       plCurrentEnchantments = Cons([source,0,0,$,iPower,iRange,iDuration,oRoom],plCurrentEnchantments);
+
+      if piOldAreaEnchStyle
+      {
+         Send(self,@StartRoomEffects,#oRoom=oRoom);
+      }
+      
+      if IsClass(self,&Jala)
+      {
+         Post(oRoom,@RecalculateRoomMusic);
+         
+         if source <> $
+            AND IsClass(source,&Player)
+            AND Send(source,@IsUsingA,#class=&JalaNecklace)
+         {
+            % Ok, we're casting a Jala song with a Necklace on. Look at reserved mana.
+            iFlatManaReserved = Send(self,@GetFlatManaReservation);
+            if iFlatManaReserved > Send(source,@GetMaxMana)
+               OR iFlatManaReserved > Send(source,@GetMana)
+            {
+               Send(source,@MsgSendUser,#message_rsc=not_enough_mana_necklace_reserve_song,#parm1=iFlatManaReserved);
+               return FALSE;
+            }
+
+            if Send(source,@ReserveSong,#oSpell=self,#iFlatManaReserved=iFlatManaReserved)
+            {
+               Send(source,@MsgSendUser,#message_rsc=reserved_song,
+                                     #parm1=Send(self,@GetName),
+                                     #parm2=Send(self,@GetFlatManaReservation));
+            }
+         }
+      }
 
       Send(self,@RecalculateActiveEnchantments);
 
@@ -370,7 +433,7 @@ messages:
          if viPeriodicEffect
             AND iPeriodic > Send(self,@CalculatePeriodicEffectTime,#iPower=iPower)
          {
-            Send(self,@PeriodicEffect,#lEnchanted=lEnchanted,#iPower=iPower,#iRange=iRange,#source=source);
+            Send(self,@PeriodicEffect,#lEnchanted=lEnchanted,#iPower=iPower,#iRange=iRange,#source=source,#oRoom=oRoom);
             iPeriodic = iPeriodic - Send(self,@CalculatePeriodicEffectTime,#iPower=iPower);
          }
 
@@ -380,27 +443,33 @@ messages:
          {
             if Send(source,@GetMana) >= 1
             {
-               Send(source,@LoseMana,#amount=1);
+               if NOT Send(source,@HasReservedSong,#oSpell=self)
+               {
+                  Send(source,@LoseMana,#amount=1);
+               }
                iDrain = iDrain - (viDrainTime / viManaDrain);
             }
             else
             {
-               iCrystalizeManaAbility = Send(source,@GetSpellAbility,#spell_num=SID_CRYSTALIZE_MANA);
-               if iCrystalizeManaAbility > 0
-                  AND NOT Send(source,@IsCrystalizeManaSurging)
+               if NOT Send(source,@HasReservedSong,#oSpell=self)
                {
-                  oCrystalizeMana = Send(SYS,@FindSpellByNum,#num=SID_CRYSTALIZE_MANA);
-                  Send(oCrystalizeMana,@DoManaSurge,#who=source,#triggered=TRUE);
-                  if Send(source,@GetMana) >= 1
+                  iCrystalizeManaAbility = Send(source,@GetSpellAbility,#spell_num=SID_CRYSTALIZE_MANA);
+                  if iCrystalizeManaAbility > 0
+                     AND NOT Send(source,@IsCrystalizeManaSurging)
                   {
-                     Send(source,@LoseMana,#amount=1);
-                     iDrain = iDrain - (viDrainTime / viManaDrain);
+                     oCrystalizeMana = Send(SYS,@FindSpellByNum,#num=SID_CRYSTALIZE_MANA);
+                     Send(oCrystalizeMana,@DoManaSurge,#who=source,#triggered=TRUE);
+                     if Send(source,@GetMana) >= 1
+                     {
+                        Send(source,@LoseMana,#amount=1);
+                        iDrain = iDrain - (viDrainTime / viManaDrain);
+                     }
                   }
-               }
-               else
-               {
-                  Post(self,@CancelRadiusEnchantment,#source=source);
-                  continue;
+                  else
+                  {
+                     Post(self,@CancelRadiusEnchantment,#source=source);
+                     continue;
+                  }
                }
             }
          }
@@ -454,6 +523,12 @@ messages:
          return FALSE;
       }
 
+      if IsClass(source,&Player)
+         AND Send(source,@IsInCannotInteractMode)
+      {
+         return FALSE;
+      }
+
       if IsClass(target,&Player)
          AND Send(target,@IsInCannotInteractMode)
       {
@@ -489,6 +564,12 @@ messages:
                return FALSE;
             }
          }
+      }
+      
+      if source <> $
+         AND IsClass(source,&RadiusEnchantmentTotemGuildHall)
+      {
+         return TRUE;
       }
 
       if viAffectsCasterOnly
@@ -583,7 +664,7 @@ messages:
          {
             Send(what,@MsgSendUser,#message_rsc=radius_ench_caster_enter);
          }
-         else
+         else if NOT IsClass(source,&RadiusEnchantmentTotemGuildHall)
          {
             Send(what,@MsgSendUser,#message_rsc=radius_ench_enter,#parm1=Send(source,@GetName));
          }
@@ -604,7 +685,7 @@ messages:
          {
             Send(what,@MsgSendUser,#message_rsc=radius_ench_caster_ends);
          }
-         else
+         else if NOT IsClass(source,&RadiusEnchantmentTotemGuildHall)
          {
             Send(what,@MsgSendUser,#message_rsc=radius_ench_leave,#parm1=Send(source,@GetName));
          }
@@ -645,7 +726,7 @@ messages:
    {
       local oRoom;
 
-      % The spell keeps going if you get damaged, move, cast, use an item, or make an attack.
+      % The spell keeps going if you get damaged, move, cast, use an item, make an attack, or change stance.
       % Players must rest to end most radius spells.
       if event = EVENT_DAMAGE
          OR event = EVENT_ATTACK
@@ -653,6 +734,7 @@ messages:
          OR event = EVENT_DISRUPT
          OR event = EVENT_CAST
          OR event = EVENT_USE
+         OR event = EVENT_STANCE_CHANGE
          OR piOldAreaEnchStyle
       {
          return FALSE;
@@ -671,6 +753,12 @@ messages:
          {
             return FALSE;
          }
+      }
+
+      if event = EVENT_REST
+         AND Send(who,@HasReservedSong,#oSpell=self)
+      {
+         return FALSE;
       }
 
       Send(self,@CancelRadiusEnchantment,#source=who,#event=event);
@@ -730,6 +818,23 @@ messages:
                   
                   }
                }
+               
+               if piOldAreaEnchStyle
+               {
+                  Send(self,@EndRoomEffects,#oRoom=oRoom);
+               }
+
+               if IsClass(self,&Jala)
+                  AND source <> $
+                  AND IsClass(source,&Player)
+                  %AND Send(source,@IsUsingA,#class=&JalaNecklace)
+               {
+                  Post(oRoom,@RecalculateRoomMusic);
+                  if Send(source,@UnReserveSong,#oSpell=self)
+                  {
+                     Send(source,@MsgSendUser,#message_rsc=unreserve_song_msg,#parm1=Send(self,@GetName));
+                  }
+               }
             }
 
             SetNth(i,1,$);
@@ -749,6 +854,16 @@ messages:
 
    RemoveEnchantmentEffects()
    "Need to override spell.kod's thing, since we do this ourselves specially."
+   {
+      return;
+   }
+
+   StartRoomEffects(oRoom=$)
+   {
+      return;
+   }
+
+   EndRoomEffects(oRoom=$)
    {
       return;
    }
@@ -812,6 +927,11 @@ messages:
       return resistance;
    }
 
+   ModifyResistances(resistance_list=$, lRadiusState=0)
+   {
+      return resistance_list;
+   }
+
    ModifyHitRoll(who = $,what = $,hit_roll = $)
    {
       return hit_roll;
@@ -850,6 +970,11 @@ messages:
    AdjustManaTime(time=0, lRadiusState=0)
    {
       return time;
+   }
+
+   AddBlindResistance(power=0, resistance=0)
+   {
+      return resistance;
    }
 
 end

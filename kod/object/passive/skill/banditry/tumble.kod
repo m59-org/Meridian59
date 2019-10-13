@@ -19,10 +19,10 @@ resources:
 
    Tumble_name_rsc = "tumble"
    Tumble_icon_rsc = dodgeico.bgf
-   Tumble_desc_rsc = "Skilled fighters can entirely tumble out of the way of an attack."
-   
-   tumble_success = "You tumble out of the way of %s%s's attack!"
-   enemy_tumbled = "%s%s tumbles out of the way of your attack!"
+   Tumble_desc_rsc = \
+      "Skilled fighters can entirely tumble out of the way of an attack. "
+      "At extreme defense levels compared to an opponent, "
+      "a master tumbler can even become unhittable."
 
 classvars:
 
@@ -37,13 +37,16 @@ classvars:
    viSchool = SKS_BANDITRY
    viSkill_Level = 3
    viChance_to_Increase = 35
-   viMeditate_ratio = 200
+   viMeditate_ratio = 40
 
    viSkillExertion = 0
    vbCheck_exertion = FALSE
 
    vbAutomatic = TRUE
    viShow_enchantment_icon = 0x02
+   
+   viPrimaryStat = STAT_ID_AGILITY
+   viSecondaryStat = 0
 
 properties:
 
@@ -54,13 +57,13 @@ messages:
       return Send(who,@GetAgility);
    }
    
-   AttemptTumble(who=$, what=$)
+   GetTumblePercentage(who=$, what=$)
    {
-      local chance, iAgility, iAbility;
+      local iAgility, iAbility;
       
       if IsClass(who,&Monster)
       {
-         chance = Send(who,@GetTumbling);
+         return Send(who,@GetTumbling);
       }
 
       if IsClass(who,&Player)
@@ -72,31 +75,25 @@ messages:
          if iAbility = 0
          {
             % Player does not have the skill!
-            return FALSE;
+            return 0;
          }
-
-         % Up to 5% from skill, and 5-7% from stat
-         chance = ((iAbility+1)/20) + (iAgility / 10);
-      }
-
-      if chance > Random(1,100)
-      {
-         Send(self,@ImproveAbility,#who=who);
-      
-         if IsClass(who,&Player)
+         if Send(who,@IsResting)
          {
-            Send(who,@MsgSendUser,#message_rsc=tumble_success,#parm1=Send(what,@GetDef),#parm2=Send(what,@GetName));
+            % Can't tumble while resting.
+            return 0;
          }
          
-         if IsClass(what,&Player)
+         if Send(who,@FindHolding,#class=&BanditryCrest) <> $
          {
-            Send(what,@MsgSendUser,#message_rsc=enemy_tumbled,#parm1=Send(who,@GetDef),#parm2=Send(who,@GetName));
+            return (iAbility + 1 + iAgility) * 2;
          }
-
-         return TRUE;
+         
+         % up to 100 from ability and up to another 100 from Agility
+         % This subtracts directly from to hit, meaning 20% chance to avoid an attack
+         return iAbility + 1 + iAgility;
       }
       
-      return FALSE;
+      return 0;
    }
 
 end

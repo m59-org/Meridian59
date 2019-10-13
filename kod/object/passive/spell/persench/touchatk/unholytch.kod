@@ -23,7 +23,7 @@ resources:
    UnholyTouch_icon_rsc = iunholyt.bgf
    UnholyTouch_desc_rsc = \
       "Dark energy from Qor sears your target and drains a small amount of "
-      "health. More effective on good targets. "
+      "health. More effective on good targets and bleeding enemies. "
       "Requires a single fairy wing to cast."
 
    UnholyTouch_already_enchanted_rsc = \
@@ -89,6 +89,9 @@ classvars:
    vrSucceed_wav = UnholyTouch_sound
 
    viEnchantmentLight = -10
+   
+   viPrimaryStat = STAT_ID_MYSTICISM
+   viSecondaryStat = STAT_ID_KARMA
 
 properties:
 
@@ -113,7 +116,7 @@ messages:
       % We don't have final damage amounts, so we'll keep the drain small.
       % We're hitting somebody, so we're dealing at least 1 damage. With
       % that in mind, let's have this level one spell heal 1 health per hit.
-      % Sometimes two health if the mage is lucky.
+      % Sometimes two health if the mage is lucky or the target is bleeding.
       % Even 1 health per hit is pretty substantial for a newbie.
       % This should give Qors a strong building tool right out of the gate.
       % Acid Touch at level two will not heal its users, but its damage
@@ -127,12 +130,13 @@ messages:
       }
 
       if Random(1,6) = 1
+         OR Send(victim,@IsBleeding)
       {
-         iHeal = 1;
+         iHeal = 2;
       }
       else
       {
-         iHeal = 2;
+         iHeal = 1;
       }
 
       Send(who,@GainHealthNormal,#amount=iHeal);

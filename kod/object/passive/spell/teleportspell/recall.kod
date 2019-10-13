@@ -1,0 +1,210 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Recall is TeleportationSpell
+
+constants:
+   include blakston.khd
+
+resources:
+
+   recall_name_rsc = "recall"
+   recall_icon_rsc = iblink.bgf
+   recall_desc_rsc = \
+     "Teleports you to the regional center of activity. "
+     "Often this is your hometown, but it may also be a major inn, oasis, "
+     "or place of recuperation. "
+     "Such a location is not always safe. "
+	  "Recalling requires nothing but time and a will to move."
+
+   recall_spell_intro = \
+      "Riija Level 1: Returns you to a central location in the region."
+
+   recall_depart_to_destination = \
+      "%s vanishes in a blur of arcane energy."
+
+classvars:
+
+   vrName = recall_name_rsc
+   vrIcon = recall_icon_rsc
+   vrDesc = recall_desc_rsc
+
+   viCast_time = 30000
+
+   vrSpell_intro = recall_spell_intro
+
+   viSpell_num = SID_RECALL
+   viSpell_level = 1
+   viSchool = SS_RIIJA
+   viMana = 5
+   viSpellExertion = 10
+   viChance_To_Increase = 15
+   viMeditate_ratio = 20
+   
+   viPrimaryStat = STAT_ID_INTELLECT
+   viSecondaryStat = 0
+
+properties:
+
+messages:
+
+   ResetReagents()
+   {
+      plReagents = $;
+
+      return;
+   }
+
+   GetNumSpellTargets()
+   {
+      return 0;
+   }
+
+   CanPayCosts(who = $,lTargets = $)
+   {
+      % Can't cast just after attacking someone
+      if Send(who,@GetLastPlayerAttackTime)
+         + Send(SETTINGS_OBJECT,@TeleportAttackDelaySec)
+         > GetTime()
+      {
+         Send(who,@MsgSendUser,#message_rsc=spell_too_soon_since_attacking);
+
+         return FALSE;
+      }
+
+      propagate;
+   }
+
+   CastSpell(who = $, lTargets = $)
+   {
+      local i, each_obj, oCurrentRoom, oTargetRoom, oGuild;
+
+      oCurrentRoom = Send(who,@GetOwner);
+
+      foreach i in Send(Send(who,@GetOwner),@GetHolderActive)
+      {
+         each_obj = Send(Send(who,@GetOwner),@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&User)
+         {
+            Send(each_obj,@MsgSendUser,
+                  #message_rsc=recall_depart_to_destination,
+                  #parm1=Send(who,@GetName));
+         }
+      }
+
+      if oCurrentRoom <> $
+      {
+         % Teleport to Xaerdun if we're in the Desert afterlife
+         if Send(oCurrentRoom,@GetRegion) = RID_DESERTALDUNES
+         {
+            oTargetRoom = Send(SYS,@FindRoomByNum,#num=RID_DESERTALDUNES);
+            Post(oTargetRoom,@Teleport,#what=who);
+
+            propagate;
+         }
+
+         % Teleport to desert drop if we're in Waylay Oasis
+         if Send(oCurrentRoom,@GetRoomNum) = RID_WAYLAYOASIS
+         {
+            oTargetRoom = Send(SYS,@FindRoomByNum,#num=RID_DESERTSHORE2);
+            Post(oTargetRoom,@Teleport,#what=who);
+            propagate;
+         }
+
+         % Teleport back to Cess Castle from drop
+         if Send(oCurrentRoom,@GetRoomNum) = RID_DESERTSHORE2
+         {
+            oTargetRoom = Send(SYS,@FindRoomByNum,#num=RID_CASTLE2F);
+            Post(oTargetRoom,@Teleport,#what=who);
+            propagate;
+         }
+
+         % Teleport to Waylay Oasis if we're past it
+         if Send(oCurrentRoom,@GetRoomNum) >= RID_DESERTRIVER1
+            AND Send(oCurrentRoom,@GetRoomNum) <= RID_DESERT_END
+         {
+            oTargetRoom = Send(SYS,@FindRoomByNum,#num=RID_WAYLAYOASIS);
+            Post(oTargetRoom,@Teleport,#what=who);
+
+            propagate;
+         }
+         
+         % Teleport to Waylay Oasis if we're past it
+         if Send(oCurrentRoom,@GetRoomNum) >= RID_PALACE_DUNGEON_ENTRANCE
+            AND Send(oCurrentRoom,@GetRoomNum) <= RID_PALACE_DUNGEON_END
+         {
+            oTargetRoom = Send(SYS,@FindRoomByNum,#num=RID_WAYLAYOASIS);
+            Post(oTargetRoom,@Teleport,#what=who);
+
+            propagate;
+         }
+
+         % Teleport to Cisterns if we're in the maze
+         if Send(oCurrentRoom,@GetRoomNum) >= RID_MAZE_SEWER
+            AND Send(oCurrentRoom,@GetRoomNum) <= RID_FROZEN_CISTERN
+         {
+            oTargetRoom = Send(SYS,@FindRoomByNum,#num=RID_DESERTCANAL);
+            Post(oTargetRoom,@Teleport,#what=who);
+
+            propagate;
+         }
+
+         % Teleport to drop if we're in the Biskalane desert
+         if Send(oCurrentRoom,@GetRegion) = RID_DESERT
+         {
+            oTargetRoom = Send(SYS,@FindRoomByNum,#num=RID_DESERTSHORE2);
+            Post(oTargetRoom,@Teleport,#what=who);
+
+            propagate;
+         }
+
+         % Teleport to Ko'catan Inn if we're in Kocatan, or (disabled) at Vigor Pool
+         if Send(oCurrentRoom,@GetRegion) = RID_KOCATAN
+            %OR Send(oCurrentRoom,@GetRoomNum) = RID_ORC_CAVE5_EXT
+         {
+            oTargetRoom = Send(SYS,@FindRoomByNum,#num=RID_KOC_INN);
+            Post(oTargetRoom,@Teleport,#what=who);
+
+            propagate;
+         }
+
+         % If we're in the orc caves, teleport back to Icky Cave.
+         if Send(oCurrentRoom,@GetRegion) = RID_ORC_CAVE1
+         {
+            oTargetRoom = Send(SYS,@FindRoomByNum,#num=RID_CAVE2);
+            Post(oTargetRoom,@Teleport,#what=who);
+
+            propagate;
+         }
+      }
+
+      % Default: Go to our home room.
+      Post(who,@AdminGoToSafety);
+
+      propagate;
+   }
+
+   SuccessChance(who=$)
+   {
+      return TRUE;
+   }
+
+   CanForget()
+   {
+      return FALSE;
+   }
+
+   OfferToNewCharacters()
+   {
+      return FALSE;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

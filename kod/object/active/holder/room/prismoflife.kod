@@ -1,0 +1,512 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+PrismOfLife is Room
+
+constants:
+
+   include blakston.khd
+   
+   EXIT_PILLAR_SECTOR = 5000
+
+resources:
+
+   room_prismoflife = prismoflife.roo
+   room_name_prismoflife = "Prism of Life"
+
+   prismoflife_music = desertafterlife.mp3
+
+   cannot_teleport_in_prism_of_life = \
+      "The overwhelming positive energies here absorb the energy sent along the vector of your teleportation spell."
+
+   holy_prism_phase_out = \
+      "The aura of life leaves you as you course back to the Eternal Wastes."
+
+   killed_holy_boss_msg = \
+      "~B%s has slain %s%s! Quiet solitude and darkness fall across this place "
+      "as the spark of life fades."
+
+   prism_of_life_ascend = \
+      "You ascend the stairway of life. Each step is a renewed pulse in your unbeating heart. "
+      "Just as you feel the spark of vitality again, you emerge into the center of the region, remade."
+
+classvars:
+
+   vrName = room_name_prismoflife
+
+   viTeleport_row = 89
+   viTeleport_col = 211
+
+   viTerrain_type = TERRAIN_TEMPLE
+
+   vbOverridePlayerLightLevel = TRUE
+   viOverridePlayerLightLevel = 255
+
+   % No pens or PKing in afterlife. Everyone's already dead!
+   viPermanent_flags = ROOM_SAFELOGOFF | ROOM_NO_PK
+
+   viCanSpawnChampions = FALSE
+
+properties:
+
+   prMusic = prismoflife_music
+
+   prRoom = room_prismoflife
+   piRoom_num = RID_PRISM_OF_LIFE
+
+   piOverridesDeathFunction = TRUE
+
+messages:
+
+   Constructed()
+   {
+
+      propagate;
+   }
+
+   NewHold(what = $,new_row=$,new_col=$)
+   "Prevents anyone from logging on into a special zone"
+   {
+      % If players log on, send them elsewhere.
+      if IsClass(what,&User)
+      {
+         if Send(what,@GetOwner) = $
+         {
+            Post(Send(SYS,@FindRoomByNum,#num=RID_DESERTALDUNES),@Teleport,#what=what);
+         }
+      }
+
+      propagate;
+   }
+   
+   FirstUserEntered()
+   {
+      local i;
+      Post(self,@StartThreat,#cClasses=[&PhaseThreat]);
+      
+      if Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTALDUNES4W),@GetPrismOfLifeDefeated)
+      {
+         Send(self,@SetSector,#sector=EXIT_PILLAR_SECTOR,#animation=ANIMATE_FLOOR_LIFT,#height=3000,#speed=0);
+         propagate;
+      }
+      Send(self,@SetSector,#sector=EXIT_PILLAR_SECTOR,#animation=ANIMATE_FLOOR_LIFT,#height=4000,#speed=0);
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&XeoBossHoly)
+         {
+            propagate;
+         }
+      }
+      Post(self,@NewHold,#what=Create(&XeoBossHoly),#new_row=67,#new_col=131,#fine_row=0,#fine_col=0);
+      propagate;
+   }
+
+   StartThreat(cClasses=$,report=FALSE)
+   {
+      local i;
+
+      % Don't start same threat if one already exists.
+      % Don't start threats with no players present.
+      if pbUser_in_room
+         AND cClasses <> $
+      {
+         foreach i in cClasses
+         {
+            if NOT Send(self,@HasObjectAttribute,#cClass=i)
+            {
+               Create(i,#host_object=self,#iDuration=$,#report=report);
+            }
+         }
+      }
+
+      return;
+   }
+   
+   LastUserLeft()
+   {
+      local i;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&XeoBossHoly)
+            OR IsClass(First(i),&XeoHoly)
+         {
+            Send(First(i),@Delete);
+         }
+      }
+      Post(self,@EndAllThreats);
+
+      propagate;
+   }
+   
+   EndAllThreats()
+   {
+      local i;
+      
+      foreach i in plObject_attributes
+      {
+         if IsClass(i,&RoomThreat)
+            OR IsClass(i,&RoomStorm)
+         {
+            Send(i,@Delete);
+         }
+      }
+
+      return;
+   }
+
+   SpecialPhaseConditionsSatisfied()
+   {
+      return TRUE;
+   }
+   
+   OverrideDeathFunction(who=$,what=$,stroke_obj=$)
+   {
+      local oAfterlife, bDrop, oRoom, iRow, iCol, iFine_Row, iFine_Col, iAngle, iRoom,
+            oBody, lReagentBagContents, lInventoryContents, lItems, i, oSoldierShield;
+
+      Send(who,@ClearStance);
+
+      % Stop any rescue attempts that were going on.
+      Send(who,@CancelRescue);
+      Send(who,@RemoveAllEnchantments,#report=FALSE);
+      
+      Send(who,@SetDeathTime,#iTime=GetTime());
+
+      % Grab the location of the deceased.
+      % Might need to grab the old location if logged off.
+
+      if Send(who,@IsLoggedOn)
+      {
+         oRoom = Send(who,@GetOwner);
+         iRow = Send(who,@GetRow);
+         iCol = Send(who,@GetCol);
+         iFine_Row = Send(who,@GetFineRow);
+         iFine_Col = Send(who,@GetFineCol);
+         iAngle = Send(who,@GetAngle);
+         iRoom = Send(Send(who,@GetOwner),@GetRoomNum);
+      }
+      else
+      {
+         iRoom = Send(who,@GetSaveRoom);
+         oRoom = Send(SYS,@FindRoomByNum,#num=iRoom);
+         iRow = Send(who,@GetSaveRow);
+         iCol = Send(who,@GetSaveCol);
+         iFine_Row = Send(who,@GetSaveFineRow);
+         iFine_Col = Send(who,@GetSaveFineCol);
+         iAngle = Send(who,@GetSaveAngle);
+      }
+
+      % Record-keeping. Keep this before the token check,
+      % so we can give proper message.
+      Send(SYS,@UserKilled,#what=who,#killer=what,#oRoom=oRoom,#stroke_obj=stroke_obj);
+      Send(Send(SYS,@GetStatistics),@PlayerDiedCounter);
+
+      % Create the corpse.
+      if what <> $
+         AND IsClass(what,&User)
+      {
+         oBody = Send(who,@CreateCorpse,#oPlayerKiller=what);
+      }
+      else
+      {
+         oBody = Send(who,@CreateCorpse);
+      }
+      Send(who,@AddCorpse,#corpse=oBody);
+
+      Send(oRoom,@NewHold,#what=oBody,#new_row=iRow,#new_col=iCol,
+            #fine_row=iFine_Row,#fine_col=iFine_Col,#new_angle=iAngle);
+
+      bDrop = TRUE;
+      % Start losing stuff if applicable.
+      if bDrop
+      {
+         lReagentBagContents = Send(who,@GetReagentBagContents);
+         if lReagentBagContents <> $
+         {
+            lInventoryContents = [Send(who,@GetHolderActive),Send(who,@GetHolderPassive),lReagentBagContents];
+         }
+         else
+         {
+            lInventoryContents = [Send(who,@GetHolderActive),Send(who,@GetHolderPassive)];
+         }
+
+         foreach lItems in lInventoryContents
+         {
+            foreach i in lItems
+            {
+               % Let the item know we died, in case it does something special.
+               Send(i,@OwnerKilled);
+
+               if Send(i,@DropOnDeath)
+               {
+                  if Send(oRoom,@ReqNewHold,#what=i,#new_row=iRow,#new_col=iCol)
+                  {
+                     Send(oBody,@NewHold,#what=i);
+                  }
+               }
+            }
+         }
+
+         Post(who,@EvaluatePKStatus);
+
+         % Let SoldierShields know we died. It handles itself as appropriate.
+         oSoldierShield = Send(who,@FindUsing,#what=&SoldierShield);
+         if oSoldierShield <> $
+         {
+            Send(oSoldierShield,@OwnerDied,#what=what);
+         }
+      }
+
+      % Give out your dying scream.
+      if Send(who,@GetGender) = GENDER_FEMALE
+      {
+         i = Send(who,@GetFemaleDeathWav);
+      }
+      else
+      {
+         i = Send(who,@GetMaleDeathWav);
+      }
+
+      Send(oRoom,@SomethingWaveRoom,#what=oBody,#wave_rsc=i);
+      if Send(who,@IsLoggedOn)
+      {
+         Send(who,@WaveSendUser,#what=who,#wave_rsc=i);
+      }
+
+      Send(who,@SetHealth,#amount=1);
+
+      Send(who,@NewHealth);
+      Send(who,@NewMana);
+      Send(who,@NewVigor);
+      
+      Send(who,@SetDeathCost,#DeathCost=Send(Send(SYS,@GetDesertRoomMaintenance),@GetDeathCost),#bOverride=TRUE);
+      Send(who,@ApplyDeathPenalties);
+
+      % Refresh the client with what's really going on.
+      if Send(who,@IsLoggedOn)
+      {
+         Send(who,@ToCliStats,#group=1);
+         Send(who,@ToCliStats,#group=2);
+         Send(who,@ToCliStats,#group=3);
+         Send(who,@ToCliStats,#group=4);
+
+         % Wake up with red foggy hangover.
+         Send(who,@EffectSendUserDuration,#effect=EFFECT_PAIN,#duration=5000);
+      }
+      
+      oAfterlife = Send(SYS,@FindRoomByNum,#num=RID_DESERTALDUNES);
+      Send(oAfterlife,@Teleport,#what=who);
+      return;
+   }
+
+   ReqSpellCast(who = $, oSpell = $, lItems = $)
+   {
+      if IsClass(oSpell,&DeathRift)
+         OR IsClass(oSpell,&PortalOfLife)
+      {
+         return FALSE;
+      }
+      if IsClass(oSpell,&Rescue)
+         OR IsClass(oSpell,&Elusion)
+         OR IsClass(oSpell,&GuildHallRecall)
+      {
+         Send(who,@MsgSendUser,#message_rsc=cannot_teleport_in_prism_of_life);
+         return FALSE;
+      }
+
+      propagate;
+   }
+
+   OverridesDeathAllowPhasing()
+   {
+      return TRUE;
+   }
+
+   GetRegion()
+   {
+      return RID_DESERTALDUNES;
+   }
+
+   NewHoldObject(what = $,new_pos = $)
+   {
+      if IsClass(what,&Player)
+      {
+         Post(what,@RecalcLight);
+      }
+      propagate;
+   }
+
+   CheckNewHoldObjectFullyEntered()
+   {
+      return TRUE;
+   }
+
+   NewHoldObjectFullyEntered(what = $)
+   {
+      local oGreyGhost;
+
+      if IsClass(what,&User)
+      {
+         oGreyGhost = Send(SYS,@FindSpellByNum,#num=SID_GREY_GHOST);
+         
+         Send(what,@ReserveSpell,#oSpell=oGreyGhost,#iPercentManaReserved=0,#iSpellPower=99);
+         %Post(what,@SendEnchantmentIcons);
+      }
+
+      propagate;
+   }
+
+   LeaveHold(what=$)
+   {
+      if IsClass(what,&Player)
+      {
+         Post(what,@RecalcLight);
+         Post(self,@CheckToRemoveGreyGhost,#what=what);
+      }
+      propagate;
+   }
+
+   CheckToRemoveGreyGhost(what=$)
+   {
+      local oGreyGhost;
+
+      if Send(what,@GetOwner) = $
+         OR (NOT IsClass(Send(what,@GetOwner),&DesertAfterlife)
+            AND NOT IsClass(Send(what,@GetOwner),&PrismOfLife)
+            AND NOT IsClass(Send(what,@GetOwner),&PrismOfDeath))
+      {
+         if IsClass(what,&User)
+         {
+            oGreyGhost = Send(SYS,@FindSpellByNum,#num=SID_GREY_GHOST);
+         
+            Send(what,@UnReserveSpell,#oSpell=oGreyGhost);
+            %Post(what,@SendEnchantmentIcons);
+         }
+         else
+         {
+            Post(what,@RemoveDrawingEffects,#value=DRAWFX_SECONDTRANS);
+            if Send(what,@GetOwner) <> $
+            {
+               Post(Send(what,@GetOwner),@SomethingChanged,#what=what);
+            }
+         }
+      }
+      
+      return;
+   }
+   
+   CanHavePlayerPortal()
+   {
+      return FALSE;
+   }
+
+   SomethingKilled(what=$,victim=$)
+   {
+      local i;
+
+      if victim <> $
+         AND IsClass(victim,&Monster)
+      {
+         if IsClass(victim,&XeoBossHoly)
+         {
+            foreach i in Send(self,@GetHolderActive)
+            {
+               if IsClass(First(i),&Player)
+               {
+                  Send(First(i),@MsgSendUser,#message_rsc=killed_holy_boss_msg,
+                     #parm1=Send(what,@GetName),#parm2=Send(victim,@GetDef),#parm3=Send(victim,@GetName));
+               }
+            }
+            Send(self,@BossKilled);
+            propagate;
+         }
+      }
+
+      propagate;
+   }
+
+   BossKilled()
+   {
+      local i;
+
+      Send(self,@Rumble,#duration=20000);
+      Send(Send(SYS,@FindRoomByNum,#num=RID_MAZE_EXIT_ROOM),@OpenHolyWall);
+
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&Monster)
+         {
+            Send(First(i),@Killed);
+         }
+         
+         if IsClass(First(i),&Player)
+         {
+            Send(First(i),@DefeatedPrismPassiveQuest,#iElement=ATCK_SPELL_HOLY);
+         }
+      }
+      
+      Send(self,@SetSector,#sector=EXIT_PILLAR_SECTOR,#animation=ANIMATE_FLOOR_LIFT,#height=3000,#speed=100);
+      Post(Send(SYS,@FindRoomByNum,#num=RID_DESERTALDUNES4W),@PrismOfLifeDefeated);
+      return;
+   }
+
+   SomethingMoved(what = $,new_row = $, new_col = $)
+   {
+      if new_col < 123
+      {
+         Send(what,@MsgSendUser,#message_rsc=prism_of_life_ascend);
+         Send(Send(SYS,@FindRoomByNum,#num=RID_WAYLAYOASIS),@Teleport,#what=what);
+         return;
+      }
+
+      propagate;
+   }
+
+   StartRain()
+   {
+      return;
+   }
+   
+   StartSnow()
+   {
+      return;
+   }
+
+   Delete()
+   {
+      local i, oThing, oPlayer;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&LogoffGhost)
+         {
+            Send(Send(First(i),@GetGhostedPlayer),@AdminGoToDesertShore2WhileOffline);
+            Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTSHORE2),@Teleport,#what=First(i));
+         }
+      }
+
+      foreach i in Send(self,@GetHolderPassive)
+      {
+         oThing = Send(self,@HolderExtractObject,#data=i);
+         if IsClass(oThing,&DeadBody)
+            AND NOT Send(oThing,@GetPbMob)
+         {
+            % is a player corpse! Let's move it.
+            Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTDUNES),@Teleport,#what=oThing);
+         }
+      }
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+

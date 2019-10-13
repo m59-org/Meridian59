@@ -52,6 +52,9 @@ classvars:
    vbCheck_exertion = FALSE
 
    vbAutomatic = TRUE
+   
+   viPrimaryStat = STAT_ID_AGILITY
+   viSecondaryStat = 0
 
 properties:
 
@@ -116,7 +119,7 @@ messages:
          else
          {
             % Talented people can disarm even bare-handed.
-            iAbil = Send(who,@GetSkillAbility,#Skill_num=SKID_BRAWLING);
+            iAbil = Send(who,@GetSkillAbility,#Skill_num=SKID_BRAWLING) + Send(who,@GetSkillAbility,#Skill_num=SKID_TOUCH_OF_DEATH);
             if iAbil < BRAWL_THRESHOLD
             {
                return FALSE;

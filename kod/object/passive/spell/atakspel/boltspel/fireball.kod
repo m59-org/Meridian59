@@ -19,13 +19,22 @@ resources:
 
    fireball_name_rsc = "fireball"
    fireball_icon_rsc = fireball.bgf
+   fireball_splash_icon_rsc = woflame.bgf
    fireball_look_icon = ifirebal.bgf
    fireball_desc_rsc = \
-      "Sends a ball of flames at the target.  "
+      "Sends a ball of flames at the target. "
       "Requires red mushrooms and orc teeth to cast."
+   
+   fireball_mastered_desc_rsc = \
+      "\n\n"
+      "You possess exceptional mastery of this spell, allowing your fireballs to explode "
+      "on impact, dealing splash damage around the target in a radius equivalent to "
+      "the range of a blast of fire."
 
    fireball_hit_rsc = "A ball of fire strikes %s%s!"
 
+   fireball_explode_rsc = "Your mastered fireball explodes on impact!"
+   
    fireball_sound = ffirebal.wav
 
 classvars:
@@ -34,6 +43,7 @@ classvars:
    vrIcon = fireball_look_icon
    vrDesc = fireball_desc_rsc
    vrProjectile_icon = fireball_icon_rsc
+   vrMasteredDesc = fireball_mastered_desc_rsc
 
    viSpell_num = SID_FIREBALL
 
@@ -53,12 +63,23 @@ classvars:
    viProjectileLightIntensity = 100
    % Color is orange.
    viProjectileLightColor = LIGHT_BORANGE
+   
+   % Splash characteristics are different
+   viAlternateProjectile_icon = fireball_splash_icon_rsc
+   viAlternateProjectileSpeed = 4
+   viAlternateProjectileLightFlags = LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC
+   viAlternateProjectileLightIntensity = 100
+   viAlternateProjectileLightColor = LIGHT_RED
+   
+   viProjectileSpeed = 10
 
 properties:
    
    piDamageMin = 8
    piDamageMax = 12
    prSpellHit = fireball_hit_rsc
+   
+   pbSplashRange = 4*64
 
 messages:
 
@@ -73,9 +94,47 @@ messages:
       return;
    }
 
-   GetProjectileSpeed()
+   CastSpell(who=$,lTargets=$,iSpellPower=0,bSecondaryCast=FALSE,bDeflectCast=FALSE)
    {
-      return 10;
+      local oOwner, i, each_obj, lSplashTargets, lBattlers;
+
+      if Send(who,@HasMasteredThisSpell,#num=viSpell_num)
+         AND NOT bSecondaryCast
+         AND NOT bDeflectCast
+      {
+         oOwner = Send(who,@GetOwner);
+         lBattlers = $;
+
+         % For our splash targets, we find all battlers in range of the target
+         %    that aren't the caster or target and which the caster can attack
+
+         foreach i in Send(oOwner,@GetHolderActive)
+         {
+            each_obj = Send(oOwner,@HolderExtractObject,#data=i);
+            if IsClass(each_obj,&Battler)
+               AND each_obj <> who
+               AND each_obj <> First(lTargets)
+               AND Send(oOwner,@LineOfSight,#obj1=First(lTargets),#obj2=each_obj)
+               AND Send(who,@AllowPlayerAttack,#victim=each_obj,#report=FALSE,#actual=FALSE)
+               AND Send(First(lTargets),@SquaredFineDistanceTo3D,#what=each_obj) <= pbSplashRange*pbSplashRange
+            {
+               lBattlers = Cons(each_obj,lBattlers);
+            }
+         }
+         
+         % Show bolt from target to new targets
+         if lBattlers <> $
+         {
+            Post(who,@MsgSendUser,#message_rsc=fireball_explode_rsc);
+            foreach i in lBattlers
+            {
+               Send(oOwner,@SomethingShot,#who=First(lTargets),#target=i,#projectile=self,#flags=viProjectileFlag,#bUseAlternates=TRUE);
+               Post(self,@CastSpell,#who=who,#lTargets=[i],#iSpellPower=iSpellPower,#bSecondaryCast=TRUE);
+            }
+         }
+      }
+
+      propagate;
    }
 
    SendLookAnimation()
@@ -93,6 +152,39 @@ messages:
       return;
    }
 
+   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+   % The splash characteristics are different to avoid looking like chain
+
+   GetAlternateProjectileLightColor()
+   {
+      return viAlternateProjectileLightColor;
+   }
+   
+   GetAlternateProjectileIcon()
+   {
+      return viAlternateProjectile_icon;
+   }
+   
+   SendAlternateProjectileAnimation()
+   {
+      AddPacket(1,ANIMATE_CYCLE, 4,random(100,140), 2,1, 2,5);
+      return;
+   }
+   
+   GetAlternateProjectileSpeed()
+   {
+      return viAlternateProjectileSpeed;
+   }
+   
+   GetAlternateProjectileLightFlags()
+   {
+      return viAlternateProjectileLightFlags;
+   }
+   
+   GetAlternateProjectileLightIntensity()
+   {
+      return viAlternateProjectileLightIntensity;
+   }
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

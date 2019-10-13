@@ -32,6 +32,7 @@ classvars:
    viTeleport_row = 2
    viTeleport_col = 2
 
+   vcBossClass = &XeoBossFire
 
 properties:
 
@@ -50,6 +51,8 @@ properties:
    piInit_count_max = 6
 
    piMonster_count_max = 25
+   
+   plBossCoordinates = $
 
 messages:
 
@@ -59,17 +62,71 @@ messages:
 
       plGenerators = [ [22, 24], [61, 20], [47, 68], [15, 37], [12,61],
                        [31, 52], [64, 46], [33, 34], [35, 18] ];
+
+      plBossCoordinates = [28, 76];
       propagate;
    }
    
    FirstUserEntered()
    {
+      Send(self,@NewHold,#what=Create(vcBossClass),#new_row=Nth(plBossCoordinates,1),#new_col=Nth(plBossCoordinates,2));
+      
+      Post(self,@StartThreat,#cClasses=[&MagmaThreat]);
+      
       propagate;
    }
    
    LastUserLeft()
    {
+      Post(self,@EndAllThreats);
+
       propagate;
+   }
+
+   StartThreat(cClasses=$,report=TRUE)
+   {
+      local i;
+
+      % Don't start same threat if one already exists.
+      % Don't start threats with no players present.
+      if pbUser_in_room
+         AND cClasses <> $
+      {
+         foreach i in cClasses
+         {
+            if NOT Send(self,@HasObjectAttribute,#cClass=i)
+            {
+               Create(i,#host_object=self,#iDuration=$,#report=report);
+            }
+         }
+      }
+
+      return;
+   }
+
+   EndThreat(cClass=&ShockStorm)
+   {
+      if Send(self,@HasObjectAttribute,#cClass=cClass)
+      {
+         Send(Send(self,@GetObjectAttribute,#cClass=cClass),@Delete);
+      }
+      return;
+   }
+   
+   EndAllThreats()
+   {
+      local i;
+      
+      foreach i in plObject_attributes
+      {
+         if IsClass(i,&RoomThreat)
+            OR IsClass(i,&RoomStorm)
+         {
+            Send(i,@Delete);
+         }
+      }
+
+      return;
    }
 
    ReqSpellCast(who = $, oSpell = $)
@@ -90,6 +147,11 @@ messages:
       }
 
       propagate;
+   }
+
+   GetRegion()
+   {
+      return RID_DESERT;
    }
 
 end

@@ -1,0 +1,138 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+RingSustainment is AlchemySkill
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   ring_sustainment_name_rsc = "ring sustainment"
+   ring_sustainment_icon_rsc = imend.bgf
+   ring_sustainment_desc_rsc = \
+      "One of the first skills an alchemist learns is the extension "
+      "of a magical ring's energies. Magical rings were often "
+      "created in pseudo-alchemical circumstances in the first place, "
+      "so amateur alchemists often independently discover the ability to "
+      "manipulate those energies. A ring being sustained by alchemical "
+      "means will resist charge loss, greatly lengthening its useful lifespan. "
+      "\n\nAlchemical creation depends upon the essence of gold, "
+      "so each process consumes some number of transmuted shillings. "
+      "More skilled alchemists can consume less gold with each transmutation."
+      "\n\nThe more charges the ring has, the better chance of resisting depletion. "
+      "If the ring starts to drain, its charge may dissipate rapidly."
+      "\n\nOnce fully mastered, ring sustainment can be maintained "
+      "in non-combat areas at no shilling cost."
+
+   not_enough_shillings_ring_sustainment = \
+      "You don't have the %i shillings required to resist charge loss!"
+   transmute_shillings_ring_sustainment = \
+      "You alchemically melt %i shillings to resist a charge loss."
+
+classvars:
+
+   vrName = ring_sustainment_name_rsc
+   vrIcon = ring_sustainment_icon_rsc
+   vrDesc = ring_sustainment_desc_rsc
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+
+   viSkill_num = SKID_RING_SUSTAINMENT
+   viSchool = SKS_ALCHEMY
+   viSkill_Level = 1
+   viChance_to_Increase = 10
+   viMeditate_ratio = 30
+
+   viSkillExertion = 0
+   vbCheck_exertion = FALSE
+   
+   viPrimaryStat = STAT_ID_INTELLECT
+   viSecondaryStat = 0
+
+properties:
+
+messages:
+
+   GetRequisiteStat(who=$)
+   {
+      return Send(who,@GetIntellect);
+   }
+
+   DoSkill(who=$, oEquipment=$)
+   {
+      local iAbility, iStat, iDurability, iChance, oMoney, iCash, iFee;
+
+      iAbility = Send(who,@GetSkillAbility,#Skill_num=viSkill_num);
+      iStat = Send(self,@GetRequisiteStat,#who=who);
+      iDurability = Send(oEquipment,@GetHits);
+      
+      if iDurability < 1
+      {
+         return FALSE;
+      }
+
+      % First: 1 in iDurability, incentivizing keeping high durability
+      if Random(1,iDurability) = 1
+      {
+         return FALSE;
+      }
+
+      iChance = Bound(iAbility + iStat/5,10,100);
+      if Random(1,100) > iChance
+      {
+         return FALSE;
+      }
+      
+      % We succeeded! Or, rather, didn't fail. Shilling cost time.
+      
+      % No cost in safe zones at 99%.
+      if Send(who,@GetOwner) <> $
+         AND IsClass(Send(who,@GetOwner),&Room)
+         AND Send(Send(who,@GetOwner),@CheckRoomFlag,#flag=ROOM_NO_COMBAT)
+         AND iAbility = 99
+      {
+         propagate;
+      }
+
+      oMoney = Send(who,@GetMoneyObject);
+      if oMoney = $
+      {
+         % No cash.
+         iCash = 0;
+      }
+      else
+      {
+         iCash = Send(oMoney,@GetValue);
+      }
+      
+      % Fee ranges from 1x down to .1x.
+      iFee = Send(oEquipment,@GetInitValue);
+      iFee = iFee - ((iFee*9/10)*(iAbility+1))/100;
+
+      if iCash < iFee AND iFee <> 0
+      {
+         %Send(who,@MsgSendUser,#message_rsc=not_enough_shillings_ring_sustainment,#parm1=iFee);
+         return FALSE;
+      }
+
+      if iFee <> 0
+      {
+         Send(oMoney,@SubtractNumber,#number=iFee);
+         %Send(who,@MsgSendUser,#message_rsc=transmute_shillings_ring_sustainment,#parm1=iFee);
+      }
+
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

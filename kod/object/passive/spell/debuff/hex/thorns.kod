@@ -1,0 +1,177 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Thorns is Hex
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   thorns_cast_rsc = "Ethereal thorns surround %s%s."
+   thorns_already_enchanted = \
+      "That poor soul is already afflicted by thorns."
+   thorns_start = "Ethereal thorns climb along your limbs and tighten menacingly!"
+   thorns_stop  = "The ethereal thorns fade."
+   has_been_hexed_thorns = \
+      "Ethereal thorns surround %s%s!"
+
+   thorns_hurt_you = \
+      "The thorns around your limbs tighten, reflecting ~B~r%i~n damage!"
+
+   thorns_name_rsc = "thorns"
+   thorns_icon_rsc = ihexbecloud.bgf
+   thorns_desc_rsc = \
+      "Surrounds your victim with ethereal thorns that reflect a portion of "
+      "physical damage they deal back at them. "
+      "This hex requires one shock fragment to cast."
+
+   thorns_sound = qenfeebl.wav
+
+   thorns_hex_effect_report = \
+      "At that effectiveness, your thorns hex will reflect ~r~B%i\% ~nof the victim's physical damage back at them." 
+
+   thorns_death_msg = \
+      "~B~U~k[###]~n ~B~v%s was killed by reflected physical damage!"
+
+classvars:
+
+   vrName = thorns_name_rsc
+   vrIcon = thorns_icon_rsc
+   vrDesc = thorns_desc_rsc
+
+   vrHexEffectReport = thorns_hex_effect_report
+
+   vrAlreadyEnchanted = thorns_already_enchanted
+   vrEnchantment_On = thorns_start
+   vrEnchantment_Off = thorns_stop
+   vrSuccess = thorns_cast_rsc
+   vrInformRoom = has_been_hexed_thorns
+
+   viSpell_num = SID_HEX_THORNS
+   viSchool = SS_WITCHERY
+   viSubSchool = SSS_WITCHERY_VENTDAL
+   viSpell_level = 2
+   viMana = 12
+   viSpell_Exertion = 22
+
+   viFlash = FLASH_BAD
+
+   vrSucceed_wav = thorns_sound
+   viChance_To_Increase = 15
+   viMeditate_ratio = 70
+
+properties:
+
+   % Reflect this percentage of physical damage base
+   piBaseEffect = 30
+
+   piFlatDuration = 60000
+
+messages:
+
+   ResetReagents()
+   {
+      plReagents = $;
+      plReagents = Cons([&ShockFragment,1],plReagents);
+
+      return;
+   }
+
+   ReflectPhysicalDamage(who=$,what=$,damage=0,state=0,atype=0,aspell=0,stroke_obj=$)
+   {
+      local iPercentDamage, iReflectedDamage, iFinalDamage;
+
+      if who = $
+         OR what = $
+         OR who = what
+         OR damage <= 0
+         OR state < 0
+      {
+         return;
+      }
+      
+      if IsClass(what,&Player)
+      {
+         if NOT Send(what,@IsLoggedOn)
+         {
+            return;
+         }
+         if Send(what,@IsInCannotInteractMode)
+         {
+            return;
+         }
+         if Send(what,@GetOwner) <> $
+            AND IsClass(Send(what,@GetOwner),&Room)
+            AND NOT Send(Send(what,@GetOwner),@ReqSomethingAttack,#what=what,#victim=who,#report=FALSE)
+         {
+            return;
+         }
+      }
+
+      % stroke_obj is the monster object if the monster is attacking
+      % who is the victim
+      % what is the attacker
+      % the attacker is the one that's cursed with Thorns
+      iPercentDamage = piBaseEffect + (piBaseEffect * (state+1))/100;
+      iReflectedDamage = (damage * iPercentDamage)/100;
+
+      iFinalDamage = 0;
+      if atype <> 0
+      {
+         iFinalDamage = Send(what,@AssessDamage,#what=self,#damage=iReflectedDamage,
+            #atype=atype,
+            #aspell=0,
+            #precision=TRUE,
+            #absolute=TRUE,
+            #damaging_now=TRUE);
+         
+         if IsClass(what,&Player)
+            AND iFinalDamage <> $
+         {
+            Post(what,@MsgSendUser,#message_rsc=thorns_hurt_you,#parm1=iFinalDamage/100);
+         }
+      }
+
+      if iFinalDamage = $
+      {
+         Send(what,@Killed);
+         
+         if IsClass(what,&Player)
+         {
+            Send(self,@SendDeathMessage,#who=what);
+         }
+      }
+
+      return;
+   }
+   
+   SendDeathMessage(who=$)
+   {
+      local i;
+
+      foreach i in Send(SYS,@GetUsersLoggedOn)
+      {
+         Send(i,@MsgSendUser,#message_rsc=thorns_death_msg,
+               #parm1=Send(who,@GetName));
+      }
+
+      return;
+   }
+
+   DoHexEffectReport(what=$,iHexEffect=0)
+   {
+      Send(what,@MsgSendUser,#message_rsc=vrHexEffectReport,#parm1=(piBaseEffect + (piBaseEffect * (iHexEffect+1))/100));
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

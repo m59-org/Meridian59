@@ -82,6 +82,7 @@ messages:
       local oRoom, iPower;
 
       if wielder = $
+         OR NOT IsClass(wielder,&Player)
       {
          return hitroll;
       }
@@ -91,7 +92,8 @@ messages:
 
       oRoom = Send(wielder,@GetOwner);
 
-      if Send(oRoom,@CheckRoomFlag,#flag=ROOM_SAFE_DEATH)
+      if oRoom <> $
+         AND Send(oRoom,@CheckRoomFlag,#flag=ROOM_SAFE_DEATH)
       {
          return (hitroll + iPower);
       }
@@ -105,6 +107,7 @@ messages:
       local oRoom, iPower;
 
       if wielder = $
+         OR NOT IsClass(wielder,&Player)
       {
          return damage;
       }
@@ -114,7 +117,8 @@ messages:
 
       oRoom = Send(wielder,@GetOwner);
 
-      if Send(oRoom,@CheckRoomFlag,#flag=ROOM_SAFE_DEATH)
+      if oRoom <> $
+         AND Send(oRoom,@CheckRoomFlag,#flag=ROOM_SAFE_DEATH)
       {
          return (damage + iPower);
       }

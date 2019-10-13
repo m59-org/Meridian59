@@ -1,0 +1,208 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+SorcererScrap is PassiveItem
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   scrap_name_rsc = "tattoo scroll"
+   scrap_icon_rsc = scroll.bgf
+   scrap_desc_rsc = \
+      "This incredibly old parchment contains visual instructions for tattooing "
+      "oneself with sorcerous symbols."
+      "\n\nFrom the depicted change in the figure and "
+      "his mana flows, it is apparent that this scroll will teach a level %i "
+      "ability called %s. %s"
+
+   generic_error_msg = \
+      "The scroll twists and writhes in your grip, preventing you from getting a good look."
+   success_tattoo = \
+      "You follow the instructions and tattoo yourself. Almost immediately, you feel a "
+      "change in the way mana flows through your body."
+   already_know_msg = \
+      "You already have this tattoo. Adding another would be dangerous."
+   no_more_levels_msg = \
+      "You've learned all you can. This tattoo is beyond your grasp."
+   no_previous_levels_msg = \
+      "You don't know enough about the previous levels of sorcery to understand this parchment."
+   need_more_percents = \
+      "You need %i more percentage points in the previous level of sorcery before this tattoo "
+      "will work properly."
+
+classvars:
+
+   vrIcon = scrap_icon_rsc
+   vrDesc = scrap_desc_rsc
+
+   viUse_type = ITEM_SINGLE_USE
+   viUse_amount = 1
+   viBulk = 1
+   viWeight = 1
+
+properties:
+
+   piSorcerySkillID = SKID_FORCE_SPIKE
+   vrName = scrap_name_rsc
+
+messages:
+
+   Constructed()
+   {
+      local lSkillsThree, lSkillsFour, lSkillsFive, lSkillsSix, iRandomSkill, iRandomLevel;
+
+      lSkillsThree = [SKID_FORCE_SPIKE,
+                      SKID_ENTROPY,
+                      SKID_LINK_THREE];
+
+      lSkillsFour = [SKID_WILL_SURGE,
+                     SKID_ENERGY,
+                     SKID_LINK_FOUR];
+
+      lSkillsFive = [SKID_VOLATILE_FOCUS,
+                     SKID_LINK_FIVE,
+                     SKID_INERT_FORM];
+
+      lSkillsSix = [SKID_EMPOWERMENT];
+
+      iRandomLevel = 3;
+      if Random(1,2) = 2
+      {
+         iRandomLevel = 4;
+         if Random(1,2) = 2
+         {
+            iRandomLevel = 5;
+            if Random(1,2) = 2
+            {
+               iRandomLevel = 6;
+            }
+         }
+      }
+      
+      switch(iRandomLevel)
+      {
+         case 3:
+            piSorcerySkillID = Nth(lSkillsThree,Random(1,Length(lSkillsThree)));
+            break;
+         case 4:
+            piSorcerySkillID = Nth(lSkillsFour,Random(1,Length(lSkillsFour)));
+            break;
+         case 5:
+            piSorcerySkillID = Nth(lSkillsFive,Random(1,Length(lSkillsFive)));
+            break;
+         case 6:
+            piSorcerySkillID = Nth(lSkillsSix,Random(1,Length(lSkillsSix)));
+            break;
+      }
+      
+      propagate;
+   }
+
+   ReqNewApply(what=$,apply_on=$)
+   {
+      local oSkill, iLearnAttempt;
+
+      if what <> apply_on
+      {
+         return FALSE;
+      }
+
+      oSkill = Send(SYS,@FindSkillByNum,#num=piSorcerySkillID);
+      if oSkill = $
+      {
+         return FALSE;
+      }
+
+      if Send(apply_on,@HasSkill,#num=piSorcerySkillID)
+      {
+         Send(apply_on,@MsgSendUser,#message_rsc=already_know_msg);
+         return FALSE;
+      }
+
+      iLearnAttempt = Send(apply_on,@PlayerCanLearn,#skill_num=piSorcerySkillID);
+
+      if iLearnAttempt mod 10 = PLAYER_LEARN_BASE
+      {
+         Send(what,@MsgSendUser,#message_rsc=need_more_percents,#parm1=iLearnAttempt/10);
+         return FALSE;
+      }
+
+      switch(iLearnAttempt)
+      {
+         case PLAYER_LEARN_SUCCESS:
+            Send(what,@MsgSendUser,#message_rsc=success_tattoo);
+            return TRUE;
+         case PLAYER_LEARN_ALREADY:
+            Send(what,@MsgSendUser,#message_rsc=already_know_msg);
+            return FALSE;
+         case PLAYER_LEARN_IMPOSSIBLE:
+            Send(what,@MsgSendUser,#message_rsc=no_more_levels_msg);
+            return FALSE;
+         case PLAYER_LEARN_NOBASE:
+            Send(what,@MsgSendUser,#message_rsc=no_previous_levels_msg);
+            return FALSE;
+      }
+
+      Send(what,@MsgSendUser,#message_rsc=generic_error_msg);
+
+      return FALSE;
+   }
+
+   NewApplied(what = $,apply_on = $)  
+   {
+      Send(apply_on,@AddSkill,#num=piSorcerySkillID);
+      Post(self,@Delete);
+      return;
+   }
+
+   ShowDesc()
+   {
+      local oSkill;
+      
+      oSkill=Send(SYS,@FindSkillByNum,#num=piSorcerySkillID);
+      AddPacket(4, scrap_desc_rsc, 4,Send(oSkill,@GetLevel), 4,Send(oSkill,@GetName), 4,Send(oSkill,@GetDesc));
+
+      return;
+   }
+
+   NewOwner(what=$)
+   {
+      local oSkill;
+      
+      if what = $
+      {
+         propagate;
+      }
+      else
+      {
+         if IsClass(what,&Room)
+         {
+            vrName = scrap_name_rsc;
+            Post(what,@SomethingChanged,#what=self);
+            propagate;
+         }
+      }
+
+      oSkill=Send(SYS,@FindSkillByNum,#num=piSorcerySkillID);
+      if oSkill <> $
+         AND Send(oSkill,@GetName) <> $
+      {
+         vrName = Send(oSkill,@GetName);
+         Post(what,@SomethingChanged,#what=self);
+      }
+
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

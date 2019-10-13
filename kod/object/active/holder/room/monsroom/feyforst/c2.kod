@@ -30,6 +30,10 @@ resources:
       "scruples to meld with the node."
    waterfall_sound_outdoorsc2 = wfall2.wav
 
+   must_be_aligned_to_shatterlock_msg = \
+      "This place must be completely good or completely evil in order to summon "
+      "the node."
+
 classvars:
 
    vrName = room_name_OutdoorsC2
@@ -40,6 +44,9 @@ classvars:
 
    viTeleport_row = 15
    viTeleport_col = 13
+
+   viLongitude = 8
+   viLatitude = 6
 
 properties:
 
@@ -314,6 +321,33 @@ messages:
       }      		             
 
       propagate;
+   }
+
+   CanShatterlockHere()
+   {
+      return TRUE;
+   }
+   
+   Shatterlocked(oPrism=$,lCasters=$)
+   {
+      local i;
+
+      if Send(self,@GetKarma) <> KVERY_GOOD
+         AND Send(self,@GetKarma) <> KVERY_EVIL
+      {
+         foreach i in plActive
+         {
+            if IsClass(First(i),&Player)
+            {
+               Post(First(i),@MsgSendUser,#message_rsc=must_be_aligned_to_shatterlock_msg);
+            }
+         }
+         return;
+      }
+
+      Send(self,@AppearNode);
+      
+      return;
    }
 
 

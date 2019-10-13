@@ -1,0 +1,107 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+MysticGeometries is SorcerySkill
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   mystic_geometries_name_rsc = "mystic geometries"
+   mystic_geometries_icon_rsc = lightnin.bgf
+   mystic_geometries_desc_rsc = \
+      "Magic functions at angles much higher than most can perceive. "
+      "Those that understand these motions can better alter the course of "
+      "projectiles in both offensive and defensive ways. With this skill, the sorcerer's spells "
+      "have a chance to penetrate a Deflect enchantment, while, at the same time, "
+      "the sorcerer can resist an enemy's use of mystic geometries to maintain "
+      "the integrity of their own Deflect enchantment."
+
+   mystic_geometries_resist_reflect_victim = \
+      "The spell cast by %s%s ignores your barrier!"
+   mystic_geometries_resist_reflect_caster = \
+      "Your spell penetrates the barrier surrounding %s%s!"
+
+classvars:
+
+   vrName = mystic_geometries_name_rsc
+   vrIcon = mystic_geometries_icon_rsc
+   vrDesc = mystic_geometries_desc_rsc
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+
+   viSkill_num = SKID_MYSTIC_GEOMETRIES
+   viSchool = SKS_SORCERY
+   viSkill_Level = 5
+   viChance_to_Increase = 10
+   viMeditate_ratio = 200
+
+   viSkillExertion = 0
+   vbCheck_exertion = FALSE
+   
+   viPrimaryStat = STAT_ID_MYSTICISM
+   viSecondaryStat = 0
+
+properties:
+
+   piEmpowerPercentage = 50
+
+messages:
+
+   GetRequisiteStat(who=$)
+   {
+      return Send(who,@GetMysticism);
+   }
+
+   MysticGeometriesTryPenetrateDeflect(caster=$, victim=$, oSpell=$)
+   {
+      local iAbility, iStat, iSpellAbility;
+
+      iAbility = Send(caster,@GetSkillAbility,#Skill_num=viSkill_num);
+      iStat = Send(self,@GetRequisiteStat,#who=caster);
+      iSpellAbility = Send(caster,@GetSpellAbility,
+                            #spell_num=Send(oSpell,@GetSpellNum));
+
+      % Max effectiveness at 99/99 and 70 stat is 90%
+      % More realistically, at 50 stat, max is 83%
+      % Characters with terrible Myst can have max values as low as 67%
+      if (1 + iAbility) + (1 + iSpellAbility) + iStat > Random(1,300)
+      {
+         Send(self,@DoSkill,#who=caster);
+         if IsClass(caster,&User)
+         {
+            Send(caster,@MsgSendUser,
+                  #message_rsc=mystic_geometries_resist_reflect_caster,
+                  #parm1=Send(victim,@GetIndef),
+                  #parm2=Send(victim,@GetName));
+         }
+         if IsClass(victim,&User)
+         {
+            Send(victim,@MsgSendUser,
+                  #message_rsc=mystic_geometries_resist_reflect_victim,
+                  #parm1=Send(caster,@GetIndef),
+                  #parm2=Send(caster,@GetName));
+         }
+         return TRUE;
+      }
+
+      return FALSE;
+   }
+
+   DoSkill(who=$)
+   {
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -24,12 +24,17 @@ resources:
    travel_into_sea_sandbar = \
       "You trek back across the ice toward the shore."
 
+   prism_of_ice_defeated = \
+      "~BThe Prism of Ice near Biskalane has been defeated by a band of "
+      "intrepid adventurers! Until it surges back, the element of ice "
+      "will be helpful rather than harmful."
+
 classvars:
 
    vrName = room_name_desertsandbar
 
-   viTeleport_row = 5
-   viTeleport_col = 5
+   viTeleport_row = 53
+   viTeleport_col = 24
 
 properties:
 
@@ -40,6 +45,12 @@ properties:
 
    prRoom = room_desertsandbar
    piRoom_num = RID_DESERTSANDBAR
+   
+   pbPrismOpen = FALSE
+   pbPrismOfIceDefeated = FALSE
+
+   ptPrismOfIceReset = $
+   piHoursLeftReset = 47
 
 messages:
 
@@ -95,6 +106,193 @@ messages:
          return;
       }
 
+      propagate;
+   }
+
+   StartSnow(bOnGround=TRUE)
+   {
+      if pbPrismOfIceDefeated
+      {
+         Send(self,@ChangeTexture,#id=200,#new_texture=61017,#flags=CTF_FLOOR);
+         Send(self,@SetSectorFlags,#sector=200,#depth=SF_DEPTH0,#scrollSpeed=SCROLL_NONE);
+         Send(self,@SetSector,#sector=200,#animation=ANIMATE_FLOOR_LIFT,#height=1000,#speed=0);
+         pbPrismOpen = FALSE;
+      }
+      else
+      {
+         % Open Prism of Ice.
+         Send(self,@ChangeTexture,#id=200,#new_texture=07702,
+                #flags=CTF_FLOOR);
+         Send(self,@SetSectorFlags,#sector=200,#depth=SF_DEPTH0,
+               #scrollSpeed=SCROLL_NONE);
+         Send(self,@SetSector,#sector=200,#animation=ANIMATE_FLOOR_LIFT,
+               #height=5,#speed=0);
+         pbPrismOpen = TRUE;
+      }
+
+
+      propagate;
+   }
+
+   EndSnow(override=FALSE)
+   "Use override if rooms have manually placed textures."
+   {
+      Send(self,@RemoveTextureChange,#id=200);
+      Send(self,@RemoveSectorFlagChange,#id=200);
+      Send(self,@SetSector,#sector=200,#animation=ANIMATE_FLOOR_LIFT,
+            #height=1000,#speed=0);
+      
+      pbPrismOpen = FALSE;
+
+      propagate;
+   }
+
+   StartRain()
+   {
+      Send(self,@ChangeTexture,#id=200,#new_texture=09363,
+            #flags=CTF_FLOOR);
+      Send(self,@SetSectorFlags,#sector=13,#depth=SF_DEPTH1,
+            #scrollSpeed=SCROLL_SLOW);
+
+      propagate;
+   }
+   
+   EndRain()
+   {
+      Send(self,@RemoveTextureChange,#id=200);
+      Send(self,@RemoveSectorFlagChange,#id=200);
+
+      propagate;
+   }
+   
+   SpecialPhaseConditionsSatisfied(sector=0)
+   {
+      % Special Phase conditions
+      if sector=200
+         AND pbPrismOpen
+      {
+         return TRUE;
+      }
+
+      return FALSE;
+   }
+   
+   GetPhaseThreats()
+   {
+      if pbPrismOfIceDefeated
+      {
+         return [&ColdStorm];
+      }
+
+      switch(Send(SYS,@GetDayPhase))
+      {
+         case DAY_PHASE_DAWN:
+            return [&ShockStorm,&PhaseThreat];
+         case DAY_PHASE_DAY:
+            return [&HeatThreat,&PhaseThreat];
+         case DAY_PHASE_DUSK:
+            return [&AcidThreat,&PhaseThreat];
+         case DAY_PHASE_NIGHT:
+            return [&ColdThreat,&PhaseThreat];
+      }
+
+      return [&PhaseThreat];
+   }
+
+   GetPrismOfIceDefeated()
+   {
+      return pbPrismOfIceDefeated;
+   }
+
+   PrismOfIceDefeated()
+   {
+      local i;
+
+      Send(self,@RemoveTextureChange,#id=200);
+      Send(self,@RemoveSectorFlagChange,#id=200);
+      Send(self,@SetSector,#sector=200,#animation=ANIMATE_FLOOR_LIFT,#height=1000,#speed=0);
+      pbPrismOpen = FALSE;
+
+      if Send(self,@CheckRoomFlag,#flag=ROOM_SNOWING)
+      {
+         Send(self,@ChangeTexture,#id=200,#new_texture=61017,#flags=CTF_FLOOR);
+         Send(self,@SetSectorFlags,#sector=200,#depth=SF_DEPTH0,#scrollSpeed=SCROLL_NONE);
+         Send(self,@SetSector,#sector=200,#animation=ANIMATE_FLOOR_LIFT,#height=1000,#speed=0);
+      }
+      else if Send(self,@CheckRoomFlag,#flag=ROOM_RAINING)
+      {
+         Send(self,@ChangeTexture,#id=200,#new_texture=09363,
+               #flags=CTF_FLOOR);
+         Send(self,@SetSectorFlags,#sector=13,#depth=SF_DEPTH1,
+               #scrollSpeed=SCROLL_SLOW);
+      }
+      
+      pbPrismOfIceDefeated = TRUE;
+      
+      piHoursLeftReset = 47;
+      ptPrismOfIceReset = CreateTimer(self,@PrismOfIceReset,60000 * 60); % 1 hour, counts down 48 times
+      
+      Send(self,@EndAllThreats);
+      Send(self,@StartThreat,#cClasses=Send(self,@GetPhaseThreats));
+
+      foreach i in Send(SYS,@GetUsersLoggedOn)
+      {
+         Send(i,@MsgSendUser,#message_rsc=prism_of_ice_defeated);
+      }
+      return;
+   }
+
+   PrismOfIceReset()
+   {
+      local i;
+
+      ptPrismOfIceReset = $;
+      
+      if piHoursLeftReset > 0
+      {
+         --piHoursLeftReset;
+         ptPrismOfIceReset = CreateTimer(self,@PrismOfIceReset,60000 * 60); % 1 hour, counts down 48 times
+         return;
+      }
+      
+      piHoursLeftReset = 47;
+      pbPrismOfIceDefeated = FALSE;
+      
+      Send(Send(SYS,@FindRoomByNum,#num=RID_MAZE_EXIT_ROOM),@OpenIceWall);
+
+      return;
+   }
+
+   RecalcLightAndWeather()
+   {
+      local i;
+
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&NequzonPriestess)
+         {
+            Send(First(i),@SayRandom);
+         }
+      }
+   
+      propagate;
+   }
+
+   CreateStandardObjects()
+   {
+      Send(self,@NewHold,#what=Create(&NequzonPriestess),
+            #new_row=Random(1,Send(self,@GetRoomRows)-5),#new_col=Random(1,Send(self,@GetRoomCols)-5));
+
+      propagate;
+   }
+   
+   Delete()
+   {
+      if ptPrismOfIceReset <> $
+      {
+         DeleteTimer(ptPrismOfIceReset);
+         ptPrismOfIceReset = $;
+      }
       propagate;
    }
 

@@ -1,0 +1,300 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+XeoBossHoly is Xeochicatl
+
+constants:
+
+   include blakston.khd
+
+   ANIM_CAST = 2     %% Cast spell animation.
+
+resources:
+
+   XeoBossHoly_name_rsc = "vix'si'xeochicatl"
+   XeoBossHoly_koc_name_rsc = "vix'si'xeo'chicatl"
+   XeoBossHoly_icon_rsc = Xeo.bgf
+   XeoBossHoly_desc_rsc = \
+      "Before you is a vix'si'xeochicatl, a being from near the heart of the "
+      "elemental plane of life. This is no minor xeochicatl; the vix are "
+      "far too strong to grace the mortal plane without visiting tremendous "
+      "destruction. This beast is an elemental incarnation of creation itself."
+
+   XeoBossHoly_sound_aware = xeo1awr.wav
+
+   holy_enter_phase_two_msg = \
+      "~BEnraged by your assault, the vix'si'xeochicatl phases further into "
+      "your mortal plane, bringing greater forces to bear!"
+
+   holy_enter_phase_three_msg = \
+      "~BThe vix'si'xeochicatl beams righteous fury in every direction!"
+
+classvars:
+
+   vrName = XeoBossHoly_name_rsc
+   vrDesc = XeoBossHoly_desc_rsc
+   vrKocName = XeoBossHoly_koc_name_rsc
+
+   viAttack_type = 0
+   viAttack_spell = ATCK_SPELL_HOLY
+   vrSound_aware = XeoBossHoly_sound_aware
+
+   viTreasure_type = TID_XEO_BOSS_HOLY
+
+   viAttributes = MOB_NOMOVE | MOB_ONE_TREASURE
+   viDefault_behavior = AI_NOMOVE| AI_FIGHT_SWITCHALOT | AI_MOVE_WALKTHROUGH_WALLS
+
+   vbBonusXPGain = 5000
+
+properties:
+
+   piAnimation = ANIM_NONE
+
+   % percent of victim's max mana it will try to drain, double normal rate.
+   piDrainAmount = 10
+
+   piDrawfx = DRAWFX_TRANSLUCENT_25
+   piMinDamage = 10
+   piMaxDamage = 30
+
+   piMax_Mana = 300
+
+   viLevel = 180
+   viDifficulty = 8
+   viSpeed = SPEED_FASTER
+
+   vrIcon = Xeochicatl_icon_rsc
+   vrDead_icon = Xeochicatl_dead_icon_rsc
+   
+   piPhase = 1
+
+   % 5 minute hurt me recently for reward purposes
+   piHurtMeTime = 300000
+   
+   piBaseSize = 600
+
+messages:
+
+   Constructed()
+   {
+      plResistances = [ [-ATCK_SPELL_HOLY, 70 ],
+                        [-ATCK_SPELL_FIRE, 40 ],
+                        [-ATCK_SPELL_UNHOLY, -20],
+                        [ATCK_WEAP_MAGIC, -10 ],
+                        [-ATCK_SPELL_QUAKE, 100 ]
+                      ];
+
+      piColor_Translation = Send(SYS,@EncodeTwoColorXLAT,#color1=PT_BLBLK_REDWHT);
+
+      plMeleeSpellBook = [ [SID_PURGE,2,60, Random(70,99)],
+                            [SID_DAZZLE,10,70, Random(70,99)],
+                            [SID_MARK_OF_DISHONOR,3,100, Random(70,99)] ];
+      plRangedSpellBook = [ [SID_PURGE,2,60, Random(70,99)],
+                            [SID_DAZZLE,10,70, Random(70,99)],
+                            [SID_MARK_OF_DISHONOR,3,100, Random(70,99)] ];
+
+      Post(self,@AddChampionAbility,#ability=3,#value=90);
+
+      propagate;
+   }
+
+   GetBaseEmpowerments()
+   {
+      return [[-ATCK_SPELL_HOLY,100]];
+   }
+
+   GoPhaseTwo()
+   {
+      local i;
+
+      piMinDamage = 20;
+      piMaxDamage = 40;
+      piDrawfx = DRAWFX_TRANSLUCENT_50;
+      piLevel = 190;
+      viDifficulty = 9;
+      Post(self,@AddChampionAbility,#ability=4,#value=90);
+
+      plResistances = [ [-ATCK_SPELL_HOLY, 110 ],
+                        [-ATCK_SPELL_FIRE, 40 ],
+                        [-ATCK_SPELL_UNHOLY, 10 ],
+                        [ATCK_WEAP_MAGIC, 30 ],
+                        [-ATCK_SPELL_QUAKE, 100 ]
+                      ];
+
+      vrIcon = bigger_Xeochicatl_icon_rsc;
+      vrDead_icon = bigger_Xeochicatl_dead_icon_rsc;
+      piPhase = 2;
+      piBaseSize = 1200;
+      Post(poOwner,@SomethingChanged,#what=self);
+
+      foreach i in Send(poOwner,@GetHolderActive)
+      {
+         if IsClass(First(i),&Player)
+         {
+            Send(First(i),@MsgSendUser,#message_rsc=holy_enter_phase_two_msg);
+         }
+      }
+      Send(poOwner,@Rumble,#duration=4000);
+
+      return;
+   }
+
+   GoPhaseThree()
+   {
+      local i;
+
+      piMinDamage = 30;
+      piMaxDamage = 50;
+      piDrawfx = DRAWFX_TRANSLUCENT_75;
+      piLevel = 200;
+      viDifficulty = 10;
+      viSpeed = SPEED_VERY_FAST;
+      Post(self,@AddChampionAbility,#ability=6,#value=30);
+
+      plResistances = [ [-ATCK_SPELL_HOLY, 150 ],
+                        [-ATCK_SPELL_FIRE, 60 ],
+                        [ATCK_WEAP_MAGIC, 70 ],
+                        [-ATCK_SPELL_COLD, 70 ],
+                        [-ATCK_SPELL_UNHOLY, 30 ],
+                        [-ATCK_SPELL_QUAKE, 100 ]
+                      ];
+
+      vrIcon = biggest_Xeochicatl_icon_rsc;
+      vrDead_icon = biggest_Xeochicatl_dead_icon_rsc;
+      piPhase = 3;
+      piBaseSize = 1800;
+      Post(poOwner,@SomethingChanged,#what=self);
+
+      foreach i in Send(poOwner,@GetHolderActive)
+      {
+         if IsClass(First(i),&Player)
+         {
+            Send(First(i),@MsgSendUser,#message_rsc=holy_enter_phase_three_msg);
+         }
+      }
+      Send(poOwner,@Rumble,#duration=4000);
+
+      return;
+   }
+
+   GetMaxHitPoints()
+   {
+      return 20000;
+   }
+
+   GetBossStatus()
+   {
+      return TRUE;
+   }
+
+   HitPointThresholdDamage()
+   {
+      local iThreshold;
+
+      iThreshold = piHit_points / (piMax_hit_points * 20);
+
+      if iThreshold >= 4
+      {
+         propagate;
+      }
+      else if iThreshold = 3
+      {
+         propagate;
+      }
+      else if iThreshold = 2
+      {
+         Send(self,@GoPhaseTwo);
+         propagate;
+      }
+      else if iThreshold = 1
+      {
+         propagate;
+      }
+      else
+      {
+         Send(self,@GoPhaseThree);
+         propagate;
+      }
+
+      propagate;
+   }
+
+   IsAlly(target = $, regroup = FALSE)
+   {
+      if IsClass(target,&XeoBossHoly)
+         OR IsClass(target,&XeoHoly)
+      {
+         return TRUE;
+      }
+
+      propagate;
+   }
+
+   SendLightingInformation()
+   {
+      if piPhase = 1
+      {
+         AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC));
+         % 255 out of 255 intensity of light
+         AddPacket(1,60);
+         AddPacket(2,LIGHT_BYELLOW);
+      }
+      if piPhase = 2
+      {
+         AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC));
+         % 255 out of 255 intensity of light
+         AddPacket(1,145);
+         AddPacket(2,LIGHT_BYELLOW);
+      }
+      if piPhase = 3
+      {
+         AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC));
+         % 255 out of 255 intensity of light
+         AddPacket(1,255);
+         AddPacket(2,LIGHT_BYELLOW);
+      }
+
+      return;
+   }
+
+   Killed()
+   {
+      local i;
+      
+      foreach i in plHurtMeRecently
+      {
+         if IsClass(First(i),&Player)
+         {
+            Send(First(i),@SetPrismDefeated,#num=NTH_LIFE_PRISM,#value=1);
+         }
+      }
+      propagate;
+   }
+
+   GetBaseSize()
+   {
+      return piBaseSize;
+   }
+   
+   GetEnemyRangeBonus()
+   {
+      if piPhase = 2
+      {
+         return 64 * 2;
+      }
+      if piPhase = 3
+      {
+         return 64 * 4;
+      }
+      return viEnemyRangeBonus;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -1,0 +1,1128 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+AncientZiggurat is GuildHall
+
+% Custom hall originally designed in Minecraft by JJ2Skies.
+% 
+% Ziggurat's portals are unique in that they are controlled by a button system,
+%    and represent places themed by the afterlife and the undead.
+
+constants:
+
+   AREA_OUTSIDE = 0
+   AREA_INSIDE = 1
+
+   ENTRANCE_DOOR = 100
+   ENTRANCE_CLOSE_TIME = 8000
+   ENTRANCE_DOOR_TRIGGER_SECTOR = 101
+   ENTRANCE_DOOR_INSIDE_TRIGGER_SECTOR = 102
+   ENTRANCE_WALL = 230
+
+   SECRET_DOOR = 609
+   SECRET_CLOSE_TIME = 5000
+   
+   PORTAL_ROOM_LIGHT_PULSE_DELAY = 100
+   PORTAL_AREA = 600
+   PORTAL_STEP_ONE = 601
+   PORTAL_STEP_TWO = 602
+   PORTAL_STEP_THREE = 603
+   PORTAL_STEP_FOUR = 604
+   PORTAL_STEP_FIVE = 605
+   PORTAL_STEP_SIX = 606
+   PORTAL_GO = 607
+   
+   GO_OUTSIDE = 320
+   
+   PORTAL_ROOM_TO_PUBLIC_ROOM_FALL_SECTOR = 901
+   PORTAL_ROOM_TO_PUBLIC_ROOM_FALL_DEST = 902
+   KINGS_CHAMBER_TO_PORTAL_ROOM_FALL_SECTOR = 903
+   TREASURE_CHAMBER_TO_KINGS_CHAMBER_FALL_SECTOR = 905
+   PORTAL_ROOM_TO_BIG_ROOM_FALL_SECTOR = 906
+   
+   FALL_TIME = 1000
+   
+   MISC_FOYER_SECTIONS = 103
+   INSIDE_SECTIONS = 104
+
+   STATUS_UNOWNED = 0
+   STATUS_OKAY = 3
+   STATUS_RAIDED = 1
+   STATUS_CONQUERED = 2
+
+   SHIELD_OFF = 1
+   SHIELD_ON = 2
+
+   include blakston.khd
+
+resources:
+
+   room_name_ancientziggurat = "Ancient Ziggurat"
+   room_ancientziggurat = ancientzigguratw.roo
+
+   ancientziggurat_sound = stoneup2.wav
+
+   news_ancientziggurat_name = "news"
+   news_ancientziggurat_desc = "This is the guild newsgroup."
+   
+   ancientziggurat_portal_desc = \
+      "This place was built to honor death. "
+      "So, too, was this portal."
+
+   ancientziggurat_music = cave2.mp3
+   
+   fall_straight_message = "You tumble down a chute!"
+   fall_curved_message = "You tumble down a sloped passage!"
+   
+   exit_ziggurat_exists = \
+      "You emerge from the top of the ancient ziggurat."
+   exit_ziggurat_does_not_exist = \
+      "You climb down the side of the ziggurat and wander into the desert."
+   main_door_exit_ziggurat_exists = \
+      "You move the slab and exit the ziggurat."
+   main_door_exit_ziggurat_does_not_exist = \
+      "You move the slab and wander into the desert."
+
+   main_door_exit_ziggurat_in_water = \
+      "You fight pouring water to squeeze out into the ocean."
+
+classvars:
+
+   vrName = room_name_ancientziggurat
+
+   viLongitude = 3050
+   viLatitude = 3051
+
+   viNews_row = 19
+   viNews_col = 62
+   viNews_finerow = 32
+   viNews_finecol = 32
+
+   viTeleport_row = 82
+   viTeleport_col = 36
+
+   viFoyer_north = 0
+   viFoyer_south = 0
+   viFoyer_east = 0
+   viFoyer_west = 0
+
+   viLever_row = 40
+   viLever_col = 15
+   viLever_fine_row = 0
+   viLever_fine_col = 32
+
+   viInner_teleport_row = 41
+   viInner_teleport_col = 59
+
+   viQuality = 14
+   viTerrain_type = TERRAIN_CITY | TERRAIN_GUILDHALL | TERRAIN_CAVES
+   viSeconds_til_close = 18
+   
+%   viPortalOneRow = 18
+%   viPortalOneCol = 50
+%   viPortalOneFineRow = 56
+%   viPortalOneFineCol = 24
+%   viPortalOneAngle = ANGLE_SOUTH
+%   viPortalOneDestRID = RID_TOS
+%   viPortalOneDestRow = 25
+%   viPortalOneDestCol = 25
+%   viPortalOneDestFineRow = 8
+%   viPortalOneDestFineCol = 37
+%   viPortalOneDestAngle = ANGLE_NORTH_WEST
+%   vsPortalOneDesc = ancientziggurat_portal_desc
+   
+   viReliquaryOneRow = 26
+   viReliquaryOneCol = 58
+   viReliquaryOneFineRow = 16
+   viReliquaryOneFineCol = 0
+   
+   viReliquaryTwoRow = 29
+   viReliquaryTwoCol = 58
+   viReliquaryTwoFineRow = 16
+   viReliquaryTwoFineCol = 0
+   
+   viReliquaryThreeRow = 32
+   viReliquaryThreeCol = 58
+   viReliquaryThreeFineRow = 16
+   viReliquaryThreeFineCol = 0
+   
+   viReliquaryFourRow = 26
+   viReliquaryFourCol = 62
+   viReliquaryFourFineRow = 16
+   viReliquaryFourFineCol = 0
+   
+   viReliquaryFiveRow = 29
+   viReliquaryFiveCol = 62
+   viReliquaryFiveFineRow = 16
+   viReliquaryFiveFineCol = 0
+   
+   viReliquarySixRow = 32
+   viReliquarySixCol = 62
+   viReliquarySixFineRow = 16
+   viReliquarySixFineCol = 0
+   
+   % Fusing device rates go from 8 (worst) to 4 (best) 
+   viShardFusingDeviceRow = 14
+   viShardFusingDeviceCol = 57
+   viShardFusingDeviceFineRow = 48
+   viShardFusingDeviceFineCol = 0
+   viShardFusingDeviceRate = 4
+   
+   % Shattering device rates go from 2 (worst) to 4 (best) 
+   viShardShatteringDeviceRow = 19
+   viShardShatteringDeviceCol = 57
+   viShardShatteringDeviceFineRow = 48
+   viShardShatteringDeviceFineCol = 0
+   viShardShatteringDeviceRate = 4
+   
+   viFociOneRow = 40
+   viFociOneCol = 15
+   viFociOneFineRow = 0
+   viFociOneFineCol = 32
+   viFociOnePower = 99
+   viFociOneRange = 5
+   viFociOneSpellNum = SID_REJUVENATE
+   
+   viFociTwoRow = 39
+   viFociTwoCol = 15
+   viFociTwoFineRow = 0
+   viFociTwoFineCol = 0
+   viFociTwoPower = 198
+   viFociTwoRange = 50
+   viFociTwoSpellNum = SID_MELANCHOLY
+   
+   viFociThreeRow = 57
+   viFociThreeCol = 38
+   viFociThreeFineRow = 0
+   viFociThreeFineCol = 0
+   viFociThreePower = 297
+   viFociThreeRange = 5
+   viFociThreeSpellNum = SID_SPELLBANE
+
+properties:
+
+   prMusic = ancientziggurat_music
+   prRoom = room_ancientziggurat
+   piRoom_num = RID_ANCIENT_ZIGGURAT
+
+   piBaseLight = LIGHT_VERY_DARK
+   piOutside_Factor = OUTDOORS_NONE
+
+   ptEntrance = $
+   ptSecretDoor = $
+
+   plGuild_doors
+   
+   plFallTimers = $
+   
+   % Ancient Ziggurat boosts all death-related meditation by 80%.
+   piGuildHallMeditateEffiency = 140
+   
+   piPortalRoomLightColor = LIGHT_BPURPLE
+   piPortalRoomLightIntensity = 255
+   piPulseDirection = -1
+   ptPortalRoomLightPulse = $
+   poPortalRoomLight = $
+   
+   piActivePortalDest = 1
+   
+   piLastDeathRID = RID_DESERTSHORE3
+   piLastDeathRow = 72
+   piLastDeathCol = 50
+   piLastDeathFineRow = 25
+   piLastDeathFineCol = 55
+   piLastDeathAngle = ANGLE_WEST
+   
+   poLastToDie = $
+   
+   pbInDesert = FALSE
+
+messages:
+
+   Constructor()
+   "These mark the exterior door of the guild, which is only openable by "
+   "a guild member or an allied guild member."
+   {
+      plGuild_doors = [ [1,1]];
+
+      % This is a box containing the guild door, used
+      % for removing players from it when it closes.
+      plEntrance = [ 1, 2, 3, 4 ];
+
+      propagate;
+   }
+   
+   FirstUserEntered()
+   {
+      Post(self,@PlaceSpectrals);
+      propagate;
+   }
+
+   LastUserLeft()
+   {
+      Post(self,@DeleteSpectrals);
+      propagate;
+   }
+
+   OpenEntranceDoor()
+   {
+      if ptEntrance = $
+      {
+         Send(self,@SomethingWaveRoom,#wave_rsc=ancientziggurat_sound);
+         Send(self,@AnimateWall,#wall=ENTRANCE_WALL,#animation=ANIMATE_NONE,#first_group=1,#passable=TRUE);
+         Send(self,@SetSector,#sector=ENTRANCE_DOOR,#animation=ANIMATE_FLOOR_LIFT,#height=650,#speed=100);
+         Send(self,@TimeStampDoor);
+         ptEntrance = CreateTimer(self,@CloseEntranceDoor,ENTRANCE_CLOSE_TIME);
+      }
+
+      return;
+   }
+
+   OpenSecretDoor()
+   {
+      if ptSecretDoor = $
+      {
+         Send(self,@SomethingWaveRoom,#wave_rsc=ancientziggurat_sound);
+         Send(self,@SetSector,#sector=SECRET_DOOR,#animation=ANIMATE_FLOOR_LIFT,#height=1800,#speed=15);
+         ptSecretDoor = CreateTimer(self,@CloseSecretDoor,SECRET_CLOSE_TIME);
+      }
+
+      return;
+   }
+
+   CloseEntranceDoor()
+   {
+      ptEntrance = $;
+      Send(self,@SomethingWaveRoom,#wave_rsc=ancientziggurat_sound);
+      Send(self,@AnimateWall,#wall=ENTRANCE_WALL,#animation=ANIMATE_NONE,#first_group=1,#passable=FALSE);
+      Send(self,@SetSector,#sector=ENTRANCE_DOOR,#animation=ANIMATE_FLOOR_LIFT,#height=400,#speed=100);
+      Send(self,@TimeStampDoor);
+      
+      return;
+   }
+
+   CloseSecretDoor()
+   {
+      ptSecretDoor = $;
+      Send(self,@SomethingWaveRoom,#wave_rsc=ancientziggurat_sound);
+      Send(self,@SetSector,#sector=SECRET_DOOR,#animation=ANIMATE_FLOOR_LIFT,#height=1850,#speed=15);
+
+      return;
+   }
+
+   SomethingTryGo(what = $,row = $,col = $,fine_row=$,fine_col=$)
+   {
+      local i, iSection, oZiggurat, iRandom;
+
+      iSection = Send(self,@GetSection,#who=what);
+      
+      if iSection = GO_OUTSIDE
+      {
+         if pbInDesert
+         {
+            oZiggurat = Send(Send(SYS,@GetDesertRoomMaintenance),@GetZiggurat);
+            
+            if oZiggurat <> $
+            {
+               Send(what,@MsgSendUser,#message_rsc=main_door_exit_ziggurat_exists);
+               Send(SYS,@UtilGoNearSquare,#what=what,
+                    #where=oZiggurat,
+                    #new_row=107,
+                    #new_col=99,
+                    #new_angle=Send(what,@GetAngle));
+               return;
+            }
+            
+            % Ziggurat doesn't exist, go elsewhere
+               
+            iRandom = Random(1,3);
+            Send(what,@MsgSendUser,#message_rsc=main_door_exit_ziggurat_does_not_exist);
+            if iRandom = 1
+            {
+               Send(SYS,@UtilGoNearSquare,#what=what,
+                    #where=Send(Send(SYS,@GetDesertRoomMaintenance),@GetDesertDunes1),
+                    #new_row=60,
+                    #new_col=102,
+                    #new_angle=Send(what,@GetAngle));
+               return;
+            }
+            if iRandom = 2
+            {
+               Send(SYS,@UtilGoNearSquare,#what=what,
+                    #where=Send(Send(SYS,@GetDesertRoomMaintenance),@GetDesertDunes2),
+                    #new_row=60,
+                    #new_col=102,
+                    #new_angle=Send(what,@GetAngle));
+               return;
+            }
+            if iRandom = 3
+            {
+               Send(SYS,@UtilGoNearSquare,#what=what,
+                    #where=Send(Send(SYS,@GetDesertRoomMaintenance),@GetDesertDunes3),
+                    #new_row=60,
+                    #new_col=102,
+                    #new_angle=Send(what,@GetAngle));
+               return;
+            }
+            return TRUE;
+         }
+         else
+         {
+            % We're in open water.
+            Send(what,@MsgSendUser,#message_rsc=main_door_exit_ziggurat_in_water);
+            Send(SYS,@UtilGoNearSquare,#what=what,
+                 #where=Send(SYS,@FindRoomByNum,#num=RID_OPEN_WATER),
+                 #new_row=102,
+                 #new_col=100,
+                 #new_angle=Send(what,@GetAngle));
+         }
+      }
+      
+      if iSection = ENTRANCE_DOOR_INSIDE_TRIGGER_SECTOR
+      {
+         Send(self,@OpenEntranceDoor);
+         return TRUE;
+      }
+
+      if iSection = ENTRANCE_DOOR_TRIGGER_SECTOR
+      {
+         if piStatus = STATUS_OKAY
+            AND NOT Send(self,@CanEnter,#who=what)
+         {
+            return TRUE;
+         }
+         else
+         {
+            Send(self,@OpenEntranceDoor);
+            return TRUE;
+         }
+      }
+
+      propagate;
+   }
+
+   CreateStandardObjects()
+   {
+      Send(self,@NewHold,#what=Create(&Table),#new_row=13,#new_col=28);
+
+      Send(self,@NewHold,#what=Create(&Chest),
+            #new_row=13,#new_col=67,#fine_row=32,#fine_col=16,
+            #new_angle=ANGLE_SOUTH);
+      Send(self,@NewHold,#what=Create(&Chest),
+            #new_row=15,#new_col=66,#fine_row=16,#fine_col=0,
+            #new_angle=ANGLE_EAST);
+      Send(self,@NewHold,#what=Create(&Chest),#new_row=15,#new_col=68,
+            #fine_row=16,#fine_col=16,#new_angle=ANGLE_WEST);
+
+      Send(self,@NewHold,#what=Create(&ScryingDevice),#new_row=28,#new_col=36,
+           #fine_row=28,#fine_col=48);
+           
+%      Send(self,@NewHold,#what=Create(&Brazier),#new_row=70,#new_col=34,
+%            #fine_row=16,#fine_col=48);
+%      Send(self,@NewHold,#what=Create(&Brazier),#new_row=70,#new_col=39,
+%            #fine_row=16,#fine_col=16);
+%      Send(self,@NewHold,#what=Create(&Brazier),#new_row=55,#new_col=35,
+%            #fine_row=48,#fine_col=48);
+%      Send(self,@NewHold,#what=Create(&Brazier),#new_row=55,#new_col=41,
+%            #fine_row=48,#fine_col=16);
+%      Send(self,@NewHold,#what=Create(&Brazier),#new_row=48,#new_col=35,
+%            #fine_row=48,#fine_col=48);
+%      Send(self,@NewHold,#what=Create(&Brazier),#new_row=48,#new_col=37,
+%            #fine_row=48,#fine_col=48);
+      Send(self,@NewHold,#what=Create(&Brazier),#new_row=44,#new_col=38,
+            #fine_row=16,#fine_col=48);
+      Send(self,@NewHold,#what=Create(&Brazier),#new_row=44,#new_col=40,
+            #fine_row=16,#fine_col=48);
+            
+            
+      Send(self,@NewHold,#what=Create(&Brazier),#new_row=13,#new_col=68,
+            #fine_row=0,#fine_col=32);
+      Send(self,@NewHold,#what=Create(&Brazier),#new_row=18,#new_col=67,
+            #fine_row=16,#fine_col=32);
+            
+      Send(self,@NewHold,#what=Create(&Brazier),#new_row=52,#new_col=3,
+            #fine_row=0,#fine_col=0);
+      Send(self,@NewHold,#what=Create(&Brazier),#new_row=52,#new_col=27,
+            #fine_row=0,#fine_col=0);
+      Send(self,@NewHold,#what=Create(&Brazier),#new_row=27,#new_col=27,
+            #fine_row=0,#fine_col=0);
+            
+      Send(self,@NewHold,#what=Create(&Brazier),#new_row=58,#new_col=15,
+            #fine_row=16,#fine_col=32);
+            
+      Send(self,@NewHold,#what=Create(&InvisibleObject),#new_row=23,#new_col=36,
+            #fine_row=47,#fine_col=48);
+      
+      propagate;
+   }
+
+   InFoyer(who=$,iRow=$,iCol=$,iFineRow=$,iFineCol=$)
+   {
+      local iSection;
+
+      if who <> $
+      {
+         iRow = Send(who,@GetRow);
+         iCol = Send(who,@GetCol);
+         iFineRow = Send(who,@GetFineRow);
+         iFineCol = Send(who,@GetFineCol);
+      }
+
+      iSection = Send(self,@GetSection,#who=who,#iRow=iRow,#iCol=iCol,#iFineRow=iFineRow,#iFineCol=iFineCol);
+      if iSection >= 600
+      {
+         return FALSE;
+      }
+
+      return TRUE;
+   }
+
+   CreateStandardExits()
+   {
+      plExits = $;
+
+      %% TO TOWN
+      plExits = Cons([ 2, 15, RID_JASWEST, 22, 24, ROTATE_NONE ],plExits);
+      plExits = Cons([ 2, 16, RID_JASWEST, 22, 25, ROTATE_NONE ],plExits);
+      plExits = Cons([ 2, 17, RID_JASWEST, 22, 26, ROTATE_NONE ],plExits);
+      plExits = Cons([ 1, 15, RID_JASWEST, 22, 24, ROTATE_NONE ],plExits);
+      plExits = Cons([ 1, 16, RID_JASWEST, 22, 25, ROTATE_NONE ],plExits);
+      plExits = Cons([ 1, 17, RID_JASWEST, 22, 26, ROTATE_NONE ],plExits);
+
+      propagate;
+   }
+   
+   SomethingChanged(what=$)
+   {
+
+      propagate;
+   }
+
+   ReqUseGuildChest(who=$,oBox=$)
+   {
+      if oBox <> $
+         AND IsClass(oBox,&Reliquary)
+         AND Send(oBox,@GetRow) = 3
+      {
+         return TRUE;
+      }
+
+      propagate;
+   }
+
+   PlaceSpectrals()
+   {
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_DPURPLE,
+        #iIntensity=80),#new_row=70,#new_col=34,#fine_row=16,#fine_col=48);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_DPURPLE,
+        #iIntensity=80),#new_row=70,#new_col=39,#fine_row=16,#fine_col=16);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_DPURPLE,
+        #iIntensity=80),#new_row=55,#new_col=41,#fine_row=48,#fine_col=16);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_DPURPLE,
+        #iIntensity=80),#new_row=55,#new_col=35,#fine_row=48,#fine_col=48);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_DPURPLE,
+        #iIntensity=80),#new_row=48,#new_col=37,#fine_row=48,#fine_col=48);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_DPURPLE,
+        #iIntensity=80),#new_row=48,#new_col=35,#fine_row=48,#fine_col=48);
+        
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_DRED,
+        #iIntensity=180),#new_row=83,#new_col=37,#fine_row=24,#fine_col=0);
+        
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_DGREEN,
+        #iIntensity=120),#new_row=40,#new_col=36,#fine_row=16,#fine_col=48);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_DGREEN,
+        #iIntensity=255),#new_row=28,#new_col=36,#fine_row=32,#fine_col=48);
+        
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_DRED,
+        #iIntensity=180),#new_row=17,#new_col=60,#fine_row=0,#fine_col=0);
+        
+        
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_SPECTRAL,
+        #iIntensity=255),#new_row=39,#new_col=15,#fine_row=32,#fine_col=32);
+
+      return;
+   }
+
+   IsPlayerInPortalProximity()
+   {
+      local i, iSection;
+
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&Player)
+         {
+            iSection = Send(self,@GetSection,#who=First(i));
+            if iSection >= 600
+               AND iSection <= 607
+            {
+               return TRUE;
+            }
+         }
+      }
+
+      return FALSE;
+   }
+
+   PulsePortalRoomLight(timer=$)
+   {
+      ptPortalRoomLightPulse = $;
+      
+      if poPortalRoomLight = $
+      {
+         return;
+      }
+      
+      if NOT Send(self,@IsPlayerInPortalProximity)
+      {
+         ptPortalRoomLightPulse = $;
+         Send(poPortalRoomLight,@Delete);
+         poPortalRoomLight = $;
+         piPortalRoomLightColor = LIGHT_BPURPLE;
+         piPortalRoomLightIntensity = 255;
+         piPulseDirection = -1;
+         return;
+      }
+      
+      if piPortalRoomLightIntensity <= 5
+      {
+         if piPortalRoomLightColor = LIGHT_BPURPLE
+         {
+            piPortalRoomLightColor = LIGHT_DGREEN;
+         }
+         else if piPortalRoomLightColor = LIGHT_DGREEN
+         {
+            piPortalRoomLightColor = LIGHT_BPURPLE;
+         }
+      }
+
+      piPortalRoomLightIntensity = Bound(piPortalRoomLightIntensity,5,255) + 5*piPulseDirection;
+      
+      if piPortalRoomLightIntensity <= 5
+      {
+         piPulseDirection = 1;
+      }
+      else if piPortalRoomLightIntensity >= 255
+      {
+         piPulseDirection = -1;
+      }
+  
+      Send(poPortalRoomLight,@SetLight,
+            #iIntensity=piPortalRoomLightIntensity,
+            #iColor=piPortalRoomLightColor);
+      
+      ptPortalRoomLightPulse = CreateTimer(self,@PulsePortalRoomLight,PORTAL_ROOM_LIGHT_PULSE_DELAY);
+      return;
+   }
+
+   DeleteSpectrals()
+   {
+      local i, each_obj;
+      
+      if poPortalRoomLight <> $
+      {
+         Send(poPortalRoomLight,@Delete);
+      }
+      poPortalRoomLight = $;
+      if ptPortalRoomLightPulse <> $
+      {
+         DeleteTimer(ptPortalRoomLightPulse);
+         ptPortalRoomLightPulse = $;
+      }
+      
+      foreach i in Send(self,@GetHolderPassive)
+      {
+         each_obj = Send(self,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&DynamicLight)
+         {
+            Post(each_obj,@Delete);
+         }
+      }
+      return;
+   }
+   
+   SomethingMoved(what=$, new_row = $, new_col = $, fine_row = FINENESS/2,fine_col = FINENESS/2)
+   {
+      local i, iSection, oZiggurat, iRandom;
+      
+      if IsClass(what,&Player)
+      {
+         if new_col >= 69
+         {
+            if pbInDesert
+            {
+               oZiggurat = Send(Send(SYS,@GetDesertRoomMaintenance),@GetZiggurat);
+            
+               if oZiggurat <> $
+               {
+                  Send(what,@MsgSendUser,#message_rsc=exit_ziggurat_exists);
+                  Send(SYS,@UtilGoNearSquare,#what=what,
+                       #where=oZiggurat,
+                       #new_row=60,
+                       #new_col=102,
+                       #new_angle=Send(what,@GetAngle));
+                  return;
+               }
+            
+               % Ziggurat doesn't exist, go elsewhere
+            
+               iRandom = Random(1,3);
+               Send(what,@MsgSendUser,#message_rsc=exit_ziggurat_does_not_exist);
+               if iRandom = 1
+               {
+                  Send(SYS,@UtilGoNearSquare,#what=what,
+                       #where=Send(Send(SYS,@GetDesertRoomMaintenance),@GetDesertDunes1),
+                       #new_row=60,
+                       #new_col=102,
+                       #new_angle=Send(what,@GetAngle));
+                 return;
+               }
+               if iRandom = 2
+               {
+                  Send(SYS,@UtilGoNearSquare,#what=what,
+                       #where=Send(Send(SYS,@GetDesertRoomMaintenance),@GetDesertDunes2),
+                       #new_row=60,
+                       #new_col=102,
+                       #new_angle=Send(what,@GetAngle));
+                  return;
+               }
+               if iRandom = 3
+               {
+                  Send(SYS,@UtilGoNearSquare,#what=what,
+                       #where=Send(Send(SYS,@GetDesertRoomMaintenance),@GetDesertDunes3),
+                       #new_row=60,
+                       #new_col=102,
+                       #new_angle=Send(what,@GetAngle));
+                  return;
+               }
+               return;
+            }
+            else
+            {
+               % We're in open water.
+               Send(what,@MsgSendUser,#message_rsc=exit_ziggurat_exists);
+               Send(SYS,@UtilGoNearSquare,#what=what,
+                    #where=Send(SYS,@FindRoomByNum,#num=RID_OPEN_WATER),
+                    #new_row=49,
+                    #new_col=99,
+                    #new_angle=Send(what,@GetAngle));
+            }
+         }
+      }
+      
+      iSection = Send(self,@GetSection,#who=what);
+
+      if IsClass(what,&Player)
+         AND (iSection = PORTAL_ROOM_TO_PUBLIC_ROOM_FALL_SECTOR
+            OR iSection = KINGS_CHAMBER_TO_PORTAL_ROOM_FALL_SECTOR
+            OR iSection = TREASURE_CHAMBER_TO_KINGS_CHAMBER_FALL_SECTOR
+            OR iSection = PORTAL_ROOM_TO_BIG_ROOM_FALL_SECTOR)
+      {
+         % Make sure we're not already 'falling' a player
+         foreach i in plFallTimers
+         {
+            if First(i) = what
+            {
+               propagate;
+            }
+         }
+         
+         plFallTimers = Cons([what,CreateTimer(self,@FallPlayer,FALL_TIME)],
+                              plFallTimers);
+      }
+      
+      if IsClass(what,&Player)
+         AND iSection >= 600
+         AND iSection <= 607
+      {
+         Send(self,@InitiatePortalRoomLight);
+         
+         if iSection = 607
+         {
+            Send(self,@DoSpecialGuildHallTeleport,#who=what);
+         }
+      }
+
+      propagate;
+   }
+   
+   PlayerKilled(who=$, killer=$)
+   {
+      Post(self,@RecordLastToDie,#who=who);
+      return;
+   }
+   
+   RecordLastToDie(who=$, killer=$)
+   {
+      if who <> $
+      {
+         poLastToDie = who;
+      }
+      return;
+   }
+   
+   DoSpecialGuildHallTeleport(who=$)
+   {
+      local oRoom, oCorpse;
+
+      if poLastToDie <> $
+      {
+         oCorpse = Send(poLastToDie,@GetLastCorpse);
+         if oCorpse <> $
+         {
+            oRoom = Send(oCorpse,@GetOwner);
+            if oRoom <> $
+            {
+               Post(SYS,@UtilGoNearSquare,#what=who,
+                    #where=oRoom,
+                    #new_row=Send(oCorpse,@GetRow),
+                    #new_col=Send(oCorpse,@GetCol),
+                    #fine_row=Send(oCorpse,@GetFineRow),
+                    #fine_col=Send(oCorpse,@GetFineCol),
+                    #new_angle=ANGLE_NORTH);
+               return;
+            }
+         }
+      }
+
+      Post(SYS,@UtilGoNearSquare,#what=who,
+           #where=Send(SYS,@FindRoomByNum,#num=RID_TOS_GRAVEYARD),
+           #new_row=15,
+           #new_col=8,
+           #fine_row=28,
+           #fine_col=24,
+           #new_angle=ANGLE_SOUTH_EAST);
+
+      return;
+   }
+
+   NewHold(what=$)
+   {
+      local i, iSection;
+
+      if what <> $
+         AND IsClass(what,&Player)
+      {
+         iSection = Send(self,@GetSection,#who=what);
+      
+         if iSection >= 600
+            AND iSection <= 607
+         {
+            Send(self,@InitiatePortalRoomLight);
+         }
+      }
+      
+      propagate;
+   }
+
+   InitiatePortalRoomLight()
+   {
+      if ptPortalRoomLightPulse = $
+      {
+         poPortalRoomLight = Create(&DynamicLight,#iColor=piPortalRoomLightColor,
+                                                  #iIntensity=piPortalRoomLightIntensity);
+         Send(self,@NewHold,#what=poPortalRoomLight,#new_row=18,#new_col=50,#fine_row=48,#fine_col=24);
+         ptPortalRoomLightPulse = CreateTimer(self,@PulsePortalRoomLight,PORTAL_ROOM_LIGHT_PULSE_DELAY);
+      }
+      return;
+   }
+   
+   FallPlayer(timer=$)
+   {
+      local i, iSection;
+
+      foreach i in plFallTimers
+      {
+         if Nth(i,2) = timer
+         {
+            % Make sure they're falling and still here.
+            if Send(First(i),@GetOwner) = self
+            {
+               iSection = Send(self,@GetSection,#who=First(i));
+               
+               if iSection = PORTAL_ROOM_TO_PUBLIC_ROOM_FALL_SECTOR
+               {
+                  Send(SYS,@UtilGoNearSquare,#what=First(i),
+                        #where=Send(SYS,@FindRoomByNum,#num=RID_ANCIENT_ZIGGURAT),
+                        #new_row=37,#new_col=33,#fine_row=0,#fine_col=0,
+                        #new_angle=Send(First(i),@GetAngle));
+                  Send(First(i),@MsgSendUser,#message_rsc=fall_straight_message);
+               }
+               if iSection = KINGS_CHAMBER_TO_PORTAL_ROOM_FALL_SECTOR
+               {
+                  Send(SYS,@UtilGoNearSquare,#what=First(i),
+                        #where=Send(SYS,@FindRoomByNum,#num=RID_ANCIENT_ZIGGURAT),
+                        #new_row=18,#new_col=53,#fine_row=32,#fine_col=48,
+                        #new_angle=Send(First(i),@GetAngle));
+                  Send(First(i),@MsgSendUser,#message_rsc=fall_straight_message);
+                  Send(self,@InitiatePortalRoomLight);
+               }
+               if iSection = TREASURE_CHAMBER_TO_KINGS_CHAMBER_FALL_SECTOR
+               {
+                  Send(SYS,@UtilGoNearSquare,#what=First(i),
+                        #where=Send(SYS,@FindRoomByNum,#num=RID_ANCIENT_ZIGGURAT),
+                        #new_row=14,#new_col=57,#fine_row=48,#fine_col=16,
+                        #new_angle=Send(First(i),@GetAngle));
+                  Send(First(i),@MsgSendUser,#message_rsc=fall_straight_message);
+               }
+               if iSection = PORTAL_ROOM_TO_BIG_ROOM_FALL_SECTOR
+               {
+                  Send(SYS,@UtilGoNearSquare,#what=First(i),
+                        #where=Send(SYS,@FindRoomByNum,#num=RID_ANCIENT_ZIGGURAT),
+                        #new_row=44,#new_col=18,#fine_row=16,#fine_col=16,
+                        #new_angle=Send(First(i),@GetAngle));
+                  Send(First(i),@MsgSendUser,#message_rsc=fall_curved_message);
+               }
+            }
+            SetNth(i,2,$);
+            SetNth(i,1,$);
+            plFallTimers = DelListElem(plFallTimers,i);
+         }
+      }
+
+      return;
+   }
+
+   GetSection(who=$,iRow=$,iCol=$,iFineRow=$,iFineCol=$,bCheckForPool=FALSE)
+   {
+      local iQflags, iRflags, iHeightF, iHeightFWD, iHeightC, iServerID;
+      
+      if iRow = $
+         OR iCol = $
+         OR iFineRow = $
+         OR iFineCol = $
+      {
+         if who <> $
+         {
+            iRow = Send(who,@GetRow);
+            iCol = Send(who,@GetCol);
+            iFineRow = Send(who,@GetFineRow);
+            iFineCol = Send(who,@GetFineCol);
+         }
+         else
+         {
+            return AREA_OUTSIDE;
+         }
+         if iRow = $
+            OR iCol = $
+            OR iFineRow = $
+            OR iFineCol = $
+         {
+            % Who gave us some nil coords.
+            return AREA_OUTSIDE;
+         }
+      }
+
+      iQflags = LIQ_GET_SECTORINFO;
+
+      if GetLocationInfoBSP(
+                      prmRoom, iQflags, iRow, iCol, iFineRow, iFineCol,
+                      *iRflags, *iHeightF, *iHeightFWD, *iHeightC, *iServerID)
+      {
+         if iServerID = $
+         {
+            return AREA_OUTSIDE;
+         }
+         return iServerID;
+      }
+
+      return AREA_OUTSIDE;
+   }
+   
+   OverrideDeathFunction(who=$,what=$,stroke_obj=$)
+   {
+      local oAfterlife, bDrop, oRoom, iRow, iCol, iFine_Row, iFine_Col, iAngle, iRoom,
+            oBody, lReagentBagContents, lInventoryContents, lItems, i, oSoldierShield;
+
+      Send(who,@ClearStance);
+
+      % Stop any rescue attempts that were going on.
+      Send(who,@CancelRescue);
+      Send(who,@RemoveAllEnchantments,#report=FALSE);
+      
+      Send(who,@SetDeathTime,#iTime=GetTime());
+
+      % Grab the location of the deceased.
+      % Might need to grab the old location if logged off.
+
+      if Send(who,@IsLoggedOn)
+      {
+         oRoom = Send(who,@GetOwner);
+         iRow = Send(who,@GetRow);
+         iCol = Send(who,@GetCol);
+         iFine_Row = Send(who,@GetFineRow);
+         iFine_Col = Send(who,@GetFineCol);
+         iAngle = Send(who,@GetAngle);
+         iRoom = Send(Send(who,@GetOwner),@GetRoomNum);
+      }
+      else
+      {
+         iRoom = Send(who,@GetSaveRoom);
+         oRoom = Send(SYS,@FindRoomByNum,#num=iRoom);
+         iRow = Send(who,@GetSaveRow);
+         iCol = Send(who,@GetSaveCol);
+         iFine_Row = Send(who,@GetSaveFineRow);
+         iFine_Col = Send(who,@GetSaveFineCol);
+         iAngle = Send(who,@GetSaveAngle);
+      }
+
+      % Record-keeping. Keep this before the token check,
+      % so we can give proper message.
+      Send(SYS,@UserKilled,#what=who,#killer=what,#oRoom=oRoom,#stroke_obj=stroke_obj);
+      Send(Send(SYS,@GetStatistics),@PlayerDiedCounter);
+
+      % Create the corpse.
+      if what <> $
+         AND IsClass(what,&User)
+      {
+         oBody = Send(who,@CreateCorpse,#oPlayerKiller=what);
+      }
+      else
+      {
+         oBody = Send(who,@CreateCorpse);
+      }
+      Send(who,@AddCorpse,#corpse=oBody);
+
+      Send(oRoom,@NewHold,#what=oBody,#new_row=iRow,#new_col=iCol,
+            #fine_row=iFine_Row,#fine_col=iFine_Col,#new_angle=iAngle);
+
+      bDrop = TRUE;
+      % Start losing stuff if applicable.
+      if bDrop
+      {
+         lReagentBagContents = Send(who,@GetReagentBagContents);
+         if lReagentBagContents <> $
+         {
+            lInventoryContents = [Send(who,@GetHolderActive),Send(who,@GetHolderPassive),lReagentBagContents];
+         }
+         else
+         {
+            lInventoryContents = [Send(who,@GetHolderActive),Send(who,@GetHolderPassive)];
+         }
+
+         foreach lItems in lInventoryContents
+         {
+            foreach i in lItems
+            {
+               % Let the item know we died, in case it does something special.
+               Send(i,@OwnerKilled);
+
+               if Send(i,@DropOnDeath)
+               {
+                  if Send(oRoom,@ReqNewHold,#what=i,#new_row=iRow,#new_col=iCol)
+                  {
+                     Send(oBody,@NewHold,#what=i);
+                  }
+               }
+            }
+         }
+
+         Post(who,@EvaluatePKStatus);
+
+         % Let SoldierShields know we died. It handles itself as appropriate.
+         oSoldierShield = Send(who,@FindUsing,#what=&SoldierShield);
+         if oSoldierShield <> $
+         {
+            Send(oSoldierShield,@OwnerDied,#what=what);
+         }
+      }
+
+      % Give out your dying scream.
+      if Send(who,@GetGender) = GENDER_FEMALE
+      {
+         i = Send(who,@GetFemaleDeathWav);
+      }
+      else
+      {
+         i = Send(who,@GetMaleDeathWav);
+      }
+
+      Send(oRoom,@SomethingWaveRoom,#what=oBody,#wave_rsc=i);
+      if Send(who,@IsLoggedOn)
+      {
+         Send(who,@WaveSendUser,#what=who,#wave_rsc=i);
+      }
+
+      Send(who,@SetHealth,#amount=1);
+
+      Send(who,@NewHealth);
+      Send(who,@NewMana);
+      Send(who,@NewVigor);
+      
+      Send(who,@SetDeathCost,#DeathCost=Send(Send(SYS,@GetDesertRoomMaintenance),@GetDeathCost),#bOverride=TRUE);
+      Send(who,@ApplyDeathPenalties);
+
+      % Refresh the client with what's really going on.
+      if Send(who,@IsLoggedOn)
+      {
+         Send(who,@ToCliStats,#group=1);
+         Send(who,@ToCliStats,#group=2);
+         Send(who,@ToCliStats,#group=3);
+         Send(who,@ToCliStats,#group=4);
+
+         % Wake up with red foggy hangover.
+         Send(who,@EffectSendUserDuration,#effect=EFFECT_PAIN,#duration=5000);
+      }
+      
+      oAfterlife = Send(SYS,@FindRoomByNum,#num=RID_DESERTALDUNES);
+      Send(oAfterlife,@Teleport,#what=who);
+      return;
+   }
+
+   Delete()
+   {
+      local i, oThing;
+
+      poLastToDie = $;
+
+      if ptEntrance <> $
+      {
+         DeleteTimer(ptEntrance);
+         ptEntrance = $;
+      }
+
+      if ptSecretDoor <> $
+      {
+         DeleteTimer(ptSecretDoor);
+         ptSecretDoor = $;
+      }
+      
+      if ptPortalRoomLightPulse <> $
+      {
+         DeleteTimer(ptPortalRoomLightPulse);
+         ptPortalRoomLightPulse = $;
+      }
+      
+      foreach i in plFallTimers
+      {
+         if IsTimer(Nth(i,2))
+         {
+            DeleteTimer(Nth(i,2));
+         }
+         SetNth(i,2,$);
+         SetNth(i,1,$);
+         plFallTimers = DelListElem(plFallTimers,i);
+      }
+
+      foreach i in Send(self,@GetHolderPassive)
+      {
+         oThing = Send(self,@HolderExtractObject,#data=i);
+         if IsClass(oThing,&DeadBody)
+            AND NOT Send(oThing,@GetPbMob)
+         {
+            % is a player corpse! Let's move it.
+            Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTDUNES),@Teleport,#what=oThing);
+         }
+      }
+
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

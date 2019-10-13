@@ -10,6 +10,14 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 GuildHall8 is GuildHall
 
+   % The Sewer Hideout is extremely rarely visited, but is one Blink away from
+   %    the action in North Barloque. As a result, it's a great PvP base of operations.
+   %
+   %    While the hall's upgrades are basic, the portal goes to the Ports to give
+   %       another angle of attack at North Barloque.
+   %
+   % It is one of the few halls with a Restorate song positioned for combat defense.
+
 constants:
 
    WATERFILL1 = 1
@@ -40,6 +48,10 @@ resources:
 
    guildh8_entrancedoor_open_sound = woodup1.wav
    guildh8_entrancedoor_close_sound = wooddn1.wav
+   
+   room_guildh8_portal_desc = \
+      "The waters of the sewer system connect to the sea. "
+      "Through this portal, you can hear the ocean."
 
 classvars:
 
@@ -47,6 +59,9 @@ classvars:
 
    viTeleport_row = 24
    viTeleport_col = 9
+
+   viLongitude = 19
+   viLatitude = 10
 
    viNews_row = 22
    viNews_col = 17
@@ -75,6 +90,46 @@ classvars:
    vrEntrancedoor_close_sound = guildh8_entrancedoor_close_sound
    vrSecretdoor_open_sound = guildh8_entrancedoor_open_sound
    vrSecretdoor_close_sound = guildh8_entrancedoor_close_sound
+   
+   viPortalOneRow = 3
+   viPortalOneCol = 14
+   viPortalOneFineRow = 30
+   viPortalOneFineCol = 31
+   viPortalOneAngle = ANGLE_SOUTH
+   viPortalOneDestRID = RID_BAR_PORT
+   viPortalOneDestRow = 29
+   viPortalOneDestCol = 45
+   viPortalOneDestFineRow = 1
+   viPortalOneDestFineCol = 1
+   viPortalOneDestAngle = ANGLE_NORTH
+   vsPortalOneDesc = room_guildh8_portal_desc
+   
+   viReliquaryOneRow = 8
+   viReliquaryOneCol = 17
+   viReliquaryOneFineRow = 48
+   viReliquaryOneFineCol = 47
+   
+   % Fusing device rates go from 8 (worst) to 4 (best) 
+   viShardFusingDeviceRow = 11
+   viShardFusingDeviceCol = 6
+   viShardFusingDeviceFineRow = 15
+   viShardFusingDeviceFineCol = 48
+   viShardFusingDeviceRate = 8
+   
+   % Fusing device rates go from 2 (worst) to 4 (best) 
+   viShardShatteringDeviceRow = 11
+   viShardShatteringDeviceCol = 12
+   viShardShatteringDeviceFineRow = 16
+   viShardShatteringDeviceFineCol = 46
+   viShardShatteringDeviceRate = 2
+   
+   viFociOneRow = 13
+   viFociOneCol = 10
+   viFociOneFineRow = 28
+   viFociOneFineCol = 15
+   viFociOnePower = 198
+   viFociOneRange = 2
+   viFociOneSpellNum = SID_RESTORATE
 
 properties:
 
@@ -88,6 +143,10 @@ properties:
 
    piSecret_door_state = CLOSED
    ptSecret_door
+   
+   piGuildHallMeditateEffiency = 100
+   % The Sewer Hideout boosts Qor and Banditry by a smaller amount than the Den of Shadows.
+   piSpecialGuildHallMeditateEfficiency = 110
 
 messages:
 
@@ -322,6 +381,34 @@ messages:
             #new_angle=ANGLE_SOUTH);
 
       propagate;
+   }
+
+   GetTotemLightIntensity(what=$)
+   {
+      if poTotemOne <> $
+         AND what = poTotemOne
+      {
+         return 30;
+      }
+
+      return 0;
+   }
+
+   GetTotemLightColor(what=$)
+   {
+      return LIGHT_RED;
+   }
+   
+   DoesPlayerQualifyForSpecialMeditateRatio(who=$,oSpell=$,oSkill=$)
+   {
+      if (oSpell <> $
+         AND Send(oSpell,@GetSchool) = SS_QOR)
+         OR (oSkill <> $
+            AND Send(oSkill,@GetSchool) = SKS_BANDITRY)
+      {
+         return TRUE;
+      }
+      return FALSE;
    }
 
 end

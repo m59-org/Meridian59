@@ -73,6 +73,13 @@ resources:
    shalillepriestess_opt_out_reply = \
       "~bShal'ille's light shall fall upon you always."
 
+   holy_fragments_delivered = \
+      "~bHmm..."
+
+   holy_shield_spell_reserved = \
+      "~bThat spell is new and powerful, based on magical energies brought to me by crusaders. "
+      "Return to me again when you have fully mastered the arts of Shal'ille."
+
 classvars:
 
    vrTeach_message = shalillepriestess_teach
@@ -159,7 +166,8 @@ messages:
             SID_SEANCE,
             SID_RESIST_ACID,
             SID_DAZZLE,
-            SID_SACRED_RESONANCE
+            SID_SACRED_RESONANCE,
+            SID_HOLY_SHIELD
          ],
       $];
 
@@ -168,6 +176,8 @@ messages:
 
    CanDoTeach(who=$,sid=0)
    {
+      local i;
+
       if sid = SID_SPIRITUAL_HAMMER
          AND NOT Send(self,@CanAddSpell,#report=TRUE,#who=who,#num=sid)
       {
@@ -178,6 +188,12 @@ messages:
       {
          Send(self,@SayToOne,#target=who,
                #message_rsc=shalillepriestess_teach_song);
+      }
+      
+      if sid = SID_HOLY_SHIELD
+         AND NOT Send(self,@CanAddSpell,#report=TRUE,#who=who,#num=sid)
+      {
+         return FALSE;
       }
 
       propagate;
@@ -237,6 +253,34 @@ messages:
          }
       }
 
+      if num = SID_HOLY_SHIELD
+         AND NOT Send(who,@HasCompletedQuestChain,#chain_num=SHAL6_CHAIN)
+      {
+         if report
+         {
+            Send(self,@SayToOne,#target=who,
+                  #message_rsc=holy_shield_spell_reserved);
+         }
+         return FALSE;
+      }
+
+      propagate;
+   }
+
+   ReqGive(what = $, item_list = $)
+   {
+      if item_list <> $
+         AND Length(item_list) = 1
+      {
+         if IsClass(First(item_list),&HolyFragment)
+            AND Send(First(item_list),@GetNumber) >= 100
+         {
+            Send(poOwner,@SomeoneSaid,#what=self,#type=SAY_RESOURCE,
+                  #string=holy_fragments_delivered);
+            Send(what,@GavePassiveQuestItem,#obj=First(item_list),#the_npc=self);
+            return TRUE;
+         }
+      }
       propagate;
    }
 
@@ -312,9 +356,9 @@ messages:
       if StringContain(string,"summon")
          AND what <> $
          AND IsClass(what,&User)
-         AND Send(what,@GetCorpse) <> $
+         AND Send(what,@GetLastCorpse) <> $
       {
-         oCorpse = Send(what,@GetCorpse);
+         oCorpse = Send(what,@GetLastCorpse);
          
          if NOT Send(oCorpse,@GetSummonable)
          {
@@ -328,6 +372,7 @@ messages:
          Send(poOwner,@NewHold,#what=oCorpse,#new_row=Send(what,@GetRow),
                #new_col=Send(what,@GetCol));
          Send(what,@MsgSendUser,#message_rsc=shalillepriestess_summoned);
+         Send(what,@RemoveCorpse,#corpse=oCorpse);
       }
 
       if StringContain(string,shalillepriestess_opt_out_command)
@@ -342,6 +387,16 @@ messages:
       }
 
       propagate;
+   }
+
+   TaughtPlayerSpell(who=$,num=0)
+   {
+      if num = SID_PORTAL_OF_LIFE
+         AND who <> $
+      {
+         Post(Send(SYS,@GetGameQuestMaintenance),@EvaluatePlayer,#who=who,#vbTriggered=TRUE);
+      }
+      return;
    }
 
 end

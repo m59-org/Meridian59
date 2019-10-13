@@ -1,0 +1,191 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+WitcherySkill is Skill
+
+% Witchery is Meridian's first hybrid spell-and-skill school.
+%
+% Witchery contains a variety of spells called Hexes.
+% These are curses that debilitate an opponent.
+% Generally, any given victim can only have one Hex applied at a time.
+% Casting another on them removes the first.
+%
+% Witchery also contains skills that can do things like boost Hex duration,
+% Hex effectiveness, resistance to Hexes, and even allow the casting of
+% a second Hex on a victim at a blood cost.
+%
+% Witchery is also Meridian's first school containing subschools.
+% There are four demons players can learn from, and one (Raumlar) that only NPCs can use.
+% These demons do not necessarily like eachother.
+% A player may choose either Xaerdun or Ventdal.
+% A player may also choose either Iwodach or Nequzon.
+% 
+% These subschool choices mean that a given witchery character can be:
+% Xaerdun/Iwodach
+% Xaerdun/Nequzon
+% Ventdal/Iwodach
+% Ventdal/Nequzon
+%
+% So it's entirely possible for two characters to both have Witchery but share no abilities at all.
+% This is a crucial part of the lore feeling of Witches and Warlocks that hold grudges and have feuds.
+%
+%
+%=========================================
+% Xaerdun skills/spells
+% The Demon of Greed teaches hexes and skills that steal vitals and make it difficult for a victim to defend themselves.
+%
+% 1:
+% Fester - Hex that reduces victim's health regeneration.
+% Mute - Hex that prevents speech (aka changing stances, which require speech triggers)
+%
+% 2:
+% Leeches - Drain hex that steals health from victim and gives it to anyone that hits them.
+% Exhaustion - Hex that dramatically increases victim's vigor costs.
+%
+% 3:
+% Sap - Drain hex that steals vigor from victim and gives it to anyone that hits them.
+% 
+% 4:
+% Bestill - Hex that lowers victim's defense by a percentage.
+%
+% 5:
+% Slow - Hex that increases victim's postcast and postattack timers.
+% Unhallowed Runes - Skill that increases caster's curse effect.
+%
+% 6:
+% Blood Runes - Caster can apply an additional Hex on a victim at the cost of health.
+%
+%
+%
+%=========================================
+% Ventdal skills/spells
+% The Demoness of Tradition places great importance on perpetuating the lineage and customs of witches.
+% As a result, she teaches hexes and skills that help witches defend themselves,
+% especially from other witches and warlocks that don't share loyalty to the craft.
+%
+% 1:
+% Nightgrip - Skill that greatly increases caster's curse effect on monsters.
+% Sever - Hex that reduces victim's mana regeneration.
+% 
+% 2:
+% Thorns - Hex that reflects a portion of the physical damage the victim deals.
+% Weariness - Hex that greatly increases victim's mana costs.
+%
+% 3:
+% Becloud - Hex that reduces victim's offense by a percentage.
+%
+% 4:
+% Mana Shield - A skill that redirects up to 25% of damage taken to the witch's mana.
+% Vengeance - Hex that reflects a portion of the elemental damage the victim deals.
+%
+% 5:
+% Spiritual Wounds - Hex that causes the victim to take damage to their mana before their health. Can be self-cast.
+% Aversion - Skill that grants the witch a chance to be ignored by enemy minions.
+%
+% 6:
+% Hermitage - Skill that greatly increases the witch's Hex resistance.
+%
+%
+%
+%=========================================
+% Iwodach skills/spells
+% The Archivist Demon has long trained battle warlocks that employ scholarly knowledge through physical combat.
+% His hexes and skills are focused on the art of war.
+%
+% 1:
+% Weaken - Hex that reduces the victim's melee damage by a percentage.
+%
+% 2:
+% Arcane Knowledge - Skill that increases the warlock's Hex resistance.
+%
+% 3:
+% Humility - Hex that reduces the victim's holy resistance.
+% Corruption - Hex that reduces the victim's unholy resistance.
+%
+% 4:
+% Ancient Pact - Skill that increases the caster's Hex duration.
+% Efficient casting - Skill that reduces the caster's Hex vigor costs.
+% Noxious Strike - Skill that allows a witch to deliver hexes on striking.
+%
+% 5:
+% Frailty - Hex that reduces the victim's weapon resistance.
+%
+% 6:
+% Black Mantle - Hex that reduces the effect of healing on the victim. High effectiveness can turn heals into harms.
+%
+%
+%
+%=========================================
+% Nequzon skills/spells
+% The Wild Demoness is the patron of those that most embody public perception of witches as wild and terrifying.
+% Nequzon's abilities reflect her understanding of the energies of existence - and her magical bloodlust.
+% Among the Demons willing to interact with humans, hers are the most magically-oriented and offense-oriented.
+%
+% 1:
+% Barbs - Drain hex that steals mana from the victim and gives it to anyone that hits them.
+%
+% 2:
+% Corrosion - Hex that reduces the victim's acid resistance.
+%
+% 3:
+% Rote Memorization - Skill that reduces caster's Hex mana costs.
+% Algidity - Hex that reduces the victim's cold resistance.
+%
+% 4:
+% Flammability - Hex that reduces the victim's fire resistance.
+% Conductivity - Hex that reduces the victim's shock resistance.
+%
+% 5:
+% Vulnerability - Hex that reduces the victim's magic resistance.
+%
+% 6:
+% Ostracization - Skill that attempts to make the caster's Hexes last indefinitely.
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+classvars:
+
+   viSchool = SS_WITCHERY
+   viSubSchool = SSS_WITCHERY_XAERDUN
+
+properties:
+
+messages:
+
+   OfferToNewCharacters()
+   {
+      return FALSE;
+   }
+
+   GetSubSchool()
+   {
+      return viSubSchool;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -56,6 +56,12 @@ resources:
    Xeochicatl_sound_aware = xeo1awr.wav
 
    Xeochicatl_drain_rsc = "The %s drains your mana!"
+   Xeochicatl_fail_drain_rsc = "The %s tries to drain your mana, but cannot pull from your crystalized spirit!"
+
+   bigger_Xeochicatl_icon_rsc = biggerxeo.bgf
+   bigger_Xeochicatl_dead_icon_rsc = biggerxeoX.bgf
+   biggest_Xeochicatl_icon_rsc = biggestxeo.bgf
+   biggest_Xeochicatl_dead_icon_rsc = biggestxeoX.bgf
 
 classvars:
 
@@ -86,17 +92,24 @@ classvars:
    viCashMin = 0
    viCashMax = 0
 
-   % 1 in x chance to cast a spell.
-   viSpellChance = 4
-
    viAttributes = MOB_ONE_TREASURE
+   viCanSpawnAsChampion = FALSE
+   
+   viBaseSize = 600
+   
+   % Xeos don't have blood
+   viBaseBleedPercentage = 0
+
+   % between 1 and 10000
+   viCriticalHitRate = 50
+   vbCanCauseStun = TRUE
 
 properties:
 
    piAnimation = ANIM_NONE
    piMax_Mana = 20
-
-   piSpellPower = 99
+   piMeleeSpellChance = 5
+   piRangedSpellChance = 15
 
    % is this Xeochicatl part of a node attack?
    pbNodeAttack = FALSE
@@ -107,6 +120,13 @@ properties:
    piDrainAmount = 5
 
    piReputationGroup = REP_HERETIC
+   
+   piHexResistance = 30
+
+   % Is this Battler protected by a magical shield against projectiles?
+   pbMagicalShield = TRUE
+   % Fine units
+   piMagicalShieldRadius = 64 * 3
 
 messages:
 
@@ -115,6 +135,9 @@ messages:
       pbNodeAttack = InAttack;
       % This makes the Xeos not affect Karma if set to true.
       pbDontDispose = InAttack;
+
+      plCreatureTypes = Cons(CREATURE_TYPE_ELEMENTAL,plCreatureTypes);
+      plCreatureTypes = Cons(CREATURE_TYPE_MAGICAL,plCreatureTypes);
 
       propagate;
    }
@@ -131,6 +154,13 @@ messages:
       {
          if Random(1,100) < DRAIN_CHANCE
          {
+            if Send(what,@HasSpell,#num=SID_CRYSTALIZE_MANA)
+               OR Send(what,@GetTattooed)
+            {
+               % Let's not send this message. It produces a lot of spam.
+               %Send(what,@MsgSendUser,#message_rsc=Xeochicatl_fail_drain_rsc,#parm1=vrName);
+               return;
+            }
             iAmount = Send(what,@GetMaxMana);
             iAmount = ((iAmount * piDrainAmount)/100) + 1;
             iAmount = Bound(iAmount,0,Send(what,@GetMana));
@@ -140,10 +170,6 @@ messages:
             Send(what,@MsgSendUser,#message_rsc=Xeochicatl_drain_rsc,
                   #parm1=vrName);
             Send(self,@GainMana,#amount=iAmount);
-         }
-         else
-         {
-            Send(self,@MonsterCastSpell);
          }
       }
 
@@ -265,6 +291,9 @@ messages:
    SpellResist(oSpell=$,who=$,iSpellpower=$)
    {
       local iResistChance;
+      
+      % Turn this off in favor of new radius-based magical shield
+      propagate;
 
       if IsClass(who,&DM)
       {
@@ -280,6 +309,11 @@ messages:
          {
             % 3 times the chance to resist.  Brings 30% up to 90%
             iResistChance = (iResistChance * 3);
+         }
+         
+         if Send(oSpell,@GetSchool) = SS_WITCHERY
+         {
+            return FALSE;
          }
 
          if iSpellPower < 40

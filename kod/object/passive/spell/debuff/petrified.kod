@@ -1,0 +1,271 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Petrified is Debuff
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   petrified_name_rsc = "petrified"
+   petrified_icon_rsc = ispectate.bgf
+   petrified_desc_rsc = \
+     "You have been turned to stone! "
+     "Only a stone to flesh spell can save you now."
+   petrified_already_enchanted_rsc = "You are already petrified."
+
+   petrified_on = "Your limbs slow and stop as your flesh turns to stone!"
+   petrified_off = \
+      "The petrification fades, returning your flesh to normal."
+   petrified_success_rsc = "%s%s turns to stone!"
+
+   petrified_sound = faren.wav
+
+classvars:
+
+   viPersonal_ench = TRUE
+
+   vrName = petrified_name_rsc
+   vrIcon = petrified_icon_rsc
+   vrDesc = petrified_desc_rsc
+
+   vrAlreadyEnchanted = petrified_already_enchanted_rsc
+   vrEnchantment_On = petrified_on
+   vrEnchantment_Off = petrified_off
+   vrSuccess = petrified_success_rsc
+
+   viSpell_num = SID_PETRIFIED
+   viSchool = SS_FAREN
+   viSpell_level = 6
+   viMana = 12
+   viSpellExertion = 3
+   viMeditate_ratio = 0
+
+   vrSucceed_wav = petrified_sound
+
+   viOutlaw = FALSE
+   
+   viPrimaryStat = STAT_ID_MYSTICISM
+   viSecondaryStat = 0
+
+properties:
+
+   viPurgeFactor = 20
+
+messages:
+
+   ResetReagents()
+   {
+      plReagents = $;
+
+      return;
+   }
+
+   CastSpell(who=$,wielder=$,lTargets=$,iSpellpower=0,report=TRUE,oDeflectImpact=$,bDeflectCast=FALSE)
+   {
+      local oTarget, oRoom, i, iDeflectSpeed;
+
+      oTarget = First(lTargets);
+
+      % Spell effects.
+      Send(self,@DoSpell,#what=who,#oTarget=oTarget,#report=report,
+            #iDuration=Send(self,@GetDuration,#iSpellPower=iSpellPower));
+
+      propagate;
+   }
+
+   DoSpell(what=$,oTarget=$,iDuration=$,report=TRUE,bAllowFreeAction=TRUE)
+   "Holds target for duration seconds."
+   {
+      local i, oSpell;
+
+      if oTarget = $
+      {
+         return FALSE;
+      }
+
+      % Check for enchantment already applied
+      if Send(oTarget,@IsEnchanted,#what=self)
+      {
+         return FALSE;
+      }
+      
+      if IsClass(oTarget,&Player)
+         AND Send(oTarget,@IsUsingA,#class=&ShalilleCrest)
+      {
+         return FALSE;
+      }
+
+      % Check for spell called with $ iDuration, apply default time if so.
+      if iDuration = $
+      {
+         iDuration = 5000;
+      }
+
+      % Check if the target has free action, unless not allowed.
+      if bAllowFreeAction
+      {
+         oSpell = Send(SYS,@FindSpellByNum,#num=SID_FREE_ACTION);
+         if Send(oTarget,@IsEnchanted,#what=oSpell)
+         {
+            iDuration = Send(oSpell,@DoFreeAction,#oHoldCaster=what,
+                              #oTarget=oTarget,#iDuration=iDuration);
+            if iDuration = $
+            {
+               % Resisted completely
+               return FALSE;
+            }
+
+            if IsClass(oTarget,&Player)
+            {
+               iDuration = Bound(iDuration,500,10000);
+            }
+            else
+            {
+               iDuration = Bound(iDuration,50,$);
+            }
+         }
+      }
+
+      Send(oTarget,@StartEnchantment,#what=self,#time=iDuration,#report=report,
+            #state=report);
+
+      if IsClass(oTarget,&Player)
+      {
+         if report
+         {
+            Send(oTarget,@MsgSendUser,#message_rsc=vrEnchantment_On);
+         }
+
+         % Do not paralyze DMs.
+         if NOT (IsClass(oTarget,&DM) AND Send(oTarget,@PlayerIsImmortal))
+         {
+            Send(oTarget,@EffectSendUser,#what=self,#effect=EFFECT_PARALYZE_ON);
+         }
+         Send(oTarget,@AddDefenseModifier,#what=self);
+      }
+      else
+      {
+         Send(oTarget,@AddDrawingEffects,#value=DRAWFX_SECONDTRANS);
+         Send(oTarget,@ResetBehaviorFlags);
+         if Send(oTarget,@GetOwner) <> $
+         {
+            Send(Send(oTarget,@GetOwner),@SomethingChanged,#what=oTarget);
+         }
+         Post(oTarget,@WasHeld);
+      }
+
+      if report
+      {
+         Send(what,@MsgSendUser,#message_rsc=vrSuccess,
+               #parm1=Send(oTarget,@GetCapDef),#parm2=Send(oTarget,@GetName));
+      }
+
+      propagate;
+   }
+
+   SetSpellPlayerFlag(who=$)
+   {
+      Send(who,@SetPlayerDrawFX,#drawfx=DRAWFX_SECONDTRANS,#SendSomethingChanged=TRUE);
+      Send(who,@SetPlayerFlag,#flag=PFLAG_NO_MOVE,#value=TRUE);
+      Send(who,@SetPlayerFlag,#flag=PFLAG_NO_FIGHT,#value=TRUE);
+      Send(who,@SetPlayerFlag,#flag=PFLAG_NO_MAGIC,#value=TRUE);
+
+      return;
+   }
+
+   GetDuration(iSpellPower=0)
+   {
+      local iDuration;
+
+      % 2000 - 21800 seconds
+      iDuration = 20 + (iSpellPower*2);
+      iDuration = iDuration * 1000;
+      iDuration = iDuration * 100;
+
+      return iDuration;
+   }
+
+   EndEnchantment(who=$,report=TRUE,state=0)
+   {
+      if IsClass(who,&Player)
+      {
+         Send(who,@ResetPlayerDrawfx);
+         Send(who,@RemoveDefenseModifier,#what=self);
+
+         % Don't override phasing hold.
+         if NOT Send(who,@CheckPlayerFlag,#flag=PFLAG_PHASED)
+         {
+            Send(who,@EffectSendUser,#what=self,#effect=EFFECT_PARALYZE_OFF);
+         }
+
+         Send(who,@EffectSendUser,#what=self,#effect=EFFECT_PARALYZE_OFF);
+         if state
+         {
+            Send(who,@MsgSendUser,#message_rsc=vrEnchantment_Off);
+         }
+      }
+      else  % class is &Monster
+      {
+         % This has to be done AFTER the enchantment is gone from the
+         % monster's ench list - Post it
+         Send(who,@RemoveDrawingEffects,#value=DRAWFX_SECONDTRANS);
+         Post(who,@ResetBehaviorFlags);
+         if Send(who,@GetOwner) <> $
+         {
+            Post(Send(who,@GetOwner),@SomethingChanged,#what=who);
+         }
+      }
+
+      return;
+   }
+
+   RestartEnchantmentEffect(who=$,state=$)
+   {
+      Send(who,@MsgSendUser,#message_rsc=vrEnchantment_On);
+      Send(who,@EffectSendUser,#what=self,#effect=EFFECT_PARALYZE_ON);
+
+      return;
+   }
+
+   ModifyMonsterBehavior(mob=$)
+   {
+      Send(mob,@SetBehaviorFlag,#flag=AI_NOMOVE,#value=TRUE);
+      Send(mob,@SetBehaviorFlag,#flag=AI_NOFIGHT,#value=TRUE);
+
+      return;
+   }
+
+   % Stuff we handle to be a defense modifier.
+
+   ModifyDefensePower(who=$,what=$,defense_power=0)
+   {
+      return 0;
+   }
+
+   ModifyDefenseDamage(who=$,what=$,damage=$)
+   {
+      return 0;
+   }
+
+   DefendingHit(who=$,what=$)
+   {
+      return;
+   }
+
+   IsIllusion()
+   {
+      return FALSE;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

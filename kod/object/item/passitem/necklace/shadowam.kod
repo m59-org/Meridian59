@@ -90,7 +90,7 @@ messages:
       }
 
       send(poOwner,@MsgSendUser,#message_rsc=shadowAmulet_used_rsc);
-      send(poOwner,@LoseLight,#amount=viLight_change);
+      Post(poOwner,@RecalcLight);
       send(what,@AddDefenseModifier,#what=self);
 
       propagate;
@@ -172,7 +172,7 @@ messages:
          send(poOwner,@MsgSendUser,#message_rsc=shadowAmulet_unused_rsc);
       }
       
-      send(poOwner,@GainLight,#amount=viLight_change);
+      Post(poOwner,@RecalcLight);
       send(what,@RemoveDefenseModifier,#what = self);
       
       propagate;

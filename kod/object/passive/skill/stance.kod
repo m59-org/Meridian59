@@ -93,7 +93,7 @@ messages:
    {
       if IsClass(who,&User)
       {
-         Send(who,@MsgSendUser,#message_rsc=stance_begin_msg);
+         Post(who,@MsgSendUser,#message_rsc=stance_begin_msg);
       }
       
       Send(who,@ClearStance);
@@ -107,7 +107,7 @@ messages:
    {
       if IsClass(who,&User)
       {
-         Send(who,@MsgSendUser,#message_rsc=stance_end_msg);
+         Post(who,@MsgSendUser,#message_rsc=stance_end_msg);
       }
       Send(who,@ShowRemoveEnchantment,#what=self,#type=ENCHANTMENT_PLAYER);
 
@@ -129,7 +129,7 @@ messages:
       return defense_power;
    }
 
-   LastPriorityModifyDamage(who=$,what=$,damage=$)
+   LastPriorityModifyDamage(who=$,what=$,damage=$,stroke_obj=$)
    {
       return damage;
    }
@@ -138,7 +138,12 @@ messages:
    {
       return damage;
    }
-   
+
+   ModifyRestTime(who=$,iTime=1000)
+   {
+      return iTime;
+   }
+
    ModifyRegenerationTime(who=$,iTime=60000)
    {
       return iTime;
@@ -147,6 +152,18 @@ messages:
    ModifyRejuvenationTime(who=$,iTime=60000)
    {
       return iTime;
+   }
+
+   SendTimeDesc(who=$)
+   {
+      if who <> $
+         AND Send(who,@HasMasteredThisSkill,#num=viSkill_num)
+      {
+         AddPacket(4,vrMasteredDesc);
+         return;
+      }
+      AddPacket(4,skill_nothing);
+      return;
    }
 
    SendExtraDesc()
@@ -163,6 +180,21 @@ messages:
    ShowEnchantmentIcon(type = $)
    {
       return viShow_enchantment_icon & 0x02;
+   }
+
+   ModifyAttackTime(iAttackTime=0,stroke_obj=$)
+   {
+      return iAttackTime;
+   }
+
+   AttemptActiveBlock()
+   {
+      return FALSE;
+   }
+
+   AttemptActiveParry(who=$, what=$)
+   {
+      return FALSE;
    }
 
 end

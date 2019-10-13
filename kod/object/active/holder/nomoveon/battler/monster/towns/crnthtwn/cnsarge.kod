@@ -25,6 +25,8 @@ resources:
       "stiff dignity.  He is a weaponsmaster, and makes a living passing his "
       "skills on to students of the warriors' path.  His feats with the "
       "sword are famous and unparalleled as is his love for a good drink."
+      "\n\nIf you are a student with room to grow, he may help you improve "
+      "your might if you ask him to 'train' you."
 
    CnSer_forget_potion_sale = \
       "Good, no self-respecting warrior shares company with those "
@@ -46,6 +48,12 @@ resources:
    CnSer_inv_full_many = \
       "You're carrying too many items already, I'll place the training swords "
       "by your feet."
+
+   cannot_train_might_msg = \
+      "You seem to have full command of your muscular potential. I cannot train you further."
+   teach_might_msg = \
+      "Warrior, this training is simple. Step over there and lift this heavy weight "
+      "many times in succession. When you are done, wait a spell, then do it again ten more times."
 
 classvars:
 
@@ -186,6 +194,31 @@ messages:
          return TRUE;
       }
 
+      propagate;
+   }
+
+   SomeoneSaid(what = $,type = $,string = $)
+   {
+      local iResult;
+
+      if what <> $
+         AND IsClass(what,&User)
+         AND StringContain(string,"train")
+      {
+         
+         iResult = Send(what,@AttemptTrainStatPoint,#type=STAT_ID_MIGHT);
+
+         if iResult
+         {
+            Send(self,@SayToOne,#target=what,#message_rsc=teach_might_msg);
+         }
+         else
+         {
+            Send(self,@SayToOne,#target=what,#message_rsc=cannot_train_might_msg);
+         }
+         return;
+      }
+      
       propagate;
    }
 

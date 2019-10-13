@@ -1,0 +1,492 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+MazeExitRoom is MinotaurMazeRoom
+
+% This room contains relics in a vault.
+
+constants:
+
+   include blakston.khd
+   
+   SHOCK_WALL = 6000
+   ICE_WALL = 6001
+   ACID_WALL = 6002
+   FIRE_WALL = 6003
+   HOLY_WALL = 6004
+   UNHOLY_WALL = 6005
+   
+   
+   SHOCK_LIGHT_ROW = 43
+   ICE_LIGHT_ROW = 34
+   ACID_LIGHT_ROW = 25
+   FIRE_LIGHT_ROW = 16
+   HOLY_LIGHT_ROW = 7
+
+resources:
+
+   room_maze_exit_room = mazeexitroom.roo
+   room_maze_exit_room_name = "Sealed Egress"
+   
+   maze_exit_challenge_msg = \
+      "~kThe spirit of Vecka tells you, \"This is it. This is the way up! If we can just figure out "
+      "how to open this, you can climb right up into the passageways under the Palace of High Sorcerers!\""
+
+   exit_lift_up_sound = stoneup2.wav
+   exit_lift_down_sound = stonedn2.wav
+   
+   
+   shock_wall_opens_msg = \
+      "The barrier of lightning is dim."
+   shock_wall_closes_msg = \
+      "The barrier of lightning glows brightly."
+   ice_wall_opens_msg = \
+      "The barrier of ice is dim."
+   ice_wall_closes_msg = \
+      "The barrier of ice glows brightly."
+   acid_wall_opens_msg = \
+      "The barrier of acid is dim."
+   acid_wall_closes_msg = \
+      "The barrier of acid glows brightly."
+   fire_wall_opens_msg = \
+      "The barrier of fire is dim."
+   fire_wall_closes_msg = \
+      "The barrier of fire glows brightly."
+   unholy_wall_opens_msg = \
+      "The barrier of negative energy is dim."
+   unholy_wall_closes_msg = \
+      "The barrier of negative energy glimmers darkly."
+   holy_wall_opens_msg = \
+      "The barrier of positive energy is dim."
+   holy_wall_closes_msg = \
+      "The barrier of positive energy blazes with power."
+   
+classvars:
+
+   vrName = room_maze_exit_room_name
+
+properties:
+
+   prRoom = room_maze_exit_room
+   piRoom_num = RID_MAZE_EXIT_ROOM
+   
+
+messages:
+
+   CreateMazeRoomObjects()
+   {
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_LIGHTNING,#iIntensity=255),
+                         #new_row=SHOCK_LIGHT_ROW,
+                         #new_col=5,
+                         #fine_row=32,
+                         #fine_col=32);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_LIGHTNING,#iIntensity=255),
+                         #new_row=SHOCK_LIGHT_ROW,
+                         #new_col=8,
+                         #fine_row=32,
+                         #fine_col=32);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_LIGHTNING,#iIntensity=255),
+                         #new_row=SHOCK_LIGHT_ROW,
+                         #new_col=11,
+                         #fine_row=32,
+                         #fine_col=32);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_LIGHTNING,#iIntensity=255),
+                         #new_row=SHOCK_LIGHT_ROW,
+                         #new_col=14,
+                         #fine_row=32,
+                         #fine_col=32);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_LIGHTNING,#iIntensity=255),
+                         #new_row=SHOCK_LIGHT_ROW,
+                         #new_col=17,
+                         #fine_row=32,
+                         #fine_col=32);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_LIGHTNING,#iIntensity=255),
+                         #new_row=SHOCK_LIGHT_ROW,
+                         #new_col=20,
+                         #fine_row=32,
+                         #fine_col=32);
+                         
+                         
+                         
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BBLUE,#iIntensity=255),
+                         #new_row=ICE_LIGHT_ROW,
+                         #new_col=5,
+                         #fine_row=32,
+                         #fine_col=32);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BBLUE,#iIntensity=255),
+                         #new_row=ICE_LIGHT_ROW,
+                         #new_col=8,
+                         #fine_row=32,
+                         #fine_col=32);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BBLUE,#iIntensity=255),
+                         #new_row=ICE_LIGHT_ROW,
+                         #new_col=11,
+                         #fine_row=32,
+                         #fine_col=32);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BBLUE,#iIntensity=255),
+                         #new_row=ICE_LIGHT_ROW,
+                         #new_col=14,
+                         #fine_row=32,
+                         #fine_col=32);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BBLUE,#iIntensity=255),
+                         #new_row=ICE_LIGHT_ROW,
+                         #new_col=17,
+                         #fine_row=32,
+                         #fine_col=32);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BBLUE,#iIntensity=255),
+                         #new_row=ICE_LIGHT_ROW,
+                         #new_col=20,
+                         #fine_row=32,
+                         #fine_col=32);
+                         
+                         
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BGREEN,#iIntensity=255),
+                         #new_row=ACID_LIGHT_ROW,
+                         #new_col=5,
+                         #fine_row=32,
+                         #fine_col=32);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BGREEN,#iIntensity=255),
+                         #new_row=ACID_LIGHT_ROW,
+                         #new_col=8,
+                         #fine_row=32,
+                         #fine_col=32);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BGREEN,#iIntensity=255),
+                         #new_row=ACID_LIGHT_ROW,
+                         #new_col=11,
+                         #fine_row=32,
+                         #fine_col=32);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BGREEN,#iIntensity=255),
+                         #new_row=ACID_LIGHT_ROW,
+                         #new_col=14,
+                         #fine_row=32,
+                         #fine_col=32);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BGREEN,#iIntensity=255),
+                         #new_row=ACID_LIGHT_ROW,
+                         #new_col=17,
+                         #fine_row=32,
+                         #fine_col=32);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_BGREEN,#iIntensity=255),
+                         #new_row=ACID_LIGHT_ROW,
+                         #new_col=20,
+                         #fine_row=32,
+                         #fine_col=32);
+                         
+                         
+                         
+                         
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_RED,#iIntensity=255),
+                         #new_row=FIRE_LIGHT_ROW,
+                         #new_col=5,
+                         #fine_row=32,
+                         #fine_col=32);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_RED,#iIntensity=255),
+                         #new_row=FIRE_LIGHT_ROW,
+                         #new_col=8,
+                         #fine_row=32,
+                         #fine_col=32);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_RED,#iIntensity=255),
+                         #new_row=FIRE_LIGHT_ROW,
+                         #new_col=11,
+                         #fine_row=32,
+                         #fine_col=32);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_RED,#iIntensity=255),
+                         #new_row=FIRE_LIGHT_ROW,
+                         #new_col=14,
+                         #fine_row=32,
+                         #fine_col=32);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_RED,#iIntensity=255),
+                         #new_row=FIRE_LIGHT_ROW,
+                         #new_col=17,
+                         #fine_row=32,
+                         #fine_col=32);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_RED,#iIntensity=255),
+                         #new_row=FIRE_LIGHT_ROW,
+                         #new_col=20,
+                         #fine_row=32,
+                         #fine_col=32);
+                         
+                         
+                         
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_WHITE,#iIntensity=255),
+                         #new_row=HOLY_LIGHT_ROW,
+                         #new_col=5,
+                         #fine_row=32,
+                         #fine_col=32);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_WHITE,#iIntensity=255),
+                         #new_row=HOLY_LIGHT_ROW,
+                         #new_col=8,
+                         #fine_row=32,
+                         #fine_col=32);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_WHITE,#iIntensity=255),
+                         #new_row=HOLY_LIGHT_ROW,
+                         #new_col=11,
+                         #fine_row=32,
+                         #fine_col=32);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_WHITE,#iIntensity=255),
+                         #new_row=HOLY_LIGHT_ROW,
+                         #new_col=14,
+                         #fine_row=32,
+                         #fine_col=32);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_WHITE,#iIntensity=255),
+                         #new_row=HOLY_LIGHT_ROW,
+                         #new_col=17,
+                         #fine_row=32,
+                         #fine_col=32);
+      Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_WHITE,#iIntensity=255),
+                         #new_row=HOLY_LIGHT_ROW,
+                         #new_col=20,
+                         #fine_row=32,
+                         #fine_col=32);
+      return;
+   }
+   
+   CheckMoveBorders(what=$, new_row=$, new_col=$)
+   {
+      if new_row < 2
+      {
+         Send(SYS,@UtilGoNearSquare,#what=what,
+              #where=Send(SYS,@FindRoomByNum,#num=RID_PALACE_DUNGEON_ENTRANCE),
+              #new_row=22,#new_col=6,#fine_row=49,#fine_col=1,#new_angle=Send(what,@GetAngle));
+         return;
+      }
+      return;
+   }
+
+   NewHold(what=$)
+   {
+      if what <> $
+         AND IsClass(what,&User)
+         AND Send(what,@GetVeckaAdvice)
+      {
+         Send(what,@MsgSendUser,#message_rsc=maze_exit_challenge_msg);
+      }
+ 
+      if IsClass(what,&Player)
+      {
+         Post(Send(SYS,@GetGameQuestMaintenance),@EvaluatePlayer,#who=what,#vbTriggered=TRUE);
+      }
+      
+      propagate;
+   }
+   
+   OpenShockWall()
+   {
+      local i;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&Player)
+         {
+            Send(First(i),@MsgSendUser,#message_rsc=shock_wall_opens_msg);
+         }
+      }
+
+      Send(self,@AnimateWall,#wall=SHOCK_WALL,#animation=ANIMATE_NONE,#first_group=1,#passable=TRUE);
+      return;
+   }
+   
+   CloseShockWall()
+   {
+      local i;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&Player)
+         {
+            Send(First(i),@MsgSendUser,#message_rsc=shock_wall_closes_msg);
+         }
+      }
+      Send(self,@AnimateWall,#wall=SHOCK_WALL,#animation=ANIMATE_NONE,#first_group=1,#passable=FALSE);
+      return;
+   }
+
+   OpenIceWall()
+   {
+      local i;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&Player)
+         {
+            Send(First(i),@MsgSendUser,#message_rsc=ice_wall_opens_msg);
+         }
+      }
+      Send(self,@AnimateWall,#wall=ICE_WALL,#animation=ANIMATE_NONE,#first_group=1,#passable=TRUE);
+      return;
+   }
+   
+   CloseIceWall()
+   {
+      local i;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&Player)
+         {
+            Send(First(i),@MsgSendUser,#message_rsc=ice_wall_closes_msg);
+         }
+      }
+      Send(self,@AnimateWall,#wall=ICE_WALL,#animation=ANIMATE_NONE,#first_group=1,#passable=FALSE);
+      return;
+   }
+
+   OpenAcidWall()
+   {
+      local i;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&Player)
+         {
+            Send(First(i),@MsgSendUser,#message_rsc=acid_wall_opens_msg);
+         }
+      }
+      Send(self,@AnimateWall,#wall=ACID_WALL,#animation=ANIMATE_NONE,#first_group=1,#passable=TRUE);
+      return;
+   }
+   
+   CloseAcidWall()
+   {
+      local i;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&Player)
+         {
+            Send(First(i),@MsgSendUser,#message_rsc=acid_wall_closes_msg);
+         }
+      }
+      Send(self,@AnimateWall,#wall=ACID_WALL,#animation=ANIMATE_NONE,#first_group=1,#passable=FALSE);
+      return;
+   }
+
+   OpenFireWall()
+   {
+      local i;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&Player)
+         {
+            Send(First(i),@MsgSendUser,#message_rsc=fire_wall_opens_msg);
+         }
+      }
+      Send(self,@AnimateWall,#wall=FIRE_WALL,#animation=ANIMATE_NONE,#first_group=1,#passable=TRUE);
+      return;
+   }
+
+   CloseFireWall()
+   {
+      local i;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&Player)
+         {
+            Send(First(i),@MsgSendUser,#message_rsc=fire_wall_closes_msg);
+         }
+      }
+      Send(self,@AnimateWall,#wall=FIRE_WALL,#animation=ANIMATE_NONE,#first_group=1,#passable=FALSE);
+      return;
+   }
+
+   OpenUnholyWall()
+   {
+      local i;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&Player)
+         {
+            Send(First(i),@MsgSendUser,#message_rsc=unholy_wall_opens_msg);
+         }
+      }
+      Send(self,@AnimateWall,#wall=UNHOLY_WALL,#animation=ANIMATE_NONE,#first_group=1,#passable=TRUE);
+      return;
+   }
+
+   CloseUnholyWall()
+   {
+      local i;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&Player)
+         {
+            Send(First(i),@MsgSendUser,#message_rsc=unholy_wall_closes_msg);
+         }
+      }
+      Send(self,@AnimateWall,#wall=UNHOLY_WALL,#animation=ANIMATE_NONE,#first_group=1,#passable=FALSE);
+      return;
+   }
+
+   OpenHolyWall()
+   {
+      local i;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&Player)
+         {
+            Send(First(i),@MsgSendUser,#message_rsc=holy_wall_opens_msg);
+         }
+      }
+      Send(self,@AnimateWall,#wall=HOLY_WALL,#animation=ANIMATE_NONE,#first_group=1,#passable=TRUE);
+      return;
+   }
+
+   CloseHolyWall()
+   {
+      local i;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&Player)
+         {
+            Send(First(i),@MsgSendUser,#message_rsc=holy_wall_closes_msg);
+         }
+      }
+      Send(self,@AnimateWall,#wall=HOLY_WALL,#animation=ANIMATE_NONE,#first_group=1,#passable=FALSE);
+      return;
+   }
+
+   FirstUserEntered()
+   {
+      Post(self,@OpenShockWall);
+           
+      if Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTSANDBAR),@GetPrismOfIceDefeated)
+      {
+         Post(self,@OpenIceWall);
+      }
+           
+      if Send(Send(SYS,@FindRoomByNum,#num=RID_ACIDPATH),@GetPrismOfAcidDefeated)
+      {
+         Post(self,@OpenAcidWall);
+      }
+      
+      if Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTRIVER2),@GetPrismOfFireDefeated)
+      {
+         Post(self,@OpenFireWall);
+      }
+
+      if Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTALDUNES4E),@GetPrismOfDeathDefeated)
+      {
+         Post(self,@OpenUnholyWall);
+      }
+
+      if Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTALDUNES4W),@GetPrismOfLifeDefeated)
+      {
+         Post(self,@OpenHolyWall);
+      }
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

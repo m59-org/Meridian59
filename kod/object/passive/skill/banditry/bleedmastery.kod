@@ -1,0 +1,77 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+BleedMastery is BanditrySkill
+
+constants:
+
+   include blakston.khd
+   include protocol.khd   
+
+resources:
+
+   BleedMastery_name_rsc = "bleed mastery"
+   BleedMastery_icon_rsc = ibloodrunes.bgf
+   BleedMastery_desc_rsc = \
+      "Increases the duration and power of all bleeds you inflict. "
+
+   BleedMastery_skill_intro = \
+      "Banditry Lv. 2: Increases the duration and power of all bleeds you inflict."
+
+classvars:
+
+   vrName = BleedMastery_name_rsc
+   vrIcon = BleedMastery_icon_rsc
+   vrDesc = BleedMastery_desc_rsc
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+
+   vrSkill_intro = BleedMastery_skill_intro
+
+   viSkill_num = SKID_BLEED_MASTERY
+   viSchool = SKS_BANDITRY
+   viSkill_Level = 2
+   viChance_to_Increase = 7
+   viMeditate_ratio = 50
+
+   viSkillExertion = 0
+   vbCheck_exertion = FALSE
+
+   vbAutomatic = TRUE
+   
+   viPrimaryStat = STAT_ID_AIM
+   viSecondaryStat = 0
+
+properties:
+
+messages:
+
+   GetRequisiteStat(who=$)
+   {
+      return Send(who,@GetAim);
+   }
+
+   ModifyBleedPower(who=$,iBleedPower=0)
+   {
+      local iStat, iAbility;
+      
+      iStat = Send(self,@GetRequisiteStat,#who=who);
+      iAbility = Send(who,@GetSkillAbility,#skill_num=viSkill_num);
+
+      % Have to move this so people don't imp on bleed immune monsters when not even applying bleeds!
+%     Send(self,@ImproveAbility,#who=who);  
+
+      % Up to double bleed power (+2 damage taken) at 99% and 100 Aim
+      return iBleedPower + (iBleedPower*((iAbility+1)+iStat)/2)/100;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

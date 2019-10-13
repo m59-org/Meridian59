@@ -33,6 +33,12 @@ resources:
    faren_teach = \
       "From Faren's fire, you can learn %s%s%s%s%s%s%s%s%s%s%s%s "
       "at that level."
+   FarenPriestess_wc_needed = \
+      "~B~gYou are not in tune with your own strength. How can you hope to master "
+      "the power of nature? Return when you have learned the skills of a "
+      "warrior."
+   FarenPriestess_already_have_spell = \
+      "~B~gYou already know %s. Begone, fool!"
 
 classvars:
 
@@ -86,11 +92,122 @@ messages:
             SID_SHATTER,
             SID_SAND_STORM,
             SID_SUMMON_FOG,
-            SID_MYSTIC_TOUCH
+            SID_MYSTIC_TOUCH,
+            SID_FLAME_DASH,
+            SID_LIGHTNING_STRIKE,
+            SID_SEISMIC_FIST
          ],
       $];
 
       return;
+   }
+
+   CanDoTeach(who=$,sid=0)
+   {
+      if sid = SID_FLAME_DASH
+         OR sid = SID_LIGHTNING_STRIKE
+      {
+         if NOT Send(self,@SpecialTeachChecks,#report=TRUE,#who=who,#num=sid)
+         {
+            return FALSE;
+         }
+      }
+
+      propagate;
+   }
+
+   CanAddSpell(who=$,num=0)
+   "We require that a quest be done before one of the spells can be learned"
+   {
+      if num = SID_FLAME_DASH
+         OR num = SID_LIGHTNING_STRIKE
+      {
+         if NOT Send(self,@SpecialTeachChecks,#report=FALSE,#who=who,#num=num)
+         {
+            return FALSE;
+         }
+      }
+
+      propagate;
+   }
+
+   SpecialTeachChecks(who=$,num=0,report=FALSE)
+   {
+      local i, oSpell, oSkill, iLevelRequired, bFound;
+
+      if who = $ OR num = 0
+      {
+         Debug("Called SpecialTeachChecks with bad parameters!");
+
+         return FALSE;
+      }
+
+      oSpell = Send(SYS,@FindSpellByNum,#num=num);
+
+      if NOT Send(oSpell,@IsAccessible)
+      {
+         return FALSE;
+      }
+
+      if Send(who,@HasSpell,#num=num)
+      {
+         if report
+         {
+            Post(self,@SayToOne,#target=who,
+                  #message_rsc=FarenPriestess_already_have_spell,
+                  #parm1=Send(oSpell,@GetName));
+         }
+
+         return FALSE;
+      }
+
+      bFound = FALSE;
+      iLevelRequired=0;
+      
+      % Opening up flame dash and lightning strike to more players.
+      return TRUE;
+      
+      if num = SID_FLAME_DASH
+      {
+         iLevelRequired = 4;
+      }
+
+      if num = SID_LIGHTNING_STRIKE
+      {
+         iLevelRequired = 6;
+      }
+
+      if iLevelRequired = 0
+      {
+         return TRUE;
+      }
+
+      % Special checks for high level skills: need a high level skill in 
+      % a particular school.
+      foreach i in Send(who,@GetSkillList)
+      {
+         oSkill = Send(SYS,@FindSkillByNum,
+                        #num=Send(who,@DecodeSpellNum,#compound=i));
+         if Send(oSkill,@GetLevel) >= iLevelRequired
+         {
+            bFound = TRUE;
+
+            break;
+         }
+      }
+
+      if bFound = FALSE
+      {
+         % Player doesn't have a high enough skill. Denied.
+         if report
+         {
+            Post(self,@SayToOne,#target=who,#message_rsc=FarenPriestess_wc_needed);
+         }
+
+         return FALSE;
+      }
+
+      return TRUE;
    }
 
 end

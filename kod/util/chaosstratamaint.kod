@@ -1,0 +1,246 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ChaosStrataMaintenance is UtilityFunctions
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+classvars:
+
+properties:
+
+   plChaosStrata = $
+   plExcludedRoomsList = $
+   
+   % At what level multiple do these increase?
+   piChaosXPIncreaseLevel = 8
+   piChaosTPIncreaseLevel = 8
+   piChaosLootIncreaseLevel = 4
+
+   % How much extra cash on each monster kill per level?
+   piChaosCashPerLevel = 30
+   
+   % What is the 'difficulty' of chaos mobs?
+   piChaosDifficulty = 15
+   
+   piNumStrataOpened = 0
+   piNumStrataCompleted = 0
+   
+   piBaseScryingCrystalDropChance = 33
+
+messages:
+
+   Constructor()
+   {
+      Send(self,@Recreate);
+      
+      plExcludedRoomsList = [RID_MAR_SMITHY,
+                             RID_MAR_ELDER_HUT,
+                             RID_SEWER_KING,
+                             RID_TEMPLE_RIIJA,
+                             RID_MAR_CRYPT3A,
+                             RID_FOREST4,
+                             RID_MAR_CRYPT2,
+                             RID_MAR_CRYPT1,
+                             RID_FOREST4,
+                             RID_FOREST5,
+                             RID_KOCATAN,
+                             RID_KOC_INN,
+                             RID_FOREST1,
+                             RID_FOREST2,
+                             RID_FOREST3,
+                             RID_ORC_PIT_B,
+                             RID_ORC_PIT_A,
+                             RID_ORC_CAVE5];
+      
+      plExcludedRoomsList = Cons(RID_G8,plExcludedRoomsList);
+      plExcludedRoomsList = Cons(RID_KOC_SEWER2,plExcludedRoomsList);
+      plExcludedRoomsList = Cons(RID_KOC_SEWER1,plExcludedRoomsList);
+      plExcludedRoomsList = Cons(RID_JASSEW1,plExcludedRoomsList);
+      plExcludedRoomsList = Cons(RID_JASSEW2,plExcludedRoomsList);
+      plExcludedRoomsList = Cons(RID_JASSEW3,plExcludedRoomsList);
+      plExcludedRoomsList = Cons(RID_BAR_SEWER2,plExcludedRoomsList);
+      plExcludedRoomsList = Cons(RID_BAR_SEWER3,plExcludedRoomsList);
+      plExcludedRoomsList = Cons(RID_BAR_SEWER,plExcludedRoomsList);
+      plExcludedRoomsList = Cons(RID_KC5,plExcludedRoomsList);
+      plExcludedRoomsList = Cons(RID_KA3,plExcludedRoomsList);
+      plExcludedRoomsList = Cons(RID_H9,plExcludedRoomsList);
+      plExcludedRoomsList = Cons(RID_VICTORIA,plExcludedRoomsList);
+      plExcludedRoomsList = Cons(RID_CASTLE1,plExcludedRoomsList);
+      plExcludedRoomsList = Cons(RID_CASTLE1B,plExcludedRoomsList);
+      plExcludedRoomsList = Cons(RID_NEC_PASSAGE2,plExcludedRoomsList);
+      plExcludedRoomsList = Cons(RID_MARSMITH,plExcludedRoomsList);
+      plExcludedRoomsList = Cons(RID_MARELDER,plExcludedRoomsList);
+      plExcludedRoomsList = Cons(RID_SEWKING,plExcludedRoomsList);
+      plExcludedRoomsList = Cons(RID_TEMPLE_RIIJA,plExcludedRoomsList);
+      plExcludedRoomsList = Cons(RID_PRISMLIFEFRAG,plExcludedRoomsList);
+      plExcludedRoomsList = Cons(RID_DESERTRIVER3,plExcludedRoomsList);
+      plExcludedRoomsList = Cons(RID_DESERTSTEPPES,plExcludedRoomsList);
+      plExcludedRoomsList = Cons(RID_DESERTRIVER2,plExcludedRoomsList);
+      plExcludedRoomsList = Cons(RID_DESERTRIVER1,plExcludedRoomsList);
+      plExcludedRoomsList = Cons(RID_ELEMENTAL_DUNGEON1,plExcludedRoomsList);
+      plExcludedRoomsList = Cons(RID_ELEMENTAL_DUNGEON2,plExcludedRoomsList);
+      plExcludedRoomsList = Cons(RID_ELEMENTAL_DUNGEON3,plExcludedRoomsList);
+      plExcludedRoomsList = Cons(RID_ELEMENTAL_DUNGEON4,plExcludedRoomsList);
+
+      return;
+   }
+
+   Recreate()
+   {
+      return;
+   }
+
+   NewDay()
+   {
+      return;
+   }
+
+   NewGameHour()
+   {
+      return;
+   }
+   
+   GetChaosStrata()
+   {
+      return plChaosStrata;
+   }
+
+   CreateNewChaosStratum(oCrystal=$)
+   {
+      local oChaosStratum;
+      
+      oChaosStratum = $;
+
+      return oChaosStratum;
+   }
+
+   CreateRoom(who=$, oForceBaseRoom=$)
+   {
+      local oRoom, oBaseRoom, lAllRooms, iRID, i, lPlayersLoggedOn, z,
+            lExcludedRoomsObjs, iNatural, iPvP, o;
+
+      iNatural = TRUE;
+      iPvP = TRUE;
+
+      lAllRooms = ListCopy(Send(SYS,@GetRooms));
+
+      lExcludedRoomsObjs = $;
+      foreach z in plExcludedRoomsList
+      {
+         lExcludedRoomsObjs = Cons(Send(SYS,@FindRoomByNum,#num=z),
+                                    lExcludedRoomsObjs);
+      }
+      
+      oBaseRoom = Nth(lAllRooms,Random(1,Length(lAllRooms)));
+
+      % Ensure it's a monster room, and shrink the list on every failure.
+      if (NOT IsClass(oBaseRoom,&MonsterRoom))
+         OR IsClass(oBaseRoom,&SurvivalRoom)
+         OR (lExcludedRoomsObjs <> $
+            AND FindListElem(lExcludedRoomsObjs,oBaseRoom))
+         OR (iNatural AND Send(oBaseRoom,@GetGenerators) = $)
+      {
+         while (NOT IsClass(oBaseRoom,&MonsterRoom))
+            OR IsClass(oBaseRoom,&SurvivalRoom)
+            OR (lExcludedRoomsObjs <> $
+               AND FindListElem(lExcludedRoomsObjs,oBaseRoom))
+            OR (iNatural AND Send(oBaseRoom,@GetGenerators) = $)
+         {
+            lAllRooms = DelListElem(lAllRooms,oBaseRoom);
+            oBaseRoom = Nth(lAllRooms,Random(1,Length(lAllRooms)));
+         }
+      }
+
+      if NOT IsClass(oBaseRoom,&MonsterRoom)
+      {
+         return $;
+      }
+
+      iRID = Send(self,@GetNextAvailableRID);
+      
+      if iRID = 0
+      {
+         return $;
+      }
+
+      %Send(SYS,@CreateOneRoomIfNew,#num=iRID,#class=&ChaosStratumRoom,#iPublic=iPublic,#base_room=oBaseRoom,#iPvP=iPvP);
+
+      oRoom = Send(SYS,@FindRoomByNum,#num=iRID);
+
+      if oRoom <> $
+      {
+         plChaosStrata = Cons(oRoom,plChaosStrata);
+         Send(Send(SYS,@GetStatistics),@AddToRoomCount,#iNum=iRID);
+         Send(oRoom,@Teleport,#what=who);
+      }
+
+      return oRoom;
+   }
+
+   GetNextAvailableRID()
+   {
+      local iRID, i, bExists;
+
+      iRID = RID_CHAOS_STRATA_START;
+
+      if plChaosStrata = $
+      {
+         return iRID;
+      }
+
+      while iRID <= RID_CHAOS_STRATA_END
+      {
+         bExists = FALSE;
+         foreach i in plChaosStrata
+         {
+            if Send(i,@GetRoomNum) = iRID
+            {
+               bExists = TRUE;
+            }
+         }
+
+         if NOT bExists
+         {
+            return iRID;
+         }
+
+         iRID = iRID + 1;
+      }
+
+      return 0;
+   }
+   
+   GetChaosLoot()
+   {
+      return piChaosLootIncreaseLevel;
+   }
+   
+   GetChaosCash()
+   {
+      return piChaosCashPerLevel;
+   }
+   
+   GetChaosDifficulty()
+   {
+      return piChaosDifficulty;
+   }
+   
+   GetBaseScryingCrystalDropChance()
+   {
+      return piBaseScryingCrystalDropChance;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

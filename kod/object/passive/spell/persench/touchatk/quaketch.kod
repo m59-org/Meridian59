@@ -1,0 +1,104 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+SeismicFist is TouchAttackSpell
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   SeismicFist_name_rsc = "seismic fist"
+   SeismicFist_icon_rsc = punchico.bgf
+   SeismicFist_desc_rsc = \
+         "Infuses your fist with the magnitude and power of the earth, "
+         "enabling you to deal extremely heavy blows. "
+         "Requires a gray mushroom."
+
+   SeismicFist_already_enchanted_rsc = "Your hands are already shaking violently!"
+   SeismicFist_On_rsc = "Your hands begin to tremble involuntarily!"
+   SeismicFist_Off_rsc = "Your hands cease their convulsions."
+
+   SeismicFist_player_was_hit = "%s%s jerks you violently, leaving you momentarily disoriented."
+   SeismicFist_player_hit_something = "%sYour seismic fist jerks  %s%s's body, leaving %s%s teetering and disoriented."
+
+   SeismicFist_player_killed_something = "%s%s loses balance, falling onto the ground. He doesn't get up!"
+   SeismicFist_player_was_killed = "At the trembling touch of %s%s, you lose balance, fall over and suddenly everything goes black..."
+
+   SeismicFist_spell_intro = "Faren Lv. 6: Grants your fist  seismic empowerment, allowing for a disrupting attack."
+
+   SeismicFist_sound = equake4.wav
+
+classvars:
+
+   vrName = SeismicFist_name_rsc
+   vrIcon = SeismicFist_icon_rsc
+   vrDesc = SeismicFist_desc_rsc
+
+   vrAlreadyEnchanted = SeismicFist_already_enchanted_rsc
+   vrEnchantment_On = SeismicFist_On_rsc
+   vrEnchantment_Off = SeismicFist_Off_rsc
+
+   vrPlayer_was_hit = SeismicFist_player_was_hit
+   vrPlayer_hit_something = SeismicFist_player_hit_something
+
+   vrPlayer_was_killed = SeismicFist_player_was_killed
+   vrPlayer_killed_something = SeismicFist_player_killed_something
+
+   vrSpell_intro = SeismicFist_spell_intro
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+
+   viSchool = SS_FAREN
+   viSpell_num = SID_SEISMIC_FIST
+   viSpellExertion = 4
+   viSpell_level = 6
+   viMana = 20
+
+   viMin_Damage = 5         %% touch spells typically do good damage    
+   viMax_Damage = 8         %% but are unaffected by weapon or strength bonuses
+
+   % Max amount of damage that punch or 2*myst can add
+   viMaxProficiencyDamage = 3
+
+   viSpellType = ATCK_SPELL_QUAKE + ATCK_SPELL_ALL
+   viStroke = STROKE_SEISMIC_FIST
+
+   vbAutomatic = FALSE
+
+   vrSucceed_wav = SeismicFist_sound
+
+properties:
+
+   plPrerequisites = $
+   plReagents = $
+
+messages:
+
+  ResetReagents()
+  {
+     plReagents = $;
+     plReagents = cons([&GrayMushroom,1],plReagents);
+     
+     return;
+  }
+
+   TouchSpellSideEffect(weapon_used=$,who=$,victim=$)
+   {
+      Post(victim,@ApplyKnockback,#what=who,#knockback_power=Send(who,@GetKnockbackPower)*2);
+
+      % Propagate to do draconian's bleed
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -1,0 +1,110 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+KnightcraftCrest is Crest
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   Knightcraft_Crest_name_rsc = "Crest of the Knight"
+   Knightcraft_Crest_icon_rsc = krcharm.bgf
+   Knightcraft_Crest_desc_rsc = \
+      "You are the wisest Knightcraft user in Meridian. "
+      "This crest signifies that you are the master of Knightcraft. "
+      "While wearing it, your physical resistances will be boosted, "
+      "and your perseverance against stuns and knockbacks will be "
+      "greatly increased."
+
+   Knightcraft_Crest_equipped = \
+      "Strength flows through you, increasing your physical resistances "
+      "and perseverance against stuns and knockbacks."
+   Knightcraft_Crest_unequipped = \
+      "The strength granted by the Crest of the Knight leaves you."
+
+classvars:
+
+   vrName = Knightcraft_Crest_name_rsc
+   vrIcon = Knightcraft_Crest_icon_rsc
+   vrDesc = Knightcraft_Crest_desc_rsc
+
+   viValue_average = 10
+
+   viBulk = 25
+   viWeight = 25
+
+   viGround_group = 2
+
+   viOffenseBonus = 200
+   viDefenseBonus = 200
+
+properties:
+   
+   pbIn_use = False
+
+   piItemLevel = 300
+
+messages:
+
+   NewUsed(what = $)
+   {
+      if IsClass(what,&User)
+      {
+         Send(what,@MsgSendUser,#message_rsc=Knightcraft_Crest_equipped);
+      }
+      
+      propagate;
+   }
+
+   NewUnused(what = $)
+   {
+      if IsClass(what,&User)
+      {
+         Send(what,@MsgSendUser,#message_rsc=Knightcraft_Crest_unequipped);
+      }
+
+      propagate;
+   }
+
+   GetResistanceModifiers()
+   {
+      return [ [ATCK_WEAP_BLUDGEON,15],
+               [ATCK_WEAP_SLASH,15],
+               [ATCK_WEAP_THRUST,15],
+               [ATCK_WEAP_PIERCE,15],
+               [ATCK_WEAP_WHIP,15],
+               [ATCK_WEAP_CLAW,15],
+               [ATCK_WEAP_BITE,15],
+               [ATCK_WEAP_STING,15],
+               [ATCK_WEAP_ACID,15],
+               [ATCK_WEAP_NERUDITE,15],
+               [ATCK_WEAP_MAGIC,15],
+               [ATCK_WEAP_SILVER,15],
+               [ATCK_WEAP_PUNCH,15]
+               ];
+   }
+
+   GetKnockbackResistance()
+   {
+      return 30;
+   }
+
+   GetStunResistance()
+   {
+      return 50;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+

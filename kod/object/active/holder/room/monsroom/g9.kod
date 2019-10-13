@@ -112,12 +112,18 @@ resources:
       "I promise you.)"
 
 
+   cannot_lightning_strike_here_ancient = \
+      "Underground mechanisms drain away the energy of your lightning strike!"
+
 classvars:
 
    vrName = room_name_OutdoorsG9
 
    viTeleport_row = 20
    viTeleport_col = 66
+
+   viLongitude = 18
+   viLatitude = 37
 
    viTerrain_type = TERRAIN_MOUNTAIN | TERRAIN_MYSTICAL
 
@@ -1120,6 +1126,34 @@ messages:
       }
 
       return;
+   }
+
+   CanShatterlockHere()
+   {
+      return TRUE;
+   }
+   
+   Shatterlocked(oPrism=$,lCasters=$)
+   {
+      Send(self,@LightningPuzzleSolved);
+      
+      return;
+   }
+   
+   CanHavePlayerPortal()
+   {
+      return FALSE;
+   }
+
+   ReqSpellCast(who = $, oSpell = $, lItems = $)
+   {
+      if IsClass(oSpell,&LightningStrike)
+      {
+         Send(who,@MsgSendUser,#message_rsc=cannot_lightning_strike_here_ancient);
+         return FALSE;
+      }
+
+      propagate;
    }
 
 end

@@ -1,0 +1,158 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+SpherePrism is Prism
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   spherical_prism_name_rsc = "spherical prism"
+
+   spherical_prism_1_icon_rsc = prism1.bgf
+
+   spherical_prism_desc_rsc = "When light is held near its otherwise red surface, this prism refracts a startling black rainbow. "
+      "If the legends of these magical items hold true, however, "
+      "its real worth lies in its ability to focus the magical energies of a "
+      "spellcaster for the casting of certain special spells. "
+      "According to the mages of antiquity, a prism must be placed upon the ground before a spell "
+      "may be focused through it. The spell being chanted will fire "
+      "when enough magical power has been stored in the prism. This spherical prism requires only %i%s"
+   spherical_prism_desc2_rsc = " caster and currently contains no magical energy."
+   spherical_prism_desc2a_rsc = " caster and glows faintly from within."
+   spherical_prism_desc2b_rsc = " caster and is glowing from a point at its center."
+   spherical_prism_desc2c_rsc = " caster and is glowing fairly brightly."
+   spherical_prism_desc2d_rsc = " caster and glows extremely brightly."
+
+   spherical_prism_projectile = lightnin.bgf
+
+   spherical_prism_charged_wav_rsc = portal.wav
+
+   cannot_budge_spherical_prism = \
+      "An immensely powerful necromantic force has bound this unique prism to the ritual area."
+
+   necromancers_present_only = \
+      "The spherical prism refuses to accept any new energies while the disloyal preside. "
+      "Only the members of the Necromancer Guild may use its dark powers."
+
+classvars:
+
+   vrName = spherical_prism_name_rsc
+   vrDesc = spherical_prism_desc_rsc
+
+properties:
+
+   vrIcon = spherical_prism_1_icon_rsc
+   
+   pbAcceptAnyAo3User = TRUE
+
+messages:
+
+   Constructor(numSides=1)
+   {
+      Send(self,@SetNumSides,#numSides=numSides);
+
+      propagate;
+   }
+   
+   Constructed()
+   {      
+      % This prism always starts off pointed at a hidden location behind the Duke's throne.
+      % Why? Good question...
+      % The Necromancer guildmaster has the ability to bind the exit point elsewhere.
+      Send(self,@LearnLocation,#lLocation=[RID_DUKE3,8,16,4,27]);
+      
+      propagate;
+   }
+
+   DoBaseDesc()
+   {
+      local lDescs;
+
+      lDescs = [spherical_prism_desc2_rsc, spherical_prism_desc2a_rsc,
+                spherical_prism_desc2b_rsc, spherical_prism_desc2d_rsc];
+
+      % Append the glow description based on the charge level.
+      AddPacket(4,vrDesc, 4,piNumSides,
+                4,Nth(lDescs,(Send(self,@GetChargeLevel)+1)));
+
+      return;
+   }
+
+   SetNumSides(numSides=1)
+   {
+      piNumSides = 1;
+      vrIcon = spherical_prism_1_icon_rsc;
+
+      return;
+   }
+
+   CanAcceptCasters()
+   {
+      local i, each_obj, bDisloyalFound;
+    
+      bDisloyalFound = FALSE;    
+      foreach i in Send(poOwner,@GetHolderActive)
+      {
+         each_obj = Send(poOwner,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&Player)
+            AND (Send(each_obj,@GetGuild) = $
+                 OR NOT IsClass(Send(each_obj,@GetGuild),&NecromancerGuild))
+            AND NOT IsClass(each_obj,&DM)
+         {
+            if pbAcceptAnyAo3User
+               AND Send(each_obj,@IsUsingA,#class=&NecromancerAmulet)
+            {
+               continue;
+            }
+            else
+            {
+               bDisloyalFound = TRUE;
+            }
+            break;
+         }
+      }
+      
+      if bDisloyalFound
+      {
+         foreach i in Send(poOwner,@GetHolderActive)
+         {
+            each_obj = Send(poOwner,@HolderExtractObject,#data=i);
+            if IsClass(each_obj,&Player)
+            {
+               Send(each_obj,@MsgSendUser,#message_rsc=necromancers_present_only);
+            }
+         }
+         return FALSE;
+      }
+      
+      if Length(plCasters) >= piNumSides
+      {
+         return FALSE;
+      }
+
+      return TRUE;
+   }
+
+   ReqNewOwner(what = $)
+   {
+      if IsClass(what,&Player)
+      {
+         Send(what,@MsgSendUser,#message_rsc=cannot_budge_spherical_prism);
+         return FALSE;
+      }
+
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -1,0 +1,212 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+DesertBridge2 is DesertRoom
+
+% Despite being the Gate, this is actually the back door to the Palace,
+% openable by players who have infiltrated through other means.
+%
+% In other words, one player can get inside and let in reinforcements.
+
+constants:
+
+   include blakston.khd
+   
+   DESERT_BRIDGE2_GATE_SECTOR = 400
+
+resources:
+
+   room_desertbridge2 = desertbridge2.roo
+   room_name_desertbridge2 = "Gate of the Palace of High Sorcery"
+
+   sorcerer_gate_closed_msg = \
+      "This ancient service gate was solidly built to prevent any unauthorized intrusion. "
+      "You will not be able to open it from this side."
+
+   sorcerer_gate_opens_msg = \
+      "The ancient service gate suddenly grinds into motion!"
+   sorcerer_gate_closes_msg = \
+      "Failing under its own weight, the ancient gate closes."
+
+   db2_cant_movement_spell_msg = \
+      "Strange forces flowing through this area make the use of a movement spell dangerous."
+
+   service_gate_lift_sound = stoneup2.wav
+   
+classvars:
+
+   vrName = room_name_desertbridge2
+
+   viTeleport_row = 10
+   viTeleport_col = 6
+   
+   viGateRow = 4
+   viGateCol = 191
+
+   vbSpawnMonsters = FALSE
+
+properties:
+
+   piBaseLight = LIGHT_DARK
+   piOutside_factor = OUTDOORS_5 
+
+   piDirectional_percent = DIRECTIONAL_PERCENT_OUTDOORS
+
+   prRoom = room_desertbridge2
+   piRoom_num = RID_DESERTBRIDGE2
+
+   pbGateOpen = FALSE
+   
+   ptCloseGateTimer = $
+
+messages:
+ 
+   CreateStandardExits()
+   {
+      plEdge_Exits = $;
+
+      propagate;
+   }
+
+   CreateStandardObjects()
+   {
+      Send(self,@NewHold,#what=Create(&LightningPrism),
+            #new_row=10,#new_col=5,#fine_row=32,#fine_col=32);
+      Send(self,@NewHold,#what=Create(&DynamicLight),
+            #new_row=10,#new_col=5,#fine_row=32,#fine_col=33);
+      propagate;
+   }
+
+   RecalcLightAndWeather()
+   {
+      local SysDayPhase;
+
+      SysDayPhase = Send(SYS,@GetDayPhase);
+
+      % We're crossing over into a new quarter.
+      % Collapsed Causeway does not get threats other than shock storms.
+      % It does simulate rain and snow, though.
+      if piPreviousPhase <> SysDayPhase
+      {
+         Send(self,@DoPhaseWeather);
+      }
+
+      propagate;
+   }
+
+   GetPhaseThreats()
+   {
+      return [&ShockStorm];
+   }
+
+   SomethingTryGo(what = $,row = $,col = $)
+   {
+      if IsClass(what,&Player)
+         AND row=viGateRow
+         AND col=viGateCol
+      {
+         if pbGateOpen
+         {
+            propagate;
+         }
+         else
+         {
+            Send(what,@MsgSendUser,#message_rsc=sorcerer_gate_closed_msg);
+            return TRUE;
+         }
+      }
+
+      propagate;
+   }
+
+   ReqSpellCast(oSpell=$,who=$)
+   {
+      if IsClass(oSpell,&MovementSpell)
+      {
+         if who <> $
+            AND IsClass(who,&Player)
+         {
+            Send(who,@MsgSendUser,#message_rsc=db2_cant_movement_spell_msg);
+         }
+         return FALSE;
+      }
+
+      propagate;
+   }
+   
+   OpenGate()
+   {
+      local i;
+      
+      if pbGateOpen
+      {
+         % Don't do this repeatedly
+         return;
+      }
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&Player)
+         {
+            Send(First(i),@MsgSendUser,#message_rsc=sorcerer_gate_opens_msg);
+         }
+      }
+      Send(self,@SetSector,#sector=DESERT_BRIDGE2_GATE_SECTOR,#animation=ANIMATE_CEILING_LIFT,#height=565,#speed=10);
+      pbGateOpen = TRUE;
+      ptCloseGateTimer = CreateTimer(self,@CloseGate,60000);
+      Send(self,@SomethingWaveRoom,#wave_rsc=service_gate_lift_sound); 
+      return;
+   }
+   
+   CloseGate()
+   {
+      local i;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&Player)
+         {
+            Send(First(i),@MsgSendUser,#message_rsc=sorcerer_gate_closes_msg);
+         }
+      }
+      ptCloseGateTimer = $;
+      Send(self,@SetSector,#sector=DESERT_BRIDGE2_GATE_SECTOR,#animation=ANIMATE_CEILING_LIFT,#height=501,#speed=10);
+      pbGateOpen = FALSE;
+      Send(self,@SomethingWaveRoom,#wave_rsc=service_gate_lift_sound); 
+      return;
+   }
+
+   SomethingMoved(what = $,new_row = $, new_col = $)
+   {
+      if new_col > Send(self,@GetRoomCols) - 2
+         AND pbGateOpen
+      {
+         Send(SYS,@UtilGoNearSquare,#what=what,
+              #where=Send(SYS,@FindRoomByNum,#num=RID_PALACE_DUNGEON_ENTRANCE),
+              #new_row=2,#new_col=3,#fine_row=52,#fine_col=43,#new_angle=Send(what,@GetAngle));
+              
+         return;
+      }
+
+      propagate;
+   }
+   
+   Delete()
+   {
+      if ptCloseGateTimer <> $
+      {
+         DeleteTimer(ptCloseGateTimer);
+         ptCloseGateTimer = $;
+      }
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

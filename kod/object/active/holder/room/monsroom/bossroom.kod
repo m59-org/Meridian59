@@ -20,6 +20,8 @@ classvars:
 
    viBossResetTime = 30 * 60 * 1000
 
+   viBossTreasureLevel = 115
+
 properties:
 
    % template is list of lists, format:
@@ -236,7 +238,7 @@ messages:
       {
          foreach i in plBossTreasureTemplate
          {
-            oTempTreasure = Create(First(i));
+            oTempTreasure = Create(First(i),#level=viBossTreasureLevel);
             Send(self,@NewHold,#what=oTempTreasure,
                   #new_row=nth(i,2),#new_col=nth(i,3),
                   #fine_row=nth(i,4),#fine_col=nth(i,5));

@@ -139,6 +139,9 @@ resources:
       "As your essence dissolves away from this plane of existence, the "
       "amulet slips out of your hands and drops to the ground."
 
+   applied_hex_to_amulet = \
+      "You call upon demonic alliances to curse your Amulet of the Three with an aura of %s."
+
 classvars:
 
    viIndefinite = ARTICLE_AN
@@ -151,8 +154,8 @@ classvars:
 
    viBulk = 25
    viWeight = 25
-   viUse_type = ITEM_USE_NECK
-   viItem_type = ITEMTYPE_NECKLACE | ITEMTYPE_SPECIAL
+   viUse_type = ITEM_USE_AMULET
+   viItem_type = ITEMTYPE_AMULET | ITEMTYPE_SPECIAL
 
    viUse_Amount = 1
 
@@ -180,6 +183,10 @@ properties:
 
    pbOrderDisbanded = FALSE
    pbCounted = FALSE
+
+   piItemLevel = 200
+
+   piHexSpellID = 0
 
 messages:
 
@@ -261,8 +268,7 @@ messages:
          return;
       }
       
-      if (Send(poOwner,@GetKarma) < piKarmaWorthyThreshold)
-         AND (Send(poOwner,@GetBaseMaxHealth) > piHpWorthyThreshold)
+      if (Send(poOwner,@GetBaseMaxHealth) > piHpWorthyThreshold)
       {
          if pbIn_Use
          {
@@ -297,10 +303,9 @@ messages:
             {
                Send(poOwner,@MsgSendUser,#message_rsc=necamulet_holding_damage);
             }
-            Send(poOwner,@LoseKarma,#amount=(1 + (pbIn_Use*3)));
+            %Send(poOwner,@LoseKarma,#amount=(1 + (pbIn_Use*3)));
          }
-         if Send(poOwner,@AssessDamage,#what=self,
-                  #damage=(Random(1,3)+pbIn_Use*8),#report=FALSE) = $
+         if Send(poOwner,@AssessDamage,#what=self,#damage=(Random(1,3)+pbIn_Use*8),#aspell=ATCK_SPELL_ALL+ATCK_SPELL_UNHOLY,#report=FALSE) = $
          {
             % We killed them off... heh heh heh.
             if pbIn_Use
@@ -335,13 +340,13 @@ messages:
       if IsClass(what,&User)
          AND what = poOwner
       {
-         oWeaponUsed = Send(what,@LookupPlayerWeapon);
-         if oWeaponUsed <> $
-            AND (Send(what,@FindHoldingActive,#class=&HunterSword) <> $
-               OR Send(oWeaponUsed,@GetAttributeData,#ItemAtt=WA_PUNISHER) <> $)
-         {
-            return FALSE;
-         }
+%         oWeaponUsed = Send(what,@LookupPlayerWeapon);
+%         if oWeaponUsed <> $
+%            AND (Send(what,@FindHoldingActive,#class=&HunterSword) <> $
+%               OR Send(oWeaponUsed,@GetAttributeData,#ItemAtt=WA_PUNISHER) <> $)
+%         {
+%            return FALSE;
+%         }
 
          if pbWarned = FALSE
          {
@@ -366,10 +371,10 @@ messages:
       pbIllusioned = TRUE;
       plStatmods = [ 0, 0, 0, 0, 0, 0 ];
 
-      if Send(poOwner,@GetKarma) < piKarmaWorthyThreshold
-         AND Send(poOwner,@GetBaseMaxHealth) > piHpWorthyThreshold
+      if Send(poOwner,@GetBaseMaxHealth) > piHpWorthyThreshold
       {
          Send(poOwner,@MsgSendUser,#message_rsc=necamulet_used_rsc);
+         Post(poOwner,@EquippedAnItem,#oItem=self);
       }
       else
       {
@@ -395,8 +400,7 @@ messages:
          return;
       }
 
-      iKarmaFactor =  (100 * (Send(poOwner,@GetKarma) - piKarmaWorthyThreshold))
-                           / (-100 - piKarmaWorthyThreshold);
+      iKarmaFactor =  (100 * (-100 - piKarmaWorthyThreshold)) / (-100 - piKarmaWorthyThreshold);
 
       % iHungerFactor =( 100 * (piHunger- HUNGER_5))/(-HUNGER_5 - HUNGER_5);
       iHungerFactor = ( 100 * (piHunger - HUNGER_5 ))/(-2 * HUNGER_5);
@@ -650,8 +654,7 @@ messages:
       }
 
       % Check that owner still satisfies amulet restrictions.
-      if NOT ((Send(poOwner,@GetKarma) < piKarmaWorthyThreshold)
-            AND (Send(poOwner,@GetBaseMaxHealth) > piHpWorthyThreshold))
+      if NOT (Send(poOwner,@GetBaseMaxHealth) > piHpWorthyThreshold)
          AND ptHoldingDamage = $
       {
          Send(self,@HoldingDamageTrigger);
@@ -672,7 +675,7 @@ messages:
          Send(poOwner,@AddExertion,#amount = 20000); % 2 vigor points
          Send(poOwner,@MsgSendUser,#message_rsc=necamulet_hunger_5);
 
-         if Send(poOwner,@AssessDamage,#what=self,#damage=Random(5,10),
+         if Send(poOwner,@AssessDamage,#what=self,#damage=Random(5,10),#aspell=ATCK_SPELL_ALL+ATCK_SPELL_UNHOLY,
                   #report=FALSE) = $
          {
             % We killed someone off... heh heh heh.
@@ -697,7 +700,7 @@ messages:
             Send(poOwner,@MsgSendUser,#message_rsc=necamulet_hunger_4);
          }
 
-         if Send(poOwner,@AssessDamage,#what=self,#damage=Random(1,5),
+         if Send(poOwner,@AssessDamage,#what=self,#damage=Random(1,5),#aspell=ATCK_SPELL_ALL+ATCK_SPELL_UNHOLY,
                   #report=FALSE) = $
          {
             % We killed someone off... heh heh heh.
@@ -852,8 +855,11 @@ messages:
 
    SatisfyHunger(amount=0)
    {
+      % We now gain mana instead of vigor, and divide by ten, because this vigor gain is off the charts.
+      Send(poOwner,@GainMana,#amount=amount/10,#bRespectMax=TRUE);
+      
       % Gain vigor.
-      Send(poOwner,@AddExertion,#amount=-amount*10000);
+      %Send(poOwner,@AddExertion,#amount=-amount*10000);
 
       % Satsify hunger.
       piFineHunger = piFineHunger - amount;
@@ -916,7 +922,7 @@ messages:
 
       if pbIn_use
       {
-         Post(self,@TortureOwner);
+         %Post(self,@TortureOwner);
 
          return FALSE;
       }
@@ -948,7 +954,7 @@ messages:
 
       Send(poOwner,@MsgSendUser,#message_rsc=necamulet_try_unuse_rsc);
       if Send(poOwner,@AssessDamage,#what=self,
-               #damage=Random(viDamage_min,viDamage_max),#report=FALSE) = $
+               #damage=Random(viDamage_min,viDamage_max),#aspell=ATCK_SPELL_ALL+ATCK_SPELL_UNHOLY,#report=FALSE) = $
       {
          % We killed someone off... heh heh heh.
          if pbIn_Use
@@ -1036,8 +1042,7 @@ messages:
 
    ReqUseSomething(what = $)
    {
-      if IsClass(what,&Necklace)
-         OR IsClass(what,&NecromancerAmulet)
+      if IsClass(what,&NecromancerAmulet)
       {
          if Send(poOwner,@TryUnuseItem,#what=self)
          {
@@ -1212,7 +1217,7 @@ messages:
          else
          {
             % they lose 2/3 of their HP.
-            Send(poOwner,@AssessDamage,#what=self,
+            Send(poOwner,@AssessDamage,#what=self,#aspell=ATCK_SPELL_ALL+ATCK_SPELL_UNHOLY,
                   #damage=(Send(poOwner,@GetHealth)*2/3),#report=FALSE);
          }
       }
@@ -1356,8 +1361,7 @@ messages:
          return FALSE;
       }
 
-      if Send(poOwner,@PossessesA,#class=&Token)
-         OR (Send(oRoom,@SafePlayerAttack)
+      if (Send(oRoom,@SafePlayerAttack)
             AND Send(oRoom,@inPlay,#what=poOwner))
       {
          return FALSE;
@@ -1370,6 +1374,70 @@ messages:
    {
       % Special item, add minimap dot.
       return MM_RARE_ITEM;
+   }
+
+   GetPrefixes()
+   {
+      return [[&ManaMod,100],
+              [&VigorMod,100],
+              [&FireEmpowermentMod,100],
+              [&AcidEmpowermentMod,100],
+              [&ColdEmpowermentMod,100],
+              [&ShockEmpowermentMod,100],
+              [&MagicEmpowermentMod,1],
+              [&ThrustEmpowermentMod,100],
+              [&SlashEmpowermentMod,100],
+              [&BludgeonEmpowermentMod,100],
+              [&PierceEmpowermentMod,100],
+              [&UnholyEmpowermentMod,100],
+              [&WeaponEmpowermentMod,1]];
+   }
+   
+   GetSuffixes()
+   {
+      return [[&FireResistanceMod,100],
+              [&ColdResistanceMod,100],
+              [&ShockResistanceMod,100],
+              [&AcidResistanceMod,100],
+              [&PierceResistanceMod,100],
+              [&SlashResistanceMod,100],
+              [&BludgeonResistanceMod,100],
+              [&ThrustResistanceMod,100],
+              [&HolyResistanceMod,20],
+              [&WeaponAgilityMod,50],
+              [&WeaponMightMod,50],
+              [&WeaponAimMod,50],
+              [&CasterIntMod,50],
+              [&CasterMystMod,50],
+              [&CasterStamMod,20]];
+   }
+
+   ApplyHex(iHexSpellID=0)
+   {
+      local oHex;
+      oHex = Send(SYS,@FindSpellByNum,#num=iHexSpellID);
+      
+      if oHex <> $
+         AND poOwner <> $
+      {
+         piHexSpellID = iHexSpellID;
+         Send(poOwner,@MsgSendUser,#message_rsc=applied_hex_to_amulet,#parm1=Send(oHex,@GetName));
+      }
+      return;
+   }
+
+   HasHex()
+   {
+      if piHexSpellID <> 0
+      {
+         return TRUE;
+      }
+      return FALSE;
+   }
+
+   GetHex()
+   {
+      return piHexSpellID;
    }
 
 end

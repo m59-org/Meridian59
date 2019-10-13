@@ -1,0 +1,146 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+NomadMage is NomadBandit
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   NomadMage_name_rsc = "nomad mage"
+   NomadMage_desc_rsc = \
+      "This desert nomad looks skilled in the magical arts."
+   NomadMage_dead_name_rsc = "dead nomad mage"
+
+classvars:
+
+   vrName = NomadMage_name_rsc
+   vrDesc = NomadMage_desc_rsc
+   vrDead_name = NomadMage_dead_name_rsc
+
+properties:
+
+   piMana = 100
+   piMax_Mana = 100
+   prHead = human_head_male_tattoo_4
+
+messages:
+
+   SetGender()
+   {
+      if Random(1,100) < viChanceFemale
+      {
+         viGender = GENDER_FEMALE;
+         vrIcon = human_female_icon_rsc;
+         prHead = human_head_female_tattoo_4;
+         prEyes = human_eyes_kx_icon;
+         prMouth = human_mouth_kx_icon;
+         prNose = human_nose_kx_icon;
+         prToupee = human_hair_ca_icon;
+         prLegs = human_legs_b_rsc;
+         prRight_arm = human_rightarm_b_rsc;
+         prLeft_arm = human_leftarm_b_rsc;
+         vrDead_Icon = human_dead_female_icona_rsc;
+         vrDead_Legs = human_dead_female_iconb_rsc;
+         vrSound_death = human_female_sound_death;
+      }
+
+      return;
+   }
+
+   Constructed()
+   {
+      if piDemonSponsor = SSS_WITCHERY_NEQUZON
+      {
+         plRangedSpellBook = [ [SID_HEX_CONDUCTIVITY,25,20,Random(50,99)],
+                               [SID_LIGHTNING_BOLT,10,100,Random(50,99)]];
+         plAllySpellBook = [ [SID_RESIST_SHOCK,3,100, Random(50,99)]];
+      }
+      if piDemonSponsor = SSS_WITCHERY_IWODACH
+      {
+         plMeleeSpellBook = [ [SID_VAMPIRIC_DRAIN,10,100,Random(50,99)]];
+         plRangedSpellBook = [ [SID_HEX_CORRUPTION,20,100,Random(50,99)]];
+         plAllySpellBook = [ [SID_UNHOLY_RESOLVE,3,100, Random(50,99)]];
+      }
+      if piDemonSponsor = SSS_WITCHERY_XAERDUN
+      {
+         plRangedSpellBook = [ [SID_HEX_BESTILL,10,100,Random(50,99)]];
+         plAllySpellBook = [ [SID_MAGIC_SHIELD,3,100, Random(50,99)]];
+      }
+      if piDemonSponsor = SSS_WITCHERY_VENTDAL
+      {
+         plRangedSpellBook = [ [SID_HEX_BECLOUD,15,100,Random(50,99)]];
+         plAllySpellBook = [ [SID_BLESS,3,100, Random(50,99)]];
+      }
+      if piDemonSponsor = SSS_WITCHERY_RAUMLAR
+      {
+         plRangedSpellBook = [ [SID_ICICLE_VOLLEY,5,100,Random(50,99)]];
+         plAllySpellBook = [ [SID_ARMOR_OF_GORT,3,100, Random(50,99)]];
+      }
+
+      propagate;
+   }
+
+   SetEquipment()
+   {
+      local oEquipmentItem, iBonusModifier, oSpell;
+
+      oEquipmentItem = Create(&Mace,#level=viLevel);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      Send(self,@SetDemonSponsorEquipment);
+      Send(self,@SetPhaseEquipment);
+
+      return;
+   }
+
+   PlayerHealedOurTarget(caster=$, oTarget=$, iHealAmount=0)
+   {
+      local oSpell, lTargets;
+
+      if piDemonSponsor = SSS_WITCHERY_IWODACH
+         AND Send(poOwner,@LineOfSight,#obj1=self,#obj2=oTarget)
+         AND Send(poOwner,@ReqSomethingAttack,#what=self,#victim=oTarget,#use_weapon=self)
+      {
+
+         % If no spell returned or cannot pay mana costs, spell fails.
+         if piMana < 15
+         {
+            return;
+         }
+
+         % Get the spell object.
+         oSpell = Send(SYS,@FindSpellByNum,#num=SID_HEX_BLACK_MANTLE);
+         
+         % Find the valid targets, defaulting to oTarget.
+         lTargets = [oTarget];
+         lTargets = Send(oSpell,@GetTargets,#who=self,#lTargets=lTargets);
+
+         % See if we can cast the spell here.
+         if Send(oSpell,@CanPayMonsterCosts,#who=self,#lTargets=lTargets,
+                  #iSpellPower=250)
+            AND Send(poOwner,@ReqSpellCast,#who=self,#oSpell=oSpell,
+                     #lItems=lTargets)
+         {
+            % Do any special cast animations; send spell for specific ones.
+            Send(self,@MonsterCastAnimation,#iSpellNum=SID_HEX_BLACK_MANTLE);
+
+            % Cast the spell.
+            Send(oSpell,@CastSpell,#who=self,#lTargets=lTargets,
+                  #iSpellPower=250);
+         }
+      }
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

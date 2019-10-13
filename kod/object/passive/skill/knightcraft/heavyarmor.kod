@@ -1,0 +1,85 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+HeavyArmor is KnightcraftSkill
+
+constants:
+
+   include blakston.khd
+   include protocol.khd   
+
+resources:
+
+   HeavyArmor_name_rsc = "heavy armor"
+   HeavyArmor_icon_rsc = igort.bgf
+   HeavyArmor_desc_rsc = \
+      "Knights undergo extensive training to allow them to move dexterously "
+      "while heavily armored. Stronger warriors will wear heavy armor more effectively."
+
+classvars:
+
+   vrName = HeavyArmor_name_rsc
+   vrIcon = HeavyArmor_icon_rsc
+   vrDesc = HeavyArmor_desc_rsc
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+
+   viSkill_num = SKID_HEAVY_ARMOR
+   viSchool = SKS_KNIGHTCRAFT
+   viSkill_Level = 3
+   viChance_to_Increase = 10
+   viMeditate_ratio = 90
+
+   viSkillExertion = 0
+   vbCheck_exertion = FALSE
+
+   vbAutomatic = TRUE
+   
+   viPrimaryStat = STAT_ID_MIGHT
+   viSecondaryStat = 0
+
+properties:
+
+messages:
+
+   GetRequisiteStat(who=$)
+   {
+      return Send(who,@GetMight);
+   }
+   
+   GetArmorSkillBonus(who=$, iDefensePenalty=0)
+   {
+      local iMight, iSkillAbility;
+
+      if who <> $
+         AND IsClass(who,&Player)
+         AND iDefensePenalty < 0
+      {
+         iMight = Send(who,@GetMight);
+         iSkillAbility = Send(who,@GetSkillAbility,#Skill_num=viSkill_num);
+         
+         % A 99% and 100 Might character can remove all armor penalty.
+         return (Abs(iDefensePenalty)*(((iSkillAbility+1)/2)+(iMight/2)))/100; 
+      }
+      return 0;
+   }
+
+   TookAHit(who=$)
+   {
+      if who <> $
+      {
+         Send(self,@ImproveAbility,#who=who);
+      }
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

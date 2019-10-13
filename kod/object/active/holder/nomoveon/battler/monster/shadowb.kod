@@ -55,6 +55,7 @@ classvars:
  
    viTreasure_type = TID_SHADOWBEAST
    viAttack_type = ATCK_WEAP_SLASH
+   viAttack_spell = ATCK_SPELL_UNHOLY
 
    viSpeed = SPEED_AVERAGE
    viDefault_behavior = AI_FIGHT_AGGRESSIVE
@@ -75,6 +76,15 @@ classvars:
    viDead_drawfx = DRAWFX_TRANSLUCENT_50
    viLight_Penalty = 15
 
+   viBaseSize = 400
+
+   % between 1 and 10000
+   viCriticalHitRate = 350
+   vbCanCauseBleed = TRUE
+   
+   % If the monster is shadow or darkness, set this to TRUE.
+   vbIsShadow = TRUE
+
 properties:
 
    piAnimation = ANIM_NONE
@@ -89,6 +99,9 @@ messages:
                         [-ATCK_SPELL_FIRE, -15 ],
                         [-ATCK_SPELL_SHOCK, -15 ],
                         [-ATCK_SPELL_HOLY, -25 ] ];
+
+      plCreatureTypes = Cons(CREATURE_TYPE_ANIMAL,plCreatureTypes);
+      plCreatureTypes = Cons(CREATURE_TYPE_MAGICAL,plCreatureTypes);
 
       propagate;
    }

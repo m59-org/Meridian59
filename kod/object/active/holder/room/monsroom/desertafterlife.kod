@@ -66,6 +66,8 @@ resources:
    cannot_conveyance_in_afterlife = \
       "If you knew how to send items to your vault from this place, you would "
       "be truly wise indeed."
+   cannot_fireball_here = \
+      "The afterlife's chill douses your fireball."
 
 classvars:
 
@@ -74,6 +76,8 @@ classvars:
    % No pens or PKing in afterlife. Everyone's already dead!
    viPermanent_flags = ROOM_SAFELOGOFF | ROOM_NO_PK
 
+   viCanSpawnChampions = FALSE
+
 properties:
 
    pbSnowGroundTexture = FALSE
@@ -81,54 +85,65 @@ properties:
 
 messages:
 
-   NewHoldObject(what = $)
+   CheckNewHoldObjectFullyEntered()
+   {
+      return TRUE;
+   }
+
+   NewHoldObjectFullyEntered(what = $)
    {
       local oGreyGhost;
-      
-%      if IsClass(what,&User)
-%      {
-%         oGreyGhost = Send(SYS,@FindSpellByNum,#num=SID_GREY_GHOST);
-%         
-%         if oGreyGhost <> $
-%            AND NOT Send(what,@IsEnchanted,#what=oGreyGhost)
-%         {
-%            Post(oGreyGhost,@CastSpell,#who=self,#lTargets=[what],
-%                  #report=TRUE);
-%         }
-%      }
-%      else
-%      {
-%         Send(what,@AddDrawingEffects,#value=DRAWFX_SECONDTRANS);
-%      }
+
+      if IsClass(what,&User)
+      {
+         oGreyGhost = Send(SYS,@FindSpellByNum,#num=SID_GREY_GHOST);
+         
+         Send(what,@ReserveSpell,#oSpell=oGreyGhost,#iPercentManaReserved=0,#iSpellPower=99);
+         %Post(what,@SendEnchantmentIcons);
+      }
+      else
+      {
+         Send(what,@AddDrawingEffects,#value=DRAWFX_SECONDTRANS);
+         Send(self,@SomethingChanged,#what=what);
+      }
 
       propagate;
    }
    
    LeaveHold(what = $)
    {
-      local oGreyGhost;
-
-%      if IsClass(what,&User)
-%      {
-%         oGreyGhost = Send(SYS,@FindSpellByNum,#num=SID_GREY_GHOST);
-%         
-%         if oGreyGhost <> $
-%            AND Send(what,@IsEnchanted,#what=oGreyGhost)
-%         {
-%            Post(oGreyGhost,@CastSpell,#who=self,#lTargets=[what],
-%                  #report=TRUE);
-%         }
-%      }
-%      else
-%      {
-%         Post(what,@RemoveDrawingEffects,#value=DRAWFX_SECONDTRANS);
-%         if Send(what,@GetOwner) <> $
-%         {
-%            Post(Send(what,@GetOwner),@SomethingChanged,#what=what);
-%         }
-%      }
+      Post(self,@CheckToRemoveGreyGhost,#what=what);
 
       propagate;
+   }
+
+   CheckToRemoveGreyGhost(what=$)
+   {
+      local oGreyGhost;
+
+      if Send(what,@GetOwner) = $
+         OR (NOT IsClass(Send(what,@GetOwner),&DesertAfterlife)
+            AND NOT IsClass(Send(what,@GetOwner),&PrismOfLife)
+            AND NOT IsClass(Send(what,@GetOwner),&PrismOfDeath))
+      {
+         if IsClass(what,&User)
+         {
+            oGreyGhost = Send(SYS,@FindSpellByNum,#num=SID_GREY_GHOST);
+         
+            Send(what,@UnReserveSpell,#oSpell=oGreyGhost);
+            %Post(what,@SendEnchantmentIcons);
+         }
+         else
+         {
+            Post(what,@RemoveDrawingEffects,#value=DRAWFX_SECONDTRANS);
+            if Send(what,@GetOwner) <> $
+            {
+               Post(Send(what,@GetOwner),@SomethingChanged,#what=what);
+            }
+         }
+      }
+      
+      return;
    }
 
    StartRain()
@@ -151,15 +166,143 @@ messages:
       return TRUE;
    }
    
-   OverrideDeathFunction(who=$,what=$)
+   OverrideDeathFunction(who=$,what=$,stroke_obj=$)
    {
-      local oAfterlifeRoom;
+      local oAfterlife, bDrop, oRoom, iRow, iCol, iFine_Row, iFine_Col, iAngle, iRoom,
+            oBody, lReagentBagContents, lInventoryContents, lItems, i, oSoldierShield;
 
+      Send(who,@ClearStance);
+
+      % Stop any rescue attempts that were going on.
+      Send(who,@CancelRescue);
       Send(who,@RemoveAllEnchantments,#report=FALSE);
-      Send(who,@SetHealth,#amount=Send(who,@GetMaxHealth));
+      
+      Send(who,@SetDeathTime,#iTime=GetTime());
 
-      oAfterlifeRoom = Send(SYS,@FindRoomByNum,#num=RID_DESERTALDUNES);
-      Send(oAfterlifeRoom,@Teleport,#what=who);
+      % Grab the location of the deceased.
+      % Might need to grab the old location if logged off.
+
+      if Send(who,@IsLoggedOn)
+      {
+         oRoom = Send(who,@GetOwner);
+         iRow = Send(who,@GetRow);
+         iCol = Send(who,@GetCol);
+         iFine_Row = Send(who,@GetFineRow);
+         iFine_Col = Send(who,@GetFineCol);
+         iAngle = Send(who,@GetAngle);
+         iRoom = Send(Send(who,@GetOwner),@GetRoomNum);
+      }
+      else
+      {
+         iRoom = Send(who,@GetSaveRoom);
+         oRoom = Send(SYS,@FindRoomByNum,#num=iRoom);
+         iRow = Send(who,@GetSaveRow);
+         iCol = Send(who,@GetSaveCol);
+         iFine_Row = Send(who,@GetSaveFineRow);
+         iFine_Col = Send(who,@GetSaveFineCol);
+         iAngle = Send(who,@GetSaveAngle);
+      }
+
+      % Record-keeping. Keep this before the token check,
+      % so we can give proper message.
+      Send(SYS,@UserKilled,#what=who,#killer=what,#oRoom=oRoom,#stroke_obj=stroke_obj);
+      Send(Send(SYS,@GetStatistics),@PlayerDiedCounter);
+
+      % Create the corpse.
+      if what <> $
+         AND IsClass(what,&User)
+      {
+         oBody = Send(who,@CreateCorpse,#oPlayerKiller=what);
+      }
+      else
+      {
+         oBody = Send(who,@CreateCorpse);
+      }
+      Send(who,@AddCorpse,#corpse=oBody);
+
+      Send(oRoom,@NewHold,#what=oBody,#new_row=iRow,#new_col=iCol,
+            #fine_row=iFine_Row,#fine_col=iFine_Col,#new_angle=iAngle);
+
+      bDrop = TRUE;
+      % Start losing stuff if applicable.
+      if bDrop
+      {
+         lReagentBagContents = Send(who,@GetReagentBagContents);
+         if lReagentBagContents <> $
+         {
+            lInventoryContents = [Send(who,@GetHolderActive),Send(who,@GetHolderPassive),lReagentBagContents];
+         }
+         else
+         {
+            lInventoryContents = [Send(who,@GetHolderActive),Send(who,@GetHolderPassive)];
+         }
+
+         foreach lItems in lInventoryContents
+         {
+            foreach i in lItems
+            {
+               % Let the item know we died, in case it does something special.
+               Send(i,@OwnerKilled);
+
+               if Send(i,@DropOnDeath)
+               {
+                  if Send(oRoom,@ReqNewHold,#what=i,#new_row=iRow,#new_col=iCol)
+                  {
+                     Send(oBody,@NewHold,#what=i);
+                  }
+               }
+            }
+         }
+
+         Post(who,@EvaluatePKStatus);
+
+         % Let SoldierShields know we died. It handles itself as appropriate.
+         oSoldierShield = Send(who,@FindUsing,#what=&SoldierShield);
+         if oSoldierShield <> $
+         {
+            Send(oSoldierShield,@OwnerDied,#what=what);
+         }
+      }
+
+      % Give out your dying scream.
+      if Send(who,@GetGender) = GENDER_FEMALE
+      {
+         i = Send(who,@GetFemaleDeathWav);
+      }
+      else
+      {
+         i = Send(who,@GetMaleDeathWav);
+      }
+
+      Send(oRoom,@SomethingWaveRoom,#what=oBody,#wave_rsc=i);
+      if Send(who,@IsLoggedOn)
+      {
+         Send(who,@WaveSendUser,#what=who,#wave_rsc=i);
+      }
+
+      Send(who,@SetHealth,#amount=1);
+
+      Send(who,@NewHealth);
+      Send(who,@NewMana);
+      Send(who,@NewVigor);
+      
+      Send(who,@SetDeathCost,#DeathCost=Send(Send(SYS,@GetDesertRoomMaintenance),@GetDeathCost),#bOverride=TRUE);
+      Send(who,@ApplyDeathPenalties);
+
+      % Refresh the client with what's really going on.
+      if Send(who,@IsLoggedOn)
+      {
+         Send(who,@ToCliStats,#group=1);
+         Send(who,@ToCliStats,#group=2);
+         Send(who,@ToCliStats,#group=3);
+         Send(who,@ToCliStats,#group=4);
+
+         % Wake up with red foggy hangover.
+         Send(who,@EffectSendUserDuration,#effect=EFFECT_PAIN,#duration=5000);
+      }
+      
+      oAfterlife = Send(SYS,@FindRoomByNum,#num=RID_DESERTALDUNES);
+      Send(oAfterlife,@Teleport,#what=who);
       return;
    }
 
@@ -167,6 +310,7 @@ messages:
    {
       if IsClass(oSpell,&Rescue)
          OR IsClass(oSpell,&Elusion)
+         OR IsClass(oSpell,&GuildHallRecall)
       {
          Send(who,@MsgSendUser,#message_rsc=cannot_teleport_in_afterlife);
          return FALSE;
@@ -176,6 +320,7 @@ messages:
          OR IsClass(oSpell,&PortalOfLife)
          OR IsClass(oSpell,&Animate)
          OR IsClass(oSpell,&Defile)
+         OR IsClass(oSpell,&Phase)
       {
          Send(who,@MsgSendUser,#message_rsc=cannot_alter_death_in_afterlife);
          return FALSE;
@@ -192,6 +337,12 @@ messages:
          OR IsClass(oSpell,&Dazzle)
       {
          Send(who,@MsgSendUser,#message_rsc=cannot_blind_dazzle_in_afterlife);
+         return FALSE;
+      }
+      
+      if IsClass(oSpell,&Fireball)
+      {
+         Send(who,@MsgSendUser,#message_rsc=cannot_fireball_here);
          return FALSE;
       }
       

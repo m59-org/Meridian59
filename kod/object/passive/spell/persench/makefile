@@ -19,7 +19,6 @@ BOFS = anon.bof \
        focus.bof \
        freeact.bof \
        gaze.bof \
-       gort.bof \
        haste.bof \
        invis.bof \
        karahol.bof \
@@ -29,6 +28,11 @@ BOFS = anon.bof \
        respois.bof \
        shadform.bof \
        strength.bof \
-       touchatk.bof
+       touchatk.bof \
+       greyghost.bof \
+       singularfocus.bof \
+       waterbreathing.bof \
+       soothingpresence.bof \
+       toweringpresence.bof
 
 !include $(KODDIR)\kod.mak

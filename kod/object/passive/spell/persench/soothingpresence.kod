@@ -1,0 +1,134 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+SoothingPresence is PersonalEnchantment
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   soothing_presence_on_rsc = \
+      "You begin taking care how you move and act."
+   soothing_presence_off_rsc  = \
+      "Your soothing presence fades."
+   soothing_presence_already_enchanted_rsc = \
+      "You already have a soothing presence."
+   soothing_presence_success_rsc = \
+      "%s%s begins taking care how they move and act."
+   soothing_presence_enchantment_rsc = \
+      "\n\nYour current %s enchantment prevents aggressiveness from creatures of level %i and below."
+
+   soothing_presence_name_rsc = "soothing presence"
+   soothing_presence_icon_rsc = isunlite.bgf
+   soothing_presence_desc_rsc = \
+      "Those learned in the arts of the natural world "
+      "know how to move and act in a way that avoids "
+      "enraging local wildlife. A soothing presence "
+      "prevents weak creatures from becoming aggressive. "
+      "Requires herbs to cast."
+
+   soothing_presence_spell_intro = \
+      "Bestiary Lv. 2: Weak creatures won't become aggressive on you."
+
+classvars:
+
+   viPersonal_ench = True
+   vrName = soothing_presence_name_rsc
+   vrIcon = soothing_presence_icon_rsc
+   vrDesc = soothing_presence_desc_rsc
+
+   vrAlreadyEnchanted = soothing_presence_already_enchanted_rsc
+   vrEnchantment_On = soothing_presence_On_rsc
+   vrEnchantment_Off = soothing_presence_Off_rsc
+   vrSuccess = soothing_presence_Success_rsc
+
+   vrSpell_intro = soothing_presence_spell_intro
+   viSpell_num = SID_SOOTHING_PRESENCE
+   viSchool = SS_BESTIARY
+   viSpell_level = 2
+   viMana = 5
+
+   viChance_To_Increase = 30
+   viMeditate_ratio = 20
+   viFlash = FLASH_GOOD_SELF
+   vbCanCastonOthers = FALSE
+
+   viOffensive = FALSE
+
+   viPercentManaReserved = 5
+   
+   viPrimaryStat = STAT_ID_INTELLECT
+   viSecondaryStat = 0
+
+properties:
+
+   viPurgeFactor = 15
+
+messages:
+
+   ResetReagents()
+   {
+      plReagents = $;
+      plReagents = Cons([&Herbs,2],plReagents);
+
+      return;
+   }
+
+
+   GetStateValue(who=$,iSpellPower=0,Target=$)
+   {
+      local iAggroChange;
+      iAggroChange = (iSpellPower+1);
+
+      % Let's not stack the presence spells.
+      Send(Target,@RemoveEnchantment,#what=Send(SYS,@FindSpellByNum,#num=SID_TOWERING_PRESENCE));
+      
+      Send(Target,@AddToMonsterChasers,#level=iAggroChange);
+
+
+      return iAggroChange;
+   }
+
+   GetDuration(iSpellPower=0)
+   {
+      local iDuration;
+      iDuration = 300 + (iSpellpower * 6);
+      iDuration = iDuration * 1000;
+
+      return iDuration;
+   }
+
+   EndEnchantment(who=$,state=0,report=TRUE)
+   {
+      % Handle transition from 3-element enchantment list elements to
+      % 4-element ones.
+      if state = 0
+         OR state = $
+      {
+         state = Send(who,@GetRawState,#what=self);
+      }
+
+      Send(who,@SubtractFromMonsterChasers,#level=state);
+
+      propagate;
+   }
+
+   EffectDesc(who=$)
+   {
+      AddPacket(4,soothing_presence_enchantment_rsc, 4,Send(self,@GetName),
+                4,Send(who,@GetEnchantedState,#what=self));
+
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

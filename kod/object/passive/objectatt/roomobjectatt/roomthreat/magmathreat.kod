@@ -1,0 +1,222 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+MagmaThreat is RoomThreat 
+
+% magma deals damage based on height. The higher the player is, the less
+% damage they're dealt.
+% This threat also rumbles the area.
+
+constants:
+
+   include blakston.khd
+
+   DAMAGE_MIN_TIME = 6000
+   DAMAGE_MAX_TIME = 12000
+   
+   LOW_DAMAGE = 3000
+   MEDIUM_DAMAGE = 6000
+   HIGH_DAMAGE = 9000
+
+   LOW_VIGOR_DRAIN = 50000
+   MEDIUM_VIGOR_DRAIN = 100000
+   HIGH_VIGOR_DRAIN = 200000
+
+resources:
+
+   magma_threat_name_rsc = "elemental magma"
+   magma_threat_icon_rsc = iwalfire.bgf
+   magma_threat_desc_rsc = \
+      "You are on the other side of the barrier, now closer to the elemental "
+      "plane of fire than you are to the mortal world. Survival here means avoiding "
+      "elemental magma at all costs."
+
+   magma_threat_begin_msg = \
+      "Terrible earthen fires begin to burn through the area."
+   magma_threat_end_msg = \
+      "The molten lava here cools somewhat."
+   magma_threat_damage_msg = \
+      "~rThe rising heat singes your skin and hurts your lungs."
+
+   magma_weak_damage_msg = \
+      "~rThe rising heat singes your skin and hurts your lungs."
+   magma_painful_damage_msg = \
+      "~rThe oppressive heat sears your limbs!"
+   magma_deadly_damage_msg = \
+      "~rVolcanic heat melts your skin!"
+   magma_catastrophic_damage_msg = \
+      "~B~rYou are cooking from the inside out!~B"
+
+   magma_death_msg = \
+      "~B~U~k[###]~n ~B~v%s was cooked alive by the heat of elemental magma."
+
+   magma_kills_illusion_summons = \
+      "~B~rThe heat melts away your illusionary minion!"
+   magma_burns_away_shadow_form = \
+      "~B~rThe heat burns away the shadows clinging to you!"
+
+   magma_sound = fire02.wav
+
+classvars:
+
+   vrName = magma_threat_name_rsc
+   vrIcon = magma_threat_icon_rsc
+   vrDesc = magma_threat_desc_rsc
+
+   viThreatBeginMsg = magma_threat_begin_msg
+   viThreatEndMsg = magma_threat_end_msg
+   viThreatDamageMsg = magma_threat_damage_msg
+
+   viDeathMsg = magma_death_msg
+
+properties:
+
+   % What type of damage do we do?
+   piDamageTypeAttack = 0
+   piDamageTypeSpell = ATCK_SPELL_FIRE
+   
+   % How often do we deal damage?
+   % This threat randomizes 6000 to 12000.
+   piDamageTime = 6000
+   ptDamageTimer = $
+
+   % What height room are we dealing with here?
+   % Send a height at creation if this isn't Abyssal Bore.
+   piRoomMaxHeight = 1050
+
+   % If this isn't Abyssal Bore, use iDamage sent at creation.
+   piLavaDamageMax = 900
+   
+   % If this isn't Abyssal Bore, use rumble duration sent at creation.
+   piRumbleDuration = 3000
+
+   % This threat drains vigor, but it usually changes based on height.
+   piVigorDrop = 50000
+
+messages:
+
+   Constructor(iHeight=4000,iDamage=50000,iRumbleDuration=3000)
+   {
+      piRoomMaxHeight = iHeight;
+      piLavaDamageMax = iDamage;
+      piRumbleDuration = iRumbleDuration;
+      propagate;
+   }
+
+   DealDamage(timer=$)
+   {
+      local i, iDamageResult;
+
+      ptDamageTimer = $;
+
+      % Shake the room.
+      Send(self,@DoLavaRumble);
+
+      foreach i in Send(poHostObject,@GetHolderActive)
+      {
+         if IsClass(First(i),&Player)
+         {
+            Send(self,@DealLavaHeatDamage,#who=First(i));
+            Send(self,@RemoveOffendingEnchantments,#who=First(i));
+         }
+         if IsClass(First(i),&Reflection)
+            or IsClass(First(i),&EvilTwin)
+         {
+            Send(Send(First(i),@GetMaster),@MsgSendUser,#message_rsc=magma_kills_illusion_summons);
+            Send(First(i),@Delete);
+         }
+      }
+
+      % Some threats change the time dynamically.
+      Send(self,@AlterDamageTime);
+      ptDamageTimer = CreateTimer(self,@DealDamage,piDamageTime);
+      return;
+   }
+
+   AlterDamageTime()
+   {
+      piDamageTime = Random(DAMAGE_MIN_TIME,DAMAGE_MAX_TIME);
+      return;
+   }
+
+   DoLavaRumble()
+   {
+     % Interferes with room's events
+     % Send(poHostObject,@Rumble,#duration=piRumbleDuration);
+
+      return;
+   }
+
+   RemoveOffendingEnchantments(who=$)
+   {
+      local oShadowForm;
+      
+      oShadowForm = Send(SYS,@FindSpellByNum,#num=SID_SHADOW_FORM);
+      if Send(who,@IsEnchanted,#what=oShadowForm)
+      {
+         Send(who,@MsgSendUser,#message_rsc=magma_burns_away_shadow_form);
+         Send(who,@RemoveEnchantment,#what=oShadowForm);
+      }
+      return;
+   }
+
+   DealLavaHeatDamage(who=$)
+   {
+      local iHeight, iInitialDamage, iDamage, iDamageResult, i,
+            iInitialVigorDrain, iVigorDrain;
+      
+      iHeight = Send(who,@GetHeightAtObject);
+
+      if iHeight > 993
+      {
+         iInitialDamage = 200;
+         iInitialVigorDrain = 0;
+         iDamage = iInitialDamage;
+         iVigorDrain = iInitialVigorDrain;
+      }
+      else
+      {
+         iInitialDamage = 9000;
+         iInitialVigorDrain = piVigorDrop;
+         iDamage = iInitialDamage;
+         iVigorDrain = iInitialVigorDrain;
+      }
+
+      if iDamage >= 500
+      {
+         Send(who,@MsgSendUser,#message_rsc=magma_catastrophic_damage_msg);
+      }
+      else
+      {
+         % Immune to the weaker damage
+         if Send(who,@GetPlayerRace) = RACE_HALF_DEMON
+         {
+            return;
+         }
+         Send(who,@MsgSendUser,#message_rsc=magma_weak_damage_msg);
+      }
+
+      Send(who,@AddExertion,#amount=iVigorDrain);
+      iDamageResult = Send(who,@AssessDamage,#what=self,
+                            #damage=iDamage,
+                            #aspell=ATCK_SPELL_FIRE,#report=FALSE,
+                            #precision=TRUE);
+      
+      if iDamageResult = $
+      {
+         Send(who,@Killed);
+         Send(self,@SendDeathMessage,#who=who);
+      }
+   
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

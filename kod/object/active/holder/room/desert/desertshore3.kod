@@ -33,6 +33,9 @@ classvars:
    viTeleport_row = 60
    viTeleport_col = 102
 
+   vbSpawnMonsters = TRUE
+   viMinSpawnCol = 49
+
 properties:
 
    piBaseLight = LIGHT_DARK
@@ -48,15 +51,13 @@ messages:
    SomethingMoved(what = $,new_row = $, new_col = $)
    {
       local oTargetRoom;
-
       if new_col > (Send(self,@GetRoomCols)-2)
       {
+         oTargetRoom = Send(Send(SYS,@GetDesertRoomMaintenance),@GetDesertDunes3);
          Send(SYS,@UtilGoNearSquare,#what=what,
-              #where=Send(SYS,@FindRoomByNum,#num=RID_DESERTDUNES),
-              #new_row=Send(what,@GetRow),
-              #new_col=3,
-              #fine_row=Send(what,@GetFineRow),
-              #fine_col=0,
+              #where=oTargetRoom,
+              #new_row=Send(oTargetRoom,@GetTeleportRow,#direction=ANGLE_EAST),
+              #new_col=Send(oTargetRoom,@GetTeleportCol,#direction=ANGLE_EAST),
               #new_angle=Send(what,@GetAngle));
          return;
       }
@@ -71,9 +72,9 @@ messages:
                Send(what,@MsgSendUser,#message_rsc=travel_into_sea3);
                Send(SYS,@UtilGoNearSquare,#what=what,
                     #where=oTargetRoom,
-                    #new_row=Send(what,@GetRow),
-                    #new_col=Send(oTargetRoom,@GetRoomCols)-3,
-                    #fine_row=Send(what,@GetFineRow),
+                    #new_row=Send(oTargetRoom,@GetRoomRows)/2,
+                    #new_col=Send(oTargetRoom,@GetRoomCols)-6,
+                    #fine_row=0,
                     #fine_col=0,
                     #new_angle=Send(what,@GetAngle));
             }
@@ -89,10 +90,10 @@ messages:
       {
          Send(SYS,@UtilGoNearSquare,#what=what,
               #where=Send(SYS,@FindRoomByNum,#num=RID_DESERTSHORE1),
-              #new_row=Send(self,@GetRoomRows)-3,
-              #new_col=Send(what,@GetCol),
+              #new_row=Send(self,@GetRoomRows)-6,
+              #new_col=60,
               #fine_row=0,
-              #fine_col=Send(what,@GetFineCol),
+              #fine_col=0,
               #new_angle=Send(what,@GetAngle));
          return;
       }
@@ -101,10 +102,10 @@ messages:
       {
          Send(SYS,@UtilGoNearSquare,#what=what,
               #where=Send(SYS,@FindRoomByNum,#num=RID_DESERTSHORE2),
-              #new_row=3,
-              #new_col=Send(what,@GetCol),
+              #new_row=6,
+              #new_col=60,
               #fine_row=0,
-              #fine_col=Send(what,@GetFineCol),
+              #fine_col=0,
               #new_angle=Send(what,@GetAngle));
          return;
       }

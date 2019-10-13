@@ -1,0 +1,134 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ToweringPresence is PersonalEnchantment
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   towering_presence_on_rsc = \
+      "You begin behaving aggressively."
+   towering_presence_off_rsc  = \
+      "Your towering presence fades."
+   towering_presence_already_enchanted_rsc = \
+      "You already have a towering presence."
+   towering_presence_success_rsc = \
+      "%s%s begins behaving aggressively."
+   towering_presence_enchantment_rsc = \
+      "\n\nYour current %s enchantment causes aggressiveness from %i combined levels of creatures."
+
+   towering_presence_name_rsc = "towering presence"
+   towering_presence_icon_rsc = isunlite.bgf
+   towering_presence_desc_rsc = \
+      "Those learned in the arts of the natural world "
+      "know how to move and act in a way that particularly "
+      "enrages local wildlife. A towering presence "
+      "increases the amount of aggressiveness the caster will face in the world. "
+      "Requires an entroot berry and an emerald to cast."
+
+   towering_presence_spell_intro = \
+      "Bestiary Lv. 2: Face more aggression in the wild."
+
+classvars:
+
+   viPersonal_ench = True
+   vrName = towering_presence_name_rsc
+   vrIcon = towering_presence_icon_rsc
+   vrDesc = towering_presence_desc_rsc
+
+   vrAlreadyEnchanted = towering_presence_already_enchanted_rsc
+   vrEnchantment_On = towering_presence_On_rsc
+   vrEnchantment_Off = towering_presence_Off_rsc
+   vrSuccess = towering_presence_Success_rsc
+
+   vrSpell_intro = towering_presence_spell_intro
+   viSpell_num = SID_TOWERING_PRESENCE
+   viSchool = SS_BESTIARY
+   viSpell_level = 2
+   viMana = 10
+
+   viChance_To_Increase = 20
+   viMeditate_ratio = 20
+   viFlash = FLASH_GOOD_SELF
+   vbCanCastonOthers = FALSE
+
+   viOffensive = FALSE
+
+   viPercentManaReserved = 5
+   
+   viPrimaryStat = STAT_ID_INTELLECT
+   viSecondaryStat = 0
+
+properties:
+
+   viPurgeFactor = 15
+
+messages:
+
+   ResetReagents()
+   {
+      plReagents = $;
+      plReagents = Cons([&EntrootBerry,1],plReagents);
+      plReagents = Cons([&Emerald,1],plReagents);
+
+      return;
+   }
+
+
+   GetStateValue(who=$,iSpellPower=0,Target=$)
+   {
+      local iAggroChange;
+      iAggroChange = (iSpellPower+1)*5*-1;
+
+      % Let's not stack the presence spells.
+      Send(Target,@RemoveEnchantment,#what=Send(SYS,@FindSpellByNum,#num=SID_SOOTHING_PRESENCE));
+
+      Send(Target,@AddToMonsterChasers,#level=iAggroChange);
+
+      return iAggroChange;
+   }
+
+   GetDuration(iSpellPower=0)
+   {
+      local iDuration;
+      iDuration = 300 + (iSpellpower * 6);
+      iDuration = iDuration * 1000;
+
+      return iDuration;
+   }
+
+   EndEnchantment(who=$,state=0,report=TRUE)
+   {
+      % Handle transition from 3-element enchantment list elements to
+      % 4-element ones.
+      if state = 0
+         OR state = $
+      {
+         state = Send(who,@GetRawState,#what=self);
+      }
+
+      Send(who,@SubtractFromMonsterChasers,#level=state);
+
+      propagate;
+   }
+
+   EffectDesc(who=$)
+   {
+      AddPacket(4,towering_presence_enchantment_rsc, 4,Send(self,@GetName),
+                4,Send(who,@GetEnchantedState,#what=self));
+
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

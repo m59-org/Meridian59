@@ -1,0 +1,104 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+CasterMace is Weapon
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   caster_mace_name_rsc = "ceremonial mace"
+   caster_mace_icon_rsc = mace.bgf
+   caster_mace_desc_rsc = \
+      "The administrators of Cor Noth University originally used "
+      "maces like these to maintain order in class rooms, "
+      "but as the ceremonial weapons grew more ornate, "
+      "so too did their crafting. Inlaid silver allows for the better "
+      "channeling of magical energies. Unfortunately, due to "
+      "centuries of student complaints, the ability to wallop the unruly "
+      "has diminished in equal measure."
+
+   caster_mace_window_overlay_rsc = povmace.bgf
+   caster_mace_player_overlay = maceov.bgf
+
+classvars:
+   vrName = caster_mace_name_rsc
+   vrIcon = caster_mace_icon_rsc
+   vrDesc = caster_mace_desc_rsc
+
+   viWeaponType = WEAPON_TYPE_BLUDGEON
+   viWeaponQuality = WEAPON_QUALITY_HIGH
+
+   viProficiency_Needed = SKID_PROFICIENCY_MACE
+
+   viValue_average = 3000
+   viWeight = 50
+   viBulk = 50
+
+   vrWeapon_window_overlay = caster_mace_window_overlay_rsc
+   vrWeapon_overlay = caster_mace_player_overlay
+
+   viGround_group = 1
+   viInventory_group = 3
+   viBroken_group = 2
+   
+   % Chance to apply knockbacks, stuns, and bleeds
+   viCriticalHitRate = 500
+   vbCanKnockback = TRUE
+
+properties:
+
+   piAttack_type = ATCK_WEAP_NONMAGIC+ATCK_WEAP_SILVER+ATCK_WEAP_BLUDGEON
+
+messages:
+
+   CanCleave()
+   {
+      return TRUE;
+   }
+
+   GetCleaveModifier()
+   {
+      return 40;
+   }
+
+   GetPrefixes()
+   {
+      return [[&ManaMod,300],
+              [&VigorMod,200],
+              [&ThrustEmpowermentMod,100],
+              [&SlashEmpowermentMod,100],
+              [&BludgeonEmpowermentMod,100],
+              [&PierceEmpowermentMod,100],
+              [&CharmEmpowermentMod,50],
+              [&FireEmpowermentMod,100],
+              [&ColdEmpowermentMod,100],
+              [&AcidEmpowermentMod,100],
+              [&ShockEmpowermentMod,100],
+              [&MagicEmpowermentMod,1]];
+   }
+
+   GetSuffixes()
+   {
+      return [[&FireResistanceMod,100],
+              [&ColdResistanceMod,100],
+              [&ShockResistanceMod,100],
+              [&AcidResistanceMod,100],
+              [&PierceResistanceMod,25],
+              [&SlashResistanceMod,25],
+              [&BludgeonResistanceMod,25],
+              [&CasterIntMod,50],
+              [&CasterMystMod,50]];
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

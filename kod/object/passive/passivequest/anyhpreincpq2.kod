@@ -1,0 +1,68 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+anyhpreincpq2 is PassiveQuest
+
+% The second quest for the reincarnation is to:
+%   Give Alzahakar a major shard
+%
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   anyhpreincpq2_icon_rsc = onecon.bgf
+   anyhpreincpq2_name_rsc = "Bring Alzahakar a Major Shard"
+   anyhpreincpq2_desc_rsc = \
+      "Alzahakar has requested you bring him a major shard for research purposes."
+   
+   anyhpreincpq2_new_quest_msg = \
+      "Alzahakar has requested you bring him a major shard for research purposes."
+
+   anyhpreincpq2_complete_msg = \
+      "~kAlzahakar says, \"Ah, yes, I see now. Indeed, this hints at the very nature of existence itself. "
+      "We are all but facets of ourselves. I have heard tell of High Sorcerers in a distant land who "
+      "seek immortality, and I am quite certain their route to longevity lies in the heart of these shards. "
+      "I believe we can harness our innate multitude of facets in a very curious manner. By giving up our current life, "
+      "we could live again - stronger. In the pursuit of studying this 'reincarnation', I have assembled "
+      "everything we know in the basement of the Hall of Genealogy in Cor Noth. You may go and study reincarnation if you wish.\""
+
+classvars:
+
+   vrIcon = anyhpreincpq2_icon_rsc
+   vrName = anyhpreincpq2_name_rsc
+   vrDesc = anyhpreincpq2_desc_rsc
+   
+   vrNewThisQuestMsg = anyhpreincpq2_new_quest_msg
+   vrCompletedMsg = anyhpreincpq2_complete_msg
+   
+   vbReinform = FALSE
+   
+   vbGiveNPCItem = TRUE
+   vbGiveItemClass = &ShardImbueMajor
+   vbGiveToTheNPCofClass = &OneCouncilor
+
+   viChain = ANY_HP_REINCARNATION_CHAIN
+   cNextQuestClass = &anyhpreincpq3
+
+properties:
+
+messages:
+
+   Completed()
+   {
+      Send(poQuester,@SetInformReincarnationProgress,#value=TRUE);
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

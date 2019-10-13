@@ -1,0 +1,81 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+QuestMarker is ActiveObject
+
+% This is an inert active object that players can't see.
+%
+% It's entirely for quest indications on the minimap.
+% Only specific people can see the mark on the map.
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   quest_marker_name_rsc = "quest marker"
+   quest_marker_icon_rsc = invistotem.bgf
+   quest_marker_desc_rsc = \
+      "This is the object of a quest!"
+
+classvars:
+
+   vrName = quest_marker_name_rsc
+   vrIcon = quest_marker_icon_rsc
+   vrDesc = quest_marker_desc_rsc
+   
+properties:
+
+   viObject_flags = OF_NOEXAMINE
+
+   plQuesters = $
+
+messages:
+
+   Constructor(lQuesters=$)
+   {
+      plQuesters = lQuesters;
+      propagate;
+   }
+   
+   Delete()
+   {
+      plQuesters = $;
+      propagate;
+   }
+
+   DestroyDisposable()
+   {
+      return FALSE;
+   }
+
+   CanSweep()
+   {
+      return FALSE;
+   }
+
+   SendAnimation()
+   {
+      % Send animation info to user.  Default is no animation, display with
+      %  group 1.
+      AddPacket(1, ANIMATE_NONE, 2, 10);
+
+      return;
+   }
+
+   GetMinimapDotFlags()
+   {
+      % Special item, add minimap dot.
+      return MM_RARE_ITEM;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

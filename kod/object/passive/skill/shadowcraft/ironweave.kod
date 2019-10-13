@@ -1,0 +1,86 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+IronWeave is ShadowcraftSkill
+
+constants:
+
+   include blakston.khd
+   include protocol.khd   
+
+resources:
+
+   IronCloth_name_rsc = "iron weave technique"
+   IronCloth_icon_rsc = igort.bgf
+   IronCloth_desc_rsc = \
+      "Initiate monks first practice extending their willpower "
+      "into the fabric of their vestments. By enlarging natural "
+      "vitality beyond their skin into the cloth just beyond, "
+      "monks can negate the weapon and magic resistance penalties "
+      "robes usually carry."
+
+classvars:
+
+   vrName = IronCloth_name_rsc
+   vrIcon = IronCloth_icon_rsc
+   vrDesc = IronCloth_desc_rsc
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+
+   viSkill_num = SKID_IRON_WEAVE
+   viSchool = SKS_SHADOWCRAFT
+   viSkill_Level = 2
+   viChance_to_Increase = 10
+   viMeditate_ratio = 20
+
+   viSkillExertion = 0
+   vbCheck_exertion = FALSE
+
+   vbAutomatic = TRUE
+   
+   viPrimaryStat = STAT_ID_STAMINA
+   viSecondaryStat = 0
+
+properties:
+
+messages:
+
+   GetRequisiteStat(who=$)
+   {
+      return Send(who,@GetStamina);
+   }
+   
+   GetRobeResists(who=$,iResist=0)
+   {
+      local iStat, iSkillAbility;
+
+      if who <> $
+         AND IsClass(who,&Player)
+      {
+         iStat = Send(self,@GetRequisiteStat,#who=who);
+         iSkillAbility = Send(who,@GetSkillAbility,#Skill_num=viSkill_num);
+         
+         return iResist + (iSkillAbility+1)/5; 
+      }
+      return 0;
+   }
+
+   TookAHit(who=$)
+   {
+      if who <> $
+      {
+         Send(self,@ImproveAbility,#who=who);
+      }
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

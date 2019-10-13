@@ -93,7 +93,7 @@ messages:
          }
       }
 
-      piHits = piHits - 1;
+      %piHits = piHits - 1;
       if piHits <= 0
       {
          Send(poOwner,@MsgSendUser,#message_rsc=berserkerring_break_rsc); 
@@ -139,7 +139,7 @@ messages:
       {
          if Nth(i,1) = &OffenseMod
          {
-            sum = sum + Nth(i,2);
+            sum = sum + Send(Send(SYS,@GetMagicMod,#class=Nth(i,1)),@GetNumber,#iPower=Nth(i,2));
          }
       }
 
@@ -170,12 +170,15 @@ messages:
    GetPrefixes()
    {
       return [[&OffenseMod,100],
+              [&PunchEmpowermentMod,100],
               [&WeaponDamageMod,100]];
    }
    
    GetSuffixes()
    {
-      return $;
+      return [[&WeaponMightMod,100],
+              [&WeaponAimMod,100],
+              [&WeaponAgilityMod,100]];
    }
 
 end

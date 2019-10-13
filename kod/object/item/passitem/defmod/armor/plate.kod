@@ -23,8 +23,11 @@ resources:
    platearmor_desc_rsc = \
       "Formed from solid sheets of hardened steel, this armor "
       "offers protection from all but the most ferocious "
-      "assault.  It bears the mark of Fehr'loi Qan, a "
-      "sign of fine workmanship and first rate materials."
+      "assault. It bears the mark of Fehr'loi Qan, a "
+      "sign of fine workmanship and first rate materials. "
+      "Following Fehr'loi's style, the armor is heavily oriented "
+      "toward resisting weapon attacks, but the materials used "
+      "make it weak to magic."
 
    platearmor_male_icon_rsc = bte.bgf
    platearmor_female_icon_rsc = btf.bgf
@@ -46,7 +49,7 @@ classvars:
    vrIcon_male = platearmor_male_icon_rsc
    vrIcon_female = platearmor_female_icon_rsc
 
-   viDefense_base = -200
+   viDefense_base = -225
    viDamage_base = 6
 
 properties:
@@ -60,11 +63,18 @@ messages:
 
    GetResistanceModifiers()
    {
-      return [ [ATCK_WEAP_THRUST,15],
-               [ATCK_WEAP_SLASH,10],
-               [-ATCK_SPELL_FIRE,-10],
-               [-ATCK_SPELL_SHOCK,-15]
-             ];
+      if Send(SETTINGS_OBJECT,@GetDirectArmorEnabled)
+      {
+         return [ [ATCK_WEAP_THRUST,15],
+                  [ATCK_WEAP_SLASH,10],
+                  [-ATCK_SPELL_FIRE,-10],
+                  [-ATCK_SPELL_SHOCK,-15]
+                ];
+      }
+      
+      return [ [ATCK_WEAP_ALL,40],
+               [-ATCK_SPELL_ALL,-5]
+               ];
    }
 
    GetHeatDamage()
@@ -81,7 +91,13 @@ messages:
               [&AcidResistanceMod,25],
               [&PierceResistanceMod,100],
               [&SlashResistanceMod,100],
-              [&BludgeonResistanceMod,100]];
+              [&BludgeonResistanceMod,100],
+              [&ThrustResistanceMod,100]];
+   }
+
+   GetKnockbackResistance()
+   {
+      return 50;
    }
 
 end

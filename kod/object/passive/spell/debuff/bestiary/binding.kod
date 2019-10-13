@@ -1,0 +1,375 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+CreatureBinding is BestiarySpell
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   CreatureBinding_sound = smarkdis.wav
+
+   bind_monster_rsc = \
+      bindcircle.bgf
+
+   bind_circle_projectile_rsc = \
+      bindcircle.bgf
+
+   bind_circle_name_rsc = "bind creature"
+   bind_circle_icon_rsc = ihold.bgf
+   bind_circle_desc_rsc = \
+      "Binds a charmed creature so that it will serve you for a much longer period "
+      "of time. "
+      "Requires fifteen purple mushrooms and an herb to cast."
+
+   bind_circle_already_enchanted = "%s%s is already bound to service."
+   bind_circle_caster = "%s%s is now bound to service."
+   bind_circle_on = "You have been bound to service."
+   bind_circle_off = "The binding lifts."
+   
+   not_your_minion_no_binding = \
+      "That is not your minion, and cannot be bound."
+
+classvars:
+
+   vrName = bind_circle_name_rsc
+   vrIcon = bind_circle_icon_rsc
+   vrDesc = bind_circle_desc_rsc
+
+   vrAlreadyEnchanted = bind_circle_already_enchanted
+   vrEnchantment_On = bind_circle_on
+   vrEnchantment_Off = bind_circle_off
+   vrSuccess = bind_circle_caster
+
+   viSchool = SS_BESTIARY
+   viSpell_num = SID_CREATURE_BINDING
+   viSpell_level = 3
+
+   viFlash = FLASH_BAD
+
+   viSpellExertion = 11
+   viMana = 7
+
+   viChance_To_Increase = 15
+   viMeditate_ratio = 30
+
+   vrSucceed_wav = CreatureBinding_sound
+   
+   viPrimaryStat = STAT_ID_INTELLECT
+   viSecondaryStat = 0
+
+   vrBindCircle = bind_monster_rsc
+   viLayer = 9
+
+   vrProjectile_Icon = bind_circle_projectile_rsc
+
+   viHarmful = FALSE
+   viOutlaw = FALSE
+   vbIsRangedAttack = FALSE
+
+   viProjectileFlag = PROJ_FLAG_LIGHT_SOURCE
+
+   % Projectile lighting information.
+   viProjectileLightFlags = LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC
+   % Medium light range, out of 255.
+   viProjectileLightIntensity = 100
+   % Default color is lightning.
+   viProjectileLightColor = LIGHT_RED
+   
+   viProjectileSpeed = 5
+
+properties:
+
+   piBaseDuration = 3000
+   piSpellPowerModifier = 1000 % Recommended value 30.
+   piDeviation = 50 % Recommended value 10%.
+   viCast_time = 0 % Recommended value 600 (milliseconds).
+
+messages:
+
+   ResetReagents()
+   {
+      plReagents = $;
+      plReagents = Cons([&PurpleMushroom,15],plReagents);
+      plReagents = Cons([&Herbs,1],plReagents);
+
+      return;
+   }
+
+   CanPayCosts(who = $, lTargets = $)
+   {
+      if lTargets <> $
+         AND First(lTargets) <> $
+         AND IsClass(First(lTargets),&Battler)
+         AND Send(First(lTargets),@GetMaster) <> who
+      {
+         Send(who,@MsgSendUser,#message_rsc=not_your_minion_no_binding);
+         return FALSE;
+      }
+
+      propagate;
+   }
+
+   CastSpell(who=$,wielder=$,lTargets=$,iSpellpower=0,report=TRUE,oDeflectImpact=$,bDeflectCast=FALSE)
+   {
+      local oTarget, oRoom, i, iDeflectSpeed;
+
+      oTarget = First(lTargets);
+      % Is this a proc from a weapon?
+      if wielder = $
+      {
+         oRoom = Send(who,@GetOwner);
+         if oDeflectImpact <> $
+            AND oRoom <> $
+         {
+            % Don't send to oDeflectImpact, it's not a NoMoveOn!
+            iDeflectSpeed = Send(who,@SquaredFineDistanceTo,#what=oDeflectImpact);
+               
+            if iDeflectSpeed = 0
+            {
+               iDeflectSpeed = $;
+            }
+
+            if iDeflectSpeed <> $
+            {
+               iDeflectSpeed = (Sqrt(iDeflectSpeed) / 64) * 2;
+            }
+            Send(oRoom,@SomethingShot,#who=who,#target=oDeflectImpact,#projectile=self,#flags=viProjectileFlag,#iDeflectSpeed=iDeflectSpeed);
+         }
+         else
+         {
+            if oRoom <> $
+            {
+               Send(oRoom,@SomethingShot,#who=who,#target=oTarget,#projectile=self,#flags=viProjectileFlag);
+            }
+         }
+      }
+      else
+      {
+         oRoom = Send(wielder,@GetOwner);
+         if oDeflectImpact <> $
+            AND oRoom <> $
+         {
+            % Don't send to oDeflectImpact, it's not a NoMoveOn!
+            iDeflectSpeed = Send(wielder,@SquaredFineDistanceTo,#what=oDeflectImpact);
+               
+            if iDeflectSpeed = 0
+            {
+               iDeflectSpeed = $;
+            }
+
+            if iDeflectSpeed <> $
+            {
+               iDeflectSpeed = (Sqrt(iDeflectSpeed) / 64) * 2;
+            }
+            Send(oRoom,@SomethingShot,#who=wielder,#target=oDeflectImpact,#projectile=self,#flags=viProjectileFlag,#iDeflectSpeed=iDeflectSpeed);
+         }
+         else
+         {
+            if oRoom <> $
+            {
+               Send(oRoom,@SomethingShot,#who=wielder,#target=oTarget,#projectile=self,#flags=viProjectileFlag);
+            }
+         }
+      }
+
+      % Spell effects.
+      Send(self,@DoSpell,#what=who,#oTarget=oTarget,#report=report,
+            #iDuration=Send(self,@GetDuration,#iSpellPower=iSpellPower),#iSpellPower=iSpellPower);
+
+      propagate;
+   }
+
+   DoSpell(what=$,oTarget=$,iDuration=$,report=TRUE,iSpellPower=0)
+   "Holds target for duration seconds."
+   {
+      local i, oSpell, iIntellect;
+
+      if oTarget = $
+         OR NOT IsClass(oTarget,&Monster)
+      {
+         return FALSE;
+      }
+
+      % Check for enchantment already applied
+      if Send(oTarget,@IsEnchanted,#what=self)
+      {
+         return FALSE;
+      }
+
+      % Check for spell called with $ iDuration, apply default time if so.
+      if iDuration = $
+      {
+         iDuration = 5000;
+      }
+      
+      iIntellect = 0;
+      if what <> $
+         AND IsClass(what,&Player)
+      {
+         iIntellect = Send(what,@GetIntellect);
+      }
+
+      Send(oTarget,@AddLoyalty,#amount=(iSpellPower+1+iIntellect)*(LOYALTY_PER_BINDING_LEVEL/20),
+                               #cap_at=MAX_CREATURE_BINDING_LOYALTY);
+
+      Send(oTarget,@StartEnchantment,#what=self,#time=iDuration,#report=report,
+            #state=report);
+
+      if report
+      {
+         Send(what,@MsgSendUser,#message_rsc=vrSuccess,
+               #parm1=Send(oTarget,@GetCapDef),#parm2=Send(oTarget,@GetName));
+      }
+
+      propagate;
+   }
+
+   GetDuration(iSpellPower=0)
+   {
+      local iDuration;
+
+      iDuration = piBaseDuration + iSpellPower * piSpellPowerModifier;
+      iDuration = Random(iDuration * (100 - piDeviation) / 100,iDuration);
+
+      return iDuration;
+   }
+
+   EndEnchantment(who=$,report=TRUE,state=$)
+   {
+% Not doing this yet
+%      if who <> $
+%         AND IsClass(who,&Monster)
+%      {
+%         Send(who,@RemoveOverlay,#what=self);
+%      }
+
+      return;
+   }
+
+   GetLayer()
+   {
+      return viLayer;
+   }
+   
+   GetOverlayHotspot()
+   {
+      return HS_HEAD;
+   }
+
+   SendOverlayAnimation()
+   {
+      AddPacket(1,ANIMATE_CYCLE, 4,80, 2,1, 2,5);
+    %  AddPacket(1,ANIMATE_NONE,2,1); % group 2 is the player-overlay group
+      
+      return;
+   }
+
+   SendInventoryOverlays()
+   {
+      AddPacket(1, 0);
+      
+      return;
+   }
+
+   SendOverlayInformation()
+   {
+      AddPacket(4,Send(self,@GetOverlay));
+      AddPacket(1,Send(self,@GetOverlayHotspot));
+      Send(self,@SendOverlayAnimation);
+      
+      return;
+   }
+
+   GetNumberOverlays()
+   {
+      % Most overlay items only offer one overlay.
+      %  Some items like weapons and bows may offer two.
+      return 1;
+   }
+
+   GetOverlay(animation = $)
+   {
+      return bind_monster_rsc;
+   }
+
+   % Return the icon used to display a spell shooting through the air.
+   GetProjectileIcon()
+   {
+      return vrProjectile_Icon;
+   }
+
+   % Return the speed at which a particular spell should appear to shoot through the air.
+   GetProjectileSpeed(who=$, target=$)
+   {
+      local iDist;
+
+      if who <> $
+         AND target <> $
+      {
+         % only NoMoveOns can calculate distances
+         if IsClass(who,&NoMoveOn)
+         {
+            iDist = Send(who,@SquaredFineDistanceTo,#what=target);
+         }
+         else if IsClass(target,&NoMoveOn)
+         {
+            iDist = Send(target,@SquaredFineDistanceTo,#what=who);
+         }
+         else
+         {
+            % Neither is a NoMoveOn? Give up!
+            return viProjectileSpeed;
+         }
+
+         if iDist <> $
+            AND iDist <> 0
+         {
+            iDist = Sqrt(iDist);
+
+            % Check sqrt value for 0
+            if iDist = 0
+            {
+               return viProjectileSpeed;
+            }
+            else
+            {
+               return Bound((iDist / 64) * 2,viProjectileSpeed,$);
+            }
+         }
+      }
+      return viProjectileSpeed;
+   }
+
+   SendProjectileAnimation()
+   {
+      AddPacket(1, ANIMATE_CYCLE, 4, 80, 2, 1, 2, 19);   % 80ms between animations
+      return;
+   }
+
+   GetProjectileLightFlags()
+   {
+      return viProjectileLightFlags;
+   }
+
+   GetProjectileLightIntensity()
+   {
+      return viProjectileLightIntensity;
+   }
+
+   GetProjectileLightColor()
+   {
+      return viProjectileLightColor;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

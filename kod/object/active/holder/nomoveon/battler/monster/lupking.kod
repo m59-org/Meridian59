@@ -68,6 +68,9 @@ resources:
    angered_by_wall_element_msg = \
       "Enraged by %s%s, the lupogg king stomps down hard!"
 
+   lupogg_king_charges = \
+      "~BThe enraged lupogg king charges at you!"
+
 classvars:
    vrName = lupoggking_name_rsc
    vrIcon = lupoggking_icon_rsc
@@ -85,7 +88,7 @@ classvars:
    viAttackRange = 256
    viKarma = 100
    viDefault_behavior = \
-      AI_FIGHT_AGGRESSIVE |  AI_FIGHT_WIZARD_KILLER | AI_FIGHT_HYPERAGGRESSIVE
+      AI_FIGHT_AGGRESSIVE |  AI_FIGHT_WIZARD_KILLER | AI_FIGHT_HYPERAGGRESSIVE | AI_FIGHT_SWITCHALOT
    viAttributes = MOB_SPASM
    viGender = GENDER_MALE
    viCashmin = 20000
@@ -97,6 +100,19 @@ classvars:
 
    viHoldDurationMax = 25000  % Milliseconds.
    viHoldDurationMin = 15000  % Milliseconds.
+   
+   viBonusBaseTP = 3000
+
+   viBaseSize = 3000
+
+   % between 1 and 10000
+   viCriticalHitRate = 500
+   vbCanCauseBleed = TRUE
+
+   % Big monster
+   viEnemyRangeBonus = 64 * 2
+
+   vbBonusXPGain = 3000
 
 properties:
 
@@ -107,13 +123,18 @@ properties:
    piHoldCounterChance = 5 % Chance he'll counter a spell or arrow with a hold
    piHoldDurationMax = 25000  % Milliseconds.
    piHoldDurationMin = 15000  % Milliseconds.
+   piMinDamage = 30
+   piMaxDamage = 120
+
+   piMax_mana = 40
+   piOtherSpellChance = 5
 
 messages:
 
    Constructed()
    {
       % Give lupogg king more HP.
-      piMax_Hit_Points = piMax_Hit_Points * 3;
+      piMax_Hit_Points = piMax_Hit_Points * 30;
       % piHit_Points uses high-precision numbers, so multiply by 100.
       piHit_Points = piMax_Hit_Points * 100;
 
@@ -123,7 +144,7 @@ messages:
       piHoldDurationMin = viHoldDurationMin;
       piHoldDurationMax = viHoldDurationMax;
 
-      plResistances = [ [ATCK_WEAP_ALL, 40 ],
+      plResistances = [ [ATCK_WEAP_ALL, 70 ],
                         [ATCK_WEAP_PIERCE, 90 ],
                         [-ATCK_SPELL_COLD, 90 ],
                         [-ATCK_SPELL_SHOCK, 90],
@@ -132,6 +153,11 @@ messages:
                         [-ATCK_SPELL_QUAKE, 100 ],
                         [ATCK_WEAP_NERUDITE, -40 ]
                       ];
+
+      plCreatureTypes = Cons(CREATURE_TYPE_ANIMAL,plCreatureTypes);
+      plCreatureTypes = Cons(CREATURE_TYPE_MUNDANE,plCreatureTypes);
+
+      plOtherSpellBook = [ [SKID_MONSTER_ROAR, 5, 100, Random(90,99)] ];
 
       propagate;
    }
@@ -207,6 +233,11 @@ messages:
       piAnimation = ANIM_NONE;
 
       return;
+   }
+
+   GetProjectileLightColor()
+   {
+      return 0;
    }
 
    GetProjectileIcon()
@@ -599,6 +630,117 @@ messages:
       Post(oSpell,@CastSpell,#who=poOwner,#iSpellPower=40,
             #lTargets=lFinalTargets);
 
+      return;
+   }
+
+   HitPointThresholdDamage()
+   {
+      local iThreshold;
+
+      iThreshold = piHit_points / (piMax_hit_points * 20);
+
+      if iThreshold >= 4
+      {
+         Post(self,@AttemptChargeAttack);
+         propagate;
+      }
+      else if iThreshold = 3
+      {
+         Post(self,@AttemptChargeAttack);
+         propagate;
+      }
+      else if iThreshold = 2
+      {
+         Post(self,@AttemptChargeAttack);
+         propagate;
+      }
+      else if iThreshold = 1
+      {
+         propagate;
+      }
+      else
+      {
+         Post(self,@AttemptChargeAttack);
+         propagate;
+      }
+
+      propagate;
+   }
+
+   AttemptChargeAttack()
+   {
+      local oRoom, lSteps, iDist, i, oElement, n, lBattlers, iIncDuration, lAlreadyAffected;
+      
+      oRoom = Send(self,@GetOwner);
+
+      if oRoom <> $
+         AND IsClass(oRoom,&Room)
+         AND Send(oRoom,@CheckRoomFlag,#flag=ROOM_NO_COMBAT)
+      {
+         return FALSE;
+      }
+
+      oRoom = Send(self,@GetOwner);
+      if oRoom = $
+      {
+         return FALSE;
+      }
+      
+      % Can go up to 20 rows/cols (expressed in *64 fine)
+      iDist = ((99+1)*64)/5;
+
+      lSteps = Send(oRoom,@IntraTeleport,#what=self,#distance=iDist,
+                     #type=INTRA_TELEPORT_FORWARD);
+
+      lAlreadyAffected = $;
+      if lSteps <> $
+      {
+         lBattlers = Send(Send(self,@GetOwner),@GetHolderActive);
+         iIncDuration = 100 * Length(lSteps);
+         foreach i in lSteps
+         {
+            oElement = Create(&DustCloud,#Caster=self,#duration=iIncDuration,#bMS=TRUE);
+            Send(oRoom,@NewHold,#what=oElement,
+                 #new_row=Nth(i,1),#new_col=Nth(i,2),
+                 #fine_row=Nth(i,3),#fine_col=Nth(i,4));
+            iIncDuration = Bound(iIncDuration - 100, 100, $);
+
+            foreach n in lBattlers
+            {
+               if First(n) <> self
+                  AND IsClass(First(n),&Battler)
+                  AND Send(First(n),@SquaredFineDistanceToLocation,#row=Nth(i,1),#col=Nth(i,2),#fine_row=Nth(i,3),#fine_col=Nth(i,4)) <= 64 * 3 * 64 * 3
+                  AND (lAlreadyAffected = $
+                     OR FindListElem(lAlreadyAffected,First(n)) = 0)
+               {
+                  Send(First(n),@ApplyKnockback,#what=self,#knockback_power=(Send(self,@GetKnockbackPower)*(99+1)*2)/100);
+                  lAlreadyAffected = Cons(First(n),lAlreadyAffected);
+               }
+            }
+         }
+
+         foreach i in lAlreadyAffected
+         {
+            Send(i,@MsgSendUser,#message_rsc=lupogg_king_charges);
+         }
+         Send(poOwner,@Rumble,#duration=500,#disruption=100);
+         Send(poOwner,@SomethingWaveRoom,#what=self,
+               #wave_rsc=lupoggking_sound_aware);
+         return TRUE;
+      }
+
+      return FALSE;
+   }
+
+   WasHeld()
+   {
+      Post(self,@AttemptSpell,#type=CAST_TYPE_OTHER);
+      return;
+   }
+
+   WasBlinded()
+   {
+      Post(self,@AttemptSpell,#type=CAST_TYPE_OTHER);
       return;
    }
 

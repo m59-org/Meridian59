@@ -22,9 +22,9 @@ resources:
    BloodInheritance_name_rsc = "blood inheritance"
    BloodInheritance_icon_rsc = ibloodin.bgf
    BloodInheritance_desc_rsc = \
-      "Infuses a weapon with the malevolent power of Qor.  "
+      "Infuses a weapon with the malevolent power of Qor. "
       "It is impossible to predict exactly what form this dark "
-      "benediction will take, but it will always be deadly.  "
+      "benediction will take, but it will always be deadly. "
       "Requires shaman blood, entroot berries, and orc teeth."
    
    BloodInheritance_sound = qunbond.wav
@@ -55,6 +55,9 @@ classvars:
    viDrainTime = 1000    % Drain some mana every viDrainTime milliseconds
 
    viMultiCast_Spellpower = 3000  % 10 minutes for worst case, 2.3 mins for best case. 
+   
+   viPrimaryStat = STAT_ID_MYSTICISM
+   viSecondaryStat = STAT_ID_KARMA
 
 properties:                     
 
@@ -130,9 +133,16 @@ messages:
          ItemAtt = WA_PARALYZER;
       }
 
-      if iRandom >= 4
+      if iRandom = 4
       {
-         ItemAtt = WA_CURSED;
+         ItemAtt = WA_CORRODE;
+      }
+
+      if iRandom >= 5
+      {
+         ItemAtt = WA_SPELLCASTER;
+         send(send(SYS,@FindItemAttByNum,#Num=ItemAtt),@AddToItem,#oItem=first(lTargets),#spellNum=SID_ENFEEBLE);
+         return;
       }
 
       send(send(SYS,@FindItemAttByNum,#Num=ItemAtt),@AddToItem,#oItem=first(lTargets));

@@ -19,6 +19,21 @@ resources:
    room_name_elementaldungeon3 = "Prism of Ice"
    room_elementaldungeon3 = elementaldungeon3.roo
    elementaldungeon3_music = cave.mp3
+   
+   ice_prism_phase_out = \
+      "You phase out of the elemental plane of ice, and are drawn along "
+      "the natural curvature of the region's mana flows. Chilled, but alive, "
+      "you find yourself at a familiar oasis."
+
+   killed_ice_boss_msg = \
+      "~B%s has slain %s%s! Quiet solitude and darkness fall across this place "
+      "as the spark of life fades."
+
+   prism_of_ice_entry_msg = \
+      "This place is eerily quiet, and what motion does exist is purely the "
+      "result of the living heat the mortal realm has brought with it. Otherwise, "
+      "this entire plane is deathly cold and frozen solid. It would be wise "
+      "not to linger too long."
 
 classvars:
 
@@ -38,13 +53,19 @@ properties:
 
    prMusic = elementaldungeon3_music
 
-   piGen_time = 30000
-   piGen_percent = 80
+   piGen_time = 5000
+   piGen_percent = 100
 
    piInit_count_min = 4
    piInit_count_max = 6
 
    piMonster_count_max = 25
+   
+   plBossCoordinates = $
+
+   ptVictoryTimer = $
+
+   piOverridesDeathFunction = TRUE
 
 messages:
 
@@ -54,26 +75,374 @@ messages:
 
       plGenerators = [ [22, 24], [61, 20], [47, 68], [15, 37], [12,61],
                        [31, 52], [64, 46], [33, 34], [35, 18] ];
+
+      plBossCoordinates = [27, 74, 20, 27];
+
       propagate;
    }
    
    FirstUserEntered()
    {
+      local i;
+      Post(self,@StartThreat,#cClasses=[&IcewaterThreat,&PhaseThreat]);
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&XeoBossWater)
+         {
+            propagate;
+         }
+      }
+      Post(self,@NewHold,#what=Create(&XeoBossWater),#new_row=27,#new_col=74,#fine_row=20,#fine_col=27);
+      Post(self,@NewHold,#what=Create(&IceElementalChampion),#new_row=24,#new_col=73,#fine_row=34,#fine_col=63);
+      Post(self,@NewHold,#what=Create(&IceElementalChampion),#new_row=30,#new_col=72,#fine_row=32,#fine_col=5);
       propagate;
+   }
+
+   StartThreat(cClasses=$,report=FALSE)
+   {
+      local i;
+
+      % Don't start same threat if one already exists.
+      % Don't start threats with no players present.
+      if pbUser_in_room
+         AND cClasses <> $
+      {
+         foreach i in cClasses
+         {
+            if NOT Send(self,@HasObjectAttribute,#cClass=i)
+            {
+               Create(i,#host_object=self,#iDuration=$,#report=report);
+            }
+         }
+      }
+
+      return;
    }
    
    LastUserLeft()
    {
+      local i;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&XeoBossWater)
+            OR IsClass(First(i),&IceElementalChampion)
+         {
+            Send(First(i),@Delete);
+         }
+      }
+      Post(self,@EndAllThreats);
+
+      propagate;
+   }
+   
+   EndAllThreats()
+   {
+      local i;
+      
+      foreach i in plObject_attributes
+      {
+         if IsClass(i,&RoomThreat)
+            OR IsClass(i,&RoomStorm)
+         {
+            Send(i,@Delete);
+         }
+      }
+
+      return;
+   }
+
+   ReqSpellCast(who = $, oSpell = $)
+   {
+      local iQflags, iRflags, iHeightF, iHeightFWD, iHeightC, iServerID;
+
+      if IsClass(oSpell,&DeathRift)
+         OR IsClass(oSpell,&PortalOfLife)
+      {
+         return FALSE;
+      }
+
+      if IsClass(oSpell,&Phase)
+      {
+         if NOT IsClass(who,&Player)
+         {
+            propagate;
+         }
+
+         Post(who,@MsgSendUser,#message_rsc=ice_prism_phase_out);
+         Post(Send(SYS,@FindRoomByNum,#num=RID_WAYLAYOASIS),
+               @Teleport,#what=who);
+         return FALSE;
+      }
+
       propagate;
    }
 
-   CreateStandardExits()
+   SomethingKilled(what=$,victim=$)
    {
-      plEdge_Exits = $;
-      plEdge_Exits = Cons([LEAVE_EAST, RID_ELEMENTAL_DUNGEON1, 5, 5, 
-            ROTATE_NONE], plEdge_exits);
+      local i;
 
+      if victim <> $
+         AND IsClass(victim,&Monster)
+      {
+         if IsClass(victim,&XeoBossWater)
+         {
+            foreach i in Send(self,@GetHolderActive)
+            {
+               if IsClass(First(i),&Player)
+               {
+                  Send(First(i),@MsgSendUser,#message_rsc=killed_ice_boss_msg,
+                     #parm1=Send(what,@GetName),#parm2=Send(victim,@GetDef),#parm3=Send(victim,@GetName));
+               }
+            }
+            Send(self,@BossKilled);
+            propagate;
+         }
+      }
+
+      propagate;
+   }
+
+   BossKilled()
+   {
+      local i;
+
+      Send(self,@Rumble,#duration=20000);
+      Send(Send(SYS,@FindRoomByNum,#num=RID_MAZE_EXIT_ROOM),@OpenIceWall);
+      
+      ptVictoryTimer = CreateTimer(self,@ClosePrismOfIce,20000);
+
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&Monster)
+         {
+            Send(First(i),@Killed);
+         }
+         
+         if IsClass(First(i),&Player)
+         {
+            Send(First(i),@DefeatedPrismPassiveQuest,#iElement=ATCK_SPELL_COLD);
+         }
+      }
       return;
+   }
+
+   ClosePrismOfIce()
+   {
+      local i, oSandbar;
+      
+      ptVictoryTimer = $;
+
+      oSandbar = Send(SYS,@FindRoomByNum,#num=RID_DESERTSANDBAR);
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&Player)
+         {
+            Send(oSandbar,@Teleport,#what=First(i));
+         }
+      }
+      
+      Post(oSandbar,@PrismOfIceDefeated);
+      
+      return;
+   }
+
+   NewHold(what = $,new_row=$,new_col=$)
+   "Prevents anyone from logging on into a special zone"
+   {
+      % If players log on, send them elsewhere.
+      if IsClass(what,&User)
+      {
+         if Send(what,@GetOwner) = $
+         {
+            Post(Send(SYS,@FindRoomByNum,#num=RID_DESERTSANDBAR),@Teleport,#what=what);
+         }
+         else
+         {
+            Post(what,@MsgSendUser,#message_rsc=prism_of_ice_entry_msg);
+         }
+      }
+
+      propagate;
+   }
+
+   Delete()
+   {
+      local i, oThing;
+
+      foreach i in Send(self,@GetHolderPassive)
+      {
+         oThing = Send(self,@HolderExtractObject,#data=i);
+         if IsClass(oThing,&DeadBody)
+            AND NOT Send(oThing,@GetPbMob)
+         {
+            % is a player corpse! Let's move it.
+            Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTDUNES),@Teleport,#what=oThing);
+         }
+      }
+
+      if ptVictoryTimer <> $
+      {
+         DeleteTimer(ptVictoryTimer);
+         ptVictoryTimer = $;
+      }
+      propagate;
+   }
+   
+   OverrideDeathFunction(who=$,what=$,stroke_obj=$)
+   {
+      local oAfterlife, bDrop, oRoom, iRow, iCol, iFine_Row, iFine_Col, iAngle, iRoom,
+            oBody, lReagentBagContents, lInventoryContents, lItems, i, oSoldierShield;
+
+      Send(who,@ClearStance);
+
+      % Stop any rescue attempts that were going on.
+      Send(who,@CancelRescue);
+      Send(who,@RemoveAllEnchantments,#report=FALSE);
+      
+      Send(who,@SetDeathTime,#iTime=GetTime());
+
+      % Grab the location of the deceased.
+      % Might need to grab the old location if logged off.
+
+      if Send(who,@IsLoggedOn)
+      {
+         oRoom = Send(who,@GetOwner);
+         iRow = Send(who,@GetRow);
+         iCol = Send(who,@GetCol);
+         iFine_Row = Send(who,@GetFineRow);
+         iFine_Col = Send(who,@GetFineCol);
+         iAngle = Send(who,@GetAngle);
+         iRoom = Send(Send(who,@GetOwner),@GetRoomNum);
+      }
+      else
+      {
+         iRoom = Send(who,@GetSaveRoom);
+         oRoom = Send(SYS,@FindRoomByNum,#num=iRoom);
+         iRow = Send(who,@GetSaveRow);
+         iCol = Send(who,@GetSaveCol);
+         iFine_Row = Send(who,@GetSaveFineRow);
+         iFine_Col = Send(who,@GetSaveFineCol);
+         iAngle = Send(who,@GetSaveAngle);
+      }
+
+      % Record-keeping. Keep this before the token check,
+      % so we can give proper message.
+      Send(SYS,@UserKilled,#what=who,#killer=what,#oRoom=oRoom,#stroke_obj=stroke_obj);
+      Send(Send(SYS,@GetStatistics),@PlayerDiedCounter);
+
+      % Create the corpse.
+      if what <> $
+         AND IsClass(what,&User)
+      {
+         oBody = Send(who,@CreateCorpse,#oPlayerKiller=what);
+      }
+      else
+      {
+         oBody = Send(who,@CreateCorpse);
+      }
+      Send(who,@AddCorpse,#corpse=oBody);
+
+      Send(oRoom,@NewHold,#what=oBody,#new_row=iRow,#new_col=iCol,
+            #fine_row=iFine_Row,#fine_col=iFine_Col,#new_angle=iAngle);
+
+      bDrop = TRUE;
+      % Start losing stuff if applicable.
+      if bDrop
+      {
+         lReagentBagContents = Send(who,@GetReagentBagContents);
+         if lReagentBagContents <> $
+         {
+            lInventoryContents = [Send(who,@GetHolderActive),Send(who,@GetHolderPassive),lReagentBagContents];
+         }
+         else
+         {
+            lInventoryContents = [Send(who,@GetHolderActive),Send(who,@GetHolderPassive)];
+         }
+
+         foreach lItems in lInventoryContents
+         {
+            foreach i in lItems
+            {
+               % Let the item know we died, in case it does something special.
+               Send(i,@OwnerKilled);
+
+               if Send(i,@DropOnDeath)
+               {
+                  if Send(oRoom,@ReqNewHold,#what=i,#new_row=iRow,#new_col=iCol)
+                  {
+                     Send(oBody,@NewHold,#what=i);
+                  }
+               }
+            }
+         }
+
+         Post(who,@EvaluatePKStatus);
+
+         % Let SoldierShields know we died. It handles itself as appropriate.
+         oSoldierShield = Send(who,@FindUsing,#what=&SoldierShield);
+         if oSoldierShield <> $
+         {
+            Send(oSoldierShield,@OwnerDied,#what=what);
+         }
+      }
+
+      % Give out your dying scream.
+      if Send(who,@GetGender) = GENDER_FEMALE
+      {
+         i = Send(who,@GetFemaleDeathWav);
+      }
+      else
+      {
+         i = Send(who,@GetMaleDeathWav);
+      }
+
+      Send(oRoom,@SomethingWaveRoom,#what=oBody,#wave_rsc=i);
+      if Send(who,@IsLoggedOn)
+      {
+         Send(who,@WaveSendUser,#what=who,#wave_rsc=i);
+      }
+
+      Send(who,@SetHealth,#amount=1);
+
+      Send(who,@NewHealth);
+      Send(who,@NewMana);
+      Send(who,@NewVigor);
+      
+      Send(who,@SetDeathCost,#DeathCost=Send(Send(SYS,@GetDesertRoomMaintenance),@GetDeathCost),#bOverride=TRUE);
+      Send(who,@ApplyDeathPenalties);
+
+      % Refresh the client with what's really going on.
+      if Send(who,@IsLoggedOn)
+      {
+         Send(who,@ToCliStats,#group=1);
+         Send(who,@ToCliStats,#group=2);
+         Send(who,@ToCliStats,#group=3);
+         Send(who,@ToCliStats,#group=4);
+
+         % Wake up with red foggy hangover.
+         Send(who,@EffectSendUserDuration,#effect=EFFECT_PAIN,#duration=5000);
+      }
+      
+      oAfterlife = Send(SYS,@FindRoomByNum,#num=RID_DESERTALDUNES);
+      Send(oAfterlife,@Teleport,#what=who);
+      return;
+   }
+
+   OverridesDeathAllowPhasing()
+   {
+      return TRUE;
+   }
+
+   SpecialPhaseConditionsSatisfied(sector=0)
+   {
+      return TRUE;
+   }
+
+   GetRegion()
+   {
+      return RID_DESERT;
    }
 
 end

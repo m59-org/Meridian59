@@ -148,6 +148,14 @@ classvars:
 
    vrTributeTrigger = lich_tribute_trigger
    vrHungerTrigger = lich_hunger_trigger
+   
+   viBonusBaseTP = 1000000
+   
+   viBaseBleedPercentage = 0
+   viBaseStunPercentage = 0
+   viBaseKnockbackPercentage = 0
+
+   viBaseSize = 600
 
 properties:
 
@@ -169,6 +177,9 @@ properties:
 
    piReputationGroup = REP_LICH
 
+   piMinDamage = 20
+   piMaxDamage = 90
+
 messages:
 
    Constructed()
@@ -176,11 +187,11 @@ messages:
       % Keep the scenario deactivated for now.
       %Send(Send(SYS,@GetNecromancerBalance),@ActivateScenario);
 
-      pimax_Hit_Points = pimax_hit_Points * 2;
+      pimax_Hit_Points = pimax_hit_Points * 20;
       piHit_Points = pimax_hit_points * 100;
 
-      plResistances = [ [-ATCK_SPELL_ALL, 60],
-                        [ATCK_WEAP_ALL, 60],
+      plResistances = [ [-ATCK_SPELL_ALL, 150],
+                        [ATCK_WEAP_ALL, 150],
                         [ATCK_WEAP_NERUDITE, -20 ],
                         [ATCK_WEAP_BLUDGEON, -20 ],
                         [ATCK_WEAP_SILVER, -60 ],
@@ -193,6 +204,10 @@ messages:
                         [-ATCK_SPELL_HUNTERSWORD, -90 ]
                       ];
 
+      plCreatureTypes = Cons(CREATURE_TYPE_UNDEAD,plCreatureTypes);
+      plCreatureTypes = Cons(CREATURE_TYPE_INTELLIGENT,plCreatureTypes);
+      plCreatureTypes = Cons(CREATURE_TYPE_MAGICAL,plCreatureTypes);
+
       plReputationEnemies = [REP_FAROL];
 
       propagate;
@@ -200,7 +215,12 @@ messages:
 
    SetForSale()
    {
-      plFor_sale = [ $, $, $, $ ];
+      plFor_sale = [
+         $,$,
+         [ 
+            SID_DEATHS_DOOR
+         ],
+      $];
 
       return;
    }

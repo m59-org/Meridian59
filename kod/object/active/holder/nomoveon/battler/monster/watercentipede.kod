@@ -1,0 +1,129 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+WaterCentipede is Monster
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   water_centipede_koc_name_rsc = "keulk-puuckinich"
+   water_centipede_name_rsc = "water crawler"
+   water_centipede_icon_rsc = watercentipede.bgf
+   water_centipede_desc_rsc = \
+      "This water-bound creature may resemble its land-dwelling "
+      "cousins, but it is far deadlier."
+
+   water_centipede_dead_icon_rsc = centipX.bgf
+   water_centipede_dead_name_rsc = "dead water crawler"
+
+   water_centipede_sound_hit = cnt_atkh.wav
+   water_centipede_sound_miss = cnt_atkm.wav
+   water_centipede_sound_death = cnt_dth.wav
+   water_centipede_sound_aware = cnt_awr.wav
+   
+classvars:
+   vrKocName = water_centipede_koc_name_rsc
+   vrName = water_centipede_name_rsc
+   vrIcon = water_centipede_icon_rsc
+   vrDesc = water_centipede_desc_rsc
+   vrDead_icon = water_centipede_dead_icon_rsc
+   vrDead_name = water_centipede_dead_name_rsc
+
+   viTreasure_type = TID_TOUGH
+
+   viSpeed = SPEED_VERY_FAST
+   viAttack_type = ATCK_WEAP_BITE
+
+   viLevel = 120
+   viDifficulty = 8
+   viVisionDistance = 25
+   viKarma = 40
+   viCashmin = 450
+   viCashmax = 1000
+   vrSound_hit = water_centipede_sound_hit
+   vrSound_miss = water_centipede_sound_miss
+   vrSound_aware = water_centipede_sound_aware
+   vrSound_death = water_centipede_sound_death
+
+   viBaseSize = 80
+
+properties:
+
+   piAnimation = ANIM_NONE
+
+messages:
+
+   Constructed()
+   {
+      plResistances = [ [-ATCK_SPELL_FIRE, 40 ],
+                        [ATCK_WEAP_SLASH, 20],
+                        [ATCK_WEAP_MAGIC, -20],
+                        [-ATCK_SPELL_SHOCK, -20] ];
+
+      plCreatureTypes = Cons(CREATURE_TYPE_INSECT,plCreatureTypes);
+      plCreatureTypes = Cons(CREATURE_TYPE_MUNDANE,plCreatureTypes);
+
+      propagate;
+   }
+
+   MonsterAttack(what = $)
+   {
+      piAnimation = ANIM_ATTACK;
+      Send(poOwner,@SomethingChanged,#what=self);
+      piAnimation = ANIM_NONE;
+
+      return;
+   }
+
+   SendLookAnimation()
+   {
+      AddPacket(1,ANIMATE_CYCLE);
+      AddPacket(4,120,2,2,2,6);
+
+      return;
+   }
+
+   SendMoveAnimation()
+   {
+      AddPacket(1,ANIMATE_CYCLE,4,120,2,2,2,6);
+
+      return;
+   }
+
+   SendAnimation()
+   {
+      if piAnimation = ANIM_ATTACK
+      {
+         AddPacket(1,ANIMATE_ONCE,4,160,2,7,2,12,2,1);
+
+         return;
+      }
+
+      % if no body animation
+
+      propagate;
+   }
+
+   IsAlly(target = $)
+   "Newbie monster has no allies."
+   {
+      return FALSE;
+   }
+
+   GetObjectFlags()
+   {
+      return OF_BOUNCING | OF_ATTACKABLE;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

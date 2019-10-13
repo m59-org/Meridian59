@@ -1,0 +1,145 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ActiveBlockingStance is Stance
+
+constants:
+
+   include blakston.khd
+   include protocol.khd   
+
+resources:
+
+   ActiveBlocking_name_rsc = "shield wall"
+   ActiveBlocking_icon_rsc = iblock.bgf
+   ActiveBlocking_desc_rsc = \
+      "The very first duty of all knights is to protect their liege, "
+      "thus the very first skill a knight learns is to actively wield a shield "
+      "in defense of himself and others. While in this stance, "
+      "a warrior will attempt to block every attack coming from the front, but cannot himself attack. "
+      "He will also block movement by enemies past either side."
+      "\n\nFocusing all one's attention on the front comes with a risk: "
+      "attacks from behind are extremely difficult to avoid."
+      "\n\nLastly, wearing a heavy shield is required to maintain a shield wall. "
+
+   ActiveBlocking_skill_intro = "Knightcraft Lv. 1: A stance that allows blocking for others."
+   
+   ActiveBlocking_begin = "You lift your shield and lower your weapon."
+   ActiveBlocking_end = "You lower your shield and lift your weapon."
+   ActiveBlocking_mantra = \
+      "I shall endure!"
+
+   ActiveBlocking_intro = \
+      "Knightcraft Lv. 1: Present a heavy defense, but you cannot attack."
+
+   ActiveBlock_prevent_movement = \
+      "%s%s pushes you backward with %s shield!"
+   ActiveBlock_you = \
+      "You fend off %s%s with your shield!"
+   ActiveBlock_them = \
+      "%s%s fends off your attack with %s shield!"
+
+classvars:
+
+   vrName = ActiveBlocking_name_rsc
+   vrIcon = ActiveBlocking_icon_rsc
+   vrDesc = ActiveBlocking_desc_rsc
+
+   stance_begin_msg = ActiveBlocking_begin
+   stance_end_msg = ActiveBlocking_end
+   
+   vsStanceMantra = ActiveBlocking_mantra
+
+   vrSkill_intro = ActiveBlocking_skill_intro
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+
+   viSkill_num = SKID_ACTIVE_BLOCKING_STANCE
+   viSchool = SKS_KNIGHTCRAFT
+   viSkill_Level = 1
+   viChance_to_Increase = 10
+   viMeditate_ratio = 30
+
+   viSkillExertion = 0
+   vbCheck_exertion = FALSE
+
+   vbAutomatic = TRUE
+   
+   viBlockExertion = 2
+   
+   viPrimaryStat = STAT_ID_STAMINA
+   viSecondaryStat = 0
+
+properties:
+
+   piBaseBlockChance = 33
+
+messages:
+
+   GetRequisiteStat(who=$)
+   {
+      return Send(who,@GetStamina);
+   }
+
+   AttemptActiveBlock(who=$, what=$)
+   {
+      local iActiveBlockingAbility, iStat, iBlockChance;
+
+      if who = $
+         OR what = $
+         OR NOT IsClass(who,&Player)
+         OR NOT (Send(who,@IsUsingA,#class=&Knightshield)
+            OR Send(who,@IsUsingA,#class=&GuildShield)
+            OR Send(who,@IsUsingA,#class=&MithrilShield))
+         OR Send(who,@GetInFrontOrBehindMe,#what=what) <> SIDE_FRONT
+      {
+         return FALSE;
+      }
+
+      iActiveBlockingAbility = Send(who,@GetSkillAbility,#skill_num=viSkill_num);
+      iStat = Send(self,@GetRequisiteStat,#who=who);
+
+      % 33 chance base, up to 66 with 99%, then Stamina adds up to 20% more for 86% max
+      % Realistic stamina amounts mean more like 75%
+      iBlockChance = piBaseBlockChance + iActiveBlockingAbility/3 + iStat/5;
+
+      if Random(1,100) <= iBlockChance
+      {
+         Send(who,@MsgSendUser,#message_rsc=ActiveBlock_you,#parm1=Send(what,@GetDef),#parm2=Send(what,@GetName));
+         
+         if IsClass(what,&Player)
+         {
+            Send(what,@MsgSendUser,#message_rsc=ActiveBlock_them,#parm1=Send(who,@GetDef),#parm2=Send(who,@GetName),#parm3=Send(who,@GetHisHer));
+         }
+         Send(who,@AddExertion,#amount=10000*viBlockExertion);
+         Send(self,@ImproveAbility,#who=who);
+         return TRUE;
+      }
+
+      return FALSE;
+   }
+   
+   BeginStance(who=$)
+   {
+      Send(Send(who,@GetOwner),@AddShieldWaller,#who=who);
+
+      propagate;
+   }
+   
+   EndStance(who=$)
+   {
+      Send(Send(who,@GetOwner),@LeaveShieldWallers,#who=who);
+
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -27,7 +27,9 @@ resources:
       "immune to danger... but, adventurers be warned: staying out of phase "
       "too long will result in physical and mental damage, as well as "
       "potential loss of carried items. Time spent phased out is "
-      "cumulative until you reach a safe place in which to recover."
+      "cumulative until you reach a safe place in which to recover. "
+      "You may say 'surrender' while phased out to take an immediate "
+      "penalty and return to safety."
 
    Phase_no_danger = "The protective magics here prevent phasing out."
    
@@ -87,6 +89,9 @@ resources:
 
    phase_time_header = \
       "\n\nYou have %r%r%r%r%r%r%r of %s time remaining."
+      
+   phase_rephase_penalty = \
+      "Phasing back out so soon costs you 15 seconds of your remaining phase time."
 
 classvars:
 
@@ -103,6 +108,9 @@ classvars:
    viMana = 0
    viSpellExertion = 0
    viChance_To_Increase = 5
+   
+   viPrimaryStat = STAT_ID_INTELLECT
+   viSecondaryStat = 0
 
 properties:
 
@@ -159,6 +167,7 @@ messages:
       }
 
       if Send(oRoom,@OverridesDeathFunction)
+         AND NOT Send(oRoom,@OverridesDeathAllowPhasing)
       {
          Send(who,@MsgSendUser,#message_rsc=no_phasing_here_override_msg);
 
@@ -223,11 +232,15 @@ messages:
          Send(who,@RemoveEnchantment,#what=self);
          Send(who,@LogonDelay);
          Send(who,@UnphaseMinions);
+         Send(who,@CastASpell,#oSpell=self);
+         Post(who,@StartLoggedOnRefreshPhaseTime);
       }
       else
       {
          Send(self,@AdjustVisualEffectBasedOnTimeRemaining,#who=who);
          Send(who,@BreakTrance,#event=EVENT_STEER);
+         Send(who,@ClearBombs);
+         Send(who,@ClearDelayedAdditionalAttacks);
          Send(who,@FreezeAllEnchantments);
          Send(who,@SetPlayerFlag,#flag=PFLAG_PHASED,#value=TRUE);
          Send(who,@PhaseMinions);
@@ -236,6 +249,7 @@ messages:
          Post(who,@StartPhaseTimer);
          Post(who,@EffectSendUser,#what=self,#effect=EFFECT_PARALYZE_ON);
          Post(self,@NotifyRoomPhaseOut,#who=who);
+         Post(who,@CancelLoggedOnRefreshPhaseTime);
       }
 
       propagate;
@@ -273,6 +287,10 @@ messages:
 
          if NOT IsClass(each_obj,&User)
          {
+            if IsClass(each_obj,&Monster)
+            {
+               Send(each_obj,@PlayerPhasedOut,#who=who);
+            }
             continue;
          }
 
@@ -333,6 +351,13 @@ messages:
                      #parm1=Send(who,@GetName));
             }
          }
+         else
+         {
+            if IsClass(each_obj,&Monster)
+            {
+               Send(each_obj,@PlayerPhasedIn,#who=who);
+            }
+         }
       }
 
       return;
@@ -364,8 +389,9 @@ messages:
       Send(who,@SetPlayerFlag,#flag=PFLAG_PHASED,#value=FALSE);
       Send(who,@FreezePhaseTimer);
 
-      % Don't override Hold.
+      % Don't override Hold / Petrify.
       if NOT Send(who,@IsEnchanted,#byClass=&Hold)
+         AND NOT NOT Send(who,@IsEnchanted,#byClass=&Petrified)
          AND NOT Send(who,@IsEnchanted,#byClass=&DMHold)
       {
          Send(who,@EffectSendUser,#what=self,#effect=EFFECT_PARALYZE_OFF);

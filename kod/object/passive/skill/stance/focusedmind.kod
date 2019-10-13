@@ -42,15 +42,22 @@ classvars:
    viSkill_num = SKID_FOCUSED_MIND
    viSchool = SKS_FENCING
    viSkill_Level = 6
-   viChance_to_Increase = 3
-   viMeditate_ratio = 500
+   viChance_to_Increase = 2
+   viMeditate_ratio = 50
 
    viSkillExertion = 0
    vbCheck_exertion = FALSE
 
    vbAutomatic = TRUE
+   
+   viPrimaryStat = STAT_ID_INTELLECT
+   viSecondaryStat = 0
 
 properties:
+
+   piAbilityDivisor = 3
+   piStatDivisor = 5
+   piRejuvenationTimeMultiple = 4
 
 messages:
 
@@ -65,12 +72,24 @@ messages:
 
       iFocusedMindAbility = Send(who,@GetSkillAbility,#skill_num=viSkill_num);
       iStat = Send(self,@GetRequisiteStat,#who=who);
+      
+      if piAbilityDivisor = 0
+      {
+         piAbilityDivisor = 1;
+      }
+      if piStatDivisor = 0
+      {
+         piStatDivisor = 1;
+      }
 
       % 3% base, up to 33% from skill and 14% from stat, total 50%
-      iTimeReduction = 3 + (iFocusedMindAbility / 3) + (iStat / 5);
+      iTimeReduction = 3 + (iFocusedMindAbility / piAbilityDivisor) + (iStat / piStatDivisor);
       iTimeReduction = bound(iTimeReduction,3,50);
 
-      Send(self,@ImproveAbility,#who=who);
+      if NOT Send(who,@IsResting)
+      {
+         Send(self,@ImproveAbility,#who=who);
+      }
       
       return iTime * (100-iTimeReduction) / 100;
    }
@@ -82,12 +101,10 @@ messages:
       iFocusedMindAbility = Send(who,@GetSkillAbility,#skill_num=viSkill_num);
       iStat = Send(self,@GetRequisiteStat,#who=who);
 
-      % Up to twice as slow mana time
-      iTimeIncrease = ((iFocusedMindAbility+1)*2);
-      iTimeIncrease = bound(iTimeIncrease,100,200);
+      % Up to four times as slow mana time
+      iTimeIncrease = ((iFocusedMindAbility+1)*piRejuvenationTimeMultiple);
+      iTimeIncrease = bound(iTimeIncrease,100,$);
 
-      Send(self,@ImproveAbility,#who=who);
-      
       return iTime * iTimeIncrease / 100;
    }
 

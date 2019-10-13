@@ -81,7 +81,7 @@ messages:
 
       Send(oPlayer,@SetFlickerFlag);
       iLightStr = Nth(Send(oItem,@GetAttributeData,#ItemAtt=WA_GLOWING),3);
-      Send(oPlayer,@GainLight,#amount=iLightStr);
+      Post(oPlayer,@RecalcLight);
 
       return;
    }
@@ -92,7 +92,7 @@ messages:
       local iLightStr, i;
 
       iLightStr = Nth(Send(oItem,@GetAttributeData,#ItemAtt=WA_GLOWING),3);
-      Send(oPlayer,@LoseLight,#amount=iLightStr);
+      Post(oPlayer,@RecalcLight);
 
       Send(oPlayer,@RecalcFlickerFlag);
 
@@ -161,6 +161,50 @@ messages:
       }
 
       propagate;
+   }
+
+   ModifyDamage(damage=0,target=$,wielder=$,lData=$)
+   "Item Attributes, in general, should only + or - damage."
+   {
+      if target <> $
+      {
+         if IsClass(target,&Battler)
+            AND Send(target,@IsShadow)
+         {
+            return damage + 1;
+         }
+      }
+      return damage;
+   }
+
+   ModifyHitRoll(hitroll=0,target=$,wielder=$,lData=$)
+   {
+      local sMakerInfo, iSpellPower;
+
+      if lData = $ OR NOT IsList(lData)
+      {
+         return hitroll;
+      }
+
+      if Length(lData) <> 5
+      {
+         return hitroll;
+      }
+
+      sMakerInfo = Nth(lData,5);
+
+      if sMakerInfo <> $
+         AND Length(sMakerInfo) > 3
+      {
+         iSpellPower = Nth(sMakerInfo,4);
+         if iSpellPower = $
+         {
+            iSpellPower = 0;
+         }
+         return hitroll + (iSpellPower+1)/10;
+      }
+
+      return hitroll;
    }
 
 end

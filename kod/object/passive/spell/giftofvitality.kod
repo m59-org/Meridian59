@@ -1,0 +1,187 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+GiftOfVitality is Spell
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   gift_of_vitality_name_rsc = "gift of vitality"
+   gift_of_vitality_icon_rsc = ibreath.bgf
+   gift_of_vitality_desc_rsc = \
+      "With great compassion, a bestiary mage may "
+      "sacrifice some of his own life energy to heal his followers. "
+      "The sacrifice can never take the mage below half health, "
+      "but with great skill, more can be gleaned out of the casting than "
+      "what was given. "
+      "Requires four herbs to cast."
+
+   gift_of_vitality_cast = "%s%s's spilled blood glimmers darkly!"
+   
+   gift_of_vitality_no_minions = \
+      "You have no minions to receive your gift of vitality!"
+   not_enough_vitality = \
+      "You are too wounded right now to give a gift of vitality."
+   minion_gained_health = \
+      "Your %s minion gained ~B~r%i~n health!"
+   all_minions_healthy = \
+      "All your minions are in perfect health!"
+
+   gift_of_vitality_sound = kmbomb.wav
+
+classvars:
+
+   vrName = gift_of_vitality_name_rsc
+   vrIcon = gift_of_vitality_icon_rsc
+   vrDesc = gift_of_vitality_desc_rsc
+
+   viSpell_num = SID_GIFT_OF_VITALITY
+   viMana = 15
+   viSchool = SS_BESTIARY
+   viSpell_level = 4
+
+   viHarmful = FALSE
+   viOutlaw = FALSE
+   viNoNewbieOffense = FALSE
+   viMeditate_ratio = 80
+
+   vrSucceed_wav = gift_of_vitality_sound
+   
+   vbSafetyReport = FALSE
+   
+   viPrimaryStat = STAT_ID_INTELLECT
+   viSecondaryStat = 0
+
+properties:
+
+messages:
+
+   ResetReagents()
+   {
+      plReagents = $;
+      plReagents = Cons([&Herbs,4],plReagents);
+
+      return;
+   }
+
+   GetNumSpellTargets()
+   {
+      return 0;
+   }
+
+   CanPayCosts(who = $, lTargets = $)
+   {
+      local lMinions, iHealthNeeded, iNumberNeedingHealing, i;
+
+      lMinions = Send(who,@GetControlledMinions);
+      
+      if lMinions = $
+      {
+         Send(who,@MsgSendUser,#message_rsc=gift_of_vitality_no_minions);
+         return FALSE;
+      }
+
+      iHealthNeeded = 0;
+      iNumberNeedingHealing = 0;
+      foreach i in lMinions
+      {
+         if Send(i,@GetHealth) < Send(i,@ReturnMaxHitPoints)
+         {
+            iHealthNeeded = iHealthNeeded + Bound(Send(i,@ReturnMaxHitPoints) - Send(i,@GetHealth),0,$);
+            iNumberNeedingHealing++;
+         }
+      }
+      
+      if iNumberNeedingHealing <= 0
+      {
+         Send(who,@MsgSendUser,#message_rsc=all_minions_healthy);
+         return FALSE;
+      }
+
+      % Don't go below 50 percent of caster health.
+      iHealthNeeded = Bound(iHealthNeeded,0,Send(who,@GetHealth) - Send(who,@GetMaxHealth)/2);
+      
+      if iHealthNeeded <= 0
+      {
+         Send(who,@MsgSendUser,#message_rsc=not_enough_vitality);
+         return FALSE;
+      }
+
+      propagate;
+   }
+
+   CastSpell(who = $, lTargets = $, iSpellpower = 0)
+   {
+      local oRoom, iHealth, i, lMinions, iHealthNeeded, iNumberNeedingHealing, iDifference, iGained;
+
+
+      lMinions = Send(who,@GetControlledMinions);
+      
+      if lMinions = $
+      {
+         Send(who,@MsgSendUser,#message_rsc=gift_of_vitality_no_minions);
+         propagate;
+      }
+
+      iHealthNeeded = 0;
+      iNumberNeedingHealing = 0;
+      foreach i in lMinions
+      {
+         if Send(i,@GetHealth) < Send(i,@ReturnMaxHitPoints)
+         {
+            iHealthNeeded = iHealthNeeded + Bound(Send(i,@ReturnMaxHitPoints) - Send(i,@GetHealth),0,$);
+            iNumberNeedingHealing++;
+         }
+      }
+      
+      if iNumberNeedingHealing <= 0
+      {
+         Send(who,@MsgSendUser,#message_rsc=all_minions_healthy);
+         propagate;
+      }
+
+      % Don't go below 50 percent of caster health.
+      iHealthNeeded = Bound(iHealthNeeded,0,Send(who,@GetHealth) - Send(who,@GetMaxHealth)/2);
+      
+      if iHealthNeeded <= 0
+      {
+         Send(who,@MsgSendUser,#message_rsc=not_enough_vitality);
+         propagate;
+      }
+      
+      Send(who,@LoseHealth,#amount=iHealthNeeded);
+
+      % Give a bonus to healing based on spellpower
+      iHealth = iHealthNeeded + (iHealthNeeded * iSpellpower)/100;
+
+      foreach i in lMinions
+      {
+         % Heal each minion a minimum amount.
+         if Send(i,@GetHealth) < Send(i,@ReturnMaxHitPoints)
+         {
+            iDifference = Send(i,@ReturnMaxHitPoints) - Send(i,@GetHealth);
+            iGained = Send(i,@GainHealthNormalAndReportGained,#amount=iHealth/iNumberNeedingHealing);
+            Send(who,@MsgSendUser,#message_rsc=minion_gained_health,#parm1=Send(i,@GetTrueName),#parm2=iGained/100);
+         }
+      }
+
+      % Send message to all in room.
+      oRoom = Send(who,@GetOwner);
+      Send(oRoom,@SomeoneSaid,#type=SAY_MESSAGE,#string=gift_of_vitality_cast,
+           #what=who,#parm1=Send(who,@GetCapDef),#parm2=Send(who,@GetName));
+
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

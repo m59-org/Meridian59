@@ -1,0 +1,88 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+InertForm is SorcerySkill
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   inert_form_name_rsc = "inert form"
+   inert_form_icon_rsc = iresmagc.bgf
+   inert_form_desc_rsc = \
+      "By altering the structure of one's spirit at levels higher than normal perception, "
+      "a skilled sorcerer can resist the secondary effects of the elements."
+   inert_form_mastered_desc_rsc = \
+      "\n\n"
+      "You possess exceptional mastery of this skill, tripling your reduction of "
+      "elemental status effects."
+
+classvars:
+
+   vrName = inert_form_name_rsc
+   vrIcon = inert_form_icon_rsc
+   vrDesc = inert_form_desc_rsc
+   vrMasteredDesc = inert_form_mastered_desc_rsc
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+
+   viSkill_num = SKID_INERT_FORM
+   viSchool = SKS_SORCERY
+   viSkill_Level = 5
+   viChance_to_Increase = 12
+   viMeditate_ratio = 80
+
+   viSkillExertion = 0
+   vbCheck_exertion = FALSE
+   
+   viPrimaryStat = STAT_ID_STAMINA
+   viSecondaryStat = 0
+
+properties:
+
+   % Base reduction of status effects
+   piInertFormPercentage = 10
+
+messages:
+
+   GetRequisiteStat(who=$)
+   {
+      return Send(who,@GetStamina);
+   }
+
+   GetInertFormPercentage(who=$)
+   {
+      local iAbility, iStat, bMasteryBonus;
+
+      iAbility = Send(who,@GetSkillAbility,#Skill_num=viSkill_num);
+      iStat = Send(self,@GetRequisiteStat,#who=who);
+
+      Send(self,@DoSkill,#who=who);
+      
+      bMasteryBonus = 1;
+      if Send(who,@HasMasteredThisSkill,#num=viSkill_num)
+      {
+         bMasteryBonus = 3;
+      }
+
+      % 10 + up to 20 from skill + up to 7ish from stamina
+      return Bound((((piInertFormPercentage+((iAbility+1)/5)+(iStat/10))*100)*bMasteryBonus)/100,0,100);
+   }
+
+   DoSkill(who=$)
+   {
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

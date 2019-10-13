@@ -23,7 +23,10 @@ resources:
    metalshield_desc_rsc = \
       "This small shield is made from a sheet of tin bent and "
       "fitted to a wooden frame.  Although the workmanship is "
-      "poor, it offers some protection during battle."
+      "poor, it allows rapid movement while still offering minor "
+      "protection during battle. Perhaps most "
+      "importantly, a ring of basic runes etched around the outer "
+      "ring provide some defense against magic."
 
    metalshield_window_overlay_rsc = povshldA.bgf
 
@@ -46,7 +49,7 @@ classvars:
    viGround_group = 3
    viInventory_group = 1
 
-   viDefense_base = 5
+   viDefense_base = 100
    viDamage_base = 1
 
 properties:
@@ -55,8 +58,14 @@ messages:
 
    GetResistanceModifiers()
    {
-      return [ [ATCK_WEAP_SLASH,10]
-             ];
+      if Send(SETTINGS_OBJECT,@GetDirectArmorEnabled)
+      {
+         return [ [ATCK_WEAP_SLASH,10]
+                ];
+      }
+      
+      return [ [-ATCK_SPELL_ALL,5]
+               ];
    }
 
 

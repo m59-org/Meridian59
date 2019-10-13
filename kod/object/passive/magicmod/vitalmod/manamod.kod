@@ -1,0 +1,51 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ManaMod is MagicMod
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   mana_mod_name = "mana"
+
+classvars:
+
+   viModName = mana_mod_name
+   viModType = MOD_PREFIX
+   viModGroup = GROUP_MANA
+
+   viModRangeMin = 1
+   viModRangeMax = 40
+   
+   viPowerDivisor = 15
+
+properties:
+
+messages:
+
+   NewUsed(who=$,iState=0)
+   {
+      Post(who,@ComputeMaxMana);
+
+      return;
+   }
+
+   NewUnused(who=$,iState=0)
+   {
+      Post(who,@ComputeMaxMana);
+
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

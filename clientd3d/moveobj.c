@@ -21,6 +21,7 @@
 
 extern player_info player;
 extern room_type current_room;
+extern int				sector_depths[];
 
 static void MoveSingleVertically(Motion *m, int dt);
 /************************************************************************/
@@ -34,6 +35,7 @@ void MoveObject2(ID object_id, int x, int y, BYTE speed, BOOL turnToFace)
 	room_contents_node *r;
 	int dx, dy, dz, z;
 	BOOL hanging;
+   BOOL grounded;
 	
 	r = GetRoomObjectById(object_id);
 	
@@ -44,6 +46,7 @@ void MoveObject2(ID object_id, int x, int y, BYTE speed, BOOL turnToFace)
 	}
 	
 	hanging = (r->obj.flags & OF_HANGING);
+   grounded = (r->obj.flags & OF_GROUNDED);
 	z = GetFloorBase(x,y);
 	if (turnToFace)
 	{
@@ -173,7 +176,7 @@ void MoveObject2(ID object_id, int x, int y, BYTE speed, BOOL turnToFace)
 	r->motion.move_animating = True;
 	r->moving = True;
 	
-	if (hanging)
+	if (hanging || grounded)
 	{
 		RoomObjectSetHeight(r);
 		r->motion.v_z = 0;
@@ -232,9 +235,42 @@ Bool ObjectsMove(int dt)
 		}
 		if (OF_BOUNCING == (OF_BOUNCING & r->obj.flags))
 		{
-			if (!(OF_PLAYER & r->obj.flags))
-			{
-				int floor,ceiling,angleBounce,bounceHeight;
+				int floor,ceiling,angleBounce,bounceHeight, sector_flags;
+	         long top, bottom;
+            float depth;
+            bool bUsingAlternateDepth;
+            
+	      	GetRoomHeight(current_room.tree, &top, &bottom, &sector_flags, 0, 0);
+            
+		      depth = sector_depths[SectorDepth(sector_flags)];
+            if (ROOM_OVERRIDE_MASK & GetRoomFlags()) // if depth flags are normal (no overrides)
+            {
+               switch (SectorDepth(sector_flags))
+               {
+                  case SF_DEPTH1:
+                     if (ROOM_OVERRIDE_DEPTH1 & GetRoomFlags())
+                     {
+                        depth = GetOverrideRoomDepth(SF_DEPTH1);
+                        bUsingAlternateDepth = TRUE;
+                     }
+                     break;
+                  case SF_DEPTH2:
+                     if (ROOM_OVERRIDE_DEPTH2 & GetRoomFlags())
+                     {
+                        depth = GetOverrideRoomDepth(SF_DEPTH2);
+                        bUsingAlternateDepth = TRUE;
+                     }
+                     break;
+                  case SF_DEPTH3:
+                     if (ROOM_OVERRIDE_DEPTH3 & GetRoomFlags())
+                     {
+                        depth = GetOverrideRoomDepth(SF_DEPTH3);
+                        bUsingAlternateDepth = TRUE;
+                     }
+                     break;
+               }
+            }
+
 				r->obj.bounceTime += min(dt,40);
 				if (r->obj.bounceTime > TIME_FULL_OBJECT_BOUNCE)
 					r->obj.bounceTime -= TIME_FULL_OBJECT_BOUNCE;
@@ -242,11 +278,17 @@ Bool ObjectsMove(int dt)
 				bounceHeight = FIXED_TO_INT(fpMul(OBJECT_BOUNCE_HEIGHT, SIN(angleBounce)));
 				if (GetPointHeights(r->motion.x,r->motion.y,&floor,&ceiling))
 				{
-					//int midPoint = floor + ((ceiling-floor)>>1);
-					r->motion.z = floor + OBJECT_BOUNCE_HEIGHT + bounceHeight;
+               if (bUsingAlternateDepth)
+               {
+				   	r->motion.z = depth + OBJECT_BOUNCE_HEIGHT + bounceHeight;
+               }
+               else
+               {
+			   		//int midPoint = floor + ((ceiling-floor)>>1);
+				   	r->motion.z = floor + OBJECT_BOUNCE_HEIGHT + bounceHeight;
+               }
 				}
 				retval = True;
-			}
 		}
 		if (r->motion.v_z != 0)
 		{

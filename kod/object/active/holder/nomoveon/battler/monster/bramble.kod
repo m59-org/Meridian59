@@ -72,6 +72,11 @@ classvars:
    vrSound_death = $
 
    vrMonster_healing = brambles_monster_healing
+   
+   viBaseBleedPercentage = 0
+   viBaseKnockbackPercentage = 0
+
+   viBaseSize = 200
 
 properties:
 
@@ -132,6 +137,10 @@ messages:
    {
       piHit_points = piBrambleHits * 100;
       piMax_hit_points = piBrambleHits;
+
+      plCreatureTypes = Cons(CREATURE_TYPE_ELEMENTAL,plCreatureTypes);
+      plCreatureTypes = Cons(CREATURE_TYPE_PLANT,plCreatureTypes);
+      plCreatureTypes = Cons(CREATURE_TYPE_MAGICAL,plCreatureTypes);
 
       propagate;
    }
@@ -258,6 +267,16 @@ messages:
       if (isClass(poCaster,&Player)) AND (piMaxDamage > 0)
       {
          Send(poCaster,@SetPlayerFlag,#flag=PFLAG_DID_DAMAGE,#value=TRUE);
+      }
+      
+      if poCaster <> $
+         AND IsClass(poCaster,&Player)
+      {
+         Send(what,@ApplyBleed,#what=poCaster,#bleed_power=Send(poCaster,@GetBleedPower));
+      }
+      else
+      {
+         Send(what,@ApplyBleed,#what=self,#bleed_power=Send(self,@GetBleedPower));
       }
 
       if isClass(what,&Player)

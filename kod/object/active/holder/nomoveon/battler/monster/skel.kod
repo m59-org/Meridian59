@@ -62,6 +62,14 @@ classvars:
    vrSound_death = skeleton_sound_death
 
    vrHeadIcon = skeleton_head
+   
+   viBaseBleedPercentage = 0
+
+   viBaseSize = 150
+
+   % between 1 and 10000
+   viCriticalHitRate = 300
+   vbCanCauseBleed = TRUE
 
 properties:
 
@@ -76,6 +84,9 @@ messages:
       Send(self,@SetResistances);
 
       plReputationEnemies = [REP_FAROL];
+
+      plCreatureTypes = Cons(CREATURE_TYPE_UNDEAD,plCreatureTypes);
+      plCreatureTypes = Cons(CREATURE_TYPE_MAGICAL,plCreatureTypes);
 
       propagate;
    }

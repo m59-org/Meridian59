@@ -32,6 +32,11 @@ resources:
 
    NodeAttack_success_rsc = \
       "~BThe Xeochicatl retreat from %s.  The node has been saved!"
+   NodeAttack_Biskalane_call_to_action_rsc = \
+      "~BPrincess Kateriina calls upon the adventurers of Meridian with a decree: "
+      "Long have our nodes been under assault, but the royal mages have finally "
+      "been able to track the Xeochicatl back to their source. Bring a heartstone to me at "
+      "Bourgeois Castle to help track down and stop this threat to the land."
    NodeAttack_failure_rsc = \
       "~BThe node at %s has been drained by the attacking Xeochicatl!"
    NodeAttack_failure_sound_rsc = ndrained.wav
@@ -61,6 +66,10 @@ resources:
       "We must be ever vigilant against these attacks."
 
    NodeAttack_keeper = "Alzahakar"
+
+   NodeAttack_high_sorcerers_taunt = \
+      "The High Sorcerers need the power of our nodes. You've stopped nothing. "
+      "You've merely delayed the inevitable."
 
 classvars:
 
@@ -112,7 +121,7 @@ properties:
    % This indicates if Miriana even goes to view node attacks.
    pbMirianaAppears = FALSE
    % This indicates if Miriana gets that possessed look during attacks.
-   pbMirianaPossessed = FALSE
+   pbMirianaPossessed = TRUE
 
    % Timer for the attack.
    ptAttack = $
@@ -332,7 +341,7 @@ messages:
 
          if IsClass(oItem,&Monster)
          {
-            Send(oItem,@Killed,#what=self);
+            Send(oItem,@Delete);
          }
 
          if IsClass(oItem,&Player)
@@ -553,13 +562,16 @@ messages:
          ptAttack = $;
       }
 
-      % Fix what we stopped: Miriana's wandering, monster spawning, etc.
-      oMonsters = First(Send(Send(SYS,@GetLibrary),@GetOccupationList,
-                        #cNPC_class=&Heretic));
+%      % Fix what we stopped: Miriana's wandering, monster spawning, etc.
+%      oMonsters = First(Send(Send(SYS,@GetLibrary),@GetOccupationList,
+%                        #cNPC_class=&Heretic));
 
-      Send(oMonsters,@SetWandering,#value=TRUE);
-      Send(oMonsters,@SetPossessed,#bValue=FALSE);
+%      Send(oMonsters,@SetWandering,#value=TRUE);
+%      Send(oMonsters,@SetPossessed,#bValue=FALSE);
       oRoom = Send(poAttackedNode,@GetOwner);
+%      Send(oRoom,@SomethingChanged,#what=oMonsters);
+%      Send(oRoom,@SomeoneSaid,#what=oMonsters,#type=SAY_RESOURCE,#string=NodeAttack_high_sorcerers_taunt);
+
       Send(oRoom,@SetMonsterGeneration,#bValue=TRUE);
 
       % Kill the Xeo's flags about being part of a node attack
@@ -657,6 +669,7 @@ messages:
          {
             Send(oItem,@MsgSendUser,#message_rsc=NodeAttack_success_rsc,
                  #parm1=Send(oRoom,@GetName));
+            Send(oItem,@MsgSendUser,#message_rsc=NodeAttack_Biskalane_call_to_action_rsc);
          }
       }
 

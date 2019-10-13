@@ -113,6 +113,11 @@ messages:
          Send(what,@EffectSendUser,#what=self,#effect=EFFECT_SAND);
          Send(what,@AddAim,#points=-(iPower/4));
       }
+      
+      If IsClass(what,&AirElemental)
+      {
+         Post(what,@Delete);
+      }
 
       return;
    }
@@ -133,7 +138,7 @@ messages:
       return 3000;
    }
    
-   PeriodicEffect(lEnchanted=$,iPower=0,iRange=0,source=$)
+   PeriodicEffect(lEnchanted=$,iPower=0,iRange=0,source=$,oRoom=$)
    {
       local oBattler, bExhaustedMultiple;
       
@@ -148,6 +153,12 @@ messages:
       {
          if IsClass(Send(oBattler,@GetOwner),&GuildHall)
             AND NOT Send(Send(oBattler,@GetOwner),@InFoyer,#who=oBattler)
+         {
+            continue;
+         }
+
+         if Send(oBattler,@GetOwner) = $
+            OR Send(oBattler,@GetOwner) <> oRoom
          {
             continue;
          }

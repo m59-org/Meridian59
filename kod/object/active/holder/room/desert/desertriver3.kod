@@ -1,0 +1,87 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+DesertRiver3 is DesertRoom
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   room_desertriver3 = desertriver3.roo
+   room_name_desertriver3 = "Cliffbound River"
+
+classvars:
+
+   vrName = room_name_desertriver3
+
+   viTeleport_row = 34
+   viTeleport_col = 12
+
+properties:
+
+   piBaseLight = LIGHT_DARK
+   piOutside_factor = OUTDOORS_5 
+
+   piDirectional_percent = DIRECTIONAL_PERCENT_OUTDOORS
+
+   prRoom = room_desertriver3
+   piRoom_num = RID_DESERTRIVER3
+
+messages:
+
+   Constructed()
+   {
+   
+      propagate;
+   }
+
+   CreateStandardExits()
+   {
+      plEdge_Exits = $;
+      plEdge_Exits = Cons([ LEAVE_NORTH, RID_DESERTRIVER2, 59, 35, ROTATE_NONE ],plEdge_Exits);
+      plEdge_Exits = Cons([ LEAVE_EAST, RID_DESERTCITY2, 74, 3, ROTATE_NONE ],plEdge_Exits);
+
+      propagate;
+   }
+
+   StartRain()
+   {
+      % Acid rain darkens the sand and pock marks rock.
+      Send(self,@ChangeTexture,#id=0,#new_texture=09080,#flags=CTF_FLOOR);
+      % Acid rain makes the water gross.
+      Send(self,@ChangeTexture,#id=13,#new_texture=09363,
+            #flags=CTF_FLOOR);
+      Send(self,@ChangeTexture,#id=14,#new_texture=09363,
+            #flags=CTF_BELOWWALL);
+      Send(self,@SetSectorFlags,#sector=13,#depth=SF_DEPTH1,
+            #scrollSpeed=SCROLL_SLOW);
+
+      % If there's a sandstorm effect here, clear it.
+      if Send(self,@CheckRoomFlag,#flag=ROOM_SANDSTORM)
+      {
+         Send(self,@EndSandstorm);
+      }
+
+      if (viWeatherMask & WEATHER_MASK_SOUND)
+      {
+         Send(self,@AddLoopingSound,
+            #lSoundData=[room_rain_sound, 0, 0, 300, 50]);
+      }
+
+      Send(self,@SetRoomFlag,#flag=ROOM_RAINING,#value=TRUE);
+      Send(self,@WeatherChanged);
+
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

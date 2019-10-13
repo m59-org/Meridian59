@@ -16,9 +16,11 @@ BOFS  = ant.bof centip.bof cow.bof ent.bof fairy.bof \
         orcwiza.bof dfly.bof dflyq.bof lupking.bof kriipa.bof bossbody.bof \
         stntroll.bof snowrat.bof lich.bof deadlich.bof duskrat.bof thrasher.bof \
         nrthlwrm.bof bramble.bof eviltwin.bof dethspid.bof grdworm.bof human.bof \
-        xeochctl.bof dflypet.bof dangel.bof mollusk.bof specmum.bof lvstatue.bof \
+        xeochctl.bof dflypet.bof dangel.bof mollusk.bof specmum.bof animatedstatue.bof \
         evilent.bof elephant.bof bunny.bof wolf.bof chupacabra.bof minotaur.bof \
-        lostsoul.bof mimic.bof
+        mimic.bof dragon.bof airelemental.bof \
+        mazetotem.bof lavafrog.bof crystalbeing.bof \
+        burningorb.bof watercentipede.bof
 
 
 

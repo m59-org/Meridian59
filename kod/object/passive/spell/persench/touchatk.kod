@@ -100,6 +100,9 @@ classvars:
    viEnchantmentLight = 0
 
    viPercentManaReserved = 5
+   
+   viPrimaryStat = STAT_ID_MYSTICISM
+   viSecondaryStat = STAT_ID_INTELLECT
 
 properties:
 
@@ -124,7 +127,7 @@ messages:
 
    EndEnchantment(who = $, report = TRUE, state = 0)
    {
-      Send(who,@LoseLight,#amount=viEnchantmentLight);
+      Post(who,@RecalcLight);
       
       propagate;
    }
@@ -164,7 +167,7 @@ messages:
       
       % Get myst damage bonus.
       iMysticism = Send(who,@GetMysticism);
-      iDamage = ((100+bound(iMysticism-25,0,40))*iDamage)/100;
+      iDamage = ((100+bound(iMysticism-25,0,100))*iDamage)/100;
 
       return iDamage;
    }
@@ -188,6 +191,9 @@ messages:
 
       iProf = Send(who,@GetSkillAbility,#skill_num=SKID_PUNCH);
       Send(who,@FlipSkillAtrophyFlag,#SKID=SKID_PUNCH);
+      iProf = iProf + Send(who,@GetSkillAbility,#skill_num=SKID_WAY_OF_THE_SERPENT);
+      Send(who,@FlipSkillAtrophyFlag,#SKID=SKID_WAY_OF_THE_SERPENT);
+      Send(Send(SYS,@FindSkillByNum,#num=SKID_WAY_OF_THE_SERPENT),@ImproveAbility,#who=who);
       
       iMysticism = (Send(who,@GetMysticism)*2);
       
@@ -272,7 +278,7 @@ messages:
       damage = (damage * (iAbility+1));
       damage = Send(self,@DamageFactors,#damage=damage,#who=who)/100;
       
-      return bound(damage,0,$);
+      return bound(damage,1,$);
    }
    
    FindMaxDamage(who=$)
@@ -284,13 +290,15 @@ messages:
       damage = (damage * (iAbility+1));
       damage = Send(self,@DamageFactors,#damage=damage,#who=who)/100;
       
-      return bound(damage,0,$);
+      return bound(damage,1,$);
    }
 
    FindDamage(weapon_used=$,who=$,victim=$)
    "Damage for attack spells is determined largely by expertise in the spell."
    {
       local damage, iAbility;
+
+      Send(self,@TouchSpellSideEffect,#weapon_used=weapon_used,#who=who,#victim=victim);
 
       % Base weapon damage adjusted to high precision
       damage = random(viMin_Damage*100,viMax_damage*100);
@@ -309,7 +317,7 @@ messages:
       damage = Send(self,@DamageFactors,#damage=damage,#who=who,
                     #victim=victim);
       
-      return bound(damage,0,$);
+      return bound(damage,1,$);
    }
 
    PlayerWasHitMsg(who=$,attacker=$,damage=$)
@@ -471,6 +479,36 @@ messages:
                 4, Send(SYS,@GetSpellDamageTypeName,
                         #type=(viSpellType & ~ATCK_SPELL_ALL)));
 
+      return;
+   }
+
+   CanBeRemovedByPlayer()
+   {
+      return FALSE;
+   }
+
+   CanCleave()
+   {
+      return FALSE;
+   }
+
+   GetEnchantmentLight()
+   {
+      return viEnchantmentLight;
+   }
+
+   AltersLightLevel()
+   {
+      return TRUE;
+   }
+
+   TouchSpellSideEffect(weapon_used=$,who=$,victim=$)
+   {
+      if Send(who,@GetPlayerRace) = RACE_DRACONIAN
+         AND Random(1,100) <= 10
+      {
+         Post(victim,@ApplyBleed,#what=who,#bleed_power=Send(who,@GetBleedPower));
+      }
       return;
    }
 

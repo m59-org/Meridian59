@@ -40,7 +40,7 @@ messages:
          oEquipmentItem = Create(&LeatherArmor);
          iBonusModifier = Random(30,60);
       }
-      else if plSpellBook = $
+      else if plRangedSpellBook = $
       {
          oEquipmentItem = Create(&Robe,#color=Random(XLAT_TO_RED,XLAT_TO_SKY));
          iBonusModifier = Random(20,40);
@@ -48,7 +48,7 @@ messages:
       else
       {
          oSpell = Send(SYS,@FindSpellByNum,
-                        #num=First(Nth(plSpellBook,Random(1,Length(plSpellBook)))));
+                        #num=First(Nth(plRangedSpellBook,Random(1,Length(plRangedSpellBook)))));
          oEquipmentItem = Create(&DiscipleRobe,#school=Send(oSpell,@GetSchool));
          iBonusModifier = Random(40,60);
       }

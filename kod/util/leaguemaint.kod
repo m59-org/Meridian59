@@ -1,0 +1,159 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+LeagueMaintenance is UtilityFunctions
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   you_have_donated_to_league = \
+      "You have now donated a sum total of %i shillings to our expansion projects. "
+      "We thank you deeply for your contributions!"
+   
+   top_donator_is = \
+      "The current top donor is %s, with a generous grand total of %i shillings."
+
+   next_level_jailer = \
+      "The next expansion in our plan is a monster jailer and reseller. "
+      "For that, we need a sum total of ten million. "
+      "The current total we have reach is %i shillings."
+
+classvars:
+
+properties:
+
+   % form of [player object, shilling count]
+   plShillingContributors = $
+   
+   piTotalDonatedShillings = 0
+   piFundingLevel = 0
+
+messages:
+
+   Constructor()
+   {
+      Send(self,@Recreate);
+
+      return;
+   }
+
+   Recreate()
+   {
+      return;
+   }
+
+   NewDay()
+   {
+      return;
+   }
+
+   NewGameHour()
+   {
+      return;
+   }
+   
+   GetContributors()
+   {
+      return plShillingContributors;
+   }
+
+   DonatedMoneyToLeague(who=$,iAmount=0)
+   {
+      local i;
+      
+      piTotalDonatedShillings = piTotalDonatedShillings + iAmount;
+      
+      Post(self,@CheckForNextFundingLevel);
+
+      foreach i in plShillingContributors
+      {
+         if First(i) = who
+         {
+            SetNth(i,2,Nth(i,2)+iAmount);
+            Send(who,@MsgSendUser,#message_rsc=you_have_donated_to_league,#parm1=Nth(i,2));
+            return;
+         }
+      }
+      
+      plShillingContributors = Cons([who,iAmount],plShillingContributors);
+      Send(who,@MsgSendUser,#message_rsc=you_have_donated_to_league,#parm1=iAmount);
+      
+      Post(self,@AnnounceTopDonator);
+      return;
+   }
+
+   AnnounceTopDonator()
+   {
+      local iTopDonator, i, oTopDonator, iHighestAmount;
+      
+      oTopDonator = $;
+      iHighestAmount = 0;
+      foreach i in plShillingContributors
+      {
+         if Nth(i,2) > iHighestAmount
+         {
+            oTopDonator = Nth(i,1);
+            iHighestAmount = Nth(i,2);
+         }
+      }
+      
+      if oTopDonator <> $
+      {
+         foreach i in Send(Send(SYS,@FindRoomByNum,#num=RID_ADVENTURERS_GUILD),@GetHolderActive)
+         {
+            if IsClass(First(i),&Player)
+            {
+               Send(First(i),@MsgSendUser,#message_rsc=top_donator_is,#parm1=Send(oTopDonator,@GetTrueName),#parm2=iHighestAmount);
+            }
+         }
+      }
+      
+      return;
+   }
+
+   CheckForNextFundingLevel()
+   {
+      % 100 million for seer
+      if piFundingLevel = 2
+         AND piTotalDonatedShillings >= 100000000
+      {
+         piFundingLevel = 3;
+         Send(Send(SYS,@FindRoomByNum,#num=RID_ADVENTURERS_GUILD),@UpgradeBuilding);
+         return;
+      }
+      % 50 million for hangout room
+      if piFundingLevel = 1
+         AND piTotalDonatedShillings >= 50000000
+      {
+         piFundingLevel = 2;
+         Send(Send(SYS,@FindRoomByNum,#num=RID_ADVENTURERS_GUILD),@UpgradeBuilding);
+         return;
+      }
+      % 20 million for jailer
+      if piFundingLevel = 0
+         AND piTotalDonatedShillings >= 20000000
+      {
+         piFundingLevel = 1;
+         Send(Send(SYS,@FindRoomByNum,#num=RID_ADVENTURERS_GUILD),@UpgradeBuilding);
+         return;
+      }
+      return;
+   }
+   
+   GetFundingLevel()
+   {
+      return piFundingLevel;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

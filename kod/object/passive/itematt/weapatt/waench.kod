@@ -126,8 +126,19 @@ messages:
          return;
       }
 
-      Send(oItem,@SetTypeFlag,#flag=ATCK_WEAP_MAGIC,#value=True);
-      Send(oItem,@SetTypeFlag,#flag=ATCK_WEAP_NONMAGIC,#value=False);
+      if IsClass(oItem,&NeruditeSword)
+      {
+         Send(oItem,@SetTypeFlag,#flag=ATCK_WEAP_MAGIC,#value=True);
+      }
+      else if IsClass(oItem,&RiijaSword)
+      {
+         Send(oItem,@SetTypeFlag,#flag=ATCK_WEAP_MAGIC,#value=True);
+      }
+      else
+      {
+         Send(oItem,@SetTypeFlag,#flag=ATCK_WEAP_MAGIC,#value=True);
+         Send(oItem,@SetTypeFlag,#flag=ATCK_WEAP_NONMAGIC,#value=False);
+      }
 
       return;
    }
@@ -157,8 +168,19 @@ messages:
                #parm1=Send(oItem,@GetName));
       }
 
-      Send(oItem,@SetTypeFlag,#flag=ATCK_WEAP_MAGIC,#value=False);
-      Send(oItem,@SetTypeFlag,#flag=ATCK_WEAP_NONMAGIC,#value=True);
+      if IsClass(oItem,&NeruditeSword)
+      {
+         Send(oItem,@SetTypeFlag,#flag=ATCK_WEAP_MAGIC,#value=False);
+      }
+      else if IsClass(oItem,&RiijaSword)
+      {
+         Send(oItem,@SetTypeFlag,#flag=ATCK_WEAP_MAGIC,#value=True);
+      }
+      else
+      {
+         Send(oItem,@SetTypeFlag,#flag=ATCK_WEAP_MAGIC,#value=False);
+         Send(oItem,@SetTypeFlag,#flag=ATCK_WEAP_NONMAGIC,#value=True);
+      }
 
       return;
    }
@@ -178,6 +200,42 @@ messages:
    IsMagicalEffect()
    {
       return TRUE;
+   }
+
+   ModifyDamage(damage=0,target=$,wielder=$,lData=$)
+   "Item Attributes, in general, should only + or - damage."
+   {
+      return damage;
+   }
+
+   ModifyHitRoll(hitroll=0,target=$,wielder=$,lData=$)
+   {
+      local sMakerInfo, iSpellPower;
+
+      if lData = $ OR NOT IsList(lData)
+      {
+         return hitroll;
+      }
+
+      if Length(lData) <> 5
+      {
+         return hitroll;
+      }
+
+      sMakerInfo = Nth(lData,5);
+
+      if sMakerInfo <> $
+         AND Length(sMakerInfo) > 3
+      {
+         iSpellPower = Nth(sMakerInfo,4);
+         if iSpellPower = $
+         {
+            iSpellPower = 0;
+         }
+         return hitroll + (iSpellPower+1);
+      }
+
+      return hitroll;
    }
 
 end

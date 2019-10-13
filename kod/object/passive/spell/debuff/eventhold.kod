@@ -1,0 +1,331 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+EventHold is Debuff
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   event_hold_name_rsc = "paralysis"
+   event_hold_icon_rsc = ihold.bgf
+   event_hold_desc_rsc = \
+      "You can't move!"
+
+   event_hold_already_enchanted = "%s%s is already held."
+   event_hold_caster = "%s%s is now held in place by a magical force."
+   event_hold_on = "A magical tingling pulses through your body.  You are unable to move."
+   event_hold_off = "The magical hold lifts and you are able to move once more."
+   
+   event_hold_break_rod_active = \
+      "Flowing energies dissipate your spell before you even begin!"
+
+   event_hold_player_rsc = \
+      holdrings.bgf
+
+   event_hold_ring_projectile_rsc = \
+      blindring.bgf
+
+classvars:
+
+   vrName = event_hold_name_rsc
+   vrIcon = event_hold_icon_rsc
+   vrDesc = event_hold_desc_rsc
+
+   vrAlreadyEnchanted = event_hold_already_enchanted
+   vrEnchantment_On = event_hold_on
+   vrEnchantment_Off = event_hold_off
+   vrSuccess = event_hold_caster
+
+   viSpell_num = SID_EVENT_HOLD
+   viSchool = SS_QOR
+   viSpell_level = 4
+
+   viSpellExertion = 2
+   viMana = 15
+
+   viChance_To_Increase = 10
+   viMeditate_ratio = 50
+
+   viFlash = FLASH_BAD
+
+   % In seconds, since it works off GetTime()
+   viPostCast_time = 2 % Recommended value 1.
+
+   vrHoldRings = event_hold_player_rsc
+
+   viLayer = 9
+
+   vrProjectile_Icon = event_hold_ring_projectile_rsc
+
+   vbIsRangedAttack = FALSE
+
+   viProjectileFlag = PROJ_FLAG_LIGHT_SOURCE
+
+   % Projectile lighting information.
+   viProjectileLightFlags = LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC
+   % Medium light range, out of 255.
+   viProjectileLightIntensity = 100
+   % Default color is lightning.
+   viProjectileLightColor = LIGHT_BPURPLE
+   
+   viPrimaryStat = 0
+   viSecondaryStat = 0
+
+properties:
+
+   piBaseDuration = 2000 % Recommended value 2000.
+   piSpellPowerModifier = 40 % Recommended value 30.
+   piDeviation = 50 % Recommended value 10%.
+   viCast_time = 0 % Recommended value 600 (milliseconds).
+
+messages:
+
+   ResetReagents()
+   {
+      plReagents = $;
+      plReagents = Cons([&PurpleMushroom,2],plReagents);
+
+      return;
+   }
+
+   CanPayCosts(who=$,lTargets=$,bItemCast=FALSE)
+   {
+      local target, i;
+
+      % Can cast spell if the 1 target item is a user
+      if Length(lTargets) <> 1
+      {
+         return FALSE;
+      }
+
+      propagate;
+   }
+
+   CastSpell(who=$,lTargets=$,iSpellpower=0,report=TRUE)
+   {
+      local oTarget, oRoom, i;
+
+      oTarget = First(lTargets);
+
+      % Spell effects.
+      Send(self,@DoSpell,#what=who,#oTarget=oTarget,#report=report,
+            #iDuration=Send(self,@GetDuration,#iSpellPower=iSpellPower));
+
+      propagate;
+   }
+
+   DoSpell(what=$,oTarget=$,iDuration=$,report=TRUE,bAllowFreeAction=TRUE)
+   "Holds target for duration seconds."
+   {
+      local i, oSpell;
+
+      if oTarget = $
+      {
+         return FALSE;
+      }
+
+      % Check for enchantment already applied
+      if Send(oTarget,@IsEnchanted,#what=self)
+      {
+         return FALSE;
+      }
+
+      % Check for spell called with $ iDuration, apply default time if so.
+      if iDuration = $
+      {
+         iDuration = 5000;
+      }
+
+      Send(oTarget,@StartEnchantment,#what=self,#time=iDuration,#report=report,
+            #state=report);
+
+      if IsClass(oTarget,&Player)
+      {
+         if report
+         {
+            Send(oTarget,@MsgSendUser,#message_rsc=vrEnchantment_On);
+         }
+
+         % Do not paralyze DMs.
+         if NOT (IsClass(oTarget,&DM) AND Send(oTarget,@PlayerIsImmortal))
+         {
+            Send(oTarget,@EffectSendUser,#what=self,#effect=EFFECT_PARALYZE_ON);
+         }
+      }
+      else
+      {
+         Send(oTarget,@ResetBehaviorFlags);
+      }
+
+      if report
+      {
+         Send(what,@MsgSendUser,#message_rsc=vrSuccess,
+               #parm1=Send(oTarget,@GetCapDef),#parm2=Send(oTarget,@GetName));
+      }
+
+      propagate;
+   }
+
+   GetDuration(iSpellPower=0)
+   {
+      local iDuration;
+
+      % All duration calculations now use class properties, modifiable in game
+      % By default, base duration 2000ms, total time 2000-6000ms using 40x
+      % spellpower multiplier, with the final duration 50-100% max
+      iDuration = piBaseDuration + iSpellPower * piSpellPowerModifier;
+      iDuration = Random(iDuration * (100 - piDeviation) / 100,iDuration);
+
+      return iDuration;
+   }
+
+   EndEnchantment(who=$,report=TRUE,state=$)
+   {
+      if who <> $
+         AND IsClass(who,&Player)
+      {
+         Send(who,@RemoveOverlay,#what=self);
+      }
+      
+      if IsClass(who,&Player)
+      {
+         % Don't override phasing hold.
+         if NOT Send(who,@CheckPlayerFlag,#flag=PFLAG_PHASED)
+         {
+            Send(who,@EffectSendUser,#what=self,#effect=EFFECT_PARALYZE_OFF);
+         }
+
+         Send(who,@EffectSendUser,#what=self,#effect=EFFECT_PARALYZE_OFF);
+         if state
+         {
+            Send(who,@MsgSendUser,#message_rsc=vrEnchantment_Off);
+         }
+      }
+      else  % class is &Monster
+      {
+         % This has to be done AFTER the enchantment is gone from the
+         % monster's ench list - Post it
+         Post(who,@ResetBehaviorFlags);
+      }
+
+      return;
+   }
+
+   RestartEnchantmentEffect(who=$,state=$)
+   {
+      Send(who,@MsgSendUser,#message_rsc=vrEnchantment_On);
+      Send(who,@EffectSendUser,#what=self,#effect=EFFECT_PARALYZE_ON);
+
+      return;
+   }
+
+   ModifyMonsterBehavior(mob=$)
+   {
+      Send(mob,@SetBehaviorFlag,#flag=AI_NOMOVE,#value=TRUE);
+      Send(mob,@SetBehaviorFlag,#flag=AI_NOFIGHT,#value=TRUE);
+
+      return;
+   }
+
+   SetSpellPlayerFlag(who=$)
+   {
+      if NOT (IsClass(who,&DM) AND Send(who,@PlayerIsImmortal))
+      {
+         Send(who,@SetPlayerFlag,#flag=PFLAG_NO_MOVE,#value=TRUE);
+         Send(who,@SetPlayerFlag,#flag=PFLAG_NO_FIGHT,#value=TRUE);
+         Send(who,@SetPlayerFlag,#flag=PFLAG_NO_MAGIC,#value=TRUE);
+      }
+
+      return;
+   }
+
+   GetLayer()
+   {
+      return viLayer;
+   }
+   
+   GetOverlayHotspot()
+   {
+      return HS_LEGS;
+   }
+
+   SendOverlayAnimation()
+   {
+      AddPacket(1,ANIMATE_CYCLE, 4,80, 2,1, 2,5);
+    %  AddPacket(1,ANIMATE_NONE,2,1); % group 2 is the player-overlay group
+      
+      return;
+   }
+
+   SendInventoryOverlays()
+   {
+      AddPacket(1, 0);
+      
+      return;
+   }
+
+   SendOverlayInformation()
+   {
+      AddPacket(4,Send(self,@GetOverlay));
+      AddPacket(1,Send(self,@GetOverlayHotspot));
+      Send(self,@SendOverlayAnimation);
+      
+      return;
+   }
+
+   GetNumberOverlays()
+   {
+      % Most overlay items only offer one overlay.
+      %  Some items like weapons and bows may offer two.
+      return 1;
+   }
+
+   GetOverlay(animation = $)
+   {
+      return $;
+   }
+
+   % Return the icon used to display a spell shooting through the air.
+   GetProjectileIcon()
+   {
+      return $;
+   }
+
+   GetProjectileSpeed()
+   {
+      return 18;
+   }
+
+   SendProjectileAnimation()
+   {
+      AddPacket(1, ANIMATE_CYCLE, 4, 40, 2, 1, 2, 6);   % 40ms between animations
+      return;
+   }
+
+   GetProjectileLightFlags()
+   {
+      return 0;
+   }
+
+   GetProjectileLightIntensity()
+   {
+      return 0;
+   }
+
+   GetProjectileLightColor()
+   {
+      return 0;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

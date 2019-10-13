@@ -1,0 +1,140 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Reconstruct is ItemEnchantment
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   reconstruct_name_rsc = "reconstruct"
+   reconstruct_icon_rsc = imend.bgf
+   reconstruct_desc_rsc = \
+      "While the warriors of Kraanan have learned how to patch up their gear "
+      "to fight one more battle, "
+      "alchemists are the only group with enough knowledge of the material "
+      "sciences to truly reconstruct an item at a level of matter "
+      "too small to see with the naked eye. "
+      "Alchemists can even reconstruct a completely broken item, "
+      "something no amount of 'magic' has ever been able to accomplish. "
+      "Reconstruction requires the gold alchemical essence of 30,000 melted shillings "
+      "and a significant focus of spiritual and physical energies."
+
+   reconstruct_not_weaponry = "You try to focus on %s%s, but nothing happens!"
+   reconstruct_beyond_hope = "%s%s is beyond salvage."
+   reconstruct_full_healed = "%s%s is already in perfect condition."
+   reconstruct_working = "Pieces of %s%s bind themselves together to form a new whole."
+
+   reconstruct_sound = kmend.wav
+
+classvars:
+
+   vrName = reconstruct_name_rsc
+   vrIcon = reconstruct_icon_rsc
+   vrDesc = reconstruct_desc_rsc
+
+   viSpell_num = SKID_RECONSTRUCT
+   viSchool = SKS_ALCHEMY
+   viSpell_level = 4
+   viSpellExertion = 65
+   viCast_time = 30000
+   viMana = 65
+   viChance_To_Increase = 20
+
+   viMeditate_ratio = 140
+
+   vrSucceed_wav = reconstruct_sound
+   
+   viPrimaryStat = STAT_ID_INTELLECT
+   viSecondaryStat = 0
+
+properties:
+
+messages:
+
+   ResetReagents()
+   {
+      plReagents = $;
+      plReagents = Cons([&Money,30000],plReagents);
+
+      return;
+   }
+
+   CanPayCosts(who=$,lTargets=$)
+   {
+      local oTarget, iHits, iMaxHits;
+
+      if lTargets = $
+      {
+         return FALSE;
+      }
+
+      oTarget = First(lTargets);
+
+      % Check that target is an item that can be mended.
+      if NOT (IsClass(oTarget,&Item) AND Send(oTarget,@CanMend))
+      {
+         Send(who,@MsgSendUser,#message_rsc=reconstruct_not_weaponry,
+               #parm1=Send(oTarget,@GetDef),#parm2=Send(oTarget,@GetName));
+
+         return FALSE;
+      }
+
+      % Kludgey, yes, but spell wouldn't recognize ReqRepair in the Torch class.
+      if IsClass(oTarget,&Torch)
+      {
+         Send(who,@MsgSendUser,#message_rsc=reconstruct_not_weaponry,
+               #parm1=Send(oTarget,@GetDef),#parm2=Send(oTarget,@GetName));
+
+         return FALSE;
+      }
+
+      iHits = Send(oTarget,@GetHits);
+      iMaxHits = Send(oTarget,@GetMaxHits);
+
+      % Is the item already at perfect condition?
+      if iHits = iMaxHits AND iHits > 0
+      {
+         Send(who,@MsgSendUser,#message_rsc=reconstruct_full_healed,
+               #parm1=Send(oTarget,@GetCapDef),#parm2=Send(oTarget,@GetName));
+
+         return FALSE;
+      }
+
+      propagate;
+   }
+
+   CastSpell(who=$,lTargets=$,iSpellPower=0)
+   {
+      local oTarget, iCurrent, iAmount, iMaxAmount, iMultiplier;
+
+      oTarget = First(lTargets);
+      iCurrent = Send(oTarget,@GetHits);
+      iMaxAmount = Send(oTarget,@GetMaxHits);
+      iAmount = iSpellPower*Random(1,3)*Random(1,3);
+
+      if iCurrent = 0
+         AND poOwner <> $
+      {
+         % This item's broken. Let's fix it!
+         Post(poOwner,@SomethingChanged,#what=self);
+      }
+
+      Send(oTarget,@SetHits,#number=Bound(iCurrent+iAmount,1,iMaxAmount));
+      Send(who,@MsgSendUser,#message_rsc=reconstruct_working,
+              #parm1=Send(oTarget,@GetDef),#parm2=Send(oTarget,@GetName));
+
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

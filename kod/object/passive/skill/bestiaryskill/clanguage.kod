@@ -1,0 +1,60 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+CreatureLanguage is BestiarySkill
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   language_icon_rsc = iseduce.bgf
+
+classvars:
+
+   viLanguage = LANGUAGE_NONE
+   vrIcon = language_icon_rsc
+
+   viSchool = SS_BESTIARY
+
+   viPrimaryStat = STAT_ID_INTELLECT
+   viSecondaryStat = 0
+   
+   vbUtilitySkill = TRUE
+
+properties:
+
+messages:
+
+   GetLanguage()
+   {
+      return viLanguage;
+   }
+
+   DoSkill(who = $, oMonster = $)
+   {
+      local iAbility, iIntellect;
+      
+      iIntellect = Send(self,@GetRequisiteStat,#who=who);
+      iAbility = Send(who,@GetSkillAbility,#skill_num=viSkill_num);
+      
+      if iAbility + iIntellect/5 >= Random(1,99)
+      {
+         % Check for advancement conditions.
+         Send(self,@ImproveAbility,#who=who,#target=oMonster);
+         return TRUE;         
+      }
+
+      return FALSE;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

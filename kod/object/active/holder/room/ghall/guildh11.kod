@@ -10,6 +10,13 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 GuildHall11 is GuildHall
 
+   % FoF is a classic. It's rarely visited but close to a councilor and to BQ.
+   %    FoF has the strongest connection to nature of any hall,
+   %    and as a result has strong spell totems.
+   %    It also has a great meditation ratio.
+   %
+   % 
+
 constants:
 
    MAINDOOR  = 1
@@ -28,6 +35,12 @@ resources:
    room_guildh11 = guildh11.roo
 
    guildh11_forest_sound = ambcntry.wav
+   
+   guildh11_portal_one_desc = \
+      "Through this portal, you can see the Deep Forest of Farol."
+
+   guildh11_portal_two_desc = \
+      "The Vale of Sorrows shimmers through this portal."
 
 classvars:
 
@@ -35,6 +48,9 @@ classvars:
 
    viTeleport_row = 5
    viTeleport_col = 16
+
+   viLongitude = 15
+   viLatitude = 15
 
    viNews_row = 18
    viNews_col = 6
@@ -59,6 +75,79 @@ classvars:
    viSeconds_til_close = 8
 
    viWeatherZone = WEATHER_ZONE_MARION
+   
+   viPortalOneRow = 20
+   viPortalOneCol = 27
+   viPortalOneFineRow = 58
+   viPortalOneFineCol = 49
+   viPortalOneAngle = ANGLE_SOUTH_WEST
+   viPortalOneDestRID = RID_E6
+   viPortalOneDestRow = 36
+   viPortalOneDestCol = 60
+   viPortalOneDestFineRow = 5
+   viPortalOneDestFineCol = 16
+   viPortalOneDestAngle = ANGLE_NORTH_WEST
+   vsPortalOneDesc = guildh11_portal_one_desc
+   
+   viPortalTwoRow = 24
+   viPortalTwoCol = 27
+   viPortalTwoFineRow = 5
+   viPortalTwoFineCol = 50
+   viPortalTwoAngle = ANGLE_NORTH_WEST
+   viPortalTwoDestRID = RID_C2
+   viPortalTwoDestRow = 25
+   viPortalTwoDestCol = 6
+   viPortalTwoDestFineRow = 40
+   viPortalTwoDestFineCol = 52
+   viPortalTwoDestAngle = ANGLE_EAST
+   vsPortalTwoDesc = guildh11_portal_two_desc
+   
+   viReliquaryOneRow = 11
+   viReliquaryOneCol = 24
+   viReliquaryOneFineRow = 28
+   viReliquaryOneFineCol = 57
+   
+   % Fusing device rates go from 8 (worst) to 4 (best) 
+   viShardFusingDeviceRow = 11
+   viShardFusingDeviceCol = 24
+   viShardFusingDeviceFineRow = 7
+   viShardFusingDeviceFineCol = 24
+   viShardFusingDeviceRate = 6
+   
+   % Shattering device rates go from 2 (worst) to 4 (best) 
+   viShardShatteringDeviceRow = 11
+   viShardShatteringDeviceCol = 25
+   viShardShatteringDeviceFineRow = 63
+   viShardShatteringDeviceFineCol = 15
+   viShardShatteringDeviceRate = 2
+   
+   viFociOneRow = 11
+   viFociOneCol = 7
+   viFociOneFineRow = 47
+   viFociOneFineCol = 17
+   viFociOnePower = 297
+   viFociOneRange = 5
+   viFociOneSpellNum = SID_REJUVENATE
+   
+   viFociTwoRow = 11
+   viFociTwoCol = 7
+   viFociTwoFineRow = 47
+   viFociTwoFineCol = 17
+   viFociTwoPower = 297
+   viFociTwoRange = 5
+   viFociTwoSpellNum = SID_RESTORATE
+
+   viBartenderRow = 22
+   viBartenderCol = 3
+   viBartenderFineRow = 49
+   viBartenderFineCol = 31
+   viBartenderRate = 100
+   
+   viMarketRow = 16
+   viMarketCol = 23
+   viMarketFineRow = 10
+   viMarketFineCol = 61
+   viMarketRate = 100
 
 properties:
 
@@ -72,6 +161,10 @@ properties:
 
    ptSecret = $
    ptEntrance = $
+   
+   piGuildHallMeditateEffiency = 100
+   % FoF boosts Faren, Shal, and Jala by 15%
+   piSpecialGuildHallMeditateEfficiency = 115
 
 messages:
 
@@ -208,6 +301,30 @@ messages:
             #new_row=7,#new_col=19,#fine_col=56,#fine_row=24);
 
       propagate;
+   }
+
+   GetTotemLightIntensity(what=$)
+   {
+      return 0;
+   }
+
+   GetTotemLightColor(what=$)
+   {
+      return LIGHT_ORANGE;
+   }
+   
+   DoesPlayerQualifyForSpecialMeditateRatio(who=$,oSpell=$,oSkill=$)
+   {
+      if (oSpell <> $
+         AND Send(oSpell,@GetSchool) = SS_FAREN)
+         OR (oSpell <> $
+         AND Send(oSpell,@GetSchool) = SS_SHALILLE)
+         OR (oSpell <> $
+         AND Send(oSpell,@GetSchool) = SS_JALA)
+      {
+         return TRUE;
+      }
+      return FALSE;
    }
 
 end

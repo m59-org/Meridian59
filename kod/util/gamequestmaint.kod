@@ -1,0 +1,243 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+GameQuestMaintenance is UtilityFunctions
+
+% This utility tracks and applies appropriate quests
+%    for characters from starting 20 hp to fully built
+%
+% Leads characters through the world, teaching them.
+%
+% First quest: Clear the Mausoleum by killing the Shadow Mummy
+%
+%
+%
+%
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+
+classvars:
+
+properties:
+
+
+messages:
+
+   Constructor()
+   {
+      Send(self,@Recreate);
+
+      return;
+   }
+
+   Recreate()
+   {
+      return;
+   }
+   
+   EvaluatePlayer(who=$, vbTriggered = FALSE)
+   {
+      local i, iPlayerHP, oRoom, lPassiveQuests;
+      
+      % if vbTriggered is TRUE, we're evaluating a player
+      %    because something wanted to add a new quest chain
+
+      if who = $
+         OR NOT IsClass(who,&Player)
+         OR Send(who,@GetOwner) = $
+      {
+         return $;
+      }
+
+      lPassiveQuests = Send(who,@GetPassiveQuests);
+      
+      % Don't reinform if this is a triggered check
+      if lPassiveQuests <> $
+         AND NOT vbTriggered
+      {
+         foreach i in lPassiveQuests
+         {
+            Send(i,@Reinform);
+         }
+      }
+
+      % See if we've completed any state based quests
+      foreach i in lPassiveQuests
+      {
+         Send(i,@CheckAllStateBasedConditions);
+      }
+      
+      % Where is the player at in the process of building their character?
+      % Let's take some metrics and determine where best to start them in the quest chains.
+      
+      iPlayerHP = Send(who,@GetBaseMaxHealth);
+      oRoom = Send(who,@GetOwner);
+      
+      if iPlayerHP = 20
+      {
+         % We're completely new. Are we in Raza?
+         if Send(oRoom,@GetRegion) = RID_NEWB_BASE
+            AND NOT Send(who,@HasQuestChain,#chain_num=HP20_RAZA_CHAIN)
+         {
+            Create(&hp20pq1,#quester=who);
+         }
+      }
+      
+      % Newbies next find themselves here.
+      % Initiate first recorded quest chain.
+      % We don't do this for built players, since they won't need this.
+      if iPlayerHP < 50
+         AND Send(oRoom,@GetRegion) <> RID_NEWB_BASE
+         AND NOT Send(who,@HasQuestChain,#chain_num=HP30_NEWBIE_CHAIN)
+      {
+         Create(&hp30pq1,#quester=who);
+      }
+      
+      if iPlayerHP >= 35
+         AND IsClass(oRoom,&Marion)
+         AND NOT Send(who,@HasQuestChain,#chain_num=HP35_INVESTIGATE_MARION_CRYPT_CHAIN)
+      {
+         Create(&hp35pq1,#quester=who);
+      }
+      
+      if iPlayerHP >= 40
+         AND iPlayerHP < 100
+         AND NOT Send(who,@HasQuestChain,#chain_num=HP40_INVESTIGATE_CASTLE_VICTORIA_CHAIN)
+      {
+         Create(&hp40pq1,#quester=who);
+      }
+      
+      % It's faction time. Generally at 50 hp.
+      if Send(who,@CheckPlayerFlag,#flag=PFLAG_PKILL_ENABLE)
+         AND (Send(who,@PlayerIsHPIntrigue)
+              OR Send(who,@PlayerIsAdept))
+         AND NOT Send(who,@HasQuestChain,#chain_num=HP50_JOIN_FACTION_CHAIN)
+         AND Send(who,@GetFaction) = FACTION_NEUTRAL
+         AND iPlayerHP <= 80
+      {
+         Create(&hp50pq1,#quester=who);
+      }
+      
+      if iPlayerHP >= 60
+         AND NOT Send(who,@HasQuestChain,#chain_num=HP60_MANA_NODES_CHAIN)
+      {
+         Create(&hp60pq1,#quester=who);
+      }
+      
+      if iPlayerHP > 80
+         AND iPlayerHP <= 90
+         AND NOT Send(who,@HasQuestChain,#chain_num=HP80_SOLDIER_SHIELD_CHAIN)
+         AND Send(who,@GetFaction) <> FACTION_NEUTRAL
+      {
+         Create(&hp80pq1,#quester=who);
+      }
+      
+      if iPlayerHP >= 90
+         AND iPlayerHP <= 120
+         AND NOT Send(who,@HasQuestChain,#chain_num=HP90_INVESTIGATE_ISLAND_CHAIN)
+      {
+         Create(&hp90pq1,#quester=who);
+      }
+      
+      if iPlayerHP >= 100
+         AND iPlayerHP <= 130
+         AND NOT Send(who,@HasQuestChain,#chain_num=HP100_INVESTIGATE_BRAX_CHAIN)
+      {
+         Create(&hp100pq1,#quester=who);
+      }
+      
+      % 20 HP below player's max, but they can get this early and wait
+      if IsClass(oRoom,&MarionCrypt3a)
+         AND NOT Send(who,@HasQuestChain,#chain_num=MAX_HP_MINUS_20_INVESTIGATE_THRASHERS_CHAIN)
+      {
+         Create(&hpMaxMinus20pq1,#quester=who);
+      }
+      
+      % 10 HP below player's max
+      if iPlayerHP >= 100+Send(who,@GetRawStamina)-10
+         AND NOT Send(who,@HasQuestChain,#chain_num=MAX_HP_MINUS_10_INVESTIGATE_DESERT_CHAIN)
+      {
+         Create(&hpMaxMinus10pq1,#quester=who);
+      }
+      
+      % Did the player go to the desert and skip the princess opener?
+      if IsClass(oRoom,&DesertShore2)
+         AND NOT Send(who,@HasQuestChain,#chain_num=MAX_HP_MINUS_10_INVESTIGATE_DESERT_CHAIN)
+      {
+         Create(&hpMaxMinus10pq3,#quester=who);
+      }
+
+      if IsClass(oRoom,&MazeSewer)
+         AND NOT Send(who,@HasQuestChain,#chain_num=ANY_HP_SOLVE_MAZE_CHAIN)
+      {
+         Create(&anyhpmazepq1,#quester=who);
+      }
+
+      if iPlayerHP >= 100+Send(who,@GetRawStamina)-40
+         AND NOT Send(who,@HasQuestChain,#chain_num=ANY_HP_REINCARNATION_CHAIN)
+      {
+         Create(&anyhpreincpq1,#quester=who);
+      }
+      
+      if IsClass(oRoom,&MazeLavaFrogRoom)
+         AND NOT Send(who,@HasQuestChain,#chain_num=ANY_HP_LAVA_FROG_CHAIN)
+      {
+         Create(&anyhplavafrogpq1,#quester=who);
+      }
+      
+      if IsClass(oRoom,&FrozenCistern)
+         AND NOT Send(who,@HasQuestChain,#chain_num=ANY_HP_ICE_DRAGON_CHAIN)
+      {
+         Create(&anyhpicedragonpq1,#quester=who);
+      }
+      
+      if IsClass(oRoom,&MazeArmorRoom)
+         AND NOT Send(who,@HasQuestChain,#chain_num=ANY_HP_MAZE_ARMORY_CHAIN)
+      {
+         Create(&anyhparmorypq1,#quester=who);
+      }
+      
+      if IsClass(oRoom,&MazeExitRoom)
+         AND NOT Send(who,@HasQuestChain,#chain_num=ANY_HP_MAZE_EXIT_CHAIN)
+      {
+         Create(&anyhpmazeexitpq1,#quester=who);
+      }
+      
+      if IsClass(oRoom,&ZigguratAltar)
+         AND NOT Send(who,@HasQuestChain,#chain_num=ANY_HP_HIGH_SORCERERS_CHAIN)
+      {
+         Create(&anyhphighsorcerers,#quester=who);
+      }
+
+      if IsClass(oRoom,&Temple)
+         AND NOT Send(who,@HasQuestChain,#chain_num=SHAL6_CHAIN)
+      {
+         if Send(who,@HasSpell,#num=SID_PORTAL_OF_LIFE)
+         {
+            Create(&shal6pq1,#quester=who);
+         }
+      }
+
+      if IsClass(oRoom,&FeyForest)
+         AND NOT Send(who,@HasQuestChain,#chain_num=ANY_HP_VALE_OF_SORROWS_CHAIN)
+      {
+         return;
+      }
+
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

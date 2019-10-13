@@ -10,6 +10,16 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 GuildHall10 is GuildHall
 
+   % Jaarba's Abode is a hall at tension. It's a step away from an elusion
+   %    destination and has a dangerously close-to-the-entrance door,
+   %    but is often forgotten about in the grand scheme of things.
+   %
+   %    It also has a maze to reach the switch. The maze has been upgraded,
+   %    but the spirit still remains.
+   %    Jaarba's Abode has lots of reliquaries and the second highest meditation ratio.
+   %    It can also support multiple spell totems.
+   %    Its sole portal is an escape hatch for the owner. It leads to Off The Beaten Path.
+
 constants:
 
    include blakston.khd
@@ -38,11 +48,17 @@ resources:
 
    guildhall10_sound = down2.wav
 
+   guildh10_portal_desc = \
+      "This portal acts as a quick escape for the owners of Jaarba's Abode."
+
 classvars:
 
    vrName = room_name_guildhall10
 
    viQuality = 5
+
+   viLongitude = 15
+   viLatitude = 32
 
    viNews_row = 12
    viNews_col = 4
@@ -65,6 +81,68 @@ classvars:
    viInner_teleport_row = 6
    viInner_teleport_col = 16
    viSeconds_til_close = 8
+   
+   viPortalOneRow = 15
+   viPortalOneCol = 8
+   viPortalOneFineRow = 46
+   viPortalOneFineCol = 8
+   viPortalOneAngle = ANGLE_WEST
+   viPortalOneDestRID = RID_F7
+   viPortalOneDestRow = 30
+   viPortalOneDestCol = 12
+   viPortalOneDestFineRow = 5
+   viPortalOneDestFineCol = 17
+   viPortalOneDestAngle = ANGLE_EAST
+   vsPortalOneDesc = guildh10_portal_desc
+   
+   viReliquaryOneRow = 7
+   viReliquaryOneCol = 4
+   viReliquaryOneFineRow = 61
+   viReliquaryOneFineCol = 56
+   
+   viReliquaryTwoRow = 8
+   viReliquaryTwoCol = 4
+   viReliquaryTwoFineRow = 61
+   viReliquaryTwoFineCol = 56
+   
+   viReliquaryThreeRow = 6
+   viReliquaryThreeCol = 4
+   viReliquaryThreeFineRow = 61
+   viReliquaryThreeFineCol = 56
+   
+   % Fusing device rates go from 8 (worst) to 4 (best) 
+   viShardFusingDeviceRow = 10
+   viShardFusingDeviceCol = 16
+   viShardFusingDeviceFineRow = 40
+   viShardFusingDeviceFineCol = 0
+   viShardFusingDeviceRate = 7
+   
+   % Shattering device rates go from 2 (worst) to 4 (best) 
+   viShardShatteringDeviceRow = 10
+   viShardShatteringDeviceCol = 17
+   viShardShatteringDeviceFineRow = 40
+   viShardShatteringDeviceFineCol = 7
+   viShardShatteringDeviceRate = 2
+   
+   viFociOneRow = 13
+   viFociOneCol = 16
+   viFociOneFineRow = 25
+   viFociOneFineCol = 23
+   viFociOnePower = 99
+   viFociOneRange = 2
+   viFociOneSpellNum = SID_REJUVENATE
+
+   viBartenderRow = 16
+   viBartenderCol = 16
+   viBartenderFineRow = 34
+   viBartenderFineCol = 52
+   viBartenderRate = 100
+   
+   viMarketRow = 6
+   viMarketCol = 16
+   viMarketFineRow = 57
+   viMarketFineCol = 18
+   viMarketRate = 100
 
 properties:
 
@@ -81,6 +159,9 @@ properties:
    ptSecretDoor = $
    ptNewsDoor = $
    ptBarDoor = $
+   
+   % Jaarba's Abode, being the home of a hero, has a similar 10% general boost to Konima's Abandoned Dwelling.
+   piGuildHallMeditateEffiency = 110
 
 messages:
 
@@ -425,6 +506,22 @@ messages:
         }
 
       propagate;
+   }
+
+   GetTotemLightIntensity(what=$)
+   {
+      if poTotemOne <> $
+         AND what = poTotemOne
+      {
+         return 30;
+      }
+
+      return 0;
+   }
+
+   GetTotemLightColor(what=$)
+   {
+      return LIGHT_BLUE;
    }
 
 end

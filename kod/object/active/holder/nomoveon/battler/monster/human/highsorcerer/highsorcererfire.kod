@@ -1,0 +1,156 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+HighSorcererFire is HighSorcerer
+
+constants:
+
+   include blakston.khd
+
+   HUMAN_TRANSLATION_LEGS_MASK = 0xff
+   HUMAN_TRANSLATION_LEGS_MUL = 1
+   HUMAN_TRANSLATION_BODY_MASK = 0xff00
+   HUMAN_TRANSLATION_BODY_MUL = 0x100
+   HUMAN_TRANSLATION_Skin_MASK = 0xff0000
+   HUMAN_TRANSLATION_Skin_MUL = 0x10000
+
+   HUMAN_TRANSLATION2_HAIR_MASK = 0xff
+   HUMAN_TRANSLATION2_HAIR_MUL = 1
+   HUMAN_TRANSLATION2_ARMS_MASK = 0xff00
+   HUMAN_TRANSLATION2_ARMS_MUL = 0x100
+
+   EQUIPMENT_DROP_PERCENT = 20
+
+resources:
+
+   HighSorcererFire_name_rsc = "Qua'Kornedrin, High Sorcerer of Fire"
+   HighSorcererFire_desc_rsc = \
+      "This high sorcerer is responsible for the Diffraction of "
+      "Biskalane's elements. "
+      "He is a master of the element of Fire and flame spells, "
+      "and an accomplished warrior in his own right. "
+      "Kill him and put a stop to it once and for all."
+   HighSorcererFire_dead_name_rsc = "dead high sorcerer"
+
+classvars:
+
+   vrName = HighSorcererFire_name_rsc
+   vrDesc = HighSorcererFire_desc_rsc
+   vrDead_name = HighSorcererFire_dead_name_rsc
+
+
+   viTreasure_type = TID_HIGH_SORCERER
+   viAttack_spell = ATCK_SPELL_FIRE
+
+   viColorTranslate1 = XLAT_TO_RED     % Shirt
+   viColorTranslate2 = XLAT_TO_RED   % Pants
+
+   % between 1 and 10000
+   viCriticalHitRate = 1000
+   vbCanCauseBleed = TRUE
+   vbCanCauseKnockback = TRUE
+
+properties:
+
+   piElement = ATCK_SPELL_FIRE
+   
+   piArmor = 20
+
+messages:
+
+   Constructed()
+   {
+      % Give Qua'Kornedrin more HP.
+      piMax_Hit_Points = piMax_Hit_Points * 3;
+      % piHit_Points uses high-precision numbers, so multiply by 100.
+      piHit_Points = piMax_Hit_Points * 100;
+
+      plMeleeSpellBook = [ [SID_BLAST_OF_FIRE,1,100,99]];
+      plRangedSpellBook = [ [SID_FIREBALL,1,90,99],
+                            [SID_HEAT,1,100,99]];
+                            
+      plResistances = [ [-ATCK_SPELL_UNHOLY, 75 ],
+                        [-ATCK_SPELL_HOLY, 75 ],
+                        [-ATCK_SPELL_FIRE, 300],
+                        [-ATCK_SPELL_COLD, 75],
+                        [-ATCK_SPELL_SHOCK, 75],
+                        [-ATCK_SPELL_ACID, 75],
+                        [-ATCK_SPELL_QUAKE, 75],
+                        [-ATCK_SPELL_ALL, 75],
+                        [ATCK_WEAP_ALL,75]];
+      Post(self,@AddChampionAbility,#ability=7,#value=10);
+      propagate;
+   }
+
+   SetGender()
+   {
+      viGender = GENDER_MALE;
+      vrIcon = human_male_icon_rsc;
+      prHead = human_head_male_tattoo_1;
+      prEyes = human_eyes_kx_icon;
+      prMouth = human_mouth_kx_icon;
+      prNose = human_nose_kx_icon;
+      prToupee = human_hair_ca_icon;
+      prLegs = human_legs_b_rsc;
+      prRight_arm = human_rightarm_b_rsc;
+      prLeft_arm = human_leftarm_b_rsc;
+      vrDead_Icon = human_dead_male_icona_rsc;
+      vrDead_Legs = human_dead_male_iconb_rsc;
+      vrSound_death = human_male_sound_death;
+
+      return;
+   }
+
+   SetHair()
+   % Sets the hairdo, color.
+   {
+      local Translation;
+
+      prToupee = human_hair_ba_icon;
+      Translation = PT_HAIR_RED;
+
+      piBody_translations2 = piBody_translations2 & ~HUMAN_TRANSLATION2_HAIR_MASK;
+      piBody_translations2 = piBody_translations2
+                                 | (Translation * HUMAN_TRANSLATION2_HAIR_MUL);
+
+      return;
+   }
+
+   SetFace()
+   {
+      prEyes = human_eyes_ax_icon;
+      prNose = human_nose_cx_icon;
+      prMouth = human_mouth_bx_icon;
+
+      return;
+   }
+
+   SetSkinColor(color = 1)
+   {
+      local iColor, i;
+
+      Send(self,@SetSkinTranslation,#translation=2);
+      iColor = Send(self,@GetDefaultShirtColor);
+      Send(self,@SetDefaultClothes,#shirt_color = iColor);
+      foreach i in plUsing
+      {
+         Send(i,@DoPlayerArt);
+      }
+
+      if poOwner <> $
+      {
+         Send(poOwner,@SomethingChanged,#what=self);
+      }
+
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
