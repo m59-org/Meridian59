@@ -14,6 +14,7 @@ BOFS = system.bof library.bof parlia.bof assgame.bof questengine.bof lore.bof \
        dailyquestmaint.bof \
        languagemaint.bof \
        leaguemaint.bof \
-       chaosstratamaint.bof
+       chaosstratamaint.bof \
+       laddermaint.bof
 
 !include $(KODDIR)\kod.mak
