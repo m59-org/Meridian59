@@ -650,6 +650,9 @@ properties:
    
    % Of the form [monster class, loyalty, health min, health max, champion status]
    plSavedMinions = $
+   
+   % Are we displaying Breath? Otherwise it's vigor
+   pbDisplayingBreath = FALSE
 
 messages:
 
@@ -10239,6 +10242,13 @@ messages:
       return;
    }
 
+   SetDrawingBreath(value=FALSE)
+   {
+      pbDisplayingBreath = value;
+      Post(self,@DrawVigor);
+      return;
+   }
+
    DrawVigor()
    {
       if pbLogged_on
@@ -10254,8 +10264,16 @@ messages:
 
    SendStatVigor()
    {
-      AddPacket(1,3, 4,user_stat_vigor, 1,STAT_VALUE, 1,STAT_INTEGER,
-                4,piVigor, 4,0, 4,200, 4,piVigor_rest_threshold);
+      if pbDisplayingBreath
+      {
+         AddPacket(1,3, 4,user_stat_vigor, 1,STAT_VALUE, 1,STAT_INTEGER,
+                   4,Send(self,@GetBreathRemaining)/1000, 4,0, 4,200, 4,Send(self,@GetNaturalBreathMax)/1000);
+      }
+      else
+      {
+         AddPacket(1,3, 4,user_stat_vigor, 1,STAT_VALUE, 1,STAT_INTEGER,
+                   4,piVigor, 4,0, 4,200, 4,piVigor_rest_threshold);
+      }
 
       return;
    }

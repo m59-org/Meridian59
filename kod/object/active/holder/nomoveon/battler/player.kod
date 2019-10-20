@@ -21224,6 +21224,7 @@ messages:
       if ptBreathTimer = $
       {
          piBreathRemaining = piNaturalBreathTime;
+         Send(self,@SetDrawingBreath,#value=TRUE);
          
          if piPlayerRace = RACE_HALF_UNDINE
          {
@@ -21272,6 +21273,8 @@ messages:
       {
          piBreathRemaining = piNaturalBreathTime;
       }
+      
+      Post(self,@DrawVigor);
 
       ptBreathTimer = CreateTimer(self,@BreathLoss,piBreathTime);
       
@@ -21280,6 +21283,7 @@ messages:
 
    TakeABreath()
    {
+      Send(self,@SetDrawingBreath);
       if piBreathRemaining > 0
          AND ptBreathTimer <> $
       {
@@ -21296,6 +21300,16 @@ messages:
       }
       piBreathRemaining = 60000;
       return;
+   }
+   
+   GetBreathRemaining()
+   {
+      return piBreathRemaining;
+   }
+   
+   GetNaturalBreathMax()
+   {
+      return piNaturalBreathTime;
    }
 
    GetHasBreath()
