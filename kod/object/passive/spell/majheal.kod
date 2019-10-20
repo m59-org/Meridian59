@@ -60,6 +60,9 @@ classvars:
    viPrimaryStat = STAT_ID_MYSTICISM
    viSecondaryStat = STAT_ID_KARMA
 
+   viHealAttackType = 0
+   viHealSpellType = ATCK_SPELL_HOLY
+
 properties:
 
 messages:
@@ -112,12 +115,39 @@ messages:
 
    CastSpell(who = $, lTargets = $, iSpellPower = 0)
    {
-      local iHeal, oTarget, i, oRoom, iResult;
+      local iHeal, oTarget, i, oRoom, iResult, lCasterEmpowerments, iEmpowermentPercentage;
 
       oTarget = First(lTargets);
 
       iHeal  = Random(700,1300) + iSpellPower*20 + 10000*20;
       iHeal = Bound(iHeal,0,5000);
+      
+      lCasterEmpowerments = Send(who,@GetCurrentEmpowerments);
+      iEmpowermentPercentage = 0;
+      foreach i in lCasterEmpowerments
+      {
+         if Nth(i,1) > 0
+         {
+            % Weapon empowerment.
+            if viHealAttackType & Nth(i,1)
+               OR (viHealAttackType <> 0
+                  AND (ATCK_WEAP_ALL & -Nth(i,1)))
+            {
+               iEmpowermentPercentage = iEmpowermentPercentage + Nth(i,2);
+            }
+         }
+         else
+         {
+            % Spell empowerment.
+            if viHealSpellType & -Nth(i,1)
+               OR (viHealSpellType <> 0
+                  AND (ATCK_SPELL_ALL & -Nth(i,1)))
+            {
+               iEmpowermentPercentage = iEmpowermentPercentage + Nth(i,2);
+            }
+         }
+      }
+      iHeal = (iHeal * (100+iEmpowermentPercentage))/100;
 
       foreach i in Send(oTarget,@GetEnchantmentsByClass,#enchClass=&Hex)
       {
