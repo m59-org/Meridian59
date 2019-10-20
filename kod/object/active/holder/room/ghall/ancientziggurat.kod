@@ -12,7 +12,7 @@ AncientZiggurat is GuildHall
 
 % Custom hall originally designed in Minecraft by JJ2Skies.
 % 
-% Ziggurat's portals are unique in that they are controlled by a button system,
+% Ziggurat's portals are unique in that they are controlled by a choice system,
 %    and represent places themed by the afterlife and the undead.
 
 constants:
@@ -243,6 +243,10 @@ properties:
    poLastToDie = $
    
    pbInDesert = FALSE
+   
+   piActiveRedLight = 1
+   plRedLightLocations = $
+   poRedLight = $
 
 messages:
 
@@ -256,6 +260,12 @@ messages:
       % for removing players from it when it closes.
       plEntrance = [ 1, 2, 3, 4 ];
 
+      plRedLightLocations = [[28,48,56,8],
+                             [25,48,8,8],
+                             [21,48,24,8],
+                             [21,52,24,48],
+                             [25,52,8,40],
+                             [28,52,56,40]];
       propagate;
    }
    
@@ -459,6 +469,8 @@ messages:
             
       Send(self,@NewHold,#what=Create(&InvisibleObject),#new_row=23,#new_col=36,
             #fine_row=47,#fine_col=48);
+
+      poRedLight = Create(&DynamicLight,#iColor=LIGHT_BRED,#iIntensity=25);
       
       propagate;
    }
@@ -547,6 +559,23 @@ messages:
       Send(self,@NewHold,#what=Create(&DynamicLight,#iColor=LIGHT_SPECTRAL,
         #iIntensity=255),#new_row=39,#new_col=15,#fine_row=32,#fine_col=32);
 
+      Send(self,@NewHold,#what=poRedLight,
+            #new_row=Nth(Nth(plRedLightLocations,piActiveRedLight),1),
+            #new_col=Nth(Nth(plRedLightLocations,piActiveRedLight),2),
+            #fine_row=Nth(Nth(plRedLightLocations,piActiveRedLight),3),
+            #fine_col=Nth(Nth(plRedLightLocations,piActiveRedLight),4));
+      return;
+   }
+   
+   MoveRedLight(to_coffin=601)
+   {
+      piActiveRedLight = to_coffin - 600;
+      Send(Send(SYS,@FindRoomByNum,#num=RID_MARION),@NewHold,#what=poRedLight);
+      Send(self,@NewHold,#what=poRedLight,
+            #new_row=Nth(Nth(plRedLightLocations,piActiveRedLight),1),
+            #new_col=Nth(Nth(plRedLightLocations,piActiveRedLight),2),
+            #fine_row=Nth(Nth(plRedLightLocations,piActiveRedLight),3),
+            #fine_col=Nth(Nth(plRedLightLocations,piActiveRedLight),4));
       return;
    }
 
@@ -743,6 +772,12 @@ messages:
       {
          Send(self,@InitiatePortalRoomLight);
          
+         if iSection >= 601
+            AND iSection <= 606
+         {
+            Send(self,@MoveRedLight,#to_coffin=iSection);
+         }
+         
          if iSection = 607
          {
             Send(self,@DoSpecialGuildHallTeleport,#who=what);
@@ -770,6 +805,66 @@ messages:
    DoSpecialGuildHallTeleport(who=$)
    {
       local oRoom, oCorpse;
+      
+      switch(piActiveRedLight)
+      {
+         case 1:
+            Post(SYS,@UtilGoNearSquare,#what=who,
+                 #where=Send(SYS,@FindRoomByNum,#num=RID_NEC_GRAVEYARD),
+                 #new_row=12,
+                 #new_col=39,
+                 #fine_row=33,
+                 #fine_col=21,
+                 #new_angle=ANGLE_SOUTH);
+            break;
+         case 2:
+            Post(SYS,@UtilGoNearSquare,#what=who,
+                 #where=Send(SYS,@FindRoomByNum,#num=RID_DESERTALDUNES),
+                 #new_row=64,
+                 #new_col=95,
+                 #fine_row=43,
+                 #fine_col=61,
+                 #new_angle=ANGLE_NORTH_EAST);
+            break;
+         case 3:
+            Post(SYS,@UtilGoNearSquare,#what=who,
+                 #where=Send(SYS,@FindRoomByNum,#num=RID_ORC_CAVE5),
+                 #new_row=14,
+                 #new_col=57,
+                 #fine_row=17,
+                 #fine_col=34,
+                 #new_angle=ANGLE_WEST);
+            break;
+         case 4:
+            Post(SYS,@UtilGoNearSquare,#what=who,
+                 #where=Send(SYS,@FindRoomByNum,#num=RID_MAR_CRYPT2),
+                 #new_row=34,
+                 #new_col=26,
+                 #fine_row=48,
+                 #fine_col=59,
+                 #new_angle=ANGLE_SOUTH);
+            break;
+         case 5:
+            Post(SYS,@UtilGoNearSquare,#what=who,
+                 #where=Send(SYS,@FindRoomByNum,#num=RID_MAZE_REINCARNATION_ROOM),
+                 #new_row=10,
+                 #new_col=10,
+                 #fine_row=16,
+                 #fine_col=1,
+                 #new_angle=ANGLE_SOUTH_EAST);
+            break;
+         case 6:
+            Post(SYS,@UtilGoNearSquare,#what=who,
+                 #where=Send(SYS,@FindRoomByNum,#num=RID_TOS_GRAVEYARD),
+                 #new_row=15,
+                 #new_col=8,
+                 #fine_row=28,
+                 #fine_col=24,
+                 #new_angle=ANGLE_SOUTH_EAST);
+            break;
+      }
+      
+      return;
 
       if poLastToDie <> $
       {
@@ -1080,6 +1175,11 @@ messages:
       local i, oThing;
 
       poLastToDie = $;
+      
+      if poRedLight <> $
+      {
+         Send(poRedLight,@Delete);
+      }
 
       if ptEntrance <> $
       {
