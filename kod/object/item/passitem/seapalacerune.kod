@@ -1,0 +1,76 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+SeaPalaceRune is PassiveItem
+
+%
+% Sea Palace Runes:
+% 
+% Death: Contains undead monsters, graveyard room
+% Jungle: contains plant/fungus monsters and insects, forest room
+% Sky: contains avar/feathered winged monsters, mountain/hilly room
+% Fractured: contains golems, strip mine room
+% Hexed: contains elementals, “ritual” room
+% Serpent: contains worms/snakes, muddy field room
+% Sea: water level, contains aquatic monsters (maybe)
+% Chained: dungeon arena, contains rats and slimes and possibly humanoid "prisoners"?
+% Sword: contains bandits, bandit camp area
+% Hammer: contains orcs, cave camp area
+% Mountain: mountainous rocky area with giants/trolls
+% Scaled: contains Draconians, half shallow water/half rocky field
+%
+% 
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   Sea_Palace_Rune_icon_rsc = teardrop.bgf
+   Sea_Palace_Rune_name_rsc = "oceanic rune"
+   Sea_Palace_Rune_desc_base_rsc = \
+      "This is a sea palace rune."
+
+classvars:
+   
+   vrName = Sea_Palace_Rune_name_rsc
+   vrDesc = Sea_Palace_Rune_desc_base_rsc
+   vrIcon = Sea_Palace_Rune_icon_rsc
+
+   viValue_average = 1500
+   viWeight = 50
+   viBulk = 50
+
+properties:
+
+
+messages:
+
+   Constructor(iTier=1, iChaosLevel=40)
+   {
+      
+      propagate;
+   }
+
+   GetMinimapDotFlags()
+   {
+      % Special item, add minimap dot.
+      return MM_RARE_ITEM;
+   }
+   
+   DestroyDisposable()
+   {
+      return FALSE;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+

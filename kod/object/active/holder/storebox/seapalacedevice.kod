@@ -24,14 +24,14 @@ resources:
    Sea_Palace_Device_desc_rsc = \
       "This strange device seems to have slots for crystals and runes of some sort..."
 
-   the_way_is_opened = \
+   the_way_is_opened_sea_palace = \
       "The way is opened... but to where?"
 
-   vrScryingCrystalProjectile = \
+   vrSeaPalaceProjectile = \
       blindring.bgf
 
-   scrying_device_charging_wav_rsc = monsterspellbuild1.wav
-   scrying_device_charged_wav_rsc = portal.wav
+   sea_palace_device_charging_wav_rsc = monsterspellbuild1.wav
+   sea_palace_device_charged_wav_rsc = portal.wav
 
 classvars:
 
@@ -62,7 +62,7 @@ messages:
    {
       if Send(self,@CanDepositItems,#lItems=[what])
       {
-         Post(self,@OpenChaosStratum,#what=what,#who=who,#oCrystal=what);
+         %Post(self,@OpenChaosStratum,#what=what,#who=who,#oCrystal=what);
          return TRUE;
       }
       
@@ -80,16 +80,17 @@ messages:
          return FALSE;
       }
       
-      if NOT IsClass(First(lItems),&ScryingCrystal)
+      if NOT IsClass(First(lItems),&SeaPalaceRune)
+         AND NOT IsClass(First(lItems),&SeaPalaceCrystal)
       {
          return FALSE;
       }
       
-      if poChaosStratumRoom <> $
-         AND Send(poChaosStratumRoom,@IsActive)
-      {
-         return FALSE;
-      }
+%      if poChaosStratumRoom <> $
+%         AND Send(poChaosStratumRoom,@IsActive)
+%      {
+%         return FALSE;
+%      }
 
       plItemsStored = Send(self,@GetHolderPassive);
       if plItemsStored <> $
@@ -226,14 +227,14 @@ messages:
       {
          piPortalCharge = 0;
          Send(poOwner,@NewHold,#what=poCurrentPortal,#new_row=23,#new_col=36,#fine_row=47,#fine_col=48);
-         Send(poOwner,@SomethingWaveRoom,#what=self,#wave_rsc=scrying_device_charged_wav_rsc);
+         Send(poOwner,@SomethingWaveRoom,#what=self,#wave_rsc=sea_palace_device_charged_wav_rsc);
 
          foreach i in Send(poOwner,@GetHolderActive)
          {
             each_obj = Send(poOwner,@HolderExtractObject,#data=i);
             if IsClass(each_obj,&Player)
             {
-               Send(each_obj,@MsgSendUser,#message_rsc=the_way_is_opened);
+               Send(each_obj,@MsgSendUser,#message_rsc=the_way_is_opened_sea_palace);
             }
          }
       }
@@ -244,7 +245,7 @@ messages:
             Send(poOwner,@SomethingShot,#who=self,#target=poAnimTarget,
                   #projectile=self,#flags=PROJ_FLAG_LIGHT_SOURCE);
          }
-         Send(poOwner,@SomethingWaveRoom,#what=self,#wave_rsc=scrying_device_charging_wav_rsc);
+         Send(poOwner,@SomethingWaveRoom,#what=self,#wave_rsc=sea_palace_device_charging_wav_rsc);
          piPortalCharge = piPortalCharge + 400;
          ptPortalChargeTimer = CreateTimer(self,@DoPortalChargeStep,400);
       }
@@ -262,7 +263,7 @@ messages:
 
    GetProjectileIcon()
    {
-      return vrScryingCrystalProjectile;
+      return vrSeaPalaceProjectile;
    }
 
    GetProjectileSpeed()
