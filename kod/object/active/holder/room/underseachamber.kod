@@ -1,0 +1,56 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+UnderseaChamber is Room
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   room_Undersea_Chamber = underseapalace.roo
+   
+   Undersea_Chamber_name = "Chamber in the Undersea Palace"
+   Undersea_Chamber_music = aamusic2.mp3
+
+classvars:
+
+   vrName = Undersea_Chamber_name
+
+   viTeleport_row = 5
+   viTeleport_col = 5
+   
+   viLongitude = 5000
+   viLatitude = 5000
+
+properties:
+
+   prMusic = Undersea_Chamber_music
+   prRoom = room_Undersea_Chamber
+
+messages:
+
+   Constructor(iRID=RID_UNDERSEA_PALACE_START)
+   {
+      piRoom_num = iRID;
+
+      Send(self,@RecalcLightAndWeather);
+
+      propagate;
+   }
+
+   CanHavePlayerPortal()
+   {
+      return FALSE;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

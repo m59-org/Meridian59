@@ -20,7 +20,8 @@ BOFS =  barlqrm.bof crnthrm.bof jasperrm.bof kocarm.bof marnrm.bof tosrm.bof \
    ancienttomb1.bof ancienttomb2.bof mazeroom.bof \
    castle2f.bof prismofdeath.bof prismoflife.bof \
    palaceroom.bof watertest.bof adventurersguild.bof openwater.bof \
-   underseapalace.bof wildcontinenttest.bof underseapalaceouter.bof
+   underseapalace.bof wildcontinenttest.bof underseapalaceouter.bof \
+   underseachamber.bof
 
 # Removed
 #        a4.bof a5.bof b4.bof b5.bof b7.bof b8.bof c3.bof c8.bof c9.bof \

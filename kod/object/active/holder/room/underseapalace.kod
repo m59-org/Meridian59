@@ -38,6 +38,8 @@ properties:
    piRoom_num = RID_UNDERSEA_PALACE
 
    prMusic = Undersea_Palace_music
+   
+   plChambersCreated = $
 
 messages:
 
@@ -69,12 +71,73 @@ messages:
       Send(self,@NewHold,#what=Create(&SeaPalaceDevice),#new_row=9,#new_col=5,
            #fine_row=15,#fine_col=48);
             
-      Send(self,@NewHold,#what=Create(&InvisibleObject),#new_row=4,#new_col=36,
-            #fine_row=15,#fine_col=48);
+%      Send(self,@NewHold,#what=Create(&InvisibleObject),#new_row=4,#new_col=36,
+%            #fine_row=15,#fine_col=48);
 
       propagate;
    }
 
+   CreateChamber(iRune=OCEANIC_RUNE_DEATH)
+   {
+      local iRID;
+
+      % Set up the room
+      iRID = Send(self,@GetNextAvailableRID);
+      
+      if iRID = 0
+      {
+         return FALSE;
+      }
+      
+      Send(SYS,@CreateOneRoomIfNew,#num=iRID,#class=Send(self,@GetRoomClassByRune,#iRune=OCEANIC_RUNE_DEATH));
+      plChambersCreated = Cons(iRID,plChambersCreated);
+
+      % Add it to the room enter count statistics.
+      Send(Send(SYS,@GetStatistics),@AddToRoomCount,#iNum=iRID);
+
+      return TRUE;
+   }
+
+   GetNextAvailableRID()
+   {
+      local iRID;
+
+      iRID = RID_UNDERSEA_PALACE_START;
+
+      if plChambersCreated = $
+      {
+         return iRID;
+      }
+
+      while iRID < RID_UNDERSEA_PALACE_END
+      {
+         if NOT FindListElem(plChambersCreated,iRID)
+         {
+            return iRID;
+         }
+         
+         iRID = iRID + 1;
+      }
+
+      return 0;
+   }
+   
+   GetRoomClassByRune(iRune=OCEANIC_RUNE_DEATH)
+   {
+      return &UnderseaChamber;
+   }
+   
+   ChambersCompleted()
+   {
+      local i;
+      
+      foreach i in plChambersCreated
+      {
+         Send(i,@Delete);
+      }
+      
+      return;
+   }
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
