@@ -37,9 +37,6 @@ properties:
    prRoom = room_Undersea_Palace
    piRoom_num = RID_UNDERSEA_PALACE
 
-   piBaseLight = LIGHT_MIN
-   piOutside_factor = 0
-
    prMusic = Undersea_Palace_music
 
 messages:
@@ -60,17 +57,20 @@ messages:
 %      plExits = Cons([ 3, 7, ROOM_LOCKED_DOOR, Undersea_Palace_locked],plExits);
 
       %% to sea
-      plExits = Cons([ 3, 2, RID_OPEN_WATER, 36, 26, ROTATE_NONE ],plExits);
-      plExits = Cons([ 3, 3, RID_OPEN_WATER, 36, 26, ROTATE_NONE ],plExits);
-      plExits = Cons([ 3, 4, RID_OPEN_WATER, 36, 26, ROTATE_NONE ],plExits);
+      plExits = Cons([ 11, 2, RID_OPEN_WATER, 36, 26, ROTATE_NONE ],plExits);
+      plExits = Cons([ 11, 3, RID_OPEN_WATER, 36, 26, ROTATE_NONE ],plExits);
+      plExits = Cons([ 11, 4, RID_OPEN_WATER, 36, 26, ROTATE_NONE ],plExits);
   
       propagate;
    }
 
    CreateStandardObjects()
    {
-      Send(self,@NewHold,#what=Create(&ScryingDevice),#new_row=1,#new_col=5,
+      Send(self,@NewHold,#what=Create(&SeaPalaceDevice),#new_row=9,#new_col=5,
            #fine_row=15,#fine_col=48);
+            
+      Send(self,@NewHold,#what=Create(&InvisibleObject),#new_row=4,#new_col=36,
+            #fine_row=15,#fine_col=48);
 
       propagate;
    }
