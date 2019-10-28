@@ -44,13 +44,6 @@ classvars:
 
 properties:
 
-   piPortalCharge = 0
-   poChaosStratumRoom = $
-   poCurrentPortal = $
-   poAnimTarget = $
-   
-   ptPortalChargeTimer = $
-
 messages:
 
    Constructor()
@@ -62,7 +55,6 @@ messages:
    {
       if Send(self,@CanDepositItems,#lItems=[what])
       {
-         %Post(self,@OpenChaosStratum,#what=what,#who=who,#oCrystal=what);
          return TRUE;
       }
       
@@ -85,12 +77,6 @@ messages:
       {
          return FALSE;
       }
-      
-%      if poChaosStratumRoom <> $
-%         AND Send(poChaosStratumRoom,@IsActive)
-%      {
-%         return FALSE;
-%      }
 
       plItemsStored = Send(self,@GetHolderPassive);
       if plItemsStored <> $
@@ -104,206 +90,15 @@ messages:
       return TRUE;
    }
 
-   OpenChaosStratum(what=$,who=$,oCrystal=$)
-   {
-      local i, each_obj, iCount, oLeagueMaint, oPortal, oRoom, oAnimTarget, lElements, iHealthBoost, iResistanceBoost, iAddedDamage,
-            iMonsterAttackSpeed, iMonsterMoveSpeed;
-
-      piPortalCharge = 0;
-
-      foreach i in Send(poOwner,@GetHolderActive)
-      {
-         each_obj = Send(poOwner,@HolderExtractObject,#data=i);
-         if IsClass(each_obj,&InvisibleObject)
-         {
-            poAnimTarget = each_obj;
-         }
-      }
-      
-      if poCurrentPortal <> $
-      {
-         Send(poCurrentPortal,@Delete);
-      }
-      
-      lElements = $;
-      iHealthBoost = 0;
-      iResistanceBoost = 0;
-      iAddedDamage = 0;
-      iMonsterAttackSpeed = 0;
-      iMonsterMoveSpeed = 0;
-      foreach i in Send(oCrystal,@GetMagicMods)
-      {
-         if First(i) = &MobHealth
-         {
-            iHealthBoost = Nth(i,2);
-         }
-         if First(i) = &MobResists
-         {
-            iResistanceBoost = Nth(i,2);
-         }
-         if First(i) = &MobFireDamage
-         {
-            lElements = Cons(ATCK_SPELL_FIRE,lElements);
-            iAddedDamage = iAddedDamage + Nth(i,2);
-         }
-         if First(i) = &MobColdDamage
-         {
-            lElements = Cons(ATCK_SPELL_COLD,lElements);
-            iAddedDamage = iAddedDamage + Nth(i,2);
-         }
-         if First(i) = &MobShockDamage
-         {
-            lElements = Cons(ATCK_SPELL_SHOCK,lElements);
-            iAddedDamage = iAddedDamage + Nth(i,2);
-         }
-         if First(i) = &MobAttackSpeed
-         {
-            iMonsterAttackSpeed = Send(Send(SYS,@GetMagicMod,#class=First(i)),@GetNumber,#iPower=Nth(i,2));
-         }
-         if First(i) = &MobMoveSpeed
-         {
-            iMonsterMoveSpeed = Send(Send(SYS,@GetMagicMod,#class=First(i)),@GetNumber,#iPower=Nth(i,2));
-         }
-      }
-
-      poChaosStratumRoom = Send(SYS,@FindRoomByNum,#num=RID_CHAOS_STRATA_START);
-      Send(poChaosStratumRoom,@ChaosShift,#iRID=Send(oCrystal,@GetRidBaseRoom),
-                                          #boost_chaos_level=Send(oCrystal,@GetChaosLevel),
-                                          #iTier=Send(oCrystal,@GetTier),
-                                          #iQuality=Send(oCrystal,@CalculateQuality),
-                                          #iAddedDamage=iAddedDamage,
-                                          #lElements=lElements,
-                                          #iMonsterPercentHealthboost=iHealthBoost,
-                                          #iMonsterResistanceBoost=iResistanceBoost,
-                                          #iMonsterAttackSpeed=iMonsterAttackSpeed,
-                                          #iMonsterMoveSpeed=iMonsterMoveSpeed);
-      poCurrentPortal = Create(&ChaosStratumPortal,#lLocation=[RID_CHAOS_STRATA_START, Send(poChaosStratumRoom,@GetTeleportRow), Send(poChaosStratumRoom,@GetTeleportCol), 32, 32],#glow_intensity=255);
-      Send(poCurrentPortal,@SetDestination,#dest_room_num=RID_CHAOS_STRATA_START,#dest_angle=0,
-                                                                            #dest_row=Send(poChaosStratumRoom,@GetTeleportRow),
-                                                                            #dest_col=Send(poChaosStratumRoom,@GetTeleportCol),
-                                                                            #dest_fine_row=0,
-                                                                            #dest_fine_col=0,
-                                                                            #glow_color=LIGHT_BPURPLE);
-      Send(poChaosStratumRoom,@SetScryingDevice,#oScryingDevice=self);
-
-      if poAnimTarget <> $
-      {
-         Send(poOwner,@SomethingShot,#who=self,#target=poAnimTarget,
-               #projectile=self,#flags=PROJ_FLAG_LIGHT_SOURCE);
-      }
-
-      ptPortalChargeTimer = CreateTimer(self,@DoPortalChargeStep,400);
-
-      %oLeagueMaint = Send(SYS,@GetChaosStrataMaintenance);
-      %Send(oLeagueMaint,@CreateNewChaosStratum,#oCrystal=oCrystal);
-      
-      Send(oCrystal,@Delete);
-
-      return;
-   }
-   
-   CalculateQuality(oCrystal=$)
-   {
-      Debug("quality calculation not done");
-      return 0;
-   }
-   
-   ChaosStratumRoomEnded()
-   {
-      if poCurrentPortal <> $
-      {
-         Send(poCurrentPortal,@Delete);
-      }
-      return;
-   }
-   
-   DoPortalChargeStep(timer=$)
-   {
-      local i, each_obj;
-
-      ptPortalChargeTimer = $;
-      
-      if piPortalCharge >= 2000
-      {
-         piPortalCharge = 0;
-         Send(poOwner,@NewHold,#what=poCurrentPortal,#new_row=23,#new_col=36,#fine_row=47,#fine_col=48);
-         Send(poOwner,@SomethingWaveRoom,#what=self,#wave_rsc=sea_palace_device_charged_wav_rsc);
-
-         foreach i in Send(poOwner,@GetHolderActive)
-         {
-            each_obj = Send(poOwner,@HolderExtractObject,#data=i);
-            if IsClass(each_obj,&Player)
-            {
-               Send(each_obj,@MsgSendUser,#message_rsc=the_way_is_opened_sea_palace);
-            }
-         }
-      }
-      else
-      {
-         if poAnimTarget <> $
-         {
-            Send(poOwner,@SomethingShot,#who=self,#target=poAnimTarget,
-                  #projectile=self,#flags=PROJ_FLAG_LIGHT_SOURCE);
-         }
-         Send(poOwner,@SomethingWaveRoom,#what=self,#wave_rsc=sea_palace_device_charging_wav_rsc);
-         piPortalCharge = piPortalCharge + 400;
-         ptPortalChargeTimer = CreateTimer(self,@DoPortalChargeStep,400);
-      }
-      return;
-   }
-
    SendAnimation()
    {
       AddPacket(1,ANIMATE_NONE,2,1);
 
       return;
    }
-
-   %%% Projectile stuff.
-
-   GetProjectileIcon()
-   {
-      return vrSeaPalaceProjectile;
-   }
-
-   GetProjectileSpeed()
-   {
-      return 3;
-   }
-
-   SendProjectileAnimation()
-   {
-      AddPacket(1, ANIMATE_CYCLE, 4, 40, 2, 1, 2, 6);   % 40ms between animations
-
-      return;
-   }
-
-   GetProjectileLightFlags()
-   {
-      % Lighting information.
-      return LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC;
-   }
-
-   GetProjectileLightIntensity()
-   {
-      return 100;
-   }
-
-   GetProjectileLightColor()
-   {
-      return LIGHT_BPURPLE;
-   }
    
    Delete()
    {
-      if ptPortalChargeTimer <> $
-      {
-         DeleteTimer(ptPortalChargeTimer);
-         ptPortalChargeTimer = $;
-      }
-      poAnimTarget = $;
-      poChaosStratumRoom = $;
-      poCurrentPortal = $;
       propagate;
    }
 

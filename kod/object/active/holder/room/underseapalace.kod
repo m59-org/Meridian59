@@ -19,6 +19,8 @@ resources:
    room_name_Undersea_Palace = "Small Remnant of an Undersea Palace"
    room_Undersea_Palace = underseapalace.roo
    Undersea_Palace_music = aamusic2.mp3
+   
+   Undersea_Palace_lever_desc = "Pull this lever."
 
 classvars:
 
@@ -40,6 +42,7 @@ properties:
    prMusic = Undersea_Palace_music
    
    plChambersCreated = $
+   poLever = $
 
 messages:
 
@@ -71,8 +74,8 @@ messages:
       Send(self,@NewHold,#what=Create(&SeaPalaceDevice),#new_row=9,#new_col=5,
            #fine_row=15,#fine_col=48);
             
-%      Send(self,@NewHold,#what=Create(&InvisibleObject),#new_row=4,#new_col=36,
-%            #fine_row=15,#fine_col=48);
+      poLever = Create(&Lever,#description=Undersea_Palace_lever_desc);
+      Send(self,@NewHold,#what=poLever,#new_row=7,#new_col=5,#fine_row=15,#fine_col=48);
 
       propagate;
    }
@@ -137,6 +140,78 @@ messages:
       }
       
       return;
+   }
+
+   SomethingChanged(what=$)
+   {
+      if what = poLever
+         AND Send(poLever,@GetState) = LEVER_DOWN
+      {
+         Send(self,@BuildTower);
+      }
+
+      propagate;
+   }
+   
+   BuildTower()
+   {
+      local lContents, i, each_obj, oSeaPalaceDevice;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         each_obj = Send(self,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&SeaPalaceDevice)
+         {
+            oSeaPalaceDevice = each_obj;
+            break;
+         }
+      }
+      
+      if oSeaPalaceDevice <> $
+      {
+         foreach i in Send(oSeaPalaceDevice,@GetHolderPassive)
+         {
+            if IsClass(i,&SeaPalaceRune)
+            {
+               Send(self,@CreateChamber,#iRune=Send(i,@GetRuneNumber));
+               Send(i,@Delete);
+            }
+            else if IsClass(i,&SeaPalaceCrystal)
+            {
+               Send(i,@Delete);
+            }
+         }
+      }
+      return;
+   }
+   
+   Delete()
+   {
+      poLever = $;
+      plChambersCreated = $;
+      propagate;
+   }
+   
+   GetChambers()
+   {
+      return plChambersCreated;
+   }
+
+   SomethingTryGo(what=$, row=$, col=$)
+   {
+      if what <> $
+         AND IsClass(what,&Player)
+         AND row < 2
+         AND col > 4
+         AND col < 9
+      {
+         if plChambersCreated <> $
+         {
+            Send(Send(SYS,@FindRoomByNum,#num=First(plChambersCreated)),@NewHold,#what=what,#new_row=5,#new_col=5);
+         }
+      }
+
+      propagate;
    }
 
 end
