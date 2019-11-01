@@ -1,0 +1,211 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+EarthDragon is Monster
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   earth_dragon_koc_name_rsc = "ko'zorioc"
+   earth_dragon_name_rsc = "earth dragon"
+   earth_dragon_icon_rsc = earthdraghuge.bgf
+   earth_dragon_desc_rsc = \
+      "Dragons are supposed to be mythical! It isn't fair!"
+
+   earth_dragon_dead_icon_rsc = earthdragXhuge.bgf
+   earth_dragon_dead_name_rsc = "dead earth dragon"
+   
+   earth_dragon_small = earthdrag.bgf
+   earth_dragon_small_dead = earthdragX.bgf
+   
+   earth_dragon_large = earthdraglarge.bgf
+   earth_dragon_large_dead = earthdragXlarge.bgf
+
+   earth_dragon_sound_hit = icedragonroar2.wav
+   earth_dragon_sound_miss = icedragonroar3.wav
+   earth_dragon_sound_death = icedragonroar1.wav
+   earth_dragon_sound_aware = icedragonroar4.wav
+
+classvars:
+
+   vrKocName = earth_dragon_koc_name_rsc
+   vrName = earth_dragon_name_rsc
+   vrIcon = earth_dragon_icon_rsc
+   vrDesc = earth_dragon_desc_rsc
+   vrDead_icon = earth_dragon_dead_icon_rsc
+   vrDead_name = earth_dragon_dead_name_rsc
+
+   viTreasure_type = TID_ICE_DRAGON
+   viIndefinite = ARTICLE_A
+   viDefault_behavior = AI_FIGHT_AGGRESSIVE | AI_FIGHT_SWITCHALOT
+   viAttackRange = 448
+
+   viAttack_type = ATCK_WEAP_BLUDGEON
+   viAttack_spell = 0
+   viAttributes = 0
+   viLevel = 220
+   viDifficulty = 10
+   viVisionDistance = 40
+   viKarma = 0
+   viCashmin = 10000
+   viCashmax = 75000
+
+   vrSound_hit = earth_dragon_sound_hit
+   vrSound_miss = earth_dragon_sound_miss
+   vrSound_aware = earth_dragon_sound_aware
+   vrSound_death = earth_dragon_sound_death
+
+   % 1 in x chance to cast a spell.
+   viSpellChance = 20
+   
+   viCanSpawnAsChampion = FALSE
+
+   viBonusBaseTP = 15000
+
+   viBaseSize = 5000
+   viBaseKnockbackPercentage = 0
+   viBaseBleedPercentage = 0
+   viBaseStunPercentage = 0
+
+   % between 1 and 10000
+   viCriticalHitRate = 1000
+   vbCanCauseKnockback = TRUE
+
+   % Enormous monster
+   viEnemyRangeBonus = 64 * 2
+
+   vbBonusXPGain = 15000
+
+properties:
+
+   piAnimation = ANIM_NONE
+
+   piMax_mana = 50
+   piSpellPower = 99
+   
+   piAttackSpeed = 4
+   piMoveSpeed = 36
+   
+messages:
+
+   Constructed()
+   {
+    
+      plResistances = [ [-ATCK_SPELL_FIRE, 300],
+                        [-ATCK_SPELL_SHOCK, 300],
+                        [-ATCK_SPELL_ACID, 90],
+                        [-ATCK_SPELL_COLD, 300],
+                        [-ATCK_SPELL_UNHOLY, 90],
+                        [-ATCK_SPELL_HOLY, 90],
+                        [ATCK_WEAP_BLUDGEON, -10],
+                        [ATCK_WEAP_SLASH, 20],
+                        [ATCK_WEAP_THRUST, 20],
+                        [ATCK_WEAP_PIERCE, 90]];
+
+      plCreatureTypes = Cons(CREATURE_TYPE_ANIMAL,plCreatureTypes);
+      plCreatureTypes = Cons(CREATURE_TYPE_MAGICAL,plCreatureTypes);
+      plCreatureTypes = Cons(CREATURE_TYPE_ELEMENTAL,plCreatureTypes);
+
+      % Permanent eagle eyes & fa
+      Post(self,@AddChampionAbility,#ability=3,#value=120);
+      Post(self,@AddChampionAbility,#ability=4,#value=90);
+
+      plMeleeSpellBook = [  [SKID_MONSTER_ROAR,5,25, Random(90,99)],
+                            [SID_BRAMBLEBLAST,3,100, Random(90,99)] ];
+      plRangedSpellBook = [ [SID_MONSTER_EARTHQUAKE,5,5, Random(70,99)],
+                            [SID_SANDSTORM,3,100, Random(70,99)] ];
+
+      propagate;
+   }
+
+   MonsterAttack(what = $)
+   {
+      % add in any attack animation calls
+      Send(self,@DoSlash);
+
+      return;
+   }
+
+   DoSlash()
+   {
+      piAnimation = ANIM_ATTACK;
+      Send(poOwner,@SomethingChanged,#what=self);
+      piAnimation = ANIM_NONE;
+
+      return;
+   }
+
+   SendAnimation()
+   {
+      if piColor_Translation <> 0
+      {
+         AddPacket(1,ANIMATE_TRANSLATION, 1,piColor_Translation);
+      }
+
+      if piAnimation = ANIM_ATTACK
+      {
+         AddPacket(1,ANIMATE_ONCE, 4,150, 2,10, 2,19, 2,1);
+
+         return;
+      }
+
+      % if no body animation
+      propagate;
+   }
+
+   SendLookAnimation()
+   {
+      AddPacket(1,ANIMATE_CYCLE,4,200,2,1,2,8);
+
+      return;
+   }
+
+   SendMoveAnimation()
+   {
+      AddPacket(1,ANIMATE_CYCLE,4,100,2,1,2,8);
+
+      return;
+   }
+
+   CanMorphTo()
+   {
+      return FALSE;
+   }
+
+   GetMaxHitPoints()
+   {
+      return 20000;
+   }
+
+   GetBossStatus()
+   {
+      return TRUE;
+   }
+
+   SomethingMoved(what=$)
+   {
+      if what <> self OR poOwner = $
+      {
+         propagate;
+      }
+
+      % Shake the ground when I take a step.
+      % Small chance each person might lose any active trance.
+
+      Send(poOwner,@Rumble,#duration=250,#disruption=50);
+      
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

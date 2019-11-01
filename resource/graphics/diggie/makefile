@@ -17,7 +17,14 @@ BGFS = neeleme.bgf neelemeX.bgf iunholyt.bgf xeoneru.bgf xeoneruX.bgf \
        fbow.bgf \
        fbowaov.bgf \
        fbowbov.bgf \
-       fbowinhand.bgf
+       fbowinhand.bgf \
+       blackdragon.bgf \
+       earthdrag.bgf \
+       earthdragX.bgf \
+       earthdraglarge.bgf \
+       earthdragXlarge.bgf \
+       earthdraghuge.bgf \
+       earthdragXhuge.bgf 
 
 !include $(RESOURCEDIR)\copy.mak
 
