@@ -34,7 +34,7 @@ constants:
 
 resources:
 
-   Sea_Palace_Rune_icon_rsc = teardrop.bgf
+   Sea_Palace_Rune_icon_rsc = runebase.bgf
    Sea_Palace_Rune_name_rsc = "oceanic rune"
    Sea_Palace_Rune_desc_base_rsc = \
       "This is a sea palace rune."
@@ -48,17 +48,16 @@ classvars:
    viValue_average = 1500
    viWeight = 50
    viBulk = 50
-   
-   viRuneNumber = OCEANIC_RUNE_DEATH
 
 properties:
 
+   piRuneNumber = OCEANIC_RUNE_DEATH
 
 messages:
 
-   Constructor(iTier=1, iChaosLevel=40)
+   Constructor()
    {
-      
+      piRuneNumber = Random(OCEANIC_RUNE_DEATH,OCEANIC_RUNE_SCALED);
       propagate;
    }
 
@@ -75,8 +74,53 @@ messages:
    
    GetRuneNumber()
    {
-      return viRuneNumber;
+      return piRuneNumber;
    }
+
+   GetNumberOverlays()
+   {
+%      return 2;
+      return 1;
+   }
+
+%   SendOverlays()
+%   {
+%      if prShield_emblem_held <> $
+%         AND prShield_emblem_drop <> $
+%      {
+%         AddPacket(1,1);
+%         AddPacket(4,prShield_emblem_drop,1,1,1,ANIMATE_NONE,2,2);
+%      }
+%      else
+%      {
+%         AddPacket(1,0);
+%      }
+%      
+%      return;
+%   }
+
+%   SendLookOverlays()
+%   {
+%      if prShield_emblem_held <> $
+%         AND prShield_emblem_drop <> $
+%      {
+%         AddPacket(1,1);
+%         AddPacket(4,prShield_emblem_drop,1,1,1,ANIMATE_NONE,2,1);
+%      }
+%      else
+%      {
+%         AddPacket(1,0);
+%      }
+%      
+%      return;
+%   }
+
+%   SendInventoryOverlays()
+%   {
+%      Send(self,@SendLookOverlays);
+%
+%      return;
+%   }
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -10,6 +10,38 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 UnderseaPalace is Room
 
+%
+%
+% NPC
+%  - Art
+%  - Kod
+%
+% Rune Words -
+%  - The proper sequence of runes unlocks special encounters.
+%
+%
+% Runes -
+%  - Need Art
+%  - Need better descriptions
+%  - Drop locs
+%
+% Crystals -
+%  - Need art
+%  - Need function
+%  - Need descriptions
+%  - Drop locs
+%
+% Chambers -
+%  - Spawn monsters
+%  - Threats
+%  - Loot?
+%
+%
+% Boss -
+%  - BGF?
+%  - KOD
+%
+
 constants:
 
    include blakston.khd
@@ -127,7 +159,34 @@ messages:
    
    GetRoomClassByRune(iRune=OCEANIC_RUNE_DEATH)
    {
-      return &UnderseaChamber;
+      switch(iRune)
+      {
+         case OCEANIC_RUNE_DEATH:
+            return &UnderseaChamberDeath;
+         case OCEANIC_RUNE_JUNGLE:
+            return &UnderseaChamberJungle;
+         case OCEANIC_RUNE_SKY:
+            return &UnderseaChamberSky;
+         case OCEANIC_RUNE_FRACTURED:
+            return &UnderseaChamberFractured;
+         case OCEANIC_RUNE_HEXED:
+            return &UnderseaChamberHexed;
+         case OCEANIC_RUNE_SERPENT:
+            return &UnderseaChamberSerpent;
+         case OCEANIC_RUNE_SEA:
+            return &UnderseaChamberSea;
+         case OCEANIC_RUNE_CHAINED:
+            return &UnderseaChamberChained;
+         case OCEANIC_RUNE_SWORD:
+            return &UnderseaChamberSword;
+         case OCEANIC_RUNE_HAMMER:
+            return &UnderseaChamberHammer;
+         case OCEANIC_RUNE_MOUNTAIN:
+            return &UnderseaChamberMountain;
+         case OCEANIC_RUNE_SCALED:
+            return &UnderseaChamberScaled;
+      }
+      return &UnderseaChamberDeath;
    }
    
    ChambersCompleted()
