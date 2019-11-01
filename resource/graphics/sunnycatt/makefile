@@ -9,7 +9,19 @@ OUTDIR = $(CLIENTRUNDIR)\resource
 OUTDIRSUB = ..\$(OUTDIR)
 
 BGFS = runebase.bgf \
-       oceancrystalbase.bgf
+       oceancrystalbase.bgf \
+       runechained.bgf \
+       runedeath.bgf \
+       runefeather.bgf \
+       runefractured.bgf \
+       runehammer.bgf \
+       runehexed.bgf \
+       runejungle.bgf \
+       runemountain.bgf \
+       runescaled.bgf \
+       runesea.bgf \
+       runeserpent.bgf \
+       runesword.bgf
        
 
 DIRS = 

@@ -38,18 +38,33 @@ resources:
    Sea_Palace_Rune_name_rsc = "oceanic rune"
    Sea_Palace_Rune_desc_base_rsc = \
       "This is a sea palace rune."
+      
+   rune_base_rsc = runebase.bgf
+   rune_chained_rsc = runechained.bgf
+   rune_death_rsc = runedeath.bgf
+   rune_feather_rsc = runefeather.bgf
+   rune_fractured_rsc = runefractured.bgf
+   rune_hammer_rsc = runehammer.bgf
+   rune_hexed_rsc = runehexed.bgf
+   rune_jungle_rsc = runejungle.bgf
+   rune_mountain_rsc = runemountain.bgf
+   rune_scaled_rsc = runescaled.bgf
+   rune_sea_rsc = runesea.bgf
+   rune_serpent_rsc = runeserpent.bgf
+   rune_sword_rsc = runesword.bgf
 
 classvars:
    
    vrName = Sea_Palace_Rune_name_rsc
    vrDesc = Sea_Palace_Rune_desc_base_rsc
-   vrIcon = Sea_Palace_Rune_icon_rsc
 
    viValue_average = 1500
    viWeight = 50
    viBulk = 50
 
 properties:
+
+   vrIcon = Sea_Palace_Rune_icon_rsc
 
    piRuneNumber = OCEANIC_RUNE_DEATH
 
@@ -58,6 +73,47 @@ messages:
    Constructor()
    {
       piRuneNumber = Random(OCEANIC_RUNE_DEATH,OCEANIC_RUNE_SCALED);
+      
+      Switch(piRuneNumber)
+      {
+         case OCEANIC_RUNE_DEATH:
+            vrIcon = rune_death_rsc;
+            break;
+         case OCEANIC_RUNE_CHAINED:
+            vrIcon = rune_chained_rsc;
+            break;
+         case OCEANIC_RUNE_SKY:
+            vrIcon = rune_feather_rsc;
+            break;
+         case OCEANIC_RUNE_FRACTURED:
+            vrIcon = rune_fractured_rsc;
+            break;
+         case OCEANIC_RUNE_HAMMER:
+            vrIcon = rune_hammer_rsc;
+            break;
+         case OCEANIC_RUNE_HEXED:
+            vrIcon = rune_hexed_rsc;
+            break;
+         case OCEANIC_RUNE_JUNGLE:
+            vrIcon = rune_jungle_rsc;
+            break;
+         case OCEANIC_RUNE_MOUNTAIN:
+            vrIcon = rune_mountain_rsc;
+            break;
+         case OCEANIC_RUNE_SCALED:
+            vrIcon = rune_scaled_rsc;
+            break;
+         case OCEANIC_RUNE_SEA:
+            vrIcon = rune_sea_rsc;
+            break;
+         case OCEANIC_RUNE_SERPENT:
+            vrIcon = rune_serpent_rsc;
+            break;
+         case OCEANIC_RUNE_SWORD:
+            vrIcon = rune_sword_rsc;
+            break;
+      }
+      
       propagate;
    }
 
@@ -76,51 +132,6 @@ messages:
    {
       return piRuneNumber;
    }
-
-   GetNumberOverlays()
-   {
-%      return 2;
-      return 1;
-   }
-
-%   SendOverlays()
-%   {
-%      if prShield_emblem_held <> $
-%         AND prShield_emblem_drop <> $
-%      {
-%         AddPacket(1,1);
-%         AddPacket(4,prShield_emblem_drop,1,1,1,ANIMATE_NONE,2,2);
-%      }
-%      else
-%      {
-%         AddPacket(1,0);
-%      }
-%      
-%      return;
-%   }
-
-%   SendLookOverlays()
-%   {
-%      if prShield_emblem_held <> $
-%         AND prShield_emblem_drop <> $
-%      {
-%         AddPacket(1,1);
-%         AddPacket(4,prShield_emblem_drop,1,1,1,ANIMATE_NONE,2,1);
-%      }
-%      else
-%      {
-%         AddPacket(1,0);
-%      }
-%      
-%      return;
-%   }
-
-%   SendInventoryOverlays()
-%   {
-%      Send(self,@SendLookOverlays);
-%
-%      return;
-%   }
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
