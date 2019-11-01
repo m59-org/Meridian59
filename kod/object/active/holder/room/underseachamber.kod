@@ -35,6 +35,12 @@ properties:
 
    prMusic = Undersea_Chamber_music
    prRoom = room_Undersea_Chamber
+   
+   plMonsterTypes = $
+   
+   % Of the form [CLASS, #] [CLASS, #]
+   plChamberSpawns = $
+   plSpawnPoints = $
 
 messages:
 
@@ -43,6 +49,8 @@ messages:
       piRoom_num = iRID;
 
       Send(self,@RecalcLightAndWeather);
+      
+      Send(self,@BuildSpawnList);
 
       propagate;
    }
@@ -50,6 +58,39 @@ messages:
    CanHavePlayerPortal()
    {
       return FALSE;
+   }
+   
+   BuildSpawnList()
+   {
+      local i, iSpawnRate;
+
+      plMonsterTypes = Cons(&Skeleton,plMonsterTypes);
+      plMonsterTypes = Cons(&Zombie,plMonsterTypes);
+      plMonsterTypes = Cons(&GiantRat,plMonsterTypes);
+
+      iSpawnRate = 100;
+      %iSpawnRate = Send(Send(SYS,@FindRoomByNum,#num=RID_UNDERSEA_PALACE),@GetSpawnBoost);
+      
+      foreach i in plMonsterTypes
+      {
+         plChamberSpawns = Cons([i,(Random(1500,4000)*iSpawnRate)/10000],plChamberSpawns);
+      }
+      
+      %foreach i in Send(Send(SYS,@FindRoomByNum,#num=RID_UNDERSEA_PALACE),@GetChamberSpawnAdds)
+      %{
+      %   plChamberSpawns = Cons([i,(Random(1500,4000)*iSpawnRate)/10000],plChamberSpawns);
+      %}
+
+      return;
+   }
+
+   SpawnMobs()
+   {
+      local i, oMonster;
+      
+      %foreach i in plChamberSpawns
+      
+      return;
    }
 
 end
