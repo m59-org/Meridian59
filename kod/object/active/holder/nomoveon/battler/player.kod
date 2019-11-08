@@ -329,6 +329,8 @@ resources:
 
    player_no_target_self = "You cannot attack yourself."
    player_no_target_self_spell = "You cannot cast this spell on yourself."
+   
+   player_out_of_ladder = "%s%s is not part of your ladder competition."
 
    player_cant_apply = "You can't use %s%s on other things."
    
@@ -7014,6 +7016,13 @@ messages:
       {
          % Monsters whose masters are phased out cannot be attacked
          Send(self,@MsgSendUser,#message_rsc=master_is_phased_out_cannot_attack);
+         return FALSE;
+      }
+      
+      if IsClass(what,&Player)
+         AND Send(what,@GetLadderID) <> Send(self,@GetLadderID)
+      {
+         Send(self,@MsgSendUser,#message_rsc=player_out_of_ladder,#parm1=Send(what,@GetCapDef),#parm2=Send(what,@GetName));
          return FALSE;
       }
 

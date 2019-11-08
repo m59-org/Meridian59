@@ -4866,8 +4866,9 @@ messages:
                   }
                }
             }
-                  
-            Send(self,@CreateTreasure,#who=what,#corpse=oBody);
+
+            piLadderID = Send(what,@GetLadderID);
+            Send(self,@CreateTreasure,#who=what,#corpse=oBody,#ladderID=Send(what,@GetLadderID));
          }
 
          % Delete here so we don't accidentally "kill" then delete system
@@ -7358,7 +7359,7 @@ messages:
       return viTreasure_type;
    }
 
-   CreateTreasure(who=$,corpse=$)
+   CreateTreasure(who=$,corpse=$,ladderID=0)
    {
       local i, j, oReagent, iNumberItems, oTreasure, oTreasure_type,
             lTreasureItems, iNumberOfItemsDropped, iNumberOfItemsLooted,
@@ -7388,7 +7389,8 @@ messages:
                               #who=who,#level=piLevel,#difficulty=viDifficulty,
                               #corpse=corpse,#attributes=viAttributes,
                               #boostedlevel=piBoostedLevel,
-                              #iChaosLevel=piChaosLevel);
+                              #iChaosLevel=piChaosLevel,
+                              #ladderID=ladderID);
 
       % Add in our inventory
       foreach i in plActive
@@ -7417,7 +7419,7 @@ messages:
          oMoney = Create(&Money,#corpse=corpse,#number=(iRandomCashAmount + (piBoostedLevel
                      * Send(Send(SYS,@GetSurvivalRoomMaintenance),@GetSurvivalCash)) + (piChaosLevel
                      * Send(Send(SYS,@GetChaosStrataMaintenance),@GetChaosCash)))
-                     * Send(self,@GetChampionRewardMultiplier));
+                     * Send(self,@GetChampionRewardMultiplier),#ladderID=ladderID);
 
          Send(Send(SYS,@GetStatistics),@MoneyCreated,#amount=Send(oMoney,@GetNumber));
          lTreasureItems = Cons(oMoney,lTreasureItems);
@@ -7454,28 +7456,28 @@ messages:
             iRand = Random(1,Send(SETTINGS_OBJECT,@GetEmpowerShardProbability)/100);
             if iRand = 1
             {
-               oShard = Create(&ShardEmpowerment);
+               oShard = Create(&ShardEmpowerment,#ladderID=ladderID);
             }
             else
             {
                iRand = Random(1,Send(SETTINGS_OBJECT,@GetMajorShardProbability)/100);
                if iRand = 1
                {
-                  oShard = Create(&ShardImbueMajor);
+                  oShard = Create(&ShardImbueMajor,#ladderID=ladderID);
                }
                else
                {
                   iRand = Random(1,Send(SETTINGS_OBJECT,@GetDrainShardProbability)/100);
                   if iRand = 1
                   {
-                     oShard = Create(&ShardRemove);
+                     oShard = Create(&ShardRemove,#ladderID=ladderID);
                   }
                   else
                   {
                      iRand = Random(1,Send(SETTINGS_OBJECT,@GetAugmentShardProbability)/100);
                      if iRand = 1
                      {
-                        oShard = Create(&ShardAugment);
+                        oShard = Create(&ShardAugment,#ladderID=ladderID);
                      }
                      else
                      {
@@ -7486,32 +7488,32 @@ messages:
                            iRand = Random(1,Send(SETTINGS_OBJECT,@GetInstillingShardProbability)/10);
                            if iRand = 1
                            {
-                              oShard = Create(&ShardReroll);
+                              oShard = Create(&ShardReroll,#ladderID=ladderID);
                            }
                            else
                            {
                               iRand = Random(1,Send(SETTINGS_OBJECT,@GetImprovementShardProbability)/10);
                               if iRand = 1
                               {
-                                 oShard = Create(&ShardImprovement);
+                                 oShard = Create(&ShardImprovement,#ladderID=ladderID);
                               }
                               else
                               {
                                  iRand = Random(1,Send(SETTINGS_OBJECT,@GetDisruptionShardProbability)/10);
                                  if iRand = 1
                                  {
-                                    oShard = Create(&ShardReImbueMajor);
+                                    oShard = Create(&ShardReImbueMajor,#ladderID=ladderID);
                                  }
                                  else
                                  {
-                                    oShard = Create(&ShardReImbueMinor);
+                                    oShard = Create(&ShardReImbueMinor,#ladderID=ladderID);
                                  }
                               }
                            }
                         }
                         else
                         {
-                           oShard = Create(&ShardImbueMinor);
+                           oShard = Create(&ShardImbueMinor,#ladderID=ladderID);
                         }
                      }
                   }
@@ -7526,11 +7528,11 @@ messages:
          {
             if Random(1,2) = 1
             {
-               oBestiaryBook = Create(&BestiarySpellBook);
+               oBestiaryBook = Create(&BestiarySpellBook,#ladderID=ladderID);
             }
             else
             {
-               oBestiaryBook = Create(&BestiarySkillBook);
+               oBestiaryBook = Create(&BestiarySkillBook,#ladderID=ladderID);
             }
             lTreasureItems = Cons(oBestiaryBook,lTreasureItems);
          }
@@ -7564,28 +7566,28 @@ messages:
             iRand = Random(1,Send(SETTINGS_OBJECT,@GetEmpowerShardProbability)/100);
             if iRand = 1
             {
-               oShard = Create(&ShardEmpowerment);
+               oShard = Create(&ShardEmpowerment,#ladderID=ladderID);
             }
             else
             {
                iRand = Random(1,Send(SETTINGS_OBJECT,@GetMajorShardProbability)/100);
                if iRand = 1
                {
-                  oShard = Create(&ShardImbueMajor);
+                  oShard = Create(&ShardImbueMajor,#ladderID=ladderID);
                }
                else
                {
                   iRand = Random(1,Send(SETTINGS_OBJECT,@GetDrainShardProbability)/100);
                   if iRand = 1
                   {
-                     oShard = Create(&ShardRemove);
+                     oShard = Create(&ShardRemove,#ladderID=ladderID);
                   }
                   else
                   {
                      iRand = Random(1,Send(SETTINGS_OBJECT,@GetAugmentShardProbability)/100);
                      if iRand = 1
                      {
-                        oShard = Create(&ShardAugment);
+                        oShard = Create(&ShardAugment,#ladderID=ladderID);
                      }
                      else
                      {
@@ -7596,32 +7598,32 @@ messages:
                            iRand = Random(1,Send(SETTINGS_OBJECT,@GetInstillingShardProbability)/10);
                            if iRand = 1
                            {
-                              oShard = Create(&ShardReroll);
+                              oShard = Create(&ShardReroll,#ladderID=ladderID);
                            }
                            else
                            {
                               iRand = Random(1,Send(SETTINGS_OBJECT,@GetImprovementShardProbability)/10);
                               if iRand = 1
                               {
-                                 oShard = Create(&ShardImprovement);
+                                 oShard = Create(&ShardImprovement,#ladderID=ladderID);
                               }
                               else
                               {
                                  iRand = Random(1,Send(SETTINGS_OBJECT,@GetDisruptionShardProbability)/10);
                                  if iRand = 1
                                  {
-                                    oShard = Create(&ShardReImbueMajor);
+                                    oShard = Create(&ShardReImbueMajor,#ladderID=ladderID);
                                  }
                                  else
                                  {
-                                    oShard = Create(&ShardReImbueMinor);
+                                    oShard = Create(&ShardReImbueMinor,#ladderID=ladderID);
                                  }
                               }
                            }
                         }
                         else
                         {
-                           oShard = Create(&ShardImbueMinor);
+                           oShard = Create(&ShardImbueMinor,#ladderID=ladderID);
                         }
                      }
                   }
@@ -7637,20 +7639,22 @@ messages:
          {
             if piChaosLevel = 140
             {
-               lTreasureItems = Cons(Create(&QorCharm),lTreasureItems);
+               lTreasureItems = Cons(Create(&QorCharm,#ladderID=ladderID),lTreasureItems);
             }
             else if Random(1,100) <= Send(Send(SYS,@GetChaosStrataMaintenance),@GetBaseScryingCrystalDropChance) + Send(poOwner,@GetQuality)
             {
                lTreasureItems = Cons(Create(&ScryingCrystal,#iTier=Bound(Send(poOwner,@GetTier)+Random(-1,1),1,5),
                                                             #iChaosLevel=piChaosLevel+1,
-                                                            #level=180+piChaosLevel),lTreasureItems);
+                                                            #level=180+piChaosLevel,
+                                                            #ladderID=ladderID),lTreasureItems);
       
                if Send(poOwner,@GetQuality) >= 100
                   AND Random(1,100) <= Send(poOwner,@GetQuality) - 100
                {
                   lTreasureItems = Cons(Create(&ScryingCrystal,#iTier=Bound(Send(poOwner,@GetTier)+Random(-1,1),1,5),
                                                                #iChaosLevel=piChaosLevel+1,
-                                                               #level=180+piChaosLevel),lTreasureItems);
+                                                               #level=180+piChaosLevel,
+                                                               #ladderID=ladderID),lTreasureItems);
                }
             }
          }

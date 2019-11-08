@@ -35,7 +35,7 @@ properties:
 
 messages:
 
-   CreateTreasure(who=$,corpse=$)
+   CreateTreasure(who=$,corpse=$,ladderID=0)
    {
       local i,iGen_items,oTreasure,oTreasure_type;
 
@@ -44,7 +44,7 @@ messages:
          AND Random(0,100) = 59
          AND NOT pbIllusion
       {
-         oTreasure = Create(&Rose,#corpse=corpse);
+         oTreasure = Create(&Rose,#corpse=corpse,#ladderID=ladderID);
 
          if Send(poOwner,@ReqNewHold,#what=oTreasure,#new_row=piRow,#new_col=piCol)
          {

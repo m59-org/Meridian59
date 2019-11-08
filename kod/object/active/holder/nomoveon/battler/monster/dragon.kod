@@ -617,11 +617,11 @@ messages:
       return;
    }
 
-   CreateTreasure(who=$,corpse=$)
+   CreateTreasure(who=$,corpse=$,ladderID=0)
    {
       local oTreasure, iNumber;
 
-      oTreasure = Create(&IceDragonScale,#corpse=corpse);
+      oTreasure = Create(&IceDragonScale,#corpse=corpse,#ladderID=ladderID);
       iNumber = Random(15,80);
       Send(oTreasure,@AddNumber,#number=iNumber);
 
@@ -636,7 +636,7 @@ messages:
          Send(oTreasure,@Delete);
       }
 
-      oTreasure = Create(&ColdFragment,#corpse=corpse);
+      oTreasure = Create(&ColdFragment,#corpse=corpse,#ladderID=ladderID);
       iNumber = Random(10,60);
       Send(oTreasure,@AddNumber,#number=iNumber);
 

@@ -49,6 +49,9 @@ classvars:
 
 properties:
 
+   plLadderPlayers = $
+   
+   pbLadderEnabled = FALSE
 
 messages:
 
@@ -73,11 +76,48 @@ messages:
    {
       return;
    }
+
+   GetLadderPlayers()
+   {
+      return plLadderPlayers;
+   }
    
-%   GetLadderPlayers()
-%   {
-%      return plLadderPlayers;
-%   }
+   AddLadderPlayer(oPlayer=$)
+   {
+      if plLadderPlayers = $
+         OR NOT FindListElem(plLadderPlayers,oPlayer)
+      {
+         plLadderPlayers = Cons(oPlayer,plLadderPlayers);
+         return TRUE;
+      }
+      return FALSE;
+   }
+   
+   RemoveLadderPlayer(oPlayer=$)
+   {
+      if plLadderPlayers <> $
+         AND FindListElem(plLadderPlayers,oPlayer)
+      {
+         plLadderPlayers = DelListElem(plLadderPlayers,oPlayer);
+         return TRUE;
+      }
+      return FALSE;
+   }
+   
+   IsOnLadder(oPlayer=$)
+   {
+      if plLadderPlayers <> $
+         AND FindListElem(plLadderPlayers,oPlayer)
+      {
+         return TRUE;
+      }
+      return FALSE;
+   }
+   
+   GetLadderEnabled()
+   {
+      return pbLadderEnabled;
+   }
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

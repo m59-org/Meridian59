@@ -244,7 +244,7 @@ messages:
    }
 
    CreateMobTreasure(mob = $, who = $, level = 1, corpse = $, attributes = 0,
-                     boostedlevel = 0, difficulty = 0, iChaosLevel = 0)
+                     boostedlevel = 0, difficulty = 0, iChaosLevel = 0, ladderID = 0)
    {
       local i, iNumberItems, tokengen, iSurvivalLoot, oTreasure, iSafetyCntr,
             lTreasureItems, iChaosLoot;
@@ -260,27 +260,27 @@ messages:
          if Random(1,Send(SETTINGS_OBJECT,@GetMinorShardProbability)) = 1
          {
             Send(SYS,@ShardCreated,#type=&ShardImbueMinor);
-            lTreasureItems = Cons(Create(&ShardImbueMinor),lTreasureItems);
+            lTreasureItems = Cons(Create(&ShardImbueMinor,#ladderID=ladderID),lTreasureItems);
          }
          if Random(1,Send(SETTINGS_OBJECT,@GetAugmentShardProbability)) = 1
          {
             Send(SYS,@ShardCreated,#type=&ShardAugment);
-            lTreasureItems = Cons(Create(&ShardAugment),lTreasureItems);
+            lTreasureItems = Cons(Create(&ShardAugment,#ladderID=ladderID),lTreasureItems);
          }
          if Random(1,Send(SETTINGS_OBJECT,@GetMajorShardProbability)) = 1
          {
             Send(SYS,@ShardCreated,#type=&ShardImbueMajor);
-            lTreasureItems = Cons(Create(&ShardImbueMajor),lTreasureItems);
+            lTreasureItems = Cons(Create(&ShardImbueMajor,#ladderID=ladderID),lTreasureItems);
          }
          if Random(1,Send(SETTINGS_OBJECT,@GetDrainShardProbability)) = 1
          {
             Send(SYS,@ShardCreated,#type=&ShardRemove);
-            lTreasureItems = Cons(Create(&ShardRemove),lTreasureItems);
+            lTreasureItems = Cons(Create(&ShardRemove,#ladderID=ladderID),lTreasureItems);
          }
          if Random(1,Send(SETTINGS_OBJECT,@GetEmpowerShardProbability)) = 1
          {
             Send(SYS,@ShardCreated,#type=&ShardEmpowerment);
-            lTreasureItems = Cons(Create(&ShardEmpowerment),lTreasureItems);
+            lTreasureItems = Cons(Create(&ShardEmpowerment,#ladderID=ladderID),lTreasureItems);
          }
          
          if Send(who,@GetOwner) <> $
@@ -290,22 +290,22 @@ messages:
             if Random(1,Send(SETTINGS_OBJECT,@GetInstillingShardProbability)) = 1
             {
                Send(SYS,@ShardCreated,#type=&ShardReroll);
-               lTreasureItems = Cons(Create(&ShardReroll),lTreasureItems);
+               lTreasureItems = Cons(Create(&ShardReroll,#ladderID=ladderID),lTreasureItems);
             }
             if Random(1,Send(SETTINGS_OBJECT,@GetImprovementShardProbability)) = 1
             {
                Send(SYS,@ShardCreated,#type=&ShardImprovement);
-               lTreasureItems = Cons(Create(&ShardImprovement),lTreasureItems);
+               lTreasureItems = Cons(Create(&ShardImprovement,#ladderID=ladderID),lTreasureItems);
             }
             if Random(1,Send(SETTINGS_OBJECT,@GetDisruptionShardProbability)) = 1
             {
                Send(SYS,@ShardCreated,#type=&ShardReImbueMajor);
-               lTreasureItems = Cons(Create(&ShardReImbueMajor),lTreasureItems);
+               lTreasureItems = Cons(Create(&ShardReImbueMajor,#ladderID=ladderID),lTreasureItems);
             }
             if Random(1,Send(SETTINGS_OBJECT,@GetDisturbanceShardProbability)) = 1
             {
                Send(SYS,@ShardCreated,#type=&ShardReImbueMinor);
-               lTreasureItems = Cons(Create(&ShardReImbueMinor),lTreasureItems);
+               lTreasureItems = Cons(Create(&ShardReImbueMinor,#ladderID=ladderID),lTreasureItems);
             }
          }
       }
@@ -315,8 +315,7 @@ messages:
       % allows it.
       if (attributes & MOB_ONE_TREASURE)
       {
-         oTreasure = Send(self,@GenerateLootTableTreasure,#who=who,
-                           #corpse=corpse,#level=level);
+         oTreasure = Send(self,@GenerateLootTableTreasure,#who=who,#corpse=corpse,#level=level,#ladderID=ladderID);
          if oTreasure <> $
          {
             lTreasureItems = Cons(oTreasure,lTreasureItems);
@@ -348,7 +347,7 @@ messages:
       {
          oTreasure = Send(self,@GenerateTreasure,#level=level,#who=who,
                            #mob=mob,#tokengen=tokengen,#corpse=corpse,
-                           #attributes=attributes);
+                           #attributes=attributes,#ladderID=ladderID);
          if oTreasure <> $
          {
             if IsClass(oTreasure,&SpellItem)
@@ -360,7 +359,7 @@ messages:
                {
                   oTreasure = Send(self,@GenerateTreasure,#level=level,
                                     #who=who,#mob=mob,#tokengen=tokengen,
-                                    #corpse=corpse,#attributes=attributes);
+                                    #corpse=corpse,#attributes=attributes,#ladderID=ladderID);
                }
             }
 
@@ -377,7 +376,7 @@ messages:
    }
 
    GenerateTreasure(level = 1, who = $, mob = $, tokengen = TRUE, corpse = $,
-                    attributes = 0)
+                    attributes = 0, ladderID = 0)
    {
       local oObj, iStatTokenChance, oLib;
 
@@ -460,7 +459,7 @@ messages:
          if Random(1,iStatTokenChance) = 1
             AND level > Send(who,@GetBaseMaxHealth)
          {
-            oObj = Create(&StatsResetToken,#tradeable=TRUE,#corpse=corpse);
+            oObj = Create(&StatsResetToken,#tradeable=TRUE,#corpse=corpse,#ladderID=ladderID);
             if oObj <> $
             {
                Send(who,@MsgSendUser,#message_rsc=trinket_found_rsc,
@@ -482,11 +481,11 @@ messages:
          switch(Random(1,2))
          {
             case 1:
-               oObj = Create(&LoreTosApoth,#random_book=true);
+               oObj = Create(&LoreTosApoth,#random_book=true,#ladderID=ladderID);
                break;
 
             case 2:
-               oObj = Create(&LoreHist1,#random_book=true);
+               oObj = Create(&LoreHist1,#random_book=true,#ladderID=ladderID);
                break;
          }
          return oObj;
@@ -496,7 +495,7 @@ messages:
       {
          % No rare item dropped, check loot table.
          oObj = Send(self,@GenerateLootTableTreasure,#who=who,#corpse=corpse,
-                                                     #level=level);
+                                                     #level=level,#ladderID=ladderID);
 
          if oObj = $
          {
@@ -509,7 +508,7 @@ messages:
       return oObj;
    }
 
-   GenerateLootTableTreasure(who=$,corpse=$,level=20)
+   GenerateLootTableTreasure(who=$,corpse=$,level=20,ladderID=0)
    {
       local iCount, iRnd, lItem_info, oObj, iNumber;
 
@@ -524,7 +523,7 @@ messages:
             if IsClass(who,&Monster)
                OR IsClass(corpse,&OrcPitBossBody)
             {
-               oObj = Create(First(lItem_info),#level=level);
+               oObj = Create(First(lItem_info),#level=level,#ladderID=ladderID);
                if vbGenerateSockets
                   AND IsClass(oObj,&DefenseModifier)
                {
@@ -544,7 +543,7 @@ messages:
             }
             else
             {
-               oObj = Create(First(lItem_info),#corpse=corpse,#level=level);
+               oObj = Create(First(lItem_info),#corpse=corpse,#level=level,#ladderID=ladderID);
                if vbGenerateSockets
                   AND IsClass(oObj,&DefenseModifier)
                {

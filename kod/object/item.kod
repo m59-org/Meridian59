@@ -163,6 +163,9 @@ resources:
    shard_armor_mod_percentage = \
       "The %s acquires a magical bonus of %i weapon resistance!"
 
+   item_out_of_ladder = \
+      "That item is outside of your ladder competition."
+
 classvars:
 
    vrItem_broken = item_broken_battle
@@ -230,10 +233,15 @@ properties:
    % item level for magic mods and other effects
    % depends on the mob that dropped it
    piItemLevel = 20
+   
+   % What ladder are we a part of?
+   % Base game is 0
+   % Challenge ladders will typically be 1
+   piLadderID = 0
 
 messages:
 
-   Constructor(corpse=$,level=20)
+   Constructor(corpse=$,level=20, ladderID=0)
    {
       local iHits_average, oItemAtt;
 
@@ -255,6 +263,7 @@ messages:
       }
 
       piItemLevel = level;
+      piLadderID = ladderID;
 
       propagate;
    }
@@ -1660,7 +1669,17 @@ messages:
    }
 
    ReqNewOwner(what=$)
-   {      
+   {
+      if what <> $
+         AND poOwner <> $
+         AND IsClass(what,&Player)
+      {
+         if Send(what,@GetLadderID) <> Send(self,@GetLadderID)
+         {
+            Send(what,@MsgSendUser,#message_rsc=item_out_of_ladder);
+            return FALSE;
+         }
+      }
       return ((poOwner = $) OR Send(poOwner,@ReqLeaveHold,#what=self));
    }
 
@@ -3757,6 +3776,11 @@ messages:
          }
       }
       return;
+   }
+   
+   GetLadderID()
+   {
+      return piLadderID;
    }
 
 end
