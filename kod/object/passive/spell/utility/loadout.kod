@@ -39,6 +39,9 @@ resources:
       "storage, according to preferences previously registered with "
       "Frular's office."
 
+   loadout_in_ladder = \
+      "You cannot use this spell while part of a ladder competition."
+
 classvars:
 
    vrName = loadout_name_rsc
@@ -70,6 +73,12 @@ messages:
 
    CanPayCosts(who = $)
    {
+      if Send(who,@GetLadderID) <> 0
+      {
+         Send(who,@MsgSendUser,#message_rsc=loadout_in_ladder);
+         return FALSE;
+      }
+
       if Send(who,@GetGuild) = $
       {
          Send(who,@MsgSendUser,#message_rsc=loadout_not_guilded);

@@ -506,6 +506,7 @@ properties:
    poMazeRoomMaintenance = $
    poLanguageMaintenance = $
    poLeagueMaintenance = $
+   poLadderMaintenance = $
    poChaosStrataMaintenance = $
 
    % Singleton object that keeps track of various game statistics
@@ -677,6 +678,7 @@ messages:
       Send(self,@RecreateMazeRoomMaintenance);
       Send(self,@RecreateLanguageMaintenance);
       Send(self,@RecreateLeagueMaintenance);
+      Send(self,@RecreateLadderMaintenance);
       Send(self,@RecreateChaosStrataMaintenance);
 
       Send(self,@RecreateAllSpells,#figure_totals=FALSE);
@@ -793,6 +795,7 @@ messages:
       Send(self,@RecreateMazeRoomMaintenance);
       Send(self,@RecreateLanguageMaintenance);
       Send(self,@RecreateLeagueMaintenance);
+      Send(self,@RecreateLadderMaintenance);
       Send(self,@RecreateChaosStrataMaintenance);
       Send(self,@RecreateWarEvent);
 
@@ -1573,6 +1576,7 @@ messages:
       Send(poDesertRoomMaintenance,@NewDay);
       Send(poLanguageMaintenance,@NewDay);
       Send(poLeagueMaintenance,@NewDay);
+      Send(poLadderMaintenance,@NewDay);
       Send(poChaosStrataMaintenance,@NewDay);
       Send(poMazeRoomMaintenance,@NewDay);
       Send(&SoldierShield,@NewDay);
@@ -4630,6 +4634,11 @@ messages:
       {
          Send(poLeagueMaintenance,@NewGameHour);
       }
+      
+      if poLadderMaintenance <> $
+      {
+         Send(poLadderMaintenance,@NewGameHour);
+      }
 
       if poChaosStrataMaintenance <> $
       {
@@ -5605,6 +5614,11 @@ messages:
    {
       return poLeagueMaintenance;
    }
+   
+   GetLadderMaintenance()
+   {
+      return poLadderMaintenance;
+   }
 
    GetChaosStrataMaintenance()
    {
@@ -5723,6 +5737,19 @@ messages:
       else
       {
          poLeagueMaintenance = Create(&LeagueMaintenance);
+      }
+      return TRUE;
+   }
+   
+   RecreateLadderMaintenance()
+   {
+      if poLadderMaintenance <> $
+      {
+         Send(poLadderMaintenance,@Recreate);
+      }
+      else
+      {
+         poLadderMaintenance = Create(&LadderMaintenance);
       }
       return TRUE;
    }

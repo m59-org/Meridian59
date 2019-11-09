@@ -313,7 +313,7 @@ messages:
 
       if number >= 1 and number <= piNumber
       {
-         oSplit = Create(GetClass(self),#number=number);
+         oSplit = Create(GetClass(self),#number=number,#ladderID=Send(self,@GetLadderID));
          Send(self,@SubtractNumber,#number=number);
 
          return oSplit;
@@ -325,6 +325,7 @@ messages:
    Join(what = $)
    {
       if GetClass(self) = GetClass(what)
+         AND Send(self,@GetLadderID) = Send(what,@GetLadderID)
       {
          Send(self,@AddNumber,#number=Send(what,@GetNumber));
          Send(what,@Delete);

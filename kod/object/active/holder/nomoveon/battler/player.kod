@@ -236,6 +236,8 @@ resources:
       "You are not allowed to attack other players in this world."
    player_no_enter = \
       "Your guardian angel holds you back and prevents you from entering here."
+   player_no_enter_ladder = \
+      "You cannot enter a guild hall while part of a ladder competition."
    player_assgame_soon = \
       "~kRoq tells you, \"~IA new Assassin's Circle shall be initiated "
       "shortly.\""
@@ -331,6 +333,7 @@ resources:
    player_no_target_self_spell = "You cannot cast this spell on yourself."
    
    player_out_of_ladder = "%s%s is not part of your ladder competition."
+   player_is_in_ladder = "%s is participating in the ladder competition.\n"
 
    player_cant_apply = "You can't use %s%s on other things."
    
@@ -3866,12 +3869,16 @@ messages:
       }
       
       %
-      % Add opt-out info.
+      % Add opt-out info and ladder info. (no opt outs in ladders)
       %
       if pbOptOutPvP
          AND Send(SETTINGS_OBJECT,@GetAllowOptOutPvP)
       {
          AddPacket(4,player_opt_out_pvp, 4,Send(self,@GetHeShe,#cap=TRUE));
+      }
+      else if Send(self,@GetLadderID) <> 0
+      {
+         AddPacket(4,player_is_in_ladder, 4,Send(self,@GetHeShe,#cap=TRUE));
       }
       else
       {
@@ -4637,6 +4644,11 @@ messages:
       % Give them a new start on life, so that their newbie
       % friends can buff and heal them.
       piTimeAttackedPlayer = 0;
+      
+      if Send(Send(SYS,@GetLadderMaintenance),@GetLadderEnabled)
+      {
+         Send(self,@SetLadderID,#value=Send(Send(SYS,@GetLadderMaintenance),@GetLadderNum));
+      }
 
       return;
    }
@@ -7505,7 +7517,8 @@ messages:
       }
       
       % Check for relics
-      if poGuild <> $
+      if Send(self,@GetLadderID) = 0
+         AND poGuild <> $
          AND Send(poGuild,@GetGuildHall) <> $
       {
          foreach i in Send(Send(poGuild,@GetGuildHall),@GetRelicList)
@@ -7615,7 +7628,8 @@ messages:
       }
       
       % Check for relics
-      if poGuild <> $
+      if Send(self,@GetLadderID) = 0
+         AND poGuild <> $
          AND Send(poGuild,@GetGuildHall) <> $
       {
          foreach i in Send(Send(poGuild,@GetGuildHall),@GetRelicList)
@@ -7820,7 +7834,8 @@ messages:
       iDamageBonus = iDamageBonus*100;
       
       % Check for relics - this is high precision so * 100
-      if poGuild <> $
+      if Send(self,@GetLadderID) = 0
+         AND poGuild <> $
          AND Send(poGuild,@GetGuildHall) <> $
       {
          foreach i in Send(Send(poGuild,@GetGuildHall),@GetRelicList)
@@ -12535,7 +12550,8 @@ messages:
       
          iBonusPercentage = 0;
          % Check for relics
-         if poGuild <> $
+         if Send(self,@GetLadderID) = 0
+            AND poGuild <> $
             AND Send(poGuild,@GetGuildHall) <> $
          {
             foreach i in Send(Send(poGuild,@GetGuildHall),@GetRelicList)
@@ -17495,6 +17511,14 @@ messages:
       if oRoom = $
       {
          Debug("Got an invalid room!");
+         return FALSE;
+      }
+
+      if IsClass(oRoom,&GuildHall)
+         AND Send(self,@GetLadderID) <> 0
+      {
+         Send(self,@MsgSendUser,#message_rsc=player_no_enter_ladder);
+
          return FALSE;
       }
 

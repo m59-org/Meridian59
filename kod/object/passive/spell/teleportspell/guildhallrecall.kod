@@ -36,6 +36,9 @@ resources:
    guild_hall_recall_in_raza = \
       "Raza is much too far away for you to reach your guild hall with egress."
 
+   guild_hall_recall_you_are_ladder = \
+      "You cannot enter guild halls while part of a ladder competition!"
+
 classvars:
 
    vrName = guild_hall_recall_name_rsc
@@ -100,6 +103,12 @@ messages:
       if oRoom = $
       {
          Send(who,@MsgSendUser,#message_rsc=guild_hall_recall_dont_have_a_hall);
+         propagate;
+      }
+      
+      if Send(who,@GetLadderID) <> 0
+      {
+         Send(who,@MsgSendUser,#message_rsc=guild_hall_recall_you_are_ladder);
          propagate;
       }
 

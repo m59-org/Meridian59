@@ -34,9 +34,9 @@ LadderMaintenance is UtilityFunctions
 %    Shadowstep Tabi boots also grant the passive abilities 'You are hidden while not in combat.' and 'You are immune to poison.'
 % These unique items are obviously only available to ladder players.
 %
-% The character with the highest wisdom at the end of the challenge ladder gets a title and INSANE REWARD.
-% The top ten characters get GREAT REWARD.
-% The top one hundred characters receive PRETTY COOL REWARD.
+% The character with the highest wisdom at the end of the challenge ladder gets a title and a Magic Spirit Helm.
+% The top ten characters get Magic Bows.
+% The top one hundred characters receive either Boots or a Staff.
 % 
 
 constants:
@@ -45,13 +45,25 @@ constants:
 
 resources:
 
+   no_ladder_players = \
+      "There are no adventurers currently in the ladder competition."
+   ranking_header = \
+      "The top adventurers currently in the ladder competition are:\n"
+   ranking_name_and_wisdom = \
+      "%s, %i wisdom"
+      
+   your_ranking_ladder = \
+      "You are rank %i in the ladder competition."
+
 classvars:
 
 properties:
 
    plLadderPlayers = $
    
-   pbLadderEnabled = FALSE
+   pbLadderEnabled = TRUE
+   
+   piLadderNum = 1
 
 messages:
 
@@ -117,6 +129,40 @@ messages:
    GetLadderEnabled()
    {
       return pbLadderEnabled;
+   }
+
+   GetLadderNum()
+   {
+      return piLadderNum;
+   }
+   
+   DoLadderReport(who=$)
+   {
+      local iCount;
+
+      if plLadderPlayers = $
+      {
+         Send(who,@MsgSendUser,#message_rsc=no_ladder_players);
+         return;
+      }
+      
+      Send(who,@MsgSendUser,#message_rsc=ranking_header);
+      
+      iCount = 1;
+      while iCount <= 10
+      {
+         if iCount <= Length(plLadderPlayers)
+         {
+            Send(who,@MsgSendUser,#message_rsc=ranking_name_and_wisdom,#parm1=Send(Nth(plLadderPlayers,iCount),@GetTrueName),#parm2=Send(Nth(plLadderPlayers,iCount),@GetAccumulatedWisdom));
+         }
+      }
+      
+      if FindListElem(plLadderPlayers,who)
+      {
+         Send(who,@MsgSendUser,#message_rsc=your_ranking_ladder,#parm1=FindListElem(plLadderPlayers,who));
+      }
+
+      return;
    }
 
 end

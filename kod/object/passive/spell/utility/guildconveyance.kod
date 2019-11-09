@@ -28,6 +28,8 @@ resources:
    GuildConveyance_no_hall = "Your guild does not own a hall!"
 
    GuildConveyance_cast = "A small portal whips into existence, pulling %s%s to your guild hall storage."
+   
+   GuildConveyance_ladder = "You cannot use this spell while part of a ladder competition."
 
 classvars:
 
@@ -69,6 +71,12 @@ messages:
       
       oTarget = First(lTargets);
       
+      if Send(who,@GetLadderID) <> 0
+      {
+         Send(who,@MsgSendUser,#message_rsc=GuildConveyance_ladder);
+         return;
+      }
+
       oGuild = Send(who,@GetGuild);
       if oGuild = $
       {

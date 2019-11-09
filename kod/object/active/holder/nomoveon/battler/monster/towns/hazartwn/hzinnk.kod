@@ -25,7 +25,10 @@ resources:
    Hazar_innkeep_icon_rsc = jsmerch.bgf
    Hazar_innkeep_desc_rsc = \
       "A veteran of the Orc Wars, Marcus now seems content to settle into "
-      "his new life running a small and quiet country inn."
+      "his new life running a small and quiet country inn. "
+      "\n\nHe can also help you opt out of the ladder competition. "
+      "If you say 'opt out of ladder,' he will notify the Council and you will "
+      "no longer be part of the ladder competition. This is not reversible."
 
    HazarInnkeeper_nothing_for_sale = \
       "I don't have anything to sell myself, but ask around - some of the "
@@ -34,6 +37,12 @@ resources:
    HazarInnkeeper_welcome = \
       "Hello, %s, and welcome to Meridian 59!  Read the sign to "
       "start the tutorial."
+      
+   opt_out_of_ladder_command = "opt out of ladder"
+   
+   HazarInnkeeper_ladder_out = \
+      "I completely understand. I'm not the competitive type myself! "
+      "I've notified the Council that you would like to opt out of the ladder competition."
 
 classvars:
    vrName = Hazar_innkeep_name_rsc
@@ -50,6 +59,25 @@ classvars:
 properties:
 
 messages:
+
+   SomeoneSaid(what=$,type=$,string=$)
+   {
+      if type = SAY_YELL OR NOT IsClass(what,&User)
+      {
+          propagate;
+      }
+
+      if StringContain(string,opt_out_of_ladder_command)
+         AND what <> $
+         AND IsClass(what,&User)
+         AND Send(what,@GetLadderID) <> 0
+      {
+         Send(poOwner,@SomeoneSaid,#what=self,#type=SAY_RESOURCE,#string=HazarInnkeeper_ladder_out);
+         Send(what,@SetLadderID);
+      }
+
+      propagate;
+   }
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -4867,8 +4867,13 @@ messages:
                }
             }
 
-            piLadderID = Send(what,@GetLadderID);
-            Send(self,@CreateTreasure,#who=what,#corpse=oBody,#ladderID=Send(what,@GetLadderID));
+            piLadderID = Send(Send(self,@GetHighestHurtMeRecentlyBattler),@GetLadderID);
+            
+            if piLadderID = $
+            {
+               piLadderID = 0;
+            }
+            Send(self,@CreateTreasure,#who=what,#corpse=oBody,#ladderID=piLadderID);
          }
 
          % Delete here so we don't accidentally "kill" then delete system

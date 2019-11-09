@@ -538,6 +538,7 @@ messages:
       }
 
       if IsClass(self,&Player)
+         AND Send(self,@GetLadderID) = 0
       {
          oGuild = Send(self,@GetGuild);
          if oGuild <> $
@@ -3454,6 +3455,12 @@ messages:
    GetLadderID()
    {
       return piLadderID;
+   }
+   
+   SetLadderID(value=0)
+   {
+      piLadderID = value;
+      return;
    }
 
 end
