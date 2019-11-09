@@ -118,7 +118,7 @@ messages:
                   send(what,@MsgSendUser,#message_rsc=cave3_key_disappears);
                   send(self,@SomethingWaveRoom,#wave_rsc=cave3_sound_rsc);
                   pbDoorOpen = TRUE;
-                  send(self,@CreateJewel);
+                  send(self,@CreateJewel,#ladderID=Send(what,@GetLadderID));
                   send(self,@RaiseTemple);
 
                   return TRUE ;
@@ -161,7 +161,7 @@ messages:
       propagate;
    }
 
-   CreateJewel()
+   CreateJewel(ladderID=0)
    {
       local lPassive, i, each_obj;
       
@@ -176,7 +176,7 @@ messages:
          }
       }
 
-      send(self,@Newhold,#what=Create(&JewelOfFroz,#level=200),
+      send(self,@Newhold,#what=Create(&JewelOfFroz,#level=200,#ladderID=ladderID),
            #new_row=37,#new_col=38,#fine_row=16,#fine_col=0);
 
       % Create a light on the jewel, too.
