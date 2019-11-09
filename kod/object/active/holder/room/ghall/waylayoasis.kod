@@ -820,6 +820,8 @@ messages:
 
    SomethingMoved(what = $,new_row = $, new_col = $)
    {
+      local iSection;
+
       if NOT IsClass(what,&Player)
       {
          propagate;
@@ -857,6 +859,16 @@ messages:
               #new_row=3,#new_col=33,#fine_col=44,#new_angle=ANGLE_SOUTH);
               
          return;
+      }
+      
+      if Send(what,@GetLadderID) <> 0
+      {
+         iSection = Send(self,@GetSection,#who=what);
+         if iSection = AREA_INSIDE
+            OR iSection = AREA_LEDGES
+         {
+            Post(self,@Teleport,#what=what);
+         }
       }
 
       propagate;
