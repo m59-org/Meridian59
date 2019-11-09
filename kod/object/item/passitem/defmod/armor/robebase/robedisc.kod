@@ -94,7 +94,7 @@ messages:
       propagate;
    }
 
-   GetBaseSpellModifier(oSpell=$)
+   GetBaseSpellModifier(oSpell=$,bActual=FALSE)
    {
       local iShadowcraftBonus;
       
@@ -103,7 +103,7 @@ messages:
          AND IsClass(poOwner,&Player)
          AND Send(poOwner,@HasSkill,#num=SKID_UNIFIED_BLAZON)
       {
-         iShadowcraftBonus = Send(Send(SYS,@FindSkillByNum,#num=SKID_UNIFIED_BLAZON),@GetSpellPowerBonus,#who=poOwner);
+         iShadowcraftBonus = Send(Send(SYS,@FindSkillByNum,#num=SKID_UNIFIED_BLAZON),@GetSpellPowerBonus,#who=poOwner,#bActual=bActual);
       }
       if Send(oSpell,@GetSchool) = piSchool
          OR iShadowcraftBonus > 0

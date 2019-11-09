@@ -59,14 +59,17 @@ messages:
       return Send(who,@GetMysticism);
    }
 
-   GetSpellPowerBonus(who=$)
+   GetSpellPowerBonus(who=$,bActual=FALSE)
    {
       local iStat, iAbility;
       
       iStat = Send(self,@GetRequisiteStat,#who=who);
       iAbility = Send(who,@GetSkillAbility,#skill_num=viSkill_num);
 
-      Send(self,@ImproveAbility,#who=who);
+      if bActual
+      {
+         Send(self,@ImproveAbility,#who=who);
+      }
 
       return (iAbility+1)/5 + iStat/20;
    }

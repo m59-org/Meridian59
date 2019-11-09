@@ -2674,19 +2674,19 @@ messages:
       return tTimer;
    }
 
-   GetBaseSpellModifier(oSpell=$)
+   GetBaseSpellModifier(oSpell=$,bActual=FALSE)
    {
       % Doing it this way, we can have different items give different bonuses
       %  in different situations, while still giving itematt bonuses.
       return viSpell_modifier;
    }
 
-   GetSpellModifier(oSpell=$,lTargets=$)
+   GetSpellModifier(oSpell=$,lTargets=$,bActual=FALSE)
    {
       local oItemAtt, iModifier, i, iNum, oObjectAttribute;
 
       iModifier = Send(self,@GetBaseSpellModifier,#oSpell=oSpell,
-                        #lTargets=lTargets);
+                        #lTargets=lTargets,#bActual=bActual);
       foreach i in plItem_Attributes
       {
          iNum = Send(self,@GetNumFromCompound,#compound=First(i));
