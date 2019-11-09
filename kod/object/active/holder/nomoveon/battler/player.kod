@@ -4895,15 +4895,15 @@ messages:
       local iInfo, oSpell, lReagents, lItems, cReagent, iNumber;
 
       % Give the poor newbie an weapon and a bit of cash.
-      Send(self,@NewHold,#what=Create(&Mace));
-      Send(self,@NewHold,#what=Create(&Money,#number=500));
+      Send(self,@NewHold,#what=Create(&Mace,#ladderID=Send(self,@GetLadderID)));
+      Send(self,@NewHold,#what=Create(&Money,#number=500,#ladderID=Send(self,@GetLadderID)));
       Send(Send(SYS,@GetStatistics),@MoneyCreated,#amount=500);
       Send(self,@AddReagentsForSpells,#iNumCasts=10);
 
       % If player hasn't suicided in last 5 hours, give them cash and prizes!
       if (GetTime() - piLast_restart_time) > (5*60*60)   
       {
-         Send(self,@NewHold,#what=Create(&Money,#number=500));
+         Send(self,@NewHold,#what=Create(&Money,#number=500,#ladderID=Send(self,@GetLadderID)));
          Send(Send(SYS,@GetStatistics),@MoneyCreated,#amount=500);
          Send(self,@AddReagentsForSpells,#iNumCasts=10);
       }
@@ -4936,27 +4936,27 @@ messages:
       % give them cash and fancy clothes!
       if (GetTime() - piLast_restart_time) > (5*60*60)
       {
-         Send(self,@NewHold,#what=Create(&Money,#number=1000));
+         Send(self,@NewHold,#what=Create(&Money,#number=1000,#ladderID=Send(self,@GetLadderID)));
          Send(Send(SYS,@GetStatistics),@MoneyCreated,#amount=1000);
-         Send(self,@NewHold,#what=create(&InkyCap,#number=5));
-         Send(self,@NewHold,#what=Create(&PantsC));
-         Send(self,@NewHold,#what=Create(&Shirt,#color=XLAT_TO_GRAY));
+         Send(self,@NewHold,#what=create(&InkyCap,#number=5,#ladderID=Send(self,@GetLadderID)));
+         Send(self,@NewHold,#what=Create(&PantsC,#ladderID=Send(self,@GetLadderID)));
+         Send(self,@NewHold,#what=Create(&Shirt,#color=XLAT_TO_GRAY,#ladderID=Send(self,@GetLadderID)));
       }
 
       if Send(Send(SYS,@GetLore),@BetaPotionsEnabled) 
          AND Send(Send(SYS,@GetParliament),@BetaPotionsEnabled)
       {
-         Send(self,@NewHold,#what=create(&MysticSword));
-         Send(self,@NewHold,#what=create(&MysticSword));
-         Send(self,@NewHold,#what=create(&InkyCap,#number=20));
-         Send(self,@NewHold,#what=create(&SimpleHelm));
-         Send(self,@NewHold,#what=create(&ScaleArmor));
-         Send(self,@NewHold,#what=create(&Gauntlet));
+         Send(self,@NewHold,#what=create(&MysticSword,#ladderID=Send(self,@GetLadderID)));
+         Send(self,@NewHold,#what=create(&MysticSword,#ladderID=Send(self,@GetLadderID)));
+         Send(self,@NewHold,#what=create(&InkyCap,#number=20,#ladderID=Send(self,@GetLadderID)));
+         Send(self,@NewHold,#what=create(&SimpleHelm,#ladderID=Send(self,@GetLadderID)));
+         Send(self,@NewHold,#what=create(&ScaleArmor,#ladderID=Send(self,@GetLadderID)));
+         Send(self,@NewHold,#what=create(&Gauntlet,#ladderID=Send(self,@GetLadderID)));
          Send(self,@AddReagentsForSpells,#iNumCasts=20);
       }
 
-      Send(self,@NewHold,#what=Create(&Mace));
-      Send(self,@NewHold,#what=Create(&Apple,#number=5));
+      Send(self,@NewHold,#what=Create(&Mace,#ladderID=Send(self,@GetLadderID)));
+      Send(self,@NewHold,#what=Create(&Apple,#number=5,#ladderID=Send(self,@GetLadderID)));
 
       return;
    }
@@ -4979,7 +4979,7 @@ messages:
             iNumber = Nth(lItems,2);
 
             Send(self,@NewHold,
-                  #what=Create(cReagent,#number=(iNumber*iNumCasts)));
+                  #what=Create(cReagent,#number=(iNumber*iNumCasts),#ladderID=Send(self,@GetLadderID)));
          }
       }
 
@@ -12738,7 +12738,7 @@ messages:
       oMoney = Send(self,@GetMoneyObject);
       if oMoney = $
       {
-         oMoney = Create(&Money,#number=amount);
+         oMoney = Create(&Money,#number=amount,#ladderID=Send(self,@GetLadderID));
          Send(self,@NewHold,#what=oMoney);
       }
       else if (Send(oMoney,@GetNumber) + amount) <= 0
@@ -13204,7 +13204,7 @@ messages:
          {
             % To prevent mule money abuse, make the hammer "created".
             % This makes it worthless to try to sell. It lasts for 5 hours.
-            oItem = Create(&Hammer);
+            oItem = Create(&Hammer,#ladderID=Send(self,@GetLadderID));
             oItemAtt = Send(SYS,@FindItemAttByNum,#Num=IA_MADE);
             Send(oItemAtt,@AddtoItem,#oitem=oItem,#timer_duration=18000000);
             Send(self,@NewHold,#what=oItem);
@@ -13215,7 +13215,7 @@ messages:
             {
                % To prevent mule money abuse, make the mace "created".
                % This makes it worthless to try to sell. It lasts for 5 hours.
-               oItem = Create(&Mace);
+               oItem = Create(&Mace,#ladderID=Send(self,@GetLadderID));
                oItemAtt = Send(SYS,@FindItemAttByNum,#Num=IA_MADE);
                Send(oItemAtt,@AddtoItem,#oitem=oItem,#timer_duration=18000000);
                Send(self,@NewHold,#what=oItem);

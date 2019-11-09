@@ -4979,7 +4979,7 @@ messages:
 
          poCustomer = what;
 
-         plOffer_items = [ Create(&Money,#number=iValue_offered) ];
+         plOffer_items = [ Create(&Money,#number=iValue_offered,#ladderID=Send(what,@GetLadderID)) ];
          Send(what,@CounterOffer,#item_list=plOffer_items);
          ptCancelOffer = CreateTimer(self,@CancelOfferTimer,viCancel_offer_time);
       }
@@ -5536,7 +5536,7 @@ messages:
       oMoney = Send(who,@GetMoneyObject);
       if oMoney = $
       {
-         oMoney = Create(&Money,#number=amount);
+         oMoney = Create(&Money,#number=amount,#ladderID=Send(who,@GetLadderID));
          Send(who,@NewHold,#what=oMoney);
       }
       else if (Send(oMoney,@GetNumber) + amount) <= 0
@@ -5715,7 +5715,7 @@ messages:
          {
             if IsClass(i,&NumberItem)
             {
-               oBuy = Create(GetClass(i),#number=iAmount);
+               oBuy = Create(GetClass(i),#number=iAmount,#ladderID=Send(what,@GetLadderID));
             }
             else
             {
@@ -5726,7 +5726,7 @@ messages:
                }
                else
                {
-                  oBuy = Create(GetClass(i),#model=i);
+                  oBuy = Create(GetClass(i),#model=i,#ladderID=Send(what,@GetLadderID));
                }
             }
 
@@ -8663,7 +8663,7 @@ messages:
    {
       local oMoney,oRoom;
 
-      oMoney=Create(&Money,#number=Random(20,120));
+      oMoney=Create(&Money,#number=Random(20,120),#ladderID=Send(who,@GetLadderID));
       oRoom = Send(self,@GetOwner);
 
       if piSweepCounter < 5
