@@ -1680,6 +1680,7 @@ messages:
          AND IsClass(what,&Player)
       {
          if Send(what,@GetLadderID) <> Send(self,@GetLadderID)
+            AND NOT IsClass(poOwner,&SafetyDepositBox)
          {
             Send(what,@MsgSendUser,#message_rsc=item_out_of_ladder);
             return FALSE;

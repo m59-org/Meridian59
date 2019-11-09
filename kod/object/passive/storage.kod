@@ -163,7 +163,7 @@ messages:
             % The number item will be deleted at the end of the ReqGive Call
             % (in CleanUpCancelOffer).  Make a copy of the item and give that
             % to the mob.
-            oNewItem = Create(GetClass(oItem),#number=Send(oItem,@GetNumber));
+            oNewItem = Create(GetClass(oItem),#number=Send(oItem,@GetNumber),#ladderID=Send(who,@GetLadderID));
             Send(oPlayerBox,@newhold,#what=oNewItem);
             Send(who,@RemoveNumberItemFromPossession,#ToBeRemoved=oNewItem);
          }
@@ -294,7 +294,7 @@ messages:
             AND (count <= currentAmount)
          {
             cClass = GetClass(what);
-            oItem = Create(cClass,#number=count);
+            oItem = Create(cClass,#number=count,#ladderID=Send(who,@GetLadderID));
             Send(what,@SubtractNumber,#number=count);
             Send(who,@NewHold,#what=oItem);
          }

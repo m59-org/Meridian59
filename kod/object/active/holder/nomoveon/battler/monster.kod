@@ -4750,7 +4750,7 @@ messages:
    Killed(what=$)
    "The mob was just killed."
    {
-      local i,val,oBody,hReputation;
+      local i,val,oBody,hReputation,oHighestHurtMe;
 
       % If the monster was just killed, assume it did itself in.
       if what = $
@@ -4867,8 +4867,15 @@ messages:
                }
             }
 
-            piLadderID = Send(Send(self,@GetHighestHurtMeRecentlyBattler),@GetLadderID);
-            
+            oHighestHurtMe = Send(self,@GetHighestHurtMeRecentlyBattler);
+            if oHighestHurtMe <> $
+            {
+               piLadderID = Send(oHighestHurtMe,@GetLadderID);
+            }
+            else
+            {
+               piLadderID = Send(what,@GetLadderID);
+            }
             if piLadderID = $
             {
                piLadderID = 0;

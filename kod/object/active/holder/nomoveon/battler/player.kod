@@ -4601,6 +4601,11 @@ messages:
 
          Send(self,@RefigureSchoolsLists);
       }
+      
+      if Send(Send(SYS,@GetLadderMaintenance),@GetLadderEnabled)
+      {
+         Send(self,@SetLadderID,#value=Send(Send(SYS,@GetLadderMaintenance),@GetLadderNum));
+      }
 
       % Do this after we add spells so that we can give reagents if appropriate.
       Send(self,@AddDefaultObjects);
@@ -4644,11 +4649,6 @@ messages:
       % Give them a new start on life, so that their newbie
       % friends can buff and heal them.
       piTimeAttackedPlayer = 0;
-      
-      if Send(Send(SYS,@GetLadderMaintenance),@GetLadderEnabled)
-      {
-         Send(self,@SetLadderID,#value=Send(Send(SYS,@GetLadderMaintenance),@GetLadderNum));
-      }
 
       return;
    }
