@@ -92,6 +92,11 @@ resources:
       
    phase_rephase_penalty = \
       "Phasing back out so soon costs you 15 seconds of your remaining phase time."
+   
+   phase_wisdom_steal = \
+      "You have learned much from this battle, acquiring %i wisdom from %s!"
+   phase_wisdom_lose = \
+      "You failed to apply your wisdom well, and lost %i wisdom to %s."
 
 classvars:
 
@@ -445,7 +450,7 @@ messages:
             LossAmount, iNumItemsInventory, numItemsLost, iLoops,
             iStart, lSpells, iSpellAbility, iAbilityNum, numSpellPointsLost,
             lSkills, iSkillAbility, numSkillPointsLost, poGhostedPlayer,
-            oSoldierShield;
+            oSoldierShield, iWisdomSteal, oLogger;
 
       if who = $
       {
@@ -668,6 +673,20 @@ messages:
       % Reset the time to avoid any funny business like potential double
       %  penalties.
       Send(poGhostedPlayer,@ResetLogoffPenaltyTime);
+
+      oLogger = Send(poGhostedPlayer,@GetHighestHurtMeRecentlyBattler);
+      if oLogger <> $
+         AND IsClass(oLogger,&User)
+         AND Send(oLogger,@GetLadderID) <> 0
+         AND Send(poGhostedPlayer,@GetLadderID) <> 0
+         AND Send(oLogger,@GetLadderID) = Send(poGhostedPlayer,@GetLadderID)
+      {
+         iWisdomSteal = Send(poGhostedPlayer,@GetAccumulatedWisdom)/100;
+         Send(oLogger,@AddAccumulatedWisdom,#amount=iWisdomSteal);
+         Send(poGhostedPlayer,@SubtractAccumulatedWisdom,#amount=iWisdomSteal);
+         Send(oLogger,@MsgSendUser,#message_rsc=phase_wisdom_steal,#parm1=iWisdomSteal,#parm2=Send(poGhostedPlayer,@GetTrueName));
+         Send(poGhostedPlayer,@MsgSendUser,#message_rsc=phase_wisdom_lose,#parm1=iWisdomSteal,#parm2=Send(oLogger,@GetTrueName));
+      }
 
       return;
    }

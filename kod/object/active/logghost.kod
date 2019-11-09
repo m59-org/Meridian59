@@ -112,6 +112,11 @@ resources:
    logoffghost_someone = "Someone"
 
    logoffghost_poof_wav_rsc = logoffghost_poof.wav
+   
+   pen_wisdom_steal = \
+      "You have learned much from this battle, acquiring %i wisdom from %s!"
+   pen_wisdom_lose = \
+      "You failed to apply your wisdom well, and lost %i wisdom to %s."
 
 classvars:
 
@@ -162,10 +167,12 @@ properties:
    prSpellPointsLost = $
    prSkillPointsLost = $
    piSoldierShieldOverlay = $
+   
+   poWhoLoggedUs = $
 
 messages:
 
-   Constructor(GhostedPlayer = $, iPenaltyTime = $)
+   Constructor(GhostedPlayer = $, iPenaltyTime = $, oWhoLoggedUs=$)
    {
       local i;
 
@@ -182,6 +189,10 @@ messages:
                  #new_angle=Send(poGhostedPlayer,@GetAngle));
             ptPenaltyTimer = CreateTimer(self,@PenaltyTrigger,iPenaltyTime);
          }
+         if oWhoLoggedUs <> $
+         {
+            poWhoLoggedUs = oWhoLoggedUs;
+         }
       }
 
       propagate;
@@ -190,6 +201,7 @@ messages:
    Delete()
    {
       poGhostedPlayer = $;
+      poWhoLoggedUs = $;
 
       if ptPenaltyTimer <> $
       {
@@ -297,13 +309,26 @@ messages:
       local i, bLooped, LossCounter, BaseLossAmount, iHealth,
             LossAmount, iNumItemsInventory, numItemsLost, iLoops,
             iStart, lSpells, iSpellAbility, iAbilityNum, numSpellPointsLost,
-            lSkills, iSkillAbility, numSkillPointsLost;
+            lSkills, iSkillAbility, numSkillPointsLost, iWisdomSteal;
 
       % Sanity check: Are they logged on?
       If Send(poGhostedPlayer,@IsLoggedOn)
       {
          % No logoff penalty if you are logged on.
          return;
+      }
+      
+      if poWhoLoggedUs <> $
+         AND IsClass(poWhoLoggedUs,&User)
+         AND Send(poWhoLoggedUs,@GetLadderID) <> 0
+         AND Send(poGhostedPlayer,@GetLadderID) <> 0
+         AND Send(poWhoLoggedUs,@GetLadderID) = Send(poGhostedPlayer,@GetLadderID)
+      {
+         iWisdomSteal = Send(poGhostedPlayer,@GetAccumulatedWisdom)/100;
+         Send(poWhoLoggedUs,@AddAccumulatedWisdom,#amount=iWisdomSteal);
+         Send(poGhostedPlayer,@SubtractAccumulatedWisdom,#amount=iWisdomSteal);
+         Send(poWhoLoggedUs,@MsgSendUser,#message_rsc=pen_wisdom_steal,#parm1=iWisdomSteal,#parm2=Send(poGhostedPlayer,@GetTrueName));
+         Send(poGhostedPlayer,@MsgSendUser,#message_rsc=pen_wisdom_lose,#parm1=iWisdomSteal,#parm2=Send(poWhoLoggedUs,@GetTrueName));
       }
 
       numItemsLost = 0;

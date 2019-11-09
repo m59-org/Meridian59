@@ -2802,15 +2802,35 @@ messages:
             }
             SetNth(i,2,Nth(i,2)+amount);
             DeleteTimer(Nth(i,3));
-            SetNth(i,3,CreateTimer(self,@RemoveHurtMeRecently,piHurtMeTime));
+            
+            if IsClass(who,&User)
+               AND IsClass(self,&User)
+            {
+               % Keep longer track of pvp
+               SetNth(i,3,CreateTimer(self,@RemoveHurtMeRecently,piHurtMeTime*35));
+            }
+            else
+            {
+               SetNth(i,3,CreateTimer(self,@RemoveHurtMeRecently,piHurtMeTime));
+            }
 
             return;
          }
       }
 
-      plHurtMeRecently = Cons([who,amount,CreateTimer(self,
-                               @RemoveHurtMeRecently,piHurtMeTime)],
-                               plHurtMeRecently);
+      if IsClass(who,&User)
+        AND IsClass(self,&User)
+      {
+         plHurtMeRecently = Cons([who,amount,CreateTimer(self,
+                                  @RemoveHurtMeRecently,piHurtMeTime*35)],
+                                  plHurtMeRecently);
+      }
+      else
+      {
+         plHurtMeRecently = Cons([who,amount,CreateTimer(self,
+                                  @RemoveHurtMeRecently,piHurtMeTime)],
+                                  plHurtMeRecently);
+      }
 
       return;
    }

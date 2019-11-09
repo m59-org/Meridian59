@@ -1114,6 +1114,11 @@ resources:
 
    master_is_phased_out_cannot_attack = \
       "Minions of an inaccessible player cannot be attacked."
+   
+   kill_wisdom_steal = \
+      "Your senses thrill with victory. You have acquired %i wisdom from %s!"
+   kill_wisdom_lose = \
+      "You failed miserably, and lost %i wisdom to %s."
 
 classvars:
 
@@ -6483,6 +6488,7 @@ messages:
       if IsClass(victim,&User)
          AND ((piFlags & PFLAG_TEMPSAFE)
             OR Send(victim,@CheckPlayerFlag,#flag=PFLAG_TEMPSAFE))
+         AND victim <> self
       {
          if report
          {
@@ -8704,7 +8710,7 @@ messages:
    "Called when the player killed something."
    {
       local bReflection, i, oSoldierShield, monstkarma, iChance, oEnemyGuild,
-      shrunken, oVictimRoom, oObject;
+      shrunken, oVictimRoom, oObject, iWisdomSteal;
 
       % If we killed someone or something, we did damage.
       Send(self,@SetPlayerFlag,#flag=PFLAG_DID_DAMAGE,#value=TRUE);
@@ -8906,6 +8912,18 @@ messages:
       if shrunken <> $
       {
          Send(shrunken,@OpponentKilled,#what=what,#stroke_obj=stroke_obj);
+      }
+
+      if IsClass(what,&User)
+         AND what <> self
+         AND Send(self,@GetLadderID) <> 0
+         AND Send(what,@GetLadderID) = Send(self,@GetLadderID)
+      {
+         iWisdomSteal = Send(what,@GetAccumulatedWisdom)/10;
+         Send(self,@AddAccumulatedWisdom,#amount=iWisdomSteal);
+         Send(what,@SubtractAccumulatedWisdom,#amount=iWisdomSteal);
+         Send(self,@MsgSendUser,#message_rsc=kill_wisdom_steal,#parm1=iWisdomSteal,#parm2=Send(what,@GetTrueName));
+         Send(what,@MsgSendUser,#message_rsc=kill_wisdom_lose,#parm1=iWisdomSteal,#parm2=Send(self,@GetTrueName));
       }
 
       return;

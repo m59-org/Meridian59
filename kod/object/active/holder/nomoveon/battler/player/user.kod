@@ -1122,7 +1122,8 @@ messages:
                   AND NOT Send(poOwner,@InFoyer,#who=self))
       {
          Create(&LogoffGhost,#GhostedPlayer=self,
-               #iPenaltyTime=Send(self,@GetRemainingPhaseTime));
+               #iPenaltyTime=Send(self,@GetRemainingPhaseTime),
+               #oWhoLoggedUs=Send(self,@GetHighestHurtMeRecentlyBattler));
 
          % Add phase time remaining to piTimeAttackedPlayer if it is currently
          % preventing the player from casting escape spells.

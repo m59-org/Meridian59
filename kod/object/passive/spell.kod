@@ -772,7 +772,7 @@ messages:
             AND IsClass(oTarget,&Player)
             AND oTarget <> who
             AND NOT (Send(where,@AllowGuildAttack,#what=who,#victim=oTarget)
-                     OR Send(oTarget,@CanHelpPlayer))
+                     OR (Send(oTarget,@CanHelpPlayer) AND oTarget <> who))
          {
             if report
             {
