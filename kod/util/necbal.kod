@@ -309,24 +309,24 @@ messages:
       return;
    }
 
-   ForceGenerateAmulet()
+   ForceGenerateAmulet(ladderID=0)
    {
       if ptGenerateAmulet <> $
       {
          DeleteTimer(ptGenerateAmulet);
       }
-      Send(self,@GenerateAmulet);
+      Send(self,@GenerateAmulet,#ladderID=ladderID);
  
       return;
    }
 
-   GenerateAmulet()
+   GenerateAmulet(ladderID=0)
    "Actually does the artifact generation."
    {
       local oAmulet;
 
       ptGenerateAmulet = $;
-      oAmulet = Create(&NecromancerAmulet,#level=200);
+      oAmulet = Create(&NecromancerAmulet,#level=200,#ladderID=ladderID);
       Send(self,@PlaceAmulet,#what=oAmulet);
 
       return;
@@ -413,23 +413,23 @@ messages:
       return;
    }
 
-   ForceGenerateSword()
+   ForceGenerateSword(ladderID=0)
    {
       if ptGenerateSword <> $
       {
          DeleteTimer(ptGenerateSword);
       }
-      Send(self,@GenerateSword);
+      Send(self,@GenerateSword,#ladderID=ladderID);
       return;
    }
 
-   GenerateSword()
+   GenerateSword(ladderID=0)
    "Actually does the artifact generation."
    {
       local oSword;
 
       ptGenerateSword = $;
-      oSword = Create(&HunterSword,#level=200);
+      oSword = Create(&HunterSword,#level=200,#ladderID=ladderID);
       Send(self,@PlaceSword,#what=oSword);
 
       return;
