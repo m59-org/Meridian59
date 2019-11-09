@@ -118,6 +118,22 @@ messages:
       Send(self,@NewHold,#what=Create(&SorcererScrap),#new_row=9,#new_col=5,#fine_row=16,#fine_col=36);
       return;
    }
+   
+   NewHold(what=$)
+   {
+      local i;
+      if IsClass(what,&User)
+      {
+         foreach i in Send(self,@GetHolderActive)
+         {
+            if IsClass(First(i),&SorcererScrap)
+            {
+               Send(First(i),@SetLadderID,#value=Send(what,@GetLadderID));
+            }
+         }
+      }
+      propagate;
+   }
 
    LeaveHold(what = $)
    {
