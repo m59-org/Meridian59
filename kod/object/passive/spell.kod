@@ -152,6 +152,8 @@ resources:
 
    cannot_cast_on_phased_out = \
       "You can't cast anything on %s while %s is phased out of existence!"
+   spell_fail_out_of_ladder = \
+      "That player does not share your ladder competition state."
 
    unable_to_improve_blood_magic = \
       "The pain involved in using blood magic makes it impossible for you to improve this spell."
@@ -974,6 +976,13 @@ messages:
                   #parm1=Send(oTarget,@GetName),
                   #parm2=Send(oTarget,@GetHeShe));
 
+            return FALSE;
+         }
+         
+         if IsClass(oTarget,&User)
+            AND Send(oTarget,@GetLadderID) <> Send(who,@GetLadderID)
+         {
+            Send(who,@MsgSendUser,#message_rsc=spell_fail_out_of_ladder);
             return FALSE;
          }
 

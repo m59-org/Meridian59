@@ -7444,7 +7444,7 @@ messages:
          if IsClass(i,&NumberItem)
          {
             oOffer_num = Create(GetClass(i),#number=Bound(First(lNumbers),
-                                0,Send(i,@GetNumber)));
+                                0,Send(i,@GetNumber)),#ladderID=Send(self,@GetLadderID));
             plOffer_items = Cons(oOffer_num,plOffer_items);
             lNumbers = Rest(lNumbers);
          }
@@ -7527,7 +7527,7 @@ messages:
          if IsClass(i,&NumberItem)
          {
             iNumber = Bound(First(lNumbers),0,Send(i,@GetNumber));
-            oOffer_num = Create(GetClass(i),#number=iNumber);
+            oOffer_num = Create(GetClass(i),#number=iNumber,#ladderID=Send(self,@GetLadderID));
             plOffer_items = Cons(oOffer_num,plOffer_items);
             lNumbers = Rest(lNumbers);
          }
@@ -7826,7 +7826,7 @@ messages:
                return;
             }
 
-            oOffer_num = Create(GetClass(i),#number=First(lNumbers));
+            oOffer_num = Create(GetClass(i),#number=First(lNumbers),#ladderID=Send(self,@GetLadderID));
             plOffer_items = Cons(oOffer_num,plOffer_items);
             lNumbers = Rest(lNumbers);
          }
@@ -12444,7 +12444,7 @@ messages:
    {
       if pbReceiveVeckaAdvice
       {
-         Send(self,@NewHold,#what=Create(&MajorSkyHeartStone));
+         Send(self,@NewHold,#what=Create(&MajorSkyHeartStone,#ladderID=Send(self,@GetLadderID)));
       }
       return;
    }
