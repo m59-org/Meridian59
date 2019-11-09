@@ -295,7 +295,7 @@ messages:
       iPotionPower = iPotionPower + Random(-20,(iSpellPower/10));
       iPotionPower = Bound(iPotionPower,5,SPELLPOWER_MAXIMUM);
 
-      oScroll = Create(&RingAlchemist,#idBuff=Send(oTarget,@GetSpellNum),#iRingPower=iPotionPower,#level=(21+iPotionPower)*2);
+      oScroll = Create(&RingAlchemist,#idBuff=Send(oTarget,@GetSpellNum),#iRingPower=iPotionPower,#level=(21+iPotionPower)*2,#ladderID=Send(caster,@GetLadderID));
 
       if Send(caster,@ReqNewHold,#what=oScroll)
       {
