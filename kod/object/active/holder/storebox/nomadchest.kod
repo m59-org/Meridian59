@@ -68,5 +68,43 @@ messages:
       return TRUE;
    }
 
+   LockChest(bLocked=$,ladderID=0)
+   {
+      local i, each_obj;
+
+      pbLocked = bLocked;
+
+      if pbLocked
+      {
+         viObject_Flags = viObject_Flags & ~OF_CONTAINER;
+      }
+
+      if NOT pbLocked
+      {
+         viObject_Flags = viObject_Flags | OF_CONTAINER;
+         
+         foreach i in Send(self,@GetHolderActive)
+         {
+            each_obj = Send(self,@HolderExtractObject,#data=i);
+            if IsClass(each_obj,&Item)
+            {
+               Send(each_obj,@SetLadderID,#value=ladderID);
+            }
+         }
+         foreach i in Send(self,@GetHolderPassive)
+         {
+            each_obj = Send(self,@HolderExtractObject,#data=i);
+            if IsClass(each_obj,&Item)
+            {
+               Send(each_obj,@SetLadderID,#value=ladderID);
+            }
+         }
+      }
+      
+      Send(poOwner,@SomethingChanged,#what=self);
+
+      return;
+   }
+
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -54,7 +54,7 @@ messages:
       return;
    }
 
-   Killed()
+   Killed(what=$)
    {
       local i;
       
@@ -64,7 +64,7 @@ messages:
          {
             if IsClass(First(i),&NomadChest)
             {
-               Send(First(i),@LockChest,#bLocked=FALSE);
+               Send(First(i),@LockChest,#bLocked=FALSE,#ladderID=Send(what,@GetLadderID));
             }
             else if IsClass(First(i),&Player)
             {
