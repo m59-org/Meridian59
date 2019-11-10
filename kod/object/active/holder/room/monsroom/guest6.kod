@@ -381,7 +381,7 @@ messages:
       if IsClass(victim,&Monster)
       {
          % gotta post because here it's not removed from room yet
-         Post(self,@CheckAllDeadMonsters);
+         Post(self,@CheckAllDeadMonsters,#ladderID=Send(what,@GetLadderID));
       }
       
       propagate;
@@ -507,7 +507,7 @@ messages:
       return;
    }
 
-   CheckAllDeadMonsters()
+   CheckAllDeadMonsters(ladderID=0)
    {
       %debug(Send(self,@CountInFinal,#count=COUNT_MONSTERS));
 
@@ -519,7 +519,7 @@ messages:
       if Send(self,@CountInFinal,#count=COUNT_MONSTERS) = 0
          AND Send(self,@CountInFinal,#count=COUNT_PLAYERS) <> 0
       {
-         Send(self,@DoColumnDown);
+         Send(self,@DoColumnDown,#ladderID=ladderID);
          pbColumn_down = TRUE;
          Send(self,@SetSector,#sector=SECTOR_NODE1,#animation=ANIMATE_FLOOR_LIFT,
               #height=105,#speed=32);
