@@ -140,9 +140,9 @@ messages:
       propagate;
    }
    
-   CompletedPuzzle()
+   CompletedPuzzle(ladderID=0)
    {
-      Send(self,@FillVault);
+      Send(self,@FillVault,#ladderID=ladderID);
       Send(self,@OpenVault);
       
       return;
@@ -177,7 +177,7 @@ messages:
       return;
    }
 
-   FillVault()
+   FillVault(ladderID=0)
    {
       local lLootClasses, lMinorLootClasses, iJunkNum, iScrollNum;
 
@@ -197,14 +197,14 @@ messages:
                            &SteelShield,
                            &SpikedHelm];
 
-      Send(self,@NewHold,#what=Create(Nth(lLootClasses,Random(1,Length(lLootClasses)))),
+      Send(self,@NewHold,#what=Create(Nth(lLootClasses,Random(1,Length(lLootClasses))),#ladderID=ladderID),
                          #new_row=Random(12,27),#new_col=Random(2,8),#fine_row=Random(0,63),#fine_col=Random(0,63));
 
       iJunkNum = Random(20,40);
       
       while iJunkNum > 0
       {
-         Send(self,@NewHold,#what=Create(Nth(lMinorLootClasses,Random(1,Length(lMinorLootClasses))),#level=200),
+         Send(self,@NewHold,#what=Create(Nth(lMinorLootClasses,Random(1,Length(lMinorLootClasses))),#level=200,#ladderID=ladderID),
                             #new_row=Random(12,27),#new_col=Random(2,8),#fine_row=Random(0,63),#fine_col=Random(0,63));
          iJunkNum--;
       }
@@ -213,7 +213,7 @@ messages:
       
       while iScrollNum > 0
       {
-         Send(self,@NewHold,#what=Create(&SorcererScrap),
+         Send(self,@NewHold,#what=Create(&SorcererScrap,#ladderID=ladderID),
                             #new_row=Random(12,27),#new_col=Random(2,8),#fine_row=Random(0,63),#fine_col=Random(0,63));
          iScrollNum--;
       }
@@ -268,7 +268,7 @@ messages:
                Send(self,@Toggle,#switch_num=8,#top_id=NORTH_WEST_TOP,#sides_id=NORTH_WEST_SIDES);
                Send(self,@Toggle,#switch_num=1,#top_id=NORTH_TOP,#sides_id=NORTH_SIDES);
                Send(self,@Toggle,#switch_num=2,#top_id=NORTH_EAST_TOP,#sides_id=NORTH_EAST_SIDES);
-               Send(self,@EvaluatePuzzle);
+               Send(self,@EvaluatePuzzle,#ladderID=Send(who,@GetLadderID));
             }
             break;
          case NORTH_EAST_SWITCH:
@@ -278,7 +278,7 @@ messages:
                Send(self,@Toggle,#switch_num=1,#top_id=NORTH_TOP,#sides_id=NORTH_SIDES);
                Send(self,@Toggle,#switch_num=2,#top_id=NORTH_EAST_TOP,#sides_id=NORTH_EAST_SIDES);
                Send(self,@Toggle,#switch_num=3,#top_id=EAST_TOP,#sides_id=EAST_SIDES);
-               Send(self,@EvaluatePuzzle);
+               Send(self,@EvaluatePuzzle,#ladderID=Send(who,@GetLadderID));
             }
             break;
          case EAST_SWITCH:
@@ -288,7 +288,7 @@ messages:
                Send(self,@Toggle,#switch_num=2,#top_id=NORTH_EAST_TOP,#sides_id=NORTH_EAST_SIDES);
                Send(self,@Toggle,#switch_num=3,#top_id=EAST_TOP,#sides_id=EAST_SIDES);
                Send(self,@Toggle,#switch_num=4,#top_id=SOUTH_EAST_TOP,#sides_id=SOUTH_EAST_SIDES);
-               Send(self,@EvaluatePuzzle);
+               Send(self,@EvaluatePuzzle,#ladderID=Send(who,@GetLadderID));
             }
             break;
          case SOUTH_EAST_SWITCH:
@@ -298,7 +298,7 @@ messages:
                Send(self,@Toggle,#switch_num=3,#top_id=EAST_TOP,#sides_id=EAST_SIDES);
                Send(self,@Toggle,#switch_num=4,#top_id=SOUTH_EAST_TOP,#sides_id=SOUTH_EAST_SIDES);
                Send(self,@Toggle,#switch_num=5,#top_id=SOUTH_TOP,#sides_id=SOUTH_SIDES);
-               Send(self,@EvaluatePuzzle);
+               Send(self,@EvaluatePuzzle,#ladderID=Send(who,@GetLadderID));
             }
             break;
          case SOUTH_SWITCH:
@@ -308,7 +308,7 @@ messages:
                Send(self,@Toggle,#switch_num=4,#top_id=SOUTH_EAST_TOP,#sides_id=SOUTH_EAST_SIDES);
                Send(self,@Toggle,#switch_num=5,#top_id=SOUTH_TOP,#sides_id=SOUTH_SIDES);
                Send(self,@Toggle,#switch_num=6,#top_id=SOUTH_WEST_TOP,#sides_id=SOUTH_WEST_SIDES);
-               Send(self,@EvaluatePuzzle);
+               Send(self,@EvaluatePuzzle,#ladderID=Send(who,@GetLadderID));
             }
             break;
          case SOUTH_WEST_SWITCH:
@@ -318,7 +318,7 @@ messages:
                Send(self,@Toggle,#switch_num=5,#top_id=SOUTH_TOP,#sides_id=SOUTH_SIDES);
                Send(self,@Toggle,#switch_num=6,#top_id=SOUTH_WEST_TOP,#sides_id=SOUTH_WEST_SIDES);
                Send(self,@Toggle,#switch_num=7,#top_id=WEST_TOP,#sides_id=WEST_SIDES);
-               Send(self,@EvaluatePuzzle);
+               Send(self,@EvaluatePuzzle,#ladderID=Send(who,@GetLadderID));
             }
             break;
          case WEST_SWITCH:
@@ -328,7 +328,7 @@ messages:
                Send(self,@Toggle,#switch_num=6,#top_id=SOUTH_WEST_TOP,#sides_id=SOUTH_WEST_SIDES);
                Send(self,@Toggle,#switch_num=7,#top_id=WEST_TOP,#sides_id=WEST_SIDES);
                Send(self,@Toggle,#switch_num=8,#top_id=NORTH_WEST_TOP,#sides_id=NORTH_WEST_SIDES);
-               Send(self,@EvaluatePuzzle);
+               Send(self,@EvaluatePuzzle,#ladderID=Send(who,@GetLadderID));
             }
             break;
          case NORTH_WEST_SWITCH:
@@ -338,7 +338,7 @@ messages:
                Send(self,@Toggle,#switch_num=7,#top_id=WEST_TOP,#sides_id=WEST_SIDES);
                Send(self,@Toggle,#switch_num=8,#top_id=NORTH_WEST_TOP,#sides_id=NORTH_WEST_SIDES);
                Send(self,@Toggle,#switch_num=1,#top_id=NORTH_TOP,#sides_id=NORTH_SIDES);
-               Send(self,@EvaluatePuzzle);
+               Send(self,@EvaluatePuzzle,#ladderID=Send(who,@GetLadderID));
             }
             break;
       }
@@ -373,7 +373,7 @@ messages:
       return;
    }
 
-   EvaluatePuzzle()
+   EvaluatePuzzle(ladderID=0)
    {
       local i;
 
@@ -385,7 +385,7 @@ messages:
          }
       }
       
-      Send(self,@CompletedPuzzle);
+      Send(self,@CompletedPuzzle,#ladderID=ladderID);
 
       return TRUE;
    }
