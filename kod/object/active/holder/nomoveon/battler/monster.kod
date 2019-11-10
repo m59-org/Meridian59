@@ -4750,7 +4750,7 @@ messages:
    Killed(what=$)
    "The mob was just killed."
    {
-      local i,val,oBody,hReputation,oHighestHurtMe;
+      local i,val,oBody,hReputation,oHighestHurtMe, each_obj;
 
       % If the monster was just killed, assume it did itself in.
       if what = $
@@ -4880,6 +4880,24 @@ messages:
             {
                piLadderID = 0;
             }
+            
+            foreach i in Send(self,@GetHolderActive)
+            {
+               each_obj = Send(self,@HolderExtractObject,#data=i);
+               if IsClass(each_obj,&Item)
+               {
+                  Send(each_obj,@SetLadderID,#value=piLadderID);
+               }
+            }
+            foreach i in Send(self,@GetHolderPassive)
+            {
+               each_obj = Send(self,@HolderExtractObject,#data=i);
+               if IsClass(each_obj,&Item)
+               {
+                  Send(each_obj,@SetLadderID,#value=piLadderID);
+               }
+            }
+            
             Send(self,@CreateTreasure,#who=what,#corpse=oBody,#ladderID=piLadderID);
          }
 
