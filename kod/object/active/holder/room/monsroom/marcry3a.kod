@@ -1084,7 +1084,7 @@ messages:
 
    DoEndTreasure()
    {
-      local iNumPlayers, iChance, iCumulative, i, each_obj, oObject, oItemAtt;
+      local iNumPlayers, iChance, iCumulative, i, each_obj, oObject, oItemAtt, iLadderID;
 
       foreach i in Send(self,@GetHolderActive)
       {
@@ -1094,6 +1094,8 @@ messages:
          {
             % Let passive quests know we beat this area
             Send(each_obj,@CompletedPuzzle,#iRoomNum=piRoom_num);
+            
+            iLadderID = Send(each_obj,@GetLadderID);
          }
       }
       iNumPlayers = Send(self,@CountTrap,#trap=3,#what=COUNTTRAP_USER);
@@ -1123,7 +1125,7 @@ messages:
                {
                   % Create Object.
                   oObject = Create(Nth(Nth(plTreasuresList,i),3),
-                                   #number=Nth(Nth(plTreasuresList,i),4),#level=150);
+                                   #number=Nth(Nth(plTreasuresList,i),4),#level=150,#iLadderID=iLadderID);
                   % Put in chest.
                   Send(poChest,@NewHold,#what=oObject);
                }
@@ -1132,7 +1134,7 @@ messages:
                   if Nth(Nth(plTreasuresList,i),2) = TREASURE_WEAPON
                   {
                      % Create weapon.
-                     oObject = Create(Nth(Nth(plTreasuresList,i),3),#level=150);
+                     oObject = Create(Nth(Nth(plTreasuresList,i),3),#level=150,#iLadderID=iLadderID);
                      % Find Itematt.
                      oItemAtt = Send(SYS,@FindItemAttByNum,
                                      #num=Nth(Nth(plTreasuresList,i),4));
