@@ -1,0 +1,188 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+MarauderRonu is Marauder
+
+% Master MastRonu is a master martial artist.
+
+
+constants:
+
+   include blakston.khd
+
+   HUMAN_TRANSLATION2_HAIR_MASK = 0xff
+   HUMAN_TRANSLATION2_HAIR_MUL = 1
+   
+   FORGET_CHANCE = 20
+
+resources:
+
+   MarauderMastRonu_name_rsc = "Master Ronu"
+   MarauderMastRonu_desc_rsc = \
+      "This master shadowcrafter seeks out worthy adventurers to challenge. "
+	  "His skills with a fist are matched by none. "
+      "He is a murderer. Defend yourself!"
+   MarauderMastRonu_dead_name_rsc = "dead male body"
+
+   MarauderMastRonu_url = "http://wiki.openmeridian.org/index.php/Main_Page"
+   
+   MastRonu_hair_bb_icon = ptbb.bgf
+
+classvars:
+
+   vrName = MarauderMastRonu_name_rsc
+   vrDesc = MarauderMastRonu_desc_rsc
+   vrDead_name = MarauderMastRonu_dead_name_rsc
+
+   % Human
+   viMinSkinColor = 1
+   viMaxSkinColor = 1
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+
+   viColorTranslate1 = XLAT_TO_BLUE     % Shirt
+   viColorTranslate2 = XLAT_TO_BLUE     % Pants
+
+   vcShieldClass = &GuildShield
+   viShieldColor1 = 6
+   viShieldColor2 = 6
+   viShieldShape = SHIELDSHAPE_HORIZ
+   viInsignia = INSIG_KRAANAN
+
+properties:
+
+   piBaseLevel = 140
+   piBaseDifficulty = 7
+   viLevel = 140
+   viDifficulty = 7
+
+   piMana = 120
+   piMax_Mana = 120
+   
+   % What are the monster's chances to cast spells each check?
+   % Number is out of one hundred
+   piMeleeSpellChance = 50
+   piRangedSpellChance = 100
+
+   piMonsterCastDelayMinimum = 1500
+
+   piDemonSponsor = SSS_WITCHERY_NEQUZON
+
+messages:
+
+   SetGender()
+   {
+      return;
+   }
+
+   Constructed()
+   {
+      local i;
+
+      % Qor PK
+      plMeleeSpellBook = [ [SID_HEX_FRAILTY,6,100,50], [SID_KILLING_FIELDS,14,70,90] ];
+      plRangedSpellBook = [ [SID_LIGHTNING_STRIKE,6,80,90] ];
+
+      % Half-demon base resists
+      plResistances = [];
+                        
+      psUrl = MarauderMastRonu_url;
+      propagate;
+   }
+
+   GetBaseEmpowerments()
+   {
+      return [[-ATCK_SPELL_ACID,15]];
+   }
+
+   SetEquipment()
+   {
+      local oEquipmentItem, iBonusModifier, oSpell;
+
+      oEquipmentItem = Create(&DiscipleRobe,#level=viLevel,#school=SS_KRAANAN);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      oEquipmentItem = Create(&Gauntlet,#level=viLevel);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      return;
+   }
+
+   SetHair()
+   % Sets the hairdo, color.
+   {
+      local iTranslation;
+
+      prToupee = human_hair_bb_icon;
+      iTranslation = PT_GRAY_TO_BLACK;
+
+      piBody_translations2 = piBody_translations2 & ~HUMAN_TRANSLATION2_HAIR_MASK;
+      piBody_translations2 = piBody_translations2
+                                 | (iTranslation * HUMAN_TRANSLATION2_HAIR_MUL);
+
+      return;
+   }
+
+   SetFace()
+   {
+      prEyes = human_eyes_bx_icon;
+      prNose = human_nose_ax_icon;
+      prMouth = human_mouth_bx_icon;
+
+      return;
+   }
+
+   SetShield()
+   {
+      local oEquipmentItem;
+
+      oEquipmentItem = Create(vcShieldClass,#color1=viShieldColor1,#color2=viShieldColor2,#shape=viShieldShape);
+      if viInsignia <> $
+      {
+         Send(oEquipmentItem,@ChangeGuildInsignia,#insignia=viInsignia);
+      }
+
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      return;
+   }
+   
+   % Master MastRonu can punch you so hard it makes you forget things!
+   
+      HitSideEffect(what = $, who = $)
+   {
+      local oSpell;
+
+      oSpell = Send(SYS,@FindSpellByNum,#num=SID_FORGET);
+      if NOT Send(what,@IsEnchanted,#what=oSpell)
+         AND Random(1,FORGET_CHANCE) = 1
+      {
+         if who <> $
+         {
+            Send(oSpell,@CastSpell,#who=who,#lTargets=[what],#iSpellPower=80);
+         }
+         else
+         {
+            Send(oSpell,@DoSpell,#what=self,#oTarget=what,#iSpellPower=80);
+         }
+      }
+
+      propagate;
+   }
+
+   GetBaseSize()
+   {
+      % Human Size
+      return 150;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

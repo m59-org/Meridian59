@@ -1,0 +1,179 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+MarauderMoxie is Marauder
+
+% Moxie is a 
+
+constants:
+
+   include blakston.khd
+
+   HUMAN_TRANSLATION2_HAIR_MASK = 0xff
+   HUMAN_TRANSLATION2_HAIR_MUL = 1
+
+resources:
+
+   MarauderMoxie_name_rsc = "Moxie"
+   MarauderMoxie_desc_rsc = \
+      "This chick is tough! She means business. "
+      "She is a hunter of player killers!"
+   MarauderMoxie_dead_name_rsc = "dead male body"
+
+   MarauderMoxie_url = "http://wiki.openmeridian.org/index.php/Main_Page"
+   
+   Moxie_hair_bb_icon = ptbb.bgf
+
+classvars:
+
+   vrName = MarauderMoxie_name_rsc
+   vrDesc = MarauderMoxie_desc_rsc
+   vrDead_name = MarauderMoxie_dead_name_rsc
+
+   % Moxie's a human. 
+   viMinSkinColor = 2
+   viMaxSkinColor = 2
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+
+   viColorTranslate1 = XLAT_TO_RED     % Shirt
+   viColorTranslate2 = XLAT_TO_RED     % Pants
+
+   vcShieldClass = &GuildShield
+   viShieldColor1 = 1
+   viShieldColor2 = 1
+   viShieldShape = SHIELDSHAPE_HORIZ
+   viInsignia = INSIG_KRAANAN
+
+properties:
+
+   piBaseLevel = 140
+   piBaseDifficulty = 10
+   viLevel = 140
+   viDifficulty = 10
+   
+   piGender = GENDER_FEMALE
+
+   piMana = 120
+   piMax_Mana = 120
+   
+   % What are the monster's chances to cast spells each check?
+   % Number is out of one hundred
+   piMeleeSpellChance = 100
+   piRangedSpellChance = 100
+
+   piMonsterCastDelayMinimum = 1500
+
+   
+
+messages:
+
+   SetGender()
+   {
+		viGender = GENDER_FEMALE;
+         vrIcon = human_female_icon_rsc;
+         prHead = human_head_female_icon;
+         prEyes = human_eyes_kx_icon;
+         prMouth = human_mouth_kx_icon;
+         prNose = human_nose_kx_icon;
+         prToupee = human_hair_ca_icon;
+         prLegs = human_legs_b_rsc;
+         prRight_arm = human_rightarm_b_rsc;
+         prLeft_arm = human_leftarm_b_rsc;
+         vrDead_Icon = human_dead_female_icona_rsc;
+         vrDead_Legs = human_dead_female_iconb_rsc;
+         vrSound_death = human_female_sound_death;
+		 
+      return;
+   }
+
+   Constructed()
+   {
+      local i;
+
+      % Pure Fighter
+      plMeleeSpellBook = [ [SID_MANA_BOMB,80,100,90]];
+      plRangedSpellBook = [ [SID_DEMENT,13,20,90],
+                            [SID_KILLING_FIELDS,14,70,90],
+                            [SID_ANTIMAGIC_AURA,20,100,40]];
+
+      
+      plResistances = [ [-ATCK_SPELL_FIRE, 20 ],
+                        [-ATCK_SPELL_ACID, 10],
+                        [ATCK_WEAP_ALL,20]];
+                        
+      psUrl = MarauderMoxie_url;
+      propagate;
+   }
+
+   GetBaseEmpowerments()
+   {
+      return [[-ATCK_WEAP_THRUST,80]];
+   }
+
+   SetEquipment()
+   {
+      local oEquipmentItem, iBonusModifier, oSpell;
+
+      oEquipmentItem = Create(&Longsword,#level=viLevel);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      oEquipmentItem = Create(&DiscipleRobe,#level=viLevel,#school=SS_KRAANAN);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      oEquipmentItem = Create(&Gauntlet,#level=viLevel);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      oEquipmentItem = Create(&Shades,#level=viLevel);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      return;
+   }
+
+   SetHair()
+   % Sets the hairdo, color.
+   {
+      local iTranslation;
+
+      prToupee = human_hair_bc_icon;
+      iTranslation = PT_GRAY_TO_BLACK;
+
+      piBody_translations2 = piBody_translations2 & ~HUMAN_TRANSLATION2_HAIR_MASK;
+      piBody_translations2 = piBody_translations2
+                                 | (iTranslation * HUMAN_TRANSLATION2_HAIR_MUL);
+
+      return;
+   }
+
+   SetShield()
+   {
+      local oEquipmentItem;
+
+      oEquipmentItem = Create(vcShieldClass,#color1=viShieldColor1,#color2=viShieldColor2,
+                              #shape=viShieldShape);
+      if viInsignia <> $
+      {
+         Send(oEquipmentItem,@ChangeGuildInsignia,#insignia=viInsignia);
+      }
+
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      return;
+   }
+
+   GetBaseSize()
+   {
+      
+      return 200;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

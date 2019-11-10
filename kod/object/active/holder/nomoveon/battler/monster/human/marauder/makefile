@@ -5,7 +5,18 @@
 !include $(TOPDIR)\common.mak
 
 DEPEND = ..\marauder.bof 
-BOFS  = vallok.bof GeiLong.bof Kal.bof Luganeon.bof abu.bof Davinus.bof Zett.bof lacie.bof
+BOFS  = vallok.bof \
+        geilong.bof \
+        kal.bof \
+        luganeon.bof \
+        abu.bof \
+        davinus.bof \
+        zett.bof \
+        lacie.bof \
+        moxie.bof \
+        moosico.bof \
+        ronu.bof \
+        toxus.bof
 
 
 !include $(KODDIR)\kod.mak

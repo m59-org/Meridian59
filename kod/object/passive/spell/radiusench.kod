@@ -523,7 +523,9 @@ messages:
          return FALSE;
       }
       
-      if Send(target,@GetLadderID) <> Send(source,@GetLadderID)
+      if IsClass(source,&User)
+         AND IsClass(target,&User)
+         AND Send(target,@GetLadderID) <> Send(source,@GetLadderID)
       {
          return FALSE;
       }

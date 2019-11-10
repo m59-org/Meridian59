@@ -1,0 +1,176 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+MarauderMoosico is Marauder
+
+% Moosico is a Demon Jala/Witch
+% He sings and curses you to destruction. 
+
+constants:
+
+   include blakston.khd
+
+   HUMAN_TRANSLATION2_HAIR_MASK = 0xff
+   HUMAN_TRANSLATION2_HAIR_MUL = 1
+
+resources:
+
+   MarauderMoosico_name_rsc = "Moosico"
+   MarauderMoosico_desc_rsc = \
+      "Once a renowned bard with a gift for magic. He became embittered by his wife's passing and turned "
+	  "to singing a murderous tune for Qor. "
+      "He is a murderer. Defend yourself!"
+   MarauderMoosico_dead_name_rsc = "dead male body"
+
+   MarauderMoosico_url = "http://wiki.openmeridian.org/index.php/Main_Page"
+   
+   Moosico_hair_bb_icon = ptbb.bgf
+
+classvars:
+
+   vrName = MarauderMoosico_name_rsc
+   vrDesc = MarauderMoosico_desc_rsc
+   vrDead_name = MarauderMoosico_dead_name_rsc
+
+   % Moosico's a half-demon.
+   viMinSkinColor = 135
+   viMaxSkinColor = 135
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+
+   viColorTranslate1 = XLAT_TO_RED     % Shirt
+   viColorTranslate2 = XLAT_TO_RED     % Pants
+
+   vcShieldClass = &GuildShield
+   viShieldColor1 = 10
+   viShieldColor2 = 10
+   viShieldShape = SHIELDSHAPE_HORIZ
+   viInsignia = INSIG_JALA
+
+properties:
+
+   piBaseLevel = 130
+   piBaseDifficulty = 7
+   viLevel = 130
+   viDifficulty = 7
+
+   piMana = 120
+   piMax_Mana = 120
+   
+   % What are the monster's chances to cast spells each check?
+   % Number is out of one hundred
+   piMeleeSpellChance = 70
+   piRangedSpellChance = 100
+
+   piMonsterCastDelayMinimum = 1500
+
+
+messages:
+
+   SetGender()
+   {
+      return;
+   }
+
+   Constructed()
+   {
+      local i;
+
+      % Qor PK
+      plMeleeSpellBook = [ [SID_VAMPIRIC_DRAIN,6,90,90], 
+	                       [SID_HEX_CORRUPTION,6,10,90] ];
+      plRangedSpellBook = [ [SID_BLIND,13,70,90],
+							[SID_FIREBALL,13,10,90],
+                            [SID_PROFANE_RESONANCE,14,10,90],
+                            [SID_HEX_SPIRIT_SHACKLES,12,10,40]];
+
+      % Half-demon base resists
+      plResistances = [ [-ATCK_SPELL_FIRE, 20 ],
+                        [-ATCK_SPELL_COLD, -25 ],
+                        [-ATCK_SPELL_ACID, 10],
+                        [ATCK_WEAP_NERUDITE,10]];
+                        
+      psUrl = MarauderMoosico_url;
+      propagate;
+   }
+
+   GetBaseEmpowerments()
+   {
+      return [[-ATCK_SPELL_FIRE,30]];
+   }
+
+   SetEquipment()
+   {
+      local oEquipmentItem, iBonusModifier, oSpell;
+
+      oEquipmentItem = Create(&Hammer,#level=viLevel);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      oEquipmentItem = Create(&DiscipleRobe,#level=viLevel,#school=SS_JALA);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      oEquipmentItem = Create(&Glove,#level=viLevel);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      oEquipmentItem = Create(&Circlet,#level=viLevel);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      return;
+   }
+
+   SetHair()
+   % Sets the hairdo, color.
+   {
+      local iTranslation;
+
+      prToupee = human_hair_xa_icon;
+      iTranslation = PT_GRAY_TO_KGRAY;
+
+      piBody_translations2 = piBody_translations2 & ~HUMAN_TRANSLATION2_HAIR_MASK;
+      piBody_translations2 = piBody_translations2
+                                 | (iTranslation * HUMAN_TRANSLATION2_HAIR_MUL);
+
+      return;
+   }
+
+   SetFace()
+   {
+      prEyes = human_eyes_ax_icon;
+      prNose = human_nose_bx_icon;
+      prMouth = human_mouth_bx_icon;
+
+      return;
+   }
+
+   SetShield()
+   {
+      local oEquipmentItem;
+
+      oEquipmentItem = Create(vcShieldClass,#color1=viShieldColor1,#color2=viShieldColor2,
+                              #shape=viShieldShape);
+      if viInsignia <> $
+      {
+         Send(oEquipmentItem,@ChangeGuildInsignia,#insignia=viInsignia);
+      }
+
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      return;
+   }
+
+   GetBaseSize()
+   {
+      % Half demon base size
+      return 150;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
