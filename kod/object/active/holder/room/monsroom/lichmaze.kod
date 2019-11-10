@@ -255,7 +255,7 @@ messages:
       return FALSE;
    }
 
-   HasSwordOfTheHunt()
+   HasSwordOfTheHunt(ladderID=0)
    {
       local i, each_obj;
       
@@ -263,6 +263,7 @@ messages:
       {
          each_obj = Send(self,@HolderExtractObject,#data=i);
          if IsClass(each_obj,&HunterSword)
+            AND Send(each_obj,@GetLadderID) = ladderID
          {
             return TRUE;
          }
