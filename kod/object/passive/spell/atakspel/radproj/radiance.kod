@@ -1,0 +1,164 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Radiance is RadiusProjectile
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   radiance_name_rsc = "radiance"
+   radiance_icon_rsc = ifrclite.bgf
+   radiance_projectile_rsc = dazzlestar.bgf
+   radiance_desc_rsc = \
+      "Invokes the luminescent potency of the Radiance "
+      "to channel the magnitude of your holy retributions to your foes. "
+      "Requires a large amount of holy fragments and Gray Mushrooms. "
+
+   radiance_first_rsc = \
+      "The power of the Radiance rages around you in a blazing white light!"
+   radiance_third_rsc = \
+      "%s%s channels the power of the Radiance around him!"
+
+   % These aren't in use at the moment.
+   radiance_killed_someone = \
+      "The light purifies %s%s."
+   radiance_cast_rsc = \
+      "You let out a cry of pain as brilliant white light sears your flesh, "
+      "causing ~r~B%i~n damage."
+   radiance_hit_rsc = \
+      "%s%s lets out a cry of pain as the radiance cleanses %s deep "
+      "for ~k~B%i~n damage."
+
+   radiance_sound = sDazzle.wav
+
+classvars:
+
+   vrName = radiance_name_rsc
+   vrDesc = radiance_desc_rsc
+   vrIcon = radiance_icon_rsc
+
+   viSpell_num = SID_RADIANCE
+   viSchool = SS_SHALILLE
+   viSpell_level = 5
+   viMana = 30
+
+   viChance_to_increase = 10
+   viMeditate_ratio = 100
+   vrSucceed_wav = radiance_sound
+
+   viAttack_spell = ATCK_SPELL_ALL+ATCK_SPELL_HOLY
+   viOutlaw = TRUE
+   viHarmful = TRUE
+   viNoNewbieOffense = TRUE
+
+   % Projectile lighting information.
+   viProjectileLightFlags = LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC
+   % Max light range, out of 255.
+   viProjectileLightIntensity = 255
+   % Color is white.
+   viProjectileLightColor = LIGHT_WHITE
+
+   vrProjectile_icon = dazzle_star_projectile_rsc
+   vbIsAreaEffect = TRUE
+
+properties:
+
+   % Range in FINENESS units, default 6 row/col units.
+   piRange = 640
+
+   piSpeed = 6
+
+   piDamageMin = 25
+   piDamageMax = 32
+
+   piNumber = 16
+
+   pbAccessible = TRUE
+   pbEnabled = TRUE
+
+messages:
+
+   ResetReagents()
+   {
+      plReagents = $;
+      plReagents = Cons([&HolyFragment,20],plReagents);
+      plReagents = Cons([&GrayMushroom,10],plReagents);
+
+      return;
+   }
+
+   SendProjectileAnimation()
+   {
+      AddPacket(1, ANIMATE_CYCLE, 4,40, 2,1, 2,2);  % 40ms between animations
+
+      return;
+   }
+
+   CastSpell(who=$,lTargets=$,iSpellPower=0,bItemCast=FALSE)
+   {
+      % This is an area damage spell, so add room messages
+      % showing the spell being cast.
+      Send(self,@Doradiance,#who=who,#bItemCast=bItemCast);
+
+      propagate;
+   }
+
+   Doradiance(who=$,bItemCast=FALSE)
+   {
+      local i, oRoom, lActive, each_obj;
+
+      if who <> $
+      {
+         oRoom = Send(who,@GetOwner);
+      }
+      else
+      {
+         return;
+      }
+
+      lActive = Send(oRoom,@GetHolderActive);
+
+      % Send a message to all in room of spellcasters actions
+      foreach i in lActive
+      {
+         each_obj = Send(oRoom,@HolderExtractObject,#data=i);
+
+         if isClass(each_obj,&Player)
+         {
+            if each_obj = who
+            {
+               Send(each_obj,@MsgSendUser,#message_rsc=radiance_first_rsc);
+            }
+            else
+            {
+               Send(each_obj,@MsgSendUser,#message_rsc=radiance_third_rsc,
+                     #parm1=Send(who,@GetCapDef),#parm2=Send(who,@GetName));
+            }
+         }
+      }
+
+      return;
+   }
+
+   CanForget()
+   {
+      return FALSE;
+   }
+
+   OfferToNewCharacters()
+   {
+      return FALSE;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
