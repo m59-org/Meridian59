@@ -1573,6 +1573,14 @@ messages:
          Send(what,@MsgSendUser,#message_rsc=item_try_use_cursed_rsc);
          Post(what,@TryUseItem,#what=self);
       }
+      
+      if what <> $
+         AND IsClass(what,&Player)
+         AND Send(what,@GetLadderID) <> Send(self,@GetLadderID)
+      {
+         % Something has directly put an item in our inventory. Let's set our ladder id to owner.
+         Send(self,@SetLadderID,#value=Send(what,@GetLadderID));
+      }
 
       propagate;
    }
