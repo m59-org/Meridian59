@@ -1200,6 +1200,7 @@ messages:
             AND Send(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),
                       @IsHiding,#who=self)
          {
+            iDamage = Send(self,@GetDamage,#what=what,#stroke_obj=stroke_obj,#bDoingBackstab=TRUE);
             iBackstabDamage = Send(Send(SYS,@FindSkillByNum,
                                     #num=SKID_BACKSTAB),
                                     @LastPriorityModifyDamage,#who=self,
@@ -1266,7 +1267,7 @@ messages:
       return 1;
    }
 
-   GetDamage(what = $, stroke_obj=$)
+   GetDamage(what = $, stroke_obj=$, bDoingBackstab=FALSE)
    "Returns the damage done to target 'what'."
    {
       return 0;

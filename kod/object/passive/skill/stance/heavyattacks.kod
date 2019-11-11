@@ -87,12 +87,13 @@ messages:
       return iAttackTime;
    }
 
-   ModifyAttackDamage(who=$, what=$, damage=0, stroke_obj=$)
+   ModifyAttackDamage(who=$, what=$, damage=0, stroke_obj=$, bDoingBackstab=FALSE)
    {
       local iHeavyAttackAbility, iStat, iDamagePercentage;
 
       if stroke_obj = $
          OR NOT IsClass(stroke_obj,&Slash)
+         OR bDoingBackstab
       {
          return damage;
       }

@@ -7751,7 +7751,7 @@ messages:
    }
 
    % This returns the damage done to target "what" before resistances.
-   GetDamage(what = $, stroke_obj=$)
+   GetDamage(what = $, stroke_obj=$, bDoingBackstab=FALSE)
    {
       local i, iDamage, oStroke, oWeapon, iStrokeNum, iModBonus, iDamageBonus,
             oSpell, oMonster, lRadiusState;
@@ -7862,7 +7862,7 @@ messages:
          AND (IsClass(poStance,&HeavyAttackStance)
             OR IsClass(poStance,&LightAttackStance))
       {
-         iDamage = Send(poStance,@ModifyAttackDamage,#who=self,#damage=iDamage,#stroke_obj=stroke_obj);
+         iDamage = Send(poStance,@ModifyAttackDamage,#who=self,#damage=iDamage,#stroke_obj=stroke_obj,#bDoingBackstab=bDoingBackstab);
       }
       
       if Send(self,@GetWeapon) = $
