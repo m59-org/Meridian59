@@ -6,11 +6,9 @@
 %
 % Meridian is a registered trademark.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-MarauderZett is Marauder
+MarauderBobo is Marauder
 
-% Zett is a human Qor bower PK.
-% He is supposed to use a bow. However, that functionality doesn't seem to work. 
-% He's also shadow formed.
+% Bobo is a human Qor bower PK.
 
 constants:
 
@@ -18,57 +16,61 @@ constants:
 
    HUMAN_TRANSLATION2_HAIR_MASK = 0xff
    HUMAN_TRANSLATION2_HAIR_MUL = 1
+   
 
 resources:
 
-   MarauderZett_name_rsc = "Zett"
-   MarauderZett_desc_rsc = \
-      "Dedicated Priest of Qor. This zealot seeks to promote her "
-      "dark balance in all things. That includes killing you! Defend yourself. "
-   MarauderZett_dead_name_rsc = "dead male body"
+   MarauderBobo_name_rsc = "Bobo the Bowman"
+   MarauderBobo_desc_rsc = \
+      "This peculiar Undine has chosen to embrace the bow "
+      "despite his obvious shortcomings. He is sadly mediocre at best. "
+	  "He is a murderer! Defend yourself! "
+   MarauderBobo_dead_name_rsc = "dead male body"
 
-   MarauderZett_url = "http://wiki.openmeridian.org/index.php/Main_Page"
+   MarauderBobo_url = "http://wiki.openmeridian.org/index.php/Main_Page"
    
-   Zett_hair_bb_icon = ptbb.bgf
+   Bobo_hair_bb_icon = ptbb.bgf
+   
 
 classvars:
 
-   vrName = MarauderZett_name_rsc
-   vrDesc = MarauderZett_desc_rsc
-   vrDead_name = MarauderZett_dead_name_rsc
+   vrName = MarauderBobo_name_rsc
+   vrDesc = MarauderBobo_desc_rsc
+   vrDead_name = MarauderBobo_dead_name_rsc
 
-   % Zett's a half-demon.
-   viMinSkinColor = 1
-   viMaxSkinColor = 1
+   % Bobo's Undine
+   viMinSkinColor = 20
+   viMaxSkinColor = 20
 
    viIndefinite = ARTICLE_NONE
    viDefinite = ARTICLE_NONE
 
-   viColorTranslate1 = XLAT_TO_BLUE     % Shirt
-   viColorTranslate2 = XLAT_TO_BLUE     % Pants
+   viColorTranslate1 = XLAT_TO_RED     % Shirt
+   viColorTranslate2 = XLAT_TO_RED     % Pants
+
    viShieldColor1 = 1
    viShieldColor2 = 1
-
+   viAttack_spell = ATCK_SPELL_COLD
 
 
 properties:
 
-   piBaseLevel = 150
-   piBaseDifficulty = 7
-   viLevel = 150
-   viDifficulty = 7
+   piBaseLevel = 80
+   piBaseDifficulty = 5
+   viLevel = 80
+   viDifficulty = 5
 
-   piMana = 120
-   piMax_Mana = 120
+   piMana = 90
+   piMax_Mana = 90
    
    % What are the monster's chances to cast spells each check?
    % Number is out of one hundred
-   piMeleeSpellChance = 100
+   piMeleeSpellChance = 70
    piRangedSpellChance = 100
 
    piMonsterCastDelayMinimum = 1500
 
-   piDrawFx = DRAWFX_BLACK
+
 
 
 messages:
@@ -82,16 +84,15 @@ messages:
    {
       local i;
 
-      % Qor PK
-      plMeleeSpellBook = [ [SID_HOLD,6,100,90]];
-      plRangedSpellBook = [ [SID_DARKNESS,13,40,90],
-                            [SID_BLIND,14,50,90],
-                            [SID_KILLING_FIELDS,12,10,40]];
+      % Shal PK
+      plMeleeSpellBook = [ [SID_FORCES_OF_LIGHT,30,100,90]];
+      plRangedSpellBook = [ [SID_DAZZLE,13,50,90],
+                            [SID_KILLING_FIELDS,12,50,90]];
 
       
       plResistances = [];
                         
-      psUrl = MarauderZett_url;
+      psUrl = MarauderBobo_url;
       propagate;
    }
 
@@ -103,16 +104,16 @@ messages:
 
       oEquipmentItem = Create(&LongBow,#level=viLevel);
       Send(self,@AddEquipmentObject,#what=oEquipmentItem);
-	  poArrow = Create(&NeruditeArrow);
-      iBonusModifier = 4;
+	  poArrow = Create(&IceArrow);
+      iBonusModifier = 1;
 
-      oEquipmentItem = Create(&DiscipleRobe,#level=viLevel,#school=SS_QOR);
+      oEquipmentItem = Create(&ScaleArmor,#level=viLevel);
       Send(self,@AddEquipmentObject,#what=oEquipmentItem);
 
       oEquipmentItem = Create(&Gauntlet,#level=viLevel);
       Send(self,@AddEquipmentObject,#what=oEquipmentItem);
 
-      oEquipmentItem = Create(&SkullMask,#level=viLevel);
+      oEquipmentItem = Create(&SimpleHelm,#level=viLevel);
       Send(self,@AddEquipmentObject,#what=oEquipmentItem);
 
       return;
@@ -123,8 +124,8 @@ messages:
    {
       local iTranslation;
 
-      prToupee = human_hair_ac_icon;
-      iTranslation = PT_GRAY_TO_BLACK;
+      prToupee = human_hair_ad_icon;
+      iTranslation = PT_GRAY_TO_PLATBLOND;
 
       piBody_translations2 = piBody_translations2 & ~HUMAN_TRANSLATION2_HAIR_MASK;
       piBody_translations2 = piBody_translations2
@@ -136,12 +137,13 @@ messages:
    SetFace()
    {
       prEyes = human_eyes_cx_icon;
-      prNose = human_nose_cx_icon;
-      prMouth = human_mouth_bx_icon;
+      prNose = human_nose_ax_icon;
+      prMouth = human_mouth_cx_icon;
 
       return;
    }
-
+   
+   
    GetBaseSize()
    {
       % Human

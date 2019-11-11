@@ -18,7 +18,9 @@ BOFS  = vallok.bof \
         ronu.bof \
         toxus.bof \
         shindra.bof \
-        jinora.bof
+        jinora.bof \
+        seaman.bof \
+        bobo.bof
 
 
 !include $(KODDIR)\kod.mak

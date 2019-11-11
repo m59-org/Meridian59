@@ -8,10 +8,9 @@
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-MarauderDavinus is Marauder
+MarauderSeaMan is Marauder
 
-% Davinus is a Shal Faren Mage
-
+% SeaMan is an undine frost warrior.
 
 constants:
 
@@ -22,28 +21,26 @@ constants:
 
 resources:
 
-   MarauderDavinus_name_rsc = "Davinus"
-   MarauderDavinus_desc_rsc = \
-      "A genius of vast intellect and prodigious memory "
-	  "who came to be known as -the- Radiant Archmage. Davinus proudly "
-	  "serves the Radiant Outriders to feed his insatiable quest for knowledge. He is no "
-	  "stranger to carrying out genocide, if that is what is required of him. "
-      "He is a murderer. Defend yourself!" 
-   MarauderDavinus_dead_name_rsc = "dead male body"
+   MarauderSeaMan_name_rsc = "Sea Man"
+   MarauderSeaMan_desc_rsc = \
+      "A Brave Undine Hunter with an insatiable yearn for adventure "
+	  "and an equal sense for justice! "
+      "He protects the vast seas of Meridian from vile PKers!"
+   MarauderSeaMan_dead_name_rsc = "dead male body"
 
-   MarauderDavinus_url = "http://wiki.openmeridian.org/index.php/Main_Page"
+   MarauderSeaMan_url = "http://wiki.openmeridian.org/index.php/Main_Page"
    
-   Davinus_hair_bb_icon = ptbb.bgf
+   SeaMan_hair_bb_icon = ptbb.bgf
 
 classvars:
 
-   vrName = MarauderDavinus_name_rsc
-   vrDesc = MarauderDavinus_desc_rsc
-   vrDead_name = MarauderDavinus_dead_name_rsc
+   vrName = MarauderSeaMan_name_rsc
+   vrDesc = MarauderSeaMan_desc_rsc
+   vrDead_name = MarauderSeaMan_dead_name_rsc
 
-   % Davinus's a human.
-   viMinSkinColor = 2
-   viMaxSkinColor = 2
+   % SeaMan's an undine
+   viMinSkinColor = 20
+   viMaxSkinColor = 20
 
    viIndefinite = ARTICLE_NONE
    viDefinite = ARTICLE_NONE
@@ -51,17 +48,17 @@ classvars:
    viColorTranslate1 = XLAT_TO_RED     % Shirt
    viColorTranslate2 = XLAT_TO_RED     % Pants
 
-   vcShieldClass = &MithrilShield
+   vcShieldClass = &ElfShield
    viShieldColor1 = 1
    viShieldColor2 = 1
 
+   
 properties:
 
-   piBaseLevel = 350
+   piBaseLevel = 120
    piBaseDifficulty = 7
-   viLevel = 350 
+   viLevel = 120
    viDifficulty = 7
-   viKarma = 100
 
    piMana = 120
    piMax_Mana = 120
@@ -73,6 +70,8 @@ properties:
 
    piMonsterCastDelayMinimum = 1500
 
+
+   piDemonSponsor = SSS_WITCHERY_NEQUZON
 
 messages:
 
@@ -86,44 +85,37 @@ messages:
       local i;
 
       % Qor PK
-      plMeleeSpellBook = [ [SID_EXPLOSIVE_FROST,2,100,90]];
-      plRangedSpellBook = [ [SID_PURGE,25,70,90],
-                            [SID_DAZZLE,10,15,90],
-                            [SID_RING_OF_FLAMES,5,5,50],
-							[SID_LIGHTNING_BOLT,5,5,90],
-							[SID_LIGHTNING_STRIKE,5,5,90]];
+      plMeleeSpellBook = [ [SID_EXPLOSIVE_FROST,6,100,90]];
+      plRangedSpellBook = [ [SID_DAZZLE,13,20,90],
+                            [SID_KILLING_FIELDS,14,70,90],
+                            [SID_ICICLE_VOLLEY,12,100,40]];
 
-      % Half-demon base resists
-      plResistances = [ [-ATCK_SPELL_FIRE,20 ],
-                        [-ATCK_SPELL_COLD,25 ],
-                        [-ATCK_SPELL_ACID,40 ],
-						[-ATCK_SPELL_ACID,40 ],
-                        [ATCK_WEAP_ALL,-10] ];
+
+      plResistances = [ [-ATCK_SPELL_SHOCK, -25 ] ];
                         
-      psUrl = MarauderDavinus_url;
+      psUrl = MarauderSeaMan_url;
       propagate;
    }
 
    GetBaseEmpowerments()
    {
-      return [[-ATCK_SPELL_SHOCK,50],
-				[-ATCK_SPELL_COLD,50]];
+      return [[-ATCK_SPELL_COLD,15]];
    }
 
    SetEquipment()
    {
       local oEquipmentItem, iBonusModifier, oSpell;
 
-      oEquipmentItem = Create(&Flail,#level=viLevel);
+      oEquipmentItem = Create(&Hammer,#level=viLevel);
       Send(self,@AddEquipmentObject,#what=oEquipmentItem);
 
-      oEquipmentItem = Create(&DiscipleRobe,#level=viLevel,#school=SS_FAREN);
+      oEquipmentItem = Create(&LeatherArmor,#level=viLevel);
       Send(self,@AddEquipmentObject,#what=oEquipmentItem);
 
-      oEquipmentItem = Create(&Glove,#level=viLevel);
+      oEquipmentItem = Create(&Gauntlet,#level=viLevel);
       Send(self,@AddEquipmentObject,#what=oEquipmentItem);
 
-      oEquipmentItem = Create(&IvyCirclet,#level=viLevel);
+      oEquipmentItem = Create(&SpikedHelm,#level=viLevel);
       Send(self,@AddEquipmentObject,#what=oEquipmentItem);
 
       return;
@@ -134,8 +126,8 @@ messages:
    {
       local iTranslation;
 
-      prToupee = human_hair_bb_icon;
-      iTranslation = PT_GRAY_TO_BLOND;
+      prToupee = human_hair_bald_icon;
+      iTranslation = PT_GRAY_TO_PLATBLOND;
 
       piBody_translations2 = piBody_translations2 & ~HUMAN_TRANSLATION2_HAIR_MASK;
       piBody_translations2 = piBody_translations2
@@ -146,9 +138,9 @@ messages:
 
    SetFace()
    {
-      prEyes = human_eyes_ax_icon;
+      prEyes = human_eyes_cx_icon;
       prNose = human_nose_ax_icon;
-      prMouth = human_mouth_ax_icon;
+      prMouth = human_mouth_bx_icon;
 
       return;
    }
@@ -171,8 +163,8 @@ messages:
 
    GetBaseSize()
    {
-      % Human base size
-      return 200;
+      % Half demon base size
+      return 150;
    }
 
 end
