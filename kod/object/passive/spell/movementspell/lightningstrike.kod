@@ -184,8 +184,12 @@ messages:
          Post(self,@CreateDestinationLightning,#who=who,#oRoom=oRoom,
                #iSpellPower=iSpellPower);
          Send(self,@AddCooldown,#who=who);
-         Post(who,@ClearAttackTimer);
-         Post(who,@UserAttack,#what=oTarget);
+         
+         if IsClass(who,&User)
+         {
+            Post(who,@ClearAttackTimer);
+            Post(who,@UserAttack,#what=oTarget);
+         }
       }
       else
       {

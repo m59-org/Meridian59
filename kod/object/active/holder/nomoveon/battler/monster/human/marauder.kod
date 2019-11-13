@@ -40,7 +40,8 @@ classvars:
    viSpeed = SPEED_FASTER
    viAttack_type = ATCK_WEAP_SLASH
    viAttributes = 0
-   viDefault_behavior = AI_MOVE_REGROUP
+   viDefault_behavior = AI_MOVE_REGROUP | \
+      AI_FIGHT_AGGRESSIVE |  AI_FIGHT_WIZARD_KILLER | AI_FIGHT_HYPERAGGRESSIVE | AI_FIGHT_SINGLEMINDED
 
    viColorTranslate1 = XLAT_TO_ORANGE     % Shirt
    viColorTranslate2 = XLAT_TO_ORANGE   % Pants
@@ -51,10 +52,10 @@ classvars:
    viShieldShape = SHIELDSHAPE_SLASH
    viInsignia = $
 
-   viVisionDistance = 12
+   viVisionDistance = 35
 
-   viCashMin = 200
-   viCashMax = 1600
+   viCashMin = 1500
+   viCashMax = 60000
 
    viCanSpawnAsChampion = FALSE
 
@@ -75,8 +76,24 @@ properties:
    psURL = $
    
    piMoveSpeed = 40
+   
+   vrSound_aware = $
 
 messages:
+
+   SomethingLeft(what = $, iRow=0, iCol=0)
+   "Follow the enemy!"
+   {
+      if poMaster = $
+         AND what <> $
+         AND IsClass(what,&Player)
+         AND Send(self,@GetTarget) = what
+      {
+         Post(self,@MarauderFollow,#who=what);  
+      }
+
+      propagate;
+   }
 
    IsAlly(target = $, regroup = FALSE)
    {
@@ -179,6 +196,29 @@ messages:
       }
 
       return marauder_sound_female_ouch4;
+   }
+
+   MarauderFollow(who=$)
+   {
+      local oNewRoom;
+
+      if who = $
+      {
+         return;
+      }
+
+      oNewRoom = Send(who,@GetOwner);
+      if oNewRoom = $
+      {
+         return;
+      }
+
+      Send(oNewRoom,@NewHold,#what=self,
+            #new_row=Send(who,@GetRow),#new_col=Send(who,@GetCol),
+            #fine_row=Send(who,@GetFineRow),#fine_col=Send(who,@GetFineCol),
+            #new_angle=Send(who,@GetAngle));
+
+      return;
    }
 
 end
