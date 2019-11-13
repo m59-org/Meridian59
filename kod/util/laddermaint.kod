@@ -190,6 +190,63 @@ messages:
       plMarauderClasses = Cons(&MarauderBobo, plMarauderClasses);
       return;
    }
+   
+   SpawnMarauders()
+   {
+      local iRID, oRoom, i, n, lNeighborRooms, lEntrances, bSpawned, lChosenEntrance, iMarauderCount;
+      
+      iRID = RID_TOS;
+      oRoom = Send(SYS,@FindRoomByNum,#num=iRID);
+      
+      lNeighborRooms = $;
+      foreach i in Send(oRoom,@GetYellZone)
+      {
+         if i <> iRID
+         {
+            lNeighborRooms = Cons(Send(SYS,@FindRoomByNum,#num=i),lNeighborRooms);
+         }
+      }
+      
+      foreach i in lNeighborRooms
+      {
+         foreach n in Send(i,@GetStandardExits)
+         {
+            if Nth(n,3) = iRID
+            {
+               lEntrances = Cons([Nth(n,4),Nth(n,5)],lEntrances);
+            }
+         }
+         foreach n in Send(i,@GetEdgeExits)
+         {
+            if Nth(n,2) = iRID
+            {
+               lEntrances = Cons([Nth(n,3),Nth(n,4)],lEntrances);
+            }
+         }
+      }
+      
+      bSpawned = FALSE;
+      iMarauderCount = 2;
+      lChosenEntrance = Nth(lEntrances,Random(1,Length(lEntrances)));
+      
+      while iMarauderCount > 0
+      {
+         Send(oRoom,@NewHold,#what=Create(Nth(plMarauderClasses,Random(1,Length(plMarauderClasses)))),
+                             #new_row=Nth(lChosenEntrance,1),
+                             #new_col=Nth(lChosenEntrance,2));
+         iMarauderCount--;                       
+      }
+       
+%      foreach i in lEntrances
+%      {
+%         Send(oRoom,@NewHold,#what=Create(Nth(plMarauderClasses,Random(1,Length(plMarauderClasses)))),
+%                             #new_row=Nth(i,1),
+%                             #new_col=Nth(i,2));
+%         bSpawned = TRUE;
+%      }
+
+      return;
+   }
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

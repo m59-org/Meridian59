@@ -220,6 +220,130 @@ messages:
 
       return;
    }
+   
+   AggroPlayers()
+   {
+      local i, each_obj;
+      
+      if poOwner <> $
+      {
+         foreach i in Send(poOwner,@GetHolderActive)
+         {
+            each_obj = Send(poOwner,@HolderExtractObject,#data=i);
+            if IsClass(each_obj,&Player)
+            {
+               Send(self,@TargetSwitch,#what=each_obj,#iHatred=100);
+               Send(self,@EnterStateChase,#target=each_obj,#actnow=TRUE);
+               return;
+            }
+         }
+      }
+      return;
+   }
+   
+   NewOwner()
+   {
+      Post(self,@AggroPlayers);
+      propagate;
+   }
+
+   CreateTreasure(who = $, corpse = $,ladderID=0)
+   {
+      local oTreasure, iNumber, iNumberOfReagentsDropped, lReagentClasses, oUsedItem, oItemAtt;
+
+      lReagentClasses = $;
+      lReagentClasses = Cons(&DarkAngelFeather,lReagentClasses);
+      lReagentClasses = Cons(&WebMoss,lReagentClasses);
+      lReagentClasses = Cons(&BlueDragonScale,lReagentClasses);
+      lReagentClasses = Cons(&DragonflyEye,lReagentClasses);
+      lReagentClasses = Cons(&ElderBerry,lReagentClasses);
+      lReagentClasses = Cons(&Diamond,lReagentClasses);
+      lReagentClasses = Cons(&Emerald,lReagentClasses);
+      lReagentClasses = Cons(&EntrootBerry,lReagentClasses);
+      lReagentClasses = Cons(&FairyWing,lReagentClasses);
+      lReagentClasses = Cons(&Herbs,lReagentClasses);
+      lReagentClasses = Cons(&KriipaClaw,lReagentClasses);
+      lReagentClasses = Cons(&RainbowFern,lReagentClasses);
+      lReagentClasses = Cons(&BlueMushroom,lReagentClasses);
+      lReagentClasses = Cons(&CyanMushroom,lReagentClasses);
+      lReagentClasses = Cons(&GrayMushroom,lReagentClasses);
+      lReagentClasses = Cons(&GreenMushroom,lReagentClasses);
+      lReagentClasses = Cons(&PurpleMushroom,lReagentClasses);
+      lReagentClasses = Cons(&RedMushroom,lReagentClasses);
+      lReagentClasses = Cons(&Mushroom,lReagentClasses);
+      lReagentClasses = Cons(&YellowMushroom,lReagentClasses);
+      lReagentClasses = Cons(&OrcTooth,lReagentClasses);
+      lReagentClasses = Cons(&PolishedSeraphym,lReagentClasses);
+      lReagentClasses = Cons(&Yrxlsap,lReagentClasses);
+      lReagentClasses = Cons(&Ruby,lReagentClasses);
+      lReagentClasses = Cons(&ShamanBlood,lReagentClasses);
+      lReagentClasses = Cons(&Sapphire,lReagentClasses);
+      lReagentClasses = Cons(&Solagh,lReagentClasses);
+      lReagentClasses = Cons(&UncutSeraphym,lReagentClasses);
+      
+      iNumberOfReagentsDropped = Random(10,30);
+      
+      while iNumberOfReagentsDropped > 0
+      {
+         oTreasure = Create(Nth(lReagentClasses,Random(1,Length(lReagentClasses))),#corpse=corpse,#ladderID=ladderID);
+         iNumber = Random(5,35);
+         Send(oTreasure,@AddNumber,#number=iNumber);
+
+         if Send(poOwner,@ReqNewHold,#what=oTreasure,#new_row=piRow,#new_col=piCol)
+         {
+            Send(poOwner,@NewHold,#what=oTreasure,
+                  #new_row=piRow,#new_col=piCol,
+                  #fine_row=piFine_row,#fine_col=piFine_col);
+         }
+         else
+         {
+            Send(oTreasure,@Delete);
+         }
+         iNumberOfReagentsDropped--;
+      }
+
+      oTreasure = Create(&Money,#corpse=corpse,#ladderID=ladderID);
+      iNumber = Random(500,35000);
+      Send(oTreasure,@AddNumber,#number=iNumber);
+      if Send(poOwner,@ReqNewHold,#what=oTreasure,#new_row=piRow,#new_col=piCol)
+      {
+         Send(poOwner,@NewHold,#what=oTreasure,
+               #new_row=piRow,#new_col=piCol,
+               #fine_row=piFine_row,#fine_col=piFine_col);
+      }
+      else
+      {
+         Send(oTreasure,@Delete);
+      }
+
+      oItemAtt = Send(SYS,@FindItemAttByNum,#num=IA_CORPSEPOINTER);
+
+      foreach oUsedItem in plUsing
+      {
+         if NOT pbIllusion
+            AND NOT IsClass(oUsedItem,&MithrilShield)
+         {
+            if (oItemAtt <> $) AND Send(oItemAtt,@ReqAddToItem,#oItem=oUsedItem)
+            {
+               Send(oItemAtt,@AddToItem,#oItem=oUsedItem,#state1=corpse);
+            }
+            
+            Send(oUsedItem,@SetLadderID,#value=ladderID);
+
+            Send(poOwner,@NewHold,#what=oUsedItem,
+                  #new_row=piRow,#new_col=piCol,
+                  #fine_row=piFine_row,#fine_col=piFine_col);
+         }
+         else
+         {
+            Send(oUsedItem,@Delete);
+         }
+      }
+
+      plUsing = $;
+
+      return;
+   }
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
