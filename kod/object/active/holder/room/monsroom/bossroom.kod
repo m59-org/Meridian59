@@ -77,7 +77,7 @@ messages:
 % Boss death trigger code %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
-   SomethingKilled(killer = $,victim = $)
+   SomethingKilled(what = $,victim = $)
    {
       if plBoss <> $
       {
@@ -90,7 +90,7 @@ messages:
             if plBoss = $
             {
                % trigger special behavior
-               Send(self, @BossKilledTrigger);
+               Send(self, @BossKilledTrigger,#what=what);
 
                % start to wait to reset
                piWaitingToStartBossResetTimer = TRUE;
@@ -102,10 +102,21 @@ messages:
       propagate;
    }
 
-   BossKilledTrigger()
+   BossKilledTrigger(what=$)
    {
+      local i;
+
       % Can override this in subclasses to do special reward stuff here,
       % but MUST propagate.
+
+      if what <> $
+         AND IsClass(what,&User)
+      {
+         foreach i in plBossTreasure
+         {
+            Send(i,@SetLadderID,#value=Send(what,@GetLadderID));
+         }
+      }
 
       % Make boss treasure gettable (by forgetting it was
       % boss treasure to begin with)
