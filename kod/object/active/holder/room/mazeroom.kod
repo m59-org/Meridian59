@@ -2820,9 +2820,19 @@ messages:
 
    FillMazeChest(maze_chest=$)
    {
-      local lLootClasses, lMajorLootClasses, oWeapon, iRandomTrashNum;
+      local lLootClasses, lMajorLootClasses, oWeapon, iRandomTrashNum, i, each_obj, iLadderID;
       if maze_chest <> $
       {
+         iLadderID = 0;
+         foreach i in Send(poOwner,@GetHolderActive)
+         {
+            each_obj = Send(poOwner,@HolderExtractObject,#data=i);
+            if IsClass(each_obj,&Player)
+            {
+               iLadderID = Send(each_obj,@GetLadderID);
+            }
+         }
+      
          lLootClasses = [&BanditScimitar,
                          &Dagger,
                          &Flail,
@@ -2844,12 +2854,12 @@ messages:
          
          while iRandomTrashNum > 0
          {
-            Send(maze_chest,@NewHold,#what=Create(Nth(lLootClasses,Random(1,Length(lLootClasses))),#level=Random(50,150)));
+            Send(maze_chest,@NewHold,#what=Create(Nth(lLootClasses,Random(1,Length(lLootClasses))),#level=Random(50,150),#ladderID=iLadderID));
             iRandomTrashNum--;
          }
          
          % These chests also contain one imbued weapon of power
-         oWeapon = Create(Nth(lMajorLootClasses,Random(1,Length(lMajorLootClasses))),#level=210);
+         oWeapon = Create(Nth(lMajorLootClasses,Random(1,Length(lMajorLootClasses))),#level=210,#ladderID=iLadderID);
          Send(maze_chest,@NewHold,#what=oWeapon);
          Send(maze_chest,@MajorImbue,#oItem=oWeapon);
          % And add a proc of power
@@ -2859,7 +2869,7 @@ messages:
          
          while iRandomTrashNum > 0
          {
-            Send(maze_chest,@NewHold,#what=Create(Nth(lLootClasses,Random(1,Length(lLootClasses))),#level=Random(50,150)));
+            Send(maze_chest,@NewHold,#what=Create(Nth(lLootClasses,Random(1,Length(lLootClasses))),#level=Random(50,150),#ladderID=iLadderID));
             iRandomTrashNum--;
          }
       }
