@@ -805,6 +805,18 @@ messages:
    SomethingKilled(what=$,victim=$)
    {
       Send(self,@SetGroupTime,#victim=victim);
+      
+      if what <> $
+         AND IsClass(what,&Player)
+         AND Send(what,@GetLadderID) = 1
+         AND IsClass(victim,&Monster)
+         AND NOT IsClass(self,&GuildHall)
+         AND NOT Send(self,@CheckRoomFlag,#flag=ROOM_NO_COMBAT)
+         AND NOT Send(self,@CheckRoomFlag,#flag=ROOM_SANCTUARY)
+         AND NOT Send(self,@CheckRoomFlag,#flag=ROOM_SAFE_DEATH)
+      {
+         Send(Send(SYS,@GetLadderMaintenance),@CheckForMarauderSpawnOnKill,#who=what);
+      }
 
       propagate;
    }
@@ -2572,6 +2584,17 @@ messages:
 
          Send(Send(SYS, @GetStatistics), @PlayerEnteredRoom,
               #oRoom = self, #who = what);
+      
+         if what <> $
+            AND IsClass(what,&Player)
+            AND Send(what,@GetLadderID) = 1
+            AND NOT IsClass(self,&GuildHall)
+            AND NOT Send(self,@CheckRoomFlag,#flag=ROOM_NO_COMBAT)
+            AND NOT Send(self,@CheckRoomFlag,#flag=ROOM_SANCTUARY)
+            AND NOT Send(self,@CheckRoomFlag,#flag=ROOM_SAFE_DEATH)
+         {
+            Send(Send(SYS,@GetLadderMaintenance),@CheckForMaruderSpawnOnZone,#who=what);
+         }
       }
 
       Send(self,@NewHoldObject,#what=what,

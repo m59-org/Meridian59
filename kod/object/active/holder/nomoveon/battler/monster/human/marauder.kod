@@ -78,8 +78,21 @@ properties:
    piMoveSpeed = 40
    
    vrSound_aware = $
+   
+   ptAggroTimer = $
+   
+   piFailedAggroChecks = 0
 
 messages:
+
+   Constructed()
+   {
+      if ptAggroTimer = $
+      {
+         ptAggroTimer = CreateTimer(self,@DoAggroCheck,5000);
+      }
+      propagate;
+   }
 
    SomethingLeft(what = $, iRow=0, iCol=0)
    "Follow the enemy!"
@@ -93,6 +106,33 @@ messages:
       }
 
       propagate;
+   }
+   
+   DoAggroCheck(timer=$)
+   {
+      ptAggroTimer = $;
+      ptAggroTimer = CreateTimer(self,@DoAggroCheck,5000);
+      
+      if poTarget <> $
+      {
+         return;
+      }
+      
+      if Send(self,@AggroPlayers)
+      {
+         piFailedAggroChecks = 0;
+      }
+      else
+      {
+         piFailedAggroChecks++;
+      }
+      
+      if piFailedAggroChecks > 24
+      {
+         Post(self,@Delete);
+      }
+      
+      return;
    }
 
    IsAlly(target = $, regroup = FALSE)
@@ -212,6 +252,15 @@ messages:
       {
          return;
       }
+       
+      if IsClass(oNewRoom,&GuildHall)
+         OR Send(oNewRoom,@CheckRoomFlag,#flag=ROOM_NO_COMBAT)
+         OR Send(oNewRoom,@CheckRoomFlag,#flag=ROOM_SANCTUARY)
+         OR Send(oNewRoom,@CheckRoomFlag,#flag=ROOM_SAFE_DEATH)
+         OR poOwner = $
+      {
+         return;
+      }
 
       Send(oNewRoom,@NewHold,#what=self,
             #new_row=Send(who,@GetRow),#new_col=Send(who,@GetCol),
@@ -234,11 +283,11 @@ messages:
             {
                Send(self,@TargetSwitch,#what=each_obj,#iHatred=100);
                Send(self,@EnterStateChase,#target=each_obj,#actnow=TRUE);
-               return;
+               return TRUE;
             }
          }
       }
-      return;
+      return FALSE;
    }
    
    NewOwner()
@@ -343,6 +392,16 @@ messages:
       plUsing = $;
 
       return;
+   }
+   
+   Delete()
+   {
+      if ptAggroTimer <> $
+      {
+         DeleteTimer(ptAggroTimer);
+      }
+      ptAggroTimer = $;
+      propagate;
    }
 
 end

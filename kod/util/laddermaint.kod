@@ -67,6 +67,9 @@ properties:
    
    plMarauderClasses = $
    plMarauderList = $
+   
+   piMarauderOnKillSpawnChanceOutOf = 200 %200
+   piMarauderOnZoneSpawnChanceOutOf = 300 %300
 
 messages:
 
@@ -191,12 +194,35 @@ messages:
       return;
    }
    
-   SpawnMarauders()
+   CheckForMarauderSpawnOnKill(who=$)
+   {
+      if Random(1,piMarauderOnKillSpawnChanceOutOf) = 1
+      {
+         Post(self,@SpawnMarauders,#who=who);
+      }
+      return;
+   }
+   
+   CheckForMaruderSpawnOnZone(who=$)
+   {
+      if Random(1,piMarauderOnZoneSpawnChanceOutOf) = 1
+      {
+         Send(self,@SpawnMarauders,#who=who);
+      }
+      return;
+   }
+
+   SpawnMarauders(who=$)
    {
       local iRID, oRoom, i, n, lNeighborRooms, lEntrances, bSpawned, lChosenEntrance, iMarauderCount;
       
-      iRID = RID_TOS;
-      oRoom = Send(SYS,@FindRoomByNum,#num=iRID);
+      oRoom = Send(who,@GetOwner);
+      
+      if oRoom = $
+      {
+         return FALSE;
+      }
+      iRID = Send(oRoom,@GetRoomNum);
       
       lNeighborRooms = $;
       foreach i in Send(oRoom,@GetYellZone)
@@ -234,7 +260,8 @@ messages:
          Send(oRoom,@NewHold,#what=Create(Nth(plMarauderClasses,Random(1,Length(plMarauderClasses)))),
                              #new_row=Nth(lChosenEntrance,1),
                              #new_col=Nth(lChosenEntrance,2));
-         iMarauderCount--;                       
+         iMarauderCount--;  
+         bSpawned = TRUE;         
       }
        
 %      foreach i in lEntrances
@@ -245,7 +272,7 @@ messages:
 %         bSpawned = TRUE;
 %      }
 
-      return;
+      return bSpawned;
    }
 
 end
