@@ -334,7 +334,7 @@ messages:
       
       while iNumberOfReagentsDropped > 0
       {
-         oTreasure = Create(Nth(lReagentClasses,Random(1,Length(lReagentClasses))),#corpse=corpse,#ladderID=ladderID);
+         oTreasure = Create(Nth(lReagentClasses,Random(1,Length(lReagentClasses))),#corpse=corpse,#ladderID=1);
          iNumber = Random(5,35);
          Send(oTreasure,@AddNumber,#number=iNumber);
 
@@ -351,7 +351,7 @@ messages:
          iNumberOfReagentsDropped--;
       }
 
-      oTreasure = Create(&Money,#corpse=corpse,#ladderID=ladderID);
+      oTreasure = Create(&Money,#corpse=corpse,#ladderID=1);
       iNumber = Random(500,35000);
       Send(oTreasure,@AddNumber,#number=iNumber);
       if Send(poOwner,@ReqNewHold,#what=oTreasure,#new_row=piRow,#new_col=piCol)
@@ -377,7 +377,7 @@ messages:
                Send(oItemAtt,@AddToItem,#oItem=oUsedItem,#state1=corpse);
             }
             
-            Send(oUsedItem,@SetLadderID,#value=ladderID);
+            Send(oUsedItem,@SetLadderID,#value=1);
 
             Send(poOwner,@NewHold,#what=oUsedItem,
                   #new_row=piRow,#new_col=piCol,
