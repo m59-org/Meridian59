@@ -48,18 +48,19 @@ resources:
    no_ladder_players = \
       "There are no adventurers currently in the ladder competition."
    ranking_header = \
-      "The top adventurers currently in the ladder competition are:\n"
+      "The top adventurers currently in the ladder competition have:"
    ranking_name_and_wisdom = \
-      "%s, %i wisdom"
+      "Rank %i: %i wisdom"
       
    your_ranking_ladder = \
-      "You are rank %i in the ladder competition."
+      "You are rank %d in the ladder competition."
 
 classvars:
 
 properties:
 
    plLadderPlayers = $
+   plTopLadderPlayers = $
    
    pbLadderEnabled = TRUE
    
@@ -70,6 +71,8 @@ properties:
    
    piMarauderOnKillSpawnChanceOutOf = 200 %200
    piMarauderOnZoneSpawnChanceOutOf = 300 %300
+
+   piLeaderboardCountdownHours = 288
 
 messages:
 
@@ -83,6 +86,8 @@ messages:
    Recreate()
    {
       Send(self,@BuildMarauderList);
+      Send(self,@RecalculateLeaderboard);
+
       return;
    }
 
@@ -93,6 +98,56 @@ messages:
 
    NewGameHour()
    {
+      piLeaderboardCountdownHours--;
+      
+      if piLeaderboardCountdownHours <= 0
+      {
+         Send(self,@RecalculateLeaderboard);
+      }
+      return;
+   }
+   
+   RecalculateLeaderboard(who=$)
+   {
+      local lUsers, lLadderUsers, oPlayer, iHighestWisdom, oHighestPlayer, iCount;
+
+      piLeaderboardCountdownHours = 288;
+      
+      lUsers = Send(SYS,@GetUsers);
+      
+      lLadderUsers = $;
+      foreach oPlayer in lUsers
+      {
+         if Send(oPlayer,@GetLadderID) = 1
+         {
+            lLadderUsers = Cons(oPlayer,lLadderUsers);
+         }
+      }
+      
+      plTopLadderPlayers = $;
+      iCount = 10;
+      
+      while iCount > 0
+      {
+         oHighestPlayer = $;
+         iHighestWisdom = 0;
+         foreach oPlayer in lLadderUsers
+         {
+            if Send(oPlayer,@GetAccumulatedWisdom) > iHighestWisdom
+            {
+               oHighestPlayer = oPlayer;
+               iHighestWisdom = Send(oPlayer,@GetAccumulatedWisdom);
+            }
+         }
+         plTopLadderPlayers = Cons([oHighestPlayer,iHighestWisdom],plTopLadderPlayers);
+         lLadderUsers = DelListElem(lLadderUsers,oHighestPlayer);
+         if lLadderUsers = $
+         {
+            return;
+         }
+         iCount--;
+      }
+
       return;
    }
 
@@ -145,29 +200,34 @@ messages:
    
    DoLadderReport(who=$)
    {
-      local iCount;
+      local lTopPlayer;
 
-      if plLadderPlayers = $
+      if plTopLadderPlayers = $
       {
          Send(who,@MsgSendUser,#message_rsc=no_ladder_players);
          return;
       }
       
       Send(who,@MsgSendUser,#message_rsc=ranking_header);
-      
-      iCount = 1;
-      while iCount <= 10
+
+      if Length(plTopLadderPlayers) >= 10
       {
-         if iCount <= Length(plLadderPlayers)
-         {
-            Send(who,@MsgSendUser,#message_rsc=ranking_name_and_wisdom,#parm1=Send(Nth(plLadderPlayers,iCount),@GetTrueName),#parm2=Send(Nth(plLadderPlayers,iCount),@GetAccumulatedWisdom));
-         }
+         Send(who,@MsgSendUser,#message_rsc=ranking_name_and_wisdom,#parm1=1,#parm2=Nth(Nth(plTopLadderPlayers,10),2));
+         Send(who,@MsgSendUser,#message_rsc=ranking_name_and_wisdom,#parm1=2,#parm2=Nth(Nth(plTopLadderPlayers,9),2));
+         Send(who,@MsgSendUser,#message_rsc=ranking_name_and_wisdom,#parm1=3,#parm2=Nth(Nth(plTopLadderPlayers,8),2));
+         Send(who,@MsgSendUser,#message_rsc=ranking_name_and_wisdom,#parm1=4,#parm2=Nth(Nth(plTopLadderPlayers,7),2));
+         Send(who,@MsgSendUser,#message_rsc=ranking_name_and_wisdom,#parm1=5,#parm2=Nth(Nth(plTopLadderPlayers,6),2));
+         Send(who,@MsgSendUser,#message_rsc=ranking_name_and_wisdom,#parm1=6,#parm2=Nth(Nth(plTopLadderPlayers,5),2));
+         Send(who,@MsgSendUser,#message_rsc=ranking_name_and_wisdom,#parm1=7,#parm2=Nth(Nth(plTopLadderPlayers,4),2));
+         Send(who,@MsgSendUser,#message_rsc=ranking_name_and_wisdom,#parm1=8,#parm2=Nth(Nth(plTopLadderPlayers,3),2));
+         Send(who,@MsgSendUser,#message_rsc=ranking_name_and_wisdom,#parm1=9,#parm2=Nth(Nth(plTopLadderPlayers,2),2));
+         Send(who,@MsgSendUser,#message_rsc=ranking_name_and_wisdom,#parm1=10,#parm2=Nth(Nth(plTopLadderPlayers,1),2));
       }
-      
-      if FindListElem(plLadderPlayers,who)
-      {
-         Send(who,@MsgSendUser,#message_rsc=your_ranking_ladder,#parm1=FindListElem(plLadderPlayers,who));
-      }
+
+%      if FindListElem(plTopLadderPlayers,who)
+%      {
+%         Send(who,@MsgSendUser,#message_rsc=your_ranking_ladder,#parm1=FindListElem(plTopLadderPlayers,who));
+%      }
 
       return;
    }

@@ -1056,6 +1056,12 @@ messages:
          Send(self,@MsgSendUser,#message_rsc=master_while_offline);
       }
       
+      if Send(self,@GetLadderID) <> 0
+         AND Send(SYS,@GetLadderMaintenance) <> $
+      {
+         Post(Send(SYS,@GetLadderMaintenance),@DoLadderReport,#who=self);
+      }
+      
       Post(self,@LoadMinionsOnLogOn);
 
       return;
