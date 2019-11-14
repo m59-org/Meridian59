@@ -21573,6 +21573,29 @@ messages:
       }
       return FALSE;
    }
+   
+   ConvertAllItemsToNonLadder()
+   {
+      local i, each_obj;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         each_obj = Send(self,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&Item)
+         {
+            Send(each_obj,@SetLadderID,#value=0);
+         }
+      }
+      foreach i in Send(self,@GetHolderPassive)
+      {
+         each_obj = Send(self,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&Item)
+         {
+            Send(each_obj,@SetLadderID,#value=0);
+         }
+      }
+      return;
+   }
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
