@@ -214,7 +214,7 @@ messages:
 
    SpawnMarauders(who=$)
    {
-      local iRID, oRoom, i, n, lNeighborRooms, lEntrances, bSpawned, lChosenEntrance, iMarauderCount;
+      local iRID, oRoom, i, n, lNeighborRooms, lEntrances, bSpawned, lChosenEntrance, iMarauderCount, iHealth;
       
       oRoom = Send(who,@GetOwner);
       
@@ -257,8 +257,9 @@ messages:
       {
          return bSpawned;
       }
-      
-      iMarauderCount = Random(1,3);
+
+      iHealth = Send(who,@GetBaseMaxHealth);
+      iMarauderCount = iHealth/50;
       lChosenEntrance = Nth(lEntrances,Random(1,Length(lEntrances)));
       
       while iMarauderCount > 0
