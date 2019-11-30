@@ -5751,7 +5751,7 @@ messages:
                }
                else
                {
-                  oBuy = Create(GetClass(i),#model=i,#ladderID=Send(what,@GetLadderID));
+                  oBuy = Create(GetClass(i),#model=i,#ladderID=Send(what,@GetLadderID),#level=viLevel,#mob=self);
                }
             }
 
@@ -9740,6 +9740,25 @@ messages:
    ClearAttackTimer()
    {
       return;
+   }
+
+   WeightPrefixes()
+   {
+      % Some monsters weight mod chances.
+      % For example, an avar warrior puts an emphasis on vigor mods.
+      return $;
+   }
+   
+   WeightSuffixes()
+   {
+      return $;
+   }
+
+   EmpowerAffixes()
+   {
+      % Some monsters improve the range of power of a mod.
+      % If the value is 3, for example, the rolled result of a mod is given +3.
+      return $;
    }
 
 end

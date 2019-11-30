@@ -16,6 +16,18 @@ constants:
    include protocol.khd
 
    ARMOR_TAKE_DAMAGE_PCT = 75
+
+   APPLY_SUCCESS = 1
+   THIS_SHARD_CANNOT_APPLY = 2
+   NO_SPACE_FOR_MODS = 3
+   NO_MODS_FOUND = 4
+   UNKNOWN_ERROR = 5
+   NO_ITEM = 6
+   NO_PLAYER = 7
+   WEIGHT_TEST_FAILED = 8
+   MOD_NOT_FOUND = 9
+   
+   NO_MONSTER = 10
    
 resources:
 
@@ -213,6 +225,8 @@ classvars:
    % Items may have a different appearance once revealed. Values are zero if not applicable.
    viUnrevealedColor = 0
    viRevealedColor = 0
+   
+   vbUniqueItem = FALSE
 
 properties:
 
@@ -240,10 +254,13 @@ properties:
    % Base game is 0
    % Challenge ladders will typically be 1
    piLadderID = 0
+   
+   % Was this item used in the forge?
+   pbForgedItem = FALSE
 
 messages:
 
-   Constructor(corpse=$,level=20, ladderID=0)
+   Constructor(corpse=$,level=20, ladderID=0, mob=$)
    {
       local iHits_average, oItemAtt;
 
@@ -269,6 +286,8 @@ messages:
       {
          piLadderID = ladderID;
       }
+      
+      Post(self,@RollLootMods,#oMonster=mob);
 
       propagate;
    }
@@ -3344,16 +3363,17 @@ messages:
 
    AddMagicFlag()
    {
-      if viObject_flags <> (OF_GETTABLE | OF_ITEM_MAGIC)
-      {
-         viObject_flags = viObject_flags | OF_ITEM_MAGIC;
-      }
-
-      if poOwner <> $
-         AND IsClass(poOwner,&Player)
-      {
-         Send(poOwner,@SomethingChanged,#what=self);
-      }
+      % Deprecated.
+%      if viObject_flags <> (OF_GETTABLE | OF_ITEM_MAGIC)
+%      {
+%         viObject_flags = viObject_flags | OF_ITEM_MAGIC;
+%      }
+%
+%      if poOwner <> $
+%         AND IsClass(poOwner,&Player)
+%      {
+%         Send(poOwner,@SomethingChanged,#what=self);
+%      }
 
       return;
    }
@@ -3361,25 +3381,26 @@ messages:
    RemoveMagicFlag()
    {
       local i, iNum, oItemAtt;
-      
-      foreach i in plItem_attributes
-      {
-         iNum = Send(self,@GetNumFromCompound,#compound=First(i));
-         oItemAtt = Send(SYS,@FindItemAttByNum,#num=iNum);
-         
-         if Send(oItemAtt,@IsMagicalEffect)
-         {
-            viObject_flags = viObject_flags | OF_ITEM_MAGIC;
-            
-            if poOwner <> $
-               AND IsClass(poOwner,&Player)
-            {
-               Send(poOwner,@SomethingChanged,#what=self);
-            }
-
-            return;
-         }
-      }
+      % Deprecated.
+%      
+%      foreach i in plItem_attributes
+%      {
+%         iNum = Send(self,@GetNumFromCompound,#compound=First(i));
+%         oItemAtt = Send(SYS,@FindItemAttByNum,#num=iNum);
+%         
+%         if Send(oItemAtt,@IsMagicalEffect)
+%         {
+%            viObject_flags = viObject_flags | OF_ITEM_MAGIC;
+%            
+%            if poOwner <> $
+%               AND IsClass(poOwner,&Player)
+%            {
+%               Send(poOwner,@SomethingChanged,#what=self);
+%            }
+%
+%            return;
+%         }
+%      }
 
       viObject_flags = viObject_flags & ~OF_ITEM_MAGIC;
 
@@ -3389,6 +3410,83 @@ messages:
          Send(poOwner,@SomethingChanged,#what=self);
       }
 
+      return;
+   }
+   
+   EvaluateNameColor()
+   {
+      if IsClass(self,&NumberItem)
+      {
+         return;
+      }
+      else if vbUniqueItem
+      {
+         if viObject_flags <> (OF_GETTABLE | OF_ITEM_NAME_ORANGE)
+         {
+            viObject_flags = viObject_flags | OF_ITEM_NAME_ORANGE;
+         }
+      }
+      else if pbForgedItem
+      {
+         if viObject_flags <> (OF_GETTABLE | OF_ITEM_NAME_DGREEN)
+         {
+            viObject_flags = viObject_flags | OF_ITEM_NAME_DGREEN;
+         }
+      }
+      else
+      {
+         switch(Send(self,@GetMagicModsNumber))
+         {
+            case 1:
+               if viObject_flags <> (OF_GETTABLE | OF_ITEM_NAME_BGREEN)
+               {
+                  viObject_flags = viObject_flags | OF_ITEM_NAME_BGREEN;
+               }
+               break;
+            case 2:
+               if viObject_flags <> (OF_GETTABLE | OF_ITEM_NAME_CYAN)
+               {
+                  viObject_flags = viObject_flags | OF_ITEM_NAME_CYAN;
+               }
+               break;
+            case 3:
+               if viObject_flags <> (OF_GETTABLE | OF_ITEM_NAME_YELLOW)
+               {
+                  viObject_flags = viObject_flags | OF_ITEM_NAME_YELLOW;
+               }
+               break;
+            case 4:
+               if viObject_flags <> (OF_GETTABLE | OF_ITEM_NAME_YELLOW)
+               {
+                  viObject_flags = viObject_flags | OF_ITEM_NAME_YELLOW;
+               }
+               break;
+            case 5:
+               if viObject_flags <> (OF_GETTABLE | OF_ITEM_NAME_YELLOW)
+               {
+                  viObject_flags = viObject_flags | OF_ITEM_NAME_YELLOW;
+               }
+               break;
+            case 6:
+               if viObject_flags <> (OF_GETTABLE | OF_ITEM_NAME_PURPLE)
+               {
+                  viObject_flags = viObject_flags | OF_ITEM_NAME_PURPLE;
+               }
+               break;
+         }
+      }
+
+      if poOwner <> $
+      {
+         Send(poOwner,@SomethingChanged,#what=self);
+      }
+
+      return;
+   }
+   
+   SetForgedItem(value=FALSE)
+   {
+      pbForgedItem = value;
       return;
    }
 
@@ -3801,6 +3899,243 @@ messages:
    {
       piLadderID = value;
       return;
+   }
+   
+   RollLootMods(oMonster=$)
+   {
+      local iRarity, iNumMods, iFullRareChance, iRareChance, iMagicChance, iResult;
+      
+      if Send(self,@GetMagicModsNumber) <> 0
+      {
+         return FALSE;
+      }
+      
+      if poOwner = $
+      {
+         % Let's make sure we really exist
+         return FALSE;
+      }
+
+      if NOT IsClass(self,&Weapon)
+            AND NOT IsClass(self,&DefenseModifier)
+            AND NOT IsClass(self,&Ring)
+            AND NOT IsClass(self,&Gauntlet)
+            AND NOT IsClass(self,&NecromancerAmulet)
+            AND NOT IsClass(self,&Necklace)
+            AND NOT IsClass(self,&Instrument)
+            AND NOT IsClass(self,&JewelofFroz)
+            AND NOT IsClass(self,&AdventurerCrest)
+            AND NOT IsClass(self,&ScryingCrystal)
+      {
+         return FALSE;
+      }
+
+      iRarity = Random(1,100000);
+      
+      iFullRareChance = Send(SETTINGS_OBJECT,@GetEpicChance);
+      iRareChance = Send(SETTINGS_OBJECT,@GetRareChance);
+      iMagicChance = Send(SETTINGS_OBJECT,@GetMagicChance);
+
+      if iRarity <= iFullRareChance
+      {
+         % Full rare
+         iNumMods = 6;
+      }
+      else if iRarity <= iRareChance
+      {
+         % Rare
+         iNumMods = Random(3,5);
+      }
+      else if iRarity <= iMagicChance
+      {
+         % Magic
+         iNumMods = Random(1,2);
+      }
+      else
+      {
+         iNumMods = 0;
+      }
+      
+      while iNumMods > 0
+      {
+         iResult = Send(self,@GenerateMod,#oItem=self,#oMonster=oMonster);
+         
+         switch(iResult)
+         {
+            case NO_ITEM:
+               return;
+            case NO_MONSTER:
+               return;
+            case NO_MODS_FOUND:
+               return;
+            case NO_SPACE_FOR_MODS:
+               return;
+            case WEIGHT_TEST_FAILED:
+               Debug("Weight test failed in magic loot rolling");
+               Debug(self);
+               return;
+            case UNKNOWN_ERROR:
+               Debug("Unknown error in magic loot rolling");
+               Debug(self);
+               return;
+         }
+         
+         iNumMods--;
+      }
+      
+      Post(self,@EvaluateNameColor);
+      
+      return TRUE;
+   }
+
+   GenerateMod(oItem=$,oMonster=$)
+   {
+      local i, n, lPrefixes, lSuffixes, cChosenMod, oChosenMod, lCombined, iTotalWeight, iChosenWeight,
+            iRolledPower;
+
+      if oItem = $
+      {
+         return NO_ITEM;
+      }
+      
+      lPrefixes = Send(oItem,@GetPrefixes);
+      lSuffixes = Send(oItem,@GetSuffixes);
+
+      foreach i in lPrefixes
+      {
+         if Send(oItem,@HasMagicModOfClass,#class=Nth(i,1))
+         {
+            lPrefixes = DelListElem(lPrefixes,i);
+         }
+      }
+
+      foreach i in lSuffixes
+      {
+         if Send(oItem,@HasMagicModOfClass,#class=Nth(i,1))
+         {
+            lSuffixes = DelListElem(lSuffixes,i);
+         }
+      }
+
+      if lPrefixes = $
+         AND lSuffixes = $
+      {
+         return NO_MODS_FOUND;
+      }
+
+      if Send(oItem,@GetMagicModsNumberOfType,#type=MOD_PREFIX) >= 3
+      {
+         lPrefixes = $;
+      }
+      if Send(oItem,@GetMagicModsNumberOfType,#type=MOD_SUFFIX) >= 3
+      {
+         lSuffixes = $;
+      }
+
+      if lPrefixes = $
+         AND lSuffixes = $
+      {
+         return NO_SPACE_FOR_MODS;
+      }
+
+      % We've removed all mods the item already has.
+      % We've removed all mods from bins the item is maxed out on.
+      % Anything chosen now will be a mod the item doesn't have for a bin that is open.
+      % Let's combine into a list for easy random selection.
+      % We've also guaranteed at least one of these lists is not nil.
+      % Let's let the shard alter values.
+      
+      if oMonster <> $
+      {
+         foreach i in lPrefixes
+         {
+            foreach n in Send(oMonster,@WeightPrefixes)
+            {
+               if Nth(i,1) = Nth(n,1)
+               {
+                  SetNth(i,2,Bound(Nth(i,2) + Nth(n,2),0,$));
+               }
+            }
+         }
+      
+
+         foreach i in lSuffixes
+         {
+            foreach n in Send(oMonster,@WeightSuffixes)
+            {
+               if Nth(i,1) = Nth(n,1)
+               {
+                  SetNth(i,2,Bound(Nth(i,2) + Nth(n,2),0,$));
+               }
+            }
+         }
+      }
+
+      foreach i in lPrefixes
+      {
+         lCombined = Cons(i,lCombined);
+      }
+      foreach i in lSuffixes
+      {
+         lCombined = Cons(i,lCombined);
+      }
+
+      % Now we have a list of [Mod, Weight] with shard weighting factored in
+      % Let's get the sum of the weights
+      
+      iTotalWeight = 0;
+      foreach i in lCombined
+      {
+         iTotalWeight = iTotalWeight + Nth(i,2);
+      }
+
+      % Let's pinpoint our weight target.
+      iChosenWeight = Random(1,iTotalWeight);
+
+      % What have we pinpointed?
+      foreach i in lCombined
+      {
+         iChosenWeight = iChosenWeight - Nth(i,2);
+         if iChosenWeight <= 0
+         {
+            % Found it!
+            cChosenMod = Nth(i,1);
+            break;
+         }
+      }
+
+      if iChosenWeight > 0
+      {
+         return WEIGHT_TEST_FAILED;
+      }
+
+      oChosenMod = Send(SYS,@GetMagicMod,#class=cChosenMod);
+      if oChosenMod = $
+      {
+         Debug(cChosenMod," not found by SYS!");
+         return MOD_NOT_FOUND;
+      }
+      iRolledPower = Send(oChosenMod,@RollPower,#what=oItem);
+
+      if oMonster <> $
+      {
+         foreach i in Send(oMonster,@EmpowerAffixes)
+         {
+            if Nth(i,1) = cChosenMod
+            {
+               iRolledPower = iRolledPower + Nth(i,2);
+            }
+         }
+      }
+
+      % Now we have a mod that has not already been applied, is in a bin with free space,
+      % and empowered by the shard. Let's apply it.
+      if Send(oItem,@ApplyMagicMod,#cClass=cChosenMod,#iPower=iRolledPower)
+      {
+         return APPLY_SUCCESS;
+      }
+
+      return UNKNOWN_ERROR;
    }
 
 end

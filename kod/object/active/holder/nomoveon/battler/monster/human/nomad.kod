@@ -97,11 +97,11 @@ messages:
       iRandomNumber = Random(1,100);
       if iRandomNumber <= 55
       {
-         oEquipmentItem = Create(&Scimitar,#level=viLevel);
+         oEquipmentItem = Create(&Scimitar,#level=viLevel,#mob=self);
       }
       else if iRandomNumber <= 100
       {
-        oEquipmentItem = Create(&BattleBow,#level=viLevel);
+        oEquipmentItem = Create(&BattleBow,#level=viLevel,#mob=self);
         poArrow = Create(&NeruditeArrow);
       }
 
@@ -114,7 +114,7 @@ messages:
       iRandomNumber = Random(1,100);
       if iRandomNumber < 20
       {
-         oEquipmentItem = Create(&Gauntlet,#level=viLevel);
+         oEquipmentItem = Create(&Gauntlet,#level=viLevel,#mob=self);
          Send(self,@AddEquipmentObject,#what=oEquipmentItem);
       }
 
@@ -128,31 +128,31 @@ messages:
       switch(piDemonSponsor)
       {
          case SSS_WITCHERY_RAUMLAR:
-            oEquipmentItem = Create(&SkullMask,#level=viLevel);
+            oEquipmentItem = Create(&SkullMask,#level=viLevel,#mob=self);
             Send(self,@AddEquipmentObject,#what=oEquipmentItem);
             break;
          case SSS_WITCHERY_XAERDUN:
             if Send(self,@FindUsing,#class=&RangedWeapon) = $
             {
-               oEquipmentItem = Create(&SteelShield,#level=viLevel);
+               oEquipmentItem = Create(&SteelShield,#level=viLevel,#mob=self);
                Send(self,@AddEquipmentObject,#what=oEquipmentItem);
             }
             break;
          case SSS_WITCHERY_NEQUZON:
             if Send(self,@FindUsing,#class=&RangedWeapon) = $
             {
-               oEquipmentItem = Create(&Torch,#level=viLevel);
+               oEquipmentItem = Create(&Torch,#level=viLevel,#mob=self);
                Send(self,@AddEquipmentObject,#what=oEquipmentItem);
             }
             break;
          case SSS_WITCHERY_IWODACH:
-            oEquipmentItem = Create(&Circlet,#level=viLevel);
+            oEquipmentItem = Create(&Circlet,#level=viLevel,#mob=self);
             Send(self,@AddEquipmentObject,#what=oEquipmentItem);
             break;
          case SSS_WITCHERY_VENTDAL:
             if Send(self,@FindUsing,#class=&RangedWeapon) = $
             {
-               oEquipmentItem = Create(&SteelShield,#level=viLevel);
+               oEquipmentItem = Create(&SteelShield,#level=viLevel,#mob=self);
                Send(self,@AddEquipmentObject,#what=oEquipmentItem);
             }
             break;
@@ -167,28 +167,28 @@ messages:
       switch(Send(SYS,@GetDayPhase))
       {
          case DAY_PHASE_DAWN:
-            oEquipmentItem = Create(&Robe,#color=XLAT_TO_SKIN2,#level=viLevel);
+            oEquipmentItem = Create(&Robe,#color=XLAT_TO_SKIN2,#level=viLevel,#mob=self);
             Send(self,@AddEquipmentObject,#what=oEquipmentItem);
             break;
          case DAY_PHASE_DAY:
             if Send(Send(SYS,@FindRoomByNum,#num=RID_DESERTRIVER2),@GetPrismOfFireDefeated)
             {
-               oEquipmentItem = Create(&Robe,#color=XLAT_TO_SKIN2,#level=viLevel);
+               oEquipmentItem = Create(&Robe,#color=XLAT_TO_SKIN2,#level=viLevel,#mob=self);
                Send(self,@AddEquipmentObject,#what=oEquipmentItem);
             }
             break;
          case DAY_PHASE_DUSK:
-            oEquipmentItem = Create(&Robe,#color=XLAT_TO_SKIN4,#level=viLevel);
+            oEquipmentItem = Create(&Robe,#color=XLAT_TO_SKIN4,#level=viLevel,#mob=self);
             Send(self,@AddEquipmentObject,#what=oEquipmentItem);
             if Send(self,@FindUsing,#class=&Circlet) <> $
                OR Send(self,@FindUsing,#class=&Helmet) = $
             {
-               oEquipmentItem = Create(&SimpleHelm,#level=viLevel);
+               oEquipmentItem = Create(&SimpleHelm,#level=viLevel,#mob=self);
                Send(self,@AddEquipmentObject,#what=oEquipmentItem);
             }
             break;
          case DAY_PHASE_NIGHT:
-            oEquipmentItem = Create(&Robe,#color=XLAT_TO_GRAY,#level=viLevel);
+            oEquipmentItem = Create(&Robe,#color=XLAT_TO_GRAY,#level=viLevel,#mob=self);
             Send(self,@AddEquipmentObject,#what=oEquipmentItem);
             break;
       }

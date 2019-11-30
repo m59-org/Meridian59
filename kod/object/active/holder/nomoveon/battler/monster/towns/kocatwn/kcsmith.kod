@@ -42,6 +42,8 @@ classvars:
    viOccupation = MOB_ROLE_BLACKSMITH
    viMerchant_markup = MERCHANT_EXPENSIVE
    viGender = GENDER_FEMALE
+   
+   viLevel = 110
 
 properties:
 
@@ -99,12 +101,12 @@ messages:
    {
       plFor_sale = [ 
          [
-            Create(&NeruditeArmor),
-            Create(&ChainArmor),
-            Create(&GoldShield),
-            Create(&NeruditeSword),
-            Create(&Axe),
-            Create(&Hammer)
+            Create(&NeruditeArmor,#level=viLevel),
+            Create(&ChainArmor,#level=viLevel),
+            Create(&GoldShield,#level=viLevel),
+            Create(&NeruditeSword,#level=viLevel),
+            Create(&Axe,#level=viLevel),
+            Create(&Hammer,#level=viLevel)
          ],
       $,$,$];
 
@@ -139,6 +141,29 @@ messages:
       }
 
       return;
+   }
+
+   WeightPrefixes()
+   {
+      return $;
+   }
+   
+   WeightSuffixes()
+   {
+      return [[&FireResistanceMod,200],
+              [&ColdResistanceMod,200],
+              [&AcidResistanceMod,200],
+              [&ShockResistanceMod,200]
+             ];
+   }
+
+   EmpowerAffixes()
+   {
+      return [[&FireResistanceMod,3],
+              [&ColdResistanceMod,3],
+              [&AcidResistanceMod,3],
+              [&ShockResistanceMod,3]
+             ];
    }
 
 end

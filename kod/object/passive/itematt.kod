@@ -119,7 +119,7 @@ messages:
       return;
    }
 
-   GenerateItemWithAttribute(who=$,level=20)
+   GenerateItemWithAttribute(who=$,level=20,mob=$)
    {
       local i, index, jindex, random_x, oItem;
 
@@ -140,7 +140,7 @@ messages:
          random_x = random_x - nth(i,2);
          if random_x < 1         %% we have a winner!
          {
-            oItem = Create(First(i),#level=level,#ladderID=Send(who,@GetLadderID));
+            oItem = Create(First(i),#level=level,#ladderID=Send(who,@GetLadderID),#mob=mob);
             Send(self,@AddSelfToRandomItem,#oItem=oItem,#who=who);
 
             break;

@@ -29,7 +29,7 @@ messages:
    {
       local oEquipmentItem, iBonusModifier, oSpell;
 
-      oEquipmentItem = Create(&Mace);
+      oEquipmentItem = Create(&Mace,#level=viLevel,#mob=self);
       iBonusModifier = 3;
 
       viDifficulty = piBaseDifficulty + iBonusModifier;
@@ -37,19 +37,19 @@ messages:
 
       if Random(0,1)
       {
-         oEquipmentItem = Create(&LeatherArmor);
+         oEquipmentItem = Create(&LeatherArmor,#level=viLevel,#mob=self);
          iBonusModifier = Random(30,60);
       }
       else if plRangedSpellBook = $
       {
-         oEquipmentItem = Create(&Robe,#color=Random(XLAT_TO_RED,XLAT_TO_SKY));
+         oEquipmentItem = Create(&Robe,#level=viLevel,#color=Random(XLAT_TO_RED,XLAT_TO_SKY),#mob=self);
          iBonusModifier = Random(20,40);
       }
       else
       {
          oSpell = Send(SYS,@FindSpellByNum,
                         #num=First(Nth(plRangedSpellBook,Random(1,Length(plRangedSpellBook)))));
-         oEquipmentItem = Create(&DiscipleRobe,#school=Send(oSpell,@GetSchool));
+         oEquipmentItem = Create(&DiscipleRobe,#level=viLevel,#school=Send(oSpell,@GetSchool),#mob=self);
          iBonusModifier = Random(40,60);
       }
 
@@ -58,7 +58,7 @@ messages:
       if Random(1,100) < 20
       {
          iBonusModifier = iBonusModifier + 20;
-         oEquipmentItem = Create(&Circlet);
+         oEquipmentItem = Create(&Circlet,#level=viLevel,#mob=self);
          Send(self,@AddEquipmentObject,#what=oEquipmentItem);
       }
 

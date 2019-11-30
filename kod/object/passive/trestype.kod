@@ -117,7 +117,7 @@ messages:
       return;
    }
 
-   GenerateItemAtt(diff_seed=0, raw=FALSE, who = $, level = 20)
+   GenerateItemAtt(diff_seed=0, raw=FALSE, who = $, level = 20, mob = $)
    {
       local diff_bonus, random_x, i, j, index, iChoice, oItem,
             oItemAtt, lOptions;
@@ -190,7 +190,7 @@ messages:
       oItemAtt = Send(SYS,@FindItemAttByNum,#num=iChoice);
 
       % Ask that ItemAtt to generate an item with this attribute.
-      oItem = Send(oItemAtt,@GenerateItemWithAttribute, #who=who,#level=level);
+      oItem = Send(oItemAtt,@GenerateItemWithAttribute, #who=who,#level=level,#mob=mob);
 
       return oItem;
    }
@@ -315,7 +315,7 @@ messages:
       % allows it.
       if (attributes & MOB_ONE_TREASURE)
       {
-         oTreasure = Send(self,@GenerateLootTableTreasure,#who=who,#corpse=corpse,#level=level,#ladderID=ladderID);
+         oTreasure = Send(self,@GenerateLootTableTreasure,#who=who,#corpse=corpse,#level=level,#ladderID=ladderID,#mob=mob);
          if oTreasure <> $
          {
             lTreasureItems = Cons(oTreasure,lTreasureItems);
@@ -441,7 +441,7 @@ messages:
          if Random(1,400) <= (Send(SETTINGS_OBJECT,@GetMagicItemModifier) *
                                     piItem_Att_chance) / 100 
          {
-            oObj = Send(self,@GenerateItemAtt,#who=who,#diff_seed=piDiff_seed,#level=level);
+            oObj = Send(self,@GenerateItemAtt,#who=who,#diff_seed=piDiff_seed,#level=level,#mob=mob);
             if oObj <> $
             {
                return oObj;
@@ -495,7 +495,7 @@ messages:
       {
          % No rare item dropped, check loot table.
          oObj = Send(self,@GenerateLootTableTreasure,#who=who,#corpse=corpse,
-                                                     #level=level,#ladderID=ladderID);
+                                                     #level=level,#ladderID=ladderID,#mob=mob);
 
          if oObj = $
          {
@@ -508,7 +508,7 @@ messages:
       return oObj;
    }
 
-   GenerateLootTableTreasure(who=$,corpse=$,level=20,ladderID=0)
+   GenerateLootTableTreasure(who=$,corpse=$,level=20,ladderID=0,mob=$)
    {
       local iCount, iRnd, lItem_info, oObj, iNumber;
 
@@ -523,7 +523,7 @@ messages:
             if IsClass(who,&Monster)
                OR IsClass(corpse,&OrcPitBossBody)
             {
-               oObj = Create(First(lItem_info),#level=level,#ladderID=ladderID);
+               oObj = Create(First(lItem_info),#level=level,#ladderID=ladderID,#mob=mob);
                if vbGenerateSockets
                   AND IsClass(oObj,&DefenseModifier)
                {
@@ -543,7 +543,7 @@ messages:
             }
             else
             {
-               oObj = Create(First(lItem_info),#corpse=corpse,#level=level,#ladderID=ladderID);
+               oObj = Create(First(lItem_info),#corpse=corpse,#level=level,#ladderID=ladderID,#mob=mob);
                if vbGenerateSockets
                   AND IsClass(oObj,&DefenseModifier)
                {
