@@ -40,6 +40,14 @@ enum {
    COLOR_INVNUMBGD,       /* Inventory number background */
    COLOR_ITEM_MAGIC_FG,   /* Color for magic weapons in lists*/
    COLOR_QUEST_HEADER,    /* Color for active/completed quest headers.*/
+   COLOR_ITEM_NAME_BGREEN,            /* bright green */
+   COLOR_ITEM_NAME_CYAN,              /* cyan */
+   COLOR_ITEM_NAME_YELLOW,            /* yellow */
+   COLOR_ITEM_NAME_ORANGE,            /* orange */
+   COLOR_ITEM_NAME_PURPLE,            /* purple */
+   COLOR_ITEM_NAME_RED,               /* red */
+   COLOR_ITEM_NAME_DGREEN,            /* dark green */
+   COLOR_ITEM_NAME_GREY,              /* grey */
    MAXCOLORS,
 };
 

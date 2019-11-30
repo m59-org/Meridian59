@@ -383,6 +383,14 @@ enum {
 #define OF_FLASHING      0x00040000    // For players or objects if flashing with light.
 #define OF_PHASING       0x00080000    // For players or objects if phasing translucent/solid.
 #define OF_GROUNDED      0x00100000    // For players or objects forced to draw on the ground
+#define OF_ITEM_NAME_BGREEN       0x00200000    // bright green
+#define OF_ITEM_NAME_CYAN         0x00400000    // cyan
+#define OF_ITEM_NAME_YELLOW       0x00800000    // yellow
+#define OF_ITEM_NAME_ORANGE       0x01000000    // orange
+#define OF_ITEM_NAME_PURPLE       0x02000000    // purple
+#define OF_ITEM_NAME_RED          0x04000000    // red
+#define OF_ITEM_NAME_DGREEN       0x00002000    // dark green
+#define OF_ITEM_NAME_GREY         0x00004000    // grey
 
 #define GetItemFlags(flags)   ((flags))
 
