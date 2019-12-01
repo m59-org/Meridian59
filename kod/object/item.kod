@@ -3413,8 +3413,39 @@ messages:
       return;
    }
    
+   ResetNameColor()
+   {
+      if viObject_flags = (OF_GETTABLE | OF_ITEM_NAME_ORANGE)
+      {
+         viObject_flags = viObject_flags & ~OF_ITEM_NAME_ORANGE;
+      }
+      if viObject_flags = (OF_GETTABLE | OF_ITEM_NAME_DGREEN)
+      {
+         viObject_flags = viObject_flags & ~OF_ITEM_NAME_DGREEN;
+      }
+      if viObject_flags = (OF_GETTABLE | OF_ITEM_NAME_BGREEN)
+      {
+         viObject_flags = viObject_flags & ~OF_ITEM_NAME_BGREEN;
+      }
+      if viObject_flags = (OF_GETTABLE | OF_ITEM_NAME_CYAN)
+      {
+         viObject_flags = viObject_flags & ~OF_ITEM_NAME_CYAN;
+      }
+      if viObject_flags = (OF_GETTABLE | OF_ITEM_NAME_YELLOW)
+      {
+         viObject_flags = viObject_flags & ~OF_ITEM_NAME_YELLOW;
+      }
+      if viObject_flags = (OF_GETTABLE | OF_ITEM_NAME_PURPLE)
+      {
+         viObject_flags = viObject_flags & ~OF_ITEM_NAME_PURPLE;
+      }
+      return;
+   }
+
    EvaluateNameColor()
    {
+      Send(self,@ResetNameColor);
+
       if IsClass(self,&NumberItem)
       {
          return;
