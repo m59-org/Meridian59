@@ -426,6 +426,7 @@ enum {
 #define MM_MINIBOSS      0x00000400    // Set if mob is a miniboss (survival arena).
 #define MM_BOSS          0x00000800    // Set if mob is a boss (survival arena).
 #define MM_RARE_ITEM     0x00001000    // Set if item is rare.
+#define MM_PROC_WEAPON   0x00002000    // Indicate a weapon with a proc.
 
 /* Player name color sent as hex RGB value. Define constants
    for ease of use as needed. Requires OF_PLAYER boolean flag

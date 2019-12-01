@@ -38,7 +38,8 @@
 #define MAP_TEMPSAFE_COLOR      PALETTERGB(0,170,255)    // Cyan
 #define MAP_MINIBOSS_COLOR      PALETTERGB(160, 66, 194) // Purple
 #define MAP_BOSS_COLOR          PALETTERGB(127, 0, 0)    // Dark Red
-#define MAP_RARE_ITEM_COLOR     PALETTERGB(237, 255, 9)  // Orange
+#define MAP_RARE_ITEM_COLOR     PALETTERGB(237, 255, 9)  // Yellow
+#define MAP_PROC_WEAPON_COLOR   PALETTERGB(255, 140, 0)   // Dark Blue
 
 #define MAP_OBJECT_RADIUS (FINENESS / 4)  // Radius of circle drawn for an object
 
@@ -50,9 +51,9 @@
 #define MAP_OBJECT_DISTANCE (7 * FINENESS) // Draw all object closer than this to player
 
 static HBRUSH hObjectBrush, hPlayerBrush, hNullBrush, hMinionBrush,
-              hMinionOtherBrush, hNpcBrush, hTempsafeBrush, hItemBrush;
+              hMinionOtherBrush, hNpcBrush, hTempsafeBrush, hItemBrush, hProcBrush;
 static HPEN hWallPen, hPlayerPen, hObjectPen, hMinionPen, hMinionOtherPen,
-            hMinibossPen, hBossPen, hItemPen, hFriendPen, hEnemyPen,
+            hMinibossPen, hBossPen, hItemPen, hProcPen, hFriendPen, hEnemyPen,
             hGuildmatePen, hBuilderPen, hNpcPen, hTempsafePen;
 
 static float zoom;              // Factor to zoom in on map
@@ -91,6 +92,7 @@ static void MapDrawWall(HDC hdc, int x, int y, float scale, WallData *wall);
 static void MapDrawPlayer(HDC hdc, int x, int y, float scale, int minimapflags);
 static void MapDrawObjects(HDC hdc, list_type objects, int x, int y, float scale);
 static inline void DrawMinimapDot(HDC hdc, HPEN pen, HBRUSH brush, float radius, float x, float y);
+static void DrawMinimapTriangle(HDC hdc, HPEN pen, HBRUSH brush, float size, float x, float y);
 static void DrawMinimapStar(HDC hdc, HPEN pen, HBRUSH brush, float size, float x, float y);
 static void MapDrawWalls(HDC hdc, int x, int y, float scale, room_type *room);
 static void MapDrawAnnotations( HDC hdc, MapAnnotation *annotations, int x, int y, float scaleToUse, Bool bMiniMap );
@@ -152,6 +154,7 @@ void MapInitialize(void)
    hMinibossPen = CreatePen(PS_SOLID, MAP_BOSS_THICKNESS, MAP_MINIBOSS_COLOR);
    hBossPen = CreatePen(PS_SOLID, MAP_BOSS_THICKNESS, MAP_BOSS_COLOR);
    hItemPen = CreatePen(PS_SOLID, MAP_OBJECT_THICKNESS, MAP_RARE_ITEM_COLOR);
+   hProcPen = CreatePen(PS_SOLID, MAP_OBJECT_THICKNESS, MAP_PROC_WEAPON_COLOR);
 
    hNpcBrush = CreateSolidBrush(MAP_NPC_COLOR);
    hMinionOtherBrush = CreateSolidBrush(MAP_MINION_OTH_COLOR);
@@ -160,6 +163,7 @@ void MapInitialize(void)
    hPlayerBrush = CreateSolidBrush(MAP_PLAYER_COLOR);
    hTempsafeBrush = CreateSolidBrush(MAP_TEMPSAFE_COLOR);
    hItemBrush = CreateSolidBrush(MAP_RARE_ITEM_COLOR);
+   hProcBrush = CreateSolidBrush(MAP_PROC_WEAPON_COLOR);
    hNullBrush = CreateBrushIndirect(&logBrush);
 
    zoom = (float) 1.0;
@@ -197,6 +201,7 @@ void MapClose(void)
    DeleteObject(hMinibossPen);
    DeleteObject(hBossPen);
    DeleteObject(hItemPen);
+   DeleteObject(hProcPen);
    DeleteObject(hMinionOtherBrush);
    DeleteObject(hMinionBrush);
    DeleteObject(hObjectBrush);
@@ -205,6 +210,7 @@ void MapClose(void)
    DeleteObject(hNpcBrush);
    DeleteObject(hTempsafeBrush);
    DeleteObject(hItemBrush);
+   DeleteObject(hProcBrush);
 
    if (pMapWalls)
       SafeFree(pMapWalls);
@@ -457,6 +463,8 @@ void MapDrawObjects(HDC hdc, list_type objects, int x, int y, float scale)
          DrawMinimapDot(hdc, hNpcPen, hNpcBrush, radius, new_x, new_y);
       else if (r->obj.minimapflags & MM_RARE_ITEM)
          DrawMinimapStar(hdc, hItemPen, hItemBrush, radius * 3.0f, new_x, new_y);
+      else if (r->obj.minimapflags & MM_PROC_WEAPON)
+         DrawMinimapTriangle(hdc, hProcPen, hProcBrush, radius * 3.0f, new_x, new_y);
       else if (r->obj.minimapflags & MM_MINIBOSS)
       {
          DrawMinimapDot(hdc, hMinibossPen, hObjectBrush, radius * 2.1f, new_x, new_y);
@@ -475,6 +483,26 @@ static inline void DrawMinimapDot(HDC hdc, HPEN pen, HBRUSH brush, float radius,
    SelectObject(hdc, pen);
    SelectObject(hdc, brush);
    Ellipse(hdc, (int)(x - radius), (int)(y - radius), (int)(x + radius), (int)(y + radius));
+}
+
+static void DrawMinimapTriangle(HDC hdc, HPEN pen, HBRUSH brush, float size, float x, float y)
+{
+   float alpha = PITWICE / 10;
+   POINT p[3];
+
+   SelectObject(hdc, pen);
+   SelectObject(hdc, brush);
+
+   // Build points
+   for (int i = 0; i < 3; ++i)
+   {
+      float r = size * (i % 2 + 1) / 2.0f;
+      float omega = alpha * i;
+      p[i].x = (LONG)((r * sin(omega)) + x);
+      p[i].y = (LONG)((r * cos(omega)) + y);
+   }
+
+   Polygon(hdc, p, 3);
 }
 
 static void DrawMinimapStar(HDC hdc, HPEN pen, HBRUSH brush, float size, float x, float y)
