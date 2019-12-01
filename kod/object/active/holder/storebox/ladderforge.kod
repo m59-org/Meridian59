@@ -1321,6 +1321,12 @@ messages:
       }
       
       iRolledPower = ((iModRangeMax - iModRangeMin) * iForgePower)/10;
+      
+      if iPowerDivisor = 0
+      {
+         iPowerDivisor = 1;
+      }
+      iRolledPower = Bound(iRolledPower,1,Send(oItem,@GetItemLevel)/iPowerDivisor);
 
       % Now we have a mod that has not already been applied, is in a bin with free space,
       % and empowered by the shard. Let's apply it.
