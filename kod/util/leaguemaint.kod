@@ -13,6 +13,7 @@ LeagueMaintenance is UtilityFunctions
 constants:
 
    include blakston.khd
+   include protocol.khd
 
 resources:
 
@@ -21,7 +22,7 @@ resources:
       "We thank you deeply for your contributions!"
    
    top_donator_is = \
-      "The current top donor is %s, with a generous grand total of %i shillings."
+      "The current top donor is %q, with a generous grand total of %i shillings."
 
    next_level_jailer = \
       "The next expansion in our plan is a monster jailer and reseller. "
@@ -113,7 +114,9 @@ messages:
          {
             if IsClass(First(i),&Player)
             {
-               Send(First(i),@MsgSendUser,#message_rsc=top_donator_is,#parm1=Send(oTopDonator,@GetTrueName),#parm2=iHighestAmount);
+               Send(First(i),@MsgSendUser,#message_rsc=top_donator_is,#type1=STRING_RESOURCE,
+                                                                      #parm1=Send(oTopDonator,@GetTrueName),
+                                                                      #parm2=iHighestAmount);
             }
          }
       }
