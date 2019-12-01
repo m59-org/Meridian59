@@ -406,6 +406,7 @@ properties:
 
    % Of the format [fire, cold, acid, shock, holy, unholy, nerudite, quake, illusion, unknown, unknown, unknown]
    plLeagueForgePowers = $
+   plLadderForgePowers = $
    
    % How many bombs can an alchemist player have?
    piBombLimit = 4
@@ -1168,6 +1169,29 @@ messages:
       if plLeagueForgePowers <> $
       {
          SetNth(plLeagueForgePowers,iType,Nth(plLeagueForgePowers,iType)+iAmount);
+      }
+      return;
+   }
+
+   SetupLadderForgePowers()
+   {
+      if plLadderForgePowers = $
+      {
+         plLadderForgePowers = [0,0,0,0,0,0,0,0,0,0,0,0];
+      }
+      return;
+   }
+
+   GetLadderForgePowers()
+   {
+      return plLadderForgePowers;
+   }
+   
+   AddLadderForgePower(iAmount=0,iType=FORGE_FIRE)
+   {
+      if plLadderForgePowers <> $
+      {
+         SetNth(plLadderForgePowers,iType,Nth(plLadderForgePowers,iType)+iAmount);
       }
       return;
    }
