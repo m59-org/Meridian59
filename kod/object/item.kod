@@ -3660,7 +3660,9 @@ messages:
    ClearMagicMods()
    {
       plEnchantmentMods = $;
-      Send(self,@RemoveMagicFlag);
+%      Send(self,@RemoveMagicFlag);
+      Send(self,@SetForged,#value=FALSE);
+      Send(self,@EvaluateNameColor);
 
       return;
    }
@@ -4167,6 +4169,17 @@ messages:
       }
 
       return UNKNOWN_ERROR;
+   }
+   
+   GetForged()
+   {
+      return pbForgedItem;
+   }
+   
+   SetForged(value=FALSE)
+   {
+      pbForgedItem=value;
+      return;
    }
 
 end

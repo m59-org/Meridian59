@@ -171,6 +171,8 @@ messages:
    {
       if what <> $
          AND Send(what,@GetLadderID) = 0
+         AND (Send(what,@GetMagicModsNumber) = 0
+            OR Send(what,@GetForged))
       {
          if IsClass(what,&DefenseModifier)
             OR IsClass(what,&Weapon)
@@ -1324,6 +1326,8 @@ messages:
       if Send(oItem,@ApplyMagicMod,#cClass=cClass,#iPower=iRolledPower)
       {
          Post(who,@MsgSendUser,#message_rsc=forging_successful);
+         Post(oItem,@SetForged,#value=TRUE);
+         Post(oItem,@EvaluateNameColor);
          return;
       }
 

@@ -61,6 +61,12 @@ messages:
             return FALSE;
          }
       }
+      
+      if Send(apply_on,@GetForged)
+      {
+         Send(what,@MsgSendUser,#message_rsc=cannot_use_on_forged);
+         return FALSE;
+      }
 
       if apply_on <> $
          AND (IsClass(apply_on,&Weapon)
