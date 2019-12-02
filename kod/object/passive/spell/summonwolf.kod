@@ -16,23 +16,26 @@ constants:
 resources:
 
 
-   summonwolf_cast_rsc = "A loyal wolf appears beside you."
-   summonwolf_name_rsc = "reflection"
+   summonwolf_name_rsc = "summon spirit wolf"
    summonwolf_icon_rsc = wolfX.bgf
    summonwolf_desc_rsc = \
-      "Summons a loyal companion to aid you in battle.  "
-      " "
-      " "
-      " "
+      "Summons a loyal companion to aid you in battle. "
 
    summonwolf_failed_rsc = \
       "There is too much summoning magic focused here to summon a wolf."
    
    summonwolf_limit_rsc = \
       "You are already maintaining the maximum number of wolves."
+   wolf_failed_full_rsc = \
+      "This place is too full of monsters. The wolves refuse the call."
+
+   summon_wolf_too_many_rsc = \
+      "You don't have enough willpower to control a new wolf right now."
 
    wolf_cannot_cast_here = \
       "You are not allowed to create a wolf here."
+
+   summonwolf_cast_rsc = "A loyal wolf appears beside you."
 
    summonwolf_sound = rmirrimg.wav
 
@@ -42,14 +45,14 @@ classvars:
    vrIcon = summonwolf_icon_rsc
    vrDesc = summonwolf_desc_rsc
 
-   viSpell_num = SID_WOLF
-   viSchool = SS_RIIJA
-   viSpell_level = 5
+   viSpell_num = SID_SUMMON_WOLF
+   viSchool = SS_BESTIARY
+   viSpell_level = 3
    viMana = 15
    viMeditate_ratio = 30
 
    viSpellExertion = 4
-   viCast_time = 1000
+   viCast_time = 0
 
    vrSucceed_wav = summonreflection_sound
    
@@ -71,16 +74,20 @@ messages:
 
    CanPayCosts(who=$)
    {
-      % Limit reflections.
-      if (Send(self,@CountPlayerReflections,#who=who)
-         >= Send(SETTINGS_OBJECT,@GetPlayerReflectionLimit))
-         AND NOT (IsClass(who,&DM)
-            AND Send(who,@PlayerIsImmortal))
+      local oRoom;
+
+      oRoom = Send(who,@GetOwner);
+      
+      if oRoom = $
+         OR NOT IsClass(oRoom,&Room)
       {
-         if IsClass(who,&Player)
-         {
-            Send(who,@MsgSendUser,#message_rsc=summonreflection_limit_rsc);
-         }
+         return FALSE;
+      }
+
+      if (Send(oRoom,@CountHoldingHowMany,#class=&monster) > 55)
+         AND NOT IsClass(oRoom,&SurvivalRoom)
+      {
+         Send(who,@MsgSendUser,#message_rsc=wolf_failed_full_rsc);
 
          return FALSE;
       }
@@ -95,9 +102,8 @@ messages:
 
    CastSpell(who=$,lTargets=$,iSpellPower=1)
    {
-      local oReflection, oRoom, iRow, iCol, iFine_Row, iFine_Col;
+      local oRisen, oRoom, iRow, iCol, iFine_Row, iFine_Col;
 
-      oReflection = Create(&Wolf,#iSpellpower=iSpellpower,#oMaster=who);
       oRoom = Send(who,@GetOwner);
 
       iRow = Send(who,@GetRow);
@@ -105,38 +111,40 @@ messages:
       iFine_Row = Send(who,@GetFineRow);
       iFine_Col = Send(who,@GetFineCol);
 
-      Send(oReflection,@SetOriginal,#who=who);
+      oRisen = Create(&SpiritWolf,#level=25+iSpellPower);
 
-      Send(oRoom,@NewHold,#what=oReflection,#new_row=iRow,#new_col=iCol,
-            #fine_row=iFine_Row,#fine_col=iFine_Col);
-
-      if IsClass(who,&Player)
+      if Send(who,@CanControlNewMinion,#oMonster=oRisen,#iHypotheticalHitPoints=20,#bCharming=FALSE)
       {
-         Send(who,@MsgSendUser,#message_rsc=summonreflection_cast_rsc);
+         % Add this creature to your minion list
+         Send(who,@NewControlledMinion,#minion=oRisen);
+
+         % Set initial minion behavior
+         Send(oRisen,@ResetBehaviorFlags);
+         Send(self,@ModifyMonsterBehavior,#mob=oRisen);
+
+         % Post this due to it needing to be done after the minion is placed.
+         Post(oRisen,@SetMaster,#oMaster=who);
       }
-      
-      Send(who,@NewControlledMinion,#minion=oReflection);
-      Send(SYS,@AddReflection,#who=who,#oReflection=oReflection);
-      Send(oReflection,@SetBehaviorFlag,#flag=AI_MOVE_FOLLOW_MASTER,
-            #value=TRUE);
+      else
+      {
+         Send(who,@MsgSendUser,#message_rsc=summon_wolf_too_many_rsc);
+      }
+
+      % Place the minion
+      Send(oRoom,@NewHold,#what=oRisen,#new_row=iRow,#new_col=iCol,
+            #fine_row=iFine_Row,#fine_col=iFine_Col);
 
       propagate;
    }
 
-   CountPlayerReflections(who=$)
-   "Count number of reflections being maintained by the caster."
+   ModifyMonsterBehavior(mob=$)
    {
-      local i;
+      Send(mob,@SetBehaviorFlag,#flag=AI_MOVE_FOLLOW_MASTER,#value=TRUE);
+      Send(mob,@SetBehaviorFlag,#flag=AI_FIGHT_AGGRESSIVE,#value=FALSE);
+      Send(mob,@SetBehaviorFlag,#flag=AI_FIGHT_NEWBIESAFE);
+      Send(mob,@SetBehaviorFlag,#flag=AI_FIGHT_MONSTERS);
 
-      foreach i in Send(SYS,@GetReflectionsList)
-      {
-         if first(i) = who
-         {
-            return length(Nth(i,2));
-         }
-      }
-
-      return 0;
+      return;
    }
 
 end
