@@ -424,7 +424,7 @@ messages:
    ChangeGuildShieldColor(color1=XLAT_TO_GRAY,color2=XLAT_TO_GRAY,
                            shape=SHIELDSHAPE_DEFAULT,override=FALSE)
    {
-      local XLAT;
+      local XLAT, bSecondErrorCaught;
 
       % Override means do it no matter what.  Good for testing.
 
@@ -438,23 +438,31 @@ messages:
             OR color1 = XLAT_REDTOBLACK
             OR color1 = XLAT_BLUETOBLACK)
       {
-         Debug("Incorrect color1 passed to ChangeGuildShieldColor!",
-               "color1 = ",color1," color2 = ",color2);
+         %Debug("Incorrect color1 passed to ChangeGuildShieldColor!",
+         %      "color1 = ",color1," color2 = ",color2);
          color1 = XLAT_TO_SKIN1;
       }
 
       if color2 > XLAT_HIGH_VALUE
       {
-         Debug("Incorrect color2 passed to ChangeGuildShieldColor!",
-               "color1 = ",color1," color2 = ",color2);
+         bSecondErrorCaught = FALSE;
+         %Debug("Incorrect color2 passed to ChangeGuildShieldColor!",
+         %      "color1 = ",color1," color2 = ",color2);
          if color2 = XLAT_TO_DGREEN
          {
             color2 = XLAT_TO_GREEN;
+            bSecondErrorCaught = TRUE;
          }
 
          if color2 = XLAT_TO_BLACK
          {
             color2 = XLAT_TO_GRAY;
+            bSecondErrorCaught = TRUE;
+         }
+         
+         if NOT bSecondErrorCaught
+         {
+            color2 = XLAT_TO_SKIN1;
          }
       }
 
