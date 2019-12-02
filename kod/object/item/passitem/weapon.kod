@@ -884,6 +884,12 @@ messages:
 
    GetAttackSpell()
    {
+      if poOwner <> $
+         AND IsClass(poOwner,&Human)
+         AND piAttack_spell = 0
+      {
+         return Send(poOwner,@GetSpellType);
+      }
       return piAttack_spell;
    }
 
