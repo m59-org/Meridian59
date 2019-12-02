@@ -28,6 +28,8 @@ resources:
    marauder_sound_female_ouch2 = ouchf2.wav
    marauder_sound_female_ouch3 = ouchf3.wav
    marauder_sound_female_ouch4 = ouchf4.wav
+   
+   marauder_through_walls_rsc = "%s activates %s wallhack! What a cheater!"
 
 classvars:
 
@@ -82,6 +84,8 @@ properties:
    ptAggroTimer = $
    
    piFailedAggroChecks = 0
+   
+   ptWallhackTimer = $
 
 messages:
 
@@ -102,7 +106,8 @@ messages:
          AND IsClass(what,&Player)
          AND Send(self,@GetTarget) = what
       {
-         Post(self,@MarauderFollow,#who=what);  
+         Post(self,@MarauderFollow,#who=what);
+         Post(self,@DeactivateWallhack);
       }
 
       propagate;
@@ -283,6 +288,12 @@ messages:
             {
                Send(self,@TargetSwitch,#what=each_obj,#iHatred=100);
                Send(self,@EnterStateChase,#target=each_obj,#actnow=TRUE);
+               
+               if ptWallhackTimer = $
+               {
+                  CreateTimer(self,@ActivateWallhack,30000);
+               }
+               
                return TRUE;
             }
          }
@@ -401,6 +412,58 @@ messages:
          DeleteTimer(ptAggroTimer);
       }
       ptAggroTimer = $;
+      
+      if ptWallhackTimer <> $
+      {
+         DeleteTimer(ptWallhackTimer);
+      }
+      ptWallhackTimer = $;
+      propagate;
+   }
+   
+   ActivateWallhack()
+   {
+      local i, each_obj;
+      
+      ptWallhackTimer = $;
+      
+      Send(self,@SetBehaviorFlag,#flag=AI_MOVE_WALKTHROUGH_WALLS,#value=TRUE);
+      
+      if poOwner <> $
+      {
+         foreach i in Send(poOwner,@GetHolderActive)
+         {
+            each_obj = Send(poOwner,@HolderExtractObject,#data=i);
+            if IsClass(each_obj,&Player)
+            {
+               Send(each_obj,@MsgSendUser,#message_rsc=marauder_through_walls_rsc,#parm1=Send(self,@GetName),#parm2=Send(self,@GetHisHer));
+            }
+         }
+      }
+      return;
+   }
+   
+   DeactivateWallhack()
+   {
+      if ptWallhackTimer <> $
+      {
+         DeleteTimer(ptWallhackTimer);
+      }
+      ptWallhackTimer = $;
+      Send(self,@SetBehaviorFlag,#flag=AI_MOVE_WALKTHROUGH_WALLS,#value=FALSE);
+      return;
+   }
+
+   TryAttack(what=$,stroke_obj=$)
+   {
+      if ptWallhackTimer <> $
+      {
+         DeleteTimer(ptWallhackTimer);
+      }
+      ptWallhackTimer = $;
+      
+      ptWallhackTimer = CreateTimer(self,@ActivateWallhack,30000);
+      
       propagate;
    }
 
