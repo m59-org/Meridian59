@@ -1,0 +1,188 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+MarauderRocket is Marauder
+
+% Rocket has all of the mobility spells/skills. 
+% Hoping to add the ability to tumble for even more annoyance!
+
+
+constants:
+
+   include blakston.khd
+
+   HUMAN_TRANSLATION2_HAIR_MASK = 0xff
+   HUMAN_TRANSLATION2_HAIR_MUL = 1
+   
+   BLEED_CHANCE = 5
+
+resources:
+
+   MarauderMastRocket_name_rsc = "Rocket"
+   MarauderMastRocket_desc_rsc = \
+      "This gnomish bandit is full of energy. He jumps around the battlefield "
+	  "and attacks equally as fast. You'd better keep up if you wish to survive! "
+      "He is a murderer. Defend yourself!"
+   MarauderMastRocket_dead_name_rsc = "dead male body"
+
+   MarauderMastRocket_url = "http://wiki.openmeridian.org/index.php/Main_Page"
+   
+   MastRocket_hair_bb_icon = ptbb.bgf
+
+classvars:
+
+   vrName = MarauderMastRocket_name_rsc
+   vrDesc = MarauderMastRocket_desc_rsc
+   vrDead_name = MarauderMastRocket_dead_name_rsc
+
+   % Human
+   viMinSkinColor = 150
+   viMaxSkinColor = 150
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+
+   viColorTranslate1 = XLAT_TO_RED     % Shirt
+   viColorTranslate2 = XLAT_TO_BLACK    % Pants
+   
+   vcShieldClass = &RebelShield
+
+   viFaction = FACTION_REBEL
+
+properties:
+
+   piBaseLevel = 200
+   piBaseDifficulty = 13
+   viLevel = 200
+   viDifficulty = 13
+
+   piMana = 120
+   piMax_Mana = 120
+   
+   % What are the monster's chances to cast spells each check?
+   % Number is out of one hundred
+   piMeleeSpellChance = 50
+   piRangedSpellChance = 100
+
+   piMonsterCastDelayMinimum = 1500
+
+
+messages:
+
+   SetGender()
+   {
+      return;
+   }
+
+   Constructed()
+   {
+      local i;
+
+      plMeleeSpellBook = [ [SID_KILLING_FIELDS,6,100,50]];
+      plRangedSpellBook = [ [SID_LIGHTNING_STRIKE,10,35,90],
+                            [SKID_CHARGE_ATTACK,10,70,90],
+                            [SID_FLAME_DASH,10,100,90]];
+
+      plResistances = [ATCK_WEAP_ALL,20];
+                        
+      psUrl = MarauderMastRocket_url;
+      propagate;
+   }
+
+   GetBaseEmpowerments()
+   {
+      return [[-ATCK_WEAP_SLASH,20]];
+   }
+
+   SetEquipment()
+   {
+      local oEquipmentItem, iBonusModifier, oSpell;
+
+      oEquipmentItem = Create(&ScaleArmor,#level=viLevel);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      oEquipmentItem = Create(&Gauntlet,#level=viLevel);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      oEquipmentItem = Create(&BanditScimitar,#level=viLevel);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      return;
+   }
+
+   SetHair()
+   % Sets the hairdo, color.
+   {
+      local iTranslation;
+
+      prToupee = human_hair_ba_icon;
+      iTranslation = PT_GRAY_TO_BLACK;
+
+      piBody_translations2 = piBody_translations2 & ~HUMAN_TRANSLATION2_HAIR_MASK;
+      piBody_translations2 = piBody_translations2
+                                 | (iTranslation * HUMAN_TRANSLATION2_HAIR_MUL);
+
+      return;
+   }
+
+   SetFace()
+   {
+      prEyes = human_eyes_ax_icon;
+      prNose = human_nose_bx_icon;
+      prMouth = human_mouth_cx_icon;
+
+      return;
+   }
+
+   SetShield()
+   {
+      local oEquipmentItem;
+
+      oEquipmentItem = Create(vcShieldClass,#color1=viShieldColor1,#color2=viShieldColor2,#shape=viShieldShape);
+      if viInsignia <> $
+      {
+         Send(oEquipmentItem,@ChangeGuildInsignia,#insignia=viInsignia);
+      }
+
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      return;
+   }
+   
+   % Rocket makes you bleed!
+   
+      HitSideEffect(what = $, who = $)
+   {
+      local oSpell;
+
+      oSpell = Send(SYS,@FindSpellByNum,#num=SID_BLEED);
+      if NOT Send(what,@IsEnchanted,#what=oSpell)
+         AND Random(1,BLEED_CHANCE) = 1
+      {
+         if who <> $
+         {
+            Send(oSpell,@CastSpell,#who=who,#lTargets=[what],#iSpellPower=80);
+         }
+         else
+         {
+            Send(oSpell,@DoSpell,#what=self,#oTarget=what,#iSpellPower=80);
+         }
+      }
+
+      propagate;
+   }
+
+   GetBaseSize()
+   {
+      return 150;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

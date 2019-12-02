@@ -1,0 +1,192 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+MarauderRusco is Marauder
+
+
+constants:
+
+   include blakston.khd
+
+   HUMAN_TRANSLATION2_HAIR_MASK = 0xff
+   HUMAN_TRANSLATION2_HAIR_MUL = 1
+   
+   
+   BLEED_CHANCE = 10
+
+resources:
+
+   MarauderRusco_name_rsc = "Ol' Rusco"
+   MarauderRusco_desc_rsc = \
+      "This old man has lived a lifetime of banditry. He continues "
+	  "to at the ripe old age of 102. He is still quite adept at his skills despite his age "
+      "and still has a few tricks up his sleeve. "
+	  "He is a murderer! Defend yourself! "
+   MarauderRusco_dead_name_rsc = "dead male body"
+
+   MarauderRusco_url = "http://wiki.openmeridian.org/index.php/Main_Page"
+   
+   Rusco_hair_bb_icon = ptbb.bgf
+
+classvars:
+
+   vrName = MarauderRusco_name_rsc
+   vrDesc = MarauderRusco_desc_rsc
+   vrDead_name = MarauderRusco_dead_name_rsc
+
+
+   viMinSkinColor = 3
+   viMaxSkinColor = 3
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+
+   viColorTranslate1 = XLAT_TO_RED     % Shirt
+   viColorTranslate2 = XLAT_TO_BLACK     % Pants
+
+   vcShieldClass = &MetalShield
+
+   
+properties:
+
+   piBaseLevel = 120
+   piBaseDifficulty = 8
+   viLevel = 120
+   viDifficulty = 8
+   viKarma = 100
+
+   piMana = 60
+   piMax_Mana = 60
+   
+   % What are the monster's chances to cast spells each check?
+   % Number is out of one hundred
+   piMeleeSpellChance = 25
+   piRangedSpellChance = 70
+
+   piMonsterCastDelayMinimum = 1500
+
+
+messages:
+
+   SetGender()
+   {
+      return;
+   }
+
+   Constructed()
+   {
+      local i;
+
+      plMeleeSpellBook = [ [SID_SPIDER_WEB,20,100,90]];
+      plRangedSpellBook = [ [SID_DAZZLE,13,60,90],
+                            [SID_PROFANE_RESONANCE,14,70,90],
+                            [SID_SACRED_RESONANCE,14,80,90],
+                            [SID_FORCES_OF_LIGHT,20,100,90]];
+
+                        
+      psUrl = MarauderRusco_url;
+      propagate;
+   }
+
+   GetBaseEmpowerments()
+   {
+      return [[ATCK_WEAP_SLASH,30],
+              [ATCK_WEAP_PIERCE,-20]];
+   }
+
+   SetEquipment()
+   {
+      local oEquipmentItem, iBonusModifier, oSpell;
+
+      oEquipmentItem = Create(&BanditScimitar,#level=viLevel);
+	  Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      oEquipmentItem = Create(&LeatherArmor,#level=viLevel);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      oEquipmentItem = Create(&Gauntlet,#level=viLevel);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+	  
+	  oEquipmentItem = Create(&SpikedHelm,#level=viLevel);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      oEquipmentItem = Create(&IvyCirclet,#level=viLevel);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+	  
+      return;
+   }
+
+   SetHair()
+   % Sets the hairdo, color.
+   {
+      local iTranslation;
+
+      prToupee = human_hair_ad_icon;
+      iTranslation = PT_GRAY_TO_PLATBLOND;
+
+      piBody_translations2 = piBody_translations2 & ~HUMAN_TRANSLATION2_HAIR_MASK;
+      piBody_translations2 = piBody_translations2
+                                 | (iTranslation * HUMAN_TRANSLATION2_HAIR_MUL);
+
+      return;
+   }
+
+   SetFace()
+   {
+      prEyes = human_eyes_bx_icon;
+      prNose = human_nose_cx_icon;
+      prMouth = human_mouth_bx_icon;
+
+      return;
+   }
+
+   SetShield()
+   {
+      local oEquipmentItem;
+
+      oEquipmentItem = Create(vcShieldClass,#color1=viShieldColor1,#color2=viShieldColor2,
+                              #shape=viShieldShape);
+      if viInsignia <> $
+      {
+         Send(oEquipmentItem,@ChangeGuildInsignia,#insignia=viInsignia);
+      }
+
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      return;
+   }
+   
+      HitSideEffect(what = $, who = $)
+   {
+      local oSpell;
+
+      oSpell = Send(SYS,@FindSpellByNum,#num=SID_BLEED);
+      if NOT Send(what,@IsEnchanted,#what=oSpell)
+         AND Random(1,BLEED_CHANCE) = 1
+      {
+         if who <> $
+         {
+            Send(oSpell,@CastSpell,#who=who,#lTargets=[what],#iSpellPower=99);
+         }
+         else
+         {
+            Send(oSpell,@DoSpell,#what=self,#oTarget=what,#iSpellPower=99);
+         }
+      }
+
+      propagate;
+   }
+
+   GetBaseSize()
+   {
+    
+      return 200;
+   }
+   
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -1,0 +1,247 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+MarauderNog is Marauder
+
+% Nog uses many beasts and Frailty to defeat his foes!
+
+constants:
+
+   include blakston.khd
+
+   HUMAN_TRANSLATION2_HAIR_MASK = 0xff
+   HUMAN_TRANSLATION2_HAIR_MUL = 1
+
+resources:
+
+   MarauderNog_name_rsc = "Nog"
+   MarauderNog_desc_rsc = \
+      "This tribal man surrounds himself with various beasts. He  "
+      "seeks out a most powerful game....Humans. "
+	  "He is a murderer! Defend yourself! "
+   MarauderNog_dead_name_rsc = "dead male body"
+
+   MarauderNog_url = "http://wiki.openmeridian.org/index.php/Main_Page"
+   
+   Nog_hair_bb_icon = ptbb.bgf
+
+classvars:
+
+   vrName = MarauderNog_name_rsc
+   vrDesc = MarauderNog_desc_rsc
+   vrDead_name = MarauderNog_dead_name_rsc
+
+   % Nog's a human
+   viMinSkinColor = 3
+   viMaxSkinColor = 3
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+
+   viColorTranslate1 = XLAT_TO_RED     % Shirt
+   viColorTranslate2 = XLAT_TO_RED     % Pants
+
+   vcShieldClass = &RebelShield
+
+   viFaction = FACTION_REBEL
+
+properties:
+
+   piBaseLevel = 150
+   piBaseDifficulty = 10
+   viLevel = 150
+   viDifficulty = 10
+
+   piMana = 120
+   piMax_Mana = 120
+   
+   % What are the monster's chances to cast spells each check?
+   % Number is out of one hundred
+   piMeleeSpellChance = 70
+   piRangedSpellChance = 30
+   piAllySpellChance = 10
+   piSelfSpellChance = 10
+   piOtherSpellChance = 10
+
+
+   piMonsterCastDelayMinimum = 1500
+
+
+messages:
+
+   SetGender()
+   {
+      return;
+   }
+
+   Constructed()
+   {
+      local i;
+
+      % Qor PK
+      plMeleeSpellBook = [ [SID_SUMMON_WOLF,6,100,99]];
+      plRangedSpellBook = [ [SID_HEX_FRAILTY,13,10,99],
+                            [SID_HOLD,14,90,90],
+                            [SID_KILLING_FIELDS,12,100,40]];
+	  plAllySpellBook = [[SID_GROUP_HEAL,25,100,70]];
+	  
+      % Half-demon base resists
+      plResistances = [[ATCK_WEAP_ALL,30]];
+                        
+      psUrl = MarauderNog_url;
+      propagate;
+   }
+
+   GetBaseEmpowerments()
+   {
+      return [[ATCK_WEAP_SLASH,100]];
+   }
+
+   SetEquipment()
+   {
+      local oEquipmentItem, iBonusModifier, oSpell;
+
+      oEquipmentItem = Create(&Hatchet,#level=viLevel);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      oEquipmentItem = Create(&Gauntlet,#level=viLevel);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      oEquipmentItem = Create(&LeatherArmor,#level=viLevel);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+	  
+	  oEquipmentItem = Create(&Tanktop,#level=viLevel);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      return;
+   }
+
+   SetHair()
+   % Sets the hairdo, color.
+   {
+      local iTranslation;
+
+      prToupee = human_hair_db_icon;
+      iTranslation = PT_GRAY_TO_SKIN4;
+
+      piBody_translations2 = piBody_translations2 & ~HUMAN_TRANSLATION2_HAIR_MASK;
+      piBody_translations2 = piBody_translations2
+                                 | (iTranslation * HUMAN_TRANSLATION2_HAIR_MUL);
+
+      return;
+   }
+
+   SetFace()
+   {
+      prEyes = human_eyes_cx_icon;
+      prNose = human_nose_ax_icon;
+      prMouth = human_mouth_bx_icon;
+
+      return;
+   }
+
+   SetShield()
+   {
+      local oEquipmentItem;
+
+      oEquipmentItem = Create(vcShieldClass,#color1=viShieldColor1,#color2=viShieldColor2,
+                              #shape=viShieldShape);
+      if viInsignia <> $
+      {
+         Send(oEquipmentItem,@ChangeGuildInsignia,#insignia=viInsignia);
+      }
+
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      return;
+   }
+   
+    
+         IsAlly(target = $, regroup = FALSE)
+   {
+      if IsClass(target,&SpiritWolf)
+      {
+         return TRUE;
+      }
+
+      propagate;
+   }
+
+      TargetSwitch(what=$,iHatred=0,forally=FALSE)
+   {
+      local i;
+
+      if what = $
+         OR poOwner = $
+      {
+         Debug("BAD target we're switching to here!");
+
+         return;
+      }
+
+      if IsClass(what,&User)
+         AND NOT Send(what,@IsLoggedOn)
+      {
+         % Trying to switch to someone logged off. Can't do that.
+         return;
+      }
+
+      piHatred = iHatred;
+
+      if poTarget <> $
+         AND Send(poTarget,@GetOwner) = poOwner
+         AND IsClass(poTarget,&user)
+      {
+         Send(poTarget,@SubtractFromMonsterChasers,
+              #level=piAmountAddedToMonsterChasers);
+      }
+
+      poTarget = what;
+      if IsClass(poTarget,&user)
+      {
+         piAmountAddedToMonsterChasers = piLevel;
+         Send(poTarget,@AddToMonsterChasers,#level=piAmountAddedToMonsterChasers);
+      }
+
+      piState = (piState & VSTATE_VALIDITY_MASK);
+
+      % 'lock' sound
+      if vrSound_aware <> $
+      {
+         Send(poOwner,@SomethingWaveRoom,#what=self,#wave_rsc=vrSound_aware);
+      }
+
+      % Call our tribe!
+      if NOT forally
+         AND poOwner <> $
+      {
+         foreach i in Send(poOwner,@GetHolderActive)
+         {
+            if IsClass(First(i),&SpiritWolf)
+               AND Send(self,@IsAlly,#target=First(i))
+            {
+               Send(First(i),@TargetSwitch,#what=what,#iHatred=100,#forally=TRUE);
+               Send(First(i),@EnterStateChase,#target=what,#actnow=TRUE);
+            }
+         }
+      }
+      return;
+   }
+
+   GetBaseSize()
+   {
+      % Half demon base size
+      return 150;
+	 
+   }
+   
+  
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

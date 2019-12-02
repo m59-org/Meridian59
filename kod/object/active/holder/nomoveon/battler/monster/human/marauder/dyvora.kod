@@ -1,0 +1,202 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+MarauderDyvora is Marauder
+
+%She needs to have the ability to double hex. 
+
+constants:
+
+   include blakston.khd
+
+   HUMAN_TRANSLATION2_HAIR_MASK = 0xff
+   HUMAN_TRANSLATION2_HAIR_MUL = 1
+   
+   HEX_CHANCE = 4
+
+resources:
+
+   MarauderDyvora_name_rsc = "Dyvora"
+   MarauderDyvora_desc_rsc = \
+      "Dyvora is one of the legendary battle witches of the persecution of old. She trusts no one. "
+      "The rigors of the desert, countless betrayals, and loss have hardened this woman beyond reason. Biskalanic history tells that this woman has killed thousands alone. "
+	  "Make peace with the gods! You are about to die! "
+   MarauderDyvora_dead_name_rsc = "dead female body"
+
+   MarauderDyvora_url = "http://wiki.openmeridian.org/index.php/Main_Page"
+   
+   Dyvora_hair_bb_icon = ptbb.bgf
+
+classvars:
+
+   vrName = MarauderDyvora_name_rsc
+   vrDesc = MarauderDyvora_desc_rsc
+   vrDead_name = MarauderDyvora_dead_name_rsc
+
+   % Dyvora's a human.
+   viMinSkinColor = 2
+   viMaxSkinColor = 2
+   
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+
+   viColorTranslate1 = XLAT_TO_GREEN     % Shirt
+   viColorTranslate2 = XLAT_TO_GREEN    % Pants
+   
+   viAttack_type = ATCK_WEAP_PIERCE + ATCK_WEAP_ALL
+   viAttack_Spell = ATCK_SPELL_HOLY
+   
+   vcShieldClass = &DukeShield
+   
+   viFaction = FACTION_DUKE
+
+properties:
+
+   piBaseLevel = 400
+   piBaseDifficulty = 12
+   viLevel = 400
+   viDifficulty = 12
+   
+   piMana = 200
+   piMax_Mana = 200
+   
+  
+   piGender = GENDER_FEMALE
+   piDrawFx = DRAWFX_TRANSLUCENT_50
+   
+   % What are the monster's chances to cast spells each check?
+   % Number is out of one hundred
+   piMeleeSpellChance = 55
+   piRangedSpellChance = 55
+
+   piMonsterCastDelayMinimum = 750
+
+   
+
+   piDemonSponsor = SSS_WITCHERY_XAERDUN
+
+messages:
+
+   SetClothes()
+   {
+      Send(self,@SetDefaultClothes,#shirt_color=viColorTranslate1);
+      Send(self,@SetTroopLegs,#translation=viColorTranslate2);
+
+      return;
+   }
+
+   Constructed()
+   {
+      local i;
+
+
+      plMeleeSpellBook = [ [SID_HEX_VENGEANCE,6,45,99],
+                           [SID_PURGE,15,70,99], 
+                           [SID_BLIND,20,85,99],
+                           [SID_VAMPIRIC_DRAIN,20,100,90]];
+      plRangedSpellBook = [ [SID_SLITHERBOLT,15,30,99],
+                            [SID_LIGHTNING_STRIKE,12,10,99],
+                            [SID_PURGE,15,60,99],
+                            [SID_BLIND,20,100,99]];
+      
+      plResistances = [ [-ATCK_SPELL_ALL,70],
+                        [ATCK_WEAP_ALL,60]];
+                        
+      psUrl = MarauderDyvora_url;
+      propagate;
+   }
+   
+   SetGender()
+   {
+      viGender = GENDER_FEMALE;
+      vrIcon = human_female_icon_rsc;
+      prHead = human_head_female_tattoo_1;
+      prEyes = human_eyes_lx_icon;
+      prMouth = human_mouth_mx_icon;
+      prNose = human_nose_lx_icon;
+      prToupee = human_hair_ca_icon;
+      prLegs = human_legs_b_rsc;
+      prRight_arm = human_rightarm_b_rsc;
+      prLeft_arm = human_leftarm_b_rsc;
+      vrDead_Icon = human_dead_female_icona_rsc;
+      vrDead_Legs = human_dead_female_iconb_rsc;
+      vrSound_death = human_female_sound_death;
+
+      return;
+   }
+
+    GetBaseEmpowerments()
+   {
+      return [[-ATCK_WEAP_PIERCE,80]];
+   }
+
+   SetEquipment()
+   {
+      local oEquipmentItem, iBonusModifier, oSpell;
+
+      oEquipmentItem = Create(&Dagger,#level=200);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      oEquipmentItem = Create(&Circlet,#level=200);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+	  
+	  oEquipmentItem = Create(&LightDiscipleRobe,#level=200,#school=SS_QOR);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+	    
+	  oEquipmentItem = Create(&Tanktop,#level=200);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+	  
+      return;
+   }
+
+   SetHair()
+   % Sets the hairdo, color.
+   {
+      local iTranslation;
+
+      prToupee = human_hair_bald_icon;
+      iTranslation = PT_GRAY_TO_BLACK;
+
+      piBody_translations2 = piBody_translations2 & ~HUMAN_TRANSLATION2_HAIR_MASK;
+      piBody_translations2 = piBody_translations2
+                                 | (iTranslation * HUMAN_TRANSLATION2_HAIR_MUL);
+
+      return;
+   }
+   
+   HitSideEffect(what = $, who = $)
+   {
+      local oSpell;
+
+      oSpell = Send(SYS,@FindSpellByNum,#num=SID_HEX_THORNS);
+      if NOT Send(what,@IsEnchanted,#what=oSpell)
+         AND Random(1,HEX_CHANCE) = 1
+      {
+         if who <> $
+         {
+            Send(oSpell,@CastSpell,#who=who,#lTargets=[what],#iSpellPower=99);
+         }
+         else
+         {
+            Send(oSpell,@DoSpell,#what=self,#oTarget=what,#iSpellPower=99);
+         }
+      }
+
+      propagate;
+   }
+
+
+   GetBaseSize()
+   {
+
+      return 200;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

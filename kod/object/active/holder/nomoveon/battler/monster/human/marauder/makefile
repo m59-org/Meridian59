@@ -20,7 +20,32 @@ BOFS  = vallok.bof \
         shindra.bof \
         jinora.bof \
         seaman.bof \
-        bobo.bof
+        bobo.bof \
+        arabella.bof \
+        cynn.bof \
+        dannydiablo.bof \
+        dyvora.bof \
+        ellokent.bof \
+        evila.bof \
+        evilchrischan.bof \
+        evilgar.bof \
+        eviljj.bof \
+        evilsunnycatt.bof \
+        gon.bof \
+        jamesbot.bof \
+        kat.bof \
+        mutantpros.bof \
+        nog.bof \
+        psy.bof \
+        rocket.bof \
+        rusco.bof \
+        salem.bof \
+        sammy.bof \
+        seava.bof \
+        sethbot.bof \
+        shivron.bof \
+        tamisc.bof \
+        worm.bof 
 
 
 !include $(KODDIR)\kod.mak

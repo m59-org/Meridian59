@@ -1,0 +1,193 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+MarauderDannyDiablo is Marauder
+
+% DannyDiablo is a bomber!
+
+constants:
+
+   include blakston.khd
+
+   HUMAN_TRANSLATION2_HAIR_MASK = 0xff
+   HUMAN_TRANSLATION2_HAIR_MUL = 1
+
+resources:
+
+   MarauderDannyDiablo_name_rsc = "Danny Diabolic"
+   MarauderDannyDiablo_desc_rsc = \
+      "This bandit looks mischevious. His robes are filled with a variety of objects. "
+	  "What could they be? "
+      "He is a murderer. Defend yourself!"
+   MarauderDannyDiablo_dead_name_rsc = "dead male body"
+
+   MarauderDannyDiablo_url = "http://wiki.openmeridian.org/index.php/Main_Page"
+   
+   DannyDiablo_hair_bb_icon = ptbb.bgf
+
+classvars:
+
+   vrName = MarauderDannyDiablo_name_rsc
+   vrDesc = MarauderDannyDiablo_desc_rsc
+   vrDead_name = MarauderDannyDiablo_dead_name_rsc
+
+   % DannyDiablo's a half-demon.
+   viMinSkinColor = 135
+   viMaxSkinColor = 135
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+   
+    viDefault_behavior = \
+    AI_FIGHT_AGGRESSIVE | AI_MOVE_OPTIMAL_RANGE\
+    | AI_FIGHT_WIZARD_KILLER | AI_FIGHT_MONSTERS
+
+   viColorTranslate1 = XLAT_TO_RED     % Shirt
+   viColorTranslate2 = XLAT_TO_RED     % Pants
+   
+   vcShieldClass = &PrincessShield
+
+   viFaction = FACTION_PRINCESS
+
+
+
+properties:
+
+   piBaseLevel = 140
+   piBaseDifficulty = 7
+   viLevel = 140
+   viDifficulty = 7
+
+   piMana = 120
+   piMax_Mana = 120
+   
+   % What are the monster's chances to cast spells each check?
+   % Number is out of one hundred
+   piMeleeSpellChance = 100
+   piRangedSpellChance = 100
+
+   piMonsterCastDelayMinimum = 1500
+
+
+   piDemonSponsor = SSS_WITCHERY_NEQUZON
+   
+   
+   
+
+
+messages:
+
+   SetGender()
+   {
+      return;
+   }
+
+   Constructed()
+   {
+      local i;
+
+
+      plMeleeSpellBook = [ [SID_CREATE_FIRE_BOMB,10,45,99],
+                           [SID_CREATE_SHOCK_BOMB,10,90,99],
+                           [SID_DETONATE_BOMBS,10,100,99]];
+      plRangedSpellBook = [ [SID_PURGE,13,20,90],
+                            [SID_DAZZLE,14,40,90],
+                            [SID_FIREBALL,15,70,99],
+                            [SID_HEX_FLAMMABILITY,12,100,40]];
+
+      % Half-demon base resists
+      plResistances = [ [-ATCK_SPELL_FIRE, 20 ],
+                        [-ATCK_SPELL_COLD, -25 ],
+                        [-ATCK_SPELL_ACID, 10],
+                        [ATCK_WEAP_NERUDITE,10]];
+                        
+      psUrl = MarauderDannyDiablo_url;
+      propagate;
+   }
+
+   GetBaseEmpowerments()
+   {
+      return [[-ATCK_SPELL_FIRE,40]];
+   }
+
+   SetEquipment()
+   {
+      local oEquipmentItem, iBonusModifier, oSpell;
+
+      oEquipmentItem = Create(&LongSword,#level=viLevel);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      oEquipmentItem = Create(&DiscipleRobe,#level=viLevel,#school=SS_FAREN);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      oEquipmentItem = Create(&Gauntlet,#level=viLevel);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      oEquipmentItem = Create(&SpikedHelm,#level=viLevel);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      return;
+   }
+
+   SetHair()
+   % Sets the hairdo, color.
+   {
+      local iTranslation;
+
+      prToupee = human_hair_bb_icon;
+      iTranslation = PT_GRAY_TO_PLATBLOND;
+
+      piBody_translations2 = piBody_translations2 & ~HUMAN_TRANSLATION2_HAIR_MASK;
+      piBody_translations2 = piBody_translations2
+                                 | (iTranslation * HUMAN_TRANSLATION2_HAIR_MUL);
+
+      return;
+   }
+
+   SetFace()
+   {
+      prEyes = human_eyes_bx_icon;
+      prNose = human_nose_cx_icon;
+      prMouth = human_mouth_cx_icon;
+
+      return;
+   }
+
+   SetShield()
+   {
+      local oEquipmentItem;
+
+      oEquipmentItem = Create(vcShieldClass,#color1=viShieldColor1,#color2=viShieldColor2,
+                              #shape=viShieldShape);
+      if viInsignia <> $
+      {
+         Send(oEquipmentItem,@ChangeGuildInsignia,#insignia=viInsignia);
+      }
+
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      return;
+   }
+
+   GetBaseSize()
+   {
+      % Half demon base size
+      return 150;
+   }
+   
+      GetOptimalRange()
+   {
+      % Random range between 8-15 row/col units.
+      return random(128,256);
+   }
+
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -1,0 +1,182 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+MarauderEvilJJ is Marauder
+
+% EvilJJ is a human Knight
+
+
+constants:
+
+   include blakston.khd
+
+   HUMAN_TRANSLATION2_HAIR_MASK = 0xff
+   HUMAN_TRANSLATION2_HAIR_MUL = 1
+
+resources:
+
+   MarauderEvilJJ_name_rsc = "Evil JJ2Skies"
+   MarauderEvilJJ_desc_rsc = \
+      "This adventurer smells faintly of ozone and seems out of place with this Meridian. "
+      "He looks exactly like JJ2Skies from this Meridian. However, this one is definetely a "
+      "bad apple! This is not the JJ2Skies you know! Defend yourself!"
+   MarauderEvilJJ_dead_name_rsc = "dead male body"
+
+   MarauderEvilJJ_url = "http://wiki.openmeridian.org/index.php/Main_Page"
+   
+   EvilJJ_hair_bb_icon = ptbb.bgf
+
+classvars:
+
+   vrName = MarauderEvilJJ_name_rsc
+   vrDesc = MarauderEvilJJ_desc_rsc
+   vrDead_name = MarauderEvilJJ_dead_name_rsc
+
+   % JJ's an undine, i think?
+   viMinSkinColor = 20
+   viMaxSkinColor = 20
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+
+   viColorTranslate1 = XLAT_TO_PURPLE     % Shirt
+   viColorTranslate2 = XLAT_TO_RED     % Pants
+
+   vcShieldClass = &RebelShield
+
+   viFaction = FACTION_REBEL
+   
+
+
+properties:
+
+   piBaseLevel = 300
+   piBaseDifficulty = 12
+   viLevel = 300
+   viDifficulty = 12
+
+   piMana = 120
+   piMax_Mana = 120
+   
+   % What are the monster's chances to cast spells each check?
+   % Number is out of one hundred
+   piMeleeSpellChance = 50
+   piRangedSpellChance = 100
+
+   piMonsterCastDelayMinimum = 1500
+
+
+
+messages:
+
+   SetClothes()
+   {
+      Send(self,@SetDefaultClothes,#shirt_color=viColorTranslate1);
+      Send(self,@SetTroopLegs,#translation=viColorTranslate2);
+
+      return;
+   }
+
+   SetGender()
+   {
+      return;
+   }
+
+   Constructed()
+   {
+      local i;
+
+      % KC Guy
+      plMeleeSpellBook = [ [SID_KILLING_FIELDS,6,100,90]];
+      plRangedSpellBook = [ [SID_WARP_TIME,13,20,90],
+                            [SID_HEX_FRAILTY,14,100,90]];
+
+      
+      plResistances = [ [-ATCK_SPELL_FIRE, -20 ],
+                        [-ATCK_SPELL_COLD, -25 ],
+                        [-ATCK_SPELL_ACID, -10],
+                        [ATCK_WEAP_NERUDITE,-10]];
+                        
+      psUrl = MarauderEvilJJ_url;
+      propagate;
+   }
+
+   GetBaseEmpowerments()
+   {
+      return [[ATCK_WEAP_BLUDGEON,50]];
+   }
+
+   SetEquipment()
+   {
+      local oEquipmentItem, iBonusModifier, oSpell;
+
+      oEquipmentItem = Create(&SpiritualHammer,#level=200);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      oEquipmentItem = Create(&PlateArmor,#level=200);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      oEquipmentItem = Create(&Gauntlet,#level=200);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      oEquipmentItem = Create(&KnightHelm,#level=200);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      return;
+   }
+
+   SetHair()
+   % Sets the hairdo, color.
+   {
+      local iTranslation;
+
+      prToupee = human_hair_bald_icon;
+      iTranslation = PT_GRAY_TO_PLATBLOND;
+
+      piBody_translations2 = piBody_translations2 & ~HUMAN_TRANSLATION2_HAIR_MASK;
+      piBody_translations2 = piBody_translations2
+                                 | (iTranslation * HUMAN_TRANSLATION2_HAIR_MUL);
+
+      return;
+   }
+
+   SetFace()
+   {
+      prEyes = human_eyes_bx_icon;
+      prNose = human_nose_ax_icon;
+      prMouth = human_mouth_cx_icon;
+
+      return;
+   }
+
+   SetShield()
+   {
+      local oEquipmentItem;
+
+      oEquipmentItem = Create(vcShieldClass,#color1=viShieldColor1,#color2=viShieldColor2,
+                              #shape=viShieldShape);
+      if viInsignia <> $
+      {
+         Send(oEquipmentItem,@ChangeGuildInsignia,#insignia=viInsignia);
+      }
+
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      return;
+   }
+
+   GetBaseSize()
+   {
+      % Human size
+      return 200;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

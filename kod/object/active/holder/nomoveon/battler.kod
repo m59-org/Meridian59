@@ -292,6 +292,10 @@ properties:
    % Base game is 0
    % Challenge ladders will typically be 1
    piLadderID = 0
+   
+   % Keep track of bombs
+   % Form [bomb object, time created in seconds]
+   plBombs = $
 
 messages:
 
@@ -369,6 +373,8 @@ messages:
    Delete()
    {
       local i;
+      
+      Send(self,@ClearBombs);
       
       if ptBleedTimer <> $
       {
@@ -3481,6 +3487,89 @@ messages:
    SetLadderID(value=0)
    {
       piLadderID = value;
+      return;
+   }
+
+   ClearBombs()
+   {
+      local i;
+      
+      foreach i in plBombs
+      {
+         Send(First(i),@Delete);
+      }
+      
+      plBombs = $;
+      
+      return;
+   }
+   
+   GetBombs()
+   {
+      return plBombs;
+   }
+   
+   GetBombLimit()
+   {
+      return Send(SETTINGS_OBJECT,@GetBombLimit);
+   }
+
+   RemoveOldestBomb()
+   {
+      local i, iTimeOldest, oOldestBomb;
+      
+      oOldestBomb = $;
+      iTimeOldest = GetTime();
+      foreach i in plBombs
+      {
+         if Nth(i,2) < iTimeOldest
+         {
+            oOldestBomb = First(i);
+         }
+      }
+      
+      if oOldestBomb <> $
+      {
+         Send(self,@RemoveBomb,#oBomb=oOldestBomb);
+         Send(oOldestBomb,@Delete);
+      }
+      return;
+   }
+
+   DetonateBombs()
+   {
+      local i;
+      
+      foreach i in plBombs
+      {
+         Send(First(i),@Detonate);
+      }
+
+      return;
+   }
+   
+   AddBomb(oBomb=$)
+   {
+      if plBombs <> $
+         AND Length(plBombs) >= Send(self,@GetBombLimit)
+      {
+         Send(self,@RemoveOldestBomb);
+      }
+      plBombs = Cons([oBomb,GetTime()],plBombs);
+      return;
+   }
+   
+   RemoveBomb(oBomb=$)
+   {
+      local i;
+      
+      foreach i in plBombs
+      {
+         if First(i) = oBomb
+         {
+            plBombs = DelListElem(plBombs,i);
+         }
+      }
       return;
    }
 

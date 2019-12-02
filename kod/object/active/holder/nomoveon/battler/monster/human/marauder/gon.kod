@@ -1,0 +1,167 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+MarauderGon  is Marauder
+
+% Gon Jhotti is a pure fighter.
+
+
+constants:
+
+   include blakston.khd
+
+   HUMAN_TRANSLATION2_HAIR_MASK = 0xff
+   HUMAN_TRANSLATION2_HAIR_MUL = 1
+
+resources:
+
+   MarauderGonJhotti_name_rsc = "Gon Jhotti"
+   MarauderGonJhotti_desc_rsc = \
+      "This man is as cowardly as he is talkative. "
+      "He is a murderer. Defend yourself!"
+   MarauderGonJhotti_dead_name_rsc = "dead male body"
+
+   MarauderGonJhotti_url = "http://wiki.openmeridian.org/index.php/Main_Page"
+   
+   GonJhotti_hair_bb_icon = ptbb.bgf
+
+classvars:
+
+   vrName = MarauderGonJhotti_name_rsc
+   vrDesc = MarauderGonJhotti_desc_rsc
+   vrDead_name = MarauderGonJhotti_dead_name_rsc
+
+   % GonJhotti's a half-demon.
+   viMinSkinColor = 150
+   viMaxSkinColor = 150
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+
+   viColorTranslate1 = XLAT_TO_RED     % Shirt
+   viColorTranslate2 = XLAT_TO_RED     % Pants
+
+   vcShieldClass = &RebelShield
+
+   viFaction = FACTION_REBEL
+
+properties:
+
+   piBaseLevel = 140
+   piBaseDifficulty = 7
+   viLevel = 140
+   viDifficulty = 7
+
+   piMana = 68
+   piMax_Mana = 68
+   
+   % What are the monster's chances to cast spells each check?
+   % Number is out of one hundred
+   piMeleeSpellChance = 55
+   piRangedSpellChance = 55
+
+   piMonsterCastDelayMinimum = 1500
+
+   piDemonSponsor = SSS_WITCHERY_NEQUZON
+
+messages:
+
+   SetGender()
+   {
+      return;
+   }
+
+   Constructed()
+   {
+      local i;
+
+      % PFer
+      plMeleeSpellBook = [ [SID_KILLING_FIELDS,14,100,90]];
+      plRangedSpellBook = [ [SKID_CHARGE_ATTACK,10,10,90],
+                            [SID_ANTIMAGIC_AURA,20,100,99]];
+
+     
+      plResistances = [[ATCK_WEAP_ALL,20]];
+                        
+      psUrl = MarauderGonJhotti_url;
+      propagate;
+   }
+
+   GetBaseEmpowerments()
+   {
+      return [[-ATCK_WEAP_SLASH,15]];
+   }
+
+   SetEquipment()
+   {
+      local oEquipmentItem, iBonusModifier, oSpell;
+
+      oEquipmentItem = Create(&Scimitar,#level=viLevel);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      oEquipmentItem = Create(&PlateArmor,#level=viLevel);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      oEquipmentItem = Create(&Gauntlet,#level=viLevel);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      oEquipmentItem = Create(&SimpleHelm,#level=viLevel);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+      return;
+   }
+
+   SetHair()
+   % Sets the hairdo, color.
+   {
+      local iTranslation;
+
+      prToupee = human_hair_bb_icon;
+      iTranslation = PT_GRAY_TO_PLATBLOND;
+
+      piBody_translations2 = piBody_translations2 & ~HUMAN_TRANSLATION2_HAIR_MASK;
+      piBody_translations2 = piBody_translations2
+                                 | (iTranslation * HUMAN_TRANSLATION2_HAIR_MUL);
+
+      return;
+   }
+
+   SetFace()
+   {
+      prEyes = human_eyes_bx_icon;
+      prNose = human_nose_bx_icon;
+      prMouth = human_mouth_bx_icon;
+
+      return;
+   }
+
+   SetShield()
+   {
+      local oEquipmentItem;
+
+      oEquipmentItem = Create(vcShieldClass,#color1=viShieldColor1,#color2=viShieldColor2,
+                              #shape=viShieldShape);
+      if viInsignia <> $
+      {
+         Send(oEquipmentItem,@ChangeGuildInsignia,#insignia=viInsignia);
+      }
+
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      return;
+   }
+
+   GetBaseSize()
+   {
+      % Human size
+      return 200;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

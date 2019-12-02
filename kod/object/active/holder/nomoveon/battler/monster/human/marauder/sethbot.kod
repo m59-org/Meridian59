@@ -5,10 +5,12 @@
 % the LICENSE file that accompanies it.
 %
 % Meridian is a registered trademark.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-MarauderBobo is Marauder
 
-% Bobo is a human Qor bower PK.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+MarauderSethBot is Marauder
+
+% SethBot is a crappy noob PK like in the old days!
 
 constants:
 
@@ -16,31 +18,27 @@ constants:
 
    HUMAN_TRANSLATION2_HAIR_MASK = 0xff
    HUMAN_TRANSLATION2_HAIR_MUL = 1
-   
 
 resources:
 
-   MarauderBobo_name_rsc = "Bobo the Bowman"
-   MarauderBobo_desc_rsc = \
-      "This peculiar Undine has chosen to embrace the bow "
-      "despite his obvious shortcomings. He is sadly mediocre at best. "
-      "He is a murderer! Defend yourself! "
-   MarauderBobo_dead_name_rsc = "dead male body"
+   MarauderSethBot_name_rsc = "SethBot"
+   MarauderSethBot_desc_rsc = \
+      "BEEP! BOOP! BEEP! BEEP! KILL ALL ADVENTURERS! "
+      "He is a murderer. Defend yourself!"
+   MarauderSethBot_dead_name_rsc = "dead male body"
 
-   MarauderBobo_url = "http://wiki.openmeridian.org/index.php/Main_Page"
+   MarauderSethBot_url = "http://wiki.openmeridian.org/index.php/Main_Page"
    
-   Bobo_hair_bb_icon = ptbb.bgf
-   
+   SethBot_hair_bb_icon = ptbb.bgf
 
 classvars:
 
-   vrName = MarauderBobo_name_rsc
-   vrDesc = MarauderBobo_desc_rsc
-   vrDead_name = MarauderBobo_dead_name_rsc
+   vrName = MarauderSethBot_name_rsc
+   vrDesc = MarauderSethBot_desc_rsc
+   vrDead_name = MarauderSethBot_dead_name_rsc
 
-   % Bobo's Undine
-   viMinSkinColor = 20
-   viMaxSkinColor = 20
+   viMinSkinColor = 1
+   viMaxSkinColor = 1
 
    viIndefinite = ARTICLE_NONE
    viDefinite = ARTICLE_NONE
@@ -48,27 +46,27 @@ classvars:
    viColorTranslate1 = XLAT_TO_RED     % Shirt
    viColorTranslate2 = XLAT_TO_RED     % Pants
 
-   viShieldColor1 = 1
-   viShieldColor2 = 1
-   viAttack_spell = ATCK_SPELL_COLD
-
 
 properties:
 
-   piBaseLevel = 80
+   piBaseLevel = 90
    piBaseDifficulty = 5
-   viLevel = 80
+   viLevel = 90
    viDifficulty = 5
 
-   piMana = 90
-   piMax_Mana = 90
+   piMana = 60
+   piMax_Mana = 60
    
    % What are the monster's chances to cast spells each check?
    % Number is out of one hundred
-   piMeleeSpellChance = 10
-   piRangedSpellChance = 100
+   piMeleeSpellChance = 50
+   piRangedSpellChance = 50
 
    piMonsterCastDelayMinimum = 1500
+
+   piDrawFx = DRAWFX_INVISIBLE
+
+   piDemonSponsor = SSS_WITCHERY_NEQUZON
 
 messages:
 
@@ -81,37 +79,33 @@ messages:
    {
       local i;
 
-      % Shal PK
-      plMeleeSpellBook = [ [SID_FORCES_OF_LIGHT,30,100,90]];
-      plRangedSpellBook = [ [SID_DAZZLE,13,50,90],
-                            [SID_KILLING_FIELDS,12,100,90]];
-
-      
+      % Qor PK
+      plMeleeSpellBook = [ [SID_SPLASH_OF_ACID,6,100,90]];
+      plRangedSpellBook = [ [SID_BLIND,13,50,40],
+                            [SID_HOLD,14,100,40]];
+							
       plResistances = [];
                         
-      psUrl = MarauderBobo_url;
+      psUrl = MarauderSethBot_url;
       propagate;
    }
 
-
+   GetBaseEmpowerments()
+   {
+      return [];
+   }
 
    SetEquipment()
    {
       local oEquipmentItem, iBonusModifier, oSpell;
 
-      oEquipmentItem = Create(&LongBow,#level=viLevel);
+      oEquipmentItem = Create(&Scimitar,#level=viLevel);
       Send(self,@AddEquipmentObject,#what=oEquipmentItem);
-      poArrow = Create(&IceArrow);
-      Send(self,@AddEquipmentObject,#what=poArrow);
-      iBonusModifier = 1;
 
-      oEquipmentItem = Create(&ScaleArmor,#level=viLevel);
+      oEquipmentItem = Create(&LeatherArmor,#level=viLevel);
       Send(self,@AddEquipmentObject,#what=oEquipmentItem);
 
       oEquipmentItem = Create(&Gauntlet,#level=viLevel);
-      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
-
-      oEquipmentItem = Create(&SimpleHelm,#level=viLevel);
       Send(self,@AddEquipmentObject,#what=oEquipmentItem);
 
       return;
@@ -123,7 +117,7 @@ messages:
       local iTranslation;
 
       prToupee = human_hair_ad_icon;
-      iTranslation = PT_GRAY_TO_PLATBLOND;
+      iTranslation = PT_GRAY_TO_BLACK;
 
       piBody_translations2 = piBody_translations2 & ~HUMAN_TRANSLATION2_HAIR_MASK;
       piBody_translations2 = piBody_translations2
@@ -134,17 +128,16 @@ messages:
 
    SetFace()
    {
-      prEyes = human_eyes_cx_icon;
-      prNose = human_nose_ax_icon;
+      prEyes = human_eyes_bx_icon;
+      prNose = human_nose_bx_icon;
       prMouth = human_mouth_cx_icon;
 
       return;
    }
-   
-   
+
+
    GetBaseSize()
    {
-      % Human
       return 200;
    }
 

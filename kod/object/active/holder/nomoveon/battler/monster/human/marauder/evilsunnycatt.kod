@@ -1,0 +1,188 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+MarauderEvilSunnyCatt is Marauder
+
+
+
+constants:
+
+   include blakston.khd
+
+   HUMAN_TRANSLATION2_HAIR_MASK = 0xff
+   HUMAN_TRANSLATION2_HAIR_MUL = 1
+   
+      BLEED_CHANCE = 10
+
+resources:
+
+   MarauderEvilSunnyCat_name_rsc = "Evil Sunnycatt"
+   MarauderEvilSunnyCat_desc_rsc = \
+      "Mysterious and mercurial, the Evil Sunnycatt is some sort of doppelganger "
+      "of the famous archaeologist who first unearthed Unique Items."
+   MarauderEvilSunnyCat_dead_name_rsc = "dead female body"
+
+   MarauderEvilSunnyCat_url = "http://wiki.openmeridian.org/index.php/Main_Page"
+   
+   EvilSunnyCat_hair_bb_icon = ptbb.bgf
+
+classvars:
+
+   vrName = MarauderEvilSunnyCat_name_rsc
+   vrDesc = MarauderEvilSunnyCat_desc_rsc
+   vrDead_name = MarauderEvilSunnyCat_dead_name_rsc
+
+   % EvilSunnyCat's a human.
+   viMinSkinColor = 1
+   viMaxSkinColor = 1
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+
+   viColorTranslate1 = XLAT_TO_RED     % Shirt
+   viColorTranslate2 = XLAT_TO_RED    % Pants
+   
+
+properties:
+
+   piBaseLevel = 200
+   piBaseDifficulty = 10
+   viLevel = 100
+   viDifficulty = 10
+   
+   piMana = 160
+   piMax_Mana = 160
+   
+   piGender = GENDER_FEMALE
+   
+   % What are the monster's chances to cast spells each check?
+   % Number is out of one hundred
+   piMeleeSpellChance = 100
+   piRangedSpellChance = 100
+
+   piMonsterCastDelayMinimum = 1500
+
+   
+
+   piDemonSponsor = SSS_WITCHERY_NEQUZON
+
+messages:
+
+   SetClothes()
+   {
+      Send(self,@SetDefaultClothes,#shirt_color=viColorTranslate1);
+      Send(self,@SetTroopLegs,#translation=viColorTranslate2);
+
+      return;
+   }
+
+   Constructed()
+   {
+      local i;
+
+
+      plMeleeSpellBook = [ [SID_BLAST_OF_FIRE,6,40,90],
+                           [SID_BLIND,15,70,90],
+                           [SID_FIRE_STORM,15,100,90]];
+      plRangedSpellBook = [ [SID_FIREBALL,15,50,50],
+                            [SID_BLIND,15,90,90],
+                            [SID_HEX_FLAMMABILITY,12,100,40]];
+
+      
+      plResistances = [ [-ATCK_SPELL_ILLUSION, -50 ]];
+                        
+      psUrl = MarauderEvilSunnyCat_url;
+      propagate;
+   }
+   
+   SetGender()
+   {
+      viGender = GENDER_FEMALE;
+      vrIcon = human_female_icon_rsc;
+      prHead = human_head_female_tattoo_1;
+      prEyes = human_eyes_kx_icon;
+      prMouth = human_mouth_kx_icon;
+      prNose = human_nose_kx_icon;
+      prToupee = human_hair_ca_icon;
+      prLegs = human_legs_b_rsc;
+      prRight_arm = human_rightarm_b_rsc;
+      prLeft_arm = human_leftarm_b_rsc;
+      vrDead_Icon = human_dead_female_icona_rsc;
+      vrDead_Legs = human_dead_female_iconb_rsc;
+      vrSound_death = human_female_sound_death;
+
+      return;
+   }
+
+    GetBaseEmpowerments()
+   {
+      return [[-ATCK_SPELL_FIRE,70]];
+   }
+
+   SetEquipment()
+   {
+      local oEquipmentItem, iBonusModifier, oSpell;
+
+      oEquipmentItem = Create(&Scimitar,#level=viLevel);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      oEquipmentItem = Create(&Circlet,#level=viLevel);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+	  
+	  oEquipmentItem = Create(&DiscipleRobe,#level=viLevel,#school=SS_FAREN);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+	  
+      return;
+   }
+
+   SetHair()
+   % Sets the hairdo, color.
+   {
+      local iTranslation;
+
+      prToupee = human_hair_bc_icon;
+      iTranslation = PT_GRAY_TO_RED;
+
+      piBody_translations2 = piBody_translations2 & ~HUMAN_TRANSLATION2_HAIR_MASK;
+      piBody_translations2 = piBody_translations2
+                                 | (iTranslation * HUMAN_TRANSLATION2_HAIR_MUL);
+
+      return;
+   }
+
+   GetBaseSize()
+   {
+
+      return 200;
+   }
+   
+         HitSideEffect(what = $, who = $)
+   {
+      local oSpell;
+
+      oSpell = Send(SYS,@FindSpellByNum,#num=SID_BLEED);
+      if NOT Send(what,@IsEnchanted,#what=oSpell)
+         AND Random(1,BLEED_CHANCE) = 1
+      {
+         if who <> $
+         {
+            Send(oSpell,@CastSpell,#who=who,#lTargets=[what],#iSpellPower=80);
+         }
+         else
+         {
+            Send(oSpell,@DoSpell,#what=self,#oTarget=what,#iSpellPower=80);
+         }
+      }
+
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -6,9 +6,10 @@
 %
 % Meridian is a registered trademark.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-MarauderZett is Marauder
+MarauderCynn is Marauder
 
-% Zett is a human Qor bower PK.
+% Cynn is a human Qor bower PK.
+% He is supposed to use a bow. However, that functionality doesn't seem to work. 
 % He's also shadow formed.
 
 constants:
@@ -20,54 +21,51 @@ constants:
 
 resources:
 
-   MarauderZett_name_rsc = "Zett"
-   MarauderZett_desc_rsc = \
-      "Dedicated Priest of Qor. This zealot seeks to promote her "
-      "dark balance in all things. That includes killing you! Defend yourself. "
-   MarauderZett_dead_name_rsc = "dead male body"
+   MarauderCynn_name_rsc = "Cynn"
+   MarauderCynn_desc_rsc = \
+      "Greedy, selfish, and utterly miserable. This man clings to his money "
+      "to fill a void in his mediocre life. His skills in combat are subpar and he "
+	  "isn't particularly good at anything. He murders out of contempt! Defend yourself!"
+   MarauderCynn_dead_name_rsc = "dead male body"
 
-   MarauderZett_url = "http://wiki.openmeridian.org/index.php/Main_Page"
+   MarauderCynn_url = "http://wiki.openmeridian.org/index.php/Main_Page"
    
-   Zett_hair_bb_icon = ptbb.bgf
+   Cynn_hair_bb_icon = ptbb.bgf
 
 classvars:
 
-   vrName = MarauderZett_name_rsc
-   vrDesc = MarauderZett_desc_rsc
-   vrDead_name = MarauderZett_dead_name_rsc
+   vrName = MarauderCynn_name_rsc
+   vrDesc = MarauderCynn_desc_rsc
+   vrDead_name = MarauderCynn_dead_name_rsc
 
-   % Zett's a half-demon.
-   viMinSkinColor = 1
-   viMaxSkinColor = 1
+   % Cynn's a human
+   viMinSkinColor = 3
+   viMaxSkinColor = 3
 
    viIndefinite = ARTICLE_NONE
    viDefinite = ARTICLE_NONE
 
    viColorTranslate1 = XLAT_TO_BLUE     % Shirt
    viColorTranslate2 = XLAT_TO_BLUE     % Pants
-   viShieldColor1 = 1
-   viShieldColor2 = 1
 
 
 
 properties:
 
    piBaseLevel = 150
-   piBaseDifficulty = 7
+   piBaseDifficulty = 9
    viLevel = 150
-   viDifficulty = 7
+   viDifficulty = 9
 
    piMana = 120
    piMax_Mana = 120
    
    % What are the monster's chances to cast spells each check?
    % Number is out of one hundred
-   piMeleeSpellChance = 100
-   piRangedSpellChance = 100
+   piMeleeSpellChance = 55
+   piRangedSpellChance = 85
 
-   piMonsterCastDelayMinimum = 1500
-
-   piDrawFx = DRAWFX_BLACK
+   piMonsterCastDelayMinimum = 3000
 
 
 messages:
@@ -82,19 +80,22 @@ messages:
       local i;
 
       % Qor PK
-      plMeleeSpellBook = [ [SID_HOLD,6,100,90]];
-      plRangedSpellBook = [ [SID_DARKNESS,13,10,90],
+      plMeleeSpellBook = [ [SID_SPLASH_OF_ACID,20,100,90]];
+      plRangedSpellBook = [ [SID_HOLD,25,30,90],
                             [SID_BLIND,14,90,90],
-                            [SID_KILLING_FIELDS,12,100,90]];
+                            [SID_KILLING_FIELDS,12,100,40]];
 
-
+      
       plResistances = [];
                         
-      psUrl = MarauderZett_url;
+      psUrl = MarauderCynn_url;
       propagate;
    }
 
-
+   GetBaseEmpowerments()
+   {
+      return [[-ATCK_WEAP_PIERCE,50]];
+   }
 
    SetEquipment()
    {
@@ -102,17 +103,13 @@ messages:
 
       oEquipmentItem = Create(&LongBow,#level=viLevel);
       Send(self,@AddEquipmentObject,#what=oEquipmentItem);
-      poArrow = Create(&NeruditeArrow);
-      Send(self,@AddEquipmentObject,#what=poArrow);
+	  poArrow = Create(&NeruditeArrow);
       iBonusModifier = 4;
 
       oEquipmentItem = Create(&DiscipleRobe,#level=viLevel,#school=SS_QOR);
       Send(self,@AddEquipmentObject,#what=oEquipmentItem);
 
       oEquipmentItem = Create(&Gauntlet,#level=viLevel);
-      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
-
-      oEquipmentItem = Create(&SkullMask,#level=viLevel);
       Send(self,@AddEquipmentObject,#what=oEquipmentItem);
 
       return;
@@ -123,7 +120,7 @@ messages:
    {
       local iTranslation;
 
-      prToupee = human_hair_ac_icon;
+      prToupee = human_hair_ad_icon;
       iTranslation = PT_GRAY_TO_BLACK;
 
       piBody_translations2 = piBody_translations2 & ~HUMAN_TRANSLATION2_HAIR_MASK;

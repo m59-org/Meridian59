@@ -1,0 +1,164 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+MarauderAlo is Marauder
+
+% Ellokent is a Shal Faren Mage
+
+
+constants:
+
+   include blakston.khd
+
+   HUMAN_TRANSLATION2_HAIR_MASK = 0xff
+   HUMAN_TRANSLATION2_HAIR_MUL = 1
+
+resources:
+
+   MarauderEllokent_name_rsc = "Ellokent"
+   MarauderEllokent_desc_rsc = \
+      "This old man has the look of determination. Rumor has it "
+      "is that he's willing to risk it all for the sake of his pride. "
+      "Legend tells that he once forgone everything he knew and had in a fury! "
+      "He is a murderer! Defend yourself! "
+   MarauderEllokent_dead_name_rsc = "dead male body"
+
+   MarauderEllokent_url = "http://wiki.openmeridian.org/index.php/Main_Page"
+   
+   Ellokent_hair_bb_icon = ptbb.bgf
+
+classvars:
+
+   vrName = MarauderEllokent_name_rsc
+   vrDesc = MarauderEllokent_desc_rsc
+   vrDead_name = MarauderEllokent_dead_name_rsc
+
+   % Ellokent's a human.
+   viMinSkinColor = 3
+   viMaxSkinColor = 3
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+
+   viColorTranslate1 = XLAT_TO_RED     % Shirt
+   viColorTranslate2 = XLAT_TO_RED     % Pants
+   
+   vcShieldClass = &PrincessShield
+
+   viFaction = FACTION_PRINCESS
+   
+properties:
+
+   piBaseLevel = 150
+   piBaseDifficulty = 7
+   viLevel = 150
+   viDifficulty = 7
+   viKarma = 100
+
+   piMana = 120
+   piMax_Mana = 120
+   
+   % What are the monster's chances to cast spells each check?
+   % Number is out of one hundred
+   piMeleeSpellChance = 100
+   piRangedSpellChance = 100
+
+   piMonsterCastDelayMinimum = 1500
+
+
+messages:
+
+   SetGender()
+   {
+      return;
+   }
+
+   Constructed()
+   {
+      local i;
+
+      % Qor PK
+      plMeleeSpellBook = [ [SID_BLAST_OF_FIRE,2,60,90],
+                           [SID_DAZZLE,10,85,90],
+                           [SID_SPIDER_WEB,2,100,90]];
+      plRangedSpellBook = [ [SID_PURGE,25,20,90],
+                            [SID_DAZZLE,10,60,90],
+                            [SID_LIGHTNING_BOLT,5,95,90],
+                            [SID_LIGHTNING_STRIKE,5,100,90]];
+
+      % Half-demon base resists
+      plResistances = [ [-ATCK_SPELL_FIRE,20 ],
+                        [-ATCK_SPELL_COLD,25 ],
+                        [-ATCK_SPELL_ACID,40 ],
+                        [-ATCK_SPELL_SHOCK,40 ],
+                        [ATCK_WEAP_ALL,-10] ];
+                        
+      psUrl = MarauderEllokent_url;
+      propagate;
+   }
+
+   GetBaseEmpowerments()
+   {
+      return [[-ATCK_SPELL_SHOCK,50],
+				[-ATCK_SPELL_COLD,50]];
+   }
+
+   SetEquipment()
+   {
+      local oEquipmentItem, iBonusModifier, oSpell;
+
+      oEquipmentItem = Create(&Mace,#level=viLevel);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      oEquipmentItem = Create(&DiscipleRobe,#level=viLevel,#school=SS_FAREN);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      oEquipmentItem = Create(&Gauntlet,#level=viLevel);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      oEquipmentItem = Create(&IvyCirclet,#level=viLevel);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      return;
+   }
+
+   SetHair()
+   % Sets the hairdo, color.
+   {
+      local iTranslation;
+
+      prToupee = human_hair_cd_icon;
+      iTranslation = PT_GRAY_TO_BLACK;
+
+      piBody_translations2 = piBody_translations2 & ~HUMAN_TRANSLATION2_HAIR_MASK;
+      piBody_translations2 = piBody_translations2
+                                 | (iTranslation * HUMAN_TRANSLATION2_HAIR_MUL);
+
+      return;
+   }
+
+   SetFace()
+   {
+      prEyes = human_eyes_ax_icon;
+      prNose = human_nose_cx_icon;
+      prMouth = human_mouth_bx_icon;
+
+      return;
+   }
+
+
+   GetBaseSize()
+   {
+      % Human base size
+      return 200;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

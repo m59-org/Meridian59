@@ -21,7 +21,8 @@ BOFS  = ant.bof centip.bof cow.bof ent.bof fairy.bof \
         mimic.bof dragon.bof airelemental.bof \
         mazetotem.bof lavafrog.bof crystalbeing.bof \
         burningorb.bof watercentipede.bof \
-        earthdragon.bof
+        earthdragon.bof \
+        spwolf.bof
 
 
 

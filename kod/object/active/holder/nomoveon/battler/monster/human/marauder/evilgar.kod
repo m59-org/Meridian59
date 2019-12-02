@@ -1,0 +1,196 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+MarauderEvilGar is Marauder
+
+% EvilGar is quite elite!
+
+
+constants:
+
+   include blakston.khd
+
+   HUMAN_TRANSLATION2_HAIR_MASK = 0xff
+   HUMAN_TRANSLATION2_HAIR_MUL = 1
+
+resources:
+
+   MarauderEvilGar_name_rsc = "Evil Overlord Gar"
+   MarauderEvilGar_desc_rsc = \
+        "For untold years, Evil Overlord Gar built his kingdom from the remains of his enemies. "
+        "Deeply mistrustful of others, his mastery of Riija has enabled him to assume many identities. "
+        "Is this truly Gar? "
+        "He's everywhere and everyone. He is that newbie... your best friend.... he could even be you! "
+        "If you're really unlucky... he might even be Evil Gar! "
+
+   MarauderEvilGar_dead_name_rsc = "dead Evil Gar... or is it?"
+
+   MarauderEvilGar_url = "http://wiki.openmeridian.org/index.php/Main_Page"
+   
+   EvilGar_hair_bb_icon = ptbb.bgf
+
+classvars:
+
+   vrName = MarauderEvilGar_name_rsc
+   vrDesc = MarauderEvilGar_desc_rsc
+   vrDead_name = MarauderEvilGar_dead_name_rsc
+
+   % JJ's an undine, i think?
+   viMinSkinColor = 1
+   viMaxSkinColor = 1
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+
+   viColorTranslate1 = XLAT_TO_RED     % Shirt
+   viColorTranslate2 = XLAT_TO_RED     % Pants
+   
+   vcShieldClass = &DukeShield
+   
+   viFaction = FACTION_DUKE   
+
+
+properties:
+
+   piBaseLevel = 400
+   piBaseDifficulty = 12
+   viLevel = 400
+   viDifficulty = 12
+
+   piMana = 200
+   piMax_Mana = 200
+   
+   % What are the monster's chances to cast spells each check?
+   % Number is out of one hundred
+   piMeleeSpellChance = 70
+   piRangedSpellChance = 100
+
+   piMonsterCastDelayMinimum = 750
+
+messages:
+
+   SetClothes()
+   {
+      Send(self,@SetDefaultClothes,#shirt_color=viColorTranslate1);
+      Send(self,@SetTroopLegs,#translation=viColorTranslate2);
+
+      return;
+   }
+
+   SetGender()
+   {
+      return;
+   }
+
+   Constructed()
+   {
+      local i;
+
+
+      plMeleeSpellBook = [ [SID_BLIND,6,15,90],
+                           [SID_REFLECTION,14,25,90],
+                           [SID_DEMENT,14,35,90],
+                           [SID_FIRE_STORM,14,40,90],
+                           [SID_SHOCKING_FURY,14,90,90],
+                           [SID_HEX_VULNERABILITY,14,100,90]];
+      plRangedSpellBook = [ [SID_FLAME_DASH,13,20,90],
+                            [SID_HOLD,14,40,90],
+                            [SID_SLITHERBOLT,14,50,90],
+                            [SID_SUMMON_APPARITION,14,55,90],
+                            [SID_LIGHTNING_BOLT,14,65,90],
+                            [SID_FIREBALL,14,75,90],
+                            [SID_HEX_VULNERABILITY,14,100,90]];
+
+      
+      plResistances = [ [-ATCK_SPELL_FIRE, 30 ],
+                        [-ATCK_SPELL_COLD, 35 ],
+                        [-ATCK_SPELL_ACID, 30],
+                        [ATCK_WEAP_NERUDITE,-10],
+                        [ATCK_WEAP_ALL,80]];
+                        
+      psUrl = MarauderEvilGar_url;
+      propagate;
+   }
+
+   GetBaseEmpowerments()
+   {
+      return [[ATCK_WEAP_BLUDGEON,100],
+			   [ATCK_SPELL_COLD,50],
+			   [ATCK_SPELL_FIRE,70],
+			   [ATCK_SPELL_SHOCK,50]   ];
+   }
+
+   SetEquipment()
+   {
+      local oEquipmentItem, iBonusModifier, oSpell;
+
+      oEquipmentItem = Create(&SpiritualHammer,#level=200);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      oEquipmentItem = Create(&LeatherArmor,#level=200);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      oEquipmentItem = Create(&Gauntlet,#level=200);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      oEquipmentItem = Create(&Circlet,#level=200);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      return;
+   }
+
+   SetHair()
+   % Sets the hairdo, color.
+   {
+      local iTranslation;
+
+      prToupee = human_hair_ba_icon;
+      iTranslation = PT_GRAY_TO_BLACK;
+
+      piBody_translations2 = piBody_translations2 & ~HUMAN_TRANSLATION2_HAIR_MASK;
+      piBody_translations2 = piBody_translations2
+                                 | (iTranslation * HUMAN_TRANSLATION2_HAIR_MUL);
+
+      return;
+   }
+
+   SetFace()
+   {
+      prEyes = human_eyes_ax_icon;
+      prNose = human_nose_ax_icon;
+      prMouth = human_mouth_ax_icon;
+
+      return;
+   }
+
+   SetShield()
+   {
+      local oEquipmentItem;
+
+      oEquipmentItem = Create(vcShieldClass,#color1=viShieldColor1,#color2=viShieldColor2,
+                              #shape=viShieldShape);
+      if viInsignia <> $
+      {
+         Send(oEquipmentItem,@ChangeGuildInsignia,#insignia=viInsignia);
+      }
+
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      return;
+   }
+
+   GetBaseSize()
+   {
+      % Human size
+      return 200;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

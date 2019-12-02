@@ -382,6 +382,7 @@ messages:
       {
          if NOT pbIllusion
             AND NOT IsClass(oUsedItem,&MithrilShield)
+            AND NOT IsClass(oUsedItem,&SoldierShield)
          {
             if (oItemAtt <> $) AND Send(oItemAtt,@ReqAddToItem,#oItem=oUsedItem)
             {
@@ -465,6 +466,17 @@ messages:
       ptWallhackTimer = CreateTimer(self,@ActivateWallhack,30000);
       
       propagate;
+   }
+   
+   GetEpicRarityBoost()
+   {
+      % Out of 100,000
+      return 50000;
+   }
+   
+   GetRareRarityBoost()
+   {
+      return 50000;
    }
 
 end

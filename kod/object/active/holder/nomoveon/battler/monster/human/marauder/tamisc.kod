@@ -1,0 +1,193 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+MarauderTamisc is Marauder
+
+% Tamisc is a human Qor bower PK.
+% He is supposed to use a bow. However, that functionality doesn't seem to work. 
+% He's also shadow formed.
+
+constants:
+
+   include blakston.khd
+
+   HUMAN_TRANSLATION2_HAIR_MASK = 0xff
+   HUMAN_TRANSLATION2_HAIR_MUL = 1
+   
+    HEX_CHANCE = 10
+
+resources:
+
+   MarauderTamisc_name_rsc = "Tamisc"
+   MarauderTamisc_desc_rsc = \
+      "Tamisc is a legendary witchery bower. It is said he can see the invisible "
+      "like the currents in the air. "
+	  "Make peace with the gods! You are about to die! "
+   MarauderTamisc_dead_name_rsc = "dead male body"
+
+   MarauderTamisc_url = "http://wiki.openmeridian.org/index.php/Main_Page"
+   
+   Tamisc_hair_bb_icon = ptbb.bgf
+
+classvars:
+
+   vrName = MarauderTamisc_name_rsc
+   vrDesc = MarauderTamisc_desc_rsc
+   vrDead_name = MarauderTamisc_dead_name_rsc
+
+   % Tamisc's a human
+   viMinSkinColor = 2
+   viMaxSkinColor = 2
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+
+   viColorTranslate1 = XLAT_TO_BLUE     % Shirt
+   viColorTranslate2 = XLAT_TO_BLACK     % Pants
+   
+      viDefault_behavior = \
+      AI_FIGHT_AGGRESSIVE | AI_MOVE_OPTIMAL_RANGE\
+      | AI_FIGHT_WIZARD_KILLER | AI_FIGHT_MONSTERS
+
+
+
+properties:
+
+   piBaseLevel = 400
+   piBaseDifficulty = 13
+   viLevel = 400
+   viDifficulty = 13
+
+   piMana = 200
+   piMax_Mana = 200
+   
+   % What are the monster's chances to cast spells each check?
+   % Number is out of one hundred
+   piMeleeSpellChance = 100
+   piRangedSpellChance = 55
+
+   piMonsterCastDelayMinimum = 1500
+
+   piDrawFx = DRAWFX_TRANSLUCENT_50
+
+messages:
+
+   SetGender()
+   {
+      return;
+   }
+
+   Constructed()
+   {
+      local i;
+
+      plMeleeSpellBook = [ [SID_SPIDER_WEB,80,20,90],
+                           [SID_CREATE_SHOCK_BOMB,5,70,99],
+                           [SKID_BATTLE_SHOUT,80,100,99]];
+      plRangedSpellBook = [ [SID_PURGE,25,45,90],
+                            [SID_BLIND,14,90,90],
+                            [SID_HEX_ALGIDITY,12,100,40]];
+
+      
+      plResistances = [ [-ATCK_SPELL_FIRE, -30 ],
+                        [-ATCK_SPELL_COLD, 35 ],
+                        [-ATCK_SPELL_ACID, 90],
+                        [-ATCK_SPELL_SHOCK, 50],
+                        [ATCK_WEAP_NERUDITE,-10],
+                        [ATCK_WEAP_ALL,80]];
+                        
+      psUrl = MarauderTamisc_url;
+      propagate;
+   }
+
+   GetBaseEmpowerments()
+   {
+      return [[-ATCK_WEAP_PIERCE,70]];
+   }
+
+   SetEquipment()
+   {
+      local oEquipmentItem, iBonusModifier, oSpell;
+
+      oEquipmentItem = Create(&LongBow,#level=200);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+      poArrow = Create(&IceArrow);
+      Send(self,@AddEquipmentObject,#what=poArrow);
+
+      oEquipmentItem = Create(&LightDiscipleRobe,#level=200,#school=SS_QOR);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      oEquipmentItem = Create(&Gauntlet,#level=200);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      oEquipmentItem = Create(&Tanktop,#level=200);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      return;
+   }
+
+   SetHair()
+   % Sets the hairdo, color.
+   {
+      local iTranslation;
+
+      prToupee = human_hair_xb_icon;
+      iTranslation = PT_GRAY_TO_DBLUE;
+
+      piBody_translations2 = piBody_translations2 & ~HUMAN_TRANSLATION2_HAIR_MASK;
+      piBody_translations2 = piBody_translations2
+                                 | (iTranslation * HUMAN_TRANSLATION2_HAIR_MUL);
+
+      return;
+   }
+
+   SetFace()
+   {
+      prEyes = human_eyes_cx_icon;
+      prNose = human_nose_bx_icon;
+      prMouth = human_mouth_cx_icon;
+
+      return;
+   }
+
+   GetBaseSize()
+   {
+      % Human
+      return 300;
+   }
+   
+      HitSideEffect(what = $, who = $)
+   {
+      local oSpell;
+
+      oSpell = Send(SYS,@FindSpellByNum,#num=SID_HEX_BESTILL);
+      if NOT Send(what,@IsEnchanted,#what=oSpell)
+         AND Random(1,HEX_CHANCE) = 1
+      {
+         if who <> $
+         {
+            Send(oSpell,@CastSpell,#who=who,#lTargets=[what],#iSpellPower=99);
+         }
+         else
+         {
+            Send(oSpell,@DoSpell,#what=self,#oTarget=what,#iSpellPower=99);
+         }
+      }
+
+      propagate;
+   }
+   
+   
+   GetOptimalRange()
+   {
+      % Random range between 8-15 row/col units.
+      return random(512,960);
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

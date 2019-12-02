@@ -1,0 +1,186 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+MarauderKat is Marauder
+
+
+
+constants:
+
+   include blakston.khd
+
+   HUMAN_TRANSLATION2_HAIR_MASK = 0xff
+   HUMAN_TRANSLATION2_HAIR_MUL = 1
+
+resources:
+
+   MarauderKat_name_rsc = "Kat"
+   MarauderKat_desc_rsc = \
+      "Kat was born into a life of crime. Her father was a bank robber and her mother "
+      "is a renowned tomb thief in the Desert of Biskalane. She uses her good looks "
+	  "to catch unsuspecting foes by surprise. "
+	  "She is a murderer! Defend yourself! "
+   MarauderKat_dead_name_rsc = "dead female body"
+
+   MarauderKat_url = "http://wiki.openmeridian.org/index.php/Main_Page"
+   
+   Kat_hair_bb_icon = ptbb.bgf
+
+classvars:
+
+   vrName = MarauderKat_name_rsc
+   vrDesc = MarauderKat_desc_rsc
+   vrDead_name = MarauderKat_dead_name_rsc
+
+   % Kat's a human.
+   viMinSkinColor = 2
+   viMaxSkinColor = 2
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+
+   viColorTranslate1 = XLAT_TO_BLACK    % Shirt
+   viColorTranslate2 = XLAT_TO_BLACK    % Pants
+   
+   viAttack_type = ATCK_WEAP_PIERCE
+   viAttack_Spell = ATCK_SPELL_FIRE
+   
+   vcShieldClass = &RebelShield
+
+   viFaction = FACTION_REBEL
+
+properties:
+
+   piBaseLevel = 140
+   piBaseDifficulty = 7
+   viLevel = 140
+   viDifficulty = 7
+   
+   piMana = 90
+   piMax_Mana = 90
+   
+   piGender = GENDER_FEMALE
+   
+   % What are the monster's chances to cast spells each check?
+   % Number is out of one hundred
+   piMeleeSpellChance = 90
+   piRangedSpellChance = 30
+
+   piMonsterCastDelayMinimum = 1500
+
+   
+messages:
+
+   SetClothes()
+   {
+      Send(self,@SetDefaultClothes,#shirt_color=viColorTranslate1);
+      Send(self,@SetTroopLegs,#translation=viColorTranslate2);
+
+      return;
+   }
+
+   Constructed()
+   {
+      local i;
+
+
+      plMeleeSpellBook = [ [SID_CHARM_HUMANOID,6,30,90],
+                            [SID_ENFEEBLE,15,60,90], 
+                            [SID_DEMENT,20,100,90]];
+      plRangedSpellBook = [ [SID_PURGE,15,40,50],
+                            [SID_VERTIGO,15,90,50],
+                            [SID_HEX_BESTILL,12,100,50]];
+
+      
+      plResistances = [ [-ATCK_SPELL_ILLUSION, -50 ]];
+                        
+      psUrl = MarauderKat_url;
+      propagate;
+   }
+   
+   SetGender()
+   {
+      viGender = GENDER_FEMALE;
+      vrIcon = human_female_icon_rsc;
+      prHead = human_head_female_tattoo_1;
+      prEyes = human_eyes_lx_icon;
+      prMouth = human_mouth_lx_icon;
+      prNose = human_nose_lx_icon;
+      prToupee = human_hair_ca_icon;
+      prLegs = human_legs_b_rsc;
+      prRight_arm = human_rightarm_b_rsc;
+      prLeft_arm = human_leftarm_b_rsc;
+      vrDead_Icon = human_dead_female_icona_rsc;
+      vrDead_Legs = human_dead_female_iconb_rsc;
+      vrSound_death = human_female_sound_death;
+
+      return;
+   }
+
+    GetBaseEmpowerments()
+   {
+      return [[-ATCK_SPELL_ILLUSION,10]];
+   }
+
+   SetEquipment()
+   {
+      local oEquipmentItem, iBonusModifier, oSpell;
+
+      oEquipmentItem = Create(&Longsword,#level=viLevel);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      oEquipmentItem = Create(&Circlet,#level=viLevel);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+	    
+	  oEquipmentItem = Create(&LeatherArmor,#level=viLevel);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+	  
+      return;
+   }
+
+   SetHair()
+   % Sets the hairdo, color.
+   {
+      local iTranslation;
+
+      prToupee = human_hair_ad_icon;
+      iTranslation = PT_GRAY_TO_BLACK;
+
+      piBody_translations2 = piBody_translations2 & ~HUMAN_TRANSLATION2_HAIR_MASK;
+      piBody_translations2 = piBody_translations2
+                                 | (iTranslation * HUMAN_TRANSLATION2_HAIR_MUL);
+
+      return;
+   }
+   
+      SetShield()
+   {
+      local oEquipmentItem;
+
+      oEquipmentItem = Create(vcShieldClass,#color1=viShieldColor1,#color2=viShieldColor2,
+                              #shape=viShieldShape);
+      if viInsignia <> $
+      {
+         Send(oEquipmentItem,@ChangeGuildInsignia,#insignia=viInsignia);
+      }
+
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      return;
+   }
+
+   GetBaseSize()
+   {
+
+      return 200;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

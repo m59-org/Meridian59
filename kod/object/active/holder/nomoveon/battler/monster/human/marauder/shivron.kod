@@ -1,0 +1,184 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+MarauderShivron is Marauder
+
+% Shivron is a Qor bower PKer. 
+
+constants:
+
+   include blakston.khd
+
+   HUMAN_TRANSLATION2_HAIR_MASK = 0xff
+   HUMAN_TRANSLATION2_HAIR_MUL = 1
+
+resources:
+
+   MarauderShivron_name_rsc = "Shivron"
+   MarauderShivron_desc_rsc = \
+      "An aura of ice surrounds this frosty priestess.  "
+      "She is -literally- a cold blooded killer! "
+      "Defend yourself! "
+   MarauderShivron_dead_name_rsc = "dead female body"
+
+   MarauderShivron_url = "http://wiki.openmeridian.org/index.php/Main_Page"
+   
+   Shivron_hair_bb_icon = ptbb.bgf
+
+classvars:
+
+   vrName = MarauderShivron_name_rsc
+   vrDesc = MarauderShivron_desc_rsc
+   vrDead_name = MarauderShivron_dead_name_rsc
+
+   % Shivron's a human. 
+   viMinSkinColor = 20
+   viMaxSkinColor = 20
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+
+   viColorTranslate1 = XLAT_TO_RED     % Shirt
+   viColorTranslate2 = XLAT_TO_RED     % Pants
+
+   vcShieldClass = &DukeShield
+   
+   viFaction = FACTION_DUKE  
+   
+
+properties:
+
+   piBaseLevel = 140
+   piBaseDifficulty = 9
+   viLevel = 140
+   viDifficulty = 9
+   
+   piGender = GENDER_FEMALE
+
+   piMana = 120
+   piMax_Mana = 120
+   
+   % What are the monster's chances to cast spells each check?
+   % Number is out of one hundred
+   piMeleeSpellChance = 75
+   piRangedSpellChance = 75
+
+   piMonsterCastDelayMinimum = 1500
+
+   
+
+messages:
+
+   SetGender()
+   {
+		viGender = GENDER_FEMALE;
+         vrIcon = human_female_icon_rsc;
+         prHead = human_head_female_icon;
+         prEyes = human_eyes_kx_icon;
+         prMouth = human_mouth_kx_icon;
+         prNose = human_nose_kx_icon;
+         prToupee = human_hair_ca_icon;
+         prLegs = human_legs_b_rsc;
+         prRight_arm = human_rightarm_b_rsc;
+         prLeft_arm = human_leftarm_b_rsc;
+         vrDead_Icon = human_dead_female_icona_rsc;
+         vrDead_Legs = human_dead_female_iconb_rsc;
+         vrSound_death = human_female_sound_death;
+		 
+      return;
+   }
+
+   Constructed()
+   {
+      local i;
+
+      
+      plMeleeSpellBook = [ [SID_HEX_ALGIDITY,8,10,90],
+                           [SID_EXPLOSIVE_FROST,8,100,90]];
+      plRangedSpellBook = [ [SID_ICICLE_VOLLEY,13,75,90],
+                            [SID_FROST_BREATH,30,80,20],
+                            [SID_HOLD,14,100,90]];
+
+      
+      plResistances = [ [-ATCK_SPELL_FIRE,-40],
+                        [-ATCK_SPELL_ACID, 10],
+                        [-ATCK_SPELL_COLD, 80],
+                        [ATCK_WEAP_ALL,20]];
+                        
+      psUrl = MarauderShivron_url;
+      propagate;
+   }
+
+   GetBaseEmpowerments()
+   {
+      return [[-ATCK_SPELL_COLD,50]];
+   }
+
+   SetEquipment()
+   {
+      local oEquipmentItem, iBonusModifier, oSpell;
+
+	  oEquipmentItem = Create(&ChainArmor,#level=viLevel);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+	  
+	  oEquipmentItem = Create(&SpiritualHammer,#level=viLevel);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+	  
+	  oEquipmentItem = Create(&RunedHelm,#level=viLevel);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      return;
+   }
+
+   SetHair()
+   % Sets the hairdo, color.
+   {
+      local iTranslation;
+
+      prToupee = human_hair_bc_icon;
+      iTranslation = PT_GRAY_TO_BLACK;
+
+      piBody_translations2 = piBody_translations2 & ~HUMAN_TRANSLATION2_HAIR_MASK;
+      piBody_translations2 = piBody_translations2
+                                 | (iTranslation * HUMAN_TRANSLATION2_HAIR_MUL);
+
+      return;
+   }
+
+   SetShield()
+   {
+      local oEquipmentItem;
+
+      oEquipmentItem = Create(vcShieldClass,#color1=viShieldColor1,#color2=viShieldColor2,
+                              #shape=viShieldShape);
+      if viInsignia <> $
+      {
+         Send(oEquipmentItem,@ChangeGuildInsignia,#insignia=viInsignia);
+      }
+
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      return;
+   }
+
+   GetBaseSize()
+   {
+      
+      return 200;
+   }
+   
+      GetOptimalRange()
+   {
+      % Random range between 8-15 row/col units.
+      return random(200,460);
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

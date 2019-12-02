@@ -368,6 +368,12 @@ messages:
          if oRoom = $
             or NOT IsClass(oRoom,&Room)
          {
+            if source <> $
+               AND IsClass(source,&Monster)
+            {
+               Post(self,@CancelRadiusEnchantment,#source=source);
+               continue;
+            }
             Debug("Radius check went off without a proper room!",self);
          }
 

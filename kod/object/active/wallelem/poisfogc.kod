@@ -120,6 +120,33 @@ messages:
       return;
    }
 
+   SendLightingInformation()
+   {
+      AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC));
+      % Intensity
+      if viIllusion
+      {
+         % Send less light if we're illusionary.
+         AddPacket(1,0);
+      }
+      else
+      {
+         % 5 out of 255 intensity of light
+         AddPacket(1,5);
+      }
+
+      if Send(self,@GetOwner) <> $
+         AND Send(Send(self,@GetOwner),@LightingColorOverride)
+      {
+         AddPacket(2,Send(Send(self,@GetOwner),@GetLightingColorOverride));
+         return;
+      }
+
+      % Red color
+      AddPacket(2,LIGHT_BGREEN);
+
+      return;
+   }
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

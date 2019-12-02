@@ -1,0 +1,156 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+MarauderMutant is Marauder
+
+
+constants:
+
+   include blakston.khd
+
+   HUMAN_TRANSLATION2_HAIR_MASK = 0xff
+   HUMAN_TRANSLATION2_HAIR_MUL = 1
+
+resources:
+
+   MarauderMutant_name_rsc = "Mutant Prosthetic"
+   MarauderMutant_desc_rsc = \
+      "A strange mutant player killer. She has an affinity for Faren. "
+      "She is a murderer! Defend yourself! "
+   MarauderMutant_dead_name_rsc = "dead female body"
+
+   MarauderMutant_url = "http://wiki.openmeridian.org/index.php/Main_Page"
+   
+   Mutant_hair_bb_icon = ptbb.bgf
+
+classvars:
+
+   vrName = MarauderMutant_name_rsc
+   vrDesc = MarauderMutant_desc_rsc
+   vrDead_name = MarauderMutant_dead_name_rsc
+
+   % Mutant's a demon.
+   viMinSkinColor = 135
+   viMaxSkinColor = 135
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+
+   viColorTranslate1 = XLAT_TO_RED    % Shirt
+   viColorTranslate2 = XLAT_TO_RED    % Pants
+   
+   % Hopefully this will make her do touch of flame...
+   viAttack_Spell = ATCK_SPELL_FIRE   
+   
+
+properties:
+
+   piBaseLevel = 75
+   piBaseDifficulty = 5
+   viLevel = 75
+   viDifficulty = 5
+
+   
+   piMana = 75
+   piMax_Mana = 75
+   
+   piGender = GENDER_FEMALE
+   
+   % What are the monster's chances to cast spells each check?
+   % Number is out of one hundred
+   piMeleeSpellChance = 55
+   piRangedSpellChance = 55
+
+   piMonsterCastDelayMinimum = 1500
+
+   
+
+   piDemonSponsor = SSS_WITCHERY_NEQUZON
+
+messages:
+
+   SetClothes()
+   {
+      Send(self,@SetDefaultClothes,#shirt_color=viColorTranslate1);
+      Send(self,@SetTroopLegs,#translation=viColorTranslate2);
+
+      return;
+   }
+
+   Constructed()
+   {
+      local i;
+
+      plMeleeSpellBook = [ [SID_BLAST_OF_FIRE,16,100,90] ];
+      plRangedSpellBook = [ [SID_FIREBALL,13,100,90]];
+
+      plResistances = [];
+                        
+      psUrl = MarauderMutant_url;
+      propagate;
+   }
+   
+   SetGender()
+   {
+      viGender = GENDER_FEMALE;
+      vrIcon = human_female_icon_rsc;
+      prHead = human_head_female_tattoo_1;
+      prEyes = human_eyes_kx_icon;
+      prMouth = human_mouth_kx_icon;
+      prNose = human_nose_kx_icon;
+      prToupee = human_hair_ca_icon;
+      prLegs = human_legs_b_rsc;
+      prRight_arm = human_rightarm_b_rsc;
+      prLeft_arm = human_leftarm_b_rsc;
+      vrDead_Icon = human_dead_female_icona_rsc;
+      vrDead_Legs = human_dead_female_iconb_rsc;
+      vrSound_death = human_female_sound_death;
+
+      return;
+   }
+
+    GetBaseEmpowerments()
+   {
+      return [];
+   }
+
+   SetEquipment()
+   {
+      local oEquipmentItem, iBonusModifier, oSpell;
+
+      oEquipmentItem = Create(&DiscipleRobe,#level=viLevel,#school=SS_FAREN);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+	  
+      return;
+   }
+
+   SetHair()
+   % Sets the hairdo, color.
+   {
+      local iTranslation;
+
+      prToupee = human_hair_dr_icon;
+      iTranslation = PT_GRAY_TO_PLATBLOND;
+
+      piBody_translations2 = piBody_translations2 & ~HUMAN_TRANSLATION2_HAIR_MASK;
+      piBody_translations2 = piBody_translations2
+                                 | (iTranslation * HUMAN_TRANSLATION2_HAIR_MUL);
+
+      return;
+   }
+
+   GetBaseSize()
+   {
+      % Half demon base size
+      return 150;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

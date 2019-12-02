@@ -1,0 +1,188 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+SpiritWolf is Monster
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   spwolf_koc_name_rsc = "ka'ixleocwolf"
+   spwolf_name_rsc = "spirit wolf"
+   spwolf_icon_rsc = wolf.bgf
+   spwolf_desc_rsc = \
+      "A spiritual wolf stands before you. "
+
+   spwolf_dead_icon_rsc = wolfX.bgf
+   spwolf_dead_name_rsc = "dead wolf"
+
+   spwolf_sound_hit = wolf_atkh.wav
+   spwolf_sound_miss = wolf_atkh.wav
+   spwolf_sound_death = wolf_dth.wav
+   spwolf_sound_aware = wolf_awr.wav
+
+classvars:
+
+   vrKocName = spwolf_koc_name_rsc
+   vrName = spwolf_name_rsc
+   vrIcon = spwolf_icon_rsc
+   vrDesc = spwolf_desc_rsc
+   vrDead_icon = spwolf_dead_icon_rsc
+   vrDead_name = spwolf_dead_name_rsc
+
+   viSpeed = SPEED_FAST
+   viAttack_type = ATCK_WEAP_SLASH
+   viDefault_behavior = AI_FIGHT_KARMA_AGGRESSIVE | AI_MOVE_FLEE_FRIGHTENERS
+
+   viDifficulty = 8
+   % Attack range of 192, or 3 row/col.
+   viAttackRange = 192
+   viKarma = -45
+   viCashmin = 175
+   viCashmax = 375
+   vrSound_hit = spwolf_sound_hit
+   vrSound_miss = spwolf_sound_miss
+   vrSound_aware = spwolf_sound_aware
+   vrSound_death = spwolf_sound_death
+
+   viBaseSize = 100
+
+properties:
+
+   viTreasure_type = TID_ZOMBIE
+   viLevel = 125
+
+   piAnimation = ANIM_NONE
+
+   vbSummoned = FALSE
+
+   ptRevertControl = $
+   
+   piDrawFx = DRAWFX_TRANSLUCENT_25
+
+messages:
+
+   Constructed()
+   {
+      plResistances = [ [-ATCK_SPELL_UNHOLY, 50 ],
+                        [-ATCK_SPELL_HOLY, -25 ] ];
+
+      plCreatureTypes = Cons(CREATURE_TYPE_ANIMAL,plCreatureTypes);
+      plCreatureTypes = Cons(CREATURE_TYPE_MUNDANE,plCreatureTypes);
+      propagate;
+   }
+
+   MonsterAttack(what = $)
+   {
+      piAnimation = ANIM_ATTACK;
+      Send(poOwner,@SomethingChanged,#what=self);
+      piAnimation = ANIM_NONE;
+      
+      return;
+   }
+
+   SendLookAnimation()
+   {
+      AddPacket(1,ANIMATE_CYCLE);
+      AddPacket(4,200,2,2,2,3);
+
+      return;
+   }
+
+   SendMoveAnimation()
+   {
+      % Cycle through "walking" bitmaps (groups 2-5) at 50 milliseconds per frame
+      AddPacket(1,ANIMATE_CYCLE,4,31,2,1,2,12);
+
+      return;
+   }
+
+   SendAnimation()
+   {
+      if piAnimation = ANIM_ATTACK
+      {
+	 AddPacket(1,ANIMATE_ONCE,4,28,2,13,2,18,2,1);
+	 return;
+      }
+
+      % if no body animation
+      
+      propagate;
+   }
+
+   Delete()
+   {
+      if ptRevertControl <> $
+      {
+         deleteTimer(ptRevertControl);
+         ptRevertControl = $;
+      }
+      propagate;
+   }
+   
+   CanMorphTo()
+   {
+      return false;
+   }
+   
+      SetMaster(oMaster=$)
+   {
+      if oMaster = $
+      {
+         if poMaster <> $
+         {
+            % Reflections return to owner's control, attacking the player
+            % who stole them.
+
+            if poMaster = Send(self,@GetOriginal)
+            {
+               % Don't need to do anything.
+               return;
+            }
+
+            Send(poMaster,@RemoveControlledMinion,#what=self);
+            Send(self,@TargetSwitch,#what=poMaster,#iHatred=150);
+            poMaster = Send(self,@GetOriginal);
+            % Add ourselves back to master's control list.
+            Send(poMaster,@NewControlledMinion,#minion=self);
+            Send(self,@EnterStateChase);
+
+         }
+      }
+      else
+      {
+         poMaster = oMaster;
+
+         % Break target.
+         Send(self,@EnterStateWait);
+
+         % Uncomment this if post-capture attack behavior changes.
+         %if NOT Send(SYS,@IsPKAllowed)
+         %   AND (poTarget <> $
+         %      AND IsClass(poTarget,&Player))
+         %{
+         %   % Forget our target
+         %   Send(self,@EnterStateWait);
+         %}
+      }
+
+      if poOwner <> $
+      {
+         Post(poOwner,@SomethingChanged,#what=self);
+      }
+
+      return;
+   }
+
+   
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -3936,7 +3936,8 @@ messages:
    
    RollLootMods(oMonster=$)
    {
-      local iRarity, iNumMods, iFullRareChance, iRareChance, iMagicChance, iResult;
+      local iRarity, iNumMods, iFullRareChance, iRareChance, iMagicChance, iResult,
+            iEpicRarityBoost, iRareRarityBoost, iMagicRarityBoost;
       
       if Send(self,@GetMagicModsNumber) <> 0
       {
@@ -3947,6 +3948,15 @@ messages:
       {
          % Let's make sure we really exist
          return FALSE;
+      }
+      
+      if oMonster = $
+      {
+         if IsClass(poOwner,&Monster)
+         {
+            % Let's take attributes from our owner if we're equipment
+            oMonster = poOwner;
+         }
       }
 
       if NOT IsClass(self,&Weapon)
@@ -3965,21 +3975,31 @@ messages:
 
       iRarity = Random(1,100000);
       
-      iFullRareChance = Send(SETTINGS_OBJECT,@GetEpicChance);
-      iRareChance = Send(SETTINGS_OBJECT,@GetRareChance);
-      iMagicChance = Send(SETTINGS_OBJECT,@GetMagicChance);
+      iEpicRarityBoost = 0;
+      iRareRarityBoost = 0;
+      iMagicRarityBoost = 0;
+      if oMonster <> $
+      {
+         iEpicRarityBoost = Send(oMonster,@GetEpicRarityBoost);
+         iRareRarityBoost = Send(oMonster,@GetRareRarityBoost);
+         iMagicRarityBoost = Send(oMonster,@GetMagicRarityBoost);
+      }
+      
+      iFullRareChance = Send(SETTINGS_OBJECT,@GetEpicChance) + iEpicRarityBoost;
+      iRareChance = Send(SETTINGS_OBJECT,@GetRareChance) + iRareRarityBoost;
+      iMagicChance = Send(SETTINGS_OBJECT,@GetMagicChance) + iMagicRarityBoost;
 
       if iRarity <= iFullRareChance
       {
          % Full rare
          iNumMods = 6;
       }
-      else if iRarity <= iRareChance
+      else if iRarity <= iRareChance + iFullRareChance
       {
          % Rare
          iNumMods = Random(3,5);
       }
-      else if iRarity <= iMagicChance
+      else if iRarity <= iMagicChance + iRareChance + iFullRareChance
       {
          % Magic
          iNumMods = Random(1,2);
