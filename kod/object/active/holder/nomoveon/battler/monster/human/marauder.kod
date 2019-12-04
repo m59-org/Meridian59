@@ -84,8 +84,6 @@ properties:
    ptAggroTimer = $
    
    piFailedAggroChecks = 0
-   
-   ptWallhackTimer = $
 
 messages:
 
@@ -289,11 +287,6 @@ messages:
                Send(self,@TargetSwitch,#what=each_obj,#iHatred=100);
                Send(self,@EnterStateChase,#target=each_obj,#actnow=TRUE);
                
-               if ptWallhackTimer = $
-               {
-                  CreateTimer(self,@ActivateWallhack,30000);
-               }
-               
                return TRUE;
             }
          }
@@ -413,20 +406,12 @@ messages:
          DeleteTimer(ptAggroTimer);
       }
       ptAggroTimer = $;
-      
-      if ptWallhackTimer <> $
-      {
-         DeleteTimer(ptWallhackTimer);
-      }
-      ptWallhackTimer = $;
       propagate;
    }
    
    ActivateWallhack()
    {
       local i, each_obj;
-      
-      ptWallhackTimer = $;
       
       Send(self,@SetBehaviorFlag,#flag=AI_MOVE_WALKTHROUGH_WALLS,#value=TRUE);
       
@@ -446,24 +431,12 @@ messages:
    
    DeactivateWallhack()
    {
-      if ptWallhackTimer <> $
-      {
-         DeleteTimer(ptWallhackTimer);
-      }
-      ptWallhackTimer = $;
       Send(self,@SetBehaviorFlag,#flag=AI_MOVE_WALKTHROUGH_WALLS,#value=FALSE);
       return;
    }
 
    TryAttack(what=$,stroke_obj=$)
    {
-      if ptWallhackTimer <> $
-      {
-         DeleteTimer(ptWallhackTimer);
-      }
-      ptWallhackTimer = $;
-      
-      ptWallhackTimer = CreateTimer(self,@ActivateWallhack,30000);
       
       propagate;
    }

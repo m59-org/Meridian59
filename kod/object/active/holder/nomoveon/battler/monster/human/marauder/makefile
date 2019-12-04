@@ -45,7 +45,9 @@ BOFS  = vallok.bof \
         sethbot.bof \
         shivron.bof \
         tamisc.bof \
-        worm.bof 
+        worm.bof \
+        jensen.bof \
+        sabrienna.bof
 
 
 !include $(KODDIR)\kod.mak

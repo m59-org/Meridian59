@@ -1,0 +1,236 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+MarauderJensen is Marauder
+
+% Jensen is a Shal Faren who cauterizes her foes to lower their effective max HP.
+% Cauterize is commented out below. Uncomment out to add spell to her list
+% I dont have that kod class so i just placed it there as a placeholder
+
+constants:
+
+   include blakston.khd
+
+   HUMAN_TRANSLATION2_HAIR_MASK = 0xff
+   HUMAN_TRANSLATION2_HAIR_MUL = 1
+
+   BLEED_CHANCE = 5
+	   
+resources:
+
+   MarauderJensen_name_rsc = "Jensen"
+   MarauderJensen_desc_rsc = \
+      "Jensen was a healer for the Biskalane witches during the demon trials. "
+      "She was a gentle spirit, and would even heal her foes despite the persecution. "
+      "Unfortunately, that altruism did not serve her well. She was attacked by those enemies she provided healing for. "
+      "She vowed to never trust anyone but her Coven. "
+      "Make peace with the gods! You are about to die! "
+   MarauderJensen_dead_name_rsc = "dead female body"
+
+   MarauderJensen_url = "http://wiki.openmeridian.org/index.php/Main_Page"
+   
+   Jensen_hair_bb_icon = ptbb.bgf
+
+classvars:
+
+   vrName = MarauderJensen_name_rsc
+   vrDesc = MarauderJensen_desc_rsc
+   vrDead_name = MarauderJensen_dead_name_rsc
+
+   % Jensen's a human. 
+   viMinSkinColor = 2
+   viMaxSkinColor = 2
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+   
+   viDefault_behavior = AI_MOVE_REGROUP | AI_FIGHT_SWITCHALOT | AI_FIGHT_LASHOUT | AI_FIGHT_WIZARD_KILLER | AI_FIGHT_AGGRESSIVE | AI_MOVE_OPTIMAL_RANGE
+
+   viColorTranslate1 = XLAT_TO_ORANGE     % Shirt
+   viColorTranslate2 = XLAT_TO_RED     % Pants
+
+   vcShieldClass = &DukeShield
+   
+   viFaction = FACTION_DUKE  
+
+properties:
+
+   piBaseLevel = 400
+   piBaseDifficulty = 12
+   viLevel = 400
+   viDifficulty = 12
+   
+   viKarma = 100
+
+   piMana = 120
+   piMax_Mana = 120
+   
+  
+   piGender = GENDER_FEMALE
+   
+   % What are the monster's chances to cast spells each check?
+   % Number is out of one hundred
+   piMeleeSpellChance = 65
+   piRangedSpellChance = 100
+
+   piMonsterCastDelayMinimum = 750
+
+
+   
+   piDrawFx = DRAWFX_TRANSLUCENT_50
+
+messages:
+
+
+      SetGender()
+   {
+		viGender = GENDER_FEMALE;
+         vrIcon = human_female_icon_rsc;
+         prHead = human_head_female_tattoo_3;
+         prEyes = human_eyes_kx_icon;
+         prMouth = human_mouth_mx_icon;
+         prNose = human_nose_lx_icon;
+         prToupee = human_hair_ca_icon;
+         prLegs = human_legs_b_rsc;
+         prRight_arm = human_rightarm_b_rsc;
+         prLeft_arm = human_leftarm_b_rsc;
+         vrDead_Icon = human_dead_female_icona_rsc;
+         vrDead_Legs = human_dead_female_iconb_rsc;
+         vrSound_death = human_female_sound_death;
+		 
+      return;
+   }
+
+   Constructed()
+   {
+      local i;
+
+
+      plMeleeSpellBook = [  [SID_PURGE,10,25,99],
+                         [SID_HEX_SPIRIT_SHACKLES,20,50,99],
+                         [SID_ILLUSIONARY_WOUNDS,5,80,90],
+                         [SID_REFLECTION,10,100,99]  ];
+      plRangedSpellBook = [ [SID_SUMMON_APPARITION,5,2,90],
+                         [SID_CAUTERIZE,13,45,90],
+                         [SID_DEMENT,30,55,90],
+                         [SID_HOLD,50,65,99],
+                         [SID_RING_OF_FLAMES,30,70,99],
+                         [SID_PURGE,2,80,90],
+                         [SID_BRAMBLEBLAST,30,100,99]];
+      
+      plResistances = [ [-ATCK_SPELL_FIRE, -30 ],
+                         [-ATCK_SPELL_COLD, 35 ],
+                         [-ATCK_SPELL_ACID, 90],
+                         [-ATCK_SPELL_SHOCK, 50],
+                         [ATCK_WEAP_NERUDITE,-10],
+                         [ATCK_WEAP_ALL,80]];
+                        
+      psUrl = MarauderJensen_url;
+      propagate;
+   }
+
+   GetBaseEmpowerments()
+   {
+      return [[ATCK_WEAP_BLUDGEON,50],
+              [-ATCK_SPELL_HOLY,70],
+              [-ATCK_SPELL_FIRE, 40],
+              [-ATCK_SPELL_ACID, 90],
+              [-ATCK_SPELL_ILLUSION,80]];
+   }
+
+   SetEquipment()
+   {
+      local oEquipmentItem, iBonusModifier, oSpell;
+
+      oEquipmentItem = Create(&SpiritualHammer,#level=200);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      oEquipmentItem = Create(&LightDiscipleRobe,#level=200,#school=SS_SHALILLE);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+	  
+	  oEquipmentItem = Create(&Tanktop,#level=200);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      oEquipmentItem = Create(&Glove,#level=200);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      oEquipmentItem = Create(&IvyCirclet,#level=200);
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      return;
+   }
+
+   SetHair()
+   % Sets the hairdo, color.
+   {
+      local iTranslation;
+
+      prToupee = human_hair_dc_icon;
+      iTranslation = PT_GRAY_TO_BLOND;
+
+      piBody_translations2 = piBody_translations2 & ~HUMAN_TRANSLATION2_HAIR_MASK;
+      piBody_translations2 = piBody_translations2
+                                 | (iTranslation * HUMAN_TRANSLATION2_HAIR_MUL);
+
+      return;
+   }
+
+
+   SetShield()
+   {
+      local oEquipmentItem;
+
+      oEquipmentItem = Create(vcShieldClass,#color1=viShieldColor1,#color2=viShieldColor2,
+                              #shape=viShieldShape);
+      if viInsignia <> $
+      {
+         Send(oEquipmentItem,@ChangeGuildInsignia,#insignia=viInsignia);
+      }
+
+      Send(self,@AddEquipmentObject,#what=oEquipmentItem);
+
+      return;
+   }
+   
+   HitSideEffect(what = $, who = $)
+   {
+      local oSpell;
+
+      oSpell = Send(SYS,@FindSpellByNum,#num=SID_BLEED);
+      if NOT Send(what,@IsEnchanted,#what=oSpell)
+         AND Random(1,BLEED_CHANCE) = 1
+      {
+         if who <> $
+         {
+            Send(oSpell,@CastSpell,#who=who,#lTargets=[what],#iSpellPower=99);
+         }
+         else
+         {
+            Send(oSpell,@DoSpell,#what=self,#oTarget=what,#iSpellPower=99);
+         }
+      }
+
+      propagate;
+   }
+   
+   
+   GetBaseSize()
+   {
+      return 200;
+   }
+   
+   GetOptimalRange()
+   "For most monsters, this is the attack range."
+   {
+      return 3 * FINENESS;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
