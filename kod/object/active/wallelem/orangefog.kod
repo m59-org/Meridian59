@@ -1,0 +1,150 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+OrangeFogCloud is ActiveWallElement
+
+constants:
+
+   include blakston.khd
+
+   % Duration in milliseconds
+   POISON_DURATION = 180000
+
+   % Damage in health points * 10^-4 / second
+   POISON_LOSSRATE = 10000    
+   
+   POISON_CHANCE = 15
+
+resources:
+
+   Orange_Fog_Cloud_name_rsc = "cloying fog"
+   Orange_Fog_Cloud_icon_rsc = poisoncl.bgf
+   Orange_Fog_Cloud_desc_rsc = \
+      "Something severely poisonous lingers in the air."
+
+   Orange_Fog_Cloud_poisoned = \
+      "You suddenly feel sick as you inhale the vapors of the fog."
+
+   Orange_Fog_Cloud_poison_snd = psncough.wav
+
+   Orange_Fog_dissipates = \
+      "Some of the poison fog fades, then clears."
+   Orange_Fog_unaffected = \
+      "You hold your breath and the noxious cloud does not affect you."
+
+classvars:
+
+   vrName = Orange_Fog_Cloud_name_rsc
+   vrIcon = Orange_Fog_Cloud_icon_rsc
+   vrDesc = Orange_Fog_Cloud_desc_rsc
+
+   viObject_flags = OF_NOEXAMINE
+
+   vrDissipateMessage = Orange_Fog_dissipates
+   vrUnaffectedMessage = Orange_Fog_unaffected
+
+properties:
+
+   piDrawFx = DRAWFX_INVISIBLE
+
+   piOdds = 0
+
+messages:
+   
+   Constructor(Caster = $, Duration = 75, Odds = 0)
+   {
+      piOdds = Odds;
+
+      propagate;
+   }
+
+   GetDuration(duration = 0)
+   {
+      local iDuration;
+
+      iDuration = Random(duration-20,duration+20);
+      iDuration = iDuration * 1000;
+      iDuration = bound(iDuration,30000,200000);
+
+      return iDuration;
+   }
+
+   DoEffect(what = $)
+   {
+      local bPoison, oSpell;
+      
+      if Random(1,100) < piOdds
+      {
+     
+         oSpell = Send(SYS,@FindSpellByNum,#num=SID_POISON);
+
+         if NOT Send(what,@IsEnchanted,#what=oSpell) or Random(1,POISON_CHANCE) = 1
+         {
+            if isClass(what,&User)
+            {
+               Send(what,@MsgSendUser,#message_rsc=Orange_Fog_Cloud_poisoned);
+               Send(what,@WaveSendUser,#wave_rsc=Orange_Fog_Cloud_poison_snd);
+            }  
+
+            Send(oSpell,@MakePoisoned,#who=what,#lossrate=POISON_LOSSRATE,
+                 #duration=POISON_DURATION);
+            Send(poOwner,@SomethingAttacked,#what=poCaster,#victim=what,
+                  #use_weapon=self,#stroke_obj=self);
+            if IsClass(poCaster,&Player)
+            {
+               Send(poCaster,@SetPlayerFlag,#flag=PFLAG_DID_DAMAGE,#value=TRUE);
+            }
+         }
+      }
+      else
+      {
+         Send(what,@MsgSendUser,#message_rsc=Orange_Fog_unaffected);
+      }
+      
+      propagate;
+   }
+
+   SendAnimation()
+   {
+      AddPacket(1,ANIMATE_CYCLE, 4,random(240,280), 2,1, 2,5);
+
+      return;
+   }
+
+   SendLightingInformation()
+   {
+      AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC));
+      % Intensity
+      if viIllusion
+      {
+         % Send less light if we're illusionary.
+         AddPacket(1,0);
+      }
+      else
+      {
+         % 5 out of 255 intensity of light
+         AddPacket(1,5);
+      }
+
+      if Send(self,@GetOwner) <> $
+         AND Send(Send(self,@GetOwner),@LightingColorOverride)
+      {
+         AddPacket(2,Send(Send(self,@GetOwner),@GetLightingColorOverride));
+         return;
+      }
+
+      % Red color
+      AddPacket(2,LIGHT_BORANGE);
+
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

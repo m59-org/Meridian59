@@ -6,7 +6,7 @@
 
 DEPEND = ..\wallelem.bof
 BOFS =  wallfire.bof wallltng.bof poisfogc.bof web.bof asburstc.bof \
-        dustcloud.bof
+        dustcloud.bof orangefog.bof
 
 
 !include $(KODDIR)\kod.mak
