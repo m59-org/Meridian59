@@ -79,6 +79,8 @@ BOFS = animate.bof \
        spellbomb.bof \
        cauterize.bof \
        summonwolf.bof \
-       summonelem.bof
+       summonelem.bof \
+       summonabomination.bof \
+       summonelephant.bof
 
 !include $(KODDIR)\kod.mak

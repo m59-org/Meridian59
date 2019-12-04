@@ -1393,6 +1393,7 @@ messages:
          AND Send(SETTINGS_OBJECT,@GetChampionSpawnsEnabled)
          AND Send(self,@GetMaster) = $
          AND NOT pbIllusion
+         AND NOT vbSummoned
       {
          iRand = Random(0,9999);
          
@@ -7406,6 +7407,7 @@ messages:
 
       % Apparitions, etc, provide no treasure
       if pbIllusion
+         OR vbSummoned
       {
          return;
       }
@@ -7984,7 +7986,7 @@ messages:
    IsIllusion()
    {
       return pbIllusion;
-   }  
+   }
 
    % TRUE if mob can have evil twin cast on it
    CanEvilTwin()
@@ -8117,6 +8119,11 @@ messages:
       }
 
       return;
+   }
+   
+   GetSummoned()
+   {
+      return vbSummoned;
    }
 
    SetSummoned(value = $)
@@ -9491,6 +9498,11 @@ messages:
             return;
          }
          Send(poOwner,@SomethingChanged,#what=self);
+      }
+      
+      if vbSummoned
+      {
+         Post(self,@Delete);
       }
       return;
    }

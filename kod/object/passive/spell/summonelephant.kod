@@ -8,7 +8,7 @@
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-SummonWolf is Spell
+SummonElephant is Spell
 
 constants:
    include blakston.khd
@@ -16,45 +16,46 @@ constants:
 resources:
 
 
-   summonwolf_name_rsc = "summon spirit wolf"
-   summonwolf_icon_rsc = iseance.bgf
-   summonwolf_desc_rsc = \
-      "Summons a loyal companion to aid you in battle. "
+   summon_elephant_name_rsc = "summon elephant"
+   summon_elephant_icon_rsc = iseance.bgf
+   summon_elephant_desc_rsc = \
+      "Summons a wild elephant under your command to aid in you battle. "
+      "Requires orc teeth to cast."
 
-   summonwolf_failed_rsc = \
-      "There is too much summoning magic focused here to summon a wolf."
+   summon_elephant_failed_rsc = \
+      "There is too much summoning magic focused here to summon an elemental."
    
-   summonwolf_limit_rsc = \
-      "You are already maintaining the maximum number of wolves."
-   wolf_failed_full_rsc = \
-      "This place is too full of monsters. The wolves refuse the call."
+   summon_elephant_limit_rsc = \
+      "You are already maintaining the maximum number of minions."
+   elephant_failed_full_rsc = \
+      "This place is too full of monsters. "
 
-   summon_wolf_too_many_rsc = \
-      "You don't have enough willpower to control a new wolf right now."
+   summon_elephant_too_many_rsc = \
+      "You don't have enough willpower to control a new minion right now."
 
-   wolf_cannot_cast_here = \
-      "You are not allowed to create a wolf here."
+   elephant_cannot_cast_here = \
+      "You are not allowed to summon an elemental here."
 
-   summonwolf_cast_rsc = "A loyal wolf appears beside you."
+   summon_elephant_cast_rsc = "An elemental forms from the residual energies amongst the room."
 
-   summonwolf_sound = rmirrimg.wav
+   summon_elephant_sound = rmirrimg.wav
 
 classvars:
 
-   vrName = summonwolf_name_rsc
-   vrIcon = summonwolf_icon_rsc
-   vrDesc = summonwolf_desc_rsc
+   vrName = summon_elephant_name_rsc
+   vrIcon = summon_elephant_icon_rsc
+   vrDesc = summon_elephant_desc_rsc
 
-   viSpell_num = SID_SUMMON_WOLF
+   viSpell_num = SID_SUMMON_ELEPHANT
    viSchool = SS_BESTIARY
-   viSpell_level = 4
+   viSpell_level = 3
    viMana = 15
    viMeditate_ratio = 30
 
    viSpellExertion = 4
    viCast_time = 0
 
-   vrSucceed_wav = summonreflection_sound
+   vrSucceed_wav = summon_elephant_sound
    
    viPrimaryStat = STAT_ID_INTELLECT
    viSecondaryStat = 0
@@ -66,8 +67,7 @@ messages:
    ResetReagents()
    {
       plReagents = $;
-      plReagents = Cons([&Firesand,2], plReagents);
-      plReagents = Cons([&UncutSeraphym,2],plReagents);
+      plReagents = Cons([&OrcTooth,2], plReagents);
 
       return;
    }
@@ -87,7 +87,7 @@ messages:
       if (Send(oRoom,@CountHoldingHowMany,#class=&monster) > 55)
          AND NOT IsClass(oRoom,&SurvivalRoom)
       {
-         Send(who,@MsgSendUser,#message_rsc=wolf_failed_full_rsc);
+         Send(who,@MsgSendUser,#message_rsc=elephant_failed_full_rsc);
 
          return FALSE;
       }
@@ -102,7 +102,7 @@ messages:
 
    CastSpell(who=$,lTargets=$,iSpellPower=1)
    {
-      local oRisen, oRoom, iRow, iCol, iFine_Row, iFine_Col;
+      local oRisen, oRoom, iRow, iCol, iFine_Row, iFine_Col, iNum;
 
       oRoom = Send(who,@GetOwner);
 
@@ -111,7 +111,46 @@ messages:
       iFine_Row = Send(who,@GetFineRow);
       iFine_Col = Send(who,@GetFineCol);
 
-      oRisen = Create(&SpiritWolf,#level=25+iSpellPower);
+      iNum = Random(1,99);
+
+      if iNum < 20
+      {
+         oRisen = Create(&Elephant);
+      }
+      else
+      {
+         if iNum < 40
+         {
+            oRisen = Create(&Elephant);
+         }
+         else
+         {
+            if iNum < 60
+            {
+               oRisen = Create(&Elephant);
+            }
+            else
+            {
+               if iNum < 75
+               {
+                  oRisen = Create(&Elephant);
+               }
+               else
+               {
+                  if iNum < 90
+                  {
+                     oRisen = Create(&Elephant);
+                  }
+                  else
+                  {
+                     oRisen = Create(&Elephant);
+                     
+                  }
+               }
+            }
+         }
+      }
+      
       Send(oRisen,@SetSummoned,#value=TRUE);
 
       if Send(who,@CanControlNewMinion,#oMonster=oRisen,#iHypotheticalHitPoints=20,#bCharming=FALSE)
@@ -128,7 +167,7 @@ messages:
       }
       else
       {
-         Send(who,@MsgSendUser,#message_rsc=summon_wolf_too_many_rsc);
+         Send(who,@MsgSendUser,#message_rsc=summon_elephant_too_many_rsc);
          Post(oRisen,@Delete);
       }
 

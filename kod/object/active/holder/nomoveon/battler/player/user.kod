@@ -648,7 +648,7 @@ properties:
    % Players can choose hexes to deliver with attacks if they are Iwodach 4, Noxious Strike
    plNoxiousStrikeChosenHexes = $
    
-   % Of the form [monster class, loyalty, health min, health max, champion status]
+   % Of the form [monster class, loyalty, health min, health max, champion status, summoned status]
    plSavedMinions = $
    
    % Are we displaying Breath? Otherwise it's vigor
@@ -1233,7 +1233,8 @@ messages:
                              Send(oMonster,@GetLoyalty),
                              Send(oMonster,@GetExactHealth),
                              Send(oMonster,@ReturnMaxHitPoints),
-                             Send(oMonster,@GetChampStatus)],plSavedMinions);
+                             Send(oMonster,@GetChampStatus),
+                             Send(oMonster,@GetSummoned)],plSavedMinions);
    % Of the form [monster class, loyalty, health min, health max, champion status]
       return;
    }
@@ -1269,6 +1270,15 @@ messages:
          Send(oMonster,@SetMaxHitPoints,#amount=Nth(lMonsterData,4));
          Send(oMonster,@SetHealth,#amount=Nth(lMonsterData,3));
          Send(oMonster,@AddLoyalty,#amount=Nth(lMonsterData,2));
+         
+         % Previous patch lists may not have this element
+         if Length(lMonsterData) > 5
+         {
+            Send(oMonster,@SetSummoned,#value=Nth(lMonsterData,6));
+         }
+
+         % Add this creature to your minion list
+         Send(self,@NewControlledMinion,#minion=oMonster);
 
          % Set initial minion behavior
          Send(oMonster,@ResetBehaviorFlags);
