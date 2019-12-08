@@ -3381,6 +3381,12 @@ messages:
    {
       Send(self,@HitSideEffect,#what=what);
       Send(self,@DoCrit,#what=what);
+      
+      if poMaster <> $
+         AND IsClass(poMaster,&Player)
+      {
+         Send(poMaster,@SetPlayerFlag,#flag=PFLAG_DID_DAMAGE,#value=TRUE);
+      }
 
       return;
    }
@@ -4673,6 +4679,11 @@ messages:
       % If we have a master, they are responsible for our kills.
       if poMaster <> $
       {
+         if IsClass(poMaster,&Player)
+         {
+            Send(poMaster,@SetPlayerFlag,#flag=PFLAG_DID_DAMAGE,#value=TRUE);
+         }
+
          if IsClass(what,&Player)
             AND IsClass(poMaster,&Player)
          {

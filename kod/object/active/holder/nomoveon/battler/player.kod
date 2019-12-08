@@ -11931,6 +11931,15 @@ messages:
       {
          propagate;
       }
+      
+      if what <> $
+         AND IsClass(what,&Monster)
+         AND Send(what,@GetMaster) <> $
+         AND IsClass(Send(what,@GetMaster),&Player)
+      {
+         % For minions, put the master in place instead.
+         what = Send(what,@GetMaster) ;
+      }
 
       % If we have death link up, give a vigor boost
       oSpellDeathLink = Send(SYS,@FindSpellByNum,#Num=SID_DEATH_LINK);
