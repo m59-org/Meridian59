@@ -6730,7 +6730,8 @@ messages:
          OR (Send(victim,@FindUsing,#class=&Token) <> $)
       {
          % Unless they're factioned.
-         if NOT Send(self,@CheckFactionAttack,#what=victim,#report=report)
+         if NOT ISClass(victim,&Monster)
+            AND NOT Send(self,@CheckFactionAttack,#what=victim,#report=report)
          {
             return FALSE;
          }
