@@ -15,9 +15,6 @@ constants:
 
    HUMAN_TRANSLATION2_HAIR_MASK = 0xff
    HUMAN_TRANSLATION2_HAIR_MUL = 1
-   
-   
-   BLEED_CHANCE = 10
 
 resources:
 
@@ -53,6 +50,10 @@ classvars:
 
    viBonusBaseTP = 900
    vbBonusXPGain = 900
+
+   % between 1 and 10000
+   viCriticalHitRate = 1000
+   vbCanCauseBleed = TRUE
    
 properties:
 
@@ -161,27 +162,6 @@ messages:
       Send(self,@AddEquipmentObject,#what=oEquipmentItem);
 
       return;
-   }
-   
-      HitSideEffect(what = $, who = $)
-   {
-      local oSpell;
-
-      oSpell = Send(SYS,@FindSpellByNum,#num=SID_BLEED);
-      if NOT Send(what,@IsEnchanted,#what=oSpell)
-         AND Random(1,BLEED_CHANCE) = 1
-      {
-         if who <> $
-         {
-            Send(oSpell,@CastSpell,#who=who,#lTargets=[what],#iSpellPower=99);
-         }
-         else
-         {
-            Send(oSpell,@DoSpell,#what=self,#oTarget=what,#iSpellPower=99);
-         }
-      }
-
-      propagate;
    }
 
    GetBaseSize()

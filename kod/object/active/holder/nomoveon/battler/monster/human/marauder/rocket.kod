@@ -20,8 +20,6 @@ constants:
 
    HUMAN_TRANSLATION2_HAIR_MASK = 0xff
    HUMAN_TRANSLATION2_HAIR_MUL = 1
-   
-   BLEED_CHANCE = 5
 
 resources:
 
@@ -58,6 +56,10 @@ classvars:
 
    viBonusBaseTP = 2000
    vbBonusXPGain = 2000
+
+   % between 1 and 10000
+   viCriticalHitRate = 500
+   vbCanCauseBleed = TRUE
 
 properties:
 
@@ -157,29 +159,6 @@ messages:
       Send(self,@AddEquipmentObject,#what=oEquipmentItem);
 
       return;
-   }
-   
-   % Rocket makes you bleed!
-   
-      HitSideEffect(what = $, who = $)
-   {
-      local oSpell;
-
-      oSpell = Send(SYS,@FindSpellByNum,#num=SID_BLEED);
-      if NOT Send(what,@IsEnchanted,#what=oSpell)
-         AND Random(1,BLEED_CHANCE) = 1
-      {
-         if who <> $
-         {
-            Send(oSpell,@CastSpell,#who=who,#lTargets=[what],#iSpellPower=80);
-         }
-         else
-         {
-            Send(oSpell,@DoSpell,#what=self,#oTarget=what,#iSpellPower=80);
-         }
-      }
-
-      propagate;
    }
 
    GetBaseSize()
