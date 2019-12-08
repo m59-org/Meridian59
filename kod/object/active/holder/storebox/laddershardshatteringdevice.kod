@@ -8,7 +8,7 @@
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-ShardFusingDevice is StorageBox
+LadderShardShatteringDevice is StorageBox
 
 constants:
 
@@ -18,59 +18,54 @@ constants:
 
 resources:
 
-   ShardFusingDevice_name_rsc = "shard fusing device"
-   ShardFusingDevice_icon_rsc = sfpsmall.bgf
+   LadderShardShatteringDevice_name_rsc = "ladder shard shattering device"
+   LadderShardShatteringDevice_icon_rsc = sspsmall.bgf
 
-   ShardFusingDevice_desc_rsc = \
-      "This peculiar artifact has the ability fuse shards together. Once employed, "
-      "the magic can only be undone with a shard shattering device."
+   LadderShardShatteringDevice_desc_rsc = \
+      "This ancient forge has the ability shatter shards apart. Once employed, "
+      "the magic can only be undone with a shard fusing device."
       "\n\nPut stacks of shards into this device to transmute them. They will immediately be returned to you transformed."
-      "\n\nMinor Shards will become Augmenting Shards."
-      "\nAugmenting Shards will become Shards of Improvement."
-      "\nShards of Improvement will become Major Shards."
-      "\nMajor Shards will become Shards of Disturbance."
-      "\nShards of Disturbance will become Shards of Disruption."
-      "\nShards of Disruption will become Draining Shards."
-      "\nDraining Shards will become Instilling Shards."
-      "\nInstilling Shards will become Shards of Empowerment."
+      "\n\nShards of Empowerment will become Instilling Shards."
+      "\nInstilling Shards will become Draining Shards."
+      "\nDraining Shards will become Shards of Disruption."
+      "\nShards of Disruption will become Shards of Disturbance."
+      "\nShards of Disturbance will become Major Shards."
+      "\nMajor Shards will become Shards of Improvement."
+      "\nShards of Improvement will become Augmenting Shards."
+      "\nAugmenting Shards will become Minor Shards."
       "\n\nBased on the quality of this guild hall's magical field, "
-      "this device fuses %i lower shards into one higher shard."
+      "this device shatters one higher shard into %i lower shards."
 
-   fusing_device_glows = \
-      "The shard fusing device glows brightly for a moment as its magics operate."
-
-   no_guild_owner_cannot_fuse = \
-      "The shard fusing device cannot do anything while unpowered. You must purchase "
-      "this guild hall to use its magics."
-
+   ladder_shattering_device_glows = \
+      "The shard shattering device glows brightly for a moment as its magics operate."
 
 classvars:
 
-   vrName = ShardFusingDevice_name_rsc
-   vrIcon = ShardFusingDevice_icon_rsc
-   vrDesc = ShardFusingDevice_desc_rsc
+   vrName = LadderShardShatteringDevice_name_rsc
+   vrIcon = LadderShardShatteringDevice_icon_rsc
+   vrDesc = LadderShardShatteringDevice_desc_rsc
 
    viBulk_hold_max = $
    viWeight_hold_max = $
 
 properties:
 
-   piInputRequired = 8
+   piOutputCreated = 2
 
 messages:
 
-   Constructor(iInputRequired=0)
+   Constructor(iOutputCreated=0)
    {
-      if iInputRequired > 0
+      if iOutputCreated > 0
       {
-         piInputRequired = iInputRequired;
+         piOutputCreated = iOutputCreated;
       }
       propagate;
    }
 
    ShowDesc()
    {
-      AddPacket(4,vrDesc, 4,piInputRequired);
+      AddPacket(4,vrDesc, 4,piOutputCreated);
 
       return;
    }
@@ -83,9 +78,7 @@ messages:
       }
       
       if poOwner = $
-         OR Send(poOwner,@GetGuildOwner) = $
       {
-         Send(who,@MsgSendUser,#message_rsc=no_guild_owner_cannot_fuse);
          return FALSE;
       }
       
@@ -111,7 +104,7 @@ messages:
 
       if Length(lItems) = 1
          AND (IsClass(First(lItems),&HeartStone)
-            OR IsClass(First(lItems),&ShardEmpowerment))
+            OR IsClass(First(lItems),&ShardImbueMinor))
       {
          return FALSE;
       }
@@ -125,7 +118,7 @@ messages:
          return FALSE;
       }
       
-      if Send(First(lItems),@GetLadderID) <> 0
+      if Send(First(lItems),@GetLadderID) = 0
       {
          return FALSE;
       }
@@ -142,7 +135,7 @@ messages:
          each_obj = Send(poOwner,@HolderExtractObject,#data=i);
          if IsClass(each_obj,&Player)
          {
-            Send(each_obj,@MsgSendUser,#message_rsc=fusing_device_glows);
+            Send(each_obj,@MsgSendUser,#message_rsc=ladder_shattering_device_glows);
          }
       }
 
@@ -156,21 +149,21 @@ messages:
                      &ShardReroll,
                      &ShardEmpowerment];
 
-      iCount = 1;
-      while iCount < Length(lShardTiers)
+      iCount = Length(lShardTiers);
+      while iCount > 1
       {
          if GetClass(what) = Nth(lShardTiers, iCount)
          {
-            while Send(what,@GetNumber) > piInputRequired
+            while Send(what,@GetNumber) > 1
             {
-               Send(what,@SubtractNumber,#number=piInputRequired);
-               Send(who,@NewHold,#what=Create(Nth(lShardTiers,iCount+1),#ladderID=Send(what,@GetLadderID)));
+               Send(what,@SubtractNumber,#number=1);
+               Send(who,@NewHold,#what=Create(Nth(lShardTiers,iCount-1),#number=piOutputCreated,#ladderID=Send(what,@GetLadderID)));
             }
 
-            if Send(what,@GetNumber) = piInputRequired
+            if Send(what,@GetNumber) = 1
             {
-               Send(what,@SubtractNumber,#number=piInputRequired);
-               Send(who,@NewHold,#what=Create(Nth(lShardTiers,iCount+1),#ladderID=Send(what,@GetLadderID)));
+               Send(what,@SubtractNumber,#number=1);
+               Send(who,@NewHold,#what=Create(Nth(lShardTiers,iCount-1),#number=piOutputCreated,#ladderID=Send(what,@GetLadderID)));
             }
             else
             {
@@ -179,7 +172,7 @@ messages:
             
             break;
          }
-         iCount++;
+         iCount--;
       }
 
       return;

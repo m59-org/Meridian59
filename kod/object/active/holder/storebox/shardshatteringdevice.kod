@@ -123,6 +123,11 @@ messages:
       {
          return FALSE;
       }
+      
+      if Send(First(lItems),@GetLadderID) <> 0
+      {
+         return FALSE;
+      }
 
       return TRUE;
    }
@@ -158,13 +163,13 @@ messages:
             while Send(what,@GetNumber) > 1
             {
                Send(what,@SubtractNumber,#number=1);
-               Send(who,@NewHold,#what=Create(Nth(lShardTiers,iCount-1),#number=piOutputCreated));
+               Send(who,@NewHold,#what=Create(Nth(lShardTiers,iCount-1),#number=piOutputCreated,#ladderID=Send(what,@GetLadderID)));
             }
 
             if Send(what,@GetNumber) = 1
             {
                Send(what,@SubtractNumber,#number=1);
-               Send(who,@NewHold,#what=Create(Nth(lShardTiers,iCount-1),#number=piOutputCreated));
+               Send(who,@NewHold,#what=Create(Nth(lShardTiers,iCount-1),#number=piOutputCreated,#ladderID=Send(what,@GetLadderID)));
             }
             else
             {

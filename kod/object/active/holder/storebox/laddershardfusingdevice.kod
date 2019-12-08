@@ -8,7 +8,7 @@
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-ShardFusingDevice is StorageBox
+LadderShardFusingDevice is StorageBox
 
 constants:
 
@@ -18,10 +18,10 @@ constants:
 
 resources:
 
-   ShardFusingDevice_name_rsc = "shard fusing device"
-   ShardFusingDevice_icon_rsc = sfpsmall.bgf
+   LadderShardFusingDevice_name_rsc = "ladder shard fusing device"
+   LadderShardFusingDevice_icon_rsc = sfpsmall.bgf
 
-   ShardFusingDevice_desc_rsc = \
+   LadderShardFusingDevice_desc_rsc = \
       "This peculiar artifact has the ability fuse shards together. Once employed, "
       "the magic can only be undone with a shard shattering device."
       "\n\nPut stacks of shards into this device to transmute them. They will immediately be returned to you transformed."
@@ -36,19 +36,15 @@ resources:
       "\n\nBased on the quality of this guild hall's magical field, "
       "this device fuses %i lower shards into one higher shard."
 
-   fusing_device_glows = \
+   ladder_fusing_device_glows = \
       "The shard fusing device glows brightly for a moment as its magics operate."
-
-   no_guild_owner_cannot_fuse = \
-      "The shard fusing device cannot do anything while unpowered. You must purchase "
-      "this guild hall to use its magics."
 
 
 classvars:
 
-   vrName = ShardFusingDevice_name_rsc
-   vrIcon = ShardFusingDevice_icon_rsc
-   vrDesc = ShardFusingDevice_desc_rsc
+   vrName = LadderShardFusingDevice_name_rsc
+   vrIcon = LadderShardFusingDevice_icon_rsc
+   vrDesc = LadderShardFusingDevice_desc_rsc
 
    viBulk_hold_max = $
    viWeight_hold_max = $
@@ -83,9 +79,7 @@ messages:
       }
       
       if poOwner = $
-         OR Send(poOwner,@GetGuildOwner) = $
       {
-         Send(who,@MsgSendUser,#message_rsc=no_guild_owner_cannot_fuse);
          return FALSE;
       }
       
@@ -125,7 +119,7 @@ messages:
          return FALSE;
       }
       
-      if Send(First(lItems),@GetLadderID) <> 0
+      if Send(First(lItems),@GetLadderID) = 0
       {
          return FALSE;
       }
@@ -142,7 +136,7 @@ messages:
          each_obj = Send(poOwner,@HolderExtractObject,#data=i);
          if IsClass(each_obj,&Player)
          {
-            Send(each_obj,@MsgSendUser,#message_rsc=fusing_device_glows);
+            Send(each_obj,@MsgSendUser,#message_rsc=ladder_fusing_device_glows);
          }
       }
 
