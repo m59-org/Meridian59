@@ -248,12 +248,12 @@ messages:
       plDesertMarauderClasses = $;
       
       plIslandMarauderClasses = $;
-      plIslandMarauderClasses = Cons([&MarauderArabella,75,3],plIslandMarauderClasses);
-      plIslandMarauderClasses = Cons([&MarauderVallok,100,3],plIslandMarauderClasses);
-      plIslandMarauderClasses = Cons([&MarauderKal,100,3],plIslandMarauderClasses);
-      plIslandMarauderClasses = Cons([&MarauderAbu,100,3],plIslandMarauderClasses);
-      plIslandMarauderClasses = Cons([&MarauderZett,100,3],plIslandMarauderClasses);
-      plIslandMarauderClasses = Cons([&MarauderNog,100,3],plIslandMarauderClasses);
+      plIslandMarauderClasses = Cons([&MarauderArabella,60,3],plIslandMarauderClasses);
+      plIslandMarauderClasses = Cons([&MarauderVallok,60,3],plIslandMarauderClasses);
+      plIslandMarauderClasses = Cons([&MarauderKal,60,3],plIslandMarauderClasses);
+      plIslandMarauderClasses = Cons([&MarauderAbu,60,3],plIslandMarauderClasses);
+      plIslandMarauderClasses = Cons([&MarauderZett,60,3],plIslandMarauderClasses);
+      plIslandMarauderClasses = Cons([&MarauderNog,60,3],plIslandMarauderClasses);
 
       
       plMainlandMarauderClasses = $;
@@ -490,11 +490,14 @@ messages:
 
       while iMarauderCount > 0
       {
-         Send(oRoom,@NewHold,#what=Create(First(Nth(lFinalList,Random(1,Length(lFinalList))))),
-                             #new_row=Nth(lChosenEntrance,1),
-                             #new_col=Nth(lChosenEntrance,2));
-         iMarauderCount--;  
-         bSpawned = TRUE;         
+         if Length(lFinalList) >= 1
+         {
+            Send(oRoom,@NewHold,#what=Create(First(Nth(lFinalList,Random(1,Length(lFinalList))))),
+                                #new_row=Nth(lChosenEntrance,1),
+                                #new_col=Nth(lChosenEntrance,2));
+            bSpawned = TRUE;       
+         }
+         iMarauderCount--;
       }
        
 %      foreach i in lEntrances
