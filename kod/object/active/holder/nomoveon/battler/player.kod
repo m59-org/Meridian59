@@ -8175,6 +8175,12 @@ messages:
          damage = Send(Send(SYS,@FindSkillByNum,#num=SKID_HEAVY_ARMS),@MasteryModifyDamage,#damage=damage);
       }
 
+      % Check for Draconian hide
+      if piPlayerRace = RACE_DRACONIAN
+      {
+         damage = (damage * 90)/100;
+      }
+
       % Check for Damage to Mana from Spirit Shackles Hex.
       if what <> $
          AND IsClass(what,&Battler)
