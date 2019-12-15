@@ -31,12 +31,9 @@ BOFS = animate.bof \
        finlrite.bof \
        flash.bof \
        forsight.bof \
-       heal.bof \
        holysymb.bof \
-       hospice.bof \
        illform.bof \
        itemench.bof \
-       majheal.bof \
        manabomb.bof \
        morph.bof \
        multicst.bof \
@@ -63,7 +60,6 @@ BOFS = animate.bof \
        wavespell.bof \
        creaholyshield.bof \
        convoke.bof \
-       groupheal.bof \
        stonetoflesh.bof \
        giftofspirit.bof \
        giftofvitality.bof \
@@ -77,10 +73,10 @@ BOFS = animate.bof \
        firebomb.bof \
        shockbomb.bof \
        spellbomb.bof \
-       cauterize.bof \
        summonwolf.bof \
        summonelem.bof \
        summonabomination.bof \
-       summonelephant.bof
+       summonelephant.bof \
+       healspell.bof
 
 !include $(KODDIR)\kod.mak

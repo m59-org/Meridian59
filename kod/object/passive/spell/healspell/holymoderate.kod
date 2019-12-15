@@ -1,0 +1,87 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Hospice is HealSpell
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   hospice_name_rsc = "hospice"
+   hospice_icon_rsc = ihospice.bgf
+   hospice_desc_rsc = \
+      "Rejuvenates the target of the spell with Shal'ille's healing energy. "
+      "Any bleeding will also be assuaged. "
+      "Shal'ille gives a small reward toward the karma of the mage who heals "
+      "another good soul.  "
+      "Requires two herbs to cast."
+
+   hospice_cast_rsc = \
+      "%s%s's spell rejuvenates you, restoring ~g~B%i~B~n hitpoints."
+   hospice_cast_self = \
+      "Shal'ille's holy magic rejuvenates you, restoring ~g~B%i~B~n hitpoints."
+   hospice_cast_on_other = "You heal %s%s for ~g~B%i~B~n hitpoints."
+
+classvars:
+
+   vrName = hospice_name_rsc
+   vrIcon = hospice_icon_rsc
+   vrDesc = hospice_desc_rsc
+
+   vrHealCastOnYouMsg   = hospice_cast_rsc
+   vrHealCastSelfMsg    = hospice_cast_self
+   vrHealCastOnOtherMsg = hospice_cast_on_other
+
+   viSchool = SS_SHALILLE
+   viSpell_num = SID_HOSPICE
+   viMana = 15
+   viSpell_level = 3
+   viChance_To_Increase = 20
+   viMeditate_ratio = 20
+   
+   viPrimaryStat = STAT_ID_MYSTICISM
+   viSecondaryStat = STAT_ID_KARMA
+
+   viHealAttackType = 0
+   viHealSpellType = ATCK_SPELL_HOLY
+
+   % This is 2-6 health base
+   viHealBaseMinimum = 200
+   viHealBaseMaximum = 600
+
+   % How much does each point of spellpower add?
+   % In this case, spellpower can add up to 500  (aka 100 * 5)
+   viSpellpowerHealMultiplier = 14
+   
+   % Do we affect caster's karma?
+   vbAffectCasterKarma = TRUE
+   viKarmaSwingFactor = 2
+   
+   % Do we remove all bleeds? 
+   vbRemoveAllBleeds = TRUE
+
+properties:
+
+messages:
+
+   ResetReagents()
+   {
+      % separate message so can change, then set from admin mode
+
+      plReagents = $;
+      plReagents = Cons([&Herbs,2],plReagents);
+
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

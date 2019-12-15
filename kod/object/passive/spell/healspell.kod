@@ -8,22 +8,13 @@
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Heal is Spell
+HealSpell is Spell
 
 constants:
+
    include blakston.khd
 
 resources:
-
-   include heal.lkod
-
-   heal_name_rsc = "minor heal"
-   heal_icon_rsc = iheal.bgf
-   heal_desc_rsc = \
-      "The compassionate power of Shal'ille heals the wounds of the caster "
-      "or another person.  Is particularly potent on those protected by "
-      "guardian angels.  Shal'ille gives a small reward toward the karma "
-      "of the mage who heals another good soul.  "
 
    heal_harm_rsc = \
       "%s%s's corrupted spell harms you for ~r~B%i~B~n hitpoints!"
@@ -39,78 +30,100 @@ resources:
       "~g~B%i~B~n hitpoints."
    heal_cast_on_other = "You heal %s%s for ~g~B%i~B~n hitpoints."
    heal_unnecessary_rsc = "%s%s is perfectly healthy."
-
-   heal_spell_intro = \
-      "Shal'ille Lv. 1: Bestows the healing touch of Shal'ille, restoring "
-      "points of health."
+   
+   cannot_attack_with_heal = \
+      "If you were you to heal %s%s under their current afflictions, they would be harmed instead, and you can't attack them right now!"
 
 classvars:
 
-   vrName = heal_name_rsc
-   vrIcon = heal_icon_rsc
-   vrDesc = heal_desc_rsc
-
-   vrSpell_intro = heal_spell_intro
-
-   viSpell_num = SID_MINOR_HEAL
-   viSchool = SS_SHALILLE
-   viSpell_level = 1
-   viMana = 9
-
-   viMeditate_ratio = 10
+   vrHealCastOnYouMsg   = heal_cast_rsc
+   vrHealCastSelfMsg    = heal_cast_self
+   vrHealCastOnOtherMsg = heal_cast_on_other
 
    viFlash = FLASH_GOOD
-   
-   viPrimaryStat = STAT_ID_MYSTICISM
-   viSecondaryStat = STAT_ID_KARMA
 
    viHealAttackType = 0
-   viHealSpellType = ATCK_SPELL_HOLY
+   viHealSpellType = 0
+
+   vbSingleTargetHeal = TRUE
+
+   % This is 1-5 health base
+   viHealBaseMinimum = 100
+   viHealBaseMaximum = 500
+
+   % How much does each point of spellpower add?
+   % In this case, spellpower can add up to 500  (aka 100 * 5)
+   viSpellpowerHealMultiplier = 5
+   
+   % Do we affect caster's karma?
+   vbAffectCasterKarma = FALSE
+   viKarmaSwingFactor = 0
+   
+   % Do we remove all bleeds? 
+   vbRemoveAllBleeds = FALSE
+
+   % Do we lower max health equal to half total healing?
+   vbCauterizeEffect = FALSE
 
 properties:
 
 messages:
 
-   ResetReagents()
-   {
-      % separate message so can change, then set from admin mode
-
-      plReagents = $;
-
-      return;
-   }
-
    GetNumSpellTargets()
    {
-      return 1;
+      if vbSingleTargetHeal
+      {
+         return 1;
+      }
+      return 0;
    }
 
    CanPayCosts(who = $, lTargets = $)
    {
-      local target, i;
+      local target, i, iHeal;
 
       % Can cast spell if the 1 target item is a user
-      if Length(lTargets) <> 1
+      if vbSingleTargetHeal
       {
-         return FALSE;
-      }
+         if Length(lTargets) <> 1
+         {
+            return FALSE;
+         }
 
-      target = First(lTargets);
-      if NOT IsClass(target,&User)
-      {
-         Send(who,@MsgSendUser,#message_rsc=spell_bad_target,
-               #parm1=vrName,#parm2=Send(target,@GetDef),
-               #parm3=Send(target,@GetName));
+         target = First(lTargets);
+         if NOT IsClass(target,&Battler)
+         {
+            return FALSE;
+         }
 
-         return FALSE;
-      }
+         % Let's use a test heal to see if Hexes on the target reverse it.
+         iHeal = 100;
+         foreach i in Send(target,@GetEnchantmentsByClass,#enchClass=&Hex)
+         {
+            iHeal = Send(Nth(i,2),@ModifyHeal,#amount=iHeal,#state=Nth(i,3));
+         }
+         
+         if iHeal < 0
+         {
+            % This is an attack now.
+            if NOT Send(who,@AllowPlayerAttack,#victim=target)
+            {
+               Send(who,@MsgSendUser,#message_rsc=cannot_attack_with_heal,
+                     #parm1=Send(target,@GetDef),#parm2=Send(target,@GetName));
 
-      if Send(target,@GetHealth) >= Send(target,@GetMaxHealth)
-      {
-         Send(who,@MsgSendUser,#message_rsc=heal_unnecessary_rsc,
-               #parm1=Send(target,@GetDef),#parm2=Send(target,@GetName));
+               return FALSE;
+            }
+         }
+         else
+         {
+            if Send(target,@GetHealth) >= Send(target,@GetMaxHealth)
+            {
+               Send(who,@MsgSendUser,#message_rsc=heal_unnecessary_rsc,
+                     #parm1=Send(target,@GetCapDef),#parm2=Send(target,@GetName));
 
-         return FALSE;
+               return FALSE;
+            }
+         }
       }
 
       propagate;
@@ -118,12 +131,16 @@ messages:
 
    CastSpell(who = $, lTargets = $, iSpellPower=0)
    {
-      local iHeal, oTarget, i, oRoom, iResult, lCasterEmpowerments, iEmpowermentPercentage;
+      local iHeal, oTarget, i, oRoom, iResult, lCasterEmpowerments, iEmpowermentPercentage, iNumBleeds;
 
+      if NOT vbSingleTargetHeal
+      {
+         propagate;
+      }
+      
       oTarget = First(lTargets);
 
-      iHeal = Random(100,500) + ((iSpellPower + 1)*5) + (10000*5);
-      iHeal = Bound(iHeal,0,1000);
+      iHeal = Random(viHealBaseMinimum,viHealBaseMaximum) + ((iSpellPower + 1)*viSpellpowerHealMultiplier);
       
       lCasterEmpowerments = Send(who,@GetCurrentEmpowerments);
       iEmpowermentPercentage = 0;
@@ -150,6 +167,12 @@ messages:
             }
          }
       }
+      
+      if iEmpowermentPercentage <= 0
+      {
+         % These are heals, let's ignore negative empowerments.
+         iEmpowermentPercentage = 0;
+      }
       iHeal = (iHeal * (100+iEmpowermentPercentage))/100;
       
       foreach i in Send(oTarget,@GetEnchantmentsByClass,#enchClass=&Hex)
@@ -163,7 +186,8 @@ messages:
          iResult = 0;
          iResult = Send(oTarget,@AssessDamage,#what=who,
                                 #damage=-iHeal,
-                                #aspell=ATCK_SPELL_ALL+ATCK_SPELL_HOLY,
+                                #atype=viHealAttackType,
+                                #aspell=viHealSpellType,
                                 #precision=TRUE);
 
          if iResult = $
@@ -198,30 +222,43 @@ messages:
       }
       else
       {
-         % A little boost for casting on newbies, even if you're the newbie!
-         if NOT Send(oTarget,@CheckPlayerFlag,#flag=PFLAG_PKILL_ENABLE)
-         {
-            iHeal = iHeal + random(200,500);
-         }
          iHeal = Send(oTarget,@GainHealthNormal,#amount=iHeal,#precision=TRUE);
+
+         if vbRemoveAllBleeds
+         {
+            Send(oTarget,@RemoveEnchantmentClass,#class=&Bleed);
+         }
+         
+         if vbCauterizeEffect
+         {
+            Send(oTarget,@AssessDamage,#what=who,
+                             #damage=iHeal/2,
+                             #atype=0,
+                             #aspell=ATCK_SPELL_DRAIN,
+                             #precision=TRUE,
+                             #bSecondary=TRUE);
+         }
       }
 
       if who <> oTarget
       {
-         Send(who,@MsgSendUser,#message_rsc=heal_cast_on_other,
+         Send(who,@MsgSendUser,#message_rsc=vrHealCastOnOtherMsg,
                #parm1=Send(oTarget,@GetDef),#parm2=Send(oTarget,@GetName),
                #parm3=iHeal/100);
 
-         Send(oTarget,@MsgSendUser,#message_rsc=heal_cast_rsc,
+         Send(oTarget,@MsgSendUser,#message_rsc=vrHealCastOnYouMsg,
                #parm1=Send(who,@GetCapDef),#parm2=Send(who,@GetName),
                #parm3=iHeal/100);
 
-         % Give them a little boost if they help someone of higher Karma.
-         if Send(who,@GetKarma) < Send(oTarget,@GetKarma)
+         if vbAffectCasterKarma
          {
-            Send(who,@AddKarma,#amount = Send(who,@CalculateKarmaChangeFromAct,
-                  #karma_doer=Send(who,@GetKarma),#karma_act=Send(oTarget,@GetKarma),
-                  #Swing_factor = 1));
+            % Give them a little boost if they help someone of higher Karma.
+            if Send(who,@GetKarma) < Send(oTarget,@GetKarma)
+            {
+               Send(who,@AddKarma,#amount = Send(who,@CalculateKarmaChangeFromAct,
+                     #karma_doer=Send(who,@GetKarma),#karma_act=Send(oTarget,@GetKarma),
+                     #Swing_factor = viKarmaSwingFactor));
+            }
          }
          
          oRoom = Send(oTarget,@GetOwner);
@@ -239,7 +276,7 @@ messages:
       }
       else
       {
-         Send(who,@MsgSendUser,#message_rsc=heal_cast_self,#parm1=iHeal/100);
+         Send(who,@MsgSendUser,#message_rsc=vrHealCastSelfMsg,#parm1=iHeal/100);
          
          oRoom = Send(oTarget,@GetOwner);
          % Notify room we healed someone.

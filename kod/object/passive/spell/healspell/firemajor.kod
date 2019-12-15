@@ -1,0 +1,94 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Cauterize is HealSpell
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   cauterize_name_rsc = "cauterize"
+   cauterize_icon_rsc = imajheal.bgf
+   cauterize_desc_rsc = \
+      "Faren's fire ignites the flame of life in his most fierce "
+      "disciples when they need it most. By burning one's own "
+      "wounds, the caster of this desperate magic can heal "
+      "significantly and stop all bleeding, but at a great cost. "
+      "Masters of Faren may also cauterize the wounds of others, "
+      "though such an act is not always intended as aid. "
+      "Requires red mushrooms and elderberries to cast."
+
+   cauterize_harm_rsc = \
+      "%s%s's corrupted cauterization harms you for ~r~B%i~B~n hitpoints!"
+   cauterize_harm_self_rsc = \
+      "Your corrupted cauterization harms you for ~r~B%i~B~n hitpoints!"
+   cauterize_harm_other_rsc = \
+      "Your corrupted cauterization harms %s%s for ~r~B%i~B~n hitpoints!"
+
+   cauterize_cast_rsc = \
+      "%s%s's spell cauterizes your wounds, "
+      "restoring ~g~B%i~B~n hitpoints."
+   cauterize_cast_self = \
+      "Faren's fire cauterizes your wounds, "
+      "restoring ~g~B%i~B~n hitpoints."
+   cauterize_cast_on_other = "You cauterize %s%s for ~g~B%i~B~n hitpoints."
+
+classvars:
+
+   vrName = cauterize_name_rsc
+   vrIcon = cauterize_icon_rsc
+   vrDesc = cauterize_desc_rsc
+
+   vrHealCastOnYouMsg   = cauterize_cast_rsc
+   vrHealCastSelfMsg    = cauterize_cast_self
+   vrHealCastOnOtherMsg = cauterize_cast_on_other
+
+   viSpell_num = SID_CAUTERIZE
+   viMana = 27
+   viSchool = SS_FAREN
+   viSpell_level = 3
+   viMeditate_ratio = 30
+   viChance_To_Increase = 15
+
+   viFlash = FLASH_BAD
+   
+   viPrimaryStat = STAT_ID_MYSTICISM
+   viSecondaryStat = 0
+
+   viHealAttackType = 0
+   viHealSpellType = ATCK_SPELL_FIRE
+
+   % This is 4-12 health base
+   viHealBaseMinimum = 400
+   viHealBaseMaximum = 1200
+
+   % How much does each point of spellpower add?
+   viSpellpowerHealMultiplier = 28
+   
+   % Do we remove all bleeds? 
+   vbRemoveAllBleeds = TRUE
+
+properties:
+
+messages:
+
+   ResetReagents()
+   {
+      plReagents = $;
+      plReagents = Cons([&RedMushroom,2],plReagents);
+      plReagents = Cons([&ElderBerry,2],plReagents);
+
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
