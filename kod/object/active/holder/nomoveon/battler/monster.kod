@@ -2737,6 +2737,12 @@ messages:
          {
             return FALSE;
          }
+         
+         % Don't attack things being charmed.
+         if Send(what,@GetStatusEffect,#type=STATUS_CHARMED)
+         {
+            return FALSE;
+         }
 
          % Is the caster bad to start with? This is for flavor text.
          bWasBad = (Send(poMaster,@CheckPlayerFlag,#flag=PFLAG_OUTLAW)
