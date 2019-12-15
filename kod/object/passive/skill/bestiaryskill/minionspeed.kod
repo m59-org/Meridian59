@@ -1,0 +1,57 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+MinionSpeedBoost is BestiarySkill
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   taskmaster_name_rsc = "taskmaster"
+   taskmaster_desc_rsc = \
+      "Through the application of careful discipline, "
+      "a novice bestiary mage can hasten his "
+      "minions to speeds on par with adventurers."
+
+classvars:
+
+   vrName = taskmaster_name_rsc
+   vrDesc = taskmaster_desc_rsc
+
+   viSchool = SS_BESTIARY
+
+   viPrimaryStat = STAT_ID_INTELLECT
+   viSecondaryStat = 0
+
+   viSkill_num = SKID_MINION_SPEED_BOOST
+   viSkill_level = 1
+   viMeditate_ratio = 10
+   viChance_to_Increase = 2
+
+properties:
+
+messages:
+
+   ModifyMinionSpeed(who=$,iMoveSpeed=0)
+   {
+      local iAbility, iIntellect;
+      
+      iIntellect = Send(self,@GetRequisiteStat,#who=who);
+      iAbility = Send(who,@GetSkillAbility,#skill_num=viSkill_num);
+
+      Send(self,@ImproveAbility,#who=who);
+
+      return Bound(iMoveSpeed + iIntellect/10 + (iAbility+1)/5,iMoveSpeed,40);
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
