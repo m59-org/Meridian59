@@ -142,39 +142,6 @@ messages:
 
       iHeal = Random(viHealBaseMinimum,viHealBaseMaximum) + ((iSpellPower + 1)*viSpellpowerHealMultiplier);
       
-      lCasterEmpowerments = Send(who,@GetCurrentEmpowerments);
-      iEmpowermentPercentage = 0;
-      foreach i in lCasterEmpowerments
-      {
-         if Nth(i,1) > 0
-         {
-            % Weapon empowerment.
-            if viHealAttackType & Nth(i,1)
-               OR (viHealAttackType <> 0
-                  AND (ATCK_WEAP_ALL & -Nth(i,1)))
-            {
-               iEmpowermentPercentage = iEmpowermentPercentage + Nth(i,2);
-            }
-         }
-         else
-         {
-            % Spell empowerment.
-            if viHealSpellType & -Nth(i,1)
-               OR (viHealSpellType <> 0
-                  AND (ATCK_SPELL_ALL & -Nth(i,1)))
-            {
-               iEmpowermentPercentage = iEmpowermentPercentage + Nth(i,2);
-            }
-         }
-      }
-      
-      if iEmpowermentPercentage <= 0
-      {
-         % These are heals, let's ignore negative empowerments.
-         iEmpowermentPercentage = 0;
-      }
-      iHeal = (iHeal * (100+iEmpowermentPercentage))/100;
-      
       foreach i in Send(oTarget,@GetEnchantmentsByClass,#enchClass=&Hex)
       {
          iHeal = Send(Nth(i,2),@ModifyHeal,#amount=iHeal,#state=Nth(i,3));
@@ -222,7 +189,47 @@ messages:
       }
       else
       {
-         iHeal = Send(oTarget,@GainHealthNormal,#amount=iHeal,#precision=TRUE);
+         lCasterEmpowerments = Send(who,@GetCurrentEmpowerments);
+         iEmpowermentPercentage = 0;
+         foreach i in lCasterEmpowerments
+         {
+            if Nth(i,1) > 0
+            {
+               % Weapon empowerment.
+               if viHealAttackType & Nth(i,1)
+                  OR (viHealAttackType <> 0
+                     AND (ATCK_WEAP_ALL & -Nth(i,1)))
+               {
+                  iEmpowermentPercentage = iEmpowermentPercentage + Nth(i,2);
+               }
+            }
+            else
+            {
+               % Spell empowerment.
+               if viHealSpellType & -Nth(i,1)
+                  OR (viHealSpellType <> 0
+                     AND (ATCK_SPELL_ALL & -Nth(i,1)))
+               {
+                  iEmpowermentPercentage = iEmpowermentPercentage + Nth(i,2);
+               }
+            }
+         }
+      
+         if iEmpowermentPercentage <= 0
+         {
+            % These are heals, let's ignore negative empowerments.
+            iEmpowermentPercentage = 0;
+         }
+         iHeal = (iHeal * (100+iEmpowermentPercentage))/100;
+      
+         if IsClass(oTarget,@Player)
+         {
+            iHeal = Send(oTarget,@GainHealthNormal,#amount=iHeal,#precision=TRUE);
+         }
+         else
+         {
+            iHeal = Send(oTarget,@GainHealthNormalAndReportGained,#amount=iHeal,#precision=TRUE);
+         }
 
          if vbRemoveAllBleeds
          {
