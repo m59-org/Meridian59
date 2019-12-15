@@ -222,7 +222,7 @@ messages:
          }
          iHeal = (iHeal * (100+iEmpowermentPercentage))/100;
       
-         if IsClass(oTarget,@Player)
+         if IsClass(oTarget,&Player)
          {
             iHeal = Send(oTarget,@GainHealthNormal,#amount=iHeal,#precision=TRUE);
          }
@@ -251,11 +251,11 @@ messages:
       {
          Send(who,@MsgSendUser,#message_rsc=vrHealCastOnOtherMsg,
                #parm1=Send(oTarget,@GetDef),#parm2=Send(oTarget,@GetName),
-               #parm3=iHeal/100);
+               #parm3=iHeal/(100+(vbCauterizeEffect*100)));
 
          Send(oTarget,@MsgSendUser,#message_rsc=vrHealCastOnYouMsg,
                #parm1=Send(who,@GetCapDef),#parm2=Send(who,@GetName),
-               #parm3=iHeal/100);
+               #parm3=iHeal/(100+(vbCauterizeEffect*100)));
 
          if vbAffectCasterKarma
          {
@@ -278,18 +278,18 @@ messages:
          % Notify room we healed someone.
          if oRoom <> $
          {
-            Send(oRoom,@PlayerHealedSomeone,#caster=who,#oTarget=oTarget,#iHealAmount=iHeal/100);
+            Send(oRoom,@PlayerHealedSomeone,#caster=who,#oTarget=oTarget,#iHealAmount=iHeal/(100+(vbCauterizeEffect*100)));
          }
       }
       else
       {
-         Send(who,@MsgSendUser,#message_rsc=vrHealCastSelfMsg,#parm1=iHeal/100);
+         Send(who,@MsgSendUser,#message_rsc=vrHealCastSelfMsg,#parm1=iHeal/(100+(vbCauterizeEffect*100)));
          
          oRoom = Send(oTarget,@GetOwner);
          % Notify room we healed someone.
          if oRoom <> $
          {
-            Send(oRoom,@PlayerHealedSomeone,#caster=who,#oTarget=oTarget,#iHealAmount=iHeal/100);
+            Send(oRoom,@PlayerHealedSomeone,#caster=who,#oTarget=oTarget,#iHealAmount=iHeal/(100+(vbCauterizeEffect*100)));
          }
       }
 

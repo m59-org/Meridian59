@@ -8141,70 +8141,72 @@ messages:
          }
       }
 
-      if (IsClass(what,&Battler)
-         OR IsClass(what,&AlchemyBomb))
-         AND Send(SETTINGS_OBJECT,@GetEmpowermentsEnabled)
-         AND NOT bSecondary
+      if NOT bSecondary
       {
-         % Empowerments e.g. 6% increased acid dam
-         iEmpowermentPercentage = 0;
-         foreach i in Send(what,@GetCurrentEmpowerments)
+         if (IsClass(what,&Battler)
+            OR IsClass(what,&AlchemyBomb))
+            AND Send(SETTINGS_OBJECT,@GetEmpowermentsEnabled)
          {
-            if Nth(i,1) > 0
+            % Empowerments e.g. 6% increased acid dam
+            iEmpowermentPercentage = 0;
+            foreach i in Send(what,@GetCurrentEmpowerments)
             {
-               % Weapon empowerment.
-               if atype & Nth(i,1)
+               if Nth(i,1) > 0
                {
-                  iEmpowermentPercentage = iEmpowermentPercentage + Nth(i,2);
+                  % Weapon empowerment.
+                  if atype & Nth(i,1)
+                  {
+                     iEmpowermentPercentage = iEmpowermentPercentage + Nth(i,2);
+                  }
+               }
+               else
+               {
+                  % Spell empowerment.
+                  if aspell & -Nth(i,1)
+                  {
+                     iEmpowermentPercentage = iEmpowermentPercentage + Nth(i,2);
+                  }
                }
             }
-            else
+            damage = (damage * (100+iEmpowermentPercentage))/100;
+         }
+      
+         % Check for Heavy Arms mastery.
+         if Send(self,@HasMasteredThisSkill,#num=SKID_HEAVY_ARMS)
+            AND poStance <> $
+            AND IsClass(poStance,&HeavyArms)
+         {
+            damage = Send(Send(SYS,@FindSkillByNum,#num=SKID_HEAVY_ARMS),@MasteryModifyDamage,#damage=damage);
+         }
+
+         % Check for Draconian hide
+         if piPlayerRace = RACE_DRACONIAN
+         {
+            damage = (damage * 90)/100;
+         }
+
+         % Check for Damage to Mana from Spirit Shackles Hex.
+         if what <> $
+            AND IsClass(what,&Battler)
+         {
+            foreach i in Send(what,@GetEnchantmentsByClass,#enchClass=&Hex)
             {
-               % Spell empowerment.
-               if aspell & -Nth(i,1)
-               {
-                  iEmpowermentPercentage = iEmpowermentPercentage + Nth(i,2);
-               }
+               damage = Send(Nth(i,2),@AttackerDealsDamageToMana,#who=self,#what=what,#state=Nth(i,3),#damage=damage);
             }
          }
-         damage = (damage * (100+iEmpowermentPercentage))/100;
-      }
-
-      % Check for Heavy Arms mastery.
-      if Send(self,@HasMasteredThisSkill,#num=SKID_HEAVY_ARMS)
-         AND poStance <> $
-         AND IsClass(poStance,&HeavyArms)
-      {
-         damage = Send(Send(SYS,@FindSkillByNum,#num=SKID_HEAVY_ARMS),@MasteryModifyDamage,#damage=damage);
-      }
-
-      % Check for Draconian hide
-      if piPlayerRace = RACE_DRACONIAN
-      {
-         damage = (damage * 90)/100;
-      }
-
-      % Check for Damage to Mana from Spirit Shackles Hex.
-      if what <> $
-         AND IsClass(what,&Battler)
-      {
-         foreach i in Send(what,@GetEnchantmentsByClass,#enchClass=&Hex)
+         % Check for Damage to Mana from Mana Shield skill.
+         if Send(self,@HasSkill,#num=SKID_MANA_SHIELD)
          {
-            damage = Send(Nth(i,2),@AttackerDealsDamageToMana,#who=self,#what=what,#state=Nth(i,3),#damage=damage);
+            if Send(Send(SYS,@FindSkillByNum,#num=SKID_MANA_SHIELD),@DoSkill,#who=self)
+            {
+               damage = Send(Send(SYS,@FindSkillByNum,#num=SKID_MANA_SHIELD),@AttackerDealsDamageToMana,#oAttacker=what,#oDefender=self,#damage=damage);
+            }
          }
-      }
-      % Check for Damage to Mana from Mana Shield skill.
-      if Send(self,@HasSkill,#num=SKID_MANA_SHIELD)
-      {
-         if Send(Send(SYS,@FindSkillByNum,#num=SKID_MANA_SHIELD),@DoSkill,#who=self)
+         if damage = 0
          {
-            damage = Send(Send(SYS,@FindSkillByNum,#num=SKID_MANA_SHIELD),@AttackerDealsDamageToMana,#oAttacker=what,#oDefender=self,#damage=damage);
+            % Spirit Shackles and Mana Shield took all the damage.
+            return 0;
          }
-      }
-      if damage = 0
-      {
-         % Spirit Shackles and Mana Shield took all the damage.
-         return 0;
       }
       
       if IsClass(what,&Player)
