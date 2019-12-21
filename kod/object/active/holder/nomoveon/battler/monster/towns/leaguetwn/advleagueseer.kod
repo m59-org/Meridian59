@@ -143,8 +143,11 @@ messages:
          {
             oSpell = Send(SYS,@FindSpellByNum,#num=Send(i,@GetSpellNum));
             if oSpell <> $
-               AND NOT Send(what,@IsEnchanted,#what=oSpell)
             {
+               if Send(what,@IsEnchanted,#what=oSpell)
+               {
+                  Send(what,@RemoveEnchantment,#what=oSpell,#report=FALSE);
+               }
                Send(oSpell,@CastSpell,#who=self,#iSpellPower=Random(60,75),#lTargets=[what],#bSeer=1);
                Send(oMoney,@SubtractNumber,#number=iPrice);
             }
