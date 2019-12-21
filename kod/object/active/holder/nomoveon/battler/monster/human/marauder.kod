@@ -302,7 +302,8 @@ messages:
 
    CreateTreasure(who = $, corpse = $,ladderID=0)
    {
-      local oTreasure, iNumber, iNumberOfReagentsDropped, lReagentClasses, oUsedItem, oItemAtt;
+      local oTreasure, iNumber, iNumberOfReagentsDropped, lReagentClasses, oUsedItem, oItemAtt, 
+            lItemClasses, iNumLoot, lShirtClasses, lPantsClasses;
 
       lReagentClasses = $;
       lReagentClasses = Cons(&DarkAngelFeather,lReagentClasses);
@@ -334,6 +335,48 @@ messages:
       lReagentClasses = Cons(&Solagh,lReagentClasses);
       lReagentClasses = Cons(&UncutSeraphym,lReagentClasses);
       
+      lItemClasses = $;
+      lItemClasses = Cons(&MysticSword,lItemClasses);
+      lItemClasses = Cons(&Scimitar,lItemClasses);
+      lItemClasses = Cons(&Axe,lItemClasses);
+      lItemClasses = Cons(&Hatchet,lItemClasses);
+      lItemClasses = Cons(&ShortSword,lItemClasses);
+      lItemClasses = Cons(&Dagger,lItemClasses);
+      lItemClasses = Cons(&Hammer,lItemClasses);
+      lItemClasses = Cons(&Mace,lItemClasses);
+      lItemClasses = Cons(&NeruditeSword,lItemClasses);
+      lItemClasses = Cons(&BanditScimitar,lItemClasses);
+      lItemClasses = Cons(&BattleBow,lItemClasses);
+      lItemClasses = Cons(&Longbow,lItemClasses);
+      lItemClasses = Cons(&CasterMace,lItemClasses);
+      lItemClasses = Cons(&Flail,lItemClasses);
+      lItemClasses = Cons(&Maul,lItemClasses);
+      lItemClasses = Cons(&DiscipleRobe,lItemClasses);
+      lItemClasses = Cons(&LightDiscipleRobe,lItemClasses);
+      lItemClasses = Cons(&PlateArmor,lItemClasses);
+      lItemClasses = Cons(&NeruditeArmor,lItemClasses);
+      lItemClasses = Cons(&ChainArmor,lItemClasses);
+      lItemClasses = Cons(&LeatherArmor,lItemClasses);
+      lItemClasses = Cons(&ScaleArmor,lItemClasses);
+      lItemClasses = Cons(&SimpleHelm,lItemClasses);
+      lItemClasses = Cons(&SpikedHelm,lItemClasses);
+      lItemClasses = Cons(&Circlet,lItemClasses);
+      lItemClasses = Cons(&IvyCirclet,lItemClasses);
+      lItemClasses = Cons(&KnightHelm,lItemClasses);
+      lItemClasses = Cons(&RunedHelm,lItemClasses);
+      
+      lShirtClasses = $;
+      lShirtClasses = Cons(&Shirt,lShirtClasses);
+      lShirtClasses = Cons(&Tanktop,lShirtClasses);
+      
+      lPantsClasses = $;
+      lPantsClasses = Cons(&Skirt,lPantsClasses);
+      lPantsClasses = Cons(&PantsA,lPantsClasses);
+      lPantsClasses = Cons(&PantsB,lPantsClasses);
+      lPantsClasses = Cons(&PantsC,lPantsClasses);
+      lPantsClasses = Cons(&PantsD,lPantsClasses);
+      lPantsClasses = Cons(&ShortSkirt,lPantsClasses);
+      
       iNumberOfReagentsDropped = Random(10,30);
       
       while iNumberOfReagentsDropped > 0
@@ -353,6 +396,68 @@ messages:
             Send(oTreasure,@Delete);
          }
          iNumberOfReagentsDropped--;
+      }
+
+      iNumLoot = Random(2,7);
+      
+      while iNumLoot > 0
+      {
+         oTreasure = Create(Nth(lItemClasses,Random(1,Length(lItemClasses))),#corpse=corpse,#ladderID=1,#level=Bound(viLevel,20,240));
+         Post(oTreasure,@RollLootMods,#oMonster=self);
+
+         if Send(poOwner,@ReqNewHold,#what=oTreasure,#new_row=piRow,#new_col=piCol)
+         {
+            Send(poOwner,@NewHold,#what=oTreasure,
+                  #new_row=piRow,#new_col=piCol,
+                  #fine_row=piFine_row,#fine_col=piFine_col);
+         }
+         else
+         {
+            Send(oTreasure,@Delete);
+         }
+         iNumLoot--;
+      }
+
+      iNumLoot = 1;
+      
+      while iNumLoot > 0
+      {
+         oTreasure = Create(Nth(lShirtClasses,Random(1,Length(lShirtClasses))),#corpse=corpse,#ladderID=1,#level=Bound(viLevel,20,240));
+         Post(oTreasure,@RollLootMods,#oMonster=self);
+         Send(oTreasure,@Randomize);
+
+         if Send(poOwner,@ReqNewHold,#what=oTreasure,#new_row=piRow,#new_col=piCol)
+         {
+            Send(poOwner,@NewHold,#what=oTreasure,
+                  #new_row=piRow,#new_col=piCol,
+                  #fine_row=piFine_row,#fine_col=piFine_col);
+         }
+         else
+         {
+            Send(oTreasure,@Delete);
+         }
+         iNumLoot--;
+      }
+
+      iNumLoot = 1;
+      
+      while iNumLoot > 0
+      {
+         oTreasure = Create(Nth(lPantsClasses,Random(1,Length(lPantsClasses))),#corpse=corpse,#ladderID=1,#level=Bound(viLevel,20,240));
+         Post(oTreasure,@RollLootMods,#oMonster=self);
+         Send(oTreasure,@Randomize);
+
+         if Send(poOwner,@ReqNewHold,#what=oTreasure,#new_row=piRow,#new_col=piCol)
+         {
+            Send(poOwner,@NewHold,#what=oTreasure,
+                  #new_row=piRow,#new_col=piCol,
+                  #fine_row=piFine_row,#fine_col=piFine_col);
+         }
+         else
+         {
+            Send(oTreasure,@Delete);
+         }
+         iNumLoot--;
       }
 
       oTreasure = Create(&Money,#corpse=corpse,#ladderID=1);
