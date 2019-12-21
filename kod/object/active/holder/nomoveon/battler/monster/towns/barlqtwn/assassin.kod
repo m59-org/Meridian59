@@ -30,6 +30,8 @@ resources:
    assassin_desc_rsc = \
       "There is a malevolent, otherworldly quality to this man.  He clings to "
       "the shadows of this vile place, a servant to some dark power."
+      "\n\nA friend to criminals and outlaws, he will certainly pass along "
+      "any harsh words, such as 'I could take on those Marauders no problem.'"
 
    assassin_eyes_rsc = asseyes.bgf
 
@@ -88,6 +90,9 @@ resources:
    assassin_start_game = "start game"
    assassin_accept_mode = "accept mode"
    
+   taunt_marauders = "I could take on those Marauders no problem."
+   taunted_marauders = "~IHeh. I'll let them know you said so."
+   
 classvars:
 
    vrName = assassin_name_rsc
@@ -132,6 +137,15 @@ messages:
       if NOT IsClass(what,&User)
       {
          propagate;
+      }
+
+      % Beta test check:  during a beta test, a player can say 'goodbye angel'
+      % to get rid of his guardian angel.
+      if StringContain(string, taunt_marauders)
+      {
+         Send(self,@SayToOne,#target=what,#message_rsc=taunted_marauders);
+         Send(what,@SetMarauderAntagonist,#value=TRUE);
+         return;
       }
 
       % Beta test check:  during a beta test, a player can say 'goodbye angel'
@@ -365,7 +379,8 @@ messages:
    {
       plFor_sale = [
          [ 
-            Create(&Dagger)
+            Create(&Dagger),
+            Create(&ThrowingDagger,#number=4)
          ],
          $,
          [ 

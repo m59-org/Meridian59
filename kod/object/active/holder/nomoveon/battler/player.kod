@@ -1123,6 +1123,9 @@ resources:
       "Your senses thrill with victory. You have acquired %i wisdom from %s!"
    kill_wisdom_lose = \
       "You failed miserably, and lost %i wisdom to %s."
+   
+   Marauders_leave_you_alone = \
+      "~BAfter laughing at your death, the Marauders lose interest in you."
 
 classvars:
 
@@ -1513,6 +1516,9 @@ properties:
 
    % Is the person engaged in backup stat changing?
    pbClearedStatsRecently = FALSE
+   
+   % Do marauders hate this person?
+   pbMarauderAntagonist = FALSE
 
 messages:
 
@@ -12981,6 +12987,8 @@ messages:
       Send(self,@ClearAllStatusEffects);
       
       Send(self,@ClearBombs);
+      
+      Send(self,@SetMarauderAntagonist,#value=FALSE);
 
       % If this player has created any evil twins, delete them.
       if plEvilTwins <> $
@@ -21598,6 +21606,22 @@ messages:
          }
       }
       return 0;
+   }
+   
+   GetMarauderAntagonist()
+   {
+      return pbMarauderAntagonist;
+   }
+   
+   SetMarauderAntagonist(value=FALSE)
+   {
+      if pbMarauderAntagonist = TRUE
+         AND value = FALSE
+      {
+         Send(self,@MsgSendUser,#message_rsc=Marauders_leave_you_alone);
+      }
+      pbMarauderAntagonist = value;
+      return;
    }
 
 end

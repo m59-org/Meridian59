@@ -346,7 +346,14 @@ messages:
    
    CheckForMarauderSpawnOnKill(who=$)
    {
-      if Random(1,piMarauderOnKillSpawnChanceOutOf) = 1
+      if Send(who,@GetMarauderAntagonist)
+      {
+         if Random(1,(piMarauderOnKillSpawnChanceOutOf/3)) = 1
+         {
+            Post(self,@SpawnMarauders,#who=who);
+         }
+      }
+      else if Random(1,piMarauderOnKillSpawnChanceOutOf) = 1
       {
          Post(self,@SpawnMarauders,#who=who);
       }
@@ -355,6 +362,13 @@ messages:
    
    CheckForMaruderSpawnOnZone(who=$)
    {
+      if Send(who,@GetMarauderAntagonist)
+      {
+         if Random(1,(piMarauderOnZoneSpawnChanceOutOf/3)) = 1
+         {
+            Post(self,@SpawnMarauders,#who=who);
+         }
+      }
       if Random(1,piMarauderOnZoneSpawnChanceOutOf) = 1
       {
          Send(self,@SpawnMarauders,#who=who);
@@ -414,6 +428,12 @@ messages:
       iHealth = Send(who,@GetBaseMaxHealth);
       iMarauderCount = iHealth/50;
       lChosenEntrance = Nth(lEntrances,Random(1,Length(lEntrances)));
+      
+      if Send(who,@GetMarauderAntagonist)
+      {
+         iHealth = 500;
+         iEnlightenments = 20;
+      }
       
       lFinalList = $;
       foreach i in plMarionToSeafarersMarauderClasses
