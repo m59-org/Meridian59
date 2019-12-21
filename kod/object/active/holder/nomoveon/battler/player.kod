@@ -21580,6 +21580,25 @@ messages:
       }
       return 0;
    }
+   
+   GetBookPowerBonus(oSpell=$)
+   {
+      local i;
+      if Send(self,@IsUsingA,#class=&Book)
+      {
+         foreach i in Send(self,@GetPlayerUsing)
+         {
+            if IsClass(i,&Book)
+            {
+               if StringContain(Send(i,@GetInscription),Send(oSpell,@GetDesc))
+               {
+                  return 10;
+               }
+            }
+         }
+      }
+      return 0;
+   }
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

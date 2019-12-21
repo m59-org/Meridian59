@@ -2779,12 +2779,26 @@ messages:
          iPrimaryBonus = Send(who,@GetInstrumentLevel);
          iSecondaryBonus = Send(who,@GetBaseMaxHealth)/12;
       }
+      
+      if viSchool = SKS_ALCHEMY
+      {
+         % Alchemy is a school of mystic powers. Higher mana is better.
+         iPrimaryBonus = Send(who,@GetMaxManaWithoutReservedPenalties)/10;
+         iSecondaryBonus = Send(who,@GetBookPowerBonus,#oSpell=self);
+      }
+      
+      if viSchool = SS_BESTIARY
+      {
+         % Bestiary is a school of biology and vital will to make things happen.
+         iPrimaryBonus = Send(who,@GetVigorRestThreshold)/5;
+      }
 
       iPowerBonus = Send(Send(SYS,@GetParliament),@GetFactionSpellPowerBonus,
                          #who=who,#theSpell=self);
 
       % Bind the bonuses to reasonable values.
       if viSchool <> SS_JALA
+         AND viSchool <> SS_BESTIARY
       {
          iPrimaryBonus = bound(iPrimaryBonus,0,30);
       }
