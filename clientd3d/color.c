@@ -421,21 +421,44 @@ HBRUSH DialogCtlColor(HWND hwnd, HDC hdc, HWND hwndChild, int type)
 */
 WORD GetItemListColor(HWND hwnd, int type, int flags)
 {
-	if ((flags != NULL) && (GetItemFlags(flags) == (OF_ITEM_NAME_BGREEN| OF_GETTABLE)))
+	if ((flags != NULL) && (GetItemFlags(flags) == (OF_ITEM_NAME_BGREEN | OF_GETTABLE)))
 		return COLOR_ITEM_NAME_BGREEN;
+	if ((flags != NULL) && (GetItemFlags(flags) == (OF_ITEM_MAGIC | OF_ITEM_NAME_BGREEN | OF_GETTABLE)))
+		return COLOR_ITEM_NAME_BGREEN;
+   
 	if ((flags != NULL) && (GetItemFlags(flags) == (OF_ITEM_NAME_CYAN | OF_GETTABLE)))
 		return COLOR_ITEM_NAME_CYAN;
+	if ((flags != NULL) && (GetItemFlags(flags) == (OF_ITEM_MAGIC | OF_ITEM_NAME_CYAN | OF_GETTABLE)))
+		return COLOR_ITEM_NAME_CYAN;
+   
 	if ((flags != NULL) && (GetItemFlags(flags) == (OF_ITEM_NAME_YELLOW | OF_GETTABLE)))
 		return COLOR_ITEM_NAME_YELLOW;
+	if ((flags != NULL) && (GetItemFlags(flags) == (OF_ITEM_MAGIC | OF_ITEM_NAME_YELLOW | OF_GETTABLE)))
+		return COLOR_ITEM_NAME_YELLOW;
+   
 	if ((flags != NULL) && (GetItemFlags(flags) == (OF_ITEM_NAME_ORANGE | OF_GETTABLE)))
 		return COLOR_ITEM_NAME_ORANGE;
+	if ((flags != NULL) && (GetItemFlags(flags) == (OF_ITEM_MAGIC | OF_ITEM_NAME_ORANGE | OF_GETTABLE)))
+		return COLOR_ITEM_NAME_ORANGE;
+   
 	if ((flags != NULL) && (GetItemFlags(flags) == (OF_ITEM_NAME_PURPLE | OF_GETTABLE)))
 		return COLOR_ITEM_NAME_PURPLE;
+	if ((flags != NULL) && (GetItemFlags(flags) == (OF_ITEM_MAGIC | OF_ITEM_NAME_PURPLE | OF_GETTABLE)))
+		return COLOR_ITEM_NAME_PURPLE;
+   
 	if ((flags != NULL) && (GetItemFlags(flags) == (OF_ITEM_NAME_RED | OF_GETTABLE)))
 		return COLOR_ITEM_NAME_RED;
+	if ((flags != NULL) && (GetItemFlags(flags) == (OF_ITEM_MAGIC | OF_ITEM_NAME_RED | OF_GETTABLE)))
+		return COLOR_ITEM_NAME_RED;
+   
 	if ((flags != NULL) && (GetItemFlags(flags) == (OF_ITEM_NAME_DGREEN | OF_GETTABLE)))
 		return COLOR_ITEM_NAME_DGREEN;
+	if ((flags != NULL) && (GetItemFlags(flags) == (OF_ITEM_MAGIC | OF_ITEM_NAME_DGREEN | OF_GETTABLE)))
+		return COLOR_ITEM_NAME_DGREEN;
+   
 	if ((flags != NULL) && (GetItemFlags(flags) == (OF_ITEM_NAME_GREY | OF_GETTABLE)))
+		return COLOR_ITEM_NAME_GREY;
+	if ((flags != NULL) && (GetItemFlags(flags) == (OF_ITEM_MAGIC | OF_ITEM_NAME_GREY | OF_GETTABLE)))
 		return COLOR_ITEM_NAME_GREY;
    
    

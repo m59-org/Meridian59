@@ -3361,19 +3361,39 @@ messages:
       return  (iRow_diff * iRow_diff + iCol_diff * iCol_diff);
    }
 
+   EvaluateMagicFlag()
+   {
+      local i, iNum, oItemAtt;
+      
+      foreach i in plItem_attributes
+      {
+         iNum = Send(self,@GetNumFromCompound,#compound=First(i));
+         oItemAtt = Send(SYS,@FindItemAttByNum,#num=iNum);
+         
+         if Send(oItemAtt,@IsMagicalEffect)
+         {
+            viObject_flags = viObject_flags | OF_ITEM_MAGIC;
+            return;
+         }
+      }
+      
+      if plEnchantmentMods <> $
+      {
+         viObject_flags = viObject_flags | OF_ITEM_MAGIC;
+      }
+
+      return;
+   }
+
    AddMagicFlag()
    {
-      % Deprecated.
-%      if viObject_flags <> (OF_GETTABLE | OF_ITEM_MAGIC)
-%      {
-%         viObject_flags = viObject_flags | OF_ITEM_MAGIC;
-%      }
-%
-%      if poOwner <> $
-%         AND IsClass(poOwner,&Player)
-%      {
-%         Send(poOwner,@SomethingChanged,#what=self);
-%      }
+      viObject_flags = viObject_flags | OF_ITEM_MAGIC;
+    
+      if poOwner <> $
+         AND IsClass(poOwner,&Player)
+      {
+         Send(poOwner,@SomethingChanged,#what=self);
+      }
 
       return;
    }
@@ -3381,26 +3401,25 @@ messages:
    RemoveMagicFlag()
    {
       local i, iNum, oItemAtt;
-      % Deprecated.
-%      
-%      foreach i in plItem_attributes
-%      {
-%         iNum = Send(self,@GetNumFromCompound,#compound=First(i));
-%         oItemAtt = Send(SYS,@FindItemAttByNum,#num=iNum);
-%         
-%         if Send(oItemAtt,@IsMagicalEffect)
-%         {
-%            viObject_flags = viObject_flags | OF_ITEM_MAGIC;
-%            
-%            if poOwner <> $
-%               AND IsClass(poOwner,&Player)
-%            {
-%               Send(poOwner,@SomethingChanged,#what=self);
-%            }
-%
-%            return;
-%         }
-%      }
+      
+      foreach i in plItem_attributes
+      {
+         iNum = Send(self,@GetNumFromCompound,#compound=First(i));
+         oItemAtt = Send(SYS,@FindItemAttByNum,#num=iNum);
+         
+         if Send(oItemAtt,@IsMagicalEffect)
+         {
+            viObject_flags = viObject_flags | OF_ITEM_MAGIC;
+            
+            if poOwner <> $
+               AND IsClass(poOwner,&Player)
+            {
+               Send(poOwner,@SomethingChanged,#what=self);
+            }
+
+            return;
+         }
+      }
 
       viObject_flags = viObject_flags & ~OF_ITEM_MAGIC;
 
