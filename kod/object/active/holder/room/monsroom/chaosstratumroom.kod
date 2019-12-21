@@ -575,5 +575,34 @@ messages:
       return piTier;
    }
 
+   LastUserLeft(what = $)
+   {
+      local i;
+
+      if pbBossSpawned
+      {
+         foreach i in Send(self,@GetHolderPassive)
+         {
+            if IsClass(First(i),&Item)
+               OR IsClass(First(i),&DeadBody)
+            {
+               Send(poBaseRoom,@NewHold,#what=First(i),#new_row=Send(First(i),@GetRow),
+                                                       #new_col=Send(First(i),@GetCol),
+                                                       #fine_row=Send(First(i),@GetFineRow),
+                                                       #fine_col=Send(First(i),@GetFineCol),
+                                                       #merge=FALSE);
+            }
+         }
+      
+         pbActive = FALSE;
+         if poScryingDevice <> $
+         {
+            Send(poScryingDevice,@ChaosStratumRoomEnded);
+         }
+      }
+
+      propagate;
+   }
+
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
