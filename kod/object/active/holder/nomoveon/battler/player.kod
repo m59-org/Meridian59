@@ -1082,6 +1082,10 @@ resources:
       "%i Riija"
    schools_report_jala = \
       "%i Jala"
+   schools_report_bestiary = \
+      "%i Bestiary"
+   schools_report_shadowcraft = \
+      "%i Shadowcraft"
    schools_report_intelligence_remaining = \
       "You are intelligent enough to learn %i more levels."
    schools_report_level_one_note = \
@@ -17729,7 +17733,7 @@ messages:
    {
       local i, iLevel, iCanForget, iSchool, oSpell, oSkill,
             iShal, iQor, iKraan, iFaren, iRiija, iJala,
-            iWC, iKC, iBA, iSO, iWI, iAlch;
+            iWC, iKC, iBA, iSO, iWI, iAlch, iBesti, iShad;
       
       iShal = 0;
       iQor = 0;
@@ -17743,6 +17747,8 @@ messages:
       iSO = 0;
       iWI = 0;
       iAlch = 0;
+      iBesti = 0;
+      iShad = 0;
 
       foreach i in plSpells
       {
@@ -17826,6 +17832,16 @@ messages:
                   if iLevel > iAlch
                   {
                      iAlch = iLevel;
+                  }
+               case SS_BESTIARY:
+                  if iLevel > iBesti
+                  {
+                     iBesti = iLevel;
+                  }
+               case SKS_SHADOWCRAFT:
+                  if iLevel > iShad
+                  {
+                     iShad = iLevel;
                   }
             }
          }
@@ -17914,11 +17930,21 @@ messages:
                   {
                      iAlch = iLevel;
                   }
+               case SS_BESTIARY:
+                  if iLevel > iBesti
+                  {
+                     iBesti = iLevel;
+                  }
+               case SKS_SHADOWCRAFT:
+                  if iLevel > iShad
+                  {
+                     iShad = iLevel;
+                  }
             }
          }
       }
 
-      return [iShal, iQor, iKraan, iFaren, iRiija, iJala, iWC, iKC, iBA, iSO, iWI, iAlch];
+      return [iShal, iQor, iKraan, iFaren, iRiija, iJala, iWC, iKC, iBA, iSO, iWI, iAlch, iBesti, iShad];
    }
 
    % Designed this just like GetSpellSchoolLevels in case a skill school
@@ -21157,7 +21183,7 @@ messages:
 
    GiveSchoolsReport()
    {
-      local iShal, iQor, iWC, iKC, iBanditry, iSorcery, iWitchery, iAlchemy, iKraanan, iFaren, iRiija, iJala,
+      local iShal, iQor, iWC, iKC, iBanditry, iSorcery, iWitchery, iAlchemy, iKraanan, iFaren, iRiija, iJala, iBestiary, iShadowcraft,
             iCurrentLearnPoints, iIntRemaining, lSchoolLevels;
       
       lSchoolLevels = Send(self,@GetSchoolLevels);
@@ -21174,6 +21200,8 @@ messages:
       iSorcery = Nth(lSchoolLevels,10);
       iWitchery = Nth(lSchoolLevels,11);
       iAlchemy = Nth(lSchoolLevels,12);
+      iBestiary = Nth(lSchoolLevels,13);
+      iShadowcraft = Nth(lSchoolLevels,14);
 
       Send(self,@MsgSendUser,#message_rsc=schools_report);
       if iShal > 0
@@ -21195,6 +21223,10 @@ messages:
       if iBanditry > 0
       {
          Send(self,@MsgSendUser,#message_rsc=schools_report_banditry,#parm1=iBanditry);
+      }
+      if iShadowcraft > 0
+      {
+         Send(self,@MsgSendUser,#message_rsc=schools_report_shadowcraft,#parm1=iShadowcraft);
       }
       if iSorcery > 0
       {
@@ -21223,6 +21255,10 @@ messages:
       if iAlchemy > 0
       {
          Send(self,@MsgSendUser,#message_rsc=schools_report_alchemy,#parm1=iAlchemy);
+      }
+      if iBestiary > 0
+      {
+         Send(self,@MsgSendUser,#message_rsc=schools_report_bestiary,#parm1=iBestiary);
       }
 
       iCurrentLearnPoints = Send(self,@GetTotalLearnPoints);
