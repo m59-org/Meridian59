@@ -1,0 +1,172 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+VivifySpecimen is Spell
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+
+   vivify_specimen_name_rsc = "vivify specimen"
+   vivify_specimen_icon_rsc = iseance.bgf
+   vivify_specimen_desc_rsc = \
+      "Attempts to resurrect a preserved specimen. "
+      "Skilled vivifiers can bring a creature back to a semblance of life "
+      "without the aid of a professional monster morgue, but the process "
+      "is exhausting and costly. Requires twenty shaman blood to supply physical "
+      "energies, and one polished seraphym to provide the mystical essence necessary "
+      "for animation. Proper practices demand the oldest specimen is always the "
+      "first vivified among one's collection."
+
+   vivify_specimen_failed_rsc = \
+      "There is too much summoning magic focused here to vivify a specimen."
+   
+   vivify_specimen_limit_rsc = \
+      "You are already maintaining the maximum number of minions."
+
+   vivify_specimen_too_many_rsc = \
+      "You don't have enough willpower to control a new %s minion right now."
+
+   vivify_specimen_cast_rsc = "The spark of life returns to your new minion."
+   
+   no_specimens = "You don't have any preserved specimens!"
+
+   vivify_specimen_sound = rmirrimg.wav
+
+classvars:
+
+   vrName = vivify_specimen_name_rsc
+   vrIcon = vivify_specimen_icon_rsc
+   vrDesc = vivify_specimen_desc_rsc
+
+   viSpell_num = SID_VIVIFY_SPECIMEN
+   viSchool = SS_BESTIARY
+   viSpell_level = 6
+   viMana = 60
+   viMeditate_ratio = 70
+
+   viSpellExertion = 40
+   viCast_time = 30000
+
+   vrSucceed_wav = vivify_specimen_sound
+   
+   viPrimaryStat = STAT_ID_INTELLECT
+   viSecondaryStat = 0
+
+properties:
+
+messages:
+
+   ResetReagents()
+   {
+      plReagents = $;
+      plReagents = Cons([&ShamanBlood,20], plReagents);
+      plReagents = Cons([&PolishedSeraphym,1], plReagents);
+
+      return;
+   }
+
+   CanPayCosts(who=$)
+   {
+      local oRoom;
+
+      oRoom = Send(who,@GetOwner);
+      
+      if oRoom = $
+         OR NOT IsClass(oRoom,&Room)
+      {
+         return FALSE;
+      }
+      
+      if Send(who,@GetDeadMinionsList) = $
+      {
+         Send(who,@MsgSendUser,#message_rsc=no_specimens);
+         return FALSE;
+      }
+
+      propagate;
+   }
+
+   GetNumSpellTargets()
+   {
+      return 0;
+   }
+
+   CastSpell(who=$,lTargets=$,iSpellPower=1)
+   {
+      local oRisen, oRoom, iRow, iCol, iFine_Row, iFine_Col, iNum, lDeadMinionsList, lMonsterData;
+
+      oRoom = Send(who,@GetOwner);
+
+      iRow = Send(who,@GetRow);
+      iCol = Send(who,@GetCol);
+      iFine_Row = Send(who,@GetFineRow);
+      iFine_Col = Send(who,@GetFineCol);
+      
+      lDeadMinionsList = Send(who,@GetDeadMinionsList);
+      
+      if lDeadMinionsList = $
+      {
+         return FALSE;
+      }
+
+      lMonsterData = Last(lDeadMinionsList);
+
+      oRisen = Create(Nth(lMonsterData,1));
+      
+      if oRisen = $
+      {
+         Debug("Vivify Specimen somehow made a $ risen");
+         return FALSE;
+      }
+      
+      if NOT Send(who,@CanControlNewMinion,#oMonster=oRisen,#bCharming=FALSE)
+      {
+         Send(who,@MsgSendUser,#message_rsc=vivify_specimen_too_many_rsc,#parm1=Send(oRisen,@GetName));
+         Send(oRisen,@Delete);
+         return FALSE;
+      }
+      
+      Send(oRisen,@SetMaster,#oMaster=who);
+      Send(oRoom,@NewHold,#what=oRisen,#new_row=iRow,
+                                         #new_col=iCol,
+                                         #fine_row=iFine_Row,
+                                         #fine_col=iFine_Col);
+      Send(oRisen,@GainChampionStatus,#iType=Nth(lMonsterData,5));
+      Send(oRisen,@SetMaxHitPoints,#amount=Nth(lMonsterData,4));
+      Send(oRisen,@SetHealth,#amount=Nth(lMonsterData,3));
+      Send(oRisen,@AddLoyalty,#amount=Nth(lMonsterData,2));
+      Send(oRisen,@SetSummoned,#value=Nth(lMonsterData,6));
+
+      % Add this creature to your minion list
+      Send(who,@NewControlledMinion,#minion=oRisen);
+      Send(oRisen,@ResetBehaviorFlags);
+      Send(self,@ModifyMonsterBehavior,#mob=oRisen);
+      
+      Send(who,@RemoveFromDeadMinionsList,#lMonsterData=lMonsterData);
+
+      propagate;
+   }
+
+   ModifyMonsterBehavior(mob=$)
+   {
+      Send(mob,@SetBehaviorFlag,#flag=AI_MOVE_FOLLOW_MASTER,#value=TRUE);
+      Send(mob,@SetBehaviorFlag,#flag=AI_FIGHT_AGGRESSIVE,#value=FALSE);
+      Send(mob,@SetBehaviorFlag,#flag=AI_FIGHT_NEWBIESAFE);
+      Send(mob,@SetBehaviorFlag,#flag=AI_FIGHT_MONSTERS);
+
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

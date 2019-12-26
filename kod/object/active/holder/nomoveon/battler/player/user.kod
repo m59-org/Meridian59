@@ -650,6 +650,8 @@ properties:
    
    % Of the form [monster class, loyalty, health min, health max, champion status, summoned status]
    plSavedMinions = $
+   % Of the form [monster class, loyalty, health min, health max, champion status, summoned status]
+   plDeadMinions = $
    
    % Are we displaying Breath? Otherwise it's vigor
    pbDisplayingBreath = FALSE
@@ -1236,6 +1238,45 @@ messages:
                              Send(oMonster,@GetChampStatus),
                              Send(oMonster,@GetSummoned)],plSavedMinions);
    % Of the form [monster class, loyalty, health min, health max, champion status]
+      return;
+   }
+
+   SaveToDeadMinionsList(lMonsterData=$)
+   {
+      if lMonsterData <> $
+      {
+         plDeadMinions = Cons(lMonsterData,plDeadMinions);
+      }
+      return;
+   }
+   
+   GetDeadMinionsList()
+   {
+      return plDeadMinions;
+   }
+   
+   RemoveFromDeadMinionsList(lMonsterData=$)
+   {
+      if plDeadMinions <> $
+         AND FindListElem(plDeadMinions,lMonsterData) <> 0
+      {
+         plDeadMinions = DelListElem(plDeadMinions,lMonsterData);
+      }
+      return;
+   }
+   
+   ReportDeadMinions()
+   {
+      local lMonsterData;
+      
+      foreach lMonsterData in plDeadMinions
+      {
+         Debug(Nth(lMonsterData,1));
+         Debug(Nth(lMonsterData,2));
+         Debug(Nth(lMonsterData,3));
+         Debug(Nth(lMonsterData,4));
+         Debug(Nth(lMonsterData,5));
+      }
       return;
    }
    

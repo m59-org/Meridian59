@@ -4806,6 +4806,13 @@ messages:
 
          oBody = Send(self,@CreateDeadBody,#killer=what);
 
+         Send(oBody,@SetMonsterData,#lMonsterData=[GetClass(self),
+                             Send(self,@GetLoyalty),
+                             0,
+                             Send(self,@ReturnMaxHitPoints),
+                             Send(self,@GetChampStatus),
+                             Send(self,@GetSummoned)]);
+
          if oBody <> $
          {
             Send(poOwner,@NewHold,#what=oBody,#new_row=piRow,#new_col=piCol,
