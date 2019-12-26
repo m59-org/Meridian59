@@ -25,7 +25,7 @@ classvars:
    viSchool = SS_BESTIARY
 
    viPrimaryStat = STAT_ID_INTELLECT
-   viSecondaryStat = STAT_ID_MYSTICISM
+   viSecondaryStat = STAT_ID_MIGHT
 
 properties:
 
@@ -33,13 +33,13 @@ messages:
 
    GetMinionLimitBoost(who = $, oMonster = $, bCharming=TRUE)
    {
-      local iAbility, iIntellect, iMysticism;
+      local iAbility, iIntellect, iMight;
       
       iIntellect = Send(self,@GetRequisiteStat,#who=who);
-      iMysticism = Send(who,@GetMysticism);
+      iMight = Send(who,@GetMight);
       iAbility = Send(who,@GetSkillAbility,#skill_num=viSkill_num);
       
-      if iAbility + iIntellect/10 + iMysticism/10 >= Random(1,99)
+      if iAbility + iIntellect/10 + iMight/10 >= Random(1,99)
       {
          % Check for advancement conditions.
          if bCharming
@@ -48,7 +48,7 @@ messages:
          }
          
          % 100 is no improvement, 150 increases by fifty percent, 200 is double
-         return Bound(100 + iAbility - 19 + iIntellect/10 + iMysticism/10,100,200);         
+         return Bound(100 + iAbility - 9 + iIntellect/10 + iMight/10,100,200);         
       }
 
       return 100;
