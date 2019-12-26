@@ -19,9 +19,10 @@ resources:
    Preserve_Specimen_name_rsc = "preserve specimen"
    Preserve_Specimen_icon_rsc = ianimate.bgf
    Preserve_Specimen_desc_rsc = \
-      "Preserves the corpse of a monster so that it may be brought back to a "
+      "Preserves the corpse of a minion so that it may be brought back to a "
       "monster morgue and either be dissected for research or resurrected to "
-      "serve as a minion. "
+      "serve once more. Due to the energies involved, you may only preserve your own minions. "
+      "The souls of wild beasts and enemies usually fully depart upon death. "
       "Requires a fairy wing to cast."
 
    Preserve_Specimen_bad_target = "You can't preserve %s%s!"
@@ -32,7 +33,8 @@ resources:
    Preserve_Specimen_mob_cast_rsc = \
       "The %s's remains have been preserved."
    Preserve_Specimen_failed_rsc = "The remains are unable to be preserved."
-   Preserve_Specimen_too_many_rsc = "You are unable to control another minion."
+   Preserve_Specimen_too_many_rsc = "You already have %i specimens preserved. You cannot maintain more."
+   Preserve_Specimen_your_minions_only = "You may only preserve your own former minions."
 
    Preserve_Specimen_sound = qanimate.wav
 
@@ -58,6 +60,8 @@ classvars:
    viSecondaryStat = 0
 
 properties:
+
+   piSpecimensLimit = 10
 
 messages:
 
@@ -91,6 +95,13 @@ messages:
 
          return FALSE;
       }
+      
+      if Send(who,@GetDeadMinionsList) <> $
+         AND Length(Send(who,@GetDeadMinionsList)) >= piSpecimensLimit
+      {
+         Send(who,@MsgSendUser,#message_rsc=Preserve_Specimen_too_many_rsc,#parm1=piSpecimensLimit);
+         return FALSE;
+      }
 
       oOwner = Send(oTarget,@GetOwner);
 
@@ -98,6 +109,12 @@ messages:
       {
          Send(who,@MsgSendUser,#message_rsc=Preserve_Specimen_failed_rsc);
 
+         return FALSE;
+      }
+      
+      if Send(oTarget,@GetMasterWas) <> who
+      {
+         Send(who,@MsgSendUser,#message_rsc=Preserve_Specimen_your_minions_only);
          return FALSE;
       }
 
