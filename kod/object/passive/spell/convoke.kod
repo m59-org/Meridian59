@@ -76,12 +76,12 @@ messages:
       
       foreach i in lMinions
       {
-         Send(SYS,@UtilGoNearSquare,#what=i,
-                                    #where=Send(who,@GetOwner),
-                                    #new_row=Send(who,@GetRow),
-                                    #new_col=Send(who,@GetCol),
-                                    #fine_row=Send(who,@GetFineRow),
-                                    #fine_col=Send(who,@GetFineCol));
+         Send(Send(SYS,@FindRoomByNum,#num=RID_JAS_AB1),@NewHold,#what=i);
+         Send(Send(who,@GetOwner),@NewHold,#what=i,
+                                           #new_row=Send(who,@GetRow),
+                                           #new_col=Send(who,@GetCol),
+                                           #fine_row=Send(who,@GetFineRow),
+                                           #fine_col=Send(who,@GetFineCol));
       }
 
       propagate;
