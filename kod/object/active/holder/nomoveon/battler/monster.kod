@@ -655,6 +655,9 @@ properties:
    % Usually taken from monster's viSpeed
    piAttackSpeed = $
    piMoveSpeed = $
+   
+   % Save monster's move speed in the case of being a minion
+   piSavedMovedSpeed = 0
 
    % 6 = 4000 ms, 8 = 3000 ms, 12 = 2000 ms, 24 = 1000 ms
    piCastSpeed = 6
@@ -826,7 +829,6 @@ messages:
          piArmor = piChaosLevel/5;
       }
 
-
       if viBonusBaseTP <> 0
       {
          % for special bonuses, keep track up to five minutes.
@@ -860,6 +862,9 @@ messages:
                     SID_HEX_VULNERABILITY];
          Send(self,@CreateMeleeSpellBookIfNew,#iSID=Nth(lSpells,Random(1,Length(lSpells))),#iManaCost=Random(2,5),#iChance=100,#iSpellpower=piChaosLevel);
       }
+
+      piSavedMovedSpeed = piMoveSpeed;
+
       propagate;
    }
 
@@ -2569,7 +2574,7 @@ messages:
                Send(poOwner,@SomethingMoved,#what=self,
                      #new_row=iNew_row,#new_col=iNew_col,
                      #fine_row=iNew_finerow,#fine_col=iNew_finecol,
-                     #speed=(0x80|Send(self,@GetCurrentMoveSpeed)),#non_monsters_only=TRUE);
+                     #speed=(0x80|piMoveSpeed),#non_monsters_only=TRUE);
             }
          }
       }
@@ -3732,7 +3737,7 @@ messages:
                  #new_finerow=iFineRow,#new_finecol=iFineCol,
                  #face_target=face_target,#face_away=face_away);
 		
-            Send(poOwner,@SomethingMoved,#what=self,#speed=Send(self,@GetCurrentMoveSpeed),
+            Send(poOwner,@SomethingMoved,#what=self,#speed=piMoveSpeed,
                  #new_row=iRow,#new_col=iCol,
                  #fine_row=iFineRow,#fine_col=iFineCol,
                  #non_monsters_only=TRUE);
@@ -6727,7 +6732,7 @@ messages:
       if piMoveSpeed > 0
       {
          % see formula above  
-         iTime = 10000 / (Send(self,@GetCurrentMoveSpeed) * 4);
+         iTime = 10000 / (piMoveSpeed * 4);
 
          % finally we reduce the timer a bit (right now it's exact at ms)
          % why? the client should get a new position before the last destination
@@ -8390,6 +8395,8 @@ messages:
                   #value=FALSE);
             Send(self,@TargetSwitch,#what=poMaster,#iHatred=150);
             poMaster = $;
+            
+            piMoveSpeed = piSavedMovedSpeed;
 
             Send(self,@EnterStateChase);
          }
@@ -8400,6 +8407,14 @@ messages:
 
          % Break target.
          Send(self,@EnterStateWait);
+         
+         % Do we boost speed?
+         if IsClass(poMaster,&Player)
+            AND Send(poMaster,@HasSkill,#num=SKID_MINION_SPEED_BOOST)
+         {
+            piSavedMovedSpeed = piMoveSpeed;
+            piMoveSpeed = Send(Send(SYS,@FindSkillByNum,#num=SKID_MINION_SPEED_BOOST),@ModifyMinionSpeed,#who=poMaster,#iMoveSpeed=piMoveSpeed);
+         }
 
          % Uncomment this if post-capture attack behavior changes.
          %if NOT Send(SYS,@IsPKAllowed)
@@ -9841,17 +9856,6 @@ messages:
          return Send(poMaster,@GetLadderID);
       }
       propagate;
-   }
-   
-   GetCurrentMoveSpeed()
-   {
-      if poMaster <> $
-         AND IsClass(poMaster,&Player)
-         AND Send(poMaster,@HasSkill,#num=SKID_MINION_SPEED_BOOST)
-      {
-         return Send(Send(SYS,@FindSkillByNum,#num=SKID_MINION_SPEED_BOOST),@ModifyMinionSpeed,#who=poMaster,#iMoveSpeed=piMoveSpeed);
-      }
-      return piMoveSpeed;
    }
    
    GetLeadershipCost()
