@@ -2122,6 +2122,11 @@ messages:
       }
 
       plControlledMinions = Cons(minion,plControlledMinions);
+      
+      if IsClass(self,&Player)
+      {
+         Post(self,@DrawLeadership);
+      }
 
       return;
    }
@@ -2136,6 +2141,11 @@ messages:
          {
             plControlledMinions = DelListElem(plControlledMinions,what);
          }
+      }
+      
+      if IsClass(self,&Player)
+      {
+         Post(self,@DrawLeadership);
       }
 
       return;
@@ -2154,6 +2164,11 @@ messages:
       }
 
       plControlledMinions = $;
+      
+      if IsClass(self,&Player)
+      {
+         Post(self,@DrawLeadership);
+      }
 
       return;
    }

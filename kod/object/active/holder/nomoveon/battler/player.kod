@@ -21516,7 +21516,7 @@ messages:
       foreach oActive in plControlledMinions
       {
          if IsClass(oActive,&Monster)
-            AND Send(oActive,@GetMaster) = self
+           % AND Send(oActive,@GetMaster) = self           % This line leads to timing issues of leadership calculation. Of course we're their master.
          {
             if Send(oActive,@IsUndead)
                AND Send(self,@IsUsingA,#class=&QorCrest)
