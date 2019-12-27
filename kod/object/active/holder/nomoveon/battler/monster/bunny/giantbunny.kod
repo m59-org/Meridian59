@@ -56,6 +56,8 @@ classvars:
    viCashmax = 50000
 
    viSpellChance = 3
+   
+   viLeadershipCost = 400
 
 properties:
 
@@ -102,6 +104,12 @@ messages:
             iRow_sign, iCol_sign;
 
       ptSpawnKillerBunny = $;
+      
+      if poMaster <> $
+      {
+         % Don't generate killer bunnies for controlled easter bunny
+         return;
+      }
       
       if poOwner <> $
          AND Send(poOwner,@IsUserInRoom)

@@ -47,18 +47,40 @@ properties:
 
    piAnimation = ANIM_NONE
 
+   piMax_mana = 50
+   piMeleeSpellChance = 0
+
 messages:
 
    Constructed()
    {
+      local iNum;
+      plMeleeSpellBook = [ [SID_MANA_BOMB,5,100, Random(60,99)] ];
+      
+      iNum = Random(1,4);
+      
+      Switch(iNum)
+      {
+         case 1:
+            plAllySpellBook = [[SID_RESIST_COLD,50,100, 99]];
+            break;
+         case 2:
+            plAllySpellBook = [[SID_RESIST_ACID,50,100, 99]];
+            break;
+         case 3:
+            plAllySpellBook = [[SID_RESIST_SHOCK,50,100, 99]];
+            break;
+         case 4:
+            plAllySpellBook = [[SID_RESIST_FIRE,50,100, 99]];
+            break;
+      }
+
       if plResistances = $
       {
          plResistances = [ [-ATCK_SPELL_QUAKE, -70 ],
-                           [-ATCK_SPELL_HOLY, -20 ],
-                           [-ATCK_SPELL_UNHOLY, -20 ],
                            [-ATCK_SPELL_ALL, 50 ],
-                           [ATCK_WEAP_PIERCE, -60],
-                           [ATCK_WEAP_ALL, 50 ] ];
+                           [ATCK_WEAP_PIERCE, -5],
+                           [ATCK_WEAP_ALL, -5 ] ];
       }
 
       propagate;

@@ -1867,6 +1867,21 @@ messages:
 
       return $;
    }
+   
+   FindMonsterByClass(cClass = $)
+   {
+      local i;
+
+      foreach i in plMonsterTemplates
+      {
+         if cClass = GetClass(i)
+         {
+            return i;
+         }
+      }
+
+      return $;
+   }
 
    FindNPCByString(string = $)
    {
@@ -3789,6 +3804,8 @@ messages:
       
       Send(self,@CreateOneSpellIfNew,#num=SID_PRESERVE_SPECIMEN,#class=&PreserveSpecimen);
       Send(self,@CreateOneSpellIfNew,#num=SID_VIVIFY_SPECIMEN,#class=&VivifySpecimen);
+      
+      Send(self,@CreateOneSpellIfNew,#num=SID_STUDY_CREATURE_COMPLIANCE,#class=&StudyCreatureCompliance);
 
       % Trance may be searched for frequently, leave at end of list
       Send(self,@CreateOneSpellIfNew,#num=SID_TRANCE,#class=&Trance);

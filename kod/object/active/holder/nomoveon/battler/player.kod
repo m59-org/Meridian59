@@ -21480,6 +21480,11 @@ messages:
    {
       return pbClearedStatsRecently;
    }
+   
+   GetFreeLeadership()
+   {
+      return Bound(Send(self,@CalculateLeadershipMax,#bCharming=FALSE) - Send(self,@CalculateLeadershipUsed),0,$);
+   }
 
    CalculateLeadershipMax(oMonster=$, bCharming=TRUE)
    {

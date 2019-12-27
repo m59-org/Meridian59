@@ -73,12 +73,9 @@ BOFS = animate.bof \
        firebomb.bof \
        shockbomb.bof \
        spellbomb.bof \
-       summonwolf.bof \
-       summonelem.bof \
-       summonabomination.bof \
-       summonelephant.bof \
        healspell.bof \
        preservespecimen.bof \
-       vivifyspecimen.bof
+       vivifyspecimen.bof \
+       summonspell.bof
 
 !include $(KODDIR)\kod.mak

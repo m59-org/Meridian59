@@ -1,0 +1,174 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+StudyCreatureCompliance is BestiarySpell
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   study_creature_compliance_sound = rperappr.wav
+
+   study_creature_compliance_name_rsc = "study compliance"
+   study_creature_compliance_icon_rsc = iseance.bgf
+   study_creature_compliance_desc_rsc = \
+      "Studying a creature will allow you to determine how much leadership "
+      "is required to control it. "
+      "Requires a brown mushroom cast."
+
+   study_creature_compliance_already_enchanted = "%s%s has already been studied."
+   study_creature_compliance_caster = "%s%s becomes clearer to you."
+   study_creature_compliance_refuses = "%s%s does not become clearer to you."
+   study_creature_compliance_on = "Someone is trying to study you."
+   study_creature_compliance_off = "You are no longer being studied."
+
+   leadership_cost_is_msg = \
+      "%s%s would require %i leadership to control."
+
+classvars:
+
+   vrName = study_creature_compliance_name_rsc
+   vrIcon = study_creature_compliance_icon_rsc
+   vrDesc = study_creature_compliance_desc_rsc
+
+   vrAlreadyEnchanted = study_creature_compliance_already_enchanted
+   vrEnchantment_On = study_creature_compliance_on
+   vrEnchantment_Off = study_creature_compliance_off
+   vrSuccess = study_creature_compliance_caster
+   vrFail = study_creature_compliance_refuses
+
+   viSchool = SS_BESTIARY
+   viSpell_num = SID_STUDY_CREATURE_COMPLIANCE
+   viSpell_level = 3
+
+   viFlash = FLASH_BAD
+
+   viSpellExertion = 2
+   viMana = 2
+
+   viChance_To_Increase = 15
+   viMeditate_ratio = 10
+
+   vrSucceed_wav = study_creature_compliance_sound
+   
+   viPrimaryStat = STAT_ID_INTELLECT
+   viSecondaryStat = 0
+
+   vbIsRangedAttack = FALSE
+
+   viOutlaw = FALSE
+   viHarmful = FALSE
+
+
+properties:
+
+   piBaseDuration = 180000 % Recommended value 2000.
+   piSpellPowerModifier = 1000 % Recommended value 30.
+   piDeviation = 50 % Recommended value 10%.
+   viCast_time = 0 % Recommended value 600 (milliseconds).
+
+messages:
+
+   ResetReagents()
+   {
+      plReagents = $;
+      plReagents = Cons([&Mushroom,1],plReagents);
+
+      return;
+   }
+
+   CanPayCosts(who=$,lTargets=$,bItemCast=FALSE)
+   {
+      local oMaster, oTarget;
+
+      oTarget = First(lTargets);
+
+      if NOT IsClass(oTarget,&Monster)
+      {
+         if NOT bItemCast
+         {
+            Send(who,@MsgSendUser,#message_rsc=spell_bad_target,#parm1=vrName,
+                  #parm2=Send(oTarget,@GetDef),#parm3=Send(oTarget,@GetName));
+         }
+
+         return FALSE;
+      }
+
+      propagate;
+   }
+
+   CastSpell(who=$,wielder=$,lTargets=$,iSpellpower=0,report=TRUE,oDeflectImpact=$,bDeflectCast=FALSE)
+   {
+      local oTarget, oRoom, i;
+
+      oTarget = First(lTargets);
+
+      % Spell effects.
+      Send(self,@DoSpell,#what=who,#oTarget=oTarget,#report=report,
+            #iDuration=Send(self,@GetDuration,#iSpellPower=iSpellPower));
+
+      propagate;
+   }
+
+   DoSpell(what=$,oTarget=$,iDuration=$,report=TRUE)
+   "Holds target for duration seconds."
+   {
+      local i;
+
+      if oTarget = $
+      {
+         return FALSE;
+      }
+
+      % Check for enchantment already applied
+      if Send(oTarget,@IsEnchanted,#what=self)
+      {
+         return FALSE;
+      }
+
+      % Check for spell called with $ iDuration, apply default time if so.
+      if iDuration = $
+      {
+         iDuration = 500000;
+      }
+
+      Send(oTarget,@StartEnchantment,#what=self,#time=iDuration,#report=report,
+            #state=report);
+
+      if IsClass(oTarget,&Monster)
+      {
+         Send(what,@MsgSendUser,#message_rsc=leadership_cost_is_msg,
+                                #parm1=Send(oTarget,@GetCapDef),
+                                #parm2=Send(oTarget,@GetName),
+                                #parm3=Send(oTarget,@GetLeadershipCost));
+      }
+
+      propagate;
+   }
+
+   GetDuration(iSpellPower=0)
+   {
+      local iDuration;
+
+      iDuration = piBaseDuration + iSpellPower * piSpellPowerModifier;
+      iDuration = Random(iDuration * (100 - piDeviation) / 100,iDuration);
+
+      return iDuration;
+   }
+
+   EndEnchantment(who=$,report=TRUE,state=$)
+   {
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

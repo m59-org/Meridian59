@@ -1,0 +1,225 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+SummonSpell is Spell
+
+constants:
+   include blakston.khd
+
+resources:
+
+   summon_spell_failed_full_rsc = \
+      "This place is too full of monsters. "
+
+   summon_spell_too_many_rsc = \
+      "You don't have enough remaining leadership to control a new minion right now."
+   summon_spell_no_min_rsc = \
+      "You need %i unused leadership to control even the weakest minion this spell could summon!"
+
+   default_summon_cast_rsc = "A new minion appears, ready to fight!"
+
+   summon_abomination_sound = rmirrimg.wav
+
+classvars:
+
+   vsSuccessfulCastAnnouncementRsc = default_summon_cast_rsc
+
+   vrSucceed_wav = summon_abomination_sound
+
+   % Chances means we add X entries to an array, random selection made from array
+   vcSummonTypeOneClass = 0
+   viSummonTypeOneSpellpowerMin = 0
+   viSummonTypeOneChances = 1
+   
+   vcSummonTypeTwoClass = 0
+   viSummonTypeTwoSpellpowerMin = 0
+   viSummonTypeTwoChances = 1
+   
+   vcSummonTypeThreeClass = 0
+   viSummonTypeThreeSpellpowerMin = 0
+   viSummonTypeThreeChances = 1
+   
+   vcSummonTypeFourClass = 0
+   viSummonTypeFourSpellpowerMin = 0
+   viSummonTypeFourChances = 1
+   
+   vcSummonTypeFiveClass = 0
+   viSummonTypeFiveSpellpowerMin = 0
+   viSummonTypeFiveChances = 1
+
+properties:
+
+messages:
+
+   CanPayCosts(who=$)
+   {
+      local oRoom, iMinLeadershipCost;
+
+      oRoom = Send(who,@GetOwner);
+      
+      if oRoom = $
+         OR NOT IsClass(oRoom,&Room)
+      {
+         return FALSE;
+      }
+
+      if (Send(oRoom,@CountHoldingHowMany,#class=&monster) > 55)
+         AND NOT IsClass(oRoom,&SurvivalRoom)
+      {
+         Send(who,@MsgSendUser,#message_rsc=summon_spell_failed_full_rsc);
+
+         return FALSE;
+      }
+
+      iMinLeadershipCost = Send(Send(SYS,@FindMonsterByClass,#cClass=vcSummonTypeOneClass),@GetLeadershipCost);
+      if Send(who,@GetFreeLeadership) < iMinLeadershipCost
+      {
+         Send(who,@MsgSendUser,#message_rsc=summon_spell_no_min_rsc,#parm1=iMinLeadershipCost);
+         return FALSE;
+      }
+
+      propagate;
+   }
+
+   GetNumSpellTargets()
+   {
+      return 0;
+   }
+
+   CastSpell(who=$,lTargets=$,iSpellPower=1)
+   {
+      local oRisen, oRoom, iRow, iCol, iFine_Row, iFine_Col, iNum, iFreeLeadership, lClasses, iChances;
+
+      oRoom = Send(who,@GetOwner);
+
+      iRow = Send(who,@GetRow);
+      iCol = Send(who,@GetCol);
+      iFine_Row = Send(who,@GetFineRow);
+      iFine_Col = Send(who,@GetFineCol);
+
+      iFreeLeadership = Send(who,@GetFreeLeadership);
+
+      lClasses = $;
+
+      if vcSummonTypeOneClass <> 0
+         AND iSpellPower >= viSummonTypeOneSpellpowerMin
+         AND iFreeLeadership >= Send(Send(SYS,@FindMonsterByClass,#cClass=vcSummonTypeOneClass),@GetLeadershipCost)
+      {
+         iChances = Bound(viSummonTypeOneChances,1,100);
+         
+         while iChances > 0
+         {
+            lClasses = Cons(vcSummonTypeOneClass,lClasses);
+            iChances--;
+         }
+      }
+
+      if vcSummonTypeTwoClass <> 0
+         AND iSpellPower >= viSummonTypeTwoSpellpowerMin
+         AND iFreeLeadership >= Send(Send(SYS,@FindMonsterByClass,#cClass=vcSummonTypeTwoClass),@GetLeadershipCost)
+      {
+         iChances = Bound(viSummonTypeTwoChances,1,100);
+         
+         while iChances > 0
+         {
+            lClasses = Cons(vcSummonTypeTwoClass,lClasses);
+            iChances--;
+         }
+      }
+
+      if vcSummonTypeThreeClass <> 0
+         AND iSpellPower >= viSummonTypeThreeSpellpowerMin
+         AND iFreeLeadership >= Send(Send(SYS,@FindMonsterByClass,#cClass=vcSummonTypeThreeClass),@GetLeadershipCost)
+      {
+         iChances = Bound(viSummonTypeThreeChances,1,100);
+         
+         while iChances > 0
+         {
+            lClasses = Cons(vcSummonTypeThreeClass,lClasses);
+            iChances--;
+         }
+      }
+
+      if vcSummonTypeFourClass <> 0
+         AND iSpellPower >= viSummonTypeFourSpellpowerMin
+         AND iFreeLeadership >= Send(Send(SYS,@FindMonsterByClass,#cClass=vcSummonTypeFourClass),@GetLeadershipCost)
+      {
+         iChances = Bound(viSummonTypeFourChances,1,100);
+         
+         while iChances > 0
+         {
+            lClasses = Cons(vcSummonTypeFourClass,lClasses);
+            iChances--;
+         }
+      }
+
+      if vcSummonTypeFiveClass <> 0
+         AND iSpellPower >= viSummonTypeFiveSpellpowerMin
+         AND iFreeLeadership >= Send(Send(SYS,@FindMonsterByClass,#cClass=vcSummonTypeFiveClass),@GetLeadershipCost)
+      {
+         iChances = Bound(viSummonTypeFiveChances,1,100);
+         
+         while iChances > 0
+         {
+            lClasses = Cons(vcSummonTypeFiveClass,lClasses);
+            iChances--;
+         }
+      }
+      
+      if lClasses <> $
+      {
+         oRisen = Create(Nth(lClasses,Random(1,Length(lClasses))));
+      }
+      else
+      {
+         % Complete failure somehow.
+         oRisen = Create(&SpiderBaby);
+      }
+
+      if Send(who,@CanControlNewMinion,#oMonster=oRisen,#bCharming=FALSE)
+      {
+         Send(oRisen,@SetSummoned,#value=TRUE);
+         % Add this creature to your minion list
+         Send(who,@NewControlledMinion,#minion=oRisen);
+
+         % Set initial minion behavior
+         Send(oRisen,@ResetBehaviorFlags);
+         Send(self,@ModifyMonsterBehavior,#mob=oRisen);
+
+         % Post this due to it needing to be done after the minion is placed.
+         Post(oRisen,@SetMaster,#oMaster=who);
+      }
+      else
+      {
+         Send(who,@MsgSendUser,#message_rsc=summon_spell_too_many_rsc);
+         Post(oRisen,@Delete);
+         propagate;
+      }
+
+      % Place the minion
+      Send(oRoom,@NewHold,#what=oRisen,#new_row=iRow,#new_col=iCol,
+            #fine_row=iFine_Row,#fine_col=iFine_Col);
+      Send(who,@MsgSendUser,#message_rsc=vsSuccessfulCastAnnouncementRsc);
+
+      propagate;
+   }
+
+   ModifyMonsterBehavior(mob=$)
+   {
+      Send(mob,@SetBehaviorFlag,#flag=AI_MOVE_FOLLOW_MASTER,#value=TRUE);
+      Send(mob,@SetBehaviorFlag,#flag=AI_FIGHT_AGGRESSIVE,#value=FALSE);
+      Send(mob,@SetBehaviorFlag,#flag=AI_FIGHT_NEWBIESAFE);
+      Send(mob,@SetBehaviorFlag,#flag=AI_FIGHT_MONSTERS);
+
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

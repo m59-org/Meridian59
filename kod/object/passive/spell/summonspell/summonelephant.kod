@@ -1,0 +1,67 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+SummonElephant is SummonSpell
+
+constants:
+   include blakston.khd
+
+resources:
+
+
+   summon_elephant_name_rsc = "summon elephant"
+   summon_elephant_icon_rsc = iseance.bgf
+   summon_elephant_desc_rsc = \
+      "Summons a wild elephant under your command to aid in you battle. "
+      "The greater the power of the spell, the greater the loyalty "
+      "of the elephant. "
+      "Requires orc teeth to cast."
+
+   summon_elephant_cast_rsc = "An elephant trumpets to announce its arrival!"
+
+classvars:
+
+   vrName = summon_elephant_name_rsc
+   vrIcon = summon_elephant_icon_rsc
+   vrDesc = summon_elephant_desc_rsc
+
+   vsSuccessfulCastAnnouncementRsc = summon_elephant_cast_rsc
+
+   viSpell_num = SID_SUMMON_ELEPHANT
+   viSchool = SS_BESTIARY
+   viSpell_level = 3
+   viMana = 17
+   viMeditate_ratio = 30
+
+   viSpellExertion = 15
+   viCast_time = 6000
+   
+   viPrimaryStat = STAT_ID_INTELLECT
+   viSecondaryStat = 0
+
+   % Chances means we add X entries to an array, random selection made from array
+   vcSummonTypeOneClass = &Elephant
+   viSummonTypeOneSpellpowerMin = 0
+   viSummonTypeOneChances = 1
+
+properties:
+
+messages:
+
+   ResetReagents()
+   {
+      plReagents = $;
+      plReagents = Cons([&OrcTooth,2], plReagents);
+
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
