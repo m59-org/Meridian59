@@ -495,6 +495,9 @@ classvars:
    % Does not change gain divisors for player hp vs monster hp.
    % For example, can't keep leveling up off an orc pit boss at 100+ hp.
    vbBonusXPGain = 0
+   
+   % If 0, monster leadership cost is equal to piLevel
+   viLeadershipCost = 0
 
 properties:
 
@@ -9849,6 +9852,15 @@ messages:
          return Send(Send(SYS,@FindSkillByNum,#num=SKID_MINION_SPEED_BOOST),@ModifyMinionSpeed,#who=poMaster,#iMoveSpeed=piMoveSpeed);
       }
       return piMoveSpeed;
+   }
+   
+   GetLeadershipCost()
+   {
+      if viLeadershipCost <> 0
+      {
+         return viLeadershipCost * Send(self,@GetChampionRewardMultiplier);
+      }
+      return piLevel * Send(self,@GetChampionRewardMultiplier);
    }
 
 end
