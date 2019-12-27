@@ -21481,51 +21481,11 @@ messages:
       return pbClearedStatsRecently;
    }
 
-   CanControlNewMinion(oMonster=$, iHypotheticalHitPoints=0, bCharming=TRUE)
+   CalculateLeadershipMax(oMonster=$, bCharming=TRUE)
    {
-      local iControlledHealth, oActive, iLimit, iWillpowerBonus, iSoulDominationBonus, iMonsterHealth;
+      local iLeadership, iWillpowerBonus, iSoulDominationBonus;
       
-      iControlledHealth = 0;
-      foreach oActive in plControlledMinions
-      {
-         if IsClass(oActive,&Monster)
-            AND NOT IsClass(oActive,&Reflection)
-            AND Send(oActive,@GetMaster) = self
-         {
-            if Send(oActive,@IsUndead)
-               AND Send(self,@IsUsingA,#class=&QorCrest)
-            {
-               iControlledHealth = iControlledHealth + Send(oActive,@ReturnMaxHitPoints)/2;
-            }
-            else
-            {
-               iControlledHealth = iControlledHealth + Send(oActive,@ReturnMaxHitPoints);
-            }
-         }
-      }
-      
-      if NOT Send(oMonster,@CanBeCharmed)
-      {
-         return FALSE;
-      }
-      
-      iLimit = Send(self,@GetBaseMaxHealth);
-      
-      if iHypotheticalHitPoints > 0
-      {
-         iMonsterHealth = iHypotheticalHitPoints;
-      }
-      else
-      {
-         iMonsterHealth = Send(oMonster,@ReturnMaxHitPoints);
-      }
-
-      if Send(oMonster,@IsUndead)
-         AND Send(self,@IsUsingA,#class=&QorCrest)
-      {
-         % Qor Master can control double the undead.
-         iMonsterHealth = iMonsterHealth/2;
-      }
+      iLeadership = Bound(Send(self,@GetBaseMaxHealth),20,100);
 
       iWillpowerBonus = 0;
       if Send(self,@HasSkill,#num=SKID_WILLPOWER)
@@ -21533,7 +21493,7 @@ messages:
          iWillpowerBonus = Send(Send(SYS,@FindSkillByNum,#num=SKID_WILLPOWER),@GetMinionLimitBoost,#who=self,#oMonster=oMonster,#bCharming=bCharming);
          
          % Up to double
-         iLimit = (iLimit * iWillpowerBonus)/100;
+         iLeadership = (iLeadership * iWillpowerBonus)/100;
       }
 
       iSoulDominationBonus = 0;
@@ -21542,11 +21502,60 @@ messages:
          iSoulDominationBonus = Send(Send(SYS,@FindSkillByNum,#num=SKID_SOUL_DOMINATION),@GetMinionLimitBoost,#who=self,#oMonster=oMonster,#bCharming=bCharming);
          
          % Can double again
-         iLimit = (iLimit * iSoulDominationBonus)/100;
+         iLeadership = (iLeadership * iSoulDominationBonus)/100;
+      }
+      
+      return iLeadership;
+   }
+
+   CalculateLeadershipUsed()
+   {
+      local iControlledLeadershipCosts, oActive;
+
+      iControlledLeadershipCosts = 0;
+      foreach oActive in plControlledMinions
+      {
+         if IsClass(oActive,&Monster)
+            AND Send(oActive,@GetMaster) = self
+         {
+            if Send(oActive,@IsUndead)
+               AND Send(self,@IsUsingA,#class=&QorCrest)
+            {
+               iControlledLeadershipCosts = iControlledLeadershipCosts + Send(oActive,@GetLeadershipCost)/2;
+            }
+            else
+            {
+               iControlledLeadershipCosts = iControlledLeadershipCosts + Send(oActive,@GetLeadershipCost);
+            }
+         }
+      }
+      
+      return iControlledLeadershipCosts;
+   }
+
+   CanControlNewMinion(oMonster=$, bCharming=TRUE)
+   {
+      local iControlledLeadershipCosts, oActive, iLeadershipMax, iWillpowerBonus, iSoulDominationBonus, iMonsterLeadershipCost;
+      
+      if oMonster = $
+         OR NOT Send(oMonster,@CanBeCharmed)
+      {
+         return FALSE;
+      }
+
+      iLeadershipMax = Send(self,@CalculateLeadershipMax,#oMonster=oMonster,#bCharming=bCharming);
+      iControlledLeadershipCosts = Send(self,@CalculateLeadershipUsed);
+      iMonsterLeadershipCost = Send(oMonster,@GetLeadershipCost);
+
+      if Send(oMonster,@IsUndead)
+         AND Send(self,@IsUsingA,#class=&QorCrest)
+      {
+         % Qor Master can control double the undead.
+         iMonsterLeadershipCost = iMonsterLeadershipCost/2;
       }
 
       % Can we control the monster now with both willpower and soul domination?
-      if iControlledHealth + iMonsterHealth <= iLimit
+      if iControlledLeadershipCosts + iMonsterLeadershipCost <= iLeadershipMax
       {
          return TRUE;
       }
