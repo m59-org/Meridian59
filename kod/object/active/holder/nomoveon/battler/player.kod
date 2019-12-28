@@ -8824,6 +8824,7 @@ messages:
 
             if NOT bReflection
                AND NOT Send(what,@IsIllusion)
+               AND NOT IsClass(what,&Marauder)
             {
                Send(self,@AddKarma,#amount=Send(self,@CalculateKarmaChangeFromKill,
                      #karma_killer=Send(self,@GetKarma),
@@ -8913,6 +8914,7 @@ messages:
       if IsClass(what,&Monster)
          AND NOT bReflection
          AND NOT Send(what,@IsIllusion)
+         AND NOT IsClass(what,&Marauder)
       {
          Send(self,@AddKarma,#amount=Send(self,@CalculateKarmaChangeFromKill,
                #karma_victim=Send(what,@GetKarma),
@@ -10722,13 +10724,6 @@ messages:
       % Death link prevents karma changes
       oSpellDeathLink = Send(SYS,@FindSpellByNum,#num=SID_DEATH_LINK);
       if Send(self,@IsEnchanted,#what=oSpellDeathLink)
-      {
-         return 0;
-      }
-      
-      % Let players kill marauders.
-      if karma_victim <> $
-         AND IsClass(karma_victim,&Marauder)
       {
          return 0;
       }
