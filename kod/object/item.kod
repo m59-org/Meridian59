@@ -182,6 +182,9 @@ resources:
    item_in_ladder_desc = \
       "This item is part of the ladder competition."
 
+   not_enough_leadership_to_remove = \
+      "You can't remove %s%s! You would be short %i Leadership due to your current minions!"
+
 classvars:
 
    vrItem_broken = item_broken_battle
@@ -1694,6 +1697,23 @@ messages:
          oItemAtt = Send(SYS,@FindItemAttByNum,#num=iNum);
          if NOT Send(oItemAtt,@ItemReqUnuse,#oItem=self,#oPlayer=poOwner)
          {
+            return FALSE;
+         }
+      }
+      
+      % Check to make sure our leadership costs work
+      if poOwner <> $
+         AND IsClass(poOwner,&Player)
+      {
+         if Send(poOwner,@GetFreeLeadership) < Send(self,@GetLeadershipBonus)
+         {
+            if Send(poOwner,@IsLoggedOn)
+            {
+               Send(poOwner,@MsgSendUser,#message_rsc=not_enough_leadership_to_remove,
+                                         #parm1=Send(self,@GetDef),
+                                         #parm2=Send(self,@GetName),
+                                         #parm3=Send(self,@GetLeadershipBonus)-Send(poOwner,@GetFreeLeadership));
+            }
             return FALSE;
          }
       }
