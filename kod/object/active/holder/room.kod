@@ -1557,6 +1557,15 @@ messages:
             Send(SYS,@AddChestToList,#oChest=first(i));
             Send(first(i),@EnterLimbo);
          }
+
+         if IsClass(first(i),&Monster)
+            AND Send(first(i),@GetMaster) <> $
+            AND IsClass(Send(first(i),@GetMaster),&Battler)
+            AND Send(Send(first(i),@GetMaster),@GetOwner) <> self
+         {
+            % Boot minions to wherever the master is!
+            Send(Send(first(i),@GetMaster),@ConvokeMinion,#oMinion=first(i));
+         }
       }
 
       Send(self,@ClearShieldWallers);

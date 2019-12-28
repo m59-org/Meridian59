@@ -201,6 +201,7 @@ messages:
       {
          each_obj = Send(self,@HolderExtractObject,#data=i);
          if NOT IsClass(each_obj,&LavaFrog) % don't delete lava frog
+            AND Send(each_obj,@GetMaster) = $   % don't delete minions
          {
             Send(each_obj,@Delete);
          }

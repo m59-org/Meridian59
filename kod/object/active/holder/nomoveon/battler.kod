@@ -3586,6 +3586,48 @@ messages:
       }
       return;
    }
+   
+   ConvokeMinions()
+   {
+      local i;
+
+      if poOwner <> $
+      {
+         foreach i in plControlledMinions
+         {
+            Send(Send(SYS,@FindRoomByNum,#num=RID_JAS_AB1),@NewHold,#what=i);
+            Send(poOwner,@NewHold,#what=i,
+                                  #new_row=Send(self,@GetRow),
+                                  #new_col=Send(self,@GetCol),
+                                  #fine_row=Send(self,@GetFineRow),
+                                  #fine_col=Send(self,@GetFineCol));
+         }
+      }
+      return;
+   }
+   
+   ConvokeMinion(oMinion=$)
+   {
+      local i;
+
+      if poOwner <> $
+      {
+         foreach i in plControlledMinions
+         {
+            if i = oMinion
+            {
+               Send(Send(SYS,@FindRoomByNum,#num=RID_JAS_AB1),@NewHold,#what=i);
+               Send(poOwner,@NewHold,#what=i,
+                                     #new_row=Send(self,@GetRow),
+                                     #new_col=Send(self,@GetCol),
+                                     #fine_row=Send(self,@GetFineRow),
+                                     #fine_col=Send(self,@GetFineCol));
+               return TRUE;
+            }
+         }
+      }
+      return FALSE;
+   }
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

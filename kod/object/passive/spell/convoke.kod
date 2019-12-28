@@ -65,24 +65,7 @@ messages:
 
    CastSpell(who=$, lTargets = $, iSpellPower=0)
    {
-      local oRoom, i, iChance, lMinions;
-      
-      oRoom = Send(who,@GetOwner);
-
-      % What's our chance to affect the target?
-      iChance = 33 + ((2 * iSpellPower) / 3);
-      
-      lMinions = Send(who,@GetControlledMinions);
-      
-      foreach i in lMinions
-      {
-         Send(Send(SYS,@FindRoomByNum,#num=RID_JAS_AB1),@NewHold,#what=i);
-         Send(Send(who,@GetOwner),@NewHold,#what=i,
-                                           #new_row=Send(who,@GetRow),
-                                           #new_col=Send(who,@GetCol),
-                                           #fine_row=Send(who,@GetFineRow),
-                                           #fine_col=Send(who,@GetFineCol));
-      }
+      Send(who,@ConvokeMinions);
 
       propagate;
    }

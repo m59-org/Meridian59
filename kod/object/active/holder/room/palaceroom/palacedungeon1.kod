@@ -247,6 +247,7 @@ messages:
          each_obj = Send(self,@HolderExtractObject,#data=i);
          if IsClass(each_obj,&Monster)
             AND NOT IsClass(each_obj,&Towns) % don't delete NPCs
+            AND Send(each_obj,@GetMaster) = $   % don't delete minions
          {
             Send(each_obj,@Delete);
          }
