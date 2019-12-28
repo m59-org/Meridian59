@@ -89,18 +89,18 @@ messages:
 
    PeriodicEffect(lEnchanted=$,iPower=0,iRange=0,source=$)
    {
-      local oUser, lState;
+      local oBattler, lState;
       
-      foreach oUser in lEnchanted
+      foreach oBattler in lEnchanted
       {
-         if IsClass(oUser,&User)
+         if IsClass(oBattler,&Battler)
          {
-            lState = Send(oUser,@GetMostPowerfulRadiusEnchantmentState,#byClass=&Restorate);
+            lState = Send(oBattler,@GetMostPowerfulRadiusEnchantmentState,#byClass=&Restorate);
             
             if Nth(lState,3) = source
                AND Nth(lState,2) = iPower
             {
-               Send(oUser,@GainHealthNormal,#amount=1);
+               Send(oBattler,@GainHealthNormal,#amount=1);
             }
          }
       }

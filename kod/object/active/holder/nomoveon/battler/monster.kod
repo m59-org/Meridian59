@@ -2791,7 +2791,7 @@ messages:
    GetOffense(what = $, stroke_obj=$)
    "This returns the battler's ability to-hit.  Ranges from 1 to 2000."
    {
-      local iAttack, i, iChilled;
+      local iAttack, i, iChilled, lRadiusState;
 
       if piOffense = $
       {
@@ -2805,6 +2805,30 @@ messages:
       else
       {
          iAttack = piOffense;
+      }
+
+      if Send(self,@IsAffectedByRadiusEnchantment,#byClass=&Dispassion)
+      {
+         lRadiusState = Send(self,@GetMostPowerfulRadiusEnchantmentState,
+               #byClass=&Dispassion);
+         iAttack = Send(Nth(lRadiusState,1),@ModifyHitRoll,#who=self,#what=what,
+                        #hit_roll=iAttack,#lRadiusState=lRadiusState);
+      }
+
+      if Send(self,@IsAffectedByRadiusEnchantment,#byClass=&Mirth)
+      {
+         lRadiusState = Send(self,@GetMostPowerfulRadiusEnchantmentState,
+               #byClass=&Mirth);
+         iAttack = Send(Nth(lRadiusState,1),@ModifyHitRoll,#who=self,#what=what,
+                        #hit_roll=iAttack,#lRadiusState=lRadiusState);
+      }
+
+      if Send(self,@IsAffectedByRadiusEnchantment,#byClass=&Melancholy)
+      {
+         lRadiusState = Send(self,@GetMostPowerfulRadiusEnchantmentState,
+               #byClass=&Melancholy);
+         iAttack = Send(Nth(lRadiusState,1),@ModifyHitRoll,#who=self,#what=what,
+                        #hit_roll=iAttack,#lRadiusState=lRadiusState);
       }
 
       % Check for Chilled status effect, which lowers offense.
@@ -2904,7 +2928,7 @@ messages:
    % This returns the damage done to target "what"
    GetDamage(what = $, stroke_obj=$)
    {
-      local iDamage, iMultiplier, i;
+      local iDamage, iMultiplier, i, lRadiusState, iDamageBonus;
 
       iMultiplier = 1;
 
@@ -2924,6 +2948,32 @@ messages:
          }
          iDamage = random(piMinDamage*100,piMaxDamage*100);
       }
+
+      iDamageBonus = 0;
+      if Send(self,@IsAffectedByRadiusEnchantment,#byClass=&Melancholy)
+      {
+         lRadiusState = Send(self,@GetMostPowerfulRadiusEnchantmentState,
+                              #byClass=&Melancholy);
+         iDamageBonus = Send(Nth(lRadiusState,1),@ModifyDamage,#who=self,
+                              #what=what,#damage=iDamageBonus,#lRadiusState=lRadiusState);
+      }
+      if Send(self,@IsAffectedByRadiusEnchantment,#byClass=&Mirth)
+      {
+         lRadiusState = Send(self,@GetMostPowerfulRadiusEnchantmentState,
+                              #byClass=&Mirth);
+         iDamageBonus = Send(Nth(lRadiusState,1),@ModifyDamage,#who=self,
+                              #what=what,#damage=iDamageBonus,#lRadiusState=lRadiusState);
+      }
+      if Send(self,@IsAffectedByRadiusEnchantment,#byClass=&Dispassion)
+      {
+         lRadiusState = Send(self,@GetMostPowerfulRadiusEnchantmentState,
+                              #byClass=&Dispassion);
+         iDamageBonus = Send(Nth(lRadiusState,1),@ModifyDamage,#who=self,
+                              #what=what,#damage=iDamageBonus,#lRadiusState=lRadiusState);
+      }
+      
+      % Convert damage bonus to high precision.
+      iDamage = iDamage + iDamageBonus*100;
 
       if piEnch_flags & ENCH_PALSY
       {
@@ -8790,7 +8840,15 @@ messages:
    
    GetBaseResistances()
    {
-      return plResistances;
+      local i, lResistances;
+      
+      lResistances = ListCopy(plResistances);
+
+      foreach i in plRadiusEnchantments
+      {
+         lResistances = Send(First(i),@ModifyResistances,#resistance_list=lResistances,#lRadiusState=i);
+      }
+      return lResistances;
    }
    
    GetBoostedLevel()
