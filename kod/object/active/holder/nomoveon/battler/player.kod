@@ -21488,9 +21488,14 @@ messages:
 
    CalculateLeadershipMax(oMonster=$, bCharming=TRUE)
    {
-      local iLeadership, iWillpowerBonus, iSoulDominationBonus;
+      local iLeadership, oGear, iWillpowerBonus, iSoulDominationBonus;
       
       iLeadership = Bound(Send(self,@GetBaseMaxHealth),20,100);
+      
+      foreach oGear in Send(self,@GetPlayerUsing)
+      {
+         iLeadership = iLeadership + Send(oGear,@GetLeadershipBonus);
+      }
 
       iWillpowerBonus = 0;
       if Send(self,@HasSkill,#num=SKID_WILLPOWER)

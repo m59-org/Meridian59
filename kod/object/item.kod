@@ -98,6 +98,7 @@ resources:
    item_stats_proc_corrode = "30%% chance to corrode on hit\n"
    item_stats_proc_twister = "8%% chance to disorient victim on hit\n"
    item_stats_proc_vamp = "10%% chance to gain up to 8 health on hit\n"
+   item_stats_leadership_add = "%i Leadership bonus\n"
    item_stats_might_add = "%i Might bonus\n"
    item_stats_intellect_add = "%i Intellect bonus\n"
    item_stats_stamina_add = "%i Stamina bonus\n"
@@ -113,6 +114,7 @@ resources:
    enchanted_gear_indestructible = "\nThis enchanted %s is indestructible."
    enchanted_gear_plural_indestructible = "\nThese enchanted %s are indestructible."
    
+   leadership_mod = "\n+%i Leadership"
    weapon_agility_mod = "\n+%i Agility"
    weapon_might_mod = "\n+%i Might"
    weapon_aim_mod = "\n+%i Aim"
@@ -227,6 +229,8 @@ classvars:
    viRevealedColor = 0
    
    vbUniqueItem = FALSE
+   
+   viLeadershipBonus = 0
 
 properties:
 
@@ -305,7 +309,8 @@ messages:
             iKraananPower, iJalaPower, iShalPower, iQorPower, iInstrumentPower,
             iNum, bID, iMinDamage, iMinDamageOwner, iAttackType,
             iMightChange, iIntellectChange, iStaminaChange, iAgilityChange,
-            iMysticismChange, iAimChange, iHealthChange, iManaChange, iVigorChange;
+            iMysticismChange, iAimChange, iHealthChange, iManaChange, iVigorChange,
+            iLeadershipChange;
 
       % This message 'telescopes' resources into the 5th %r of
       % item_desc_template. There are 18 different stats we can add;
@@ -854,6 +859,7 @@ messages:
       iAgilityChange = Send(self,@GetAgilityChange);
       iMysticismChange = Send(self,@GetMysticismChange);
       iAimChange = Send(self,@GetAimChange);
+      iLeadershipChange = Send(self,@GetLeadershipBonus);
 
       if iMightChange <> 0
          OR iIntellectChange <> 0
@@ -861,13 +867,14 @@ messages:
          OR iAgilityChange <> 0
          OR iMysticismChange <> 0
          OR iAimChange <> 0
+         OR iLeadershipChange <> 0
       {
          if NOT bFoundProperties
          {
-            AddPacket(4,system_rsc_template_6, 4,special_properties_header);
+            AddPacket(4,system_rsc_template_7, 4,special_properties_header);
             bFoundProperties = TRUE;
          }
-         AddPacket(4,system_rsc_template_6);
+         AddPacket(4,system_rsc_template_7);
          
          if iMightChange <> 0
          {
@@ -917,6 +924,15 @@ messages:
          if iAimChange <> 0
          {
             AddPacket(4,item_stats_aim_add, 4,iAimChange);
+         }
+         else
+         {
+            AddPacket(4,system_blank_resource);
+         }
+         
+         if iLeadershipChange <> 0
+         {
+            AddPacket(4,item_stats_leadership_add, 4,iLeadershipChange);
          }
          else
          {
@@ -3934,6 +3950,10 @@ messages:
          {
             AddPacket(4,mob_move_speed_desc, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
          }
+         else if First(lMod) = &LeadershipMod
+         {
+            AddPacket(4,leadership_mod, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
          else
          {
             AddPacket(4, system_blank_resource);
@@ -4219,6 +4239,23 @@ messages:
    {
       pbForgedItem=value;
       return;
+   }
+   
+   GetLeadershipBonus()
+   {
+      local iLeadershipBonus, lMod;
+
+      iLeadershipBonus = viLeadershipBonus;
+      
+      foreach lMod in plEnchantmentMods
+      {
+         if Nth(lMod,1) = &LeadershipMod
+         {
+            iLeadershipBonus = iLeadershipBonus + Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2));
+         }
+      }
+      
+      return iLeadershipBonus; 
    }
 
 end
