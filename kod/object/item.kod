@@ -1638,6 +1638,13 @@ messages:
          Send(oMod,@NewUsed,#who=poOwner,#iState=Nth(i,2));
       }
       
+      if poOwner <> $
+         AND IsClass(poOwner,&Player)
+         AND Send(self,@GetLeadershipBonus) <> 0
+      {
+         Post(poOwner,@DrawLeadership);
+      }
+      
       Send(self,@DoPlayerArt);
       If IsClass(poOwner,&Player)
       {
@@ -1729,6 +1736,13 @@ messages:
       {
          oMod = Send(SYS,@GetMagicMod,#class=Nth(i,1));
          Send(oMod,@NewUnused,#who=poOwner,#iState=Nth(i,2));
+      }
+      
+      if poOwner <> $
+         AND IsClass(poOwner,&Player)
+         AND Send(self,@GetLeadershipBonus) <> 0
+      {
+         Post(poOwner,@DrawLeadership);
       }
 
       Send(self,@UndoPlayerArt);
