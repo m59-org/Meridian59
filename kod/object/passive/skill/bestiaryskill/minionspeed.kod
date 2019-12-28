@@ -41,14 +41,17 @@ properties:
 
 messages:
 
-   ModifyMinionSpeed(who=$,iMoveSpeed=0)
+   ModifyMinionSpeed(who=$,iMoveSpeed=0,bLoggingOn=FALSE)
    {
       local iAbility, iIntellect;
       
       iIntellect = Send(self,@GetRequisiteStat,#who=who);
       iAbility = Send(who,@GetSkillAbility,#skill_num=viSkill_num);
 
-      Send(self,@ImproveAbility,#who=who);
+      if NOT bLoggingOn
+      {
+         Send(self,@ImproveAbility,#who=who);
+      }
 
       return Bound(iMoveSpeed + iIntellect/10 + (iAbility+1)/5,iMoveSpeed,40);
    }

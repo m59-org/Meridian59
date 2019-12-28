@@ -1455,6 +1455,16 @@ messages:
             Post(self,@GainChampionStatus,#iType=CHAMPION_LEGENDARY);
          }
       }
+         
+      % Do we boost speed?
+      if poMaster <> $
+         AND IsClass(poMaster,&Player)
+         AND NOT Send(self,@IsIllusion)
+         AND Send(poMaster,@HasSkill,#num=SKID_MINION_SPEED_BOOST)
+      {
+         % Give Taskmaster skill a chance to imp.
+         Send(Send(SYS,@FindSkillByNum,#num=SKID_MINION_SPEED_BOOST),@ImproveAbility,#who=poMaster);
+      }
 
       propagate;
    }
@@ -8377,7 +8387,7 @@ messages:
    }
 
    % Evil twin and reflection have an override for this.
-   SetMaster(oMaster=$)
+   SetMaster(oMaster=$, bLoggingOn=FALSE)
    {
       if oMaster = $
       {
@@ -8409,11 +8419,12 @@ messages:
          Send(self,@EnterStateWait);
          
          % Do we boost speed?
-         if IsClass(poMaster,&Player)
+         if NOT Send(self,@IsIllusion)
+            AND IsClass(poMaster,&Player)
             AND Send(poMaster,@HasSkill,#num=SKID_MINION_SPEED_BOOST)
          {
             piSavedMovedSpeed = piMoveSpeed;
-            piMoveSpeed = Send(Send(SYS,@FindSkillByNum,#num=SKID_MINION_SPEED_BOOST),@ModifyMinionSpeed,#who=poMaster,#iMoveSpeed=piMoveSpeed);
+            piMoveSpeed = Send(Send(SYS,@FindSkillByNum,#num=SKID_MINION_SPEED_BOOST),@ModifyMinionSpeed,#who=poMaster,#iMoveSpeed=piMoveSpeed,#bLoggingOn=bLoggingOn);
          }
 
          % Uncomment this if post-capture attack behavior changes.
