@@ -1283,7 +1283,7 @@ messages:
    AttemptTargetSwitch(mob = $, what=$, event = 1)
    "Target Switching Behavior."
    {
-      local iHatred, oldHatred, behavior, oTarget;
+      local iHatred, oldHatred, behavior, oTarget, oMaster;
 
       if what = $
       {
@@ -1311,6 +1311,19 @@ messages:
       if IsClass(mob,&Revenant)
       {
          return FALSE;
+      }
+
+      oMaster = Send(mob,@GetMaster);
+      if oMaster <> $
+      {
+         if IsClass(oMaster,&Player)
+         {
+            if NOT Send(oMaster,@AllowPlayerAttack,#victim=what,#report=FALSE,#actual=FALSE)
+            {
+               return FALSE;
+            }
+         }
+         
       }
 
       behavior = Send(mob,@GetBehavior);
