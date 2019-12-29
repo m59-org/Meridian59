@@ -109,6 +109,10 @@ classvars:
    vbCanCauseStun = FALSE
    vbCanCauseKnockback = FALSE
    vbCanCauseBleed = TRUE
+   
+   vbHasRangedAttack = TRUE
+   viRangedAttackChance = 4
+   viRangedAttackRange = 1600
 
 properties:
 
@@ -117,6 +121,9 @@ properties:
 
    pbFire = FALSE
    piAnimation = ANIM_NONE
+
+   % Ranged attack counts as a cast
+   piMonsterCastDelayMinimum = 1000
 
 messages:
 
@@ -290,18 +297,16 @@ messages:
    % This is technically a ranged attack, and we use RangedAttackChance
    % to see if we can do it. Use the same range as that for spells. We
    % also use piSpellChance for the base chance to do our ranged attack.
-   MonsterCastSpell()
+   AttemptedRangedAttack()
    {
       local iBase;
 
-      iBase = Send(self,@RangedAttackChance,#base=(piSpellChance*6));
+      iBase = Send(self,@RangedAttackChance,#base=(viRangedAttackChance*6));
 
       if Random(1,iBase) = 1
-         AND Send(self,@SquaredFineDistanceTo3D,#what=poTarget)
-                  < piSpellRange * piSpellRange
+         AND Send(self,@SquaredFineDistanceTo3D,#what=poTarget) < viRangedAttackRange * viRangedAttackRange
          AND Send(poOwner,@LineOfSight,#obj1=self,#obj2=poTarget)
-         AND Send(poOwner,@ReqSomethingAttack,#what=self,#victim=poTarget,
-                  #use_weapon=self)
+         AND Send(poOwner,@ReqSomethingAttack,#what=self,#victim=poTarget,#use_weapon=self)
       {
          Send(self,@DoMissileAttack);
 
@@ -314,10 +319,7 @@ messages:
    DoMissileAttack()
    {
       pbFire = TRUE;
-      Send(poOwner,@SomethingShot,#who=self,#target=poTarget,#projectile=self);
-      Send(self,@TryAttack,#what=poTarget,#stroke_obj=self);
-
-      return;
+      propagate;
    }
 
    GetProjectileSpeed()

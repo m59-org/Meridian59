@@ -501,6 +501,11 @@ classvars:
    
    % How much leadership does this monster have?
    viLeadershipMax = 400
+   
+   % Does this monster have a ranged attack?
+   vbHasRangedAttack = FALSE
+   viRangedAttackChance = 10
+   viRangedAttackRange = 1600
 
 properties:
 
@@ -2280,6 +2285,12 @@ messages:
       {
          bCast = Send(self,@AttemptSpell,#type=CAST_TYPE_RANGED);
       }
+      
+      if NOT bCast
+         AND vbHasRangedAttack
+      {
+         bCast = Send(self,@AttemptRangedAttack);
+      }
 
       % If we can move, we physically try to get closer
       if not bCast
@@ -2297,6 +2308,37 @@ messages:
       {
          % Monster slung a spell, killed player
          Send(self,@EnterStateMove);      
+      }
+
+      return;
+   }
+
+   AttemptRangedAttack()
+   {
+      local iBase;
+
+      iBase = Send(self,@RangedAttackChance,#base=(viRangedAttackChance*6));
+
+      if Random(1,iBase) = 1
+         AND Send(self,@SquaredFineDistanceTo3D,#what=poTarget) < viRangedAttackRange * viRangedAttackRange
+         AND Send(poOwner,@LineOfSight,#obj1=self,#obj2=poTarget)
+         AND Send(poOwner,@ReqSomethingAttack,#what=self,#victim=poTarget,#use_weapon=self)
+         AND ptSpellCastTimer = $
+      {
+         Send(self,@DoMissileAttack);
+
+         return TRUE;
+      }
+
+      return FALSE;
+   }
+
+   DoMissileAttack()
+   {
+      Send(poOwner,@SomethingShot,#who=self,#target=poTarget,#projectile=self);
+      if Send(self,@TryAttack,#what=poTarget,#stroke_obj=self)
+      {
+         Send(self,@RecordTimeCasted);
       }
 
       return;
