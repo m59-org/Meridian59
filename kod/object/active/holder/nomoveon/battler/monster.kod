@@ -498,6 +498,9 @@ classvars:
    
    % If 0, monster leadership cost is equal to piLevel
    viLeadershipCost = 0
+   
+   % How much leadership does this monster have?
+   viLeadershipMax = 400
 
 properties:
 
@@ -9934,6 +9937,55 @@ messages:
          return viLeadershipCost * Send(self,@GetChampionRewardMultiplier);
       }
       return piLevel * Send(self,@GetChampionRewardMultiplier);
+   }
+   
+   GetFreeLeadership()
+   {
+      return Bound(Send(self,@CalculateLeadershipMax,#bCharming=FALSE) - Send(self,@CalculateLeadershipUsed),0,$);
+   }
+
+   CalculateLeadershipMax(oMonster=$, bCharming=TRUE)
+   {
+      return viLeadershipMax;
+   }
+
+   CalculateLeadershipUsed()
+   {
+      local iControlledLeadershipCosts, oActive;
+
+      iControlledLeadershipCosts = 0;
+      foreach oActive in plControlledMinions
+      {
+         if IsClass(oActive,&Monster)
+         {
+            iControlledLeadershipCosts = iControlledLeadershipCosts + Send(oActive,@GetLeadershipCost);
+         }
+      }
+      
+      return iControlledLeadershipCosts;
+   }
+
+   CanControlNewMinion(oMonster=$, bCharming=TRUE)
+   {
+      local iControlledLeadershipCosts, oActive, iLeadershipMax, iMonsterLeadershipCost;
+      
+      if oMonster = $
+         OR NOT Send(oMonster,@CanBeCharmed)
+      {
+         return FALSE;
+      }
+
+      iLeadershipMax = Send(self,@CalculateLeadershipMax,#oMonster=oMonster,#bCharming=bCharming);
+      iControlledLeadershipCosts = Send(self,@CalculateLeadershipUsed);
+      iMonsterLeadershipCost = Send(oMonster,@GetLeadershipCost);
+
+      if iControlledLeadershipCosts + iMonsterLeadershipCost <= iLeadershipMax
+      {
+         return TRUE;
+      }
+      
+      % We're over our limit.
+      return FALSE;
    }
 
 end

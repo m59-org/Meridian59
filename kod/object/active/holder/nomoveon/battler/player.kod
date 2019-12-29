@@ -21541,7 +21541,7 @@ messages:
 
    CanControlNewMinion(oMonster=$, bCharming=TRUE)
    {
-      local iControlledLeadershipCosts, oActive, iLeadershipMax, iWillpowerBonus, iSoulDominationBonus, iMonsterLeadershipCost;
+      local iControlledLeadershipCosts, oActive, iLeadershipMax, iMonsterLeadershipCost;
       
       if oMonster = $
          OR NOT Send(oMonster,@CanBeCharmed)
@@ -21560,7 +21560,6 @@ messages:
          iMonsterLeadershipCost = iMonsterLeadershipCost/2;
       }
 
-      % Can we control the monster now with both willpower and soul domination?
       if iControlledLeadershipCosts + iMonsterLeadershipCost <= iLeadershipMax
       {
          return TRUE;
