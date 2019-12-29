@@ -1925,6 +1925,16 @@ messages:
       else
       {
          oTarget = poTarget;
+         
+         if poMaster <> $
+            AND IsClass(poMaster,&Player)
+         {
+            if NOT Send(poMaster,@AllowPlayerAttack,#victim=oTarget,#report=FALSE,#actual=FALSE)
+            {
+               % No casting offensive spells on things player master can't attack
+               return FALSE;
+            }
+         }
       }
 
       if lSpell <> $
