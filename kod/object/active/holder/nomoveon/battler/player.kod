@@ -8722,7 +8722,7 @@ messages:
       return piWeaponInfo/1000;
    }
 
-   KilledSomething(what = $,use_weapon = $,stroke_obj = $,bDoingBackstab = FALSE)
+   KilledSomething(what = $,use_weapon = $,stroke_obj = $,bDoingBackstab = FALSE, oMinionKiller=$)
    "Called when the player killed something."
    {
       local bReflection, i, oSoldierShield, monstkarma, iChance, oEnemyGuild,
@@ -8824,6 +8824,7 @@ messages:
 
             if NOT bReflection
                AND NOT Send(what,@IsIllusion)
+               AND oMinionKiller = $
                AND NOT IsClass(what,&Marauder)
             {
                Send(self,@AddKarma,#amount=Send(self,@CalculateKarmaChangeFromKill,
@@ -8914,6 +8915,7 @@ messages:
       if IsClass(what,&Monster)
          AND NOT bReflection
          AND NOT Send(what,@IsIllusion)
+         AND oMinionKiller = $
          AND NOT IsClass(what,&Marauder)
       {
          Send(self,@AddKarma,#amount=Send(self,@CalculateKarmaChangeFromKill,
