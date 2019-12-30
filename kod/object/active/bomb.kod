@@ -122,6 +122,8 @@ messages:
             AND Send(oOwner,@LineOfSight,#obj1=self,#obj2=each_obj)
             AND Send(poCreator,@AllowPlayerAttack,#victim=each_obj,#report=FALSE,#actual=FALSE)
             AND Send(each_obj,@SquaredFineDistanceTo3D,#what=self) <= piBombRadius*piBombRadius
+            AND NOT (IsClass(each_obj,&Monster) AND NOT Send(each_obj,@CanMonsterFight))
+            AND Send(each_obj,@GetMaster) <> poCreator
          {
             lBattlers = Cons(each_obj,lBattlers);
          }
@@ -210,6 +212,8 @@ messages:
             AND Send(oOwner,@LineOfSight,#obj1=self,#obj2=each_obj)
             AND Send(poCreator,@AllowPlayerAttack,#victim=each_obj,#report=FALSE,#actual=FALSE)
             AND Send(each_obj,@SquaredFineDistanceTo3D,#what=self) <= piBombRadius*piBombRadius
+            AND NOT (IsClass(each_obj,&Monster) AND NOT Send(each_obj,@CanMonsterFight))
+            AND Send(each_obj,@GetMaster) <> poCreator
          {
             lBattlers = Cons(each_obj,lBattlers);
          }
@@ -287,6 +291,8 @@ messages:
             AND Send(oOwner,@LineOfSight,#obj1=self,#obj2=each_obj)
             AND Send(poCreator,@AllowPlayerAttack,#victim=each_obj,#report=FALSE,#actual=FALSE)
             AND Send(each_obj,@SquaredFineDistanceTo3D,#what=self) <= piBombRadius*piBombRadius
+            AND NOT (IsClass(each_obj,&Monster) AND NOT Send(each_obj,@CanMonsterFight))
+            AND Send(each_obj,@GetMaster) <> poCreator
          {
             lBattlers = Cons(each_obj,lBattlers);
          }
@@ -341,6 +347,7 @@ messages:
          AND what <> poCreator
          AND Send(poCreator,@AllowPlayerAttack,#victim=what,#report=FALSE,#actual=FALSE)
          AND IsClass(what,&NoMoveOn)
+         AND Send(what,@GetMaster) <> poCreator
          AND Send(what,@SquaredFineDistanceTo,#what=self) <= piTriggerRadius * piTriggerRadius
       {
          pbDetonating = TRUE;
