@@ -135,7 +135,7 @@ messages:
 
    FuseInputItems(what=$,who=$)
    {
-      local lShardTiers, i, each_obj, iCount;
+      local lShardTiers, i, each_obj, iCount, iCreateNum, iSubtractNum;
       
       foreach i in Send(poOwner,@GetHolderActive)
       {
@@ -161,19 +161,26 @@ messages:
       {
          if GetClass(what) = Nth(lShardTiers, iCount)
          {
-            while Send(what,@GetNumber) > piInputRequired
+            if piInputRequired = 0
             {
-               Send(what,@SubtractNumber,#number=piInputRequired);
-               Send(who,@NewHold,#what=Create(Nth(lShardTiers,iCount+1),#ladderID=Send(what,@GetLadderID)));
+               piInputRequired = 8;
+            }
+            
+            iCreateNum = Send(what,@GetNumber) / piInputRequired;
+            iSubtractNum = iCreateNum * piInputRequired;
+            
+            if iCreateNum > 0
+            {
+               Send(who,@NewHold,#what=Create(Nth(lShardTiers,iCount+1),#number=iCreateNum,#ladderID=Send(what,@GetLadderID)));
             }
 
-            if Send(what,@GetNumber) = piInputRequired
+            if iSubtractNum >= Send(what,@GetNumber)
             {
-               Send(what,@SubtractNumber,#number=piInputRequired);
-               Send(who,@NewHold,#what=Create(Nth(lShardTiers,iCount+1),#ladderID=Send(what,@GetLadderID)));
+               Send(what,@Delete);
             }
             else
             {
+               Send(what,@SubtractNumber,#number=iSubtractNum);
                Send(who,@NewHold,#what=what);
             }
             
