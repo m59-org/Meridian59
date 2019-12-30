@@ -110,6 +110,12 @@ messages:
       ptManaDrain = CreateTimer(self,@ManaDrainTimer,MANA_DRAIN_DELAY);
       poArrow = Create(&Arrow);
       piDamagePercent = viDamagePercent;
+      
+      if poMaster <> $
+         AND IsClass(poMaster,&Monster)
+      {
+         piBehavior = Send(poMaster,@GetBehavior);
+      }
       propagate;
    }
 
