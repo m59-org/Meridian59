@@ -128,14 +128,14 @@ messages:
 
    FuseInputItems(what=$,who=$)
    {
-      local lShardTiers, i, each_obj, iCount;
+      local lShardTiers, i, each_obj, iCount, iCanCarry, iBulkFree, iWeightFree, iCreateNum, iSubtractNum, oShards;
       
       foreach i in Send(poOwner,@GetHolderActive)
       {
          each_obj = Send(poOwner,@HolderExtractObject,#data=i);
          if IsClass(each_obj,&Player)
          {
-            Send(each_obj,@MsgSendUser,#message_rsc=ladder_shattering_device_glows);
+            Send(each_obj,@MsgSendUser,#message_rsc=shattering_device_glows);
          }
       }
 
@@ -149,25 +149,51 @@ messages:
                      &ShardReroll,
                      &ShardEmpowerment];
 
+      if Send(who,@PlayerIsImmortal)
+      {
+         iCanCarry = Send(what,@GetNumber);
+      }
+      else
+      {
+         iBulkFree = Send(who,@GetBulkMax) - Send(who,@GetBulkHold);
+         iWeightFree = Send(who,@GetWeightMax) - Send(who,@GetWeightHold);
+      
+         if iBulkFree <= iWeightFree
+         {
+            iCanCarry = iBulkFree;
+         }
+         else
+         {
+            iCanCarry = iWeightFree;
+         }
+      }
+
       iCount = Length(lShardTiers);
       while iCount > 1
       {
          if GetClass(what) = Nth(lShardTiers, iCount)
          {
-            while Send(what,@GetNumber) > 1
+            iCreateNum = Bound(Send(what,@GetNumber)*piOutputCreated,0,iCanCarry*piOutputCreated);
+            
+            iSubtractNum = iCreateNum / piOutputCreated;
+            
+            if iCreateNum > 0
             {
-               Send(what,@SubtractNumber,#number=1);
-               Send(who,@NewHold,#what=Create(Nth(lShardTiers,iCount-1),#number=piOutputCreated,#ladderID=Send(what,@GetLadderID)));
-            }
-
-            if Send(what,@GetNumber) = 1
-            {
-               Send(what,@SubtractNumber,#number=1);
-               Send(who,@NewHold,#what=Create(Nth(lShardTiers,iCount-1),#number=piOutputCreated,#ladderID=Send(what,@GetLadderID)));
+               Send(who,@NewHold,#what=Create(Nth(lShardTiers,iCount-1),#number=iCreateNum,#ladderID=Send(what,@GetLadderID)));
+               if Send(what,@GetNumber) > iSubtractNum
+               {
+                  Send(what,@SubtractNumber,#number=iSubtractNum);
+                  Send(who,@NewHold,#what=what);
+               }
+               else
+               {
+                  Send(what,@Delete);
+               }
             }
             else
             {
                Send(who,@NewHold,#what=what);
+               Send(who,@MsgSendUser,#message_rsc=cannot_hold_any_at_all_shard_shattering);
             }
             
             break;
