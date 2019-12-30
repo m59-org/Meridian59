@@ -3129,7 +3129,7 @@ messages:
       absolute=FALSE,precision=FALSE,bDoingBackstab=FALSE,bSecondary=FALSE)
    {
       local iDamage, iResist, iPercentClass, i, each_obj,
-            iCorrode, iCorrodeMultiple, iCorrodeReduction, iEmpowermentPercentage;
+            iCorrode, iCorrodeMultiple, iCorrodeReduction, iEmpowermentPercentage, oHighestDamager;
       
       if what <> $
          AND IsClass(what,&Player)
@@ -3348,6 +3348,17 @@ messages:
             AND NOT Send(poTarget,@HasSkill,#num=SKID_BRAVERY)
          {
             Post(Send(SYS,@FindSkillByNum,#num=SKID_BRAVERY),@DoSkill,#who=what,#what=self);
+         }
+         else
+         {
+            oHighestDamager = Send(self,@GetHighestHurtMeRecentlyBattler);
+            if poTarget <> $
+               AND oHighestDamager <> $
+               AND poTarget <> oHighestDamager
+            {
+               Post(self,@TargetSwitch,#what=oHighestDamager,#iHatred=Send(self,@GetHurtMeRecentlyAmount,#who=oHighestDamager));
+               Post(self,@EnterStateChase,#target=oHighestDamager,#actnow=TRUE);
+            }
          }
       }
 
