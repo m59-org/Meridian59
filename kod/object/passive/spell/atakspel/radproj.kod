@@ -83,6 +83,40 @@ messages:
             {
                continue;
             }
+            
+            % Free range monsters draw too much aggro if they hit other monsters
+            if IsClass(each_obj,&Monster)
+               AND IsClass(who,&Monster)
+            {
+               if Send(who,@GetMaster) = $
+               {
+                  continue;
+               }
+               
+               % Minions shouldn't hit fellow minions
+               if Send(who,@GetMaster) <> $
+                  AND IsClass(Send(who,@GetMaster),&Player)
+                  AND Send(who,@GetMaster) = Send(each_obj,@GetMaster)
+               {
+                  continue;
+               }
+               
+               % Minions shouldn't hit master
+               if Send(who,@GetMaster) = each_obj
+               {
+                  continue;
+               }
+               
+               % Minions shouldn't hit players the master can't attack
+               if Send(who,@GetMaster) <> $
+                  AND IsClass(Send(who,@GetMaster),&Player)
+               {
+                  if NOT Send(Send(who,@GetMaster),@AllowPlayerAttack,#victim=each_obj,#report=FALSE,#actual=FALSE)
+                  {
+                     continue;
+                  }
+               }
+            }
 
             iDistance = Send(who,@SquaredFineDistanceToLocation3D,
                               #row=Send(each_obj,@GetRow),
