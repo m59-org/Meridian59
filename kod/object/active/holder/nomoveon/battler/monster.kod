@@ -506,6 +506,9 @@ classvars:
    vbHasRangedAttack = FALSE
    viRangedAttackChance = 10
    viRangedAttackRange = 1600
+   
+   vbBreathesWater = FALSE
+   vbBreathesAir = TRUE
 
 properties:
 
@@ -692,6 +695,10 @@ properties:
    ptLoyaltyTimer = $
    
    piAmountAddedToMonsterChasers = 0
+   
+   ptDrowningTimer = $
+   piDrowningDelay = 3000
+   piDrowningDamage = 1000
 
 messages:
 
@@ -997,6 +1004,12 @@ messages:
          Send(poApparitionOriginal,@RemoveApparition,#what=self);
          poApparitionOriginal = $;
          poApparitionCaster = $;
+      }
+      
+      if ptDrowningTimer <> $
+      {
+         DeleteTimer(ptDrowningTimer);
+         ptDrowningTimer = $;
       }
       
       if ptSpellCastTimer <> $
@@ -1369,6 +1382,12 @@ messages:
          {
             Send(self,@LoseChampionStatus);
          }
+         
+         if ptDrowningTimer <> $
+         {
+            DeleteTimer(ptDrowningTimer);
+            ptDrowningTimer = $;
+         }
 
          propagate;
       }
@@ -1473,8 +1492,56 @@ messages:
          % Give Taskmaster skill a chance to imp.
          Send(Send(SYS,@FindSkillByNum,#num=SKID_MINION_SPEED_BOOST),@ImproveAbility,#who=poMaster);
       }
+      
+      if vbBreathesAir AND Send(what,@HasAir)
+      {
+         if ptDrowningTimer <> $
+         {
+            DeleteTimer(ptDrowningTimer);
+            ptDrowningTimer = $;
+         }
+      }
+      else if vbBreathesWater AND Send(what,@IsUnderwater)
+      {
+         if ptDrowningTimer <> $
+         {
+            DeleteTimer(ptDrowningTimer);
+            ptDrowningTimer = $;
+         }
+      }
+      else
+      {
+         if ptDrowningTimer = $
+         {
+            ptDrowningTimer = CreateTimer(self,@DrownDamage,piDrowningDelay);
+         }
+      }
 
       propagate;
+   }
+   
+   DrownDamage(timer=$)
+   {
+      local iDamageResult;
+
+      ptDrowningTimer = $;
+
+      iDamageResult = Send(self,@AssessDamage,#what=self,
+                        #damage=piDrowningDamage,
+                        #precision=TRUE,
+                        #atype=0,
+                        #aspell=ATCK_SPELL_DRAIN,#report=FALSE,
+                        #bSecondary=TRUE);
+      
+      if iDamageResult <> $
+      {
+         ptDrowningTimer = CreateTimer(self,@DrownDamage,piDrowningDelay);
+      }
+      else
+      {
+         Send(self,@Killed,#what=poOwner);
+      }
+      return;
    }
 
    FirstUserEntered(what = $,new_row = $,new_col = $)
@@ -4924,6 +4991,12 @@ messages:
       if (viDefault_behavior & AI_NPC)
       {
          return;
+      }
+      
+      if ptDrowningTimer <> $
+      {
+         DeleteTimer(ptDrowningTimer);
+         ptDrowningTimer = $;
       }
 
       if poOwner <> $
