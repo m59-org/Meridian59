@@ -42,6 +42,7 @@ resources:
    room_adventurers_guild_with_jailer = adventurersguildwithjail.roo
    room_adventurers_guild_with_ad_hall = adventurersguildwithadhall.roo
    room_adventurers_guild_with_seer = adventurersguildwithseer.roo
+   room_adventurers_guild_with_morgue = adventurersguildwithmorgue.roo
    room_name_adventurers_guild = "Adventurer's League of Meridian"
    adventurers_guild_music = bridge.mp3
 
@@ -130,6 +131,9 @@ messages:
             break;
          case 3:
             prRoom = room_adventurers_guild_with_seer;
+            break;
+         case 4:
+            prRoom = room_adventurers_guild_with_morgue;
             break;
       }
 
@@ -334,6 +338,16 @@ messages:
               
          Send(self,@NewHold,#what=Create(&AdventurersLeagueSeer),
               #new_row=42,#new_col=22,#fine_row=0,#fine_col=0,#new_angle=ANGLE_SOUTH);
+      }
+      
+      if iFundingLevel >= 4
+      {
+         Send(self,@NewHold,#what=Create(&OrnamentalObject,#type=OO_BONES),#new_row=9,#new_col=21,#fine_row=0,#fine_col=0,#angle=ANGLE_EAST);
+         Send(self,@NewHold,#what=Create(&OrnamentalObject,#type=OO_BONES),#new_row=11,#new_col=29,#fine_row=0,#fine_col=0,#angle=ANGLE_EAST);
+         Send(self,@NewHold,#what=Create(&OrnamentalObject,#type=OO_BONES),#new_row=13,#new_col=29,#fine_row=0,#fine_col=0,#angle=ANGLE_EAST);
+              
+         Send(self,@NewHold,#what=Create(&AdventurersLeagueMortician),
+              #new_row=11,#new_col=25,#fine_row=32,#fine_col=0,#new_angle=ANGLE_SOUTH);
       }
 
       propagate;

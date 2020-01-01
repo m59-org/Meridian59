@@ -26,7 +26,8 @@ resources:
       "is exhausting and costly. Requires twenty shaman blood to supply physical "
       "energies, and one polished seraphym to provide the mystical essence necessary "
       "for animation. Proper practices demand the oldest specimen is always the "
-      "first vivified among one's collection."
+      "first vivified among one's collection, and better vivification results in less "
+      "maximum health lost by the revived minion."
 
    vivify_specimen_failed_rsc = \
       "There is too much summoning magic focused here to vivify a specimen."
@@ -143,8 +144,7 @@ messages:
                                          #fine_row=iFine_Row,
                                          #fine_col=iFine_Col);
       Send(oRisen,@GainChampionStatus,#iType=Nth(lMonsterData,5));
-      Send(oRisen,@SetMaxHitPoints,#amount=Nth(lMonsterData,4));
-      Send(oRisen,@SetHealth,#amount=Nth(lMonsterData,3));
+      Send(oRisen,@SetMaxHitPoints,#amount=(Nth(lMonsterData,4)*(90+(iSpellPower/11)))/100);
       Send(oRisen,@AddLoyalty,#amount=Nth(lMonsterData,2));
       Send(oRisen,@SetSummoned,#value=Nth(lMonsterData,6));
 

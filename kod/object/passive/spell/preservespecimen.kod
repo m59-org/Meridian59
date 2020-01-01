@@ -21,8 +21,9 @@ resources:
    Preserve_Specimen_desc_rsc = \
       "Preserves the corpse of a minion so that it may be brought back to a "
       "monster morgue and either be dissected for research or resurrected to "
-      "serve once more. Due to the energies involved, you may only preserve your own minions. "
-      "The souls of wild beasts and enemies usually fully depart upon death. "
+      "serve once more. You may only preserve your own minions, "
+      "as the souls of wild beasts and enemies usually fully depart upon death. "
+      "Better preservation techniques retain more of the loyalty the minion had in life. "
       "Requires a fairy wing to cast."
 
    Preserve_Specimen_bad_target = "You can't preserve %s%s!"
@@ -166,8 +167,8 @@ messages:
       lMonsterData = Send(oTarget,@GetMonsterData);
       if lMonsterData <> $
       {
-         % Take a hit point loss based on spellpower
-         %SetNth(lMonsterData,4,(Nth(lMonsterData,4)*iSpellPower)/100);
+         % Take a loyalty loss based on spellpower
+         SetNth(lMonsterData,2,Bound((Nth(lMonsterData,2)*iSpellPower)/100,1,$));
          Send(who,@SaveToDeadMinionsList,#lMonsterData=lMonsterData);
 
          % Delete the corpse
