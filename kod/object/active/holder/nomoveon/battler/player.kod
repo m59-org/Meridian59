@@ -6430,6 +6430,16 @@ messages:
       {
          return TRUE;
       }
+
+      if Send(victim,@GetMaster) = self
+      {
+         if report
+         {
+            Send(self,@MsgSendUser,#message_rsc=player_own_minion);
+         }
+
+         return FALSE;
+      }
       
       if Send(oRoom,@GetChaosZone)
       {
@@ -6559,16 +6569,6 @@ messages:
                {
                   Send(self,@MsgSendUser,
                         #message_rsc=player_cant_hit_newbie_minion);
-               }
-
-               return FALSE;
-            }
-
-            if Send(victim,@GetMaster) = self
-            {
-               if report
-               {
-                  Send(self,@MsgSendUser,#message_rsc=player_own_minion);
                }
 
                return FALSE;
