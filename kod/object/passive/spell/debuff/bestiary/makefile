@@ -12,6 +12,7 @@ BOFS = binding.bof \
        releaseminion.bof \
        studycreatureresists.bof \
        markofmagic.bof \
-       studycreaturecompliance.bof
+       studycreaturecompliance.bof \
+       permabinding.bof
 
 !include $(KODDIR)\kod.mak
