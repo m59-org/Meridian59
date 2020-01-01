@@ -378,8 +378,8 @@ messages:
 
    SpawnMarauders(who=$)
    {
-      local iRID, oRoom, iRegion, i, n, lNeighborRooms, lEntrances, bSpawned, lChosenEntrance, 
-            iMarauderCount, iHealth, lFinalList, iEnlightenments;
+      local iRID, oRoom, oBaseRoom, iBaseRID, iRegion, i, n, lNeighborRooms, lEntrances, bSpawned, lChosenEntrance, 
+            iMarauderCount, iHealth, lFinalList, iEnlightenments, bChaosStratum;
       
       oRoom = Send(who,@GetOwner);
       
@@ -389,11 +389,22 @@ messages:
       }
       iRID = Send(oRoom,@GetRoomNum);
       iRegion = Send(oRoom,@GetRegion);
-      
-      lNeighborRooms = $;
-      foreach i in Send(oRoom,@GetYellZone)
+      if Send(SYS,@FindRoomByNum,#num=RID_CHAOS_STRATA_START) = Send(who,@GetOwner)
       {
-         if i <> iRID
+         bChaosStratum = TRUE;
+         oBaseRoom = Send(oRoom,@GetBaseRoom);
+      }
+      else
+      {
+         bChaosStratum = FALSE;
+         oBaseRoom = oRoom;
+      }
+      
+      iBaseRID = Send(oBaseRoom,@GetRoomNum);
+      lNeighborRooms = $;
+      foreach i in Send(oBaseRoom,@GetYellZone)
+      {
+         if i <> iBaseRID
          {
             lNeighborRooms = Cons(Send(SYS,@FindRoomByNum,#num=i),lNeighborRooms);
          }
@@ -403,14 +414,14 @@ messages:
       {
          foreach n in Send(i,@GetStandardExits)
          {
-            if Nth(n,3) = iRID
+            if Nth(n,3) = iBaseRID
             {
                lEntrances = Cons([Nth(n,4),Nth(n,5)],lEntrances);
             }
          }
          foreach n in Send(i,@GetEdgeExits)
          {
-            if Nth(n,2) = iRID
+            if Nth(n,2) = iBaseRID
             {
                lEntrances = Cons([Nth(n,3),Nth(n,4)],lEntrances);
             }
@@ -427,7 +438,15 @@ messages:
       iEnlightenments = Send(who,@GetNumReincarnations);
       iHealth = Send(who,@GetBaseMaxHealth);
       iMarauderCount = iHealth/50;
-      lChosenEntrance = Nth(lEntrances,Random(1,Length(lEntrances)));
+      
+      if iRegion = RID_KOCATAN
+      {
+         lChosenEntrance = [Send(who,@GetRow), Send(who,@GetCol)];
+      }
+      else
+      {
+         lChosenEntrance = Nth(lEntrances,Random(1,Length(lEntrances)));
+      }
       
       if Send(who,@GetMarauderAntagonist)
       {
