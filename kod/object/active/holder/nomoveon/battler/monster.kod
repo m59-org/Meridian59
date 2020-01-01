@@ -1410,6 +1410,7 @@ messages:
       
       if what <> $
          AND IsClass(what,&ChaosStratumRoom)
+         AND NOT (poMaster <> $ AND IsClass(poMaster,&Player))
       {
          if Send(what,@GetMonsterAttackSpeed) > 0
          {
@@ -3113,9 +3114,9 @@ messages:
          iMultiplier = 3;
       }
       
-      if poMaster = $
-         AND poOwner <> $
+      if poOwner <> $
          AND IsClass(poOwner,&ChaosStratumRoom)
+         AND NOT (poMaster <> $ AND IsClass(poMaster,&Player))
       {
          iDamage = (iDamage * (100+Send(poOwner,@GetAddedMonsterDamage)))/100;
       }
@@ -3161,10 +3162,10 @@ messages:
          }
       }
       
-      if poMaster = $
-         AND poOwner <> $
+      if poOwner <> $
          AND IsClass(poOwner,&ChaosStratumRoom)
          AND Send(poOwner,@GetMonsterElements) <> $
+         AND NOT (poMaster <> $ AND IsClass(poMaster,&Player))
       {
          return Nth(Send(poOwner,@GetMonsterElements),Random(1,Length(Send(poOwner,@GetMonsterElements))));
       }
