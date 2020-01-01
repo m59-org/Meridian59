@@ -108,7 +108,9 @@ messages:
       local rLocation;
 
       if (poOwner <> $ AND IsClass(poOwner,&Underworld))
-         AND Send(who,@CheckPlayerFlag,#flag=PFLAG2_KOCATAN_DEATH,#flagset=2)
+         AND Send(who,@GetLastCorpse) <> $
+         AND Send(Send(who,@GetLastCorpse),@GetOwner) <> $
+         AND Send(Send(Send(who,@GetLastCorpse),@GetOwner),@GetRegion) = RID_KOCATAN
       {
          rLocation = hellportal_kocatan;
       }
@@ -169,10 +171,11 @@ messages:
       if poOwner <> $
          AND IsClass(poOwner,&Underworld)
          AND IsClass(what,&User)
-         AND Send(what,@CheckPlayerFlag,#flag=PFLAG2_KOCATAN_DEATH,#flagset=2)
+         AND Send(what,@GetLastCorpse) <> $
+         AND Send(Send(what,@GetLastCorpse),@GetOwner) <> $
+         AND Send(Send(Send(what,@GetLastCorpse),@GetOwner),@GetRegion) = RID_KOCATAN
       {
          % Allow them to head to the island.
-         Send(what,@SetPlayerFlag,#flag=PFLAG2_KOCATAN_DEATH,#value=FALSE,#flagset=2);
          oRoom = Send(SYS,@FindRoomByNum,#num=RID_KOC_INN);
          Send(oRoom,@Teleport,#what=what);
 

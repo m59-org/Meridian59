@@ -603,12 +603,6 @@ messages:
       local oDeadPlayer;
 
       plCorpses = Cons(what,plCorpses);
-      if inKocatan
-      {
-         oDeadPlayer = Send(SYS,@FindUserByString,#string=Send(what,@GetCorpseName));
-         Send(oDeadPlayer,@SetPlayerFlag,#flag=PFLAG2_KOCATAN_DEATH,
-               #value=TRUE,#flagset=2);
-      }
 
       return;
    }
@@ -622,9 +616,6 @@ messages:
          if i = what
          {
             plCorpses = DelListElem(plCorpses,i);
-            oDeadPlayer = Send(SYS,@FindUserByString,#string=Send(what,@GetCorpseName));
-            Send(oDeadPlayer,@SetPlayerFlag,#flag=PFLAG2_KOCATAN_DEATH,
-                  #value=FALSE,#flagset=2);
          }
       }
 
