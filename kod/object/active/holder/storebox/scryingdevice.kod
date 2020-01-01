@@ -85,8 +85,9 @@ messages:
          return FALSE;
       }
       
+      poChaosStratumRoom = Send(SYS,@FindRoomByNum,#num=RID_CHAOS_STRATA_START);
       if poChaosStratumRoom <> $
-         AND Send(poChaosStratumRoom,@IsActive)
+         AND Send(poChaosStratumRoom,@GetPlayersInRoom) <> $
       {
          return FALSE;
       }

@@ -99,6 +99,15 @@ messages:
 
    Recreate()
    {
+      local oChaosRoom;
+      
+      oChaosRoom = Send(SYS,@FindRoomByNum,#num=RID_CHAOS_STRATA_START);
+      
+      if oChaosRoom <> $
+         AND Send(oChaosRoom,@IsActive)
+      {
+         Send(oChaosRoom,@SetActive,#value=FALSE);
+      }
       return;
    }
 
