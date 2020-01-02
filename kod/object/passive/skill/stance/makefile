@@ -12,6 +12,8 @@ BOFS = lightfeet.bof swifthands.bof heavyarms.bof recklessheart.bof focusedmind.
        activeblocking.bof \
        activeparrying.bof \
        mysticstealth.bof \
-       shadowstep.bof
+       shadowstep.bof \
+       loyalguard.bof \
+       defiantstand.bof
 
 !include $(KODDIR)\kod.mak

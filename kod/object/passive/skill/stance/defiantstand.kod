@@ -1,0 +1,111 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+DefiantStandStance is Stance
+
+constants:
+
+   include blakston.khd
+   include protocol.khd   
+
+resources:
+
+   Defiant_Stand_name_rsc = "defiant stand"
+   Defiant_Stand_icon_rsc = slashico.bgf
+   Defiant_Stand_desc_rsc = \
+      "Determined knights often use strategy as a tool of war to "
+      "greater effect than any weapon. "
+      "An intelligent knight can order his or her loyal squires to "
+      "protect a location. They need not know the reason why, "
+      "they need only trust in their leader. "
+      "\n\nWhile this order is in effect, your minions will "
+      "stay near the initial location of your order, fighting any enemies who approach. "
+      "\n\nThis order will lose effect if you leave the area, "
+      "for your squires will join you on the trail, rendering the order moot."
+
+   Defiant_Stand_skill_intro = "Knightcraft Lv. 4: Your minions will protect a location."
+   
+   Defiant_Stand_begin = "You lower your shoulders and prepare to strike quickly."
+   Defiant_Stand_end = "You return your upper body to its normal position."
+   Defiant_Stand_mantra = \
+      "Let none pass!"
+
+   Defiant_Stand_intro = \
+      "Knightcraft Lv. 4: Commands your minions to protect a specific location."
+
+classvars:
+
+   vrName = Defiant_Stand_name_rsc
+   vrIcon = Defiant_Stand_icon_rsc
+   vrDesc = Defiant_Stand_desc_rsc
+
+   stance_begin_msg = Defiant_Stand_begin
+   stance_end_msg = Defiant_Stand_end
+   
+   vsStanceMantra = Defiant_Stand_mantra
+
+   vrSkill_intro = Defiant_Stand_skill_intro
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+
+   viSkill_num = SKID_DEFIANT_STAND_STANCE
+   viSchool = SKS_KNIGHTCRAFT
+   viSkill_Level = 4
+   viChance_to_Increase = 10
+   viMeditate_ratio = 30
+
+   viSkillExertion = 0
+   vbCheck_exertion = FALSE
+
+   vbAutomatic = TRUE
+   
+   viPrimaryStat = STAT_ID_INTELLECT
+   viSecondaryStat = 0
+
+properties:
+
+messages:
+
+   GetRequisiteStat(who=$)
+   {
+      return Send(who,@GetIntellect);
+   }
+   
+   BeginStance(who=$)
+   {
+      if IsClass(who,&User)
+         AND Send(who,@GetOwner) <> $
+      {
+         Send(who,@GiveMinionsPatrolLocation,#lPos=[Send(who,@GetRow),
+                                                    Send(who,@GetCol),
+                                                    Send(who,@GetFineRow),
+                                                    Send(who,@GetFineCol)]);
+%         Post(who,@SetDefiantStandLocation,#iRID=Send(Send(who,@GetOwner),@GetRoomNum),#lPos=[Send(who,@GetRow),
+%                                                                                              Send(who,@GetCol),
+%                                                                                              Send(who,@GetFineRow),
+%                                                                                              Send(who,@GetFineCol)]);
+      }
+
+      propagate;
+   }
+   
+   EndStance(who=$)
+   {
+      if IsClass(who,&User)
+      {
+         Send(who,@ClearMinionPatrolLocations);
+%         Post(who,@SetDefiantStandLocation);
+      }
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

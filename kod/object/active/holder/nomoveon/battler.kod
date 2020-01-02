@@ -3628,6 +3628,33 @@ messages:
       }
       return FALSE;
    }
+   
+   ClearMinionPatrolLocations()
+   {
+      local i;
+      
+      foreach i in plControlledMinions
+      {
+         Send(i,@ClearPatrolLocation);
+      }
+      return;
+   }
+   
+   GiveMinionsPatrolLocation(lPos=$)
+   {
+      local i;
+      
+      if lPos = $
+      {
+         return;
+      }
+      
+      foreach i in plControlledMinions
+      {
+         Send(i,@GotoCoords,#iRow=Nth(lPos,1),#iCol=Nth(lPos,2),#iFineRow=Nth(lPos,3),#iFineCol=Nth(lPos,4));
+      }
+      return;
+   }
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

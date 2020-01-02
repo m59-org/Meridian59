@@ -2341,7 +2341,7 @@ messages:
       }
 
       % Perhaps we heal this chase moment.
-      if piHit_points < piMax_hit_points*100 AND Random(0,18) < 2
+      if piHit_points < piMax_hit_points*100 AND Random(1,Bound(piMoveSpeed,8,$)) = 1
       {
          Send(self,@HealHitPoint);
       }
@@ -5016,14 +5016,17 @@ messages:
 
          if oBody <> $
          {
-            Send(oBody,@SetMonsterData,#lMonsterData=[GetClass(self),
-                                Send(self,@GetLoyalty),
-                                0,
-                                Send(self,@ReturnMaxHitPoints),
-                                Send(self,@GetChampStatus),
-                                Send(self,@GetSummoned)]);
-            Send(oBody,@SetMasterWas,#oMaster=poMaster);
-         
+            if IsClass(oBody,&DeadBody)
+            {
+               Send(oBody,@SetMonsterData,#lMonsterData=[GetClass(self),
+                                   Send(self,@GetLoyalty),
+                                   0,
+                                   Send(self,@ReturnMaxHitPoints),
+                                   Send(self,@GetChampStatus),
+                                   Send(self,@GetSummoned)]);
+               Send(oBody,@SetMasterWas,#oMaster=poMaster);
+            }
+
             Send(poOwner,@NewHold,#what=oBody,#new_row=piRow,#new_col=piCol,
                   #fine_row=piFine_row,#fine_col=piFine_col,
                   #new_angle=Send(self,@GetAngle));
@@ -8607,6 +8610,9 @@ messages:
 
          % Break target.
          Send(self,@EnterStateWait);
+         
+         % Clear patrols.
+         Send(self,@ClearPatrolLocation);
          
          % Do we boost speed?
          if NOT Send(self,@IsIllusion)

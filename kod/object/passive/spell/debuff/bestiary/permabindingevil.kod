@@ -8,7 +8,7 @@
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-PermanentCreatureBinding is BestiarySpell
+PermanentCreatureBindingEvil is BestiarySpell
 
 constants:
 
@@ -16,60 +16,57 @@ constants:
 
 resources:
 
-   PermanentCreatureBinding_sound = smarkdis.wav
+   PermanentCreatureBinding_sound_evil = smarkdis.wav
 
-   permanent_bind_monster_rsc = \
+   permanent_bind_evil_monster_rsc = \
       bindcircle.bgf
 
-   permanent_bind_circle_projectile_rsc = \
+   permanent_bind_evil_circle_projectile_rsc = \
       bindcircle.bgf
 
-   permanent_bind_circle_name_rsc = "righteous authority"
-   permanent_bind_circle_icon_rsc = ihold.bgf
-   permanent_bind_circle_desc_rsc = \
-      "Enlists the service of a creature by "
-      "claiming a divine right of rule. "
-      "Only those with good karma may employ such a decree, "
-      "for even minions know that men of ill repute do not last long on the throne. "
-      "Undead and evil creatures will simply ignore a righteous decree, "
-      "as one might expect. "
+   permanent_bind_evil_circle_name_rsc = "dominate will"
+   permanent_bind_evil_circle_icon_rsc = ihold.bgf
+   permanent_bind_evil_circle_desc_rsc = \
+      "Dominates the will of a creature "
+      "by causing it to believe it truly wants to serve its master. "
+      "Good creatures and living humanoids cannot be so fooled, "
+      "but all other beings will bend the knee. "
+      "Crushing another's will in this manner is an act only committed "
+      "by the evil. "
       "\n\nA creature so affected will gain much more loyalty than with a basic "
       "binding. At strong enough spellpower, it will even become your minion "
       "permanently. "
       "Requires thirty purple mushrooms and an herb to cast."
 
-   permanent_bind_circle_already_enchanted = "%s%s is already bound to service."
-   permanent_bind_circle_caster = "%s%s is now bound to service."
-   permanent_bind_circle_on = "You have been bound to service."
-   permanent_bind_circle_off = "The binding lifts."
+   permanent_bind_evil_circle_already_enchanted = "%s%s is already bound to service."
+   permanent_bind_evil_circle_caster = "%s%s is now bound to service."
+   permanent_bind_evil_circle_on = "You have been bound to service."
+   permanent_bind_evil_circle_off = "The binding lifts."
    
-   dominated_permanently_msg = \
+   dominated_permanently_evil_msg = \
       "%s%s is now permanently bound to serve you!"
    
-   not_your_minion_perma = \
+   not_your_minion_perma_evil = \
       "That is not your minion, and cannot be bound."
-   
-   cannot_rule_with_evil_karma = \
-      "Your karma is negative. You cannot claim righteous authority as a person of evil."
 
-   cannot_rule_evil = \
-      "The evil do not heed the call of divine right."
-   cannot_rule_undead = \
-      "The undead have no loyalty to the crown."
+   cannot_dominate_with_good_karma = \
+      "You have good karma, you can't dominate another's will! That's awful!"
+   cannot_rule_good = \
+      "The good will never serve you under any belief system!"
 
 classvars:
 
-   vrName = permanent_bind_circle_name_rsc
-   vrIcon = permanent_bind_circle_icon_rsc
-   vrDesc = permanent_bind_circle_desc_rsc
+   vrName = permanent_bind_evil_circle_name_rsc
+   vrIcon = permanent_bind_evil_circle_icon_rsc
+   vrDesc = permanent_bind_evil_circle_desc_rsc
 
-   vrAlreadyEnchanted = permanent_bind_circle_already_enchanted
-   vrEnchantment_On = permanent_bind_circle_on
-   vrEnchantment_Off = permanent_bind_circle_off
-   vrSuccess = permanent_bind_circle_caster
+   vrAlreadyEnchanted = permanent_bind_evil_circle_already_enchanted
+   vrEnchantment_On = permanent_bind_evil_circle_on
+   vrEnchantment_Off = permanent_bind_evil_circle_off
+   vrSuccess = permanent_bind_evil_circle_caster
 
    viSchool = SS_BESTIARY
-   viSpell_num = SID_PERMANENT_CREATURE_BINDING
+   viSpell_num = SID_PERMANENT_CREATURE_BINDING_EVIL
    viSpell_level = 5
 
    viFlash = FLASH_BAD
@@ -80,15 +77,15 @@ classvars:
    viChance_To_Increase = 10
    viMeditate_ratio = 50
 
-   vrSucceed_wav = PermanentCreatureBinding_sound
+   vrSucceed_wav = PermanentCreatureBinding_sound_evil
    
    viPrimaryStat = STAT_ID_INTELLECT
    viSecondaryStat = 0
 
-   vrBindCircle = permanent_bind_monster_rsc
+   vrBindCircle = permanent_bind_evil_monster_rsc
    viLayer = 9
 
-   vrProjectile_Icon = permanent_bind_circle_projectile_rsc
+   vrProjectile_Icon = permanent_bind_evil_circle_projectile_rsc
 
    viHarmful = FALSE
    viOutlaw = FALSE
@@ -130,13 +127,13 @@ messages:
          AND IsClass(First(lTargets),&Battler)
          AND Send(First(lTargets),@GetMaster) <> who
       {
-         Send(who,@MsgSendUser,#message_rsc=not_your_minion_perma);
+         Send(who,@MsgSendUser,#message_rsc=not_your_minion_perma_evil);
          return FALSE;
       }
       
-      if Send(who,@GetKarma) < 0
+      if Send(who,@GetKarma) > 0
       {
-         Send(who,@MsgSendUser,#message_rsc=cannot_rule_with_evil_karma);
+         Send(who,@MsgSendUser,#message_rsc=cannot_dominate_with_good_karma);
          return FALSE;
       }
 
@@ -144,14 +141,9 @@ messages:
          AND First(lTargets) <> $
          AND IsClass(First(lTargets),&Battler)
       {
-         if Send(First(lTargets),@GetKarma) < 0
+         if Send(First(lTargets),@GetKarma) > 0
          {
-            Send(who,@MsgSendUser,#message_rsc=cannot_rule_evil);
-            return FALSE;
-         }
-         if Send(First(lTargets),@IsUndead) < 0
-         {
-            Send(who,@MsgSendUser,#message_rsc=cannot_rule_undead);
+            Send(who,@MsgSendUser,#message_rsc=cannot_rule_good);
             return FALSE;
          }
       }
@@ -249,14 +241,9 @@ messages:
       if oTarget <> $
          AND IsClass(oTarget,&Battler)
       {
-         if Send(oTarget,@GetKarma) < 0
+         if Send(oTarget,@GetKarma) > 0
          {
-            Send(what,@MsgSendUser,#message_rsc=cannot_rule_evil);
-            return FALSE;
-         }
-         if Send(oTarget,@IsUndead) < 0
-         {
-            Send(what,@MsgSendUser,#message_rsc=cannot_rule_undead);
+            Send(what,@MsgSendUser,#message_rsc=cannot_rule_good);
             return FALSE;
          }
       }
@@ -284,7 +271,7 @@ messages:
       {
          if iLoyaltyResult = MAX_LOYALTY
          {
-            Send(what,@MsgSendUser,#message_rsc=dominated_permanently_msg,
+            Send(what,@MsgSendUser,#message_rsc=dominated_permanently_evil_msg,
                   #parm1=Send(oTarget,@GetCapDef),#parm2=Send(oTarget,@GetName));
          }
          else
@@ -362,7 +349,7 @@ messages:
 
    GetOverlay(animation = $)
    {
-      return permanent_bind_monster_rsc;
+      return permanent_bind_evil_monster_rsc;
    }
 
    % Return the icon used to display a spell shooting through the air.

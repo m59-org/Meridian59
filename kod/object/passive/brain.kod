@@ -568,6 +568,10 @@ messages:
       }
 
       if (behavior & AI_HAS_TARGET_LOCATION)
+         OR (Send(mob,@GetMaster) <> $
+             AND IsClass(Send(mob,@GetMaster),&Player)
+             AND Send(Send(mob,@GetMaster),@GetStance) <> $
+             AND IsClass(Send(Send(mob,@GetMaster),@GetStance),&DefiantStandStance))
       {
          Send(mob,@DoGoTowardsLocation);
 
@@ -594,6 +598,10 @@ messages:
       }
 
       if (behavior & AI_MOVE_FOLLOW_MASTER)
+         OR (Send(mob,@GetMaster) <> $
+             AND IsClass(Send(mob,@GetMaster),&Player)
+             AND Send(Send(mob,@GetMaster),@GetStance) <> $
+             AND IsClass(Send(Send(mob,@GetMaster),@GetStance),&LoyalGuardStance))
       {
          oMaster = Send(mob,@GetMaster);
          if oMaster <> $
@@ -792,7 +800,21 @@ messages:
          }
       }
 
+      if (Send(mob,@GetMaster) <> $
+          AND IsClass(Send(mob,@GetMaster),&Player)
+          AND Send(Send(mob,@GetMaster),@GetStance) <> $
+          AND IsClass(Send(Send(mob,@GetMaster),@GetStance),&DefiantStandStance))
+      {
+         Send(mob,@DoGoTowardsLocation);
+
+         return;
+      }
+
       if (behavior & AI_MOVE_FOLLOW_MASTER)
+         OR (Send(mob,@GetMaster) <> $
+             AND IsClass(Send(mob,@GetMaster),&Player)
+             AND Send(Send(mob,@GetMaster),@GetStance) <> $
+             AND IsClass(Send(Send(mob,@GetMaster),@GetStance),&LoyalGuardStance))
       {
          % No cross room travel. Target is assumed closer
          % if master is in another room.
@@ -802,8 +824,8 @@ messages:
             % Only move towards master if he's closer, and
             % if he's in the same room.
             if Send(mob,@GetOwner) = Send(oMaster,@GetOwner)
-               AND Send(mob,@SquaredDistanceTo,#what=oMaster)
-                     < Send(mob,@SquaredDistanceTo,#what=target)
+%               AND Send(mob,@SquaredDistanceTo,#what=oMaster)
+%                     < Send(mob,@SquaredDistanceTo,#what=target)
             {
                % Attempt to move towards master.
                Send(mob,@MoveToMaster);
@@ -950,16 +972,9 @@ messages:
 
       oMaster = Send(mob,@GetMaster);
 
-      % Minions do not attack players unless provoked.
+      % Minions do not attack anyone unless provoked.
       if oMaster <> $
       {
-         if IsClass(oMaster,&User)
-            AND IsClass(what,&User)
-            AND event <> TS_FIGHT_ME_VICTIM
-         {
-            return 0;
-         }
-
          % Never switch to target your master.
          if oMaster = what
          {
@@ -978,6 +993,21 @@ messages:
          
          % Never switch to target to other minions.
          if Send(what,@GetMaster) = oMaster
+         {
+            return 0;
+         }
+
+         if IsClass(oMaster,&Player)
+               AND Send(oMaster,@GetStance) <> $
+               AND (IsClass(Send(oMaster,@GetStance),&DefiantStandStance)
+                    OR IsClass(Send(oMaster,@GetStance),&LoyalGuardStance))
+               AND Send(oMaster,@AllowPlayerAttack,#victim=what,#report=FALSE,#actual=FALSE)
+         {
+            return 1000;
+         }
+
+         if IsClass(oMaster,&User)
+            AND event <> TS_FIGHT_ME_VICTIM
          {
             return 0;
          }
@@ -1130,14 +1160,15 @@ messages:
       {
          if NOT (behavior & AI_FIGHT_MONSTERS)
          {
-            if event <> TS_FIGHT_ME_VICTIM
-            {
-               return 0;
-            }
-            else
-            {
-               iHatred = (iHatred -20);
-            }
+             return 0;
+%            if event <> TS_FIGHT_ME_VICTIM
+%            {
+%               return 0;
+%            }
+%            else
+%            {
+%               iHatred = (iHatred -20);
+%            }
          }
       }
       else

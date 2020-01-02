@@ -1,0 +1,85 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+LoyalGuardStance is Stance
+
+constants:
+
+   include blakston.khd
+   include protocol.khd   
+
+resources:
+
+   Loyal_Guard_name_rsc = "loyal guard"
+   Loyal_Guard_icon_rsc = iblock.bgf
+   Loyal_Guard_desc_rsc = \
+      "A worthy knight naturally accrues companions, squires, and followers "
+      "over the course of his or her service. "
+      "In times of great need, a knight can call upon the loyal "
+      "to protect them at all costs. A portion of the damage dealt "
+      "to the knight is instead received by a nearby follower, "
+      "if there are any close enough to do so."
+      "\n\nWhile this order is in effect, your minions will "
+      "stay near you even in the midst of battle, engaging threats only if they are in range. "
+      "Once engaged, there will be little opportunity for retreat, "
+      "but your minion will do its best to return to you if the enemy "
+      "breaks off or is slain."
+
+   Loyal_Guard_skill_intro = "Knightcraft Lv. 3: A standing order to your minions to protect you."
+   
+   Loyal_Guard_begin = "You rally your minions to your side."
+   Loyal_Guard_end = "Your minions loosen their formation."
+   Loyal_Guard_mantra = \
+      "To me, loyal squires!"
+
+   Loyal_Guard_intro = \
+      "Knightcraft Lv. 3: Your minions will protect you."
+
+classvars:
+
+   vrName = Loyal_Guard_name_rsc
+   vrIcon = Loyal_Guard_icon_rsc
+   vrDesc = Loyal_Guard_desc_rsc
+
+   stance_begin_msg = Loyal_Guard_begin
+   stance_end_msg = Loyal_Guard_end
+   
+   vsStanceMantra = Loyal_Guard_mantra
+
+   vrSkill_intro = Loyal_Guard_skill_intro
+
+   viIndefinite = ARTICLE_NONE
+   viDefinite = ARTICLE_NONE
+
+   viSkill_num = SKID_LOYAL_GUARD_STANCE
+   viSchool = SKS_KNIGHTCRAFT
+   viSkill_Level = 5
+   viChance_to_Increase = 5
+   viMeditate_ratio = 30
+
+   viSkillExertion = 0
+   vbCheck_exertion = FALSE
+
+   vbAutomatic = TRUE
+   
+   viPrimaryStat = STAT_ID_MIGHT
+   viSecondaryStat = 0
+
+properties:
+
+messages:
+
+   GetRequisiteStat(who=$)
+   {
+      return Send(who,@GetMight);
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

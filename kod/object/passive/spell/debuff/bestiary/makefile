@@ -13,6 +13,7 @@ BOFS = binding.bof \
        studycreatureresists.bof \
        markofmagic.bof \
        studycreaturecompliance.bof \
-       permabinding.bof
+       permabinding.bof \
+       permabindingevil.bof
 
 !include $(KODDIR)\kod.mak
