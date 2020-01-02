@@ -902,9 +902,9 @@ messages:
 
    GetHatred(mob=$,what=$,behavior=0,event=0)
    "Returns a value.  If this value is greater than the existing hatred, "
-   "we attack. If iBalance ends up greater than 0, return TRUE."
+   "we attack. If iHatred ends up greater than 0, return TRUE."
    {
-      local iBalance, oTarget, iHatred, iKarma1, iKarma2, oMaster,
+      local oTarget, iHatred, iKarma1, iKarma2, oMaster,
             oApparentForm, oApparentTarget, bKarmaHater, iAdd, oMobTarget,
             iSquaredVision, iSquaredDistance;
 
@@ -922,7 +922,7 @@ messages:
       }
 
       % These guys never target anyone at all.
-      if (behavior & AI_NOFIGHT) OR (behavior & AI_NPC)
+      if (behavior & AI_NOFIGHT) OR (behavior & AI_NPC) 
       {
          return 0;
       }
@@ -957,26 +957,29 @@ messages:
             AND IsClass(what,&User)
             AND event <> TS_FIGHT_ME_VICTIM
          {
-            if NOT Send(SYS,@IsPKAllowed)
-            {
-               return 0;
-            }
+            return 0;
          }
 
-         % Never switch to target your master
-         % UNLESS your master is attacking you.
+         % Never switch to target your master.
          if oMaster = what
          {
-            if event <> TS_FIGHT_ME_VICTIM
-            {
-               return 0;
-            }
-            else
-            {
-               Send(mob,@SetBehaviorFlag,#flag=AI_FIGHT_SINGLEMINDED);
-
-               return 1000;
-            }
+             return 0;
+%            if event <> TS_FIGHT_ME_VICTIM
+%            {
+%               return 0;
+%            }
+%            else
+%            {
+%               Send(mob,@SetBehaviorFlag,#flag=AI_FIGHT_SINGLEMINDED);
+%
+%               return 1000;
+%            }
+         }
+         
+         % Never switch to target to other minions.
+         if Send(what,@GetMaster) = oMaster
+         {
+            return 0;
          }
 
          % Don't attack faction soldier NPCs unless
