@@ -1,0 +1,313 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+EventSpawner is ActiveObject
+
+% This spawns monsters according to certain rules and timing to create a mini-event.
+
+constants:
+
+   include blakston.khd
+
+   USE_RANGE = 3
+
+resources:
+
+   event_spawner_name_rsc = "Gravestorm"
+   event_spawner_icon_rsc = orcfire.bgf
+   event_spawner_desc_rsc = \
+      "If you touch this, something very bad will happen.."
+
+classvars:
+
+   vrName = event_spawner_name_rsc
+   vrIcon = event_spawner_icon_rsc
+   vrDesc = event_spawner_desc_rsc
+
+   viObject_flags = OF_ACTIVATABLE
+
+   % Definitions for animations
+   viOff_frame = 1
+   viStart_frame = 1
+   viEnd_frame = 8
+
+   % What flags?  Default is the "yes, I'm a light" flag.
+   viLightFlags = LIGHT_FLAG_ON | LIGHT_FLAG_WAVERING
+
+   % What color?  Default is a fire color.
+   viLightColor = LIGHT_GREEN
+   
+properties:
+
+   piAnim_speed = 100
+
+   % Are we currently lit?  Used for lights that turn on/off.
+   pbIsLit = TRUE
+
+   % What intensity? from 0-255
+   %  Keep this as a property to allow us to set it dynamically.
+   piLightIntensity = 5
+   
+   ptEventTimer = $
+   piStepsTaken = 5
+   plSpawnClasses = $
+   piSpawned = 0
+   ptSpawnTimer = $
+   piRadiusInvis = 3
+   piRadiusOutside = 6
+
+messages:
+
+   Constructor(iIntensity=$)
+   {
+      Send(self,@SetAnimationSpeed);
+
+      if iIntensity <> $
+      {
+         piLightIntensity = iIntensity;
+      }
+
+      propagate;
+   }
+
+   SetAnimationSpeed()
+   {
+      piAnim_speed = random(50,100);
+
+      return;
+   }
+
+   SendAnimation()
+   {
+      if NOT pbIsLit
+      {
+         AddPacket(1,ANIMATE_NONE,2,viOff_frame);
+
+         return;
+      }
+
+      if piAnim_speed = 0
+      {
+         AddPacket(1,ANIMATE_NONE,2,viStart_frame);
+      }
+      else
+      {
+         AddPacket(1,ANIMATE_CYCLE,4,piAnim_speed,2,viStart_frame,2,viEnd_frame);
+      }
+
+      return;
+   }
+
+   GetObjectFlags()
+   {
+      local iFlags;
+
+      iFlags = viObject_flags;
+
+      if pbIsLit
+      {
+         iFlags = iFlags | OF_FLICKERING;
+      }
+
+      return iFlags;
+   }
+
+   IsFire()
+   "this item makes faren spells in the room stronger."
+   {
+      return TRUE;
+   }
+
+   SendLightingInformation()
+   {
+      AddPacket(2,viLightFlags);
+      AddPacket(1,piLightIntensity * pbIsLit);
+      AddPacket(2,viLightColor);
+
+      return;
+   }
+
+   TryActivate(who=$)
+   "Return False only if you want user.kod to send its own error message to user."
+   {
+      if Abs(Send(who,@GetRow) - Send(self,@GetRow)) > USE_RANGE
+         OR Abs(Send(who,@GetCol) - Send(self,@GetCol)) > USE_RANGE
+         OR Send(who,@GetOwner) <> Send(self,@GetOwner)
+      {
+         return TRUE;
+      }
+
+      Send(self,@StartEvent);
+
+      return TRUE;
+   }
+   
+   StartEvent()
+   {
+      local oPlayer;
+
+      if ptEventTimer = $
+      {
+         ptEventTimer = CreateTimer(self,@EventStep,1000);
+      }
+      if ptSpawnTimer = $
+      {
+         ptSpawnTimer = CreateTimer(self,@SpawnAMonster,Random(100,500));
+      }
+      
+      foreach oPlayer in Send(poOwner,@GetPlayersInRoom)
+      {
+         Send(oPlayer,@AddToMonsterChasers,#level=-20000);
+      }
+      
+      Send(poOwner,@StartThreat,#cClasses=[&GravestormThreat]);
+      return;
+   }
+   
+   EventStep(timer=$)
+   {
+      ptEventTimer = $;
+      
+      if poOwner = $
+      {
+         Send(self,@EndEvent);
+         return;
+      }
+
+      piStepsTaken++;
+      piRadiusInvis++;
+      piRadiusOutside++;
+
+      piLightIntensity = piLightIntensity + 10;
+ 
+      Send(poOwner,@SomethingChanged,#what=self);
+      
+      if piStepsTaken >= 60
+      {
+         Send(self,@EndEvent);
+      }
+      else
+      {
+         ptEventTimer = CreateTimer(self,@EventStep,1000);
+      }
+      return;
+   }
+
+   SpawnAMonster()
+   { 
+      local oRoom, lPos, iSelfRow, iSelfCol, iSelfFineRow, iSelfFineCol, iQuadrant, iCount, iRowSign, iColSign;
+
+      ptSpawnTimer = $;
+
+      oRoom = Send(self,@GetOwner);
+      if oRoom = $
+      {
+         return FALSE;
+      }
+
+      iSelfRow = Send(self,@GetRow);
+      iSelfCol = Send(self,@GetCol);
+      iSelfFineRow = Send(self,@GetFineRow);
+      iSelfFineCol = Send(self,@GetFineCol);
+      
+      lPos = [iSelfRow, iSelfCol, iSelfFineRow, iSelfFineCol];
+
+      iQuadrant = Random(1,4);
+      
+      switch(iQuadrant)
+      {
+         case 1:
+            iRowSign = 1;
+            iColSign = 1;
+            break;
+         case 2:
+            iRowSign = 1;
+            iColSign = -1;
+            break;
+         case 3:
+            iRowSign = -1;
+            iColSign = -1;
+            break;
+         case 4:
+            iRowSign = -1;
+            iColSign = 1;
+            break;
+      }
+      
+      iCount = piStepsTaken;
+      
+      while iCount > 0
+      {
+         if Random(1,2) = 1
+         {
+            SetNth(lPos,1,Nth(lPos,1) + (iRowSign * Random(0,1)));
+         }
+         else
+         {
+            SetNth(lPos,2,Nth(lPos,2) + (iColSign * Random(0,1)));
+         }
+         iCount--;
+      }
+      
+      SetNth(lPos,3,Random(1,63));
+      SetNth(lPos,4,Random(1,63));
+      
+      if Nth(lPos,1) < Send(poOwner,@GetRoomRows)-1
+         AND Nth(lPos,1) > 2
+         AND Nth(lPos,2) < Send(poOwner,@GetRoomCols)-1
+         AND Nth(lPos,2) > 2
+      {
+         Send(poOwner,@NewHold,#what=Create(&Avar),#new_row=Nth(lPos,1),
+                                                    #new_col=Nth(lPos,2),
+                                                    #fine_row = Nth(lPos,3),
+                                                    #fine_col = Nth(lPos,4));
+      }
+
+      if ptSpawnTimer = $
+      {
+         ptSpawnTimer = CreateTimer(self,@SpawnAMonster,Random(100,500));
+      }
+
+      return;
+   }
+   
+   EndEvent()
+   {
+      if ptEventTimer <> $
+      {
+         DeleteTimer(ptEventTimer);
+         ptEventTimer = $;
+      }
+      if ptSpawnTimer <> $
+      {
+         DeleteTimer(ptSpawnTimer);
+         ptSpawnTimer = $;
+      }
+      Send(poOwner,@EndThreat,#cClass=&GravestormThreat);
+      return;
+   }
+   
+   Delete()
+   {
+      if ptEventTimer <> $
+      {
+         DeleteTimer(ptEventTimer);
+         ptEventTimer = $;
+      }
+      if ptSpawnTimer <> $
+      {
+         DeleteTimer(ptSpawnTimer);
+         ptSpawnTimer = $;
+      }
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

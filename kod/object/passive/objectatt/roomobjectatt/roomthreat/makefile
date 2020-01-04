@@ -10,6 +10,6 @@ BOFS = coldthreat.bof heatthreat.bof acidthreat.bof lavathreat.bof \
        acidprismthreat.bof humiditythreat.bof rainthreat.bof snowthreat.bof \
        chaosthreat.bof vigorthreat.bof junglenightthreat.bof \
        lifeprismthreat.bof deathprismthreat.bof \
-       underwaterthreat.bof
+       underwaterthreat.bof gravestormthreat.bof
 
 !include $(KODDIR)\kod.mak
