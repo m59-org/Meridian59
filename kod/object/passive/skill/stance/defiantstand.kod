@@ -25,6 +25,7 @@ resources:
       "An intelligent knight can order his or her loyal squires to "
       "protect a location. They need not know the reason why, "
       "they need only trust in their leader. "
+      "The more defiant they are, the more damage they will deal with attacks. "
       "\n\nWhile this order is in effect, your minions will "
       "stay near the initial location of your order, fighting any enemies who approach. "
       "\n\nThis order will lose effect if you leave the area, "
@@ -88,10 +89,6 @@ messages:
                                                     Send(who,@GetCol),
                                                     Send(who,@GetFineRow),
                                                     Send(who,@GetFineCol)]);
-%         Post(who,@SetDefiantStandLocation,#iRID=Send(Send(who,@GetOwner),@GetRoomNum),#lPos=[Send(who,@GetRow),
-%                                                                                              Send(who,@GetCol),
-%                                                                                              Send(who,@GetFineRow),
-%                                                                                              Send(who,@GetFineCol)]);
       }
 
       propagate;
@@ -102,9 +99,19 @@ messages:
       if IsClass(who,&User)
       {
          Send(who,@ClearMinionPatrolLocations);
-%         Post(who,@SetDefiantStandLocation);
       }
       propagate;
+   }
+   
+   ModifyDamage(who=$, iDamageBonus=0)
+   {
+      local iStat, iAbility;
+      iStat = Send(self,@GetRequisiteStat,#who=who);
+      iAbility = Send(who,@GetSkillAbility,#skill_num=viSkill_num);
+      
+      Send(self,@ImproveAbility,#who=who);  
+      
+      return iDamageBonus + iStat/50 + iAbility/25;
    }
 
 end

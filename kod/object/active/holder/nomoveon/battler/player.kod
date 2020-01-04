@@ -8187,6 +8187,13 @@ messages:
             }
             damage = (damage * (100+iEmpowermentPercentage))/100;
          }
+         
+         % Check for Loyal Guard
+         if poStance <> $
+            AND IsClass(poStance,&LoyalGuardStance)
+         {
+            damage = Send(Send(SYS,@FindSkillByNum,#num=SKID_LOYAL_GUARD_STANCE),@AttemptGuardsTakeDamage,#who=self,#damage=damage);
+         }
       
          % Check for Heavy Arms mastery.
          if Send(self,@HasMasteredThisSkill,#num=SKID_HEAVY_ARMS)

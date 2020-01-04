@@ -3094,6 +3094,13 @@ messages:
          iDamageBonus = Send(Nth(lRadiusState,1),@ModifyDamage,#who=self,
                               #what=what,#damage=iDamageBonus,#lRadiusState=lRadiusState);
       }
+      if poMaster <> $
+         AND IsClass(poMaster,&Player)
+         AND Send(poMaster,@GetStance) <> $
+         AND IsClass(Send(poMaster,@GetStance),&DefiantStandStance)
+      {
+         iDamageBonus = Send(Send(SYS,@GetSkill,#num=SKID_DEFIANT_STAND_STANCE),@ModifyDamage,#who=poMaster,#iDamageBonus=iDamageBonus);
+      }
       
       % Convert damage bonus to high precision.
       iDamage = iDamage + iDamageBonus*100;

@@ -42,6 +42,11 @@ resources:
    Loyal_Guard_intro = \
       "Knightcraft Lv. 3: Your minions will protect you."
 
+   Loyal_Guard_damage_taken = \
+      "%i members of your loyal guard take ~B~p%i~n damage for you!"
+   Loyal_Guard_damage_taken_singular = \
+      "Your loyal guardian takes ~B~p%i~n damage for you!"
+
 classvars:
 
    vrName = Loyal_Guard_name_rsc
@@ -74,11 +79,72 @@ classvars:
 
 properties:
 
+   piLoyalGuardRange = 320
+
 messages:
 
    GetRequisiteStat(who=$)
    {
       return Send(who,@GetMight);
+   }
+   
+   AttemptGuardsTakeDamage(who=$, damage=0)
+   {
+      local oMinion, iDist, lClose, iDamageToShare, iDamageActuallyShared, iStat, iAbility, iDamageSlice, iMinionsActuallyHarmed;
+
+      lClose = $;
+      foreach oMinion in Send(who,@GetControlledMinions)
+      {
+         iDist = Send(who,@SquaredFineDistanceTo,#what=oMinion);
+         
+         if iDist <> $
+            AND iDist <= piLoyalGuardRange * piLoyalGuardRange
+         {
+            lClose = Cons(oMinion,lClose);
+         }
+      }
+      
+      if lClose = $
+      {
+         return damage;
+      }
+      
+      iStat = Send(self,@GetRequisiteStat,#who=who);
+      iAbility = Send(who,@GetSkillAbility,#skill_num=viSkill_num);
+      iDamageToShare = (damage * ((iAbility+1)/10 + iStat/20))/100;
+      iDamageActuallyShared = 0;
+      iMinionsActuallyHarmed = 0;
+
+      iDamageSlice = iDamageToShare / Length(lClose);
+      foreach oMinion in lClose
+      {
+         if Send(oMinion,@GetExactHealth) > iDamageSlice
+         {
+            Send(oMinion,@LoseHealth,#amount=iDamageSlice,#precision=TRUE);
+            iDamageActuallyShared = iDamageActuallyShared + iDamageSlice;
+            iMinionsActuallyHarmed++;
+         }
+      }
+      
+      if iDamageActuallyShared > 0
+      {
+         Send(self,@ImproveAbility,#who=who);  
+      }
+      else
+      {
+         return damage;
+      }
+      
+      if iMinionsActuallyHarmed = 1
+      {
+         Send(who,@MsgSendUser,#message_rsc=Loyal_Guard_damage_taken_singular,#parm1=iDamageActuallyShared/100);
+      }
+      else
+      {
+         Send(who,@MsgSendUser,#message_rsc=Loyal_Guard_damage_taken,#parm1=iMinionsActuallyHarmed,#parm2=iDamageActuallyShared/100);
+      }
+
+      return Bound(damage - iDamageActuallyShared,(damage*85)/100,$);
    }
 
 end
