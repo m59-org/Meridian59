@@ -700,12 +700,16 @@ properties:
    piDrowningDelay = 3000
    piDrowningDamage = 1000
 
+   poEventSpawner = $
+
 messages:
 
-   Constructor(template=FALSE, color=0, piSurvivalLevel=0, iBrain = 0, iChaosLevel = 0)
+   Constructor(template=FALSE, color=0, piSurvivalLevel=0, iBrain = 0, iChaosLevel = 0, oEventSpawner = $)
    "Simple enough, we create a monster. If they are questworthy, we note it."
    {
       local iStatPoints, iMin, iMax, oChaosMaint, iChaosDiff;
+
+      poEventSpawner = oEventSpawner;
 
       iChaosDiff = 0;
       if iChaosLevel > 0
@@ -1005,6 +1009,8 @@ messages:
          poApparitionOriginal = $;
          poApparitionCaster = $;
       }
+
+      poEventSpawner = $;
       
       if ptDrowningTimer <> $
       {
@@ -5000,6 +5006,8 @@ messages:
       {
          return;
       }
+      
+      poEventSpawner = $;
       
       if ptDrowningTimer <> $
       {
@@ -10136,6 +10144,11 @@ messages:
       
       % We're over our limit.
       return FALSE;
+   }
+
+   GetEventSpawner()
+   {
+      return poEventSpawner;
    }
 
 end

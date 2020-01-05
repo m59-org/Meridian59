@@ -3159,6 +3159,21 @@ messages:
             iFlags = (iFlags | OF_BOUNCING);
          }
       }
+      
+      if IsClass(what,&Monster)
+         AND Send(what,@GetEventSpawner) <> $
+      {
+         % This mob has special conditions.
+         if Send(what,@SquaredFineDistanceTo,#what=Send(what,@GetEventSpawner)) >= Send(Send(what,@GetEventSpawner),@GetSquaredFineRadiusInvis)
+         {
+            if (iDrawingFlags & DRAWFX_MASK) <> DRAWFX_INVISIBLE
+            {
+               iDrawingFlags = iDrawingFlags | DRAWFX_INVISIBLE;
+               iFlags = (iFlags & (~OF_FLICKERING));
+               iFlags = (iFlags & (~OF_FLASHING));
+            }
+         }
+      }
 
       iMinimapFlags = Send(self,@BuildMinimapDotFlag,#what=what);
       if iMinimapFlags = $

@@ -264,7 +264,7 @@ messages:
          AND Nth(lPos,2) < Send(poOwner,@GetRoomCols)-1
          AND Nth(lPos,2) > 2
       {
-         Send(poOwner,@NewHold,#what=Create(&Avar),#new_row=Nth(lPos,1),
+         Send(poOwner,@NewHold,#what=Create(&Skeleton,#oEventSpawner=self),#new_row=Nth(lPos,1),
                                                     #new_col=Nth(lPos,2),
                                                     #fine_row = Nth(lPos,3),
                                                     #fine_col = Nth(lPos,4));
@@ -307,6 +307,21 @@ messages:
          ptSpawnTimer = $;
       }
       propagate;
+   }
+   
+   GetRadiusInvis()
+   {
+      return piRadiusInvis;
+   }
+   
+   GetSquaredFineRadiusInvis()
+   {
+      return (piRadiusInvis*64)*(piRadiusInvis*64);
+   }
+   
+   GetRadiusOutside()
+   {
+      return piRadiusOutside;
    }
 
 end
