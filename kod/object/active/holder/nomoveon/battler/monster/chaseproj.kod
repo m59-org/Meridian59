@@ -1,0 +1,230 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ChaseProjectile is Monster
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   chase_projectile_name_rsc = "sentient flame"
+   chase_projectile_icon_rsc = blastfireproj.bgf
+   chase_projectile_desc_rsc = \
+      "Run!"
+
+   chase_projectile_dead_icon_rsc = centipX.bgf
+   chase_projectile_dead_name_rsc = "dead sentient flame"
+
+   chase_projectile_sound_hit = fflame.wav
+   chase_projectile_sound_miss = fflame.wav
+   chase_projectile_sound_death = fflame.wav
+   chase_projectile_sound_aware = fflame.wav
+   
+   chase_projectile_icon = woflame.bgf
+   
+classvars:
+
+   vrName = chase_projectile_name_rsc
+   vrIcon = chase_projectile_icon_rsc
+   vrDesc = chase_projectile_desc_rsc
+   vrDead_icon = chase_projectile_dead_icon_rsc
+   vrDead_name = chase_projectile_dead_name_rsc
+
+   viTreasure_type = TID_TOUGH
+
+   viSpeed = SPEED_VERY_FAST
+   viAttack_type = ATCK_WEAP_BITE
+
+   viLevel = 120
+   viDifficulty = 8
+   viVisionDistance = 25
+   viKarma = 40
+   viCashmin = 450
+   viCashmax = 1000
+   vrSound_hit = chase_projectile_sound_hit
+   vrSound_miss = chase_projectile_sound_miss
+   vrSound_aware = chase_projectile_sound_aware
+   vrSound_death = chase_projectile_sound_death
+
+   viBaseSize = 80
+   
+   viLeadershipCost = 80
+   
+   vbBreathesWater = TRUE
+   vbBreathesAir = TRUE
+
+   vrProjectile_icon = chase_projectile_icon
+   viProjectileFlag = PROJ_FLAG_LIGHT_SOURCE
+   viProjectileLightFlags = LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC
+   viProjectileLightIntensity = 100
+   viProjectileLightColor = LIGHT_RED
+   viProjectileSpeed = 4
+
+properties:
+
+   piAnimation = ANIM_NONE
+   
+   piMoveSpeed = 50
+   
+   poCreator = $
+   piBombRadius = 64
+
+messages:
+
+   Constructed()
+   {
+      plResistances = [ [-ATCK_SPELL_FIRE, 40 ],
+                        [ATCK_WEAP_SLASH, 20],
+                        [ATCK_WEAP_MAGIC, -20],
+                        [-ATCK_SPELL_SHOCK, -20] ];
+
+      plCreatureTypes = Cons(CREATURE_TYPE_ELEMENTAL,plCreatureTypes);
+      plCreatureTypes = Cons(CREATURE_TYPE_MUNDANE,plCreatureTypes);
+
+      propagate;
+   }
+
+   SendLookAnimation()
+   {
+      % 40ms between animations, between frames 1-2
+      AddPacket(1,ANIMATE_CYCLE, 4,40, 2,1, 2,2);   
+
+      return;
+   }
+
+   SendMoveAnimation()
+   {
+      % 40ms between animations, between frames 1-2
+      AddPacket(1,ANIMATE_CYCLE, 4,40, 2,1, 2,2);   
+
+      return;
+   }
+
+   SendAnimation()
+   {
+      if piAnimation = ANIM_ATTACK
+      {
+         % 40ms between animations, between frames 1-2
+         AddPacket(1,ANIMATE_CYCLE, 4,40, 2,1, 2,2);   
+
+         return;
+      }
+
+      % if no body animation
+
+      propagate;
+   }
+
+   IsAlly(target = $)
+   "Newbie monster has no allies."
+   {
+      return FALSE;
+   }
+
+   GetObjectFlags()
+   {
+      return OF_BOUNCING | OF_ATTACKABLE;
+   }
+
+   WeightPrefixes()
+   {
+      return [[&ColdEmpowermentMod,200]
+             ];
+   }
+   
+   WeightSuffixes()
+   {
+      return [[&ColdResistanceMod,200]
+             ];
+   }
+
+   EmpowerAffixes()
+   {
+      return [[&ColdResistanceMod,5]
+             ];
+   }
+
+   MonsterAttack(what = $)
+   "Called by monster attacking code right before taking a swing at <what>."
+   {
+      Send(self,@DetonateFire);
+      return;
+   }
+   
+   DetonateFire()
+   {
+      local oOwner, i, each_obj, lSplashTargets, lBattlers, iBurningDealt, iTotalBurning, iDealtDamage,
+            oFireElement, iFireElements;
+      
+      oOwner = Send(self,@GetOwner);
+      lBattlers = $;
+      
+      % Create random fire.
+      
+      iFireElements = Random(3,6);
+      
+      while iFireElements > 0
+      {
+         oFireElement = Create(&WallOfFire,#MaxDamage=viLevel/6,#Caster=poCreator,
+                           #Duration=viLevel/3,#Illusionary=FALSE);
+         Send(oOwner,@NewHold,#what=oFireElement,
+              #new_row=Bound(Send(self,@GetRow) + Random(-piBombRadius/64,piBombRadius/64),0,Send(oOwner,@GetRoomRows)),
+              #new_col=Bound(Send(self,@GetCol) + Random(-piBombRadius/64,piBombRadius/64),0,Send(oOwner,@GetRoomCols)),
+              #fine_row=Random(0,64),
+              #fine_col=Random(0,64));
+         iFireElements--;
+      }
+
+      % For our splash targets, we find all battlers in range of the target
+      %    that aren't the caster or target and which the caster can attack
+
+      foreach i in Send(oOwner,@GetHolderActive)
+      {
+         each_obj = Send(oOwner,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&Battler)
+            AND each_obj <> poCreator
+            AND Send(oOwner,@LineOfSight,#obj1=self,#obj2=each_obj)
+           % AND Send(poCreator,@AllowPlayerAttack,#victim=each_obj,#report=FALSE,#actual=FALSE)
+            AND Send(each_obj,@SquaredFineDistanceTo3D,#what=self) <= piBombRadius*piBombRadius
+            AND NOT (IsClass(each_obj,&Monster) AND NOT Send(each_obj,@CanMonsterFight))
+            AND Send(each_obj,@GetMaster) <> poCreator
+         {
+            lBattlers = Cons(each_obj,lBattlers);
+         }
+      }
+
+      iTotalBurning = 0;
+      % Show bolt from target to new targets
+      if lBattlers <> $
+      {
+         foreach i in lBattlers
+         {
+            Send(oOwner,@SomethingShot,#who=self,
+                                       #target=i,
+                                       #projectile=self,
+                                       #flags=viProjectileFlag);
+            iBurningDealt = Send(i,@ApplyElementalStatusEffects,
+                                   #damage=Bound((viLevel*Random(7,13))/10,1,$),
+                                   #bSecondary=FALSE,
+                                   #aspell=ATCK_SPELL_FIRE,
+                                   #what=poCreator);
+            Send(i,@AddHurtMeRecently,#who=self,#amount=iBurningDealt);
+            iTotalBurning = iTotalBurning + iBurningDealt;
+         }
+      }
+      Send(poOwner,@SomethingWaveRoom,#what=self,#wave_rsc=chase_projectile_sound_death);
+      Post(self,@Delete);
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
