@@ -3188,7 +3188,7 @@ messages:
       AddPacket(4,iMinimapFlags);
       AddPacket(4,Send(what,@GetPlayerNameColor));
       AddPacket(1,Send(what,@GetClientObjectType));
-      AddPacket(1,Send(what,@GetMoveOnType));
+      AddPacket(1,Send(what,@GetMoveOnType,#who=self));
 
       % Send the lighting information.
       Send(what,@SendLightingInformation);
@@ -10955,7 +10955,7 @@ messages:
       return ret_val;
    }
 
-   GetMoveOnType()
+   GetMoveOnType(who=$)
    {
       local iFlags;
 

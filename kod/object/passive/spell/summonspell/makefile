@@ -8,6 +8,7 @@ DEPEND = ..\summonspell.bof
 BOFS = summonabomination.bof \
        summonelemental.bof \
        summonelephant.bof \
-       summonspiritwolf.bof
+       summonspiritwolf.bof \
+       summonsentientflame.bof
 
 !include $(KODDIR)\kod.mak

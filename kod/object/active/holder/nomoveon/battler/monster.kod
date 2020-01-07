@@ -2723,7 +2723,7 @@ messages:
 
    MoveToMaster()
    {
-      local drow, dcol;
+      local drow, dcol, iCloseToMasterRange;
 
       if poMaster = $
       {
@@ -2737,9 +2737,20 @@ messages:
       drow = abs(drow - (((piRow * FINENESS) + piFine_row) / 16));
       dcol = abs(dcol - (((piCol * FINENESS) + piFine_col) / 16));
 
+      if Send(poMaster,@GetControlledMinions) <> $
+         AND Length(Send(poMaster,@GetControlledMinions)) > 6
+      {
+         % Expand the range that constitutes 'close to master' if we have excessive minions
+         iCloseToMasterRange = 5;
+      }
+      else
+      {
+         iCloseToMasterRange = 3;
+      }
+
       % Try step closer to the master, if we're not yet close enough.
       % The move-timer is configured to make this movement seamless.
-      if drow > 3 OR dcol > 3
+      if drow > iCloseToMasterRange OR dcol > iCloseToMasterRange
       {
         Send(self,@MoveTowards,#oTarget=poMaster,#face_target=TRUE);
       }
@@ -10006,7 +10017,7 @@ messages:
       return;
    }
 
-   GetMoveOnType()
+   GetMoveOnType(who=$)
    {
       local iFlags;
 
@@ -10014,6 +10025,8 @@ messages:
 
       % Minions cannot block other players.
       if poMaster <> $
+         AND who <> $
+         AND IsClass(who,&Player)
       {
          iFlags = (iFlags & ~MOVEON_NO);
       }
