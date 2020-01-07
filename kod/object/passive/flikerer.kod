@@ -111,9 +111,19 @@ messages:
 
    SendLightingInformation()
    {
+      local iLightColor;
+
+      iLightColor = viLightColor;
+      if poOwner <> $
+      {
+         if Send(poOwner,@LightingColorOverride)
+         {
+            iLightColor = Send(poOwner,@GetLightingColorOverride);
+         }
+      }
       AddPacket(2,viLightFlags);
       AddPacket(1,piLightIntensity * pbIsLit);
-      AddPacket(2,viLightColor);
+      AddPacket(2,iLightColor);
 
       return;
    }

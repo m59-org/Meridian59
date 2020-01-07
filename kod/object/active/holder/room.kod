@@ -6150,11 +6150,29 @@ messages:
    
    LightingColorOverride()
    {
+      local i;
+      
+      foreach i in plObject_attributes
+      {
+         if Send(i,@LightingColorOverride)
+         {
+            return TRUE;
+         }
+      }
       return FALSE;
    }
    
    GetLightingColorOverride(what=$)
    {
+      local i;
+      
+      foreach i in plObject_attributes
+      {
+         if Send(i,@LightingColorOverride)
+         {
+            return Send(i,@GetLightingColorOverride,#what=what);
+         }
+      }
       return LIGHT_WHITE;
    }
 
