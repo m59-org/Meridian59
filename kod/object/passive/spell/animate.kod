@@ -200,6 +200,8 @@ messages:
             }
          }
       }
+      
+      Send(oRisen,@SetSummoned,#value=TRUE);
 
       if Send(who,@CanControlNewMinion,#oMonster=oRisen,#bCharming=FALSE)
       {
@@ -213,8 +215,8 @@ messages:
          % Post this due to it needing to be done after the minion is placed.
          Post(oRisen,@SetMaster,#oMaster=who);
 
-         % Start them off with Loyalty equal to spellpower *2 
-         Send(oRisen,@AddLoyalty,#amount=iSpellPower*2);
+         % Start them off with permanent Loyalty
+         Send(oRisen,@AddLoyalty,#amount=MAX_LOYALTY);
       }
       else
       {
