@@ -383,8 +383,8 @@ messages:
 
       Send(self,@AdjustStats);
       Send(self,@AdjustColor);
-      ptHungerTimer = CreateTimer(self,@HungerTrigger,
-                           Send(Send(SYS,@GetNecromancerBalance),@GetHungerInterval));
+%      ptHungerTimer = CreateTimer(self,@HungerTrigger,
+%                           Send(Send(SYS,@GetNecromancerBalance),@GetHungerInterval));
 
       propagate;
    }
@@ -638,8 +638,8 @@ messages:
          return;
       }
 
-      ptHungerTimer = CreateTimer(self,@HungerTrigger,
-                           Send(Send(SYS,@GetNecromancerBalance),@GetHungerInterval));
+%      ptHungerTimer = CreateTimer(self,@HungerTrigger,
+%                           Send(Send(SYS,@GetNecromancerBalance),@GetHungerInterval));
       
       if NOT Send(poOwner,@IsLoggedOn)
       {
@@ -1439,6 +1439,16 @@ messages:
    GetHex()
    {
       return piHexSpellID;
+   }
+   
+   RemoveHungerTrigger()
+   {
+      if ptHungerTimer <> $
+      {
+         DeleteTimer(ptHungerTimer);
+         ptHungerTimer = $;
+      }
+      return;
    }
 
 end

@@ -200,8 +200,8 @@ messages:
          Post(self,@AdjustStats);
          Post(self,@AdjustColor);
 
-         ptHungerTimer = CreateTimer(self,@HungerTrigger,Send(Send(SYS,@GetNecromancerBalance),
-                              @GetHungerInterval));
+        % ptHungerTimer = CreateTimer(self,@HungerTrigger,Send(Send(SYS,@GetNecromancerBalance),
+         %                     @GetHungerInterval));
       }
       % Remember, poOwner is still our old owner until we
       % propagate all the way to object.
@@ -548,8 +548,8 @@ messages:
          return;
       }
 
-      ptHungerTimer = CreateTimer(self,@HungerTrigger,Send(Send(SYS,@GetNecromancerBalance),
-                           @GetHungerInterval));
+      %ptHungerTimer = CreateTimer(self,@HungerTrigger,Send(Send(SYS,@GetNecromancerBalance),
+      %                      @GetHungerInterval));
 
       if NOT Send(poOwner,@IsLoggedOn)
       {
@@ -1031,6 +1031,16 @@ messages:
    GetCleaveModifier()
    {
       return 40;
+   }
+   
+   RemoveHungerTrigger()
+   {
+      if ptHungerTimer <> $
+      {
+         DeleteTimer(ptHungerTimer);
+         ptHungerTimer = $;
+      }
+      return;
    }
 
 end
