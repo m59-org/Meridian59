@@ -406,7 +406,7 @@ messages:
 
    ShowDesc(who=$)
    {
-      local rSchool, rOutlaw, rExtra, rPrimaryStat, rSecondaryStat;
+      local rSchool, rOutlaw, rExtra, rPrimaryStat, rSecondaryStat, iAbility;
 
       if viSchool <> SS_DM_COMMAND
       {
@@ -483,7 +483,10 @@ messages:
          Send(self,@SendTimeDesc,#who=who);
          Send(self,@SendReservationDesc,#who=who);
 
+         iAbility = Send(self,@GetAbility,#who=who);
          if piMeditate_ratio = 0
+            OR iAbility = 0
+            OR iAbility = 99
          {
             AddPacket(4,spell_nothing);
          }
