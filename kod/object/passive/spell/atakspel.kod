@@ -215,6 +215,13 @@ messages:
          {
             continue;
          }
+         
+         % Ignore out of ladder targets.
+         if IsClass(i,&Player)
+            AND Send(i,@GetLadderID) <> Send(who,@GetLadderID)
+         {
+            continue;
+         }
 
          if IsClass(who,&Player)
          {

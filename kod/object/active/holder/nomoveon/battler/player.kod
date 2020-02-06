@@ -6412,6 +6412,13 @@ messages:
       {
          return TRUE;
       }
+      
+      % No cross ladder fighting.
+      if IsClass(victim,&Player)
+         AND Send(victim,@GetLadderID) <> Send(self,@GetLadderID)
+      {
+         return FALSE;
+      }
 
       % Make sure room allows the attack. Check if room has
       % special combat affects.

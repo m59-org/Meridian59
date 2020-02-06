@@ -84,6 +84,13 @@ messages:
                continue;
             }
             
+            % Skip battlers we can't hit
+            if IsClass(each_obj,&Battler)
+               AND NOT Send(who,@AllowPlayerAttack,#victim=each_obj,#report=FALSE,#actual=FALSE)
+            {
+               continue;
+            }
+            
             % Free range monsters draw too much aggro if they hit other monsters
             if IsClass(each_obj,&Monster)
                AND IsClass(who,&Monster)
