@@ -211,6 +211,10 @@ resources:
    user_group_skills = "Skills"
    user_group_quests = "Quests"
 
+   user_achievements_header = "Achievements:"
+   user_achievements_completed_header = "Completed Achievements:"
+   user_challenges_header = "Challenges:"
+   user_challenges_completed_header = "Completed Challenges:"
    user_passive_quests_header = "Passive Quests:"
    user_no_passive_quests_header = "No Passive Quests"
    user_active_quests_header = "Active Quests: "
@@ -3762,7 +3766,7 @@ messages:
          iCount = 1;
          % Need to know how many completed quests in quest history.
          iQLength = Send(self,@GetCompletedQuestLength);
-         AddPacket(1,BP_STAT_GROUP, 1,group, 1,Length(plPassiveQuests) + Length(plActiveQuests) + iQLength + 3);
+         AddPacket(1,BP_STAT_GROUP, 1,group, 1,Length(plPassiveQuests) + Length(plActiveQuests) + iQLength + 7);
          
          % Send passive quests.
          if plPassiveQuests <> $
@@ -3811,6 +3815,11 @@ messages:
             AddPacket(1,iCount, 4,user_no_completed_quests_header,
                       1,STAT_LIST, 4,0, 4,0, 4,0);
          }
+         
+         AddPacket(1,iCount, 4,user_challenges_header,1,STAT_LIST, 4,0, 4,0, 4,0);
+         AddPacket(1,iCount, 4,user_challenges_completed_header,1,STAT_LIST, 4,0, 4,0, 4,0);
+         AddPacket(1,iCount, 4,user_achievements_header,1,STAT_LIST, 4,0, 4,0, 4,0);
+         AddPacket(1,iCount, 4,user_achievements_completed_header,1,STAT_LIST, 4,0, 4,0, 4,0);
 
          SendPacket(poSession);
 
