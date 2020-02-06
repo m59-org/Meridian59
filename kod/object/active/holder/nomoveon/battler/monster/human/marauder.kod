@@ -16,6 +16,12 @@ constants:
 
    EQUIPMENT_DROP_PERCENT = 100
 
+   % Values returned by UserGet
+   AUTOLOOT_GOT_ITEM = 1
+   AUTOLOOT_OUT_OF_RANGE = 2
+   AUTOLOOT_GOT_PARTIAL_STACK = 3
+   AUTOLOOT_CANNOT_GET = 4
+
 resources:
 
    % in increasing order of agony
@@ -41,7 +47,7 @@ classvars:
 
    viSpeed = SPEED_FASTER
    viAttack_type = ATCK_WEAP_SLASH
-   viAttributes = 0
+   viAttributes = MOB_ONE_TREASURE
    viDefault_behavior = AI_MOVE_REGROUP | \
       AI_FIGHT_AGGRESSIVE |  AI_FIGHT_WIZARD_KILLER | AI_FIGHT_HYPERAGGRESSIVE | AI_FIGHT_SINGLEMINDED
 
@@ -396,7 +402,7 @@ messages:
       lMaskClasses = Cons(&SkullMask,lMaskClasses);
       lMaskClasses = Cons(&TrollMask,lMaskClasses);
       
-      iNumberOfReagentsDropped = Random(10,30);
+      iNumberOfReagentsDropped = Random(5,12);
       
       while iNumberOfReagentsDropped > 0
       {
@@ -485,7 +491,6 @@ messages:
       {
          oTreasure = Create(Nth(lMaskClasses,Random(1,Length(lMaskClasses))),#corpse=corpse,#ladderID=1,#level=Bound(viLevel,20,240));
          Post(oTreasure,@RollLootMods,#oMonster=self);
-         Send(oTreasure,@Randomize);
 
          if Send(poOwner,@ReqNewHold,#what=oTreasure,#new_row=piRow,#new_col=piCol)
          {
@@ -541,9 +546,444 @@ messages:
 
       plUsing = $;
 
+      Send(self,@DoTreasureTypeTreasure,#who=who,#corpse=corpse,#ladderID=ladderID);
       return;
    }
-   
+
+   DoTreasureTypeTreasure(who=$,corpse=$,ladderID=0)
+   {
+      local i, j, oReagent, iNumberItems, oTreasure, oTreasure_type,
+            lTreasureItems, iNumberOfItemsDropped, iNumberOfItemsLooted,
+            iRandomCashAmount, oMoney, iGetResult, bCapacityFailure,
+            bRangeFailure, iSurvivalLoot, iNumShards, oShard, iRand,
+            oBestiaryBook;
+
+      % Apparitions, etc, provide no treasure
+      if pbIllusion
+         OR vbSummoned
+      {
+         return;
+      }
+
+      oTreasure_type = Send(SYS,@FindTreasureByNum,
+                              #num=Send(self,@GetTreasureType));
+      if oTreasure_type = $
+      {
+         Debug("Can't find monster treasure type",Send(self,@GetTreasureType),
+               vrname,self);
+
+         return;
+      }
+
+      % TreasureType now handles putting together the treasure list.
+      % Returns a list of items to drop, or $.
+      lTreasureItems = Send(oTreasure_Type,@CreateMobTreasure,#mob=self,
+                              #who=who,#level=piLevel,#difficulty=viDifficulty,
+                              #corpse=corpse,#attributes=viAttributes,
+                              #boostedlevel=piBoostedLevel,
+                              #iChaosLevel=piChaosLevel,
+                              #ladderID=ladderID);
+
+      % Add in our inventory
+      foreach i in plActive
+      {
+         lTreasureItems = Cons(i,lTreasureItems);
+      }
+
+      foreach i in plPassive
+      {
+         lTreasureItems = Cons(i,lTreasureItems);
+      }
+
+      % Add money to the treasure
+      iRandomCashAmount = Random(viCashMin,viCashMax);
+      if iRandomCashAmount > 0
+      {
+         % Don't send a corpse unless the player killed the mob. Minion kills
+         % already handed to the player in KilledSomething and double-checked
+         % in Killed. Corpse is used for the loot timer, which GenerateTreasure
+         % handles for monster kills but Constructor in Item does not.
+         if NOT IsClass(who,&Player)
+         {
+            corpse = $;
+         }
+
+         oMoney = Create(&Money,#corpse=corpse,#number=(iRandomCashAmount + (piBoostedLevel
+                     * Send(Send(SYS,@GetSurvivalRoomMaintenance),@GetSurvivalCash)) + (piChaosLevel
+                     * Send(Send(SYS,@GetChaosStrataMaintenance),@GetChaosCash)))
+                     * Send(self,@GetChampionRewardMultiplier),#ladderID=ladderID);
+
+         Send(Send(SYS,@GetStatistics),@MoneyCreated,#amount=Send(oMoney,@GetNumber));
+         lTreasureItems = Cons(oMoney,lTreasureItems);
+      }
+
+      % Add shards to champion treasure
+      if Send(self,@GetChampStatus) > 0
+      {
+         iNumShards = Send(self,@GetChampionRewardMultiplier);
+         if poOwner <> $
+         {
+            foreach i in Send(poOwner,@GetObjectAttributes)
+            {
+               if IsClass(i,&RoomThreat)
+               {
+                  iNumShards = Send(i,@AlterShardDrops,#iNumShards=iNumShards);
+               }
+            }
+         }
+         if Send(self,@GetLevel) < 50
+         {
+            --iNumShards;
+         }
+         if Send(self,@GetLevel) < 100
+         {
+            --iNumShards;
+         }
+         if Send(self,@GetLevel) < 150
+         {
+            --iNumShards;
+         }
+         while iNumShards > 0
+         {
+            iRand = Random(1,Send(SETTINGS_OBJECT,@GetEmpowerShardProbability)/100);
+            if iRand = 1
+            {
+               oShard = Create(&ShardEmpowerment,#ladderID=ladderID);
+            }
+            else
+            {
+               iRand = Random(1,Send(SETTINGS_OBJECT,@GetMajorShardProbability)/100);
+               if iRand = 1
+               {
+                  oShard = Create(&ShardImbueMajor,#ladderID=ladderID);
+               }
+               else
+               {
+                  iRand = Random(1,Send(SETTINGS_OBJECT,@GetDrainShardProbability)/100);
+                  if iRand = 1
+                  {
+                     oShard = Create(&ShardRemove,#ladderID=ladderID);
+                  }
+                  else
+                  {
+                     iRand = Random(1,Send(SETTINGS_OBJECT,@GetAugmentShardProbability)/100);
+                     if iRand = 1
+                     {
+                        oShard = Create(&ShardAugment,#ladderID=ladderID);
+                     }
+                     else
+                     {
+                        if IsClass(poOwner,&DesertRoom)
+                           OR IsClass(poOwner,&MinotaurMazeRoom)
+                           OR IsClass(poOwner,&AncientTomb1)
+                        {
+                           iRand = Random(1,Send(SETTINGS_OBJECT,@GetInstillingShardProbability)/10);
+                           if iRand = 1
+                           {
+                              oShard = Create(&ShardReroll,#ladderID=ladderID);
+                           }
+                           else
+                           {
+                              iRand = Random(1,Send(SETTINGS_OBJECT,@GetImprovementShardProbability)/10);
+                              if iRand = 1
+                              {
+                                 oShard = Create(&ShardImprovement,#ladderID=ladderID);
+                              }
+                              else
+                              {
+                                 iRand = Random(1,Send(SETTINGS_OBJECT,@GetDisruptionShardProbability)/10);
+                                 if iRand = 1
+                                 {
+                                    oShard = Create(&ShardReImbueMajor,#ladderID=ladderID);
+                                 }
+                                 else
+                                 {
+                                    oShard = Create(&ShardReImbueMinor,#ladderID=ladderID);
+                                 }
+                              }
+                           }
+                        }
+                        else
+                        {
+                           oShard = Create(&ShardImbueMinor,#ladderID=ladderID);
+                        }
+                     }
+                  }
+               }
+            }
+            
+            lTreasureItems = Cons(oShard,lTreasureItems);
+            --iNumShards;
+         }
+         
+         if Random(1,100) = 1
+         {
+            if Random(1,2) = 1
+            {
+               oBestiaryBook = Create(&BestiarySpellBook,#ladderID=ladderID);
+            }
+            else
+            {
+               oBestiaryBook = Create(&BestiarySkillBook,#ladderID=ladderID);
+            }
+            lTreasureItems = Cons(oBestiaryBook,lTreasureItems);
+         }
+      }
+
+      % Add shards to chaos stratum treasure
+      if piChaosLevel > 0
+      {
+         iNumShards = Random(-5,piChaosLevel/40);
+         
+         if poOwner <> $
+            AND Send(poOwner,@IsBoss,#what=self)
+         {
+            iNumShards = 4 + piChaosLevel/40;
+         }
+
+         if Send(self,@GetLevel) < 50
+         {
+            --iNumShards;
+         }
+         if Send(self,@GetLevel) < 100
+         {
+            --iNumShards;
+         }
+         if Send(self,@GetLevel) < 150
+         {
+            --iNumShards;
+         }
+         while iNumShards > 0
+         {
+            iRand = Random(1,Send(SETTINGS_OBJECT,@GetEmpowerShardProbability)/100);
+            if iRand = 1
+            {
+               oShard = Create(&ShardEmpowerment,#ladderID=ladderID);
+            }
+            else
+            {
+               iRand = Random(1,Send(SETTINGS_OBJECT,@GetMajorShardProbability)/100);
+               if iRand = 1
+               {
+                  oShard = Create(&ShardImbueMajor,#ladderID=ladderID);
+               }
+               else
+               {
+                  iRand = Random(1,Send(SETTINGS_OBJECT,@GetDrainShardProbability)/100);
+                  if iRand = 1
+                  {
+                     oShard = Create(&ShardRemove,#ladderID=ladderID);
+                  }
+                  else
+                  {
+                     iRand = Random(1,Send(SETTINGS_OBJECT,@GetAugmentShardProbability)/100);
+                     if iRand = 1
+                     {
+                        oShard = Create(&ShardAugment,#ladderID=ladderID);
+                     }
+                     else
+                     {
+                        if IsClass(poOwner,&DesertRoom)
+                           OR IsClass(poOwner,&MinotaurMazeRoom)
+                           OR IsClass(poOwner,&AncientTomb1)
+                        {
+                           iRand = Random(1,Send(SETTINGS_OBJECT,@GetInstillingShardProbability)/10);
+                           if iRand = 1
+                           {
+                              oShard = Create(&ShardReroll,#ladderID=ladderID);
+                           }
+                           else
+                           {
+                              iRand = Random(1,Send(SETTINGS_OBJECT,@GetImprovementShardProbability)/10);
+                              if iRand = 1
+                              {
+                                 oShard = Create(&ShardImprovement,#ladderID=ladderID);
+                              }
+                              else
+                              {
+                                 iRand = Random(1,Send(SETTINGS_OBJECT,@GetDisruptionShardProbability)/10);
+                                 if iRand = 1
+                                 {
+                                    oShard = Create(&ShardReImbueMajor,#ladderID=ladderID);
+                                 }
+                                 else
+                                 {
+                                    oShard = Create(&ShardReImbueMinor,#ladderID=ladderID);
+                                 }
+                              }
+                           }
+                        }
+                        else
+                        {
+                           oShard = Create(&ShardImbueMinor,#ladderID=ladderID);
+                        }
+                     }
+                  }
+               }
+            }
+            
+            lTreasureItems = Cons(oShard,lTreasureItems);
+            --iNumShards;
+         }
+         
+         if poOwner <> $
+            AND Send(poOwner,@IsBoss,#what=self)
+         {
+            if piChaosLevel = 140
+            {
+               lTreasureItems = Cons(Create(&QorCharm,#ladderID=ladderID),lTreasureItems);
+            }
+            else if Random(1,100) <= Send(Send(SYS,@GetChaosStrataMaintenance),@GetBaseScryingCrystalDropChance) + Send(poOwner,@GetQuality)
+            {
+               lTreasureItems = Cons(Create(&ScryingCrystal,#iTier=Bound(Send(poOwner,@GetTier)+Random(-1,1),1,5),
+                                                            #iChaosLevel=piChaosLevel+1,
+                                                            #level=180+piChaosLevel,
+                                                            #ladderID=ladderID),lTreasureItems);
+      
+               if Send(poOwner,@GetQuality) >= 100
+                  AND Random(1,100) <= Send(poOwner,@GetQuality) - 100
+               {
+                  lTreasureItems = Cons(Create(&ScryingCrystal,#iTier=Bound(Send(poOwner,@GetTier)+Random(-1,1),1,5),
+                                                               #iChaosLevel=piChaosLevel+1,
+                                                               #level=180+piChaosLevel,
+                                                               #ladderID=ladderID),lTreasureItems);
+               }
+            }
+         }
+      }
+
+      iNumberOfItemsDropped = 0;
+      iNumberOfItemsLooted = 0;
+      bCapacityFailure = FALSE;
+      bRangeFailure = FALSE;
+      
+      % Now drop all the treasure.
+      foreach oTreasure in lTreasureItems
+      {
+         if Send(poOwner,@ReqNewHold,#what=oTreasure,#new_row=piRow,
+                 #new_col=piCol)
+         {
+            Send(poOwner,@NewHold,#what=oTreasure,
+                  #new_row=piRow,#new_col=piCol,
+                  #fine_row=piFine_row,#fine_col=piFine_col);
+
+            if NOT IsClass(oTreasure,&Money)
+            {
+               ++iNumberOfItemsDropped;
+            }
+
+            if IsClass(oTreasure,&NumberItem)
+               AND Send(SYS,@UtilGetRoom,#what=oTreasure) = Send(who,@GetOwner)
+               AND Send(oTreasure,@GetPos) <> $
+               AND IsClass(who,&User)
+               AND Send(who,@CheckPlayerPreference,#flag=CF_AUTOLOOT)
+               AND (IsClass(oTreasure,&Money)
+                       OR (NOT bRangeFailure
+                           AND NOT bCapacityFailure))
+            {
+               iGetResult = Send(who,@UserGet,#what=oTreasure,#report=FALSE);
+               if NOT IsClass(oTreasure,&Money)
+                  AND (iGetResult = AUTOLOOT_GOT_ITEM
+                         OR iGetResult = AUTOLOOT_GOT_PARTIAL_STACK)
+               {
+                  ++iNumberOfItemsLooted;
+               }
+
+               if iGetResult = AUTOLOOT_OUT_OF_RANGE
+               {
+                  bRangeFailure = TRUE;
+               }
+               else if (iGetResult = AUTOLOOT_GOT_PARTIAL_STACK
+                        OR iGetResult = AUTOLOOT_CANNOT_GET)
+               {
+                  bCapacityFailure = TRUE;
+               }
+            }
+         }
+         else
+         {
+            Send(oTreasure,@Delete);
+         }
+      }
+
+      % Handle autoloot resources displayed to user.
+      if iNumberOfItemsDropped <> 0
+         AND IsClass(who,&User)
+         AND Send(who,@CheckPlayerPreference,#flag=CF_AUTOLOOT)
+      {
+         if bRangeFailure
+         {
+            Send(who,@MsgSendUser,#message_rsc=autoloot_too_far_away);
+
+            return;
+         }
+
+         if bCapacityFailure
+         {
+            if iNumberOfItemsLooted > 0
+            {
+               Send(who,@MsgSendUser,#message_rsc=autoloot_got_some_but_full_now);
+            }
+            else if iNumberOfItemsLooted = 0
+            {
+               if iRandomCashAmount > 0
+               {
+                  Send(who,@MsgSendUser,#message_rsc=autoloot_got_only_shillings_because_full,
+                        #parm1=Send(oMoney,@GetNumber));
+               }
+               else
+               {
+                  Send(who,@MsgSendUser,#message_rsc=autoloot_got_nothing_because_full);
+               }
+            }
+
+            return;
+         }
+
+         if iNumberOfItemsLooted > 0
+         {
+            if iNumberOfItemsLooted = iNumberOfItemsDropped
+            {
+               if iRandomCashAmount > 0
+               {
+                  Send(who,@MsgSendUser,#message_rsc=autolooted_all,
+                        #parm1=Send(oMoney,@GetNumber));
+               }
+               else
+               {
+                  Send(who,@MsgSendUser,#message_rsc=autolooted_all_no_money);
+               }
+            }
+            else if iNumberOfItemsLooted < iNumberOfItemsDropped
+            {
+               if iRandomCashAmount > 0
+               {
+                  Send(who,@MsgSendUser,#message_rsc=autolooted_some,
+                        #parm1=Send(oMoney,@GetNumber));
+               }
+               else
+               {
+                  Send(who,@MsgSendUser,#message_rsc=autolooted_some_no_money);
+               }
+            }
+         }
+         else if iNumberOfItemsLooted = 0
+         {
+            if iRandomCashAmount > 0
+            {
+               Send(who,@MsgSendUser,#message_rsc=autolooted_only_money,
+                     #parm1=Send(oMoney,@GetNumber));
+            }
+            else if iRandomCashAmount <= 0
+            {
+               Send(who,@MsgSendUser,#message_rsc=autolooted_none);
+            }
+         }
+      }
+
+      return;
+   }
+
    Delete()
    {
       if ptAggroTimer <> $
