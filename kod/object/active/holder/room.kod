@@ -20,6 +20,9 @@ constants:
    % The units are based on the Object class measurements @GetRow and @GetCol.
    WALL_DELETE_RADIUS = 2
    
+   ITEMS_IN_ROOM_MAX = 200
+   ITEMS_IN_ROOM_DELETED_AT_ONCE_MAX = 20
+   
 resources:
 
    include room.lkod
@@ -375,8 +378,8 @@ messages:
       % Start dispose timer, so that first user entering will cause
       % FirstUserEntered message to be sent (see NewHoldObject)
 
-      iDelay = piDispose_delay + Random(-5000,5000);
-      ptDispose = CreateTimer(self,@DisposeTimer,iDelay);
+      %iDelay = piDispose_delay + Random(-5000,5000);
+      %ptDispose = CreateTimer(self,@DisposeTimer,iDelay);
       piRoom_flags = viPermanent_flags;
 
       ptPeriodic_sounds = $;
@@ -2210,8 +2213,8 @@ messages:
          if IsClass(oEachObj,&DeadBody) AND Send(oEachObj,@WasPlayer)
          {
             % Restart dispose timer.
-            iTime = piDispose_delay + Random(-5000,5000);
-            ptDispose = CreateTimer(self,@DisposeTimer,iTime);
+            %iTime = piDispose_delay + Random(-5000,5000);
+            %ptDispose = CreateTimer(self,@DisposeTimer,iTime);
             return;
          }
       }
@@ -2275,8 +2278,8 @@ messages:
             }
          }
 
-         iTime = piDispose_delay + Random(-5000,5000);
-         ptDispose = CreateTimer(self,@DisposeTimer,iTime);
+         %iTime = piDispose_delay + Random(-5000,5000);
+         %ptDispose = CreateTimer(self,@DisposeTimer,iTime);
       }
 
       return;
@@ -2614,7 +2617,7 @@ messages:
 
    NewHoldObject(what = $,new_pos = $)
    {
-      local iTimeLeft, i, each_obj;
+      local iTimeLeft, i, each_obj, iCount, iDeletedCount;
 
       % The object still thinks it's with it's old owner.  If it's an item from
       %   a player, then make sure the items don't disappear immediately.
@@ -2627,23 +2630,23 @@ messages:
          %  down on cases of someone dropping an object and it being cleaned up
          %  immediately afterwards.
          
-         if ptDispose = $
-         {
+%         if ptDispose = $
+%         {
             % No dispose timer!
-            ptDispose = CreateTimer(self,@DisposeTimer,60000);
-         }
-         else
-         {
-            iTimeLeft = GetTimeRemaining(ptDispose);
-            if iTimeLeft < 60000
-               AND Send(self,@GetHolderPassive) <> $
-               AND Length(Send(self,@GetHolderPassive)) < 50
-            {
-               DeleteTimer(ptDispose);
-               ptDispose = $;
-               ptDispose = CreateTimer(self,@DisposeTimer,60000);
-            }
-         }
+            % ptDispose = CreateTimer(self,@DisposeTimer,60000);
+%         }
+%         else
+%         {
+            %iTimeLeft = GetTimeRemaining(ptDispose);
+            %if iTimeLeft < 60000
+            %   AND Send(self,@GetHolderPassive) <> $
+            %   AND Length(Send(self,@GetHolderPassive)) < 50
+            %{
+            %   DeleteTimer(ptDispose);
+            %   ptDispose = $;
+            %   ptDispose = CreateTimer(self,@DisposeTimer,60000);
+            %}
+%         }
       }
 
       Send(self,@HolderAddNode,#node=Cons(what,new_pos));
@@ -2710,6 +2713,37 @@ messages:
             each_obj = Nth(i,2);
             Send(each_obj,@StartEnchantmentNewOccupant,#who=what,
                  #state=(Nth(i,3)));
+         }
+      }
+      else if IsClass(what,&Item)
+      {
+         % How many items do we have? Let's prune if needed.
+         % Length of pl passive isn't strictly an item count, as it includes other objects
+         % But it's fast
+
+         if plPassive <> $
+            AND Length(plPassive) > ITEMS_IN_ROOM_MAX
+         {
+            iCount = Length(plPassive);
+            iDeletedCount = 0;
+            
+            while iCount > 0
+            {
+               i = Nth(plPassive,iCount);
+               each_obj = Send(self,@HolderExtractObject,#data=i);
+               if IsClass(each_obj,&Item)
+               {
+                  if Send(each_obj,@DestroyDisposable)
+                  {
+                     iDeletedCount++;
+                     if iDeletedCount >= ITEMS_IN_ROOM_DELETED_AT_ONCE_MAX
+                     {
+                        break;
+                     }
+                  }
+               }
+               iCount--;
+            }
          }
       }
 
@@ -3398,12 +3432,12 @@ messages:
 
       pbUser_in_room = TRUE;
 
-      if ptDispose = $
-      {
-         % Start up dispose timer if we don't have one already.
-         iTime = piDispose_delay + Random(-5000,5000);
-         ptDispose = CreateTimer(self,@DisposeTimer,iTime);
-      }
+%      if ptDispose = $
+%      {
+%         % Start up dispose timer if we don't have one already.
+%         iTime = piDispose_delay + Random(-5000,5000);
+%         ptDispose = CreateTimer(self,@DisposeTimer,iTime);
+%      }
 
       if plPeriodic_sounds <> $ AND ptPeriodic_sounds = $
       {
