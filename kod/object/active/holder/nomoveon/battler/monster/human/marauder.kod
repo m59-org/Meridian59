@@ -309,7 +309,7 @@ messages:
    CreateTreasure(who = $, corpse = $,ladderID=0)
    {
       local oTreasure, iNumber, iNumberOfReagentsDropped, lReagentClasses, oUsedItem, oItemAtt, 
-            lItemClasses, iNumLoot, lShirtClasses, lPantsClasses;
+            lItemClasses, iNumLoot, lShirtClasses, lPantsClasses, lMaskClasses;
 
       lReagentClasses = $;
       lReagentClasses = Cons(&DarkAngelFeather,lReagentClasses);
@@ -383,6 +383,19 @@ messages:
       lPantsClasses = Cons(&PantsD,lPantsClasses);
       lPantsClasses = Cons(&ShortSkirt,lPantsClasses);
       
+      lMaskClasses = $;
+      lMaskClasses = Cons(&AntMask,lMaskClasses);
+      lMaskClasses = Cons(&XeoMask,lMaskClasses);
+      lMaskClasses = Cons(&DaemonMask,lMaskClasses);
+      lMaskClasses = Cons(&FeyMask,lMaskClasses);
+      lMaskClasses = Cons(&KriipaMask,lMaskClasses);
+      lMaskClasses = Cons(&MummyMask,lMaskClasses);
+      lMaskClasses = Cons(&RatMask,lMaskClasses);
+      lMaskClasses = Cons(&ShrunkenHeadMask,lMaskClasses);
+      lMaskClasses = Cons(&StoneTrollMask,lMaskClasses);
+      lMaskClasses = Cons(&SkullMask,lMaskClasses);
+      lMaskClasses = Cons(&TrollMask,lMaskClasses);
+      
       iNumberOfReagentsDropped = Random(10,30);
       
       while iNumberOfReagentsDropped > 0
@@ -450,6 +463,27 @@ messages:
       while iNumLoot > 0
       {
          oTreasure = Create(Nth(lPantsClasses,Random(1,Length(lPantsClasses))),#corpse=corpse,#ladderID=1,#level=Bound(viLevel,20,240));
+         Post(oTreasure,@RollLootMods,#oMonster=self);
+         Send(oTreasure,@Randomize);
+
+         if Send(poOwner,@ReqNewHold,#what=oTreasure,#new_row=piRow,#new_col=piCol)
+         {
+            Send(poOwner,@NewHold,#what=oTreasure,
+                  #new_row=piRow,#new_col=piCol,
+                  #fine_row=piFine_row,#fine_col=piFine_col);
+         }
+         else
+         {
+            Send(oTreasure,@Delete);
+         }
+         iNumLoot--;
+      }
+
+      iNumLoot = Random(-2,1);
+      
+      while iNumLoot > 0
+      {
+         oTreasure = Create(Nth(lMaskClasses,Random(1,Length(lMaskClasses))),#corpse=corpse,#ladderID=1,#level=Bound(viLevel,20,240));
          Post(oTreasure,@RollLootMods,#oMonster=self);
          Send(oTreasure,@Randomize);
 

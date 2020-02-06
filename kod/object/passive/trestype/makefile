@@ -28,6 +28,7 @@ BOFS = wimptres.bof notres.bof spquent.bof med-tght.bof wmp-medt.bof \
    xeobossholyt.bof \
    yetit.bof \
    highsorcerert.bof \
-   crystalbeingt.bof
+   crystalbeingt.bof \
+   maraudert.bof
 
 !include $(KODDIR)\kod.mak
