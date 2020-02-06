@@ -1,0 +1,65 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ShadowMummy is Mummy
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   shadow_mummy_name_rsc = "wight"
+   shadow_mummy_desc_rsc = \
+      "Pacing inside its tomb, this wretched soul awaits release from the "
+      "confinements of its cursed body.  Its flesh is putrid and soft, and "
+      "its eyes ask for rest from its cursed unlife.\n\n"
+      "This creature has been inflicted with a permanent shadow curse, "
+      "which gives it great strength but also great misery."
+
+   shadow_mummy_dead_name_rsc = "dead shadow mummy"
+
+classvars:
+
+   vrName = shadow_mummy_name_rsc
+   vrDesc = shadow_mummy_desc_rsc
+
+   vrDead_name = shadow_mummy_dead_name_rsc
+   viDead_drawfx = DRAWFX_BLACK
+
+   viDifficulty = 7
+   viVisionDistance = 20
+   % If the monster is shadow or darkness, set this to TRUE.
+   vbIsShadow = TRUE
+
+properties:
+
+   piDrawfx = DRAWFX_BLACK
+
+messages:
+
+   Constructed()
+   {
+      plResistances = [ [-ATCK_SPELL_FIRE, 110 ],
+                        [-ATCK_SPELL_COLD, -20 ],
+                        [ATCK_WEAP_MAGIC, -10 ],
+                        [-ATCK_SPELL_QUAKE, 100 ]
+                      ];
+
+%      plMeleeSpellBook = [  [SID_FIREWALL,10,10, Random(70,99)],
+%                            [SID_BLAST_OF_FIRE,3,100, Random(70,99)] ];
+      plRangedSpellBook = [ [SID_SUMMON_SENTIENT_FLAME,1,80, Random(70,99)],
+                            [SID_MARK_OF_AGGRESSION,1,100, Random(70,99)] ];
+
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
