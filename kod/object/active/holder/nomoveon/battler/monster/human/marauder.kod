@@ -116,7 +116,11 @@ messages:
    DoAggroCheck(timer=$)
    {
       ptAggroTimer = $;
-      ptAggroTimer = CreateTimer(self,@DoAggroCheck,5000);
+      
+      if poOwner <> $
+      {
+         ptAggroTimer = CreateTimer(self,@DoAggroCheck,5000);
+      }
       
       if poTarget <> $
       {
