@@ -364,6 +364,9 @@ properties:
    
    % Do players 'drift' up and down?
    pbIsUnderwater = FALSE
+   
+   % Do we have a timer in this room?
+   poVisualTimer = $
 
 messages:
 
@@ -1570,6 +1573,11 @@ messages:
             Send(Send(first(i),@GetMaster),@ConvokeMinion,#oMinion=first(i));
          }
       }
+      
+      if poVisualTimer <> $
+      {
+         Send(poVisualTimer,@Delete);
+      }
 
       Send(self,@ClearShieldWallers);
 
@@ -2714,6 +2722,12 @@ messages:
             Send(each_obj,@StartEnchantmentNewOccupant,#who=what,
                  #state=(Nth(i,3)));
          }
+         
+         % add visual timer
+         if poVisualTimer <> $
+         {
+            Send(poVisualTimer,@DisplayVisualTimerForOne,#oPlayer=what);
+         }
       }
       else if IsClass(what,&Item)
       {
@@ -2924,6 +2938,11 @@ messages:
       if NOT IsClass(what,&User)
       {
          propagate;
+      }
+      
+      if poVisualTimer <> $
+      {
+         Send(poVisualTimer,@RemoveVisualTimerForOne,#oPlayer=what);
       }
 
       Send(self,@LeaveShieldWallers,#who=what);
@@ -6466,6 +6485,28 @@ messages:
          }
       }
       return 0;
+   }
+
+   DoTimerTest()
+   {
+      poVisualTimer = Create(&VisualTimer,#iTime=70,#oTargetRoom=self);
+      return;
+   }
+   
+   GetVisualTimer()
+   {
+      return poVisualTimer;
+   }
+   
+   VisualTimerDeleted()
+   {
+      poVisualTimer = $;
+      return;
+   }
+   
+   VisualTimerTrigger()
+   {
+      return;
    }
 
 end

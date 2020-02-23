@@ -1,0 +1,203 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+VisualTimer is PassiveObject
+
+constants:
+
+   include blakston.khd
+   include protocol.khd
+
+resources:
+   
+   window_overlay_timer_minutes_white = timerminutes.bgf
+   window_overlay_timer_seconds_white = timerseconds.bgf
+
+classvars:
+
+properties:
+
+   piMinutesRemaining = 0
+   piSecondsRemaining = 0
+   
+   ptMinuteUpdate = $
+   
+   poTargetRoom = $
+
+messages:
+
+   Constructor(iTime=0, oTargetRoom=$)
+   {
+      poTargetRoom = oTargetRoom;
+      piMinutesRemaining = Bound(iTime / 60,0,60);
+      piSecondsRemaining = Bound(iTime MOD 60,0,59);
+
+      ptMinuteUpdate = CreateTimer(self,@UpdateMinutesTimer,(piSecondsRemaining+1) * 1000);
+
+      Send(self,@DisplayVisualTimerForRoom);
+      
+      propagate;
+   }
+   
+   UpdateMinutesTimer(timer=$)
+   {
+      ptMinuteUpdate = $;
+      
+      if piMinutesRemaining = 0
+      {
+         Send(self,@TriggerVisualTimer);
+         return;
+      }
+      piMinutesRemaining--;
+      
+      Send(self,@DisplayVisualTimerForRoom);
+
+      ptMinuteUpdate = CreateTimer(self,@UpdateMinutesTimer,60000);
+      return;
+   }
+
+   GetCurrentMinutes()
+   {
+      return piMinutesRemaining;
+   }
+   
+   GetCurrentSeconds()
+   {
+      if ptMinuteUpdate <> $
+      {
+         return GetTimeRemaining(ptMinuteUpdate)/1000;
+      }
+      return 59;
+   }
+
+   DisplayVisualTimerForOne(oPlayer=$)
+   {
+      local iMinutes, iSeconds;
+      
+      iMinutes = Send(self,@GetCurrentMinutes);
+      iSeconds = Send(self,@GetCurrentSeconds);
+      
+      if oPlayer <> $
+         AND Send(oPlayer,@IsLoggedOn)
+         AND Send(oPlayer,@GetSession) <> $
+      {
+         AddPacket(1,BP_PLAYER_OVERLAY);
+         AddPacket(1,HS_N);
+         AddPacket(4,PWO_FOURTH_OVERLAY);
+         AddPacket(4,window_overlay_timer_minutes_white);
+         AddPacket(4,0, 4,0, 1,0, 4,0, 4,0, 1,0, 1,0);
+         AddPacket(1,ANIMATE_NONE,2,61-iMinutes);
+         AddPacket(1,0);
+
+         SendPacket(Send(oPlayer,@GetSession));
+         
+         AddPacket(1,BP_PLAYER_OVERLAY);
+         AddPacket(1,HS_N);
+         AddPacket(4,PWO_THIRD_OVERLAY);
+         AddPacket(4,window_overlay_timer_seconds_white);
+         AddPacket(4,0, 4,0, 1,0, 4,0, 4,0, 1,0, 1,0);
+         AddPacket(1,ANIMATE_ONCE,4,1000,2,60-iSeconds,2,60,2,60);
+         AddPacket(1,0);
+
+         SendPacket(Send(oPlayer,@GetSession));
+      }
+   
+      return;
+   }
+   
+   DisplayVisualTimerForRoom()
+   {
+      local oPlayer;
+      
+      foreach oPlayer in Send(poTargetRoom,@GetPlayersInRoom)
+      {
+         Send(self,@DisplayVisualTimerForOne,#oPlayer=oPlayer);
+      }
+      return;
+   }
+   
+   RemoveVisualTimerForOne(oPlayer=$)
+   {
+      local iMinutes, iSeconds;
+      
+      iMinutes = Send(self,@GetCurrentMinutes);
+      iSeconds = Send(self,@GetCurrentSeconds);
+      
+      if oPlayer <> $
+         AND Send(oPlayer,@IsLoggedOn)
+         AND Send(oPlayer,@GetSession) <> $
+      {
+         AddPacket(1,BP_PLAYER_OVERLAY);
+         AddPacket(1,HS_N);
+         AddPacket(4,PWO_FOURTH_OVERLAY);
+         AddPacket(4,window_overlay_timer_minutes_white);
+         AddPacket(4,0, 4,0, 1,0, 4,0, 4,0, 1,0, 1,0);
+         AddPacket(1,ANIMATE_NONE,2,-1);
+         AddPacket(1,0);
+
+         SendPacket(Send(oPlayer,@GetSession));
+         
+         AddPacket(1,BP_PLAYER_OVERLAY);
+         AddPacket(1,HS_N);
+         AddPacket(4,PWO_THIRD_OVERLAY);
+         AddPacket(4,window_overlay_timer_seconds_white);
+         AddPacket(4,0, 4,0, 1,0, 4,0, 4,0, 1,0, 1,0);
+         AddPacket(1,ANIMATE_NONE,2,-1);
+         AddPacket(1,0);
+
+         SendPacket(Send(oPlayer,@GetSession));
+      }
+
+      return;
+   }
+   
+   RemoveVisualTimerInRoom()
+   {
+      local oPlayer;
+      
+      foreach oPlayer in Send(poTargetRoom,@GetPlayersInRoom)
+      {
+         Send(self,@RemoveVisualTimerForOne,#oPlayer=oPlayer);
+      }
+      return;
+   }
+
+   TriggerVisualTimer()
+   {
+      if poTargetRoom <> $
+      {
+         Send(poTargetRoom,@VisualTimerTrigger);
+      }
+      Send(self,@RemoveVisualTimerInRoom);
+      Send(self,@Delete);
+      return;
+   }
+
+   Delete()
+   {
+      Send(self,@RemoveVisualTimerInRoom);
+
+      if poTargetRoom <> $
+      {
+         Send(poTargetRoom,@VisualTimerDeleted);
+      }
+      poTargetRoom = $;
+      
+      if ptMinuteUpdate <> $
+      {
+         DeleteTimer(ptMinuteUpdate);
+      }
+      ptMinuteUpdate = $;
+      
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

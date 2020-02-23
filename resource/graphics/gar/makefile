@@ -76,7 +76,9 @@ BGFS = igreyinvis.bgf isitting.bgf itransferitem.bgf iexplosion.bgf irift.bgf \
        shades.bgf \
        watercentipede.bgf \
        underwatericon.bgf \
-       monk.bgf
+       monk.bgf \
+       timerminutes.bgf \
+       timerseconds.bgf
        
 
 DIRS = 

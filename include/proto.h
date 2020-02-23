@@ -316,7 +316,7 @@ enum {
 #define MAX_ANGLE 4096
 
 /* Max # of player overlays allowed */
-#define NUM_PLAYER_OVERLAYS 2
+#define NUM_PLAYER_OVERLAYS 6
 
 /* Constants for stat type STAT and STAT_GROUP messages */
 enum { STAT_INT = 1, STAT_RES = 2, };
