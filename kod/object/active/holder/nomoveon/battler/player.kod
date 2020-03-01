@@ -15939,10 +15939,7 @@ messages:
             continue;
          }
 
-         if IsClass(nObj,&UtilitySpell)
-            OR IsClass(nObj,&Blink)
-            OR IsClass(nObj,&Recall)
-            OR IsClass(nObj,&GuildHallRecall)
+         if Send(nObj,@GetIntellectExempt)
          {
             continue;
          }
@@ -16250,10 +16247,7 @@ messages:
             }
          }
 
-         if NOT IsClass(nobj,&Blink)  % DON'T COUNT BLINK!
-            AND NOT IsClass(nobj,&Recall)
-            AND NOT IsClass(nobj,&GuildHallRecall)
-            AND NOT IsClass(nobj,&UtilitySpell) % Don't count utility spells
+         if NOT Send(nobj,@GetIntellectExempt)
          {
             if nSchool = SS_KRAANAN
                AND nLevel > iKraanan
@@ -16497,10 +16491,7 @@ messages:
          iSchool = Send(oSpellObj,@GetSchool);
          iLevel = Send(oSpellObj,@GetLevel);
 
-         if NOT IsClass(oSpellObj,&Blink)  % DON'T COUNT BLINK!
-            AND NOT IsClass(oSpellObj,&Recall)
-            AND NOT IsClass(oSpellObj,&GuildHallRecall)
-            AND NOT IsClass(oSpellObj,&UtilitySpell) % Don't count utility spells
+         if NOT Send(oSpellObj,@GetIntellectExempt)
             AND iSchool <> SS_DM_COMMAND
             AND except <> iSchool
          {
