@@ -296,6 +296,9 @@ properties:
    % Keep track of bombs
    % Form [bomb object, time created in seconds]
    plBombs = $
+   
+   % Attacked, Was attacked, cast on someone, was cast on someone
+   piLastTimeInCombat = 0
 
 messages:
 
@@ -1118,6 +1121,9 @@ messages:
       local iOffense, iDefense, iChanceToHit, iDamage, iScalefactor, oWeapon,
             iBackstabDamage, bDoingBackstab, iBeatThisCheck, iTumblePercentage,
             iWeaponmasterPercentage;
+      
+      Send(what,@MarkLastTimeInCombat);
+      Send(self,@MarkLastTimeInCombat);
 
       oWeapon = Send(self,@GetWeapon);
 
@@ -3654,6 +3660,17 @@ messages:
          Send(i,@GotoCoords,#iRow=Nth(lPos,1),#iCol=Nth(lPos,2),#iFineRow=Nth(lPos,3),#iFineCol=Nth(lPos,4));
       }
       return;
+   }
+
+   MarkLastTimeInCombat()
+   {
+      piLastTimeInCombat = GetTime();
+      return;
+   }
+
+   GetLastTimeInCombat()
+   {
+      return piLastTimeInCombat;
    }
 
 end

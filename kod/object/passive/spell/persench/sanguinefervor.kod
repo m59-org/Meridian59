@@ -1,0 +1,179 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%S%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+SanguineFervor is PersonalEnchantment
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   Sanguine_Fervor_name_rsc = "sanguine fervor"
+   Sanguine_Fervor_icon_rsc = ikarahol.bgf
+   Sanguine_Fervor_desc_rsc = \
+      "Assassins under the employ of the Necromancers once devised "
+      "a unique magic lost to time. Only the Voidstep Tabi still hold "
+      "those latent secrets, and, by casting sanguine fervor, "
+      "a would-be assassin can improve his or her offense and "
+      "cause all of their attacks to apply bleeding. "
+      "Requires the pouring of four shaman blood to cast."
+   sanguine_fervor_enchantment_rsc = \
+      "\n\nYour current %s enchantment adds %i offense and causes "
+      "all of your attacks to apply bleeding."
+   Sanguine_Fervor_on = \
+      "You splash the blood of the avar shamans on your weapons!" 
+   Sanguine_Fervor_off = \
+      "Your attacks feel less deadly as the blood of the avar shamans dries."
+   Sanguine_Fervor_already_enchanted_rsc = \
+      "You are already taken by a sanguine fervor!"
+   sanguine_fervor_too_soon_msg = \
+      "You must wait two full minutes between each cast of sanguine fervor!"
+
+   Sanguine_Fervor_sound = qkcurse.wav
+
+classvars:
+
+   viPersonal_ench = TRUE
+
+   vrName = Sanguine_Fervor_name_rsc
+   vrIcon = Sanguine_Fervor_icon_rsc
+   vrDesc = Sanguine_Fervor_desc_rsc
+
+   viSpell_num = SID_SANGUINE_FERVOR
+
+   viMana = 15
+
+   viSpell_level = 6
+   viSchool = SS_QOR
+
+   vrSucceed_wav = Sanguine_Fervor_sound
+   viChance_To_Increase = 45
+   viMeditate_ratio = 0
+
+   vrAlreadyEnchanted = Sanguine_Fervor_already_enchanted_rsc
+   vrEnchantment_On = Sanguine_Fervor_on
+   vrEnchantment_Off = Sanguine_Fervor_off
+
+   viFlash = FLASH_BAD
+
+   % Cannot enchant others because of drawback.
+   vbCanCastOnOthers = FALSE
+
+   viOffensive = TRUE
+
+   vbCanBeReserved = FALSE
+
+   viPrimaryStat = STAT_ID_MYSTICISM
+   viSecondaryStat = STAT_ID_KARMA
+   
+   % Granted by Voidstep Tabi
+   vbIntellectExempt = TRUE
+
+properties:
+
+   viPurgeFactor = 150
+
+messages:
+
+   ResetReagents()
+   {
+      plReagents = $;
+      plReagents = Cons([&ShamanBlood,4],plReagents);
+
+      return;
+   }
+
+   CanPayCosts(who=$,lTargets=$,iSpellPower=0,bItemCast=FALSE,bFreeCast=FALSE,report=TRUE)
+   {
+      local oObj;
+      
+      foreach oObj in Send(who,@GetPlayerUsing)
+      {
+         if IsClass(oObj,&VoidstepTabi)
+            AND GetTime() < Send(oObj,@GetLastSanguineFervorTime) + 120
+         {
+            Send(who,@MsgSendUser,#message_rsc=sanguine_fervor_too_soon_msg);
+            return FALSE;
+         }
+      }
+      
+      propagate;
+   }
+
+   GetStateValue(iSpellpower=$,target=$)
+   {
+      local oObj;
+
+      Send(target,@AddAttackModifier,#what=self);
+      
+      foreach oObj in Send(target,@GetPlayerUsing)
+      {
+         if IsClass(oObj,&VoidstepTabi)
+         {
+            Send(oObj,@MarkLastSanguineFervorTime);
+            return iSpellpower;
+         }
+      }
+
+      return iSpellpower;
+   }
+
+   GetDuration(iSpellPower=0)
+   {
+      local iDuration;
+
+      iDuration = (1 + iSpellPower / 9) * 1000;
+
+      return iDuration;
+   }
+
+   EndEnchantment(who=$,report=TRUE,state=0,remain=FALSE)
+   {
+      Send(who,@RemoveAttackModifier,#what=self);
+
+      propagate;
+   }
+
+   % Stuff we handle to be an attack modifier
+   ModifyHitRoll(who=$,what=$,hit_roll=$)
+   {
+      return hit_roll + 1 + Send(who,@GetEnchantedState,#what=self);
+   }
+   
+   ModifyDamage(who=$,what=$,damage=0)
+   {
+      Post(what,@ApplyBleed,#what=who,#bleed_power=Send(who,@GetBleedPower));
+      return damage;
+   }
+
+   EffectDesc(who=$)
+   {
+      local iState;
+
+      iState = Send(who,@GetEnchantedState,#what=self);
+
+      AddPacket(4,sanguine_fervor_enchantment_rsc, 4,Send(self,@GetName),4,1+iState);
+
+      return;
+   }
+
+   CanForget()
+   {
+      return FALSE;
+   }
+
+   OfferToNewCharacters()
+   {
+      return FALSE;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

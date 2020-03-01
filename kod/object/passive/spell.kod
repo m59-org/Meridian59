@@ -267,6 +267,9 @@ classvars:
    % Some spells throw visual projectiles
    viProjectileFlag = 0
 
+   % If true, it doesn't count for int equations   
+   vbIntellectExempt = FALSE
+
 properties:
 
    % Format of reagents:  Each element of plReagents is a list, describing a
@@ -1770,6 +1773,21 @@ messages:
    CastSpell(who = $, lTargets = $, iSpellPower = 0, bItemCast=FALSE, bSecondaryCast = FALSE, bDeflectCast = FALSE)
    {
       local oTarget, oRoom;
+      
+      if who <> $
+         AND IsClass(who,&Battler)
+         AND viHarmful
+      {
+         Send(who,@MarkLastTimeInCombat);
+         
+         foreach oTarget in ltargets
+         {
+            if IsClass(oTarget,&Battler)
+            {
+               Send(oTarget,@MarkLastTimeInCombat);
+            }
+         }
+      }
 
       if piUseHexBehavior
       {
@@ -3092,6 +3110,11 @@ messages:
    GetRange()
    {
       return piRange;
+   }
+   
+   GetIntellectExempt()
+   {
+      return vbIntellectExempt;
    }
 
 end

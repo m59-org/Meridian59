@@ -95,6 +95,8 @@ messages:
    
    BeginHiding(who=$)
    {
+      local oVoidstepTabi;
+
       if who <> $
          AND IsClass(who,&Player)
          AND (plHiding = $ OR FindListElem(plHiding,who) = 0)
@@ -105,6 +107,12 @@ messages:
          {
             Post(Send(who,@GetOwner),@SomethingChanged,#what=who);
             Post(who,@ShowAddEnchantment,#what=self,#type=ENCHANTMENT_PLAYER);
+            
+            oVoidstepTabi = Send(who,@FindUsing,#class=&VoidstepTabi);
+            if oVoidstepTabi <> $
+            {
+               Send(oVoidstepTabi,@EndHideTimer);
+            }
          }
       }
 
@@ -113,6 +121,8 @@ messages:
    
    StopHiding(who=$)
    {
+      local oVoidstepTabi;
+
       if plHiding <> $
          AND FindListElem(plHiding,who) <> 0
       {
@@ -122,6 +132,12 @@ messages:
          {
             Post(Send(who,@GetOwner),@SomethingChanged,#what=who);
             Post(who,@ShowRemoveEnchantment,#what=self,#type=ENCHANTMENT_PLAYER);
+            
+            oVoidstepTabi = Send(who,@FindUsing,#class=&VoidstepTabi);
+            if oVoidstepTabi <> $
+            {
+               Send(oVoidstepTabi,@StartHideTimer);
+            }
          }
       }
 

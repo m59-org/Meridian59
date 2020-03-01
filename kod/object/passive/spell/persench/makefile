@@ -33,6 +33,7 @@ BOFS = anon.bof \
        singularfocus.bof \
        waterbreathing.bof \
        soothingpresence.bof \
-       toweringpresence.bof
+       toweringpresence.bof \
+       sanguinefervor.bof
 
 !include $(KODDIR)\kod.mak

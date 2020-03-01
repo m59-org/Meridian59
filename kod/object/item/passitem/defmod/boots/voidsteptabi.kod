@@ -1,0 +1,193 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+VoidstepTabi is Boots
+
+constants:
+
+   include blakston.khd
+   
+   SECONDS_UNTIL_HIDDEN = 20
+
+resources:
+
+   Voidstep_Tabi_name_rsc = "Voidstep Tabi"
+   Voidstep_Tabi_icon_rsc = voidsteptabi.bgf
+   Voidstep_Tabi_desc_rsc = \
+      "These black boots were crafted by assassins working for the Necromancers "
+      "in a long ago era. Meant to appear unassuming, they carry inlaid "
+      "enchantments that aid in stealth and political machinations. "
+      "While not in combat, the wearer of these boots will find themselves "
+      "naturally blended with the energies of the area, hiding them on the map. "
+      "The wearer will also be immune to poison, and capable of activating "
+      "a unique spell available only to those who wield the dark arts."
+      "\n\nSanguine Fervor improves offense and causes all of the affected assassin's attacks "
+      "to apply bleeding for a short time."
+
+   Voidstep_Tabi_learned_sanguine_fervor = \
+      "You see visions of a long ago assassin devising the art of sanguine fervor."
+   Voidstep_Tabi_lost_sanguine_fervor = \
+      "The art of sanguine fervor leaves your mind."
+
+classvars:
+
+   vrName = Voidstep_Tabi_name_rsc
+   vrDesc = Voidstep_Tabi_desc_rsc
+   vrIcon = Voidstep_Tabi_icon_rsc
+
+   viHits_init_min = 600
+   viHits_init_max = 1025
+
+   viValue_average = 40000
+   viWeight = 60
+   viBulk = 60
+
+   viSpell_modifier = 0
+
+   viGround_group = 2
+   viInventory_group = 1
+   viBroken_group = 1
+
+   viDefense_base = 0
+   viDamage_base = 0
+   
+   vbItemLevel = 212
+
+properties:
+
+   piItemLevel = 212
+   pbGrantedSpell = FALSE
+   
+   piLastSanguineFervorTime = 0
+   
+   ptHideTimer = $
+
+messages:
+
+   Constructed()
+   {
+      piLastSanguineFervorTime = 0;
+      piItemLevel = vbItemLevel;
+      propagate;
+   }
+
+   NewUsed(what = $)
+   {
+      if NOT Send(what,@HasSpell,#num=SID_SANGUINE_FERVOR)
+      {
+         Send(what,@AddSpell,#num=SID_SANGUINE_FERVOR,#iability=Send(what,@GetMysticism));
+         pbGrantedSpell = TRUE;
+         Send(what,@MsgSendUser,#message_rsc=Voidstep_Tabi_learned_sanguine_fervor);
+      }
+      
+      Send(self,@StartHideTimer);
+      
+      propagate;
+   }
+
+   NewUnused(what = $)
+   {
+      if pbGrantedSpell
+      {
+         Send(what,@RemoveSpell,#num=SID_SANGUINE_FERVOR);
+         pbGrantedSpell = FALSE;
+         
+         if Send(what,@IsLoggedOn)
+         {
+            Send(what,@MsgSendUser,#message_rsc=Voidstep_Tabi_lost_sanguine_fervor);
+            Post(what,@ToCliSpells);
+         }
+      }
+      
+      Send(self,@EndHideTimer);
+      
+      propagate;
+   }
+
+   GetResistanceModifiers()
+   {
+      return $;
+   }
+
+   GetKnockbackResistance()
+   {
+      return 20;
+   }
+   
+   MarkLastSanguineFervorTime()
+   {
+      piLastSanguineFervorTime = GetTime();
+      return;
+   }
+   
+   GetLastSanguineFervorTime()
+   {
+      return piLastSanguineFervorTime;
+   }
+   
+   CheckForHidden()
+   {
+      ptHideTimer = $;
+      
+      if poOwner <> $
+         AND NOT Send(poOwner,@IsLoggedOn)
+      {
+         return;
+      }
+
+      if poOwner <> $
+         AND NOT Send(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@IsHiding,#who=poOwner)
+         AND GetTime() > Send(poOwner,@GetLastTimeInCombat) + SECONDS_UNTIL_HIDDEN
+      {
+         Send(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@BeginHiding,#who=poOwner);
+      }
+      else
+      {
+         Send(self,@StartHideTimer);
+      }
+      
+      return;
+   }
+   
+   StartHideTimer()
+   {
+      if ptHideTimer <> $
+      {
+         DeleteTimer(ptHideTimer);
+      }
+      ptHideTimer = $;
+
+      ptHideTimer = CreateTimer(self,@CheckForHidden,6000);
+
+      return;
+   }
+   
+   EndHideTimer()
+   {
+      if ptHideTimer <> $
+      {
+         DeleteTimer(ptHideTimer);
+      }
+      ptHideTimer = $;
+      return;
+   }
+   
+   Delete()
+   {
+      if ptHideTimer <> $
+      {
+         DeleteTimer(ptHideTimer);
+      }
+      ptHideTimer = $;
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

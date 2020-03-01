@@ -23,6 +23,8 @@ resources:
    poison_icon = iposoned.bgf
    poison_name = "poison"
 
+   poison_tabi = \
+      "~IYour Voidstep Tabi prevent the poison from coursing through your veins."
    poison_kraanan = \
       "~IKraanan's magic fortifies you against the accursed venom!"
    poison_desc = \
@@ -98,6 +100,12 @@ messages:
             Send(who,@MsgSendUser,#message_rsc=poison_kraanan);
             return;
          }
+      }
+      
+      if Send(who,@IsUsingA,#class=&VoidstepTabi)
+      {
+         Send(who,@MsgSendUser,#message_rsc=poison_tabi);
+         return;
       }
 
       Send(who,@AddPoison,#strength=lossrate);

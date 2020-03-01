@@ -917,7 +917,7 @@ messages:
 
    UserLogon(session_id = $)
    {
-      local i, sGuild, oBRoom, oHRoom;
+      local i, sGuild, oBRoom, oHRoom, oVoidstepTabi;
 
       poSession = session_id;
       pbLogged_on = TRUE;
@@ -1069,6 +1069,12 @@ messages:
          Post(Send(SYS,@GetLadderMaintenance),@DoLadderReport,#who=self);
       }
       
+      oVoidstepTabi = Send(self,@FindUsing,#class=&VoidstepTabi);
+      if oVoidstepTabi <> $
+      {
+         Send(oVoidstepTabi,@StartHideTimer);
+      }
+      
       Post(self,@LoadMinionsOnLogOn);
 
       return;
@@ -1109,12 +1115,18 @@ messages:
 
    UserLogoff()
    {
-      local theTime, iPenaltyTime, i, j;
+      local theTime, iPenaltyTime, i, j, oVoidstepTabi;
 
       Send(Send(SYS,@FindSkillByNum,#num=SKID_TRACK),@StopTracking,#who=self);
       Send(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@StopHiding,#who=self);
       Send(Send(SYS,@FindSkillByNum,#num=SKID_SNEAK),@StopSneaking,#who=self);
       Send(Send(SYS,@FindSkillByNum,#num=SKID_SPY),@StopSpying,#who=self);
+      
+      oVoidstepTabi = Send(self,@FindUsing,#class=&VoidstepTabi);
+      if oVoidstepTabi <> $
+      {
+         Send(oVoidstepTabi,@EndHideTimer);
+      }
 
       piTimeLoggedIn = Send(self,@GetTimeLoggedIn);
       Send(self,@BreakTrance,#event=EVENT_LOGOFF);

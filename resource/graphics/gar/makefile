@@ -85,6 +85,7 @@ BGFS = igreyinvis.bgf isitting.bgf itransferitem.bgf iexplosion.bgf irift.bgf \
        lootbox4.bgf \
        lootbox5.bgf \
        lootbox6.bgf \
+       voidsteptabi.bgf
        
 
 DIRS = 
