@@ -78,7 +78,13 @@ BGFS = igreyinvis.bgf isitting.bgf itransferitem.bgf iexplosion.bgf irift.bgf \
        underwatericon.bgf \
        monk.bgf \
        timerminutes.bgf \
-       timerseconds.bgf
+       timerseconds.bgf \
+       lootbox1.bgf \
+       lootbox2.bgf \
+       lootbox3.bgf \
+       lootbox4.bgf \
+       lootbox5.bgf \
+       lootbox6.bgf \
        
 
 DIRS = 

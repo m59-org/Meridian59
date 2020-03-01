@@ -5,6 +5,7 @@
 !include $(TOPDIR)\common.mak
 
 DEPEND = ..\holder.bof
-BOFS = room.bof nomoveon.bof reprslot.bof safebox.bof storebox.bof
+BOFS = room.bof nomoveon.bof reprslot.bof safebox.bof storebox.bof \
+       lootbox.bof
 
 !include $(KODDIR)\kod.mak
