@@ -4,7 +4,7 @@
 
 !include $(TOPDIR)\common.mak
 
-DEPEND = ..\lootbox.bof
+DEPEND = ..\trappedbox.bof
 BOFS = trappedlootbox.bof
 
 !include $(KODDIR)\kod.mak

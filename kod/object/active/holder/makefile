@@ -6,6 +6,6 @@
 
 DEPEND = ..\holder.bof
 BOFS = room.bof nomoveon.bof reprslot.bof safebox.bof storebox.bof \
-       lootbox.bof
+       trappedbox.bof
 
 !include $(KODDIR)\kod.mak
