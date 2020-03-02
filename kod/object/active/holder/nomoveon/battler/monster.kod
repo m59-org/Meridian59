@@ -6928,13 +6928,29 @@ messages:
    {
       local i, iWait;
 
-      iWait = Bound(Send(self,@Fuzzy,#num=MOB_ATTACK_TIMER_WAIT) + 3500-70*(3*viDifficulty+piAttackSpeed),250,$);
+      iWait = Bound(Send(self,@Fuzzy,#num=MOB_ATTACK_TIMER_WAIT) + 3500-70*(3*viDifficulty+Send(self,@GetAttackSpeedWithOwnerBonuses)),250,$);
 
       foreach i in Send(self,@GetEnchantmentsByClass,#enchClass=&Hex)
       {
          iWait = Send(Nth(i,2),@ModifyDelay,#state=Nth(i,3),#iDelay=iWait);
       }
       return iWait;
+   }
+   
+   GetAttackSpeedWithOwnerBonuses()
+   {
+      local iAttackSpeedMultiplier, oGear;
+      
+      iAttackSpeedMultiplier = 100;
+      if poOwner <> $
+         AND IsClass(poOwner,&Player)
+      {
+         foreach oGear in Send(poOwner,@GetPlayerUsing)
+         {
+            iAttackSpeedMultiplier = iAttackSpeedMultiplier + Send(oGear,@GetMinionAttackSpeedMultiplier);
+         }
+      }
+      return (piAttackSpeed * iAttackSpeedMultiplier)/100;
    }
 
    GetMoveTime()

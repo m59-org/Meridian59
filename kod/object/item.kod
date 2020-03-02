@@ -111,9 +111,11 @@ resources:
    item_stats_empowerment_add = "%i%% %s\n"
    item_stats_hex_inc_effect_add = "%i%% increased hex effectiveness\n"
    item_stats_hex_resistance_add = "%i%% hex resistance\n"
+   item_stats_minion_attack_speed = "%i%% increased minion attack speed\n"
    enchanted_gear_indestructible = "\nThis enchanted %s is indestructible."
    enchanted_gear_plural_indestructible = "\nThese enchanted %s are indestructible."
    
+   minion_attack_speed_mod = "\n+%i%% minion attack speed"
    leadership_mod = "\n+%i Leadership"
    weapon_agility_mod = "\n+%i Agility"
    weapon_might_mod = "\n+%i Might"
@@ -234,6 +236,8 @@ classvars:
    vbUniqueItem = FALSE
    
    viLeadershipBonus = 0
+   
+   viMinionAttackSpeedBonus = 0
 
 properties:
 
@@ -328,12 +332,30 @@ messages:
       % bFoundProperties is TRUE if we've already added a property. Use this
       % to lower the amount of resources we send to only those necessary.
       bFoundProperties = FALSE;
+      
+      if Send(self,@GetMinionAttackSpeedMultiplier) <> 0
+      {
+         AddPacket(4,system_rsc_template_22, 4,special_properties_header,
+                   4,item_stats_minion_attack_speed, 4,Send(self,@GetMinionAttackSpeedMultiplier));
+         bFoundProperties = TRUE;
+      }
 
       if Send(self,@GetRange) <> 0
       {
-         AddPacket(4,system_rsc_template_21, 4,special_properties_header,
-                   4,item_stats_range, 4,Send(self,@GetRange)/FINENESS);
-         bFoundProperties = TRUE;
+         if bFoundProperties
+         {
+            AddPacket(4,item_stats_range, 4,Send(self,@GetRange)/FINENESS);
+         }
+         else
+         {
+            AddPacket(4,system_rsc_template_21, 4,special_properties_header,
+                      4,item_stats_range, 4,Send(self,@GetRange)/FINENESS);
+            bFoundProperties = TRUE;
+         }
+      }
+      else if bFoundProperties
+      {
+         AddPacket(4,system_blank_resource);
       }
 
       if Send(self,@GetHitBonus) <> 0
@@ -3988,6 +4010,10 @@ messages:
          {
             AddPacket(4,leadership_mod, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
          }
+         else if First(lMod) = &MinionAttackSpeedMod
+         {
+            AddPacket(4,minion_attack_speed_mod, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
          else
          {
             AddPacket(4, system_blank_resource);
@@ -4290,6 +4316,23 @@ messages:
       }
       
       return iLeadershipBonus; 
+   }
+   
+   GetMinionAttackSpeedMultiplier()
+   {
+      local iMinionAttackSpeedBonus, lMod;
+
+      iMinionAttackSpeedBonus = viMinionAttackSpeedBonus;
+      
+      foreach lMod in plEnchantmentMods
+      {
+         if Nth(lMod,1) = &MinionAttackSpeedMod
+         {
+            iMinionAttackSpeedBonus = iMinionAttackSpeedBonus + Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2));
+         }
+      }
+      
+      return iMinionAttackSpeedBonus; 
    }
 
 end
