@@ -42,6 +42,7 @@ LadderMaintenance is UtilityFunctions
 constants:
 
    include blakston.khd
+   include protocol.khd
 
 resources:
 
@@ -54,6 +55,9 @@ resources:
       
    your_ranking_ladder = \
       "You are rank %d in the ladder competition."
+   
+   final_report_msg = \
+      "Rank %i: %q, with %i wisdom."
 
 classvars:
 
@@ -61,6 +65,8 @@ properties:
 
    plLadderPlayers = $
    plTopLadderPlayers = $
+   
+   plTopOneHundredLadderPlayers = $
    
    pbLadderEnabled = TRUE
    
@@ -551,6 +557,155 @@ messages:
 %      }
 
       return bSpawned;
+   }
+   
+   GetLadderPlayerCount()
+   {
+      local lUsers, lLadderUsers, oPlayer;
+      
+      lUsers = Send(SYS,@GetUsers);
+      
+      lLadderUsers = $;
+      foreach oPlayer in lUsers
+      {
+         if Send(oPlayer,@GetLadderID) = 1
+         {
+            lLadderUsers = Cons(oPlayer,lLadderUsers);
+         }
+      }
+      
+      if lLadderUsers <> $
+      {
+         return Length(lLadderUsers);
+      }
+      
+      return 0;
+   }
+   
+   GetTopOneHundred()
+   {
+      local lUsers, lLadderUsers, oPlayer, iHighestWisdom, oHighestPlayer, iCount;
+      
+      lUsers = Send(SYS,@GetUsers);
+      
+      lLadderUsers = $;
+      foreach oPlayer in lUsers
+      {
+         if Send(oPlayer,@GetLadderID) = 1
+         {
+            lLadderUsers = Cons(oPlayer,lLadderUsers);
+         }
+      }
+      
+      plTopOneHundredLadderPlayers = $;
+      iCount = 105;
+      
+      while iCount > 0
+      {
+         oHighestPlayer = $;
+         iHighestWisdom = 0;
+         foreach oPlayer in lLadderUsers
+         {
+            if Send(oPlayer,@GetAccumulatedWisdom) > iHighestWisdom
+            {
+               oHighestPlayer = oPlayer;
+               iHighestWisdom = Send(oPlayer,@GetAccumulatedWisdom);
+            }
+         }
+         plTopOneHundredLadderPlayers = Cons([oHighestPlayer,iHighestWisdom],plTopOneHundredLadderPlayers);
+         lLadderUsers = DelListElem(lLadderUsers,oHighestPlayer);
+         if lLadderUsers = $
+         {
+            return;
+         }
+         iCount--;
+      }
+
+      return iCount;
+   }
+   
+   DoFinalReport(to_whom=$)
+   {
+      local lPlayer, iCount;
+      
+      Send(self,@GetTopOneHundred);
+      
+      iCount = 105;
+      foreach lPlayer in plTopOneHundredLadderPlayers
+      {
+         Send(to_whom,@MsgSendUser,#message_rsc=final_report_msg,#parm1=iCount,#type2=STRING_RESOURCE,#parm2=Send(First(lPlayer),@GetName),#parm3=Nth(lPlayer,2));
+         iCount--;
+      }
+      
+      return;
+   }
+   
+   GiveRewards()
+   {
+      local lPlayer, iCount, oRewardItem;
+      
+      Send(self,@GetTopOneHundred);
+      
+      iCount = 105;
+      foreach lPlayer in plTopOneHundredLadderPlayers
+      {
+         if Nth(lPlayer,2) >= 130000000
+         {
+            Send(First(lPlayer),@SetFinalLadderRank,#value=1);
+         }
+         else
+         {
+            Send(First(lPlayer),@SetFinalLadderRank,#value=iCount);
+         }
+         Send(First(lPlayer),@SetParticipatedInLadder,#value=1);
+         
+         if Random(1,2) = 1
+         {
+            oRewardItem = Create(&VoidstepTabi);
+            Send(oRewardItem,@SetItemLevel,#iLevel=212);
+         }
+         else
+         {
+            oRewardItem = Create(&Scepter);
+            Send(oRewardItem,@SetItemLevel,#iLevel=260);
+         }
+         Send(First(lPlayer),@NewHold,#what=oRewardItem);
+         
+         if iCount < 16
+         {
+            oRewardItem = Create(&MagicBow);
+            Send(oRewardItem,@SetItemLevel,#iLevel=260);
+            Send(oRewardItem,@SetColor,#iColor=XLAT_TO_BLUE);
+            Send(First(lPlayer),@NewHold,#what=oRewardItem);
+         }
+         
+         if Nth(lPlayer,2) >= 130000000
+         {
+            oRewardItem = Create(&Helm);
+            Send(oRewardItem,@SetItemLevel,#iLevel=300);
+            Send(First(lPlayer),@NewHold,#what=oRewardItem);
+         }
+         
+         iCount--;
+      }
+
+      return;
+   }
+   
+   ConvertAllToNonLadder()
+   {
+      local lUsers, lLadderUsers, oPlayer, iHighestWisdom, oHighestPlayer, iCount;
+      
+      lUsers = Send(SYS,@GetUsers);
+
+      foreach oPlayer in lUsers
+      {
+         if Send(oPlayer,@GetLadderID) = 1
+         {
+            Send(oPlayer,@RevertToNonLadder);
+         }
+      }
+      return;
    }
 
 end

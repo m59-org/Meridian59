@@ -334,6 +334,8 @@ resources:
    
    player_out_of_ladder = "%s%s is not part of your ladder competition."
    player_is_in_ladder = "%s is participating in the ladder competition.\n"
+   player_ranked_in_ladder_one = "%s achieved rank %i in the First Meridian Ladder.\n"
+   player_ranked_in_ladder = "%s achieved rank %i in ladder competition %i.\n"
 
    player_cant_apply = "You can't use %s%s on other things."
    
@@ -1127,6 +1129,10 @@ resources:
    Marauders_leave_you_alone = \
       "~BAfter laughing at your death, the Marauders lose interest in you."
 
+   Ladder_ended_msg = \
+      "~B[###] Thanks for participating in the ladder! Check your bio for your rank "
+      "and your inventory for your rewards!"
+      
 classvars:
 
    viHand_space = 2
@@ -1519,6 +1525,11 @@ properties:
    
    % Do marauders hate this person?
    pbMarauderAntagonist = FALSE
+   
+   % What ladder was this player in? And what rank?
+   piParticipatedInLadderNumber = 0
+   piFinalLadderRank = 0
+   pbNotifyLadderEnded = TRUE
 
 messages:
 
@@ -3895,6 +3906,17 @@ messages:
       {
          AddPacket(4,player_is_in_ladder, 4,Send(self,@GetHeShe,#cap=TRUE));
       }
+      else if piFinalLadderRank <> 0
+      {
+         if piParticipatedInLadderNumber = 1
+         {
+            AddPacket(4,player_ranked_in_ladder_one, 4,Send(self,@GetHeShe,#cap=TRUE), 4,piFinalLadderRank);
+         }
+         else
+         {
+            AddPacket(4,player_ranked_in_ladder_one, 4,Send(self,@GetHeShe,#cap=TRUE), 4,piFinalLadderRank, 4,piParticipatedInLadderNumber);
+         }
+      }
       else
       {
          AddPacket(4,system_blank_resource);
@@ -4272,6 +4294,12 @@ messages:
             ptBondedItemReport = CreateTimer(self,@BondedItemReport,BOND_REPORT_INTERVAL);
             Send(Send(SYS,@FindSpellByNum,#num=SID_BOND),@BondedItemReport,#BondedItem=poBondedItem,#BondedPlayer=self);
          }
+      }
+      
+      if pbNotifyLadderEnded
+      {
+         Post(self,@MsgSendUser,#message_rsc=Ladder_ended_msg);
+         pbNotifyLadderEnded = FALSE;
       }
 
       Post(self,@StartLoggedOnRefreshPhaseTime);
@@ -21682,6 +21710,38 @@ messages:
          Send(self,@MsgSendUser,#message_rsc=Marauders_leave_you_alone);
       }
       pbMarauderAntagonist = value;
+      return;
+   }
+   
+   RevertToNonLadder()
+   {
+      local i, each_obj;
+      Send(self,@SetLadderID,#value=0);
+      
+      pbNotifyLadderEnded = TRUE;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         each_obj = Send(self,@HolderExtractObject,#data=i);
+         Send(each_obj,@SetLadderID,#value=0);
+      }
+      foreach i in Send(self,@GetHolderPassive)
+      {
+         each_obj = Send(self,@HolderExtractObject,#data=i);
+         Send(each_obj,@SetLadderID,#value=0);
+      }
+      return;
+   }
+   
+   SetFinalLadderRank(value=0)
+   {
+      piFinalLadderRank = value;
+      return;
+   }
+   
+   SetParticipatedInLadder(value=0)
+   {
+      piParticipatedInLadderNumber = value;
       return;
    }
 

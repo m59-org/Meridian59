@@ -229,6 +229,25 @@ messages:
    {
       return pbLocked;
    }
+   
+   RevertToNonLadder()
+   {
+      local i, each_obj;
+
+      % As a safety precaution, don't delete users
+      foreach i in plActive
+      {
+         each_obj = Send(self,@HolderExtractObject,#data=i);
+         Send(each_obj,@SetLadderID,#value=0);
+      }
+
+      foreach i in plPassive
+      {
+         each_obj = Send(self,@HolderExtractObject,#data=i);
+         Send(each_obj,@SetLadderID,#value=0);
+      }
+      return;
+   }
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
