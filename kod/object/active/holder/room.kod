@@ -2286,8 +2286,8 @@ messages:
             }
          }
 
-         %iTime = piDispose_delay + Random(-5000,5000);
-         %ptDispose = CreateTimer(self,@DisposeTimer,iTime);
+         iTime = piDispose_delay + Random(-5000,5000);
+         ptDispose = CreateTimer(self,@DisposeTimer,iTime);
       }
 
       return;
@@ -3458,6 +3458,12 @@ messages:
 %         ptDispose = CreateTimer(self,@DisposeTimer,iTime);
 %      }
 
+      if ptDispose <> $
+      {
+         DeleteTimer(ptDispose);
+         ptDispose = $;
+      }
+
       if plPeriodic_sounds <> $ AND ptPeriodic_sounds = $
       {
          iTime = piPeriodic_sounds;
@@ -3482,6 +3488,8 @@ messages:
 
       Send(self,@ClearShieldWallers);
       Post(self,@EndAllThreats);
+      
+      ptDispose = CreateTimer(self,@DisposeTimer,piDispose_delay);
 
       propagate;
    }
