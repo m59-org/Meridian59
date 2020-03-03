@@ -102,6 +102,19 @@ messages:
    {
       return 15;
    }
+   
+   CheckReplaceWithRelicOfQor()
+   {
+      if Send(self,@GetMaxHits) = 1
+      {
+         if poOwner <> $
+         {
+            Send(poOwner,@NewHold,#what=Create(&RelicOfQor));
+            Send(self,@Delete);
+         }
+      }
+      return;
+   }
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
