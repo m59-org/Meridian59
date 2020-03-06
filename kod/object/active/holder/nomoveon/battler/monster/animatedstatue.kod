@@ -295,12 +295,18 @@ messages:
       prOriginalMouth = prMouth;
       prOriginalNose = prNose;
       prOriginalLeft_arm = prLeft_arm;
+      
+      Send(self,@SetCreatureTypes);
 
+      propagate;
+   }
+   
+   SetCreatureTypes()
+   {
       plCreatureTypes = Cons(CREATURE_TYPE_STONE,plCreatureTypes);
       plCreatureTypes = Cons(CREATURE_TYPE_HUMANOID,plCreatureTypes);
       plCreatureTypes = Cons(CREATURE_TYPE_MAGICAL,plCreatureTypes);
-
-      propagate;
+      return;
    }
 
    Delete()
