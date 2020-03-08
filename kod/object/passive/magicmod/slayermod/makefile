@@ -7,6 +7,7 @@
 DEPEND = ..\slayermod.bof
 BOFS = insectslayer.bof \
        skeletonslayer.bof \
-       zombieslayer.bof
+       zombieslayer.bof \
+       unholyslayer.bof
 
 !include $(KODDIR)\kod.mak
