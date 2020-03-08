@@ -19,7 +19,8 @@ resources:
    ShockStormBuff_name_rsc = "static energies"
    ShockStormBuff_icon_rsc = iresshok.bgf
    ShockStormBuff_desc_rsc = \
-      "Strange electrical energies race around you, protecting you from shock."
+      "Strange electrical energies race around you, protecting you from shock"
+      " and boosting your damage dealt to acid creatures."
 
    ShockStormBuff_already_enchanted = \
       "You are already resistant to shock spells."
@@ -83,6 +84,17 @@ messages:
    OfferToNewCharacters()
    {
       return FALSE;
+   }
+
+   ModifySlayer(slayer_list=$, iState=0)
+   {
+      local oSlayer, lCurrentSlayers;
+      slayer_list = Send(SYS,@AddSlayer,
+                                  #what=CREATURE_TYPE_ACID,
+                                  #value=iState/2,
+                                  #slayer_list=slayer_list);
+      
+      return slayer_list;
    }
 
 end

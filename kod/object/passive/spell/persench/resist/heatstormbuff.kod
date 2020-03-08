@@ -19,7 +19,8 @@ resources:
    HeatStormBuff_name_rsc = "searing heat"
    HeatStormBuff_icon_rsc = iresfire.bgf
    HeatStormBuff_desc_rsc = \
-      "Strange searing energies race around you, protecting you from fire."
+      "Strange searing energies race around you, protecting you from fire"
+      " and boosting your damage dealt to cold creatures."
 
    HeatStormBuff_already_enchanted = \
       "You are already resistant to fire spells."
@@ -83,6 +84,17 @@ messages:
    OfferToNewCharacters()
    {
       return FALSE;
+   }
+
+   ModifySlayer(slayer_list=$, iState=0)
+   {
+      local oSlayer, lCurrentSlayers;
+      slayer_list = Send(SYS,@AddSlayer,
+                                  #what=CREATURE_TYPE_COLD,
+                                  #value=iState/2,
+                                  #slayer_list=slayer_list);
+      
+      return slayer_list;
    }
 
 end

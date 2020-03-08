@@ -2989,7 +2989,7 @@ messages:
       foreach oObjectAttribute in plObject_attributes
       {
          lCurrentEmpowerments = Send(oObjectAttribute,@ModifyEmpowerment,
-                                  #resistance_list=lCurrentEmpowerments);
+                                  #empowerment_list=lCurrentEmpowerments);
       }
       
       foreach oEquipment in Send(self,@GetEquippedItems)
@@ -3024,6 +3024,56 @@ messages:
       }
       
       return lCurrentEmpowerments;
+   }
+
+   GetBaseSlayers()
+   {
+      return $;
+   }
+
+   GetCurrentSlayers()
+   "Boost dealt damage to certain creature types."
+   {
+      local oObjectAttribute, lCurrentSlayers, oEquipment, oEnchantment;
+
+      lCurrentSlayers = ListCopy(Send(self,@GetBaseSlayers));
+      
+      foreach oObjectAttribute in plObject_attributes
+      {
+         lCurrentSlayers = Send(oObjectAttribute,@ModifySlayer,#slayer_list=lCurrentSlayers);
+      }
+      
+      foreach oEquipment in Send(self,@GetEquippedItems)
+      {
+         lCurrentSlayers = Send(oEquipment,@ModifySlayer,#slayer_list=lCurrentSlayers);
+      }
+      
+      If IsClass(self,&User)
+      {
+         foreach oEnchantment in Send(self,@GetEnchantmentList)
+         {
+            if Length(oEnchantment) > 2
+            {
+               lCurrentSlayers = Send(Nth(oEnchantment,2),
+                  @ModifySlayer,
+                  #slayer_list=lCurrentSlayers,
+                  #iState=Nth(oEnchantment,3));
+            }
+            else
+            {
+               lCurrentSlayers = Send(Nth(oEnchantment,2),
+                  @ModifySlayer,
+                  #slayer_list=lCurrentSlayers);
+            }
+         }
+
+         foreach oEnchantment in Send(self,@GetReservedSpells)
+         {
+            lCurrentSlayers = Send(Nth(oEnchantment,1),@ModifySlayer,#slayer_list=lCurrentSlayers,#iState=Nth(oEnchantment,3));
+         }
+      }
+      
+      return lCurrentSlayers;
    }
 
    GetBonusBaseTP()

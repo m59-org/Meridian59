@@ -27,6 +27,7 @@ resources:
       "%s%s seems smarter yet clumsier."
    singularfocus_enchantment_rsc = \
       "\n\nYour %s expands your mind by %i Intellect at a cost to your body of %i Might, Agility, and Aim."
+      "\n\nYour sharper understanding also allows you to deal %i%% increased damage to enigmatic creatures."
    singularfocus_name_rsc = "singular focus"
    singularfocus_icon_rsc = icounter.bgf
    singularfocus_desc_rsc = \
@@ -138,9 +139,21 @@ messages:
    {
       AddPacket(4,singularfocus_enchantment_rsc, 4,Send(self,@GetName),
                 4,Send(who,@GetEnchantedState,#what=self),
-                4,Send(who,@GetEnchantedState,#what=self));
+                4,Send(who,@GetEnchantedState,#what=self),
+                4,Send(who,@GetEnchantedState,#what=self)/2);
 
       return;
+   }
+
+   ModifySlayer(slayer_list=$, iState=0)
+   {
+      local oSlayer, lCurrentSlayers;
+      slayer_list = Send(SYS,@AddSlayer,
+                                  #what=CREATURE_TYPE_ENIGMATIC,
+                                  #value=iState/2,
+                                  #slayer_list=slayer_list);
+      
+      return slayer_list;
    }
 
 end

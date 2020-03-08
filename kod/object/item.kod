@@ -109,12 +109,14 @@ resources:
    item_stats_mana_add = "%i max mana\n"
    item_stats_vigor_add = "%i max vigor\n"
    item_stats_empowerment_add = "%i%% %s\n"
+   item_stats_slayer_add = "%i%% %s\n"
    item_stats_hex_inc_effect_add = "%i%% increased hex effectiveness\n"
    item_stats_hex_resistance_add = "%i%% hex resistance\n"
    item_stats_minion_attack_speed = "%i%% increased minion attack speed\n"
    enchanted_gear_indestructible = "\nThis enchanted %s is indestructible."
    enchanted_gear_plural_indestructible = "\nThese enchanted %s are indestructible."
    
+   insect_slayer_mod = "\n+%i%% increased damage to insects"
    minion_attack_speed_mod = "\n+%i%% minion attack speed"
    leadership_mod = "\n+%i Leadership"
    weapon_agility_mod = "\n+%i Agility"
@@ -332,13 +334,39 @@ messages:
       % bFoundProperties is TRUE if we've already added a property. Use this
       % to lower the amount of resources we send to only those necessary.
       bFoundProperties = FALSE;
-      
+
       if Send(self,@GetMinionAttackSpeedMultiplier) <> 0
       {
-         AddPacket(4,system_rsc_template_22, 4,special_properties_header,
+         AddPacket(4,system_rsc_template_23, 4,special_properties_header,
                    4,item_stats_minion_attack_speed, 4,Send(self,@GetMinionAttackSpeedMultiplier));
          bFoundProperties = TRUE;
       }
+
+      if Send(self,@GetCurrentSlayers) <> $
+      {
+         if NOT bFoundProperties
+         {
+            AddPacket(4,system_rsc_template_22, 4,special_properties_header);
+            bFoundProperties = TRUE;
+         }
+
+         if Length(Send(self,@GetCurrentSlayers)) > 1
+         {
+            AddPacket(4,Send(SYS,@AddResourceTemplate,
+                           #iNum=Length(Send(self,@GetCurrentSlayers))));
+         }
+
+         foreach i in Send(self,@GetCurrentSlayers)
+         {
+            AddPacket(4,item_stats_slayer_add, 4,Nth(i,2),
+                      4,Send(SYS,@GetSlayerName,#type=Nth(i,1)));
+         }
+      }
+      else if bFoundProperties
+      {
+         AddPacket(4,system_blank_resource);
+      }
+      
 
       if Send(self,@GetRange) <> 0
       {
@@ -1267,6 +1295,11 @@ messages:
    }
 
    GetEmpowermentModifiers()
+   {
+      return $;
+   }
+   
+   GetSlayerModifiers()
    {
       return $;
    }
@@ -3206,6 +3239,29 @@ messages:
       return lCurrentEmpowerments;
    }
 
+   GetCurrentSlayers()
+   {
+      local lCurrentSlayers, oObjectAttribute, lMagicMod, oMagicMod;
+      
+      lCurrentSlayers = Send(self,@GetSlayerModifiers);
+      
+      foreach oObjectAttribute in plObject_attributes
+      {
+         lCurrentSlayers = Send(oObjectAttribute,@ModifySlayer,#slayer_list=lCurrentSlayers);
+      }
+
+      foreach lMagicMod in plEnchantmentMods
+      {
+         if Send(SYS,@GetGroupOfClassMod,#class=Nth(lMagicMod,1)) = GROUP_SLAYER
+         {
+            oMagicMod = Send(SYS,@GetMagicMod,#class=Nth(lMagicMod,1));
+            lCurrentSlayers = Send(oMagicMod,@ModifySlayer,#slayer_list=lCurrentSlayers,#iState=Nth(lMagicMod,2));
+         }
+      }
+
+      return lCurrentSlayers;
+   }
+
    ModifyResistance(resistance_list=$)
    {
       local oResist, lCurrentResistances;
@@ -3235,6 +3291,23 @@ messages:
       }
       
       return empowerment_list;
+   }
+
+   ModifySlayer(slayer_list=$)
+   {
+      local oSlayer, lCurrentSlayers;
+      
+      lCurrentSlayers = Send(self,@GetCurrentSlayers);
+      
+      foreach oSlayer in lCurrentSlayers
+      {
+         slayer_list = Send(SYS,@AddSlayer,
+                                     #what=Nth(oSlayer,1),
+                                     #value=Nth(oSlayer,2),
+                                     #slayer_list=slayer_list);
+      }
+      
+      return slayer_list;
    }
 
    AddRadiusEnchantment(what=$,iPower=0,source=$)
@@ -4013,6 +4086,10 @@ messages:
          else if First(lMod) = &MinionAttackSpeedMod
          {
             AddPacket(4,minion_attack_speed_mod, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
+         else if First(lMod) = &InsectSlayerMod
+         {
+            AddPacket(4,insect_slayer_mod, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
          }
          else
          {

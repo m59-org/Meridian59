@@ -7,6 +7,6 @@
 DEPEND = ..\magicmod.bof
 BOFS = resistancemod.bof protectionmod.bof woffensemod.bof wstatmod.bof \
        vitalmod.bof empmod.bof cstatmod.bof crystalmod.bof \
-       leadershipmod.bof minionmod.bof
+       leadershipmod.bof minionmod.bof slayermod.bof
 
 !include $(KODDIR)\kod.mak

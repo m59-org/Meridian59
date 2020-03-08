@@ -19,7 +19,8 @@ resources:
    UnholyStormBuff_name_rsc = "corrupting energies"
    UnholyStormBuff_icon_rsc = iholyres.bgf
    UnholyStormBuff_desc_rsc = \
-      "Strange black energies race around you, protecting you from unholy damage."
+      "Strange black energies race around you, protecting you from unholy damage"
+      " and boosting your damage dealt to holy creatures."
 
    UnholyStormBuff_already_enchanted = \
       "You are already resistant to unholy damage."
@@ -82,6 +83,17 @@ messages:
    OfferToNewCharacters()
    {
       return FALSE;
+   }
+
+   ModifySlayer(slayer_list=$, iState=0)
+   {
+      local oSlayer, lCurrentSlayers;
+      slayer_list = Send(SYS,@AddSlayer,
+                                  #what=CREATURE_TYPE_HOLY,
+                                  #value=iState/2,
+                                  #slayer_list=slayer_list);
+      
+      return slayer_list;
    }
 
 end

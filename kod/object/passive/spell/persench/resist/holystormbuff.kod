@@ -19,7 +19,8 @@ resources:
    HolyStormBuff_name_rsc = "surging purity"
    HolyStormBuff_icon_rsc = iresgood.bgf
    HolyStormBuff_desc_rsc = \
-      "Strange white energies race around you, protecting you from holy damage."
+      "Strange white energies race around you, protecting you from holy damage"
+      " and boosting your damage dealt to unholy creatures."
 
    HolyStormBuff_already_enchanted = \
       "You are already resistant to holy damage."
@@ -82,6 +83,17 @@ messages:
    OfferToNewCharacters()
    {
       return FALSE;
+   }
+
+   ModifySlayer(slayer_list=$, iState=0)
+   {
+      local oSlayer, lCurrentSlayers;
+      slayer_list = Send(SYS,@AddSlayer,
+                                  #what=CREATURE_TYPE_UNHOLY,
+                                  #value=iState/2,
+                                  #slayer_list=slayer_list);
+      
+      return slayer_list;
    }
 
 end

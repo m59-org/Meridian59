@@ -1,0 +1,63 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+SlayerMod is MagicMod
+
+constants:
+
+   include blakston.khd
+
+   % Slayer mods increase effectiveness against specific monster types
+
+resources:
+
+classvars:
+
+   viCreatureType = CREATURE_TYPE_INSECT
+   viModType = MOD_PREFIX
+   viModGroup = GROUP_SLAYER
+
+   viModRangeMin = 1
+   viModRangeMax = 15
+   
+   viPowerDivisor = 20
+
+properties:
+
+   piNumerator = 1
+   piDivisor = 1
+
+messages:
+
+   ModifySlayer(slayer_list=$,iState=0)
+   {
+      if piDivisor = 0
+      {
+         % Avoid div errors
+         piDivisor = 1;
+      }
+      slayer_list = Send(SYS,@AddSlayer,#what=viCreatureType,#value=iState,#slayer_list=slayer_list);
+      
+      return slayer_list;
+   }
+
+   GetNumber(iPower=0)
+   {
+      if piDivisor = 0
+      {
+         % Avoid div errors
+         piDivisor = 1;
+      }
+
+      return bound((iPower*piNumerator)/piDivisor,1,$);
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

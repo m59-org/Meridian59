@@ -19,7 +19,8 @@ resources:
    ColdStormBuff_name_rsc = "chilling cold"
    ColdStormBuff_icon_rsc = irescold.bgf
    ColdStormBuff_desc_rsc = \
-      "Strange freezing energies race around you, protecting you from cold."
+      "Strange freezing energies race around you, protecting you from cold"
+      " and boosting your damage dealt to fire creatures."
 
    ColdStormBuff_already_enchanted = \
       "You are already resistant to cold spells."
@@ -83,6 +84,17 @@ messages:
    OfferToNewCharacters()
    {
       return FALSE;
+   }
+
+   ModifySlayer(slayer_list=$, iState=0)
+   {
+      local oSlayer, lCurrentSlayers;
+      slayer_list = Send(SYS,@AddSlayer,
+                                  #what=CREATURE_TYPE_FIRE,
+                                  #value=iState/2,
+                                  #slayer_list=slayer_list);
+      
+      return slayer_list;
    }
 
 end

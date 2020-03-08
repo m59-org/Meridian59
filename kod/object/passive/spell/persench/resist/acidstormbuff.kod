@@ -19,7 +19,8 @@ resources:
    AcidStormBuff_name_rsc = "acidic energies"
    AcidStormBuff_icon_rsc = iresacid.bgf
    AcidStormBuff_desc_rsc = \
-      "Strange green energies race around you, protecting you from acid."
+      "Strange green energies race around you, protecting you from acid"
+      " and boosting your damage dealt to shock creatures."
 
    AcidStormBuff_already_enchanted = \
       "You are already resistant to acid spells."
@@ -82,6 +83,17 @@ messages:
    OfferToNewCharacters()
    {
       return FALSE;
+   }
+
+   ModifySlayer(slayer_list=$, iState=0)
+   {
+      local oSlayer, lCurrentSlayers;
+      slayer_list = Send(SYS,@AddSlayer,
+                                  #what=CREATURE_TYPE_SHOCK,
+                                  #value=iState/2,
+                                  #slayer_list=slayer_list);
+      
+      return slayer_list;
    }
 
 end

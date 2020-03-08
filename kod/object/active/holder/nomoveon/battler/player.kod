@@ -8235,6 +8235,16 @@ messages:
                   }
                }
             }
+
+            % Slayers e.g. 6% increased damage to insects
+            foreach i in Send(what,@GetCurrentSlayers)
+            {
+               if Send(self,@HasCreatureType,#type=Nth(i,1))
+               {
+                  iEmpowermentPercentage = iEmpowermentPercentage + Nth(i,2);
+               }
+            }
+            
             damage = (damage * (100+iEmpowermentPercentage))/100;
          }
          

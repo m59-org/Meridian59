@@ -308,6 +308,58 @@ resources:
       "~b~BCongratulations!~B~k All the monsters have been slain!  You have "
       "won Meridian 59.  Hope you had fun, it's been a great game."
 
+   monster_creature_type_name = "monster"
+   insect_creature_type_name = "insect"
+   animal_creature_type_name = "animal"
+   undead_creature_type_name = "undead"
+   humanoid_creature_type_name = "humanoid"
+   intelligent_creature_type_name = "intelligent"
+   elemental_creature_type_name = "elemental"
+   shock_creature_type_name = "shock"
+   air_creature_type_name = "air"
+   magical_creature_type_name = "magical"
+   mundane_creature_type_name = "mundane"
+   stone_creature_type_name = "stone"
+   plant_creature_type_name = "plant"
+   reptile_creature_type_name = "reptile"
+   enigmatic_creature_type_name = "enigmatic"
+   water_creature_type_name = "water"
+   fire_creature_type_name = "fire"
+   acid_creature_type_name = "acid"
+   holy_creature_type_name = "holy"
+   unholy_creature_type_name = "unholy"
+   skeleton_creature_type_name = "skeleton"
+   ghost_creature_type_name = "ghost"
+   zombie_creature_type_name = "zombie"
+   cold_creature_type_name = "cold"
+   unknown_creature_type_name = "unknown"
+
+   monster_slayer_type_name = "increased damage to monsters"
+   insect_slayer_type_name = "increased damage to insects"
+   animal_slayer_type_name = "increased damage to animals"
+   undead_slayer_type_name = "increased damage to undead creatures"
+   humanoid_slayer_type_name = "increased damage to humanoid creatures"
+   intelligent_slayer_type_name = "increased damage to intelligent creatures"
+   elemental_slayer_type_name = "increased damage to elementals"
+   shock_slayer_type_name = "increased damage to shock creatures"
+   air_slayer_type_name = "increased damage to air creatures"
+   magical_slayer_type_name = "increased damage to magical creatures"
+   mundane_slayer_type_name = "increased damage to mundane creatures"
+   stone_slayer_type_name = "increased damage to stone creatures"
+   plant_slayer_type_name = "increased damage to plants"
+   reptile_slayer_type_name = "increased damage to reptiles"
+   enigmatic_slayer_type_name = "increased damage to enigmatic creatures"
+   water_slayer_type_name = "increased damage to water creatures"
+   fire_slayer_type_name = "increased damage to fire creatures"
+   acid_slayer_type_name = "increased damage to acid creatures"
+   holy_slayer_type_name = "increased damage to holy creatures"
+   unholy_slayer_type_name = "increased damage to unholy creatures"
+   skeleton_slayer_type_name = "increased damage to skeletons"
+   ghost_slayer_type_name = "increased damage to ghosts"
+   zombie_slayer_type_name = "increased damage to zombies"
+   cold_slayer_type_name = "increased damage to cold creatures"
+   unknown_slayer_type_name = "increased damage to unknown creatures"
+
    weapon_resistance_name = "weapon resistance"
    pierce_resistance_name = "pierce resistance"
    slash_resistance_name = "slash resistance"
@@ -6814,6 +6866,8 @@ messages:
       plMagicMods = Cons(Create(&BludgeonResistanceMod),plMagicMods);
       plMagicMods = Cons(Create(&ThrustResistanceMod),plMagicMods);
       
+      plMagicMods = Cons(Create(&InsectSlayerMod),plMagicMods);
+      
       plMagicMods = Cons(Create(&FireEmpowermentMod),plMagicMods);
       plMagicMods = Cons(Create(&AcidEmpowermentMod),plMagicMods);
       plMagicMods = Cons(Create(&ShockEmpowermentMod),plMagicMods);
@@ -6992,8 +7046,15 @@ messages:
       }
       
       if class = &MinionMod
+         OR class = &MinionAttackSpeedMod
       {
          return GROUP_MINION;
+      }
+      
+      if class = &SlayerMod
+         OR class = &InsectSlayerMod
+      {
+         return GROUP_SLAYER;
       }
 
       return $;
@@ -9240,6 +9301,31 @@ messages:
       return empowerment_list;
    }
 
+   AddSlayer(what = $, value = NO_RESISTANCE, slayer_list = $)
+   "Adds a slayer of type (what) and value (value).  "
+   "If a slayer already exists, the new value will be added to the old."
+   {
+      local i;
+
+      foreach i in slayer_list
+      {
+         if Nth(i,1) = what
+         {
+            SetNth(i,2,value + Nth(i,2));
+            if Nth(i,2) = NO_RESISTANCE
+            {
+               slayer_list = DelListElem(slayer_list,i);
+            }
+
+            return slayer_list;
+         }
+      } 
+
+      slayer_list = Cons([what,value],slayer_list);
+
+      return slayer_list;
+   }
+
    RemoveAllResistances(resistance_list = $)
    "This clears the resistance list... for if someone's char is really messed "
    "up."
@@ -9683,6 +9769,118 @@ messages:
       }
 
       return unknown_damage_name;
+   }
+   
+   GetCreatureTypeName(iType=CREATURE_TYPE_MONSTER)
+   {
+      switch(iType)
+      {
+         case CREATURE_TYPE_MONSTER:
+            return monster_creature_type_name;
+         case CREATURE_TYPE_INSECT:
+            return insect_creature_type_name;
+         case CREATURE_TYPE_ANIMAL:
+            return animal_creature_type_name;
+         case CREATURE_TYPE_UNDEAD:
+            return undead_creature_type_name;
+         case CREATURE_TYPE_HUMANOID:
+            return humanoid_creature_type_name;
+         case CREATURE_TYPE_INTELLIGENT:
+            return intelligent_creature_type_name;
+         case CREATURE_TYPE_ELEMENTAL:
+            return elemental_creature_type_name;
+         case CREATURE_TYPE_SHOCK:
+            return shock_creature_type_name;
+         case CREATURE_TYPE_AIR:
+            return air_creature_type_name;
+         case CREATURE_TYPE_MAGICAL:
+            return magical_creature_type_name;
+         case CREATURE_TYPE_MUNDANE:
+            return mundane_creature_type_name;
+         case CREATURE_TYPE_STONE:
+            return stone_creature_type_name;
+         case CREATURE_TYPE_PLANT:
+            return plant_creature_type_name;
+         case CREATURE_TYPE_REPTILE:
+            return reptile_creature_type_name;
+         case CREATURE_TYPE_ENIGMATIC:
+            return enigmatic_creature_type_name;
+         case CREATURE_TYPE_WATER:
+            return water_creature_type_name;
+         case CREATURE_TYPE_FIRE:
+            return fire_creature_type_name;
+         case CREATURE_TYPE_ACID:
+            return acid_creature_type_name;
+         case CREATURE_TYPE_HOLY:
+            return holy_creature_type_name;
+         case CREATURE_TYPE_UNHOLY:
+            return unholy_creature_type_name;
+         case CREATURE_TYPE_SKELETON:
+            return skeleton_creature_type_name;
+         case CREATURE_TYPE_GHOST:
+            return ghost_creature_type_name;
+         case CREATURE_TYPE_ZOMBIE:
+            return zombie_creature_type_name;
+         case CREATURE_TYPE_COLD:
+            return cold_creature_type_name;
+      }
+      return unknown_creature_type_name;
+   }
+   
+   GetSlayerName(type=CREATURE_TYPE_MONSTER)
+   {
+      switch(type)
+      {
+         case CREATURE_TYPE_MONSTER:
+            return monster_slayer_type_name;
+         case CREATURE_TYPE_INSECT:
+            return insect_slayer_type_name;
+         case CREATURE_TYPE_ANIMAL:
+            return animal_slayer_type_name;
+         case CREATURE_TYPE_UNDEAD:
+            return undead_slayer_type_name;
+         case CREATURE_TYPE_HUMANOID:
+            return humanoid_slayer_type_name;
+         case CREATURE_TYPE_INTELLIGENT:
+            return intelligent_slayer_type_name;
+         case CREATURE_TYPE_ELEMENTAL:
+            return elemental_slayer_type_name;
+         case CREATURE_TYPE_SHOCK:
+            return shock_slayer_type_name;
+         case CREATURE_TYPE_AIR:
+            return air_slayer_type_name;
+         case CREATURE_TYPE_MAGICAL:
+            return magical_slayer_type_name;
+         case CREATURE_TYPE_MUNDANE:
+            return mundane_slayer_type_name;
+         case CREATURE_TYPE_STONE:
+            return stone_slayer_type_name;
+         case CREATURE_TYPE_PLANT:
+            return plant_slayer_type_name;
+         case CREATURE_TYPE_REPTILE:
+            return reptile_slayer_type_name;
+         case CREATURE_TYPE_ENIGMATIC:
+            return enigmatic_slayer_type_name;
+         case CREATURE_TYPE_WATER:
+            return water_slayer_type_name;
+         case CREATURE_TYPE_FIRE:
+            return fire_slayer_type_name;
+         case CREATURE_TYPE_ACID:
+            return acid_slayer_type_name;
+         case CREATURE_TYPE_HOLY:
+            return holy_slayer_type_name;
+         case CREATURE_TYPE_UNHOLY:
+            return unholy_slayer_type_name;
+         case CREATURE_TYPE_SKELETON:
+            return skeleton_slayer_type_name;
+         case CREATURE_TYPE_GHOST:
+            return ghost_slayer_type_name;
+         case CREATURE_TYPE_ZOMBIE:
+            return zombie_slayer_type_name;
+         case CREATURE_TYPE_COLD:
+            return cold_slayer_type_name;
+      }
+      return unknown_slayer_type_name;
    }
 
 end
