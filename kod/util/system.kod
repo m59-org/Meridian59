@@ -332,6 +332,8 @@ resources:
    ghost_creature_type_name = "ghost"
    zombie_creature_type_name = "zombie"
    cold_creature_type_name = "cold"
+   bird_creature_type_name = "bird"
+   kriipa_creature_type_name = "kriipa"
    unknown_creature_type_name = "unknown"
 
    monster_slayer_type_name = "increased damage to monsters"
@@ -358,6 +360,8 @@ resources:
    ghost_slayer_type_name = "increased damage to ghosts"
    zombie_slayer_type_name = "increased damage to zombies"
    cold_slayer_type_name = "increased damage to cold creatures"
+   bird_slayer_type_name = "increased damage to bird creatures"
+   kriipa_slayer_type_name = "increased damage to kriipas"
    unknown_slayer_type_name = "increased damage to unknown creatures"
 
    weapon_resistance_name = "weapon resistance"
@@ -6870,6 +6874,9 @@ messages:
       plMagicMods = Cons(Create(&SkeletonSlayerMod),plMagicMods);
       plMagicMods = Cons(Create(&ZombieSlayerMod),plMagicMods);
       plMagicMods = Cons(Create(&UnholySlayerMod),plMagicMods);
+      plMagicMods = Cons(Create(&KriipaSlayerMod),plMagicMods);
+      plMagicMods = Cons(Create(&MagicalSlayerMod),plMagicMods);
+      plMagicMods = Cons(Create(&AirSlayerMod),plMagicMods);
       
       plMagicMods = Cons(Create(&FireEmpowermentMod),plMagicMods);
       plMagicMods = Cons(Create(&AcidEmpowermentMod),plMagicMods);
@@ -7059,6 +7066,9 @@ messages:
          OR class = &SkeletonSlayerMod
          OR class = &ZombieSlayerMod
          OR class = &UnholySlayerMod
+         OR class = &KriipaSlayerMod
+         OR class = &AirSlayerMod
+         OR class = &MagicalSlayerMod
       {
          return GROUP_SLAYER;
       }
@@ -9829,6 +9839,10 @@ messages:
             return zombie_creature_type_name;
          case CREATURE_TYPE_COLD:
             return cold_creature_type_name;
+         case CREATURE_TYPE_BIRD:
+            return bird_creature_type_name;
+         case CREATURE_TYPE_KRIIPA:
+            return kriipa_creature_type_name;
       }
       return unknown_creature_type_name;
    }
@@ -9885,6 +9899,10 @@ messages:
             return zombie_slayer_type_name;
          case CREATURE_TYPE_COLD:
             return cold_slayer_type_name;
+         case CREATURE_TYPE_BIRD:
+            return bird_slayer_type_name;
+         case CREATURE_TYPE_KRIIPA:
+            return kriipa_slayer_type_name;
       }
       return unknown_slayer_type_name;
    }
