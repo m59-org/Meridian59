@@ -116,6 +116,8 @@ resources:
    enchanted_gear_indestructible = "\nThis enchanted %s is indestructible."
    enchanted_gear_plural_indestructible = "\nThese enchanted %s are indestructible."
    
+   indestructible_mod = "\nMark of Indestructibility"
+
    magical_slayer_mod = "\n%i%% increased damage to magical creatures"
    air_slayer_mod = "\n%i%% increased damage to air creatures"
    kriipa_slayer_mod = "\n%i%% increased damage to kriipas"
@@ -1449,9 +1451,10 @@ messages:
    {
       local iHit_Percent, rItem_condition;
 
-      if plEnchantmentMods <> $
-         AND NOT Send(SETTINGS_OBJECT,@GetLoseDurabilityMagicMods)
-         AND NOT IsClass(self,&Ring)
+      if NOT IsClass(self,&Ring)
+         AND plEnchantmentMods <> $
+         AND (NOT Send(SETTINGS_OBJECT,@GetLoseDurabilityMagicMods)
+            OR Send(self,@HasMagicModOfClass,#class=&IndestructibleMod))
       {
          if Send(self,@IsPlural)
          {
@@ -4119,6 +4122,10 @@ messages:
          else if First(lMod) = &MagicalSlayerMod
          {
             AddPacket(4,magical_slayer_mod, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
+         else if First(lMod) = &IndestructibleMod
+         {
+            AddPacket(4,indestructible_mod);
          }
          else
          {
