@@ -116,42 +116,6 @@ messages:
       propagate;
    }
 
-   ReqTaker(what=$,taker=$)
-   {
-      local oTakerOwner;
-
-      oTakerOwner = Send(taker,@GetOwner);
-
-      if (NOT Send(oTakerOwner,@LineOfSight,#obj1=taker,#obj2=self))
-      {
-         Debug("ALERT!  ",Send(taker,@GetTrueName),taker," in RID ",
-               Send(oTakerOwner,@GetRoomNum),
-               " taking from a chest they cannot see! ");
-
-         return FALSE;
-      }
-
-      if IsClass(taker,&User)
-         AND NOT IsClass(taker,&Admin)
-         AND IsClass(oTakerOwner,&Room) AND IsClass(poOwner,&Room)
-         AND oTakerOwner <> poOwner
-      {
-         Debug("ALERT!  ",Send(taker,@GetTrueName),taker," in RID ",
-               Send(oTakerOwner,@GetRoomNum),
-               " taking from distant chest in RID ",
-               Send(poOwner,@GetRoomNum));
-
-         return FALSE;
-      }
-
-      if IsClass(oTakerOwner,&GuildHall)
-      {
-         return Send(oTakerOwner,@ReqUseGuildChest,#who=taker,#oBox=self);
-      }
-
-      propagate;
-   }
-
    ReqNewHold(what = $, who = $)
    {
       local oWhoOwner;
@@ -202,11 +166,13 @@ messages:
       if pbLocked
       {
          viObject_Flags = viObject_Flags & ~OF_CONTAINER;
+         viObject_Flags = viObject_Flags | OF_ACTIVATABLE;
       }
 
       if NOT pbLocked
       {
          viObject_Flags = viObject_Flags | OF_CONTAINER;
+         viObject_Flags = viObject_Flags & ~OF_ACTIVATABLE;
       }
       
       Send(poOwner,@SomethingChanged,#what=self);

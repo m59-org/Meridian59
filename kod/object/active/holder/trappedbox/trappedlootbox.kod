@@ -26,24 +26,33 @@ TrappedLootBox is TrappedBox
 %  * Poison Gas - poison gas
 %  * Enfeeble - enfeeble
 %  * Disease - dement
-%  * Purge - remove buffs of thief
-%  * Fate - randomize hp / mana
 %  * Guardian - summon a stronger monster
-%  * Life Drain - lose a max HP
-%  * Petrifying - turn to stone
 %  * Shattering Blast - destroy a random item on thief
 %  * Siren - all monsters in room aggro on thief
 %  * Curse - random Raumlar hex
+%
+%  * Purge - remove buffs of thief
+%  * Fate - randomize hp / mana
+%  * Petrifying - turn to stone
+%  * Life Drain - lose a max HP
 
 constants:
 
    LOOT_BOX_ITEMS_MAX = 150
+   
+   TRAP_NONE = 0
+   TRAP_FATE = 1
+   TRAP_PURGE = 2
+   TRAP_LIFE_DRAIN = 3
+   TRAP_PETRIFY = 4
+   
+   TRAP_MAX = 4
 
    include blakston.khd
 
 resources:
 
-   loot_box_name_rsc = "treasure box"
+   loot_box_name_rsc = "treasure chest"
    loot_box_icon_small_rsc = lootbox3.bgf
    loot_box_icon_medium_rsc = lootbox2.bgf
    loot_box_icon_large_rsc = lootbox1.bgf
@@ -52,8 +61,34 @@ resources:
    loot_box_icon_chest_large = lootbox4.bgf
 
    loot_box_desc_rsc = \
-      "This treasure box was used to store the valuables of a fallen monster."
+      "This treasure chest was used to store the valuables of a fallen monster.\n\n%r"
+   loot_box_open_desc_rsc = \
+      "This treasure chest was used to store the valuables of a fallen monster."
+   
+   loot_box_not_trapped_desc_rsc = \
+      "This chest does not appear trapped."
+   loot_box_trap_string_rsc = \
+      "This chest appears to be protected by a %s trap of difficulty %i.\n\n"
+      "You estimate you have a %i%% chance to safely disarm it."
+   loot_box_fate_trap_desc_rsc = \
+      "fate"
+   loot_box_purge_trap_desc_rsc = \
+      "purge"
+   loot_box_life_drain_trap_desc_rsc = \
+      "life drain"
+   loot_box_petrify_trap_desc_rsc = \
+      "petrification"
 
+   fate_trap_msg_rsc = \
+      "The gods are fickle indeed..."
+   purge_trap_msg_rsc = \
+      "A wave of purging magic erupts!"
+   petrifying_trap_msg_rsc = \
+      "You gasp as your flesh turns rapidly into stone, locking your "
+      "face in an aspect of horror for all time!"
+   life_drain_trap_msg_rsc = \
+      "Your nerves burn with draining enervation!"
+      
 classvars:
 
    vrName = loot_box_name_rsc
@@ -65,11 +100,20 @@ classvars:
 properties:
 
    vrIcon = loot_box_icon_small_rsc
+   
+   % What level was the monster? Some monsters have special values for this
+   piBoxPower = 20
+   
+   piTrapNum = TRAP_NONE
+   
+   pbLocked = FALSE
 
 messages:
 
-   Constructor(iLootSize=0)
+   Constructor(iLootSize=0,iBoxPower=20)
    {
+      piBoxPower = iBoxPower;
+
       if iLootSize = 0
       {
          iLootSize = Random(1,6);
@@ -95,38 +139,163 @@ messages:
             vrIcon = loot_box_icon_chest_large;
             break;
       }
+      
+      piTrapNum = Random(TRAP_NONE,TRAP_MAX);
+      
+      Post(self,@LockChest,#bLocked=TRUE);
+      
       propagate;
    }
 
    ReqNewHold(what = $, who = $)
    {
-      if NOT Send(self,@CanDepositItems,#lItems=[what])
+      return FALSE;
+   }
+
+   TryActivate(who=$)
+   {
+      Post(self,@SpringTrap,#who=who);
+      Post(self,@LockChest,#bLocked=FALSE);
+      return TRUE;
+   }
+
+   ShowDesc(who=$)
+   {
+      local rTrapDesc;
+      
+      if NOT pbLocked
       {
+         AddPacket(4,loot_box_open_desc_rsc);
+         return;
+      }
+      
+      rTrapDesc = loot_box_not_trapped_desc_rsc;
+      switch(piTrapNum)
+      {
+         case TRAP_FATE:
+            rTrapDesc = loot_box_fate_trap_desc_rsc;
+            break;
+         case TRAP_PURGE:
+            rTrapDesc = loot_box_purge_trap_desc_rsc;
+            break;
+         case TRAP_LIFE_DRAIN:
+            rTrapDesc = loot_box_life_drain_trap_desc_rsc;
+            break;
+         case TRAP_PETRIFY:
+            rTrapDesc = loot_box_petrify_trap_desc_rsc;
+            break;
+      }
+      
+      AddPacket(4,vrDesc, 4,loot_box_trap_string_rsc, 4,rTrapDesc, 4,piBoxPower, 4,Send(self,@GetDisarmEstimate,#who=who));
+
+      return;
+   }
+   
+   GetDisarmEstimate(who=$)
+   {
+      local iDisarmChance, iStatScore;
+
+      iDisarmChance = ((Send(who,@GetAgility) + Send(who,@GetAim)) * 50) / Bound(piBoxPower,20,$);
+      
+      return iDisarmChance;
+   }
+   
+   SpringTrap(who=$)
+   {
+      switch(piTrapNum)
+      {
+         case TRAP_FATE:
+            Send(self,@DoFateTrap,#who=who);
+            break;
+         case TRAP_PURGE:
+            Send(self,@DoPurgeTrap,#who=who);
+            break;
+         case TRAP_LIFE_DRAIN:
+            Send(self,@DoLifeDrainTrap,#who=who);
+            break;
+         case TRAP_PETRIFY:
+            Send(self,@DoPetrifyingTrap,#who=who);
+            break;
+      }
+      return;
+   }
+   
+   DoLifeDrainTrap(who=$)
+   {
+      Send(who,@MsgSendUser,#message_rsc=life_drain_trap_msg_rsc);
+      Send(who,@GainBaseMaxHealth,#amount=-1);
+      return;
+   }
+
+   DoFateTrap(who=$)
+   {
+      local iHealthLoss, iManaLoss;
+      
+      iHealthLoss = Random(0,Bound(Send(who,@GetExactHealth)-100,0,$));
+      iHealthLoss = Bound(Random(iHealthLoss,iHealthLoss + piBoxPower),0,Bound(Send(who,@GetExactHealth)-100,0,$));
+      
+      iManaLoss = Random(0,Send(who,@GetMaxMana));
+      iManaLoss = Bound(Random(iManaLoss,iManaLoss + piBoxPower),0,Send(who,@GetMaxMana));
+   
+      Send(who,@LoseHealth,#amount=iHealthLoss,#precision=TRUE);
+      Send(who,@LoseMana,#amount=iManaLoss);
+      
+      Send(who,@MsgSendUser,#message_rsc=fate_trap_msg_rsc);
+      % Play a sound
+      % Give a room message
+      return;
+   }
+
+   DoPurgeTrap(who=$)
+   {
+      Send(who,@MsgSendUser,#message_rsc=purge_trap_msg_rsc);
+      Send(Send(SYS,@FindSpellByNum,#num=SID_PURGE),@DoPurge,#who=who,#iSpellPower=piBoxPower,#caster=self);
+      % Play a sound
+      return;
+   }
+   
+   DoPetrifyingTrap(who=$)
+   {
+      Send(who,@MsgSendUser,#message_rsc=petrifying_trap_msg_rsc);
+      Send(Send(SYS,@FindSpellByNum,#num=SID_PETRIFIED),@DoSpell,#what=self,#oTarget=who,#report=FALSE,#bAllowFreeAction=FALSE);
+      % Play a sound
+      return;
+   }
+
+   ReqTaker(what=$,taker=$)
+   {
+      local oTakerOwner;
+
+      oTakerOwner = Send(taker,@GetOwner);
+
+      if (NOT Send(oTakerOwner,@LineOfSight,#obj1=taker,#obj2=self))
+      {
+         Debug("ALERT!  ",Send(taker,@GetTrueName),taker," in RID ",
+               Send(oTakerOwner,@GetRoomNum),
+               " taking from a chest they cannot see! ");
+
          return FALSE;
+      }
+
+      if IsClass(taker,&User)
+         AND NOT IsClass(taker,&Admin)
+         AND IsClass(oTakerOwner,&Room) AND IsClass(poOwner,&Room)
+         AND oTakerOwner <> poOwner
+      {
+         Debug("ALERT!  ",Send(taker,@GetTrueName),taker," in RID ",
+               Send(oTakerOwner,@GetRoomNum),
+               " taking from distant chest in RID ",
+               Send(poOwner,@GetRoomNum));
+
+         return FALSE;
+      }
+
+      if IsClass(oTakerOwner,&GuildHall)
+      {
+         return Send(oTakerOwner,@ReqUseGuildChest,#who=taker,#oBox=self);
       }
 
       propagate;
-   }
-
-   CanDepositItems(lItems = $)
-   {
-      local plItemsStored;
-
-      if lItems = $
-      {
-         return FALSE;
-      }
-
-      plItemsStored = Send(self,@GetHolderPassive);
-      if plItemsStored <> $
-         AND (Length(plItemsStored) + Length(lItems)) > LOOT_BOX_ITEMS_MAX
-         AND NOT (Length(lItems) = 1
-            AND IsClass(First(lItems),&NumberItem))
-      {
-         return FALSE;
-      }
-
-      return TRUE;
    }
 
 end
