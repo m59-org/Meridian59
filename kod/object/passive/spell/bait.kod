@@ -78,9 +78,10 @@ messages:
       Send(who,@MsgSendUser,#message_rsc=Bait_success);
       foreach oMonster in send(send(who,@GetOwner),@GetHolderActive)
       {
-         if isClass(first(oMonster), &Monster)
-               and not ( send(first(oMonster), @GetBehavior) & AI_NPC )
-         {
+         if IsClass(First(oMonster),&Monster)
+            AND NOT (Send(First(oMonster),@GetBehavior) & AI_NPC)
+            AND NOT Send(First(oMonster),@HasCreatureType,#type=CREATURE_TYPE_INTELLIGENT)
+         {            
             iBaseChance = 25;
             if send(first(oMonster), @GetTarget) = $
             {
@@ -89,14 +90,6 @@ messages:
             } else {
                % harder if monster already has a target
                iModifier = 4;
-            }
-
-            % Faction Kludge: Should put in a special trait for "player-like" monsters.
-            % Doesn't fall for bait as much, since has "player-like" characteristics.
-            if IsClass(first(oMonster),&FactionTroop)
-            {
-               iBaseChance = 0;
-               iModifier = iModifier + 4;
             }
 
             % Avoid faction problems, don't make it work on aligned people.
