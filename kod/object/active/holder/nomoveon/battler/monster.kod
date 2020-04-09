@@ -701,6 +701,8 @@ properties:
    piDrowningDamage = 1000
 
    poEventSpawner = $
+   
+   pbDropChestOnDeath = FALSE
 
 messages:
 
@@ -5048,7 +5050,15 @@ messages:
             what = Send(what,@GetMaster);
          }
 
-         oBody = Send(self,@CreateDeadBody,#killer=what);
+         if Send(self,@GetChampStatus) > 0
+            OR pbDropChestOnDeath
+         {
+            oBody = Create(&TrappedLootBox,#iBoxPower=Send(self,@GetLevel) + piBoostedLevel + piChaosLevel,#killer=what);
+         }
+         else 
+         {
+            oBody = Send(self,@CreateDeadBody,#killer=what);
+         }
 
          if oBody <> $
          {
@@ -9691,6 +9701,16 @@ messages:
          AND ptLoyaltyTimer = $
       {
          ptLoyaltyTimer = CreateTimer(self,@LoyaltyTimer,3000);
+      }
+      
+      if piLoyalty <= 0
+      {
+         if ptLoyaltyTimer <> $
+         {
+            DeleteTimer(ptLoyaltyTimer);
+            ptLoyaltyTimer = $;
+         }
+         Send(self,@LoyaltyTimer);
       }
       
       return piLoyalty;

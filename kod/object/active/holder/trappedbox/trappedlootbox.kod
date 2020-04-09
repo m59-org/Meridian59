@@ -21,20 +21,20 @@ TrappedLootBox is TrappedBox
 %  * Explosion - aoe fire damage + brief firewalls
 %  * Discharge - high shock damage to one
 %  * Blast of Frost - apply large amounts of chilled
-%  * Fright - aoe weaken minion loyalty
 %  * Teleporter - Send player to a random room in the same region
 %  * Poison Gas - poison gas
-%  * Enfeeble - enfeeble
-%  * Disease - dement
 %  * Guardian - summon a stronger monster
 %  * Shattering Blast - destroy a random item on thief
-%  * Siren - all monsters in room aggro on thief
 %  * Curse - random Raumlar hex
 %
 %  * Purge - remove buffs of thief
 %  * Fate - randomize hp / mana
 %  * Petrifying - turn to stone
 %  * Life Drain - lose a max HP
+%  * Enfeeble - enfeeble
+%  * Disease - dement
+%  * Fright - aoe weaken minion loyalty
+%  * Siren - all monsters in room aggro on thief
 
 constants:
 
@@ -45,8 +45,12 @@ constants:
    TRAP_PURGE = 2
    TRAP_LIFE_DRAIN = 3
    TRAP_PETRIFY = 4
+   TRAP_DISEASE = 5
+   TRAP_ENFEEBLE = 6
+   TRAP_FRIGHT = 7
+   TRAP_SIREN = 8
    
-   TRAP_MAX = 4
+   TRAP_MAX = 8
 
    include blakston.khd
 
@@ -66,19 +70,33 @@ resources:
       "This treasure chest was used to store the valuables of a fallen monster."
    
    loot_box_not_trapped_desc_rsc = \
+      "This treasure chest was used to store the valuables of a fallen monster.\n\n"
       "This chest does not appear trapped."
    loot_box_trap_string_rsc = \
       "This chest appears to be protected by a %s trap of difficulty %i.\n\n"
       "You estimate you have a %i%% chance to safely disarm it."
-   loot_box_fate_trap_desc_rsc = \
-      "fate"
-   loot_box_purge_trap_desc_rsc = \
-      "purge"
-   loot_box_life_drain_trap_desc_rsc = \
-      "life drain"
-   loot_box_petrify_trap_desc_rsc = \
-      "petrification"
 
+   loot_box_fate_trap_desc_rsc = \
+      "Fate"
+   loot_box_purge_trap_desc_rsc = \
+      "Purge"
+   loot_box_life_drain_trap_desc_rsc = \
+      "Life Drain"
+   loot_box_petrify_trap_desc_rsc = \
+      "Petrification"
+   loot_box_enfeeble_trap_desc_rsc = \
+      "Enfeeble"
+   loot_box_disease_trap_desc_rsc = \
+      "Disease"
+   loot_box_fright_trap_desc_rsc = \
+      "Fright"
+   loot_box_siren_trap_desc_rsc = \
+      "Siren"
+
+   siren_trap_msg_rsc = \
+      "An unheard note of alarm pierces the air. You cannot hear it, but the monsters in the area certainly do!"
+   fright_trap_msg_rsc = \
+      "A blast of illusory magic frightens your minions, weakening their loyalty!"
    fate_trap_msg_rsc = \
       "The gods are fickle indeed..."
    purge_trap_msg_rsc = \
@@ -88,7 +106,11 @@ resources:
       "face in an aspect of horror for all time!"
    life_drain_trap_msg_rsc = \
       "Your nerves burn with draining enervation!"
-      
+
+   trap_roar_sound = 195568jacobalcookcreatureroar1.wav
+   trap_drain_sound = qvtouch.wav
+   trap_fate_sound = slitherboltwand.wav
+
 classvars:
 
    vrName = loot_box_name_rsc
@@ -107,12 +129,18 @@ properties:
    piTrapNum = TRAP_NONE
    
    pbLocked = FALSE
+   
+   poKiller = $
+   
+   piExpireChecks = 12
+   ptExpireTimer = $
 
 messages:
 
-   Constructor(iLootSize=0,iBoxPower=20)
+   Constructor(iLootSize=0,iBoxPower=20,killer=$)
    {
-      piBoxPower = iBoxPower;
+      poKiller = killer;
+      piBoxPower = Bound((iBoxPower * Random(80,150))/100,20,$);
 
       if iLootSize = 0
       {
@@ -140,11 +168,34 @@ messages:
             break;
       }
       
+      piExpireChecks = piExpireChecks + iLootSize*6;
+      
       piTrapNum = Random(TRAP_NONE,TRAP_MAX);
       
       Post(self,@LockChest,#bLocked=TRUE);
       
+      ptExpireTimer = CreateTimer(self,@CheckExpire,10000);
+
       propagate;
+   }
+   
+   CheckExpire(timer=$)
+   {
+      ptExpireTimer = $;
+      
+      piExpireChecks--;
+      
+      if piExpireChecks <= 0
+         OR (plActive = $ and plPassive = $)
+      {
+         Send(self,@Delete);
+      }
+      else
+      {
+         ptExpireTimer = CreateTimer(self,@CheckExpire,10000);
+      }
+      
+      return;
    }
 
    ReqNewHold(what = $, who = $)
@@ -168,10 +219,13 @@ messages:
          AddPacket(4,loot_box_open_desc_rsc);
          return;
       }
-      
+
       rTrapDesc = loot_box_not_trapped_desc_rsc;
       switch(piTrapNum)
       {
+         case TRAP_NONE:
+            AddPacket(4,loot_box_not_trapped_desc_rsc);
+            return;
          case TRAP_FATE:
             rTrapDesc = loot_box_fate_trap_desc_rsc;
             break;
@@ -183,6 +237,18 @@ messages:
             break;
          case TRAP_PETRIFY:
             rTrapDesc = loot_box_petrify_trap_desc_rsc;
+            break;
+         case TRAP_DISEASE:
+            rTrapDesc = loot_box_disease_trap_desc_rsc;
+            break;
+         case TRAP_ENFEEBLE:
+            rTrapDesc = loot_box_enfeeble_trap_desc_rsc;
+            break;
+         case TRAP_FRIGHT:
+            rTrapDesc = loot_box_fright_trap_desc_rsc;
+            break;
+         case TRAP_SIREN:
+            rTrapDesc = loot_box_siren_trap_desc_rsc;
             break;
       }
       
@@ -216,6 +282,75 @@ messages:
          case TRAP_PETRIFY:
             Send(self,@DoPetrifyingTrap,#who=who);
             break;
+         case TRAP_ENFEEBLE:
+            Send(self,@DoEnfeebleTrap,#who=who);
+            break;
+         case TRAP_DISEASE:
+            Send(self,@DoDiseaseTrap,#who=who);
+            break;
+         case TRAP_FRIGHT:
+            Send(self,@DoFrightTrap,#who=who);
+            break;
+         case TRAP_SIREN:
+            Send(self,@DoSirenTrap,#who=who);
+            break;
+      }
+      return;
+   }
+
+   DoSirenTrap(who=$)
+   {
+      local i, each_obj;
+      Send(who,@MsgSendUser,#message_rsc=siren_trap_msg_rsc);
+      
+      if poOwner <> $
+      {
+         foreach i in Send(poOwner,@GetHolderActive)
+         {
+            each_obj = Send(poOwner,@HolderExtractObject,#data=i);
+            if IsClass(each_obj,&Monster)
+            {
+               Send(each_obj,@TargetSwitch,#what=who,#iHatred=100);
+               Send(each_obj,@EnterStateChase,#target=who,#actnow=TRUE);
+            }
+         }
+      }
+      
+      return;
+   }
+
+   DoFrightTrap(who=$)
+   {
+      local oMinion;
+      Send(who,@MsgSendUser,#message_rsc=fright_trap_msg_rsc);
+      
+      foreach oMinion in Send(who,@GetControlledMinions)
+      {
+         Send(oMinion,@AddLoyalty,#amount=-piBoxPower);
+      }
+      
+      if poOwner <> $
+      {
+         Send(poOwner,@SomethingWaveRoom,#what=self,#wave_rsc=trap_roar_sound);
+      }
+      
+      return;
+   }
+
+   DoEnfeebleTrap(who=$)
+   {
+      if NOT Send(who,@IsEnchanted,#what=Send(SYS,@FindSpellByNum,#num=SID_ENFEEBLE))
+      {
+         Send(Send(SYS,@FindSpellByNum,#num=SID_ENFEEBLE),@CastSpell,#who=self,#lTargets=[who],#iSpellPower=piBoxPower/2);
+      }
+      return;
+   }
+   
+   DoDiseaseTrap(who=$)
+   {
+      if NOT Send(who,@IsEnchanted,#what=Send(SYS,@FindSpellByNum,#num=SID_DEMENT))
+      {
+         Send(Send(SYS,@FindSpellByNum,#num=SID_DEMENT),@CastSpell,#who=self,#lTargets=[who],#iSpellPower=piBoxPower/2);
       }
       return;
    }
@@ -224,6 +359,12 @@ messages:
    {
       Send(who,@MsgSendUser,#message_rsc=life_drain_trap_msg_rsc);
       Send(who,@GainBaseMaxHealth,#amount=-1);
+      
+      if poOwner <> $
+      {
+         Send(poOwner,@SomethingWaveRoom,#what=self,#wave_rsc=trap_drain_sound);
+      }
+
       return;
    }
 
@@ -241,24 +382,27 @@ messages:
       Send(who,@LoseMana,#amount=iManaLoss);
       
       Send(who,@MsgSendUser,#message_rsc=fate_trap_msg_rsc);
-      % Play a sound
-      % Give a room message
+      
+      if poOwner <> $
+      {
+         Send(poOwner,@SomethingWaveRoom,#what=self,#wave_rsc=trap_fate_sound);
+      }
+
       return;
    }
 
    DoPurgeTrap(who=$)
    {
       Send(who,@MsgSendUser,#message_rsc=purge_trap_msg_rsc);
-      Send(Send(SYS,@FindSpellByNum,#num=SID_PURGE),@DoPurge,#who=who,#iSpellPower=piBoxPower,#caster=self);
-      % Play a sound
+      Send(Send(SYS,@FindSpellByNum,#num=SID_PURGE),@CastSpell,#who=self,#lTargets=[who],#iSpellPower=piBoxPower/2);
+
       return;
    }
    
    DoPetrifyingTrap(who=$)
    {
       Send(who,@MsgSendUser,#message_rsc=petrifying_trap_msg_rsc);
-      Send(Send(SYS,@FindSpellByNum,#num=SID_PETRIFIED),@DoSpell,#what=self,#oTarget=who,#report=FALSE,#bAllowFreeAction=FALSE);
-      % Play a sound
+      Send(Send(SYS,@FindSpellByNum,#num=SID_PETRIFIED),@CastSpell,#who=self,#lTargets=[who],#iSpellPower=piBoxPower/2);
       return;
    }
 
@@ -295,6 +439,16 @@ messages:
          return Send(oTakerOwner,@ReqUseGuildChest,#who=taker,#oBox=self);
       }
 
+      propagate;
+   }
+   
+   Delete()
+   {
+      if ptExpireTimer <> $
+      {
+         DeleteTimer(ptExpireTimer);
+         ptExpireTimer = $;
+      }
       propagate;
    }
 
