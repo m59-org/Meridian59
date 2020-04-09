@@ -49,8 +49,11 @@ constants:
    TRAP_ENFEEBLE = 6
    TRAP_FRIGHT = 7
    TRAP_SIREN = 8
+   TRAP_EXPLOSION = 9
+   TRAP_DISCHARGE = 10
+   TRAP_POISON_GAS = 11
    
-   TRAP_MAX = 8
+   TRAP_MAX = 9
 
    include blakston.khd
 
@@ -72,6 +75,9 @@ resources:
    loot_box_not_trapped_desc_rsc = \
       "This treasure chest was used to store the valuables of a fallen monster.\n\n"
       "This chest does not appear trapped."
+   loot_box_magically_locked_desc_rsc = \
+      "This treasure chest was used to store the valuables of a fallen monster.\n\n"
+      "This chest appears to be magically locked."
    loot_box_trap_string_rsc = \
       "This chest appears to be protected by a %s trap of difficulty %i.\n\n"
       "You estimate you have a %i%% chance to safely disarm it."
@@ -92,6 +98,12 @@ resources:
       "Fright"
    loot_box_siren_trap_desc_rsc = \
       "Siren"
+   loot_box_explosion_trap_desc_rsc = \
+      "Explosion"
+   loot_box_discharge_trap_desc_rsc = \
+      "Discharge"
+   loot_box_poison_gas_trap_desc_rsc = \
+      "Poison Gas"
 
    siren_trap_msg_rsc = \
       "An unheard note of alarm pierces the air. You cannot hear it, but the monsters in the area certainly do!"
@@ -109,7 +121,10 @@ resources:
 
    trap_roar_sound = 195568jacobalcookcreatureroar1.wav
    trap_drain_sound = qvtouch.wav
+   trap_explosion_sound = fflame.wav
    trap_fate_sound = slitherboltwand.wav
+   trap_discharge_sound = fbolt.wav
+   trap_poison_gas_sound = poisoned.wav
 
 classvars:
 
@@ -118,6 +133,8 @@ classvars:
 
    viBulk_hold_max = $
    viWeight_hold_max = $
+   
+   viMagicallyLockedLightColor = LIGHT_BBLUE
 
 properties:
 
@@ -129,18 +146,27 @@ properties:
    piTrapNum = TRAP_NONE
    
    pbLocked = FALSE
+   pbMagicallyLocked = FALSE
    
    poKiller = $
    
    piExpireChecks = 12
    ptExpireTimer = $
+   
+   piLadderID = 0
 
 messages:
 
    Constructor(iLootSize=0,iBoxPower=20,killer=$)
    {
       poKiller = killer;
+      piLadderID = Send(killer,@GetLadderID);
       piBoxPower = Bound((iBoxPower * Random(80,150))/100,20,$);
+      
+      if Random(1,1000) <= piBoxPower
+      {
+         pbMagicallyLocked = TRUE;
+      }
 
       if iLootSize = 0
       {
@@ -170,7 +196,8 @@ messages:
       
       piExpireChecks = piExpireChecks + iLootSize*6;
       
-      piTrapNum = Random(TRAP_NONE,TRAP_MAX);
+      piTrapNum = TRAP_POISON_GAS;
+      %piTrapNum = Random(TRAP_NONE,TRAP_MAX);
       
       Post(self,@LockChest,#bLocked=TRUE);
       
@@ -221,6 +248,13 @@ messages:
       }
 
       rTrapDesc = loot_box_not_trapped_desc_rsc;
+      
+      if pbMagicallyLocked
+      {
+         AddPacket(4,loot_box_magically_locked_desc_rsc);
+         return;
+      }
+      
       switch(piTrapNum)
       {
          case TRAP_NONE:
@@ -249,6 +283,15 @@ messages:
             break;
          case TRAP_SIREN:
             rTrapDesc = loot_box_siren_trap_desc_rsc;
+            break;
+         case TRAP_EXPLOSION:
+            rTrapDesc = loot_box_explosion_trap_desc_rsc;
+            break;
+         case TRAP_DISCHARGE:
+            rTrapDesc = loot_box_discharge_trap_desc_rsc;
+            break;
+         case TRAP_POISON_GAS:
+            rTrapDesc = loot_box_poison_gas_trap_desc_rsc;
             break;
       }
       
@@ -294,7 +337,209 @@ messages:
          case TRAP_SIREN:
             Send(self,@DoSirenTrap,#who=who);
             break;
+         case TRAP_EXPLOSION:
+            Send(self,@DoExplosionTrap,#who=who);
+            break;
+         case TRAP_DISCHARGE:
+            Send(self,@DoDischargeTrap,#who=who);
+            break;
+         case TRAP_POISON_GAS:
+            Send(self,@DoPoisonGasTrap,#who=who);
+            break;
       }
+      return;
+   }
+   
+   DoPoisonGasTrap(who=$)
+   {
+      local oOwner, i, each_obj, lSplashTargets, lBattlers, iBurningDealt, iTotalBurning, iDealtDamage,
+            oGasElement, iGasElements, oCreator;
+      
+      oOwner = Send(self,@GetOwner);
+      lBattlers = $;
+      
+      if oCreator = $
+      {
+         % Attribute the kill to Chest Trap template mob if we have no creator.
+         oCreator = Send(SYS,@FindMonsterByClass,#cClass=&ChestTrap);
+      }
+      
+      % Create random poison gas.
+      
+      iGasElements = Random(3,6);
+      
+      while iGasElements > 0
+      {
+         oGasElement = Create(&OrangeFogCloud,#Caster=oCreator,#Duration=piBoxPower/3,#Illusionary=FALSE,#Odds=100);
+         Send(oOwner,@NewHold,#what=oGasElement,
+              #new_row=Bound(Send(self,@GetRow) + Random(-(piBoxPower/2)/64,(piBoxPower/2)/64),0,Send(oOwner,@GetRoomRows)),
+              #new_col=Bound(Send(self,@GetCol) + Random(-(piBoxPower/2)/64,(piBoxPower/2)/64),0,Send(oOwner,@GetRoomCols)),
+              #fine_row=Random(0,64),
+              #fine_col=Random(0,64));
+         iGasElements--;
+      }
+
+      % For our splash targets, we find all battlers in range of the target
+      %    that aren't the caster or target and which the caster can attack
+
+      foreach i in Send(oOwner,@GetHolderActive)
+      {
+         each_obj = Send(oOwner,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&Battler)
+            AND each_obj <> oCreator
+            AND Send(oOwner,@LineOfSight,#obj1=self,#obj2=each_obj)
+            AND Send(each_obj,@SquaredFineDistanceTo3D,#what=self) <= (piBoxPower/2)*(piBoxPower/2)
+            AND NOT (IsClass(each_obj,&Monster) AND NOT Send(each_obj,@CanMonsterFight))
+            AND Send(each_obj,@GetMaster) <> oCreator
+         {
+            lBattlers = Cons(each_obj,lBattlers);
+         }
+      }
+      
+      Send(Send(SYS,@FindSpellByNum,#num=SID_POISON),@MakePoisoned,#who=who,#lossrate=piBoxPower*100,#duration=piBoxPower*100);
+
+      % Show bolt from target to new targets
+      if lBattlers <> $
+      {
+         foreach i in lBattlers
+         {
+            iBurningDealt = Send(i,@ApplyElementalStatusEffects,
+                                   #damage=Bound((piBoxPower*Random(7,13))/10,1,$),
+                                   #bSecondary=FALSE,
+                                   #aspell=ATCK_SPELL_ACID,
+                                   #what=oCreator);
+         }
+      }
+      Send(poOwner,@SomethingWaveRoom,#what=self,#wave_rsc=trap_poison_gas_sound);
+      return;
+   }
+   
+   DoDischargeTrap(who=$)
+   {
+      local oOwner, i, each_obj, lSplashTargets, lBattlers, iBurningDealt, iTotalBurning, iDealtDamage,
+            oFireElement, iFireElements, oCreator;
+      
+      oOwner = Send(self,@GetOwner);
+      lBattlers = $;
+      
+      if oCreator = $
+      {
+         % Attribute the kill to Chest Trap template mob if we have no creator.
+         oCreator = Send(SYS,@FindMonsterByClass,#cClass=&ChestTrap);
+      }
+      
+      % Create random fire.
+      
+      iFireElements = Random(3,6);
+      
+      while iFireElements > 0
+      {
+         oFireElement = Create(&WallofLightning,#MaxDamage=piBoxPower/6,#Caster=oCreator,#Duration=piBoxPower/3,#Illusionary=FALSE);
+         Send(oOwner,@NewHold,#what=oFireElement,
+              #new_row=Bound(Send(self,@GetRow) + Random(-(piBoxPower/2)/64,(piBoxPower/2)/64),0,Send(oOwner,@GetRoomRows)),
+              #new_col=Bound(Send(self,@GetCol) + Random(-(piBoxPower/2)/64,(piBoxPower/2)/64),0,Send(oOwner,@GetRoomCols)),
+              #fine_row=Random(0,64),
+              #fine_col=Random(0,64));
+         iFireElements--;
+      }
+
+      % For our splash targets, we find all battlers in range of the target
+      %    that aren't the caster or target and which the caster can attack
+
+      foreach i in Send(oOwner,@GetHolderActive)
+      {
+         each_obj = Send(oOwner,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&Battler)
+            AND each_obj <> oCreator
+            AND Send(oOwner,@LineOfSight,#obj1=self,#obj2=each_obj)
+            AND Send(each_obj,@SquaredFineDistanceTo3D,#what=self) <= (piBoxPower/2)*(piBoxPower/2)
+            AND NOT (IsClass(each_obj,&Monster) AND NOT Send(each_obj,@CanMonsterFight))
+            AND Send(each_obj,@GetMaster) <> oCreator
+         {
+            lBattlers = Cons(each_obj,lBattlers);
+         }
+      }
+      
+      Send(Send(SYS,@FindSpellByNum,#num=SID_SHOCKING_FURY),@CastSpell,#who=self,#lTargets=[who],#iSpellPower=piBoxPower/2);
+
+      % Show bolt from target to new targets
+      if lBattlers <> $
+      {
+         foreach i in lBattlers
+         {
+            iBurningDealt = Send(i,@ApplyElementalStatusEffects,
+                                   #damage=Bound((piBoxPower*Random(7,13))/10,1,$),
+                                   #bSecondary=FALSE,
+                                   #aspell=ATCK_SPELL_SHOCK,
+                                   #what=oCreator);
+         }
+      }
+      Send(poOwner,@SomethingWaveRoom,#what=self,#wave_rsc=trap_discharge_sound);
+      return;
+   }
+   
+   DoExplosionTrap(who=$)
+   {
+      local oOwner, i, each_obj, lSplashTargets, lBattlers, iBurningDealt, iTotalBurning, iDealtDamage,
+            oFireElement, iFireElements, oCreator;
+      
+      oOwner = Send(self,@GetOwner);
+      lBattlers = $;
+      
+      if oCreator = $
+      {
+         % Attribute the kill to Chest Trap template mob if we have no creator.
+         oCreator = Send(SYS,@FindMonsterByClass,#cClass=&ChestTrap);
+      }
+      
+      % Create random fire.
+      
+      iFireElements = Random(3,6);
+      
+      while iFireElements > 0
+      {
+         oFireElement = Create(&WallOfFire,#MaxDamage=piBoxPower/6,#Caster=oCreator,#Duration=piBoxPower/3,#Illusionary=FALSE);
+         Send(oOwner,@NewHold,#what=oFireElement,
+              #new_row=Bound(Send(self,@GetRow) + Random(-(piBoxPower/2)/64,(piBoxPower/2)/64),0,Send(oOwner,@GetRoomRows)),
+              #new_col=Bound(Send(self,@GetCol) + Random(-(piBoxPower/2)/64,(piBoxPower/2)/64),0,Send(oOwner,@GetRoomCols)),
+              #fine_row=Random(0,64),
+              #fine_col=Random(0,64));
+         iFireElements--;
+      }
+
+      % For our splash targets, we find all battlers in range of the target
+      %    that aren't the caster or target and which the caster can attack
+
+      foreach i in Send(oOwner,@GetHolderActive)
+      {
+         each_obj = Send(oOwner,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&Battler)
+            AND each_obj <> oCreator
+            AND Send(oOwner,@LineOfSight,#obj1=self,#obj2=each_obj)
+            AND Send(each_obj,@SquaredFineDistanceTo3D,#what=self) <= (piBoxPower/2)*(piBoxPower/2)
+            AND NOT (IsClass(each_obj,&Monster) AND NOT Send(each_obj,@CanMonsterFight))
+            AND Send(each_obj,@GetMaster) <> oCreator
+         {
+            lBattlers = Cons(each_obj,lBattlers);
+         }
+      }
+      
+      Send(Send(SYS,@FindSpellByNum,#num=SID_BLAST_OF_FIRE),@CastSpell,#who=self,#lTargets=[who],#iSpellPower=piBoxPower/2);
+
+      % Show bolt from target to new targets
+      if lBattlers <> $
+      {
+         foreach i in lBattlers
+         {
+            iBurningDealt = Send(i,@ApplyElementalStatusEffects,
+                                   #damage=Bound((piBoxPower*Random(7,13))/10,1,$),
+                                   #bSecondary=FALSE,
+                                   #aspell=ATCK_SPELL_FIRE,
+                                   #what=oCreator);
+            Send(i,@AddHurtMeRecently,#who=oCreator,#amount=iBurningDealt);
+         }
+      }
+      Send(poOwner,@SomethingWaveRoom,#what=self,#wave_rsc=trap_explosion_sound);
       return;
    }
 
@@ -450,6 +695,38 @@ messages:
          ptExpireTimer = $;
       }
       propagate;
+   }
+
+   SendLightingInformation()
+   {
+      local iLightColor;
+
+      if pbMagicallyLocked
+      {
+         iLightColor = viMagicallyLockedLightColor;
+         if poOwner <> $
+         {
+            if Send(poOwner,@LightingColorOverride)
+            {
+               iLightColor = Send(poOwner,@GetLightingColorOverride);
+            }
+         }
+         AddPacket(2,LIGHT_FLAG_ON);
+         AddPacket(1,100);
+         AddPacket(2,iLightColor);
+      }
+      else
+      {
+         % Default: No lighting
+         AddPacket(2,0);
+      }
+
+      return;
+   }
+   
+   GetLadderID()
+   {
+      return piLadderID;
    }
 
 end

@@ -5050,8 +5050,11 @@ messages:
             what = Send(what,@GetMaster);
          }
 
-         if Send(self,@GetChampStatus) > 0
-            OR pbDropChestOnDeath
+         if (Send(self,@GetChampStatus) > 0
+            OR pbDropChestOnDeath)
+            AND poMaster = $
+            AND NOT Send(self,@GetSummoned)
+            AND NOT pbIllusion
          {
             oBody = Create(&TrappedLootBox,#iBoxPower=Send(self,@GetLevel) + piBoostedLevel + piChaosLevel,#killer=what);
          }

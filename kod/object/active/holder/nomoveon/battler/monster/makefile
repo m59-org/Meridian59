@@ -23,7 +23,8 @@ BOFS  = ant.bof centip.bof cow.bof ent.bof fairy.bof \
         burningorb.bof watercentipede.bof \
         earthdragon.bof \
         spwolf.bof \
-        chaseproj.bof
+        chaseproj.bof \
+        chesttrap.bof
 
 
 
