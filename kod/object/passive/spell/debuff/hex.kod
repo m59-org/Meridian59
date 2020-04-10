@@ -183,6 +183,7 @@ messages:
             #parm1=Send(oTarget,@GetCapDef),#parm2=Send(oTarget,@GetName));
       Send(oTarget,@StartEnchantment,#what=self,#time=iDuration,
                    #state=iHexEffect);
+      Send(self,@DoStartEffect,#oTarget=oTarget,#iHexEffect=iHexEffect);
 
       % Let players see the effectiveness their hexes are cast at, if they
       % have the setting enabled in their preference menu.
@@ -196,6 +197,11 @@ messages:
       }
 
       propagate;
+   }
+   
+   DoStartEffect(oTarget=$, iHexEffect=0)
+   {
+      return;
    }
 
    GetDuration(iSpellPower=0)

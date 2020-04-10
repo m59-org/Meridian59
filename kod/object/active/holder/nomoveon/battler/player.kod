@@ -10086,6 +10086,11 @@ messages:
    GainBaseMaxHealth(amount = 0)
    {
       local iPrev_max, iApparentStamina;
+      
+      if Send(self,@IsEnchanted,#byClass=&Mutilate)
+      {
+         Send(self,@RemoveEnchantment,#what=&Mutilate);
+      }
 
       iPrev_max = piBase_max_health;
 

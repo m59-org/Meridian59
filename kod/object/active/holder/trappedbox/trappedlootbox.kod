@@ -218,7 +218,7 @@ messages:
       
       piExpireChecks = piExpireChecks + iLootSize*6;
       
-      piTrapNum = TRAP_GUARDIAN;
+      piTrapNum = TRAP_HEX;
       %piTrapNum = Random(TRAP_NONE,TRAP_MAX);
       
       Post(self,@LockChest,#bLocked=TRUE);
@@ -327,6 +327,9 @@ messages:
          case TRAP_GUARDIAN:
             rTrapDesc = loot_box_guardian_trap_desc_rsc;
             break;
+         case TRAP_HEX:
+            rTrapDesc = loot_box_hex_trap_desc_rsc;
+            break;
       }
       
       AddPacket(4,vrDesc, 4,loot_box_trap_string_rsc, 4,rTrapDesc, 4,piBoxPower, 4,Send(self,@GetDisarmEstimate,#who=who));
@@ -392,6 +395,9 @@ messages:
          case TRAP_GUARDIAN:
             Send(self,@DoGuardianTrap,#who=who);
             break;
+         case TRAP_HEX:
+            Send(self,@DoHexTrap,#who=who);
+            break;
       }
       return;
    }
@@ -432,6 +438,18 @@ messages:
          Post(oMonster,@EnterStateChase,#target=who,#actnow=TRUE);
       }
       return;
+   }
+
+   DoHexTrap(who=$)
+   {
+      %Send(who,@MsgSendUser,#message_rsc=shattering_blast_trap_msg_rsc);
+      Send(Send(SYS,@FindSpellByNum,#num=SID_HEX_MUTILATE),@CastSpell,#who=self,#lTargets=[who],#iSpellPower=piBoxPower/2);
+      return;
+   }
+   
+   GetHexIncEffect()
+   {
+      return piBoxPower;
    }
 
    DoShatteringBlastTrap(who=$)

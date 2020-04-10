@@ -19,6 +19,7 @@ BOFS = slow.bof \
        weariness.bof \
        thorns.bof \
        vengeance.bof \
-       spiritshackles.bof
+       spiritshackles.bof \
+       mutilate.bof
 
 !include $(KODDIR)\kod.mak

@@ -1,0 +1,128 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Mutilate is Hex
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   mutilate_cast_rsc = \
+      "%s%s begins to suffer horribly!"
+   mutilate_already_enchanted = \
+      "That poor soul is already afflicted by mutilate."
+   mutilate_start = "You begin to suffer horribly!"
+   mutilate_stop  = "Your suffering fades, and your maximum health returns to normal."
+   has_been_hexed_mutilate = \
+      "%s%s begins to suffer horribly!"
+
+   mutilate_name_rsc = "mutilate"
+   mutilate_icon_rsc = ihexfester.bgf
+   mutilate_desc_rsc = \
+      "Your internal organs have been afflicted by a horrific malediction! "
+      "Your maximum health has dropped significantly."
+
+   mutilate_hex_effect_report = \
+      "At that effectiveness, your fester hex will remove ~r~B%i\% ~nof the victim's health."      
+
+   mutilate_hex_secondary_report = \
+      "At that extreme effectiveness, your fester hex will stop all of the victim's health."
+
+   mutilate_sound = qenfeebl.wav
+
+classvars:
+
+   vrName = mutilate_name_rsc
+   vrIcon = mutilate_icon_rsc
+   vrDesc = mutilate_desc_rsc
+
+   vrHexEffectReport = mutilate_hex_effect_report
+
+   vrAlreadyEnchanted = mutilate_already_enchanted
+   vrEnchantment_On = mutilate_start
+   vrEnchantment_Off = mutilate_stop
+   vrSuccess = mutilate_cast_rsc
+   vrInformRoom = has_been_hexed_mutilate
+
+   viSpell_num = SID_HEX_MUTILATE
+   viSchool = SS_WITCHERY
+   viSubSchool = SSS_WITCHERY_RAUMLAR
+   viSpell_level = 4
+   viMana = 30
+   viSpell_Exertion = 45
+
+   viFlash = FLASH_BAD
+
+   vrSucceed_wav = mutilate_sound
+   viChance_To_Increase = 5
+   viMeditate_ratio = 70
+   viOutlaw = FALSE
+
+properties:
+
+   % Reduce max health by this percentage base
+   piBaseEffect = 30
+
+   piFlatDuration = 120000
+
+messages:
+
+   ResetReagents()
+   {
+      plReagents = $;
+
+      return;
+   }
+
+   DoHexEffectReport(what=$,iHexEffect=0)
+   {
+      Send(what,@MsgSendUser,#message_rsc=vrHexEffectReport,#parm1=piBaseEffect+(iHexEffect/2));
+      return;
+   }
+
+   DoStartEffect(oTarget=$, iHexEffect=0)
+   {
+      local iMaxHealthChange, iPercentChange;
+
+      iPercentChange = Bound(iHexEffect/5,10,70);
+
+      iMaxHealthChange = (iPercentChange * Send(oTarget,@GetBaseMaxHealth))/100;
+
+      Send(oTarget,@GainMaxHealth,#amount=-iMaxHealthChange);
+      Send(oTarget,@LoseHealth,#amount=iMaxHealthChange);
+
+      return iMaxHealthChange;
+   }
+
+   EndEnchantment(who=$,state=0,report=TRUE)
+   {
+      local iMaxHealthChange, iPercentChange;
+
+      % Handle transition from 3-element enchantment list elements to
+      % 4-element ones.
+      if state = 0
+         OR state = $
+      {
+         state = Send(who,@GetRawState,#what=self);
+      }
+
+      iPercentChange = Bound(state/5,10,70);
+
+      iMaxHealthChange = (iPercentChange * Send(who,@GetBaseMaxHealth))/100;
+
+      Send(who,@GainMaxHealth,#amount=iMaxHealthChange);
+
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
