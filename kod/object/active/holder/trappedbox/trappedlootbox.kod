@@ -18,14 +18,7 @@ TrappedLootBox is TrappedBox
 %
 %
 % Trap types:
-%  * Explosion - aoe fire damage + brief firewalls
-%  * Discharge - high shock damage to one
-%  * Blast of Frost - apply large amounts of chilled
-%  * Teleporter - Send player to a random room in the same region
-%  * Poison Gas - poison gas
-%  * Guardian - summon a stronger monster
-%  * Shattering Blast - destroy a random item on thief
-%  * Curse - random Raumlar hex
+%  * Hex - random Raumlar hex
 %
 %  * Purge - remove buffs of thief
 %  * Fate - randomize hp / mana
@@ -35,6 +28,13 @@ TrappedLootBox is TrappedBox
 %  * Disease - dement
 %  * Fright - aoe weaken minion loyalty
 %  * Siren - all monsters in room aggro on thief
+%  * Explosion - aoe fire damage + brief firewalls
+%  * Discharge - high shock damage to one
+%  * Poison Gas - poison gas
+%  * Cold Blast - apply large amounts of chilled
+%  * Teleporter - Send player to a random room in the same region
+%  * Shattering Blast - destroy a random item on thief
+%  * Guardian - summon a stronger monster
 
 constants:
 
@@ -52,8 +52,13 @@ constants:
    TRAP_EXPLOSION = 9
    TRAP_DISCHARGE = 10
    TRAP_POISON_GAS = 11
+   TRAP_COLD_BLAST = 12
+   TRAP_TELEPORTER = 13
+   TRAP_SHATTERING_BLAST = 14
+   TRAP_GUARDIAN = 15
+   TRAP_HEX = 16
    
-   TRAP_MAX = 9
+   TRAP_MAX = 16
 
    include blakston.khd
 
@@ -104,7 +109,19 @@ resources:
       "Discharge"
    loot_box_poison_gas_trap_desc_rsc = \
       "Poison Gas"
+   loot_box_cold_blast_trap_desc_rsc = \
+      "Cold Blast"
+   loot_box_teleport_trap_desc_rsc = \
+      "Teleporter"
+   loot_box_shattering_blast_trap_desc_rsc = \
+      "Shattering Blast"
+   loot_box_guardian_trap_desc_rsc = \
+      "Guardian"
+   loot_box_hex_trap_desc_rsc = \
+      "Hex"
 
+   shattering_blast_trap_msg_rsc = \
+      "A blast of rupturing energy shatters your %s!"
    siren_trap_msg_rsc = \
       "An unheard note of alarm pierces the air. You cannot hear it, but the monsters in the area certainly do!"
    fright_trap_msg_rsc = \
@@ -118,6 +135,10 @@ resources:
       "face in an aspect of horror for all time!"
    life_drain_trap_msg_rsc = \
       "Your nerves burn with draining enervation!"
+   teleport_trap_msg_rsc = \
+      "A wave of verdant energy carries you to a distant location!"
+   guardian_trap_msg_rsc = \
+      "An enraged guardian appears to protect the treasure!"
 
    trap_roar_sound = 195568jacobalcookcreatureroar1.wav
    trap_drain_sound = qvtouch.wav
@@ -125,6 +146,7 @@ resources:
    trap_fate_sound = slitherboltwand.wav
    trap_discharge_sound = fbolt.wav
    trap_poison_gas_sound = poisoned.wav
+   trap_teleporter_sound = riluswnd.wav
 
 classvars:
 
@@ -196,7 +218,7 @@ messages:
       
       piExpireChecks = piExpireChecks + iLootSize*6;
       
-      piTrapNum = TRAP_POISON_GAS;
+      piTrapNum = TRAP_GUARDIAN;
       %piTrapNum = Random(TRAP_NONE,TRAP_MAX);
       
       Post(self,@LockChest,#bLocked=TRUE);
@@ -293,6 +315,18 @@ messages:
          case TRAP_POISON_GAS:
             rTrapDesc = loot_box_poison_gas_trap_desc_rsc;
             break;
+         case TRAP_COLD_BLAST:
+            rTrapDesc = loot_box_cold_blast_trap_desc_rsc;
+            break;
+         case TRAP_TELEPORTER:
+            rTrapDesc = loot_box_teleport_trap_desc_rsc;
+            break;
+         case TRAP_SHATTERING_BLAST:
+            rTrapDesc = loot_box_shattering_blast_trap_desc_rsc;
+            break;
+         case TRAP_GUARDIAN:
+            rTrapDesc = loot_box_guardian_trap_desc_rsc;
+            break;
       }
       
       AddPacket(4,vrDesc, 4,loot_box_trap_string_rsc, 4,rTrapDesc, 4,piBoxPower, 4,Send(self,@GetDisarmEstimate,#who=who));
@@ -346,10 +380,126 @@ messages:
          case TRAP_POISON_GAS:
             Send(self,@DoPoisonGasTrap,#who=who);
             break;
+         case TRAP_COLD_BLAST:
+            Send(self,@DoColdBlastTrap,#who=who);
+            break;
+         case TRAP_TELEPORTER:
+            Send(self,@DoTeleporterTrap,#who=who);
+            break;
+         case TRAP_SHATTERING_BLAST:
+            Send(self,@DoShatteringBlastTrap,#who=who);
+            break;
+         case TRAP_GUARDIAN:
+            Send(self,@DoGuardianTrap,#who=who);
+            break;
       }
       return;
    }
-   
+
+   DoGuardianTrap(who=$)
+   {
+      local cMonster, oMonster;
+      if poOwner <> $
+      {
+         if piBoxPower < 60
+         {
+            cMonster = &TuskedSkeleton;
+         }
+         else if piBoxPower < 100
+         {
+            cMonster = &DaemonSkeleton;
+         }
+         else if piBoxPower < 130
+         {
+            cMonster = &Thrasher;
+         }
+         else if piBoxPower < 180
+         {
+            cMonster = &Shadowbeast;
+         }
+         else if piBoxPower < 240
+         {
+            cMonster = &Ghost;
+         }
+         else
+         {
+            cMonster = &DarkAngel;
+         }
+         oMonster = Create(cMonster);
+         Send(poOwner,@NewHold,#what=oMonster,#new_row=Send(self,@GetRow),#new_col=Send(self,@GetCol),#fine_row=Send(self,@GetFineRow),#fine_col=Send(self,@GetFineCol));
+         Send(who,@MsgSendUser,#message_rsc=guardian_trap_msg_rsc);
+         Post(oMonster,@TargetSwitch,#what=who,#iHatred=100);
+         Post(oMonster,@EnterStateChase,#target=who,#actnow=TRUE);
+      }
+      return;
+   }
+
+   DoShatteringBlastTrap(who=$)
+   {
+      Send(who,@MsgSendUser,#message_rsc=shattering_blast_trap_msg_rsc);
+      Send(Send(SYS,@FindSpellByNum,#num=SID_SHATTER),@CastSpell,#who=self,#lTargets=[who],#iSpellPower=piBoxPower/2);
+      return;
+   }
+
+   DoTeleporterTrap(who=$)
+   {
+      local i, n, lRooms, iRID;
+      
+      if poOwner <> $
+      {
+         lRooms = $;
+         
+         foreach i in Send(poOwner,@GetYellZone)
+         {
+            foreach n in Send(Send(SYS,@FindRoomByNum,#num=i),@GetYellZone)
+            {
+               if n <> Send(poOwner,@GetRoomNum)
+               {
+                  if lRooms = $
+                     OR FindListElem(lRooms,n) = 0
+                  {
+                     lRooms = Cons(n,lRooms);
+                  }
+               }
+            }
+         }
+
+         if lRooms = $
+            OR Length(lRooms) <= 1
+         {
+            iRID = Send(who,@GetHomeRoom);
+         }
+         else
+         {
+            iRID = Nth(lRooms,Random(1,Length(lRooms)));
+            Send(Send(SYS,@FindRoomByNum,#num=iRID),@Teleport,#what=who);
+            Send(who,@MsgSendUser,#message_rsc=teleport_trap_msg_rsc);
+            Post(Send(SYS,@FindRoomByNum,#num=iRID),@SomethingWaveRoom,#what=who,#wave_rsc=trap_teleporter_sound);
+         }
+         
+      }
+      return;
+   }
+
+   DoColdBlastTrap(who=$)
+   {
+      local drow, dcol, iAngle;
+
+      % build face towards (in fine-units)
+      drow = (Send(who,@GetRow) * FINENESS) + Send(who,@GetFineRow);
+      dcol = (Send(who,@GetCol) * FINENESS) + Send(who,@GetFineCol);
+      drow = drow - ((Send(self,@GetRow) * FINENESS) + Send(self,@GetFineRow));
+      dcol = dcol - ((Send(self,@GetCol) * FINENESS) + Send(self,@GetFineCol));
+
+      if poOwner <> $
+      {
+         iAngle = Send(SYS,@UtilGetAngleTowards,#row=drow,#col=dcol);
+         Send(poOwner,@SomethingTurned,#what=self,#new_angle=iAngle);
+      }
+      Send(Send(SYS,@FindSpellByNum,#num=SID_FROST_BREATH),@CastSpell,#who=self,#lTargets=[who],#iSpellPower=piBoxPower/2);
+      return;
+   }
+
    DoPoisonGasTrap(who=$)
    {
       local oOwner, i, each_obj, lSplashTargets, lBattlers, iBurningDealt, iTotalBurning, iDealtDamage,
