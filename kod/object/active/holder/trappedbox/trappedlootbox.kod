@@ -442,6 +442,13 @@ messages:
 
    DoHexTrap(who=$)
    {
+      if Send(who,@IsEnchanted,#what=Send(SYS,@FindSpellByNum,#num=SID_HEX_EXECRATE))
+      {
+         Send(who,@RemoveEnchantment,#what=Send(SYS,@FindSpellByNum,#num=SID_HEX_EXECRATE));
+      }
+      Send(Send(SYS,@FindSpellByNum,#num=SID_HEX_EXECRATE),@CastSpell,#who=self,#lTargets=[who],#iSpellPower=piBoxPower/2);
+      return;
+      
       if Send(who,@IsEnchanted,#what=Send(SYS,@FindSpellByNum,#num=SID_HEX_VITIATE))
       {
          Send(who,@RemoveEnchantment,#what=Send(SYS,@FindSpellByNum,#num=SID_HEX_VITIATE));

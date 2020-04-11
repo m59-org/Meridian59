@@ -1,0 +1,121 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Execrate is Hex
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   execrate_cast_rsc = \
+      "%s%s's soul begins to rip and tear!"
+   execrate_already_enchanted = \
+      "That poor soul is already afflicted by execrate."
+   execrate_start = "You feel your soul beginning to rip and tear!"
+   execrate_stop  = "The execrating hex fades, restoring your karma to normal."
+   has_been_hexed_execrate = \
+      "%s%s's soul begins to rip and tear!"
+
+   execrate_name_rsc = "execrate"
+   execrate_icon_rsc = ihexblackmantle.bgf
+   execrate_desc_rsc = \
+      "Your soul has been afflicted by a horrific malediction! "
+      "Your karma has been significantly reduced in magnitude, "
+      "and cannot be repaired while you are hexed."
+
+   execrate_hex_effect_report = \
+      "At that effectiveness, your execrate hex will remove ~r~B%i\% ~nof the victim's karma."
+
+   execrate_sound = qenfeebl.wav
+
+classvars:
+
+   vrName = execrate_name_rsc
+   vrIcon = execrate_icon_rsc
+   vrDesc = execrate_desc_rsc
+
+   vrHexEffectReport = execrate_hex_effect_report
+
+   vrAlreadyEnchanted = execrate_already_enchanted
+   vrEnchantment_On = execrate_start
+   vrEnchantment_Off = execrate_stop
+   vrSuccess = execrate_cast_rsc
+   vrInformRoom = has_been_hexed_execrate
+
+   viSpell_num = SID_HEX_EXECRATE
+   viSchool = SS_WITCHERY
+   viSubSchool = SSS_WITCHERY_RAUMLAR
+   viSpell_level = 5
+   viMana = 99
+   viSpell_Exertion = 66
+
+   viFlash = FLASH_BAD
+
+   vrSucceed_wav = execrate_sound
+   viChance_To_Increase = 3
+   viMeditate_ratio = 90
+   viOutlaw = FALSE
+
+properties:
+
+   % Reduce stats by this percentage base
+   piBaseEffect = 30
+
+   piFlatDuration = 120000
+
+messages:
+
+   ResetReagents()
+   {
+      plReagents = $;
+
+      return;
+   }
+
+   DoHexEffectReport(what=$,iHexEffect=0)
+   {
+      %Send(what,@MsgSendUser,#message_rsc=vrHexEffectReport,#parm1=piBaseEffect+(iHexEffect/2));
+      return;
+   }
+
+   CalculateStateFromHexEffect(oTarget=$, iHexEffect=0)
+   {
+      local iPercentChange;
+      
+      iPercentChange = Bound(iHexEffect/3,10,100);
+      
+      return (iPercentChange * Send(oTarget,@GetKarma))/100;
+   }
+
+   DoStartEffect(oTarget=$, iState=0)
+   {
+      Send(oTarget,@LoseKarma,#amount=iState);
+      return iState;
+   }
+
+   EndEnchantment(who=$,state=0,report=TRUE)
+   {
+      % Handle transition from 3-element enchantment list elements to
+      % 4-element ones.
+      if state = 0
+         OR state = $
+      {
+         state = Send(who,@GetRawState,#what=self);
+      }
+
+      Post(who,@GainKarma,#amount=state);
+
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

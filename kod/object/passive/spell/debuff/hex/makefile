@@ -21,6 +21,7 @@ BOFS = slow.bof \
        vengeance.bof \
        spiritshackles.bof \
        mutilate.bof \
-       vitiate.bof
+       vitiate.bof \
+       execrate.bof
 
 !include $(KODDIR)\kod.mak
