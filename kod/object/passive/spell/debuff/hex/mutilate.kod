@@ -89,24 +89,24 @@ messages:
       return;
    }
 
-   DoStartEffect(oTarget=$, iHexEffect=0)
+   CalculateStateFromHexEffect(oTarget=$, iHexEffect=0)
    {
       local iMaxHealthChange, iPercentChange;
 
       iPercentChange = Bound(iHexEffect/5,10,70);
 
-      iMaxHealthChange = (iPercentChange * Send(oTarget,@GetBaseMaxHealth))/100;
-
-      Send(oTarget,@GainMaxHealth,#amount=-iMaxHealthChange);
-      Send(oTarget,@LoseHealth,#amount=iMaxHealthChange);
+      iMaxHealthChange = (iPercentChange * Bound((Send(oTarget,@GetBaseMaxHealth)-20),0,$))/100;
 
       return iMaxHealthChange;
    }
 
+   DoStartEffect(oTarget=$, iState=0)
+   {
+      return Send(oTarget,@GainMaxHealth,#amount=-iState);
+   }
+
    EndEnchantment(who=$,state=0,report=TRUE)
    {
-      local iMaxHealthChange, iPercentChange;
-
       % Handle transition from 3-element enchantment list elements to
       % 4-element ones.
       if state = 0
@@ -115,11 +115,7 @@ messages:
          state = Send(who,@GetRawState,#what=self);
       }
 
-      iPercentChange = Bound(state/5,10,70);
-
-      iMaxHealthChange = (iPercentChange * Send(who,@GetBaseMaxHealth))/100;
-
-      Send(who,@GainMaxHealth,#amount=iMaxHealthChange);
+      Send(who,@GainMaxHealth,#amount=-state);
 
       propagate;
    }

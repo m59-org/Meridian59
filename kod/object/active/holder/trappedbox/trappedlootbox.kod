@@ -443,6 +443,10 @@ messages:
    DoHexTrap(who=$)
    {
       %Send(who,@MsgSendUser,#message_rsc=shattering_blast_trap_msg_rsc);
+      if Send(who,@IsEnchanted,#what=Send(SYS,@FindSpellByNum,#num=SID_HEX_MUTILATE))
+      {
+         Send(who,@RemoveEnchantment,#what=Send(SYS,@FindSpellByNum,#num=SID_HEX_MUTILATE));
+      }
       Send(Send(SYS,@FindSpellByNum,#num=SID_HEX_MUTILATE),@CastSpell,#who=self,#lTargets=[who],#iSpellPower=piBoxPower/2);
       return;
    }
@@ -895,6 +899,11 @@ messages:
    GetLadderID()
    {
       return piLadderID;
+   }
+   
+   GetCasterMaxHexes()
+   {
+      return 10;
    }
 
 end

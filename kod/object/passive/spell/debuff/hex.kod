@@ -125,7 +125,7 @@ messages:
 
    DoSpell(what=$,oTarget=$,iDuration=0,iSpellPower=0,bSecondaryCast=FALSE)
    {
-      local iCasterIncHexEffect, iTargetHexResistance, iHexEffect;
+      local iCasterIncHexEffect, iTargetHexResistance, iHexEffect, iState;
 
       iCasterIncHexEffect = Send(what,@GetHexIncEffect,
                                       #iSpellPower=iSpellPower,
@@ -181,9 +181,11 @@ messages:
 
       Send(what,@MsgSendUser,#message_rsc=vrSuccess,
             #parm1=Send(oTarget,@GetCapDef),#parm2=Send(oTarget,@GetName));
-      Send(oTarget,@StartEnchantment,#what=self,#time=iDuration,
-                   #state=iHexEffect);
-      Send(self,@DoStartEffect,#oTarget=oTarget,#iHexEffect=iHexEffect);
+      
+      iState = Send(self,@CalculateStateFromHexEffect,#oTarget=oTarget,#iHexEffect=iHexEffect);
+      iState = Send(self,@DoStartEffect,#oTarget=oTarget,#iState=iState);
+      
+      Send(oTarget,@StartEnchantment,#what=self,#time=iDuration,#state=iState);
 
       % Let players see the effectiveness their hexes are cast at, if they
       % have the setting enabled in their preference menu.
@@ -198,10 +200,15 @@ messages:
 
       propagate;
    }
-   
-   DoStartEffect(oTarget=$, iHexEffect=0)
+
+   CalculateStateFromHexEffect(oTarget=$, iHexEffect=0)
    {
-      return;
+      return iHexEffect;
+   }
+
+   DoStartEffect(oTarget=$, iState=0)
+   {
+      return iState;
    }
 
    GetDuration(iSpellPower=0)
