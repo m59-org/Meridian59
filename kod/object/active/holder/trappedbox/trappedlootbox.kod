@@ -79,13 +79,18 @@ resources:
    
    loot_box_not_trapped_desc_rsc = \
       "This treasure chest was used to store the valuables of a fallen monster.\n\n"
-      "This chest does not appear trapped."
+      "You %s this chest does not contain a trap."
    loot_box_magically_locked_desc_rsc = \
       "This treasure chest was used to store the valuables of a fallen monster.\n\n"
-      "This chest appears to be magically locked."
+      "This chest is magically locked with a sealing enchantment of strength %i."
    loot_box_trap_string_rsc = \
-      "This chest appears to be protected by a %s trap of difficulty %i.\n\n"
+      "You %s this chest is protected by a %s trap of difficulty %i.\n\n"
       "You estimate you have a %i%% chance to safely disarm it."
+
+   disarm_trapped_loot_box_success_msg = \
+      "You successfully disarm the %s trap and open the chest."
+   open_non_trapped_loot_box_msg = \
+      "You open the chest without incident."
 
    loot_box_fate_trap_desc_rsc = \
       "Fate"
@@ -119,6 +124,8 @@ resources:
       "Guardian"
    loot_box_hex_trap_desc_rsc = \
       "Hex"
+   loot_box_unknown_trap_desc_rsc = \
+      "Unknown"
 
    shattering_blast_trap_msg_rsc = \
       "A blast of rupturing energy shatters your %s!"
@@ -139,6 +146,21 @@ resources:
       "A wave of verdant energy carries you to a distant location!"
    guardian_trap_msg_rsc = \
       "An enraged guardian appears to protect the treasure!"
+
+   trap_assessment_level_none = \
+      "have no idea, but your wild guess is that"
+   trap_assessment_level_1 = \
+      "have only the barest idea, but you guess that"
+   trap_assessment_level_2 = \
+      "are largely uncertain, but you suppose"
+   trap_assessment_level_3 = \
+      "are somewhat uncertain, but you suppose"
+   trap_assessment_level_4 = \
+      "are vaguely certain"
+   trap_assessment_level_5 = \
+      "are somewhat certain"
+   trap_assessment_level_all = \
+      "are absolutely certain"
 
    trap_roar_sound = 195568jacobalcookcreatureroar1.wav
    trap_drain_sound = qvtouch.wav
@@ -166,9 +188,11 @@ properties:
    piBoxPower = 20
    
    piTrapNum = TRAP_NONE
+   piApparentTrapNum = TRAP_NONE
    
    pbLocked = FALSE
    pbMagicallyLocked = FALSE
+   piMagicalLockStrength = 0
    
    poKiller = $
    
@@ -189,7 +213,12 @@ messages:
       
       if Random(1,1000) <= piBoxPower
       {
-         pbMagicallyLocked = TRUE;
+         Post(self,@LockChest,#bLocked=TRUE,#bMagicalLock=TRUE);
+         piMagicalLockStrength = (piBoxPower * Random(50,200))/100;
+      }
+      else
+      {
+         Post(self,@LockChest,#bLocked=TRUE,#bMagicalLock=FALSE);
       }
 
       if iLootSize = 0
@@ -251,16 +280,45 @@ messages:
       }
       else
       {
-         piTrapNum = [TRAP_NONE];
+         piTrapNum = TRAP_NONE;
       }
-      
-      Post(self,@LockChest,#bLocked=TRUE);
       
       ptExpireTimer = CreateTimer(self,@CheckExpire,10000);
 
       propagate;
    }
-   
+
+   LockChest(bLocked=FALSE, bMagicalLock=FALSE)
+   {
+      pbLocked = bLocked;
+      pbMagicallyLocked = bMagicalLock;
+
+      if pbLocked
+      {
+         viObject_Flags = viObject_Flags & ~OF_CONTAINER;
+         
+         if pbMagicallyLocked
+         {
+            viObject_Flags = viObject_Flags & ~OF_ACTIVATABLE;
+         }
+         else
+         {
+            viObject_Flags = viObject_Flags | OF_ACTIVATABLE;
+         }
+      }
+
+      if NOT pbLocked
+      {
+         pbMagicallyLocked = FALSE;
+         viObject_Flags = viObject_Flags | OF_CONTAINER;
+         viObject_Flags = viObject_Flags & ~OF_ACTIVATABLE;
+      }
+      
+      Send(poOwner,@SomethingChanged,#what=self);
+
+      return;
+   }
+
    CheckExpire(timer=$)
    {
       ptExpireTimer = $;
@@ -287,9 +345,151 @@ messages:
 
    TryActivate(who=$)
    {
-      Post(self,@SpringTrap,#who=who);
-      Post(self,@LockChest,#bLocked=FALSE);
+      if NOT pbMagicallyLocked
+      {
+         if piTrapNum > 0
+         {
+            % Attempt to disarm the trap!
+            if Random(1,100) <= Send(self,@GetDisarmEstimate,#who=who)
+            {
+               Send(who,@MsgSendUser,#message_rsc=disarm_trapped_loot_box_success_msg,#parm1=Send(self,@GetTrapName));
+            }
+            else
+            {
+               Post(self,@SpringTrap,#who=who);
+            }
+         }
+         else
+         {
+            Send(who,@MsgSendUser,#message_rsc=open_non_trapped_loot_box_msg);
+         }
+         Post(self,@LockChest,#bLocked=FALSE);
+      }
       return TRUE;
+   }
+
+   GetTrapName()
+   {
+      local rTrapDesc;
+
+      rTrapDesc = loot_box_unknown_trap_desc_rsc;
+      
+      switch(piTrapNum)
+      {
+         case TRAP_FATE:
+            rTrapDesc = loot_box_fate_trap_desc_rsc;
+            break;
+         case TRAP_PURGE:
+            rTrapDesc = loot_box_purge_trap_desc_rsc;
+            break;
+         case TRAP_LIFE_DRAIN:
+            rTrapDesc = loot_box_life_drain_trap_desc_rsc;
+            break;
+         case TRAP_PETRIFY:
+            rTrapDesc = loot_box_petrify_trap_desc_rsc;
+            break;
+         case TRAP_DISEASE:
+            rTrapDesc = loot_box_disease_trap_desc_rsc;
+            break;
+         case TRAP_ENFEEBLE:
+            rTrapDesc = loot_box_enfeeble_trap_desc_rsc;
+            break;
+         case TRAP_FRIGHT:
+            rTrapDesc = loot_box_fright_trap_desc_rsc;
+            break;
+         case TRAP_SIREN:
+            rTrapDesc = loot_box_siren_trap_desc_rsc;
+            break;
+         case TRAP_EXPLOSION:
+            rTrapDesc = loot_box_explosion_trap_desc_rsc;
+            break;
+         case TRAP_DISCHARGE:
+            rTrapDesc = loot_box_discharge_trap_desc_rsc;
+            break;
+         case TRAP_POISON_GAS:
+            rTrapDesc = loot_box_poison_gas_trap_desc_rsc;
+            break;
+         case TRAP_COLD_BLAST:
+            rTrapDesc = loot_box_cold_blast_trap_desc_rsc;
+            break;
+         case TRAP_TELEPORTER:
+            rTrapDesc = loot_box_teleport_trap_desc_rsc;
+            break;
+         case TRAP_SHATTERING_BLAST:
+            rTrapDesc = loot_box_shattering_blast_trap_desc_rsc;
+            break;
+         case TRAP_GUARDIAN:
+            rTrapDesc = loot_box_guardian_trap_desc_rsc;
+            break;
+         case TRAP_HEX:
+            rTrapDesc = loot_box_hex_trap_desc_rsc;
+            break;
+      }
+      
+      return rTrapDesc;
+   }
+
+   PlayerAssessesTrap(who=$)
+   {
+      if Random(1,100) <= Send(self,@GetAssessmentEstimate,#who=who)
+      {
+         % Success!
+         piApparentTrapNum = piTrapNum;
+      }
+      else
+      {
+         % Misidentify, with a small chance of getting it right by accident.
+         piApparentTrapNum = Random(TRAP_NONE, TRAP_MAX);
+      }
+      return;
+   }
+   
+   GetAssessmentEstimate(who=$)
+   {
+      local iAssessEstimate;
+
+      iAssessEstimate = ((Send(who,@GetAgility) + Send(who,@GetIntellect)) * 50) / Bound(piBoxPower,20,$);
+      
+      return iAssessEstimate;
+   }
+   
+   GetAssessmentCertaintyStr(who=$)
+   {
+      local iAssessEstimate, rStr;
+      
+      rStr = trap_assessment_level_none;
+      
+      iAssessEstimate = Send(self,@GetAssessmentEstimate,#who=who);
+      if iAssessEstimate < 10
+      {
+         rStr = trap_assessment_level_none;
+      }
+      else if iAssessEstimate < 30
+      {
+         rStr = trap_assessment_level_1;
+      }
+      else if iAssessEstimate < 50
+      {
+         rStr = trap_assessment_level_2;
+      }
+      else if iAssessEstimate < 70
+      {
+         rStr = trap_assessment_level_3;
+      }
+      else if iAssessEstimate < 90
+      {
+         rStr = trap_assessment_level_4;
+      }
+      else if iAssessEstimate < 100
+      {
+         rStr = trap_assessment_level_5;
+      }
+      else
+      {
+         rStr = trap_assessment_level_all;
+      }
+
+      return rStr;
    }
 
    ShowDesc(who=$)
@@ -301,19 +501,24 @@ messages:
          AddPacket(4,loot_box_open_desc_rsc);
          return;
       }
-
-      rTrapDesc = loot_box_not_trapped_desc_rsc;
       
       if pbMagicallyLocked
       {
-         AddPacket(4,loot_box_magically_locked_desc_rsc);
+         AddPacket(4,loot_box_magically_locked_desc_rsc, 4,piMagicalLockStrength);
          return;
       }
       
-      switch(piTrapNum)
+      if piApparentTrapNum <> -1
+      {
+         Send(self,@PlayerAssessesTrap,#who=who);
+      }
+
+      rTrapDesc = loot_box_unknown_trap_desc_rsc;
+      
+      switch(piApparentTrapNum)
       {
          case TRAP_NONE:
-            AddPacket(4,loot_box_not_trapped_desc_rsc);
+            AddPacket(4,loot_box_not_trapped_desc_rsc, 4,Send(self,@GetAssessmentCertaintyStr,#who=who));
             return;
          case TRAP_FATE:
             rTrapDesc = loot_box_fate_trap_desc_rsc;
@@ -365,14 +570,14 @@ messages:
             break;
       }
       
-      AddPacket(4,vrDesc, 4,loot_box_trap_string_rsc, 4,rTrapDesc, 4,piBoxPower, 4,Send(self,@GetDisarmEstimate,#who=who));
+      AddPacket(4,vrDesc, 4,loot_box_trap_string_rsc, 4,Send(self,@GetAssessmentCertaintyStr,#who=who), 4,rTrapDesc, 4,piBoxPower, 4,Send(self,@GetDisarmEstimate,#who=who));
 
       return;
    }
    
    GetDisarmEstimate(who=$)
    {
-      local iDisarmChance, iStatScore;
+      local iDisarmChance;
 
       iDisarmChance = ((Send(who,@GetAgility) + Send(who,@GetAim)) * 50) / Bound(piBoxPower,20,$);
       
