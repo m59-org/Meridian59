@@ -18,7 +18,6 @@ TrappedLootBox is TrappedBox
 %
 %
 % Trap types:
-%  * Hex - random Raumlar hex
 %
 %  * Purge - remove buffs of thief
 %  * Fate - randomize hp / mana
@@ -35,6 +34,7 @@ TrappedLootBox is TrappedBox
 %  * Teleporter - Send player to a random room in the same region
 %  * Shattering Blast - destroy a random item on thief
 %  * Guardian - summon a stronger monster
+%  * Hex - random Raumlar hex
 
 constants:
 
@@ -442,7 +442,14 @@ messages:
 
    DoHexTrap(who=$)
    {
-      %Send(who,@MsgSendUser,#message_rsc=shattering_blast_trap_msg_rsc);
+      if Send(who,@IsEnchanted,#what=Send(SYS,@FindSpellByNum,#num=SID_HEX_VITIATE))
+      {
+         Send(who,@RemoveEnchantment,#what=Send(SYS,@FindSpellByNum,#num=SID_HEX_VITIATE));
+      }
+      Send(Send(SYS,@FindSpellByNum,#num=SID_HEX_VITIATE),@CastSpell,#who=self,#lTargets=[who],#iSpellPower=piBoxPower/2);
+      return;
+      
+      
       if Send(who,@IsEnchanted,#what=Send(SYS,@FindSpellByNum,#num=SID_HEX_MUTILATE))
       {
          Send(who,@RemoveEnchantment,#what=Send(SYS,@FindSpellByNum,#num=SID_HEX_MUTILATE));

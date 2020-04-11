@@ -32,10 +32,7 @@ resources:
       "Your maximum health has dropped significantly."
 
    mutilate_hex_effect_report = \
-      "At that effectiveness, your fester hex will remove ~r~B%i\% ~nof the victim's health."      
-
-   mutilate_hex_secondary_report = \
-      "At that extreme effectiveness, your fester hex will stop all of the victim's health."
+      "At that effectiveness, your mutilate hex will remove ~r~B%i\% ~nof the victim's health."
 
    mutilate_sound = qenfeebl.wav
 
@@ -57,8 +54,8 @@ classvars:
    viSchool = SS_WITCHERY
    viSubSchool = SSS_WITCHERY_RAUMLAR
    viSpell_level = 4
-   viMana = 30
-   viSpell_Exertion = 45
+   viMana = 44
+   viSpell_Exertion = 55
 
    viFlash = FLASH_BAD
 
@@ -85,7 +82,7 @@ messages:
 
    DoHexEffectReport(what=$,iHexEffect=0)
    {
-      Send(what,@MsgSendUser,#message_rsc=vrHexEffectReport,#parm1=piBaseEffect+(iHexEffect/2));
+      %Send(what,@MsgSendUser,#message_rsc=vrHexEffectReport,#parm1=piBaseEffect+(iHexEffect/2));
       return;
    }
 
@@ -95,7 +92,7 @@ messages:
 
       iPercentChange = Bound(iHexEffect/5,10,70);
 
-      iMaxHealthChange = (iPercentChange * Bound((Send(oTarget,@GetBaseMaxHealth)-20),0,$))/100;
+      iMaxHealthChange = (iPercentChange * Bound((Send(oTarget,@GetMaxHealth)),0,$))/100;
 
       return iMaxHealthChange;
    }

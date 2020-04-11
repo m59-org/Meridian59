@@ -1,0 +1,135 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Vitiate is Hex
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   vitiate_cast_rsc = \
+      "%s%s begins to waste away!"
+   vitiate_already_enchanted = \
+      "That poor soul is already afflicted by vitiate."
+   vitiate_start = "You begin to waste away!"
+   vitiate_stop  = "The vitiating hex fades, but the memory of the pain will linger."
+   has_been_hexed_vitiate = \
+      "%s%s begins to waste away!"
+
+   vitiate_name_rsc = "vitiate"
+   vitiate_icon_rsc = ihexweaken.bgf
+   vitiate_desc_rsc = \
+      "Your veins and arteries have been afflicted by a horrific malediction! "
+      "Your stats have dropped significantly."
+
+   vitiate_hex_effect_report = \
+      "At that effectiveness, your fester hex will remove ~r~B%i\% ~nof the victim's stats."
+
+   vitiate_sound = qenfeebl.wav
+
+classvars:
+
+   vrName = vitiate_name_rsc
+   vrIcon = vitiate_icon_rsc
+   vrDesc = vitiate_desc_rsc
+
+   vrHexEffectReport = vitiate_hex_effect_report
+
+   vrAlreadyEnchanted = vitiate_already_enchanted
+   vrEnchantment_On = vitiate_start
+   vrEnchantment_Off = vitiate_stop
+   vrSuccess = vitiate_cast_rsc
+   vrInformRoom = has_been_hexed_vitiate
+
+   viSpell_num = SID_HEX_VITIATE
+   viSchool = SS_WITCHERY
+   viSubSchool = SSS_WITCHERY_RAUMLAR
+   viSpell_level = 3
+   viMana = 33
+   viSpell_Exertion = 44
+
+   viFlash = FLASH_BAD
+
+   vrSucceed_wav = vitiate_sound
+   viChance_To_Increase = 7
+   viMeditate_ratio = 50
+   viOutlaw = FALSE
+
+properties:
+
+   % Reduce stats by this percentage base
+   piBaseEffect = 30
+
+   piFlatDuration = 120000
+
+messages:
+
+   ResetReagents()
+   {
+      plReagents = $;
+
+      return;
+   }
+
+   DoHexEffectReport(what=$,iHexEffect=0)
+   {
+      %Send(what,@MsgSendUser,#message_rsc=vrHexEffectReport,#parm1=piBaseEffect+(iHexEffect/2));
+      return;
+   }
+
+   CalculateStateFromHexEffect(oTarget=$, iHexEffect=0)
+   {
+      local lStatsChange, iPercentChange;
+
+      iPercentChange = Bound(iHexEffect/5,10,70);
+      lStatsChange = [(iPercentChange * Bound((Send(oTarget,@GetMight)),0,$))/100,
+                      (iPercentChange * Bound((Send(oTarget,@GetIntellect)),0,$))/100,
+                      (iPercentChange * Bound((Send(oTarget,@GetStamina)),0,$))/100,
+                      (iPercentChange * Bound((Send(oTarget,@GetAgility)),0,$))/100,
+                      (iPercentChange * Bound((Send(oTarget,@GetMysticism)),0,$))/100,
+                      (iPercentChange * Bound((Send(oTarget,@GetAim)),0,$))/100];
+
+      return lStatsChange;
+   }
+
+   DoStartEffect(oTarget=$, iState=0)
+   {
+      return [Send(oTarget,@AddMight,#points=-Nth(iState,1)),
+              Send(oTarget,@AddIntellect,#points=-Nth(iState,2)),
+              Send(oTarget,@AddStamina,#points=-Nth(iState,3)),
+              Send(oTarget,@AddAgility,#points=-Nth(iState,4)),
+              Send(oTarget,@AddMysticism,#points=-Nth(iState,5)),
+              Send(oTarget,@AddAim,#points=-Nth(iState,6))];
+   }
+
+   EndEnchantment(who=$,state=0,report=TRUE)
+   {
+      % Handle transition from 3-element enchantment list elements to
+      % 4-element ones.
+      if state = 0
+         OR state = $
+      {
+         state = Send(who,@GetRawState,#what=self);
+      }
+
+      Send(who,@AddMight,#points=-Nth(state,1));
+      Send(who,@AddIntellect,#points=-Nth(state,2));
+      Send(who,@AddStamina,#points=-Nth(state,3));
+      Send(who,@AddAgility,#points=-Nth(state,4));
+      Send(who,@AddMysticism,#points=-Nth(state,5));
+      Send(who,@AddAim,#points=-Nth(state,6));
+
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
