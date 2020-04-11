@@ -82,9 +82,9 @@ resources:
       "You %s this chest does not contain a trap."
    loot_box_magically_locked_desc_rsc = \
       "This treasure chest was used to store the valuables of a fallen monster.\n\n"
-      "This chest is magically locked with a sealing enchantment of strength %i."
+      "This chest is magically locked."
    loot_box_trap_string_rsc = \
-      "You %s this chest is protected by a %s trap of difficulty %i.\n\n"
+      "You %s this chest is protected by a %s trap.\n\n"
       "You estimate you have a %i%% chance to safely disarm it."
 
    disarm_trapped_loot_box_success_msg = \
@@ -504,7 +504,7 @@ messages:
       
       if pbMagicallyLocked
       {
-         AddPacket(4,loot_box_magically_locked_desc_rsc, 4,piMagicalLockStrength);
+         AddPacket(4,loot_box_magically_locked_desc_rsc);
          return;
       }
       
@@ -570,7 +570,7 @@ messages:
             break;
       }
       
-      AddPacket(4,vrDesc, 4,loot_box_trap_string_rsc, 4,Send(self,@GetAssessmentCertaintyStr,#who=who), 4,rTrapDesc, 4,piBoxPower, 4,Send(self,@GetDisarmEstimate,#who=who));
+      AddPacket(4,vrDesc, 4,loot_box_trap_string_rsc, 4,Send(self,@GetAssessmentCertaintyStr,#who=who), 4,rTrapDesc, 4,Send(self,@GetDisarmEstimate,#who=who));
 
       return;
    }
@@ -1160,6 +1160,11 @@ messages:
    GetCasterMaxHexes()
    {
       return 10;
+   }
+
+   GetKiller()
+   {
+      return poKiller;
    }
 
 end
