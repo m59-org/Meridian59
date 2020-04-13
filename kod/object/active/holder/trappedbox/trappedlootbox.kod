@@ -449,9 +449,14 @@ messages:
    {
       local iAssessEstimate;
 
-      iAssessEstimate = ((Send(who,@GetAgility) + Send(who,@GetIntellect)) * 50) / Bound(piBoxPower,20,$);
+      iAssessEstimate = ((Send(who,@GetAgility) + Send(who,@GetIntellect)) * (100 + (Send(self,@GetPlayerLevelVsBox,#who=who)/2))) / Bound(piBoxPower,20,$);
       
       return iAssessEstimate;
+   }
+   
+   GetPlayerLevelVsBox(who=$)
+   {
+      return (Send(who,@GetBaseMaxHealth) * 100) / (100 + Send(who,@GetStamina));
    }
    
    GetAssessmentCertaintyStr(who=$)
@@ -580,7 +585,7 @@ messages:
    {
       local iDisarmChance;
 
-      iDisarmChance = ((Send(who,@GetAgility) + Send(who,@GetAim)) * 50) / Bound(piBoxPower,20,$);
+      iDisarmChance = ((Send(who,@GetAgility) + Send(who,@GetAim)) * (50 + (Send(self,@GetPlayerLevelVsBox,#who=who)/2))) / Bound(piBoxPower,20,$);
       
       return iDisarmChance;
    }
