@@ -338,8 +338,12 @@ messages:
       return;
    }
 
-   ReqNewHold(what = $, who = $)
+   ReqNewHold(what = $, who = $, bMonsterDrop = FALSE)
    {
+      if bMonsterDrop
+      {
+         return TRUE;
+      }
       return FALSE;
    }
 
@@ -365,6 +369,7 @@ messages:
             Send(who,@MsgSendUser,#message_rsc=open_non_trapped_loot_box_msg);
          }
          Post(self,@LockChest,#bLocked=FALSE);
+         Post(who,@UserObjectContents,#what=self);
       }
       return TRUE;
    }

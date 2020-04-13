@@ -7704,7 +7704,7 @@ messages:
             lTreasureItems, iNumberOfItemsDropped, iNumberOfItemsLooted,
             iRandomCashAmount, oMoney, iGetResult, bCapacityFailure,
             bRangeFailure, iSurvivalLoot, iNumShards, oShard, iRand,
-            oBestiaryBook;
+            oBestiaryBook, oLootHolder;
 
       % Apparitions, etc, provide no treasure
       if pbIllusion
@@ -7753,13 +7753,18 @@ messages:
          % handles for monster kills but Constructor in Item does not.
          if NOT IsClass(who,&Player)
          {
-            corpse = $;
+            oMoney = Create(&Money,#corpse=$,#number=(iRandomCashAmount + (piBoostedLevel
+                        * Send(Send(SYS,@GetSurvivalRoomMaintenance),@GetSurvivalCash)) + (piChaosLevel
+                        * Send(Send(SYS,@GetChaosStrataMaintenance),@GetChaosCash)))
+                        * Send(self,@GetChampionRewardMultiplier),#ladderID=ladderID);
          }
-
-         oMoney = Create(&Money,#corpse=corpse,#number=(iRandomCashAmount + (piBoostedLevel
-                     * Send(Send(SYS,@GetSurvivalRoomMaintenance),@GetSurvivalCash)) + (piChaosLevel
-                     * Send(Send(SYS,@GetChaosStrataMaintenance),@GetChaosCash)))
-                     * Send(self,@GetChampionRewardMultiplier),#ladderID=ladderID);
+         else
+         {
+            oMoney = Create(&Money,#corpse=corpse,#number=(iRandomCashAmount + (piBoostedLevel
+                        * Send(Send(SYS,@GetSurvivalRoomMaintenance),@GetSurvivalCash)) + (piChaosLevel
+                        * Send(Send(SYS,@GetChaosStrataMaintenance),@GetChaosCash)))
+                        * Send(self,@GetChampionRewardMultiplier),#ladderID=ladderID);
+         }
 
          Send(Send(SYS,@GetStatistics),@MoneyCreated,#amount=Send(oMoney,@GetNumber));
          lTreasureItems = Cons(oMoney,lTreasureItems);
@@ -8005,13 +8010,21 @@ messages:
       bCapacityFailure = FALSE;
       bRangeFailure = FALSE;
       
+      if IsClass(corpse,&TrappedLootBox)
+      {
+         oLootHolder = corpse;
+      }
+      else
+      {
+         oLootHolder = poOwner;
+      }
+      
       % Now drop all the treasure.
       foreach oTreasure in lTreasureItems
       {
-         if Send(poOwner,@ReqNewHold,#what=oTreasure,#new_row=piRow,
-                 #new_col=piCol)
+         if Send(oLootHolder,@ReqNewHold,#what=oTreasure,#new_row=piRow,#new_col=piCol,#bMonsterDrop=TRUE)
          {
-            Send(poOwner,@NewHold,#what=oTreasure,
+            Send(oLootHolder,@NewHold,#what=oTreasure,
                   #new_row=piRow,#new_col=piCol,
                   #fine_row=piFine_row,#fine_col=piFine_col);
 
@@ -8020,7 +8033,8 @@ messages:
                ++iNumberOfItemsDropped;
             }
 
-            if IsClass(oTreasure,&NumberItem)
+            if IsClass(oLootHolder,&Room)
+               AND IsClass(oTreasure,&NumberItem)
                AND Send(SYS,@UtilGetRoom,#what=oTreasure) = Send(who,@GetOwner)
                AND Send(oTreasure,@GetPos) <> $
                AND IsClass(who,&User)
@@ -8055,7 +8069,8 @@ messages:
       }
 
       % Handle autoloot resources displayed to user.
-      if iNumberOfItemsDropped <> 0
+      if IsClass(oLootHolder,&Room)
+         AND iNumberOfItemsDropped <> 0
          AND IsClass(who,&User)
          AND Send(who,@CheckPlayerPreference,#flag=CF_AUTOLOOT)
       {
