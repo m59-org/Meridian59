@@ -26,8 +26,8 @@ resources:
    HeavyArms_mantra = "Uiozi' Olpr"
    HeavyArms_mastered_desc_rsc = \
       "\n\n"
-      "You have mastered the heavy arms stance, allowing you to evade a fifth of the initial damage "
-      "from any source."
+      "You have mastered the heavy arms stance, allowing you to evade a portion of the initial damage "
+      "from any source, based on your agility and skill."
 
 classvars:
 
@@ -102,9 +102,17 @@ messages:
       return defense_power * iDefensePowerBonus / 100;
    }
 
-   MasteryModifyDamage(damage=0)
+   MasteryModifyDamage(who=$,damage=0)
    {
-      return (damage*4)/5;
+      local iHeavyArmsAbility, iStat, iReduction;
+
+      iHeavyArmsAbility = Send(who,@GetSkillAbility,#skill_num=viSkill_num);
+      iStat = Send(self,@GetRequisiteStat,#who=who);
+      
+      % 50 + 50 at most.
+      iReduction = (iHeavyArmsAbility+1)/2 + iStat/2;
+      
+      return (damage * (100 - iReduction))/100;
    }
 
 end
