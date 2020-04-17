@@ -3569,17 +3569,7 @@ messages:
       {
          oThing = Send(poOwner,@HolderExtractObject,#data=i);
 
-         % Don't do stealthed DMs.
-         if IsClass(oThing,&DM)
-            AND Send(oThing,@IsDMStealthed)
-            AND oThing <> self
-         {
-            continue;
-         }
-
-         if IsClass(oThing,&User)
-            AND Send(Send(SYS,@FindSkillByNum,#num=SKID_SPY),@IsSpying,#who=oThing)
-            AND oThing <> self
+         if NOT Send(self,@CanSeeThing,#who=oThing)
          {
             continue;
          }
@@ -3593,17 +3583,7 @@ messages:
       {
          oThing = Send(poOwner,@HolderExtractObject,#data=i);
 
-         % Don't do stealthed DMs.
-         if IsClass(oThing,&DM)
-            AND Send(oThing,@IsDMStealthed)
-            AND oThing <> self
-         {
-            continue;
-         }
-
-         if IsClass(oThing,&User)
-            AND Send(Send(SYS,@FindSkillByNum,#num=SKID_SPY),@IsSpying,#who=oThing)
-            AND oThing <> self
+         if NOT Send(self,@CanSeeThing,#who=oThing)
          {
             continue;
          }
@@ -8897,9 +8877,7 @@ messages:
          return;
       }
 
-      if IsClass(what,&User)
-         AND Send(Send(SYS,@FindSkillByNum,#num=SKID_SPY),@IsSpying,#who=what)
-         AND what <> self
+      if NOT Send(self,@CanSeeThing,#who=what)
       {
          return;
       }
@@ -12600,6 +12578,48 @@ messages:
          return $;
       }
       return Nth(plNoxiousStrikeChosenHexes,3);
+   }
+   
+   CanSeeThing(who=$)
+   {
+      % Return FALSE for stealthed DMs
+      
+      % In this implementation, we return FALSE if who is hiding and behind self.
+      % We also return FALSE if who is hiding and there's no line of sight.
+      
+      % We also return FALSE for who if they are spying.
+      
+      if NOT IsClass(who,&User)
+         OR who = self
+      {
+         return TRUE;
+      }
+
+      if IsClass(who,&DM)
+         AND Send(who,@IsDMStealthed)
+      {
+         return FALSE;
+      }
+      
+      if Send(Send(SYS,@FindSkillByNum,#num=SKID_SPY),@IsSpying,#who=who)
+      {
+         return FALSE;
+      }
+      
+      if Send(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@IsHiding,#who=who)
+      {
+         if poOwner <> $
+            AND NOT Send(poOwner,@LineOfSight,#obj1=self,#obj2=who)
+         {
+            return FALSE;
+         }
+         
+         if Send(self,@GetInFrontOrBehindMe,#what=who) = SIDE_BACK
+         {
+            return FALSE;
+         }
+      }
+      return TRUE;
    }
 
 end
