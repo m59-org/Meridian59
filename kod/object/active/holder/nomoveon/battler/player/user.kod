@@ -8870,13 +8870,6 @@ messages:
 
       lPos = Send(what,@GetPos);
 
-      if IsClass(what,&DM)
-         AND Send(what,@IsDMStealthed)
-         AND what <> self
-      {
-         return;
-      }
-
       if NOT Send(self,@CanSeeThing,#who=what)
       {
          return;
@@ -8900,9 +8893,7 @@ messages:
 
    SomethingLeft(what = $)
    {
-      if IsClass(what,&DM)
-         AND Send(what,@IsDMStealthed)
-         AND what <> self
+      if NOT Send(self,@CanSeeThing,#who=what)
       {
          return;
       }
@@ -8921,17 +8912,8 @@ messages:
                   cause = $, speed = 0)
    {
       local iRow,iCol,lPos;
-
-      if IsClass(what,&DM)
-         AND Send(what,@IsDMStealthed)
-         AND what <> self
-      {
-         return;
-      }
-
-      if IsClass(what,&User)
-         AND Send(Send(SYS,@FindSkillByNum,#num=SKID_SPY),@IsSpying,#who=what)
-         AND what <> self
+      
+      if NOT Send(self,@CanSeeThing,#who=what)
       {
          return;
       }
@@ -8965,16 +8947,7 @@ messages:
 
    SomethingTurned(what = $,new_angle = 0,cause = $)
    {
-      if IsClass(what,&DM)
-         AND Send(what,@IsDMStealthed)
-         AND what <> self
-      {
-         return;
-      }
-
-      if IsClass(what,&User)
-         AND Send(Send(SYS,@FindSkillByNum,#Num=SKID_SPY),@IsSpying,#who=what)
-         AND what <> self
+      if NOT Send(self,@CanSeeThing,#who=what)
       {
          return;
       }
@@ -9460,16 +9433,7 @@ messages:
          return;
       }
 
-      if IsClass(what,&DM)
-         AND Send(what,@IsDMStealthed)
-         AND what <> self
-      {
-         return;
-      }
-
-      if IsClass(what,&User)
-         AND Send(Send(SYS,@FindSkillByNum,#num=SKID_SPY),@IsSpying,#who=what)
-         AND what <> self
+      if NOT Send(self,@CanSeeThing,#who=what)
       {
          return;
       }
@@ -12607,6 +12571,7 @@ messages:
       }
       
       if Send(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@IsHiding,#who=who)
+         AND NOT (Send(self,@HasSkill,#num=SKID_VRIKSHASANA) AND Send(self,@IsResting) AND NOT Send(self,@WasHitRecently))
       {
          if poOwner <> $
             AND NOT Send(poOwner,@LineOfSight,#obj1=self,#obj2=who)
