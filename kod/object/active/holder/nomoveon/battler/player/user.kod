@@ -4570,6 +4570,7 @@ messages:
          AND NOT Send(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@IsHiding,#who=self)
       {
          piAccruedHide = 0;
+         
          Send(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@DoSkill,#who=self);
       }
       return;
@@ -8891,9 +8892,9 @@ messages:
       propagate;
    }
 
-   SomethingLeft(what = $)
+   SomethingLeft(what = $, bHidingNow = FALSE)
    {
-      if NOT Send(self,@CanSeeThing,#who=what)
+      if NOT Send(self,@CanSeeThing,#who=what,#bHidingNow=bHidingNow)
       {
          return;
       }
@@ -8912,10 +8913,10 @@ messages:
                   cause = $, speed = 0)
    {
       local iRow,iCol,lPos;
-      
-      if NOT Send(self,@CanSeeThing,#who=what)
+
+      if Send(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@IsHiding,#who=self)
       {
-         return;
+         Send(self,@CanWeBeSeen);
       }
 
       if pbLogged_on
@@ -12544,7 +12545,7 @@ messages:
       return Nth(plNoxiousStrikeChosenHexes,3);
    }
    
-   CanSeeThing(who=$)
+   CanSeeThing(who=$, bHidingNow=FALSE)
    {
       % Return FALSE for stealthed DMs
       
@@ -12567,24 +12568,69 @@ messages:
       
       if Send(Send(SYS,@FindSkillByNum,#num=SKID_SPY),@IsSpying,#who=who)
       {
+         Debug("they're spying");
          return FALSE;
       }
-      
-      if Send(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@IsHiding,#who=who)
-         AND NOT (Send(self,@HasSkill,#num=SKID_VRIKSHASANA) AND Send(self,@IsResting) AND NOT Send(self,@WasHitRecently))
+
+      if bHidingNow
       {
+         % At the actual moment of hiding, we need an override to properly send SomethingLeft.
+         return TRUE;
+      }
+
+      if Send(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@IsHiding,#who=who)
+      {
+         if NOT Send(self,@AllowPlayerAttack,#victim=who,#report=FALSE,#actual=FALSE)
+         {
+            % Only enemies reveal hiding players.
+            % This means allies won't accidentally reveal them, and noncombatants can't either.
+            return FALSE;
+         }
+      
          if poOwner <> $
             AND NOT Send(poOwner,@LineOfSight,#obj1=self,#obj2=who)
          {
+            % Line of sight is required to reveal hiding enemies.
             return FALSE;
          }
          
-         if Send(self,@GetInFrontOrBehindMe,#what=who) = SIDE_BACK
+         if Send(self,@GetInFrontOrBehindMeSightLines,#what=who) <> SIDE_FRONT
          {
-            return FALSE;
+            if Send(self,@HasSkill,#num=SKID_VRIKSHASANA)
+               AND Send(self,@IsResting)
+               AND NOT Send(self,@WasHitRecently)
+            {
+               % Vrikshasana users can perceive hiding enemies behind them.
+               Send(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@RevealHider,#who=who,#revealer=self,#bVrikshasana=TRUE);
+               return TRUE;
+            }
+            else
+            {
+               return FALSE;
+            }
          }
+         Send(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@RevealHider,#who=who,#revealer=self);
       }
       return TRUE;
+   }
+   
+   CanWeBeSeen()
+   {
+      local oPlayer, lPlayers;
+
+      if poOwner <> $
+      {
+         foreach oPlayer in Send(poOwner,@GetPlayersInRoom)
+         {
+            if oPlayer <> self
+               AND Send(oPlayer,@CanSeeThing,#who=self)
+            {
+               return TRUE;
+            }
+         }
+      }
+
+      return FALSE;
    }
 
 end

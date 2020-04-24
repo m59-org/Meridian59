@@ -29,6 +29,9 @@ resources:
    fail_hide_rsc = "You fail to hide."
    
    hide_stop = "You stop hiding."
+   
+   hide_revealed = "~B%s sights you and makes your presence known!"
+   hide_revealed_vrikshasana = "~B%s has sensed you with the art of Vrikshasana and made your presence known!"
 
 classvars:
 
@@ -95,7 +98,7 @@ messages:
    
    BeginHiding(who=$)
    {
-      local oVoidstepTabi;
+      local oVoidstepTabi, oObject, lObjects;
 
       if who <> $
          AND IsClass(who,&Player)
@@ -105,6 +108,15 @@ messages:
          Send(who,@MsgSendUser,#message_rsc=begin_hiding_rsc);
          If Send(who,@GetOwner) <> $
          {
+            lObjects = Send(Send(who,@GetOwner),@GetPlayersInRoom);
+            foreach oObject in lObjects
+            {
+               if oObject <> who
+               {
+                  Send(oObject,@SomethingLeft,#what=who,#bHidingNow=TRUE);
+               }
+            }
+            
             Post(Send(who,@GetOwner),@SomethingChanged,#what=who);
             Post(who,@ShowAddEnchantment,#what=self,#type=ENCHANTMENT_PLAYER);
             
@@ -121,7 +133,7 @@ messages:
    
    StopHiding(who=$)
    {
-      local oVoidstepTabi;
+      local oVoidstepTabi, oObject, lObjects, i;
 
       if plHiding <> $
          AND FindListElem(plHiding,who) <> 0
@@ -130,6 +142,17 @@ messages:
          Send(who,@MsgSendUser,#message_rsc=hide_stop);
          If Send(who,@GetOwner) <> $
          {
+            lObjects = Send(Send(who,@GetOwner),@GetHolderActive);
+            foreach i in lObjects
+            {
+               oObject = Send(Send(who,@GetOwner),@HolderExtractObject,#data=i);
+               if IsClass(oObject,&User)
+                  AND oObject <> who
+               {
+                  Send(oObject,@SomethingEntered,#what=who);
+               }
+            }
+               
             Post(Send(who,@GetOwner),@SomethingChanged,#what=who);
             Post(who,@ShowRemoveEnchantment,#what=self,#type=ENCHANTMENT_PLAYER);
             
@@ -141,6 +164,25 @@ messages:
          }
       }
 
+      return;
+   }
+   
+   RevealHider(who=$,revealer=$,bVrikshasana=FALSE)
+   {
+      if bVrikshasana
+      {
+         Send(who,@MsgSendUser,#message_rsc=hide_revealed_vrikshasana,#parm1=Send(revealer,@GetName));
+      }
+      else
+      {
+         Send(who,@MsgSendUser,#message_rsc=hide_revealed,#parm1=Send(revealer,@GetName));
+      }
+      Send(self,@StopHiding,#who=who);
+      return;
+   }
+   
+   RevealHiderVrikshasana(who=$,revealer=$)
+   {
       return;
    }
    

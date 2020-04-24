@@ -1129,30 +1129,177 @@ messages:
       return ANGLE_EAST;
    }
 
-   GetInFrontOrBehindMe(what=$)
-   {
-      local iMyAngle, iTheirPositionRelativeToMe;
-      
-      iMyAngle = Send(self,@GetAngle);
-      iTheirPositionRelativeToMe = Send(self,@GetAngleRelativeToMe,#what=what);
-      
+%   GetInFrontOrBehindMe(what=$)
+%   {
+%      local iMyAngle, iTheirPositionRelativeToMe;
+%      
+%      iMyAngle = Send(self,@GetAngle);
+%      iTheirPositionRelativeToMe = Send(self,@GetAngleRelativeToMe,#what=what);
+%      
       % Ok, if our angle is 0, then 3072-4096 and 0-1024 is front
       %                           and 1025-3071 is behind
       %
       % Add 4096 to everything to make them the same iteration around the rotation
       % (avoids negative / positive issues)
       
-      iMyAngle = iMyAngle + 4096;
-      iTheirPositionRelativeToMe = iTheirPositionRelativeToMe + 4096;
+%      iMyAngle = iMyAngle + 4096;
+%      iTheirPositionRelativeToMe = iTheirPositionRelativeToMe + 4096;
+%      
+%      if iTheirPositionRelativeToMe >= iMyAngle - 1024
+%         AND iTheirPositionRelativeToMe <= iMyAngle + 1024
+%      {
+%         return SIDE_FRONT;
+%      }
+%      else
+%      {
+%         return SIDE_BACK;
+%      }
+%      return 0;
+%   }
+
+   GetInFrontOrBehindMe(what=$)
+   {
+      local iFacingSlice, iRelativeSlice;
       
-      if iTheirPositionRelativeToMe >= iMyAngle - 1024
-         AND iTheirPositionRelativeToMe <= iMyAngle + 1024
+      iFacingSlice = Send(self,@GetFacingSlice,#iMyAngle=Send(self,@GetAngle));
+      iRelativeSlice = Send(self,@GetFacingSlice,#iMyAngle=Send(self,@GetAngleRelativeToMe,#what=what));
+
+      % This is not strictly half a circle. It's 7/16.
+      if iFacingSlice = iRelativeSlice
+         OR iFacingSlice = Send(self,@RotateSlice,#iSlice=iRelativeSlice,#value=-3)
+         OR iFacingSlice = Send(self,@RotateSlice,#iSlice=iRelativeSlice,#value=-2)
+         OR iFacingSlice = Send(self,@RotateSlice,#iSlice=iRelativeSlice,#value=-1)
+         OR iFacingSlice = Send(self,@RotateSlice,#iSlice=iRelativeSlice,#value=1)
+         OR iFacingSlice = Send(self,@RotateSlice,#iSlice=iRelativeSlice,#value=2)
+         OR iFacingSlice = Send(self,@RotateSlice,#iSlice=iRelativeSlice,#value=3)
       {
          return SIDE_FRONT;
       }
       else
       {
          return SIDE_BACK;
+      }
+
+      return 0;
+   }
+
+   GetInFrontOrBehindMeSightLines(what=$)
+   {
+      local iFacingSlice, iRelativeSlice;
+      
+      iFacingSlice = Send(self,@GetFacingSlice,#iMyAngle=Send(self,@GetAngle));
+      iRelativeSlice = Send(self,@GetFacingSlice,#iMyAngle=Send(self,@GetAngleRelativeToMe,#what=what));
+
+      % This is 5 / 16 to represent lines of sight.
+      if iFacingSlice = iRelativeSlice
+         OR iFacingSlice = Send(self,@RotateSlice,#iSlice=iRelativeSlice,#value=-2)
+         OR iFacingSlice = Send(self,@RotateSlice,#iSlice=iRelativeSlice,#value=-1)
+         OR iFacingSlice = Send(self,@RotateSlice,#iSlice=iRelativeSlice,#value=1)
+         OR iFacingSlice = Send(self,@RotateSlice,#iSlice=iRelativeSlice,#value=2)
+      {
+         return SIDE_FRONT;
+      }
+      else
+      {
+         return SIDE_BACK;
+      }
+
+      return 0;
+   }
+   
+   RotateSlice(iSlice=1,value=1)
+   {
+      iSlice = iSlice + value;
+      
+      if iSlice <= 0
+      {
+         iSlice = iSlice + 16;
+      }
+      else if iSlice > 16
+      {
+         iSlice = iSlice - 16;
+      }
+      return iSlice;
+   }
+   
+   GetFacingSlice(iMyAngle=0)
+   {
+      if iMyAngle >= 0 AND iMyAngle < ANGLE_SOUTH
+      {
+         if iMyAngle >= 0 AND iMyAngle < ANGLE_ESE
+         {
+            return 1;
+         }
+         else if iMyAngle >= ANGLE_ESE AND iMyAngle < ANGLE_SOUTH_EAST
+         {
+            return 2;
+         }
+         else if iMyAngle >= ANGLE_SOUTH_EAST AND iMyAngle < ANGLE_SSE
+         {
+            return 3;
+         }
+         else if iMyAngle >= ANGLE_SSE AND iMyAngle < ANGLE_SOUTH
+         {
+            return 4;
+         }
+      }
+      else if iMyAngle >= ANGLE_SOUTH AND iMyAngle < ANGLE_WEST
+      {
+         if iMyAngle >= ANGLE_SOUTH AND iMyAngle < ANGLE_SSW
+         {
+            return 5;
+         }
+         else if iMyAngle >= ANGLE_SSW AND iMyAngle < ANGLE_SOUTH_WEST
+         {
+            return 6;
+         }
+         else if iMyAngle >= ANGLE_SOUTH_WEST AND iMyAngle < ANGLE_WSW
+         {
+            return 7;
+         }
+         else if iMyAngle >= ANGLE_WSW AND iMyAngle < ANGLE_WEST
+         {
+            return 8;
+         }
+      }
+      else if iMyAngle >= ANGLE_WEST AND iMyAngle < ANGLE_NORTH
+      {
+         if iMyAngle >= ANGLE_WEST AND iMyAngle < ANGLE_WNW
+         {
+            return 9;
+         }
+         else if iMyAngle >= ANGLE_WNW AND iMyAngle < ANGLE_NORTH_WEST
+         {
+            return 10;
+         }
+         else if iMyAngle >= ANGLE_NORTH_WEST AND iMyAngle < ANGLE_NNW
+         {
+            return 11;
+         }
+         else if iMyAngle >= ANGLE_NNW AND iMyAngle < ANGLE_NORTH
+         {
+            return 12;
+         }
+         
+      }
+      else if iMyAngle >= ANGLE_NORTH AND iMyAngle <= MAX_ANGLE
+      {
+         if iMyAngle >= ANGLE_NORTH AND iMyAngle < ANGLE_NNE
+         {
+            return 13;
+         }
+         else if iMyAngle >= ANGLE_NNE AND iMyAngle < ANGLE_NORTH_EAST
+         {
+            return 14;
+         }
+         else if iMyAngle >= ANGLE_NORTH_EAST AND iMyAngle < ANGLE_ENE
+         {
+            return 15;
+         }
+         else if iMyAngle >= ANGLE_ENE AND iMyAngle <= MAX_ANGLE
+         {
+            return 16;
+         }
       }
       return 0;
    }
