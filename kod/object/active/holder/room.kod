@@ -368,6 +368,9 @@ properties:
    % Do we have a timer in this room?
    poVisualTimer = $
 
+   % Is someone hiding in this room? Check sight lines.
+   pbContainsHider = FALSE
+
 messages:
 
    Constructor()
@@ -2687,6 +2690,11 @@ messages:
          {
             Send(what,@BeginHoldingBreath);
          }
+      
+         if Send(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@IsHiding,#who=what)
+         {
+            pbContainsHider = TRUE;
+         }
          
          % Do we have any special positioning stances?
          if Send(what,@GetStance) <> $
@@ -2943,6 +2951,11 @@ messages:
       if poVisualTimer <> $
       {
          Send(poVisualTimer,@RemoveVisualTimerForOne,#oPlayer=what);
+      }
+      
+      if Send(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@IsHiding,#who=what)
+      {
+         Post(self,@CheckContainsHider);
       }
 
       Send(self,@LeaveShieldWallers,#who=what);
@@ -3436,6 +3449,13 @@ messages:
       }
 
       ClearPacket();
+      
+      % Check if the person that turned can see hiders
+      if pbContainsHider
+         AND IsClass(what,&User)
+      {
+         Send(what,@CanISeeHiders);
+      }
 
       return;
    }
@@ -3479,6 +3499,7 @@ messages:
    LastUserLeft()
    {
       pbUser_in_room = FALSE;
+      pbContainsHider = FALSE;
 
       if (ptPeriodic_sounds <> $)
       {
@@ -6515,6 +6536,36 @@ messages:
    VisualTimerTrigger()
    {
       return;
+   }
+   
+   SetContainsHider(value=FALSE)
+   {
+      pbContainsHider = value;
+      return;
+   }
+   
+   CheckContainsHider()
+   {
+      local oPlayer, oHide;
+
+      if NOT pbUser_in_room
+      {
+         pbContainsHider = FALSE;
+         return pbContainsHider;
+      }
+      
+      oHide = Send(SYS,@FindSkillByNum,#num=SKID_HIDE);
+      foreach oPlayer in Send(self,@GetPlayersInRoom)
+      {
+         if Send(oHide,@IsHiding,#who=oPlayer)
+         {
+            pbContainsHider = TRUE;
+            return pbContainsHider;
+         }
+      }
+
+      pbContainsHider = FALSE;
+      return pbContainsHider;
    }
 
 end

@@ -4571,7 +4571,10 @@ messages:
       {
          piAccruedHide = 0;
          
-         Send(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@DoSkill,#who=self);
+         if NOT Send(self,@IsInAnyEnemyPlayerSightLines)
+         {
+            Send(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@DoSkill,#who=self);
+         }
       }
       return;
    }
@@ -8919,6 +8922,11 @@ messages:
          Send(self,@CanWeBeSeen);
       }
 
+      if what = self
+      {
+         Send(self,@CanISeeHiders);
+      }
+
       if pbLogged_on
          AND Send(self,@GetSession) <> $
       {
@@ -8951,6 +8959,12 @@ messages:
       if NOT Send(self,@CanSeeThing,#who=what)
       {
          return;
+      }
+
+      if IsClass(what,&User)
+         AND Send(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@IsHiding,#who=self)
+      {
+         Send(self,@CanWeBeSeen);
       }
 
       if pbLogged_on
@@ -12629,6 +12643,44 @@ messages:
          }
       }
 
+      return FALSE;
+   }
+   
+   CanISeeHiders()
+   {
+      local oPlayer, lPlayers;
+
+      if poOwner <> $
+      {
+         foreach oPlayer in Send(poOwner,@GetPlayersInRoom)
+         {
+            if oPlayer <> self
+               AND Send(self,@CanSeeThing,#who=oPlayer)
+            {
+               return TRUE;
+            }
+         }
+      }
+
+      return FALSE;
+   }
+
+   IsInAnyEnemyPlayerSightLines()
+   {
+      local oPlayer;
+      
+      if poOwner <> $
+      {
+         foreach oPlayer in Send(poOwner,@GetPlayersInRoom)
+         {
+            if oPlayer <> self
+               AND Send(oPlayer,@AllowPlayerAttack,#victim=self,#report=FALSE,#actual=FALSE)
+               AND Send(oPlayer,@GetInFrontOrBehindMeSightLines,#what=self) = SIDE_FRONT
+            {
+               return TRUE;
+            }
+         }
+      }
       return FALSE;
    }
 

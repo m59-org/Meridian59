@@ -30,6 +30,8 @@ resources:
    
    hide_stop = "You stop hiding."
    
+   hide_you_revealed = "~BYou sight %s attempting to creep through the area!"
+   hide_you_revealed_vrikshasana = "~BYou sense %s with the art of Vrikshasana!"
    hide_revealed = "~B%s sights you and makes your presence known!"
    hide_revealed_vrikshasana = "~B%s has sensed you with the art of Vrikshasana and made your presence known!"
 
@@ -118,6 +120,7 @@ messages:
             }
             
             Post(Send(who,@GetOwner),@SomethingChanged,#what=who);
+            Post(Send(who,@GetOwner),@SetContainsHider,#value=TRUE);
             Post(who,@ShowAddEnchantment,#what=self,#type=ENCHANTMENT_PLAYER);
             
             oVoidstepTabi = Send(who,@FindUsing,#class=&VoidstepTabi);
@@ -152,8 +155,9 @@ messages:
                   Send(oObject,@SomethingEntered,#what=who);
                }
             }
-               
+
             Post(Send(who,@GetOwner),@SomethingChanged,#what=who);
+            Post(Send(who,@GetOwner),@CheckContainsHider);
             Post(who,@ShowRemoveEnchantment,#what=self,#type=ENCHANTMENT_PLAYER);
             
             oVoidstepTabi = Send(who,@FindUsing,#class=&VoidstepTabi);
@@ -171,10 +175,12 @@ messages:
    {
       if bVrikshasana
       {
+         Send(revealer,@MsgSendUser,#message_rsc=hide_you_revealed_vrikshasana,#parm1=Send(who,@GetName));
          Send(who,@MsgSendUser,#message_rsc=hide_revealed_vrikshasana,#parm1=Send(revealer,@GetName));
       }
       else
       {
+         Send(revealer,@MsgSendUser,#message_rsc=hide_you_revealed,#parm1=Send(who,@GetName));
          Send(who,@MsgSendUser,#message_rsc=hide_revealed,#parm1=Send(revealer,@GetName));
       }
       Send(self,@StopHiding,#who=who);
