@@ -12681,9 +12681,15 @@ messages:
          {
             if oPlayer <> self
                AND Send(oPlayer,@AllowPlayerAttack,#victim=self,#report=FALSE,#actual=FALSE)
-               AND Send(oPlayer,@GetInFrontOrBehindMeSightLines,#what=self) = SIDE_FRONT
             {
-               return TRUE;
+               if (Send(oPlayer,@GetInFrontOrBehindMeSightLines,#what=self) = SIDE_FRONT
+                  OR (Send(oPlayer,@HasSkill,#num=SKID_VRIKSHASANA)
+                     AND Send(oPlayer,@IsResting)
+                     AND NOT Send(oPlayer,@WasHitRecently)))
+                  AND Send(poOwner,@LineOfSight,#obj1=self,#obj2=oPlayer)
+               {
+                  return TRUE;
+               }
             }
          }
       }

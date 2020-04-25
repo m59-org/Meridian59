@@ -30,10 +30,11 @@ resources:
    
    hide_stop = "You stop hiding."
    
-   hide_you_revealed = "~BYou sight %s attempting to creep through the area!"
-   hide_you_revealed_vrikshasana = "~BYou sense %s with the art of Vrikshasana!"
-   hide_revealed = "~B%s sights you and makes your presence known!"
-   hide_revealed_vrikshasana = "~B%s has sensed you with the art of Vrikshasana and made your presence known!"
+   hide_you_revealed = "~BYou sight %s%s attempting to creep through the area!"
+   hide_you_revealed_vrikshasana = "~BYou sense %s%s with the art of Vrikshasana!"
+   hide_revealed = "~B%s%s sights you and makes your presence known!"
+   hide_revealed_but_invis = "~B%s%s is looking in your direction! You're no longer hidden, but you're not sure they've noticed you!"
+   hide_revealed_vrikshasana = "~B%s%s has sensed you with the art of Vrikshasana and made your presence known!"
 
 classvars:
 
@@ -119,6 +120,7 @@ messages:
                }
             }
             
+            Send(who,@SetPlayerDrawFX,#drawfx=DRAWFX_DITHERGREY);
             Post(Send(who,@GetOwner),@SomethingChanged,#what=who);
             Post(Send(who,@GetOwner),@SetContainsHider,#value=TRUE);
             Post(who,@ShowAddEnchantment,#what=self,#type=ENCHANTMENT_PLAYER);
@@ -156,7 +158,7 @@ messages:
                }
             }
 
-            Post(Send(who,@GetOwner),@SomethingChanged,#what=who);
+            Post(who,@ResetPlayerDrawfx);
             Post(Send(who,@GetOwner),@CheckContainsHider);
             Post(who,@ShowRemoveEnchantment,#what=self,#type=ENCHANTMENT_PLAYER);
             
@@ -175,13 +177,21 @@ messages:
    {
       if bVrikshasana
       {
-         Send(revealer,@MsgSendUser,#message_rsc=hide_you_revealed_vrikshasana,#parm1=Send(who,@GetName));
-         Send(who,@MsgSendUser,#message_rsc=hide_revealed_vrikshasana,#parm1=Send(revealer,@GetName));
+         Send(revealer,@MsgSendUser,#message_rsc=hide_you_revealed_vrikshasana,#parm1=Send(who,@GetIndef),#parm2=Send(who,@GetName));
+         Send(who,@MsgSendUser,#message_rsc=hide_revealed_vrikshasana,#parm1=Send(revealer,@GetCapIndef),#parm2=Send(revealer,@GetName));
       }
       else
       {
-         Send(revealer,@MsgSendUser,#message_rsc=hide_you_revealed,#parm1=Send(who,@GetName));
-         Send(who,@MsgSendUser,#message_rsc=hide_revealed,#parm1=Send(revealer,@GetName));
+         if NOT Send(who,@CheckPlayerFlag,#flag=PFLAG_INVISIBLE)
+            OR Send(revealer,@CheckPlayerFlag,#flag=PFLAG2_DETECT_INVIS,#flagset=2)
+         {
+            Send(revealer,@MsgSendUser,#message_rsc=hide_you_revealed,#parm1=Send(who,@GetIndef),#parm2=Send(who,@GetName));
+            Send(who,@MsgSendUser,#message_rsc=hide_revealed,#parm1=Send(revealer,@GetCapIndef),#parm2=Send(revealer,@GetName));
+         }
+         else
+         {
+            Send(who,@MsgSendUser,#message_rsc=hide_revealed_but_invis,#parm1=Send(revealer,@GetCapIndef),#parm2=Send(revealer,@GetName));
+         }
       }
       Send(self,@StopHiding,#who=who);
       return;

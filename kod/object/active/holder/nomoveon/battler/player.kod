@@ -2993,6 +2993,11 @@ messages:
          Send(i,@SetItemPlayerFlag,#who=self);
       }
 
+      if Send(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@IsHiding,#who=self)
+      {
+         Send(self,@SetPlayerDrawFX,#drawfx=DRAWFX_DITHERGREY);
+      }
+
       if poOwner <> $
       {
          foreach i in Send(poOwner,@GetEnchantmentList)
