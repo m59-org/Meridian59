@@ -15572,7 +15572,6 @@ messages:
 
       if event = EVENT_RUN
          OR event = EVENT_DAMAGE
-         OR event = EVENT_REST
          OR event = EVENT_ATTACK
          OR event = EVENT_CAST
          OR (event = EVENT_STANCE_CHANGE
@@ -15585,8 +15584,7 @@ messages:
          {
             Post(Send(SYS,@FindSkillByNum,#num=SKID_SNEAK),@StopSneaking,#who=self);
          }
-         if NOT (poStance <> $
-               AND IsClass(poStance,&LightFeet))
+         if event = EVENT_RUN
             OR event = EVENT_DAMAGE
             OR event = EVENT_ATTACK
             OR event = EVENT_CAST
@@ -15596,6 +15594,13 @@ messages:
          {
             Post(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@StopHiding,#who=self);
          }
+         
+         if event = EVENT_RUN
+            AND Send(self,@FindUsing,#class=&VoidstepTabi) <> $
+         {
+            Send(Send(self,@FindUsing,#class=&VoidstepTabi),@WearerRan);
+         }
+         
          Post(Send(SYS,@FindSkillByNum,#num=SKID_SPY),@StopSpying,#who=self);
       }
 

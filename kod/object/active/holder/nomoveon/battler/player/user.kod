@@ -12593,6 +12593,12 @@ messages:
 
       if Send(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@IsHiding,#who=who)
       {
+         if Send(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@IsHiding,#who=self)
+         {
+            % Never real hiders when self is hiding, we'd give ourself away!
+            return FALSE;
+         }
+
          if NOT Send(self,@AllowPlayerAttack,#victim=who,#report=FALSE,#actual=FALSE)
          {
             % Only enemies reveal hiding players.

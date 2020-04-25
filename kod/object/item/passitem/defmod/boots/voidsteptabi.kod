@@ -24,8 +24,8 @@ resources:
       "These black boots were crafted by assassins working for the Necromancers "
       "in a long ago era. Meant to appear unassuming, they carry inlaid "
       "enchantments that aid in stealth and political machinations. "
-      "While not in combat, the wearer of these boots will find themselves "
-      "naturally blended with the energies of the area, hiding them on the map. "
+      "While not in combat and either walking or standing still, the wearer of these boots will find themselves "
+      "naturally blending with the energies of the area, hiding them from detection unless directly seen. "
       "The wearer will also be immune to poison, and capable of activating "
       "a unique spell available only to those who wield the dark arts."
       "\n\nSanguine Fervor improves offense and causes all of the affected assassin's attacks "
@@ -143,8 +143,10 @@ messages:
       }
 
       if poOwner <> $
+         AND IsClass(poOwner,&User)
          AND NOT Send(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@IsHiding,#who=poOwner)
          AND GetTime() > Send(poOwner,@GetLastTimeInCombat) + SECONDS_UNTIL_HIDDEN
+         AND NOT Send(poOwner,@IsInAnyEnemyPlayerSightLines)
       {
          Send(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@BeginHiding,#who=poOwner);
       }
@@ -187,6 +189,13 @@ messages:
       }
       ptHideTimer = $;
       propagate;
+   }
+   
+   WearerRan()
+   {
+      % Reset hide timer if the user runs, just to avoid some spam.
+      Send(self,@StartHideTimer);
+      return;
    }
 
 end
