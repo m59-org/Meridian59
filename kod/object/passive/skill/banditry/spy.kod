@@ -107,16 +107,16 @@ messages:
 
          if Send(who,@GetOwner) <> $
          {
-            lObjects = Send(Send(who,@GetOwner),@GetHolderActive);
-            foreach i in lObjects
-            {
-               oObject = Send(Send(who,@GetOwner),@HolderExtractObject,#data=i);
-               if IsClass(oObject,&User)
-                  AND oObject <> who
-               {
-                  Send(oObject,@SomethingLeft,#what=self);
-               }
-            }
+%            lObjects = Send(Send(who,@GetOwner),@GetHolderActive);
+%            foreach i in lObjects
+%            {
+%               oObject = Send(Send(who,@GetOwner),@HolderExtractObject,#data=i);
+%               if IsClass(oObject,&User)
+%                  AND oObject <> who
+%               {
+%                  Send(oObject,@SomethingLeft,#what=self);
+%               }
+%            }
 
   %          Post(who,@SomethingEntered,#what=who);
             Send(who,@ShowAddEnchantment,#what=self,#type=ENCHANTMENT_PLAYER);
@@ -146,16 +146,16 @@ messages:
 
             if Send(who,@GetOwner) <> $
             {
-               lObjects = Send(Send(who,@GetOwner),@GetHolderActive);
-               foreach i in lObjects
-               {
-                  oObject = Send(Send(who,@GetOwner),@HolderExtractObject,#data=i);
-                  if IsClass(oObject,&User)
-                     AND oObject <> who
-                  {
-                     Send(oObject,@SomethingEntered,#what=who);
-                  }
-               }
+%               lObjects = Send(Send(who,@GetOwner),@GetHolderActive);
+%               foreach i in lObjects
+%               {
+%                  oObject = Send(Send(who,@GetOwner),@HolderExtractObject,#data=i);
+%                  if IsClass(oObject,&User)
+%                     AND oObject <> who
+%                  {
+%                     Send(oObject,@SomethingEntered,#what=who);
+%                  }
+%               }
                Send(who,@ShowRemoveEnchantment,#what=self,#type=ENCHANTMENT_PLAYER);
             }
          }
