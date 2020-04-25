@@ -113,6 +113,11 @@ messages:
 
    NewGameHour()
    {
+      if NOT pbLadderEnabled
+      {
+         return;
+      }
+
       piLeaderboardCountdownHours--;
       
       if piLeaderboardCountdownHours <= 0
@@ -137,6 +142,11 @@ messages:
          {
             lLadderUsers = Cons(oPlayer,lLadderUsers);
          }
+      }
+      
+      if lLadderUsers = $
+      {
+         return;
       }
       
       plTopLadderPlayers = $;
