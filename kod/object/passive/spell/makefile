@@ -76,6 +76,7 @@ BOFS = animate.bof \
        healspell.bof \
        preservespecimen.bof \
        vivifyspecimen.bof \
-       summonspell.bof
+       summonspell.bof \
+       unlockspell.bof
 
 !include $(KODDIR)\kod.mak

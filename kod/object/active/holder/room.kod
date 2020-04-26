@@ -6283,6 +6283,21 @@ messages:
       return lPlayers;
    }
 
+   GetLootChestsInRoom()
+   {
+      local i, lLootChests;
+      
+      lLootChests = $;
+      foreach i in plActive
+      {
+         if IsClass(First(i),&TrappedLootBox)
+         {
+            lLootChests = Cons(First(i),lLootChests);
+         }
+      }
+      return lLootChests;
+   }
+
    GetRandomPlayerInRoom()
    {
       local i, lPlayers;

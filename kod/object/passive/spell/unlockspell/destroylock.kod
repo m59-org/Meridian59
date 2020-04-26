@@ -1,0 +1,55 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%S%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+DestroyMagicalLock is UnlockSpell
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   Destroy_Magical_Lock_name_rsc = "destroy magical lock"
+   Destroy_Magical_Lock_icon_rsc = ishatlok.bgf
+   Destroy_Magical_Lock_desc_rsc = \
+      "Generates a carefully calibrated beam of mana which "
+      "attempts to unravel the workings of a magical lock on a chest. "
+      "More agile thieves can have greater success with the effect. "
+      "Requires four sapphires to cast."
+
+classvars:
+
+   vrName = Destroy_Magical_Lock_name_rsc
+   vrIcon = Destroy_Magical_Lock_icon_rsc
+   vrDesc = Destroy_Magical_Lock_desc_rsc
+
+   viSpell_num = SID_DESTROY_MAGICAL_LOCK
+   viSpell_level = 4
+   viMana = 6
+
+   viChance_To_Increase = 15
+   viMeditate_ratio = 40
+
+properties:
+
+   piUnlockDivisor = 1
+
+messages:
+
+   ResetReagents()
+   {
+      plReagents = $;
+      plReagents = Cons([&Sapphire,4],plReagents);
+
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -1,0 +1,123 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%S%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+UnlockSpell is Spell
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   unlock_no_chest_nearby = \
+      "There are no magically locked chests nearby!"
+   
+   chest_not_fully_unlocked = \
+      "You erode %i mana from the magical lock's strength."
+   chest_fully_unlocked = \
+      "You remove the last of the mana powering the magical lock!"
+
+   Unlock_Spell_sound = kmbomb.wav
+
+classvars:
+
+   viSchool = SKS_TRICKERY
+   
+   viPrimaryStat = STAT_ID_AGILITY
+   viSecondaryStat = 0
+
+   vrSucceed_wav = Unlock_Spell_sound
+
+properties:
+
+   piUnlockDivisor = 4
+
+messages:
+
+   GetNumSpellTargets()
+   {
+      return 0;
+   }
+
+   CanPayCosts(who = $, lTargets = $)
+   {
+      local lChests, oChest, bFound;
+      
+      lChests = $;
+      if Send(who,@GetOwner) <> $
+      {
+         lChests = Send(Send(who,@GetOwner),@GetLootChestsInRoom);
+      }
+      
+      bFound = FALSE;
+      foreach oChest in lChests
+      {
+         if Send(oChest,@GetMagicallyLocked)
+            AND Send(who,@SquaredFineDistanceTo3D,#what=oChest) <= (64 * 6) * (64 * 6)
+         {
+            bFound = TRUE;
+            break;
+         }
+      }
+      
+      if NOT bFound
+      {
+         Send(who,@MsgSendUser,#message_rsc=unlock_no_chest_nearby);
+         return FALSE;
+      }
+
+      propagate;
+   }
+
+   CastSpell(who = $, lTargets = $, iSpellpower = 0)
+   {
+      local lChests, oChest, bFound, oChosenChest, iRoll, iResult;
+      
+      lChests = $;
+      if Send(who,@GetOwner) <> $
+      {
+         lChests = Send(Send(who,@GetOwner),@GetLootChestsInRoom);
+      }
+      
+      bFound = FALSE;
+      foreach oChest in lChests
+      {
+         if Send(oChest,@GetMagicallyLocked)
+            AND Send(who,@SquaredFineDistanceTo3D,#what=oChest) <= (64 * 6) * (64 * 6)
+         {
+            oChosenChest = oChest;
+            bFound = TRUE;
+            break;
+         }
+      }
+      
+      if NOT bFound
+      {
+         Send(who,@MsgSendUser,#message_rsc=unlock_no_chest_nearby);
+         return FALSE;
+      }
+      
+      iRoll = -1*Random(0,(iSpellpower + Send(who,@GetAgility))/piUnlockDivisor);
+      iResult = Send(oChosenChest,@AddMagicalLockStrength,#value=iRoll);
+      
+      if iResult > 0
+      {
+         Send(who,@MsgSendUser,#message_rsc=chest_not_fully_unlocked,#parm1=-1*iRoll);
+      }
+      else
+      {
+         Send(who,@MsgSendUser,#message_rsc=chest_fully_unlocked);
+      }
+
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

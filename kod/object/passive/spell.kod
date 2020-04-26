@@ -103,6 +103,7 @@ resources:
    spell_school_knightcraft = "Knightcraft"
    spell_school_alchemy = "Alchemy"
    spell_school_bestiary = "Bestiary"
+   spell_school_trickery = "Trickery"
    spell_intro_rsc = "One of the many mystical spells."
 
    spell_sound_jala = lute_equip.wav
@@ -347,6 +348,10 @@ messages:
       if iSchool = SS_BESTIARY
       {
          rSchool = spell_school_bestiary;
+      }
+      else if iSchool = SKS_TRICKERY
+      {
+         rSchool = spell_school_trickery;
       }
       else if iSchool = SKS_ALCHEMY
       {
@@ -621,6 +626,11 @@ messages:
       if viSchool = SS_KRAANAN
       {
          return Send(who,@GetStamina);
+      }
+
+      if viSchool = SKS_TRICKERY
+      {
+         return Send(who,@GetAgility);
       }
 
       if viSchool = SS_RIIJA
@@ -2081,6 +2091,11 @@ messages:
          return spell_sound_bestiary;
       }
 
+      if viSchool = SKS_TRICKERY
+      {
+         return spell_sound_bestiary;
+      }
+
       if viSchool = SS_DM_COMMAND
       {
          return spell_sound_dm_command;
@@ -2812,6 +2827,16 @@ messages:
       {
          % Bestiary is a school of biology and vital will to make things happen.
          iPrimaryBonus = Send(who,@GetVigorRestThreshold)/5;
+      }
+      
+      if viSchool = SKS_TRICKERY
+      {
+         % Trickery is motivated by loot and treasure.
+         if Send(who,@GetOwner) <> $
+            AND Send(Send(who,@GetOwner),@GetLootChestsInRoom) <> $
+         {
+            iPrimaryBonus = Length(Send(Send(who,@GetOwner),@GetLootChestsInRoom))*10;
+         }
       }
 
       iPowerBonus = Send(Send(SYS,@GetParliament),@GetFactionSpellPowerBonus,

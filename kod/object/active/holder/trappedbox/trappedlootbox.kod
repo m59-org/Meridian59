@@ -1177,6 +1177,29 @@ messages:
    {
       return poKiller;
    }
+   
+   GetMagicallyLocked()
+   {
+      return pbMagicallyLocked;
+   }
+   
+   GetMagicalLockStrength()
+   {
+      return piMagicalLockStrength;
+   }
+   
+   AddMagicalLockStrength(value=0)
+   {
+      piMagicalLockStrength = piMagicalLockStrength + value;
+      
+      if piMagicalLockStrength <= 0
+      {
+         piMagicalLockStrength = 0;
+         Post(self,@LockChest,#bLocked=TRUE,#bMagicalLock=FALSE);
+      }
+      
+      return piMagicalLockStrength;
+   }
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

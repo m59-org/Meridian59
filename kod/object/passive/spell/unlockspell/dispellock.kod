@@ -1,0 +1,55 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%S%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+DispelMagicalLock is UnlockSpell
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   Dispel_Magical_Lock_name_rsc = "dispel magical lock"
+   Dispel_Magical_Lock_icon_rsc = ishatlok.bgf
+   Dispel_Magical_Lock_desc_rsc = \
+      "Generates a small focused burst of mana which erodes "
+      "the power of a magical lock on a chest. "
+      "More agile scavengers can have greater success with the effect. "
+      "Requires two sapphires to cast."
+
+classvars:
+
+   vrName = Dispel_Magical_Lock_name_rsc
+   vrIcon = Dispel_Magical_Lock_icon_rsc
+   vrDesc = Dispel_Magical_Lock_desc_rsc
+
+   viSpell_num = SID_DISPEL_MAGICAL_LOCK
+   viSpell_level = 1
+   viMana = 12
+
+   viChance_To_Increase = 30
+   viMeditate_ratio = 20
+
+properties:
+
+   piUnlockDivisor = 4
+
+messages:
+
+   ResetReagents()
+   {
+      plReagents = $;
+      plReagents = Cons([&Sapphire,2],plReagents);
+
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
