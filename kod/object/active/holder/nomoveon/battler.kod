@@ -3155,7 +3155,13 @@ messages:
       {
          return FALSE;
       }
-      
+
+      if Send(oRoom,@IsArena)
+      {
+         % No knockback in arena, causes too many issues.
+         return FALSE;
+      }
+
       % Let's calculate.
       % Start with a standard knockback, which is default 5 units (320 fine).
       iKnockbackDistance = Send(SETTINGS_OBJECT,@GetStandardKnockbackDistance);
