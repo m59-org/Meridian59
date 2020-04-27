@@ -5011,7 +5011,7 @@ messages:
    Killed(what=$)
    "The mob was just killed."
    {
-      local i,val,oBody,hReputation,oHighestHurtMe, each_obj;
+      local i,val,oBody,hReputation,oHighestHurtMe, each_obj, oTrappedLootBox;
 
       % If the monster was just killed, assume it did itself in.
       if what = $
@@ -5050,17 +5050,18 @@ messages:
             what = Send(what,@GetMaster);
          }
 
+         oTrappedLootBox = $;
+         oBody = Send(self,@CreateDeadBody,#killer=what);
+
          if (Send(self,@GetChampStatus) > 0
             OR pbDropChestOnDeath)
             AND poMaster = $
             AND NOT Send(self,@GetSummoned)
             AND NOT pbIllusion
          {
-            oBody = Create(&TrappedLootBox,#iBoxPower=Send(self,@GetLevel) + piBoostedLevel + piChaosLevel,#killer=what);
-         }
-         else 
-         {
-            oBody = Send(self,@CreateDeadBody,#killer=what);
+            oTrappedLootBox = Create(&TrappedLootBox,#iBoxPower=Send(self,@GetLevel) + piBoostedLevel + piChaosLevel,
+                                           #killer=what,
+                                           #oCorpse=oBody);
          }
 
          if oBody <> $
@@ -5076,6 +5077,17 @@ messages:
                Send(oBody,@SetMasterWas,#oMaster=poMaster);
             }
 
+            if oTrappedLootBox = $
+            {
+               Send(poOwner,@NewHold,#what=oBody,#new_row=piRow,#new_col=piCol,
+                     #fine_row=piFine_row,#fine_col=piFine_col,
+                     #new_angle=Send(self,@GetAngle));
+            }
+         }
+         
+         if oTrappedLootBox <> $
+         {
+            oBody = oTrappedLootBox;
             Send(poOwner,@NewHold,#what=oBody,#new_row=piRow,#new_col=piCol,
                   #fine_row=piFine_row,#fine_col=piFine_col,
                   #new_angle=Send(self,@GetAngle));

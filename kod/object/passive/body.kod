@@ -80,13 +80,16 @@ properties:
    % Of the form [monster class, loyalty, 0 (hit points, it's dead), health max, champion status, summoned status]
    plMonsterData = $
    poMasterWas = $
+   
+   % Is a chest going to place us when it vanishes?
+   poTrappedLootBoxOwner = $
 
 messages:
 
    % you gotta pass in name, icon, and description to constructor
    Constructor(victim = $,killer = $,inKocatan = FALSE, assassinated = FALSE,
          drawfx = 0, BodyTranslation = 0, LegsTranslation = 0, 
-         PlayerBodyOverlay = $, Decomposes = TRUE)
+         PlayerBodyOverlay = $, Decomposes = TRUE, oTrappedLootBoxOwner = $)
    {
       vrName = Send(victim,@GetDeadName);
       vrIcon = Send(victim,@GetDeadIcon);
@@ -97,6 +100,7 @@ messages:
       piBodyTrans = BodyTranslation;
       piLegsTrans = LegsTranslation;      
       piTimeOfDeath = GetTime();
+      poTrappedLootBoxOwner = oTrappedLootBoxOwner;
 
       if killer <> $
          AND IsClass(killer,&Player)
@@ -121,8 +125,11 @@ messages:
       }
       
       if pbMob
-      { 
-         ptDelete = CreateTimer(self,@DeleteTimerMessage,120000);
+      {
+         if poTrappedLootBoxOwner = $
+         {
+            ptDelete = CreateTimer(self,@DeleteTimerMessage,120000);
+         }
       }
       else
       {
@@ -202,6 +209,12 @@ messages:
    Delete()
    {
       local i;
+      
+      if poTrappedLootBoxOwner <> $
+      {
+         Send(poTrappedLootBoxOwner,@SetCorpse,#oCorpse=$);
+         poTrappedLootBoxOwner = $;
+      }
       
       if poDearlyDeparted <> $
       {
@@ -548,6 +561,26 @@ messages:
    GetMasterWas()
    {
       return poMasterWas;
+   }
+   
+   GetTrappedLootBoxOwner()
+   {
+      return poTrappedLootBoxOwner;
+   }
+   
+   SetTrappedLootBoxOwner(oLootBox=$)
+   {
+      poTrappedLootBoxOwner = oLootBox;
+      return;
+   }
+   
+   BeginDecay()
+   {
+      if ptDelete = $
+      {
+         ptDelete = CreateTimer(self,@DeleteTimerMessage,60000);
+      }
+      return;
    }
 
 end

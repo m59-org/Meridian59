@@ -64,7 +64,13 @@ constants:
 
 resources:
 
-   loot_box_name_rsc = "treasure chest"
+   loot_box_name_rsc = "small treasure box"
+   loot_box_name2_rsc = "treasure box"
+   loot_box_name3_rsc = "large treasure box"
+   loot_chest_name1_rsc = "small treasure chest"
+   loot_chest_name2_rsc = "treasure chest"
+   loot_chest_name3_rsc = "large treasure chest"
+   loot_chest_name_super_rsc = "ancient treasure chest"
    loot_box_icon_small_rsc = lootbox3.bgf
    loot_box_icon_medium_rsc = lootbox2.bgf
    loot_box_icon_large_rsc = lootbox1.bgf
@@ -73,15 +79,16 @@ resources:
    loot_box_icon_chest_large = lootbox4.bgf
 
    loot_box_desc_rsc = \
-      "This treasure chest was used to store the valuables of a fallen monster.\n\n%r"
+      "This %s was used to store the valuables of a now %s.\n\n%r"
    loot_box_open_desc_rsc = \
-      "This treasure chest was used to store the valuables of a fallen monster."
+      "This %s was used to store the valuables of a now %s."
+      
    
    loot_box_not_trapped_desc_rsc = \
-      "This treasure chest was used to store the valuables of a fallen monster.\n\n"
+      "This %s was used to store the valuables of a now %s.\n\n"
       "You %s this chest does not contain a trap."
    loot_box_magically_locked_desc_rsc = \
-      "This treasure chest was used to store the valuables of a fallen monster.\n\n"
+      "This %s was used to store the valuables of a now %s.\n\n"
       "This chest is magically locked."
    loot_box_trap_string_rsc = \
       "You %s this chest is protected by a %s trap.\n\n"
@@ -172,9 +179,6 @@ resources:
 
 classvars:
 
-   vrName = loot_box_name_rsc
-   vrDesc = loot_box_desc_rsc
-
    viBulk_hold_max = $
    viWeight_hold_max = $
    
@@ -182,6 +186,8 @@ classvars:
 
 properties:
 
+   vrName = loot_box_name_rsc
+   vrDesc = loot_box_desc_rsc
    vrIcon = loot_box_icon_small_rsc
    
    % What level was the monster? Some monsters have special values for this
@@ -200,16 +206,20 @@ properties:
    ptExpireTimer = $
    
    piLadderID = 0
+   
+   % The monster corpse we reveal once chest has been looted / expires
+   poCorpse = $
 
 messages:
 
-   Constructor(iLootSize=0,iBoxPower=20,killer=$)
+   Constructor(iLootSize=0,iBoxPower=20,killer=$,oCorpse=$)
    {
       local lPossibleTraps;
 
       poKiller = killer;
       piLadderID = Send(killer,@GetLadderID);
       piBoxPower = Bound((iBoxPower * Random(80,150))/100,20,$);
+      poCorpse = oCorpse;
       
       if Random(1,1000) <= piBoxPower
       {
@@ -223,26 +233,36 @@ messages:
 
       if iLootSize = 0
       {
-         iLootSize = Random(1,6);
+         iLootSize = Bound(Random(1,Bound(piBoxPower/33,1,$)),1,7);
       }
       switch(iLootSize)
       {
          case 1:
+            vrName = loot_box_name_rsc;
             vrIcon = loot_box_icon_small_rsc;
             break;
          case 2:
+            vrName = loot_box_name2_rsc;
             vrIcon = loot_box_icon_medium_rsc;
             break;
          case 3:
+            vrName = loot_box_name3_rsc;
             vrIcon = loot_box_icon_large_rsc;
             break;
          case 4:
+            vrName = loot_chest_name1_rsc;
             vrIcon = loot_box_icon_chest_small;
             break;
          case 5:
+            vrName = loot_chest_name2_rsc;
             vrIcon = loot_box_icon_chest_medium;
             break;
          case 6:
+            vrName = loot_chest_name3_rsc;
+            vrIcon = loot_box_icon_chest_large;
+            break;
+         case 7:
+            vrName = loot_chest_name_super_rsc;
             vrIcon = loot_box_icon_chest_large;
             break;
       }
@@ -319,6 +339,26 @@ messages:
       return;
    }
 
+   LeaveHold(what=$)
+   {
+      Post(self,@CheckEmpty);
+      propagate;
+   }
+
+   CheckEmpty()
+   {
+      if plActive = $ AND plPassive = $
+      {
+         if ptExpireTimer <> $
+         {
+            DeleteTimer(ptExpireTimer);
+            ptExpireTimer = $;
+         }
+         Send(self,@CheckExpire);
+      }
+      return;
+   }
+
    CheckExpire(timer=$)
    {
       ptExpireTimer = $;
@@ -328,6 +368,27 @@ messages:
       if piExpireChecks <= 0
          OR (plActive = $ and plPassive = $)
       {
+         if poCorpse <> $
+            AND IsClass(poCorpse,&DeadBody)
+            AND poOwner <> $
+         {
+            if Send(poOwner,@ReqNewHold,#what=poCorpse,
+                                        #new_row=Send(self,@GetRow),
+                                        #new_col=Send(self,@GetCol),
+                                        #fine_row=Send(self,@GetFineRow),
+                                        #fine_col=Send(self,@GetFineCol))
+            {
+               Send(poOwner,@NewHold,#what=poCorpse,
+                                     #new_row=Send(self,@GetRow),
+                                     #new_col=Send(self,@GetCol),
+                                     #fine_row=Send(self,@GetFineRow),
+                                     #fine_col=Send(self,@GetFineCol),
+                                     #new_angle=Send(self,@GetAngle));
+               Send(poCorpse,@BeginDecay);
+            }
+            Send(poCorpse,@SetTrappedLootBoxOwner,#oLootBox=$);
+            poCorpse = $;
+         }
          Send(self,@Delete);
       }
       else
@@ -349,6 +410,9 @@ messages:
 
    TryActivate(who=$)
    {
+      local bTrapSprung;
+      
+      bTrapSprung = FALSE;
       if NOT pbMagicallyLocked
       {
          if piTrapNum > 0
@@ -362,6 +426,7 @@ messages:
             else
             {
                Post(self,@SpringTrap,#who=who);
+               bTrapSprung = TRUE;
             }
          }
          else
@@ -369,7 +434,11 @@ messages:
             Send(who,@MsgSendUser,#message_rsc=open_non_trapped_loot_box_msg);
          }
          Post(self,@LockChest,#bLocked=FALSE);
-         Post(who,@UserObjectContents,#what=self);
+         
+         if NOT bTrapSprung
+         {
+            Post(who,@UserObjectContents,#what=self);
+         }
       }
       return TRUE;
    }
@@ -509,13 +578,13 @@ messages:
       
       if NOT pbLocked
       {
-         AddPacket(4,loot_box_open_desc_rsc);
+         AddPacket(4,loot_box_open_desc_rsc, 4,vrName, 4,Send(poCorpse,@GetName));
          return;
       }
       
       if pbMagicallyLocked
       {
-         AddPacket(4,loot_box_magically_locked_desc_rsc);
+         AddPacket(4,loot_box_magically_locked_desc_rsc, 4,vrName, 4,Send(poCorpse,@GetName));
          return;
       }
       
@@ -529,7 +598,7 @@ messages:
       switch(piApparentTrapNum)
       {
          case TRAP_NONE:
-            AddPacket(4,loot_box_not_trapped_desc_rsc, 4,Send(self,@GetAssessmentCertaintyStr,#who=who));
+            AddPacket(4,loot_box_not_trapped_desc_rsc, 4,vrName, 4,Send(poCorpse,@GetName), 4,Send(self,@GetAssessmentCertaintyStr,#who=who));
             return;
          case TRAP_FATE:
             rTrapDesc = loot_box_fate_trap_desc_rsc;
@@ -581,7 +650,8 @@ messages:
             break;
       }
       
-      AddPacket(4,vrDesc, 4,loot_box_trap_string_rsc, 4,Send(self,@GetAssessmentCertaintyStr,#who=who), 4,rTrapDesc, 4,Send(self,@GetDisarmEstimate,#who=who));
+      AddPacket(4,vrDesc, 4,vrName, 4,Send(poCorpse,@GetName), 4,loot_box_trap_string_rsc, 4,Send(self,@GetAssessmentCertaintyStr,#who=who),
+                4,rTrapDesc, 4,Send(self,@GetDisarmEstimate,#who=who));
 
       return;
    }
@@ -1133,6 +1203,13 @@ messages:
          DeleteTimer(ptExpireTimer);
          ptExpireTimer = $;
       }
+      
+      if poCorpse <> $
+      {
+         Send(poCorpse,@Delete);
+         poCorpse = $;
+      }
+      
       propagate;
    }
 
@@ -1140,26 +1217,17 @@ messages:
    {
       local iLightColor;
 
-      if pbMagicallyLocked
+      iLightColor = viMagicallyLockedLightColor;
+      if poOwner <> $
       {
-         iLightColor = viMagicallyLockedLightColor;
-         if poOwner <> $
+         if Send(poOwner,@LightingColorOverride)
          {
-            if Send(poOwner,@LightingColorOverride)
-            {
-               iLightColor = Send(poOwner,@GetLightingColorOverride);
-            }
+            iLightColor = Send(poOwner,@GetLightingColorOverride);
          }
-         AddPacket(2,LIGHT_FLAG_ON);
-         AddPacket(1,100);
-         AddPacket(2,iLightColor);
       }
-      else
-      {
-         % Default: No lighting
-         AddPacket(2,0);
-      }
-
+      AddPacket(2,LIGHT_FLAG_ON);
+      AddPacket(1,100 * pbMagicallyLocked);
+      AddPacket(2,iLightColor);
       return;
    }
    
@@ -1195,10 +1263,21 @@ messages:
       if piMagicalLockStrength <= 0
       {
          piMagicalLockStrength = 0;
-         Post(self,@LockChest,#bLocked=TRUE,#bMagicalLock=FALSE);
+         Send(self,@LockChest,#bLocked=TRUE,#bMagicalLock=FALSE);
       }
       
       return piMagicalLockStrength;
+   }
+   
+   GetCorpse()
+   {
+      return poCorpse;
+   }
+
+   SetCorpse(oCorpse=$)
+   {
+      poCorpse = $;
+      return;
    }
 
 end
