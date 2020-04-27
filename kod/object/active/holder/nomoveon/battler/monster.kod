@@ -5011,7 +5011,7 @@ messages:
    Killed(what=$)
    "The mob was just killed."
    {
-      local i,val,oBody,hReputation,oHighestHurtMe, each_obj, oTrappedLootBox;
+      local i,val,oBody,hReputation,oHighestHurtMe, each_obj, oTrappedLootBox, iLootSize;
 
       % If the monster was just killed, assume it did itself in.
       if what = $
@@ -5204,7 +5204,19 @@ messages:
                }
             }
             
-            Send(self,@CreateTreasure,#who=what,#corpse=oBody,#ladderID=piLadderID);
+            if IsClass(oBody,&TrappedLootBox)
+            {
+               iLootSize = Send(oBody,@GetLootSize);
+               while iLootSize > 0
+               {
+                  Send(self,@CreateTreasure,#who=what,#corpse=oBody,#ladderID=piLadderID);
+                  iLootSize--;
+               }
+            }
+            else
+            {
+               Send(self,@CreateTreasure,#who=what,#corpse=oBody,#ladderID=piLadderID);
+            }
          }
 
          % Delete here so we don't accidentally "kill" then delete system

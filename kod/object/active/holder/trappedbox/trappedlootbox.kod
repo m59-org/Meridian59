@@ -225,6 +225,8 @@ properties:
    
    piLadderID = 0
    
+   piLootSize = 0
+   
    % The monster corpse we reveal once chest has been looted / expires
    poCorpse = $
 
@@ -314,6 +316,8 @@ messages:
       }
       
       piExpireChecks = piExpireChecks + iLootSize*6;
+
+      piLootSize = iLootSize;
       
       % Always a chance of no trap.
       lPossibleTraps = [TRAP_NONE];
@@ -1488,6 +1492,11 @@ messages:
    GetArtificed()
    {
       return pbArtificed;
+   }
+   
+   GetLootSize()
+   {
+      return piLootSize;
    }
 
 end
