@@ -84,6 +84,12 @@ messages:
             Send(who,@MsgSendUser,#message_rsc=cannot_identify_magically_locked);
             return FALSE;
          }
+         
+         if NOT Send(oTarget,@CanBeCastUpon,#who=who)
+         {
+            % Fail message is sent to player by trapped loot box
+            return FALSE;
+         }
          propagate;
       }
 

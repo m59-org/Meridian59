@@ -73,6 +73,17 @@ messages:
       }
 
       oTarget = First(lTargets);
+      
+      if IsClass(oTarget,&TrappedLootBox)
+      {
+         if NOT Send(oTarget,@CanBeCastUpon,#who=who)
+         {
+            % Fail message is sent to player by trapped loot box
+            return FALSE;
+         }
+         
+         propagate;
+      }
 
       % Check that target is an item
       if (NOT IsClass(oTarget,&Item)
@@ -92,6 +103,19 @@ messages:
       local iCurrentSpell, oItem, oItemAtt;
 
       oItem = First(lTargets);
+      
+      if IsClass(oItem,&TrappedLootBox)
+      {
+         if Send(oItem,@GetShrouded)
+         {
+            Send(who,@MsgSendUser,#message_rsc=spell_resists,
+                  #parm1=Send(oItem,@GetCapDef),#parm2=Send(oItem,@GetName));
+            return;
+         }
+         Send(oItem,@SetShrouded,#value=TRUE);
+         Send(who,@MsgSendUser,#message_rsc=shroud_cast_rsc,#parm1=Send(oItem,@GetName));
+         propagate;
+      }
 
       if NOT Send(oItem,@CanEnchant,#oSpell=self)
       {

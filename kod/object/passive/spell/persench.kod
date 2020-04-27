@@ -44,6 +44,11 @@ resources:
    current_reservation_rsc = \
       "\n\nYour current %s enchantment is reserving %i percent of your "
       "maximum mana."
+      
+   cloak_cast_on_box_failed = \
+      "The chest already has a cloaking enchantment upon it."
+   cloak_cast_on_box = \
+      "You shroud the astral outline of the chest's energies!"
 
 classvars:
 
@@ -126,6 +131,18 @@ messages:
       }
 
       oTarget = First(lTargets);
+      
+      if IsClass(self,&Cloak)
+         AND IsClass(oTarget,&TrappedLootBox)
+      {
+         if NOT Send(oTarget,@CanBeCastUpon,#who=who)
+         {
+            % Fail message is sent to player by trapped loot box
+            return FALSE;
+         }
+         
+         propagate;
+      }
 
       % Targetable enchantment, not from a potion.  If we want to have wand
       % effects for these spells we will need to split bItemcast to
@@ -214,6 +231,20 @@ messages:
    CastSpell(who=$,iSpellPower=0,lTargets=$,bItemCast=FALSE,bSecondaryCast=FALSE,bSustainedByItem=FALSE,bSeer=0)
    {
       local oTarget, lType;
+      
+      if IsClass(self,&Cloak)
+         AND First(lTargets) <> $
+         AND IsClass(First(lTargets),&TrappedLootBox)
+      {
+         if Send(First(lTargets),@GetCloaked)
+         {
+            Send(who,@MsgSendUser,#message_rsc=cloak_cast_on_box_failed,#parm1=Send(First(lTargets),@GetName));
+            return;
+         }
+         Send(First(lTargets),@SetCloaked,#value=TRUE);
+         Send(who,@MsgSendUser,#message_rsc=cloak_cast_on_box,#parm1=Send(First(lTargets),@GetName));
+         propagate;
+      }
 
       if NOT bItemCast
          AND vbCanBeReserved

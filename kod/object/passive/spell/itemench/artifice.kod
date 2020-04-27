@@ -23,7 +23,7 @@ resources:
    artifice_cast_rsc = "The shape of %s%s begins to shift."
    
    artifice_fails = "%s%s is strangely unaffected by the spell."
-   
+
    artifice_name_rsc = "artifice"
    artifice_icon_rsc = iartific.bgf
    artifice_desc_rsc = \
@@ -74,6 +74,17 @@ messages:
       }
 
       oWeapon = First(lTargets);
+      
+      if IsClass(oWeapon,&TrappedLootBox)
+      {
+         if NOT Send(oWeapon,@CanBeCastUpon,#who=who)
+         {
+            % Fail message is sent to player by trapped loot box
+            return FALSE;
+         }
+         
+         propagate;
+      }
 
       % Check that target is enchantable, and is a weapon
       if oWeapon = $
@@ -104,6 +115,20 @@ messages:
       local oItem, oItemAtt;
 
       oItem = First(lTargets);
+      
+      if IsClass(oItem,&TrappedLootBox)
+      {
+         if Send(oItem,@GetArtificed)
+         {
+            Send(who,@MsgSendUser,#message_rsc=spell_resists,
+                  #parm1=Send(oItem,@GetCapDef),#parm2=Send(oItem,@GetName));
+            return;
+         }
+         Send(oItem,@SetArtificed,#value=TRUE);
+         Send(who,@MsgSendUser,#message_rsc=artifice_cast_rsc,
+               #parm1=Send(oItem,@GetDef),#parm2=Send(oItem,@GetName));
+         propagate;
+      }
 
       if Send(oItem,@HasAttribute,#ItemAtt = IA_MISDIRECTION)
       {

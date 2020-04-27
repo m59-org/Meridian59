@@ -92,7 +92,13 @@ resources:
       "This chest is magically locked."
    loot_box_trap_string_rsc = \
       "You %s this chest is protected by a %s trap.\n\n"
-      "You estimate you have a %i%% chance to safely disarm it."
+      "You estimate your chance to safely disarm it is %i%%."
+
+   loot_box_cloaked_desc_rsc = \
+      "This chest has been Cloaked by foul magics, making assessment of its trap impossible."
+
+   loot_box_shrouded_resists_rsc = \
+      "This chest has been Shrouded by protective magic, making casting directly upon it impossible!"
 
    disarm_trapped_loot_box_success_msg = \
       "You successfully disarm the %s trap and open the chest."
@@ -181,6 +187,9 @@ resources:
       "You completely purge the magical lock!"
    purged_magical_lock = \
       "You purge %i points of mana from the magical lock."
+   
+   artificing_enchantment_fades_rsc = \
+      "The artificing enchantment is stripped away!"
 
 classvars:
 
@@ -205,6 +214,10 @@ properties:
    pbMagicallyLocked = FALSE
    piMagicalLockStrength = 0
    
+   pbShrouded = FALSE
+   pbCloaked = FALSE
+   pbArtificed = FALSE
+   
    poKiller = $
    
    piExpireChecks = 12
@@ -217,7 +230,7 @@ properties:
 
 messages:
 
-   Constructor(iLootSize=0,iBoxPower=20,killer=$,oCorpse=$)
+   Constructor(iLootSize=0,iBoxPower=20,killer=$,oCorpse=$,victim=$)
    {
       local lPossibleTraps;
 
@@ -225,6 +238,34 @@ messages:
       piLadderID = Send(killer,@GetLadderID);
       piBoxPower = Bound((iBoxPower * Random(80,150))/100,20,$);
       poCorpse = oCorpse;
+      
+      if oCorpse <> $
+      {
+         if Send(victim,@HasCreatureType,#type=CREATURE_TYPE_UNHOLY)
+            OR Random(1,5) = 1
+         {
+            if Random(1,100) <= piBoxPower/50
+            {
+               pbCloaked = TRUE;
+            }
+         }
+         if Send(victim,@HasCreatureType,#type=CREATURE_TYPE_INTELLIGENT)
+            OR Random(1,3) = 1
+         {
+            if Random(1,100) <= piBoxPower/25
+            {
+               pbShrouded = TRUE;
+            }
+         }
+         if Send(victim,@HasCreatureType,#type=CREATURE_TYPE_ENIGMATIC)
+            OR Random(1,5) = 1
+         {
+            if Random(1,100) <= piBoxPower/50
+            {
+               pbArtificed = TRUE;
+            }
+         }
+      }
       
       if Random(1,1000) <= piBoxPower
       {
@@ -530,8 +571,6 @@ messages:
 
       iAssessEstimate = ((Send(who,@GetAgility) + Send(who,@GetIntellect)) * (100 + (Send(self,@GetPlayerLevelVsBox,#who=who)/2))) / Bound(piBoxPower,20,$);
       
-      iAssessEstimate = Bound(iAssessEstimate,5,100);
-      
       return iAssessEstimate;
    }
    
@@ -548,6 +587,10 @@ messages:
       
       if NOT bShow_All
       {
+         if pbArtificed
+         {
+            return trap_assessment_level_all;
+         }
          iAssessEstimate = Send(self,@GetAssessmentEstimate,#who=who);
       }
       else
@@ -609,16 +652,27 @@ messages:
       }
 
       rTrapDesc = loot_box_unknown_trap_desc_rsc;
-      
+
       if NOT bShow_All
       {
+         if pbArtificed
+         {
+            AddPacket(4,loot_box_not_trapped_desc_rsc, 4,vrName, 4,Send(poCorpse,@GetName), 4,Send(self,@GetAssessmentCertaintyStr,#who=who));
+            return;
+         }
          iApparentTrapNum = piApparentTrapNum;
       }
       else
       {
          iApparentTrapNum = piTrapNum;
       }
-      
+
+      if pbCloaked
+      {
+         AddPacket(4,vrDesc, 4,vrName, 4,Send(poCorpse,@GetName), 4,loot_box_cloaked_desc_rsc);
+         return;
+      }
+
       switch(iApparentTrapNum)
       {
          case TRAP_NONE:
@@ -685,6 +739,8 @@ messages:
       local iDisarmChance;
 
       iDisarmChance = ((Send(who,@GetAgility) + Send(who,@GetAim)) * (50 + (Send(self,@GetPlayerLevelVsBox,#who=who)/2))) / Bound(piBoxPower,20,$);
+      
+      iDisarmChance = Bound(iDisarmChance,1,100);
       
       return iDisarmChance;
    }
@@ -1375,11 +1431,63 @@ messages:
       }
       return;
    }
-   
-   RevealTrap()
+
+   CanBeCastUpon(who=$)
+   {
+      if pbShrouded
+      {
+         Send(who,@MsgSendUser,#message_rsc=loot_box_shrouded_resists_rsc);
+         return FALSE;
+      }
+      return TRUE;
+   }
+
+   RevealTrap(who=$)
    {
       piApparentTrapNum = piTrapNum;
+      
+      if pbArtificed
+      {
+         if who <> $
+         {
+            Send(who,@MsgSendUser,#message_rsc=artificing_enchantment_fades_rsc);
+         }
+         pbArtificed = FALSE;
+      }
       return;
+   }
+
+   SetCloaked(value=FALSE)
+   {
+      pbCloaked = value;
+      return;
+   }
+
+   GetCloaked()
+   {
+      return pbCloaked;
+   }
+
+   SetShrouded(value=FALSE)
+   {
+      pbShrouded = value;
+      return;
+   }
+
+   GetShrouded()
+   {
+      return pbShrouded;
+   }
+   
+   SetArtificed(value=FALSE)
+   {
+      pbArtificed = value;
+      return;
+   }
+
+   GetArtificed()
+   {
+      return pbArtificed;
    }
 
 end
