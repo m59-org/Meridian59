@@ -31,6 +31,13 @@ resources:
    reveal_strip_misdir = "Your magics strip the illusions from %s%s!"
    reveal_sound = sreveal.wav
 
+   cannot_reveal_magically_locked = \
+      "The magical lock on this chest would definitely interfere with your revealing spell."
+   reveal_never_strong_enough = \
+      "Even a reveal spell could never decipher a trap this intricate and powerful."
+   reveal_not_strong_enough = \
+      "The trap confounds your revealing spell, but it might be decipherable with more spellpower."
+
 classvars:
 
    vrName = reveal_name_rsc
@@ -84,6 +91,16 @@ messages:
       }
 
       oTarget = First(lTargets);
+      
+      if IsClass(oTarget,&TrappedLootBox)
+      {
+         if Send(oTarget,@GetMagicallyLocked)
+         {
+            Send(who,@MsgSendUser,#message_rsc=cannot_reveal_magically_locked);
+            return FALSE;
+         }
+         propagate;
+      }
 
       % Check that target is a weapon or armor
       if (NOT IsClass(oTarget,&Item))
@@ -113,6 +130,30 @@ messages:
       local oTarget, lData, iPower, oItemAtt;
 
       oTarget = First( lTargets );
+
+      if IsClass(oTarget,&TrappedLootBox)
+      {
+         if (iSpellPower+1)*2 >= Send(oTarget,@GetBoxPower)
+         {
+            Send(who,@MsgSendUser,#message_rsc=reveal_working, 
+                  #parm1=Send(oTarget,@GetDef),#parm2=Send(oTarget,@GetName));
+            Send(oTarget,@RevealTrap);
+            Send(who,@SendLook,#what=oTarget,#bShow_All=TRUE);
+         }
+         else
+         {
+            if Send(oTarget,@GetBoxPower) > 200
+            {
+               Send(who,@MsgSendUser,#message_rsc=reveal_never_strong_enough);
+            }
+            else
+            {
+               Send(who,@MsgSendUser,#message_rsc=reveal_not_strong_enough);
+            }
+         }
+         
+         propagate;
+      }
 
       Send(who,@MsgSendUser,#message_rsc=reveal_working, 
             #parm1=Send(oTarget,@GetDef),#parm2=Send(oTarget,@GetName));

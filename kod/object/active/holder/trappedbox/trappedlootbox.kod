@@ -199,7 +199,7 @@ properties:
    piBoxPower = 20
    
    piTrapNum = TRAP_NONE
-   piApparentTrapNum = TRAP_NONE
+   piApparentTrapNum = -1
    
    pbLocked = FALSE
    pbMagicallyLocked = FALSE
@@ -530,6 +530,8 @@ messages:
 
       iAssessEstimate = ((Send(who,@GetAgility) + Send(who,@GetIntellect)) * (100 + (Send(self,@GetPlayerLevelVsBox,#who=who)/2))) / Bound(piBoxPower,20,$);
       
+      iAssessEstimate = Bound(iAssessEstimate,5,100);
+      
       return iAssessEstimate;
    }
    
@@ -538,13 +540,21 @@ messages:
       return (Send(who,@GetBaseMaxHealth) * 100) / (100 + Send(who,@GetStamina));
    }
    
-   GetAssessmentCertaintyStr(who=$)
+   GetAssessmentCertaintyStr(who=$, bShow_All=FALSE)
    {
       local iAssessEstimate, rStr;
       
       rStr = trap_assessment_level_none;
       
-      iAssessEstimate = Send(self,@GetAssessmentEstimate,#who=who);
+      if NOT bShow_All
+      {
+         iAssessEstimate = Send(self,@GetAssessmentEstimate,#who=who);
+      }
+      else
+      {
+         iAssessEstimate = 100;
+      }
+
       if iAssessEstimate < 10
       {
          rStr = trap_assessment_level_none;
@@ -577,9 +587,9 @@ messages:
       return rStr;
    }
 
-   ShowDesc(who=$)
+   ShowDesc(who=$, bShow_All=FALSE)
    {
-      local rTrapDesc;
+      local rTrapDesc, iApparentTrapNum;
       
       if NOT pbLocked
       {
@@ -593,14 +603,23 @@ messages:
          return;
       }
       
-      if piApparentTrapNum <> -1
+      if piApparentTrapNum = -1
       {
          Send(self,@PlayerAssessesTrap,#who=who);
       }
 
       rTrapDesc = loot_box_unknown_trap_desc_rsc;
       
-      switch(piApparentTrapNum)
+      if NOT bShow_All
+      {
+         iApparentTrapNum = piApparentTrapNum;
+      }
+      else
+      {
+         iApparentTrapNum = piTrapNum;
+      }
+      
+      switch(iApparentTrapNum)
       {
          case TRAP_NONE:
             AddPacket(4,loot_box_not_trapped_desc_rsc, 4,vrName, 4,Send(poCorpse,@GetName), 4,Send(self,@GetAssessmentCertaintyStr,#who=who));
@@ -655,7 +674,7 @@ messages:
             break;
       }
       
-      AddPacket(4,vrDesc, 4,vrName, 4,Send(poCorpse,@GetName), 4,loot_box_trap_string_rsc, 4,Send(self,@GetAssessmentCertaintyStr,#who=who),
+      AddPacket(4,vrDesc, 4,vrName, 4,Send(poCorpse,@GetName), 4,loot_box_trap_string_rsc, 4,Send(self,@GetAssessmentCertaintyStr,#who=who,#bShow_All=bShow_All),
                 4,rTrapDesc, 4,Send(self,@GetDisarmEstimate,#who=who));
 
       return;
@@ -794,6 +813,11 @@ messages:
    }
    
    GetHexIncEffect()
+   {
+      return piBoxPower;
+   }
+
+   GetBoxPower()
    {
       return piBoxPower;
    }
@@ -1349,6 +1373,12 @@ messages:
             }
          }
       }
+      return;
+   }
+   
+   RevealTrap()
+   {
+      piApparentTrapNum = piTrapNum;
       return;
    }
 
