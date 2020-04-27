@@ -78,7 +78,7 @@ messages:
 
    CastSpell(who = $, lTargets = $, iSpellpower = 0)
    {
-      local lChests, oChest, bFound, oChosenChest, iRoll, iResult;
+      local lChests, oChest, bFound, oChosenChest, iRoll, iResult, iUnlockDivisor;
       
       lChests = $;
       if Send(who,@GetOwner) <> $
@@ -104,7 +104,12 @@ messages:
          return FALSE;
       }
       
-      iRoll = -1*Random(0,(iSpellpower + Send(who,@GetAgility))/piUnlockDivisor);
+      iUnlockDivisor = piUnlockDivisor;
+      if iUnlockDivisor < 1
+      {
+         iUnlockDivisor = 1;
+      }
+      iRoll = -1*Random(0,(iSpellpower + Send(who,@GetAgility))/iUnlockDivisor);
       iResult = Send(oChosenChest,@AddMagicalLockStrength,#value=iRoll);
       
       if iResult > 0
