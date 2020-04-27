@@ -27,6 +27,8 @@ resources:
       "With enough power, it can even remove the enchantment completely.  "
       "In addition, the target will be humbled, "
       "which can lower their resistances to a minimum of zero. "
+      "If cast on a treasure chest, magical locks may be weakened, "
+      "and items inside may have their helpful enchantments removed as well. "
       "Requires five emeralds and two purple mushrooms to cast."
 
    Purge_on = \
@@ -102,6 +104,11 @@ messages:
          propagate;
       }
       
+      if IsClass(target,&TrappedLootBox)
+      {
+         propagate;
+      }
+      
       if NOT IsClass(target,&Player)
       {
          return FALSE;
@@ -154,6 +161,12 @@ messages:
       local oTarget, lInfo, oSpell, lList, lEnchantmentList;
 
       oTarget = First(lTargets);
+      
+      if IsClass(oTarget,&TrappedLootBox)
+      {
+         Send(oTarget,@PurgeChest,#who=who,#iSpellPower=iSpellPower);
+         propagate;
+      }
 
       Send(self,@DoHumble,#who=who,#oTarget=oTarget,#iSpellPower=iSpellPower);
 

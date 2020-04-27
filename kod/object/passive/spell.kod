@@ -1365,7 +1365,6 @@ messages:
                   Send(who,@MsgSendUser,#message_rsc=spell_no_targets,
                         #parm1=Send(self,@GetName));
                }
-
                return FALSE;
             }
          }
@@ -1437,6 +1436,15 @@ messages:
       if (NOT IsClass(who,&Player))
          OR lTargets = $
          OR NOT Send(self,@IsHarmful)
+      {
+         return lTargets;
+      }
+
+      % Players can Purge loot boxes
+      if IsClass(self,&Purge)
+         AND lTargets <> $
+         AND Length(lTargets) = 1
+         AND IsClass(First(lTargets),&TrappedLootBox)
       {
          return lTargets;
       }

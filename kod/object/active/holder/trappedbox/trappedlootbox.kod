@@ -176,6 +176,11 @@ resources:
    trap_discharge_sound = fbolt.wav
    trap_poison_gas_sound = poisoned.wav
    trap_teleporter_sound = riluswnd.wav
+   
+   purged_magical_lock_completely = \
+      "You completely purge the magical lock!"
+   purged_magical_lock = \
+      "You purge %i points of mana from the magical lock."
 
 classvars:
 
@@ -1277,6 +1282,73 @@ messages:
    SetCorpse(oCorpse=$)
    {
       poCorpse = $;
+      return;
+   }
+
+   PurgeChest(who=$, iSpellPower=0)
+   {
+      local iMagicalLockReduction, i, oObject;
+      
+      if piMagicalLockStrength > 0
+      {
+         iMagicalLockReduction = ((iSpellPower+1) * Random(50,150))/100;
+      
+         if Send(self,@AddMagicalLockStrength,#value=-1*iMagicalLockReduction) <= 0
+         {
+            Send(who,@MsgSendUser,#message_rsc=purged_magical_lock_completely);
+         }
+         else
+         {
+            Send(who,@MsgSendUser,#message_rsc=purged_magical_lock,#parm1=iMagicalLockReduction);
+         }
+      }
+      
+      if plActive <> $
+         OR plPassive <> $
+      {
+         foreach i in plActive
+         {
+            oObject = Send(self,@HolderExtractObject,#data=i);
+            
+            if IsClass(oObject,&Weapon)
+               OR IsClass(oObject,&DefenseModifier)
+               OR IsClass(oObject,&Ring)
+               OR IsClass(oObject,&Gauntlet)
+               OR IsClass(oObject,&NecromancerAmulet)
+               OR IsClass(oObject,&Necklace)
+               OR IsClass(oObject,&Instrument)
+               OR IsClass(oObject,&JewelofFroz)
+               OR IsClass(oObject,&AdventurerCrest)
+               OR IsClass(oObject,&ScryingCrystal)
+            {
+               if Send(oObject,@GetMagicModsNumber) <> 0
+               {
+                  Send(oObject,@ClearMagicMods);
+               }
+            }
+         }
+         foreach i in plPassive
+         {
+            oObject = Send(self,@HolderExtractObject,#data=i);
+            
+            if IsClass(oObject,&Weapon)
+               OR IsClass(oObject,&DefenseModifier)
+               OR IsClass(oObject,&Ring)
+               OR IsClass(oObject,&Gauntlet)
+               OR IsClass(oObject,&NecromancerAmulet)
+               OR IsClass(oObject,&Necklace)
+               OR IsClass(oObject,&Instrument)
+               OR IsClass(oObject,&JewelofFroz)
+               OR IsClass(oObject,&AdventurerCrest)
+               OR IsClass(oObject,&ScryingCrystal)
+            {
+               if Send(oObject,@GetMagicModsNumber) <> 0
+               {
+                  Send(oObject,@ClearMagicMods);
+               }
+            }
+         }
+      }
       return;
    }
 

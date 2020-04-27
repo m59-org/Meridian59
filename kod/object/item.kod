@@ -3588,30 +3588,12 @@ messages:
    
    ResetNameColor()
    {
-      if viObject_flags = (OF_GETTABLE | OF_ITEM_NAME_ORANGE)
-      {
-         viObject_flags = viObject_flags & ~OF_ITEM_NAME_ORANGE;
-      }
-      if viObject_flags = (OF_GETTABLE | OF_ITEM_NAME_DGREEN)
-      {
-         viObject_flags = viObject_flags & ~OF_ITEM_NAME_DGREEN;
-      }
-      if viObject_flags = (OF_GETTABLE | OF_ITEM_NAME_BGREEN)
-      {
-         viObject_flags = viObject_flags & ~OF_ITEM_NAME_BGREEN;
-      }
-      if viObject_flags = (OF_GETTABLE | OF_ITEM_NAME_CYAN)
-      {
-         viObject_flags = viObject_flags & ~OF_ITEM_NAME_CYAN;
-      }
-      if viObject_flags = (OF_GETTABLE | OF_ITEM_NAME_YELLOW)
-      {
-         viObject_flags = viObject_flags & ~OF_ITEM_NAME_YELLOW;
-      }
-      if viObject_flags = (OF_GETTABLE | OF_ITEM_NAME_PURPLE)
-      {
-         viObject_flags = viObject_flags & ~OF_ITEM_NAME_PURPLE;
-      }
+      viObject_flags = viObject_flags & ~OF_ITEM_NAME_ORANGE;
+      viObject_flags = viObject_flags & ~OF_ITEM_NAME_DGREEN;
+      viObject_flags = viObject_flags & ~OF_ITEM_NAME_BGREEN;
+      viObject_flags = viObject_flags & ~OF_ITEM_NAME_CYAN;
+      viObject_flags = viObject_flags & ~OF_ITEM_NAME_YELLOW;
+      viObject_flags = viObject_flags & ~OF_ITEM_NAME_PURPLE;
       return;
    }
 
@@ -3625,57 +3607,35 @@ messages:
       }
       else if vbUniqueItem
       {
-         if viObject_flags <> (OF_GETTABLE | OF_ITEM_NAME_ORANGE)
-         {
-            viObject_flags = viObject_flags | OF_ITEM_NAME_ORANGE;
-         }
+         viObject_flags = viObject_flags | OF_ITEM_NAME_ORANGE;
       }
       else if pbForgedItem
       {
-         if viObject_flags <> (OF_GETTABLE | OF_ITEM_NAME_DGREEN)
-         {
-            viObject_flags = viObject_flags | OF_ITEM_NAME_DGREEN;
-         }
+         viObject_flags = viObject_flags | OF_ITEM_NAME_DGREEN;
       }
       else
       {
          switch(Send(self,@GetMagicModsNumber))
          {
+            case 0:
+               break;
             case 1:
-               if viObject_flags <> (OF_GETTABLE | OF_ITEM_NAME_BGREEN)
-               {
-                  viObject_flags = viObject_flags | OF_ITEM_NAME_BGREEN;
-               }
+               viObject_flags = viObject_flags | OF_ITEM_NAME_BGREEN;
                break;
             case 2:
-               if viObject_flags <> (OF_GETTABLE | OF_ITEM_NAME_CYAN)
-               {
-                  viObject_flags = viObject_flags | OF_ITEM_NAME_CYAN;
-               }
+               viObject_flags = viObject_flags | OF_ITEM_NAME_CYAN;
                break;
             case 3:
-               if viObject_flags <> (OF_GETTABLE | OF_ITEM_NAME_YELLOW)
-               {
-                  viObject_flags = viObject_flags | OF_ITEM_NAME_YELLOW;
-               }
+               viObject_flags = viObject_flags | OF_ITEM_NAME_YELLOW;
                break;
             case 4:
-               if viObject_flags <> (OF_GETTABLE | OF_ITEM_NAME_YELLOW)
-               {
-                  viObject_flags = viObject_flags | OF_ITEM_NAME_YELLOW;
-               }
+               viObject_flags = viObject_flags | OF_ITEM_NAME_YELLOW;
                break;
             case 5:
-               if viObject_flags <> (OF_GETTABLE | OF_ITEM_NAME_YELLOW)
-               {
-                  viObject_flags = viObject_flags | OF_ITEM_NAME_YELLOW;
-               }
+               viObject_flags = viObject_flags | OF_ITEM_NAME_YELLOW;
                break;
             case 6:
-               if viObject_flags <> (OF_GETTABLE | OF_ITEM_NAME_PURPLE)
-               {
-                  viObject_flags = viObject_flags | OF_ITEM_NAME_PURPLE;
-               }
+               viObject_flags = viObject_flags | OF_ITEM_NAME_PURPLE;
                break;
          }
       }
@@ -3833,9 +3793,9 @@ messages:
    ClearMagicMods()
    {
       plEnchantmentMods = $;
-%      Send(self,@RemoveMagicFlag);
+      Send(self,@RemoveMagicFlag);
       Send(self,@SetForged,#value=FALSE);
-      Send(self,@EvaluateNameColor);
+      Post(self,@EvaluateNameColor);
 
       return;
    }
