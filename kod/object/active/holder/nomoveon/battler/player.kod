@@ -2146,6 +2146,29 @@ messages:
       return lBaseEmpowerments;
    }
 
+   GetRacialHexResistance(race=$)
+   {
+      if race = $
+      {
+         % Use our own race.
+         race = piPlayerRace;
+      }
+
+      switch(race)
+      {
+         case RACE_HUMAN:
+            return 66;
+         case RACE_HALF_DEMON:
+            return 33;
+         case RACE_DROW:
+            return -33;
+         case RACE_AUTOMATON:
+            return -66;
+      }
+
+      return 0;
+   }
+
    GetRacialBaseResistances(race=$)
    {
       if race = $
@@ -20512,7 +20535,7 @@ messages:
    GetHexResistance()
    {
       local iArcaneKnowledgeRes, iHermitageRes, oKnowledge, oHermitage, i, iGearResistance,
-            lBindingSongState, iBindingSongRes;
+            lBindingSongState, iBindingSongRes, iRacialRes;
       
       iArcaneKnowledgeRes = 0;
       oKnowledge = Send(SYS,@FindSkillByNum,#num=SKID_ARCANE_KNOWLEDGE);
@@ -20547,7 +20570,9 @@ messages:
          iGearResistance = iGearResistance + Send(i,@GetHexResistance);
       }
 
-      return bound(piHexResistance+iArcaneKnowledgeRes+iHermitageRes+iGearResistance+iBindingSongRes,-200,200);
+      iRacialRes = Send(self,@GetRacialHexResistance);
+      
+      return bound(piHexResistance+iArcaneKnowledgeRes+iHermitageRes+iGearResistance+iBindingSongRes+iRacialRes,-200,200);
    }
 
    GetCasterMaxHexes()
