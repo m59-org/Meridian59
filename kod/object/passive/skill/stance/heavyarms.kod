@@ -104,15 +104,7 @@ messages:
 
    MasteryModifyDamage(who=$,damage=0)
    {
-      local iHeavyArmsAbility, iStat, iReduction;
-
-      iHeavyArmsAbility = Send(who,@GetSkillAbility,#skill_num=viSkill_num);
-      iStat = Send(self,@GetRequisiteStat,#who=who);
-      
-      % 50 + 50 at most.
-      iReduction = (iHeavyArmsAbility+1)/2 + iStat/2;
-      
-      return (damage * (100 - iReduction))/100;
+      return (damage * (100 - (Send(self,@GetRequisiteStat,#who=who)/10)))/100;
    }
 
 end
