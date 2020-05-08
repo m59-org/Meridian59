@@ -113,6 +113,19 @@ resources:
    item_stats_hex_inc_effect_add = "%i%% increased hex effectiveness\n"
    item_stats_hex_resistance_add = "%i%% hex resistance\n"
    item_stats_minion_attack_speed = "%i%% increased minion attack speed\n"
+   item_thrust_rend_mod = "\n%i%% thrust resistance rending\n"
+   item_pierce_rend_mod = "\n%i%% pierce resistance rending\n"
+   item_slash_rend_mod = "\n%i%% slash resistance rending\n"
+   item_bludgeon_rend_mod = "\n%i%% bludgeon resistance rending\n"
+   item_fire_rend_mod = "\n%i%% fire resistance rending\n"
+   item_cold_rend_mod = "\n%i%% cold resistance rending\n"
+   item_shock_rend_mod = "\n%i%% shock resistance rending\n"
+   item_acid_rend_mod = "\n%i%% acid resistance rending\n"
+   item_holy_rend_mod = "\n%i%% holy resistance rending\n"
+   item_unholy_rend_mod = "\n%i%% unholy resistance rending\n"
+   item_illusion_rend_mod = "\n%i%% illusion resistance rending\n"
+   item_item_rend_mod = "\n%i%% weapon resistance rending\n"
+   item_magic_rend_mod = "\n%i%% magic resistance rending\n"
    enchanted_gear_indestructible = "\nThis enchanted %s is indestructible."
    enchanted_gear_plural_indestructible = "\nThese enchanted %s are indestructible."
    
@@ -359,9 +372,32 @@ messages:
 
       if Send(self,@GetMinionAttackSpeedMultiplier) <> 0
       {
-         AddPacket(4,system_rsc_template_23, 4,special_properties_header,
+         AddPacket(4,system_rsc_template_24, 4,special_properties_header,
                    4,item_stats_minion_attack_speed, 4,Send(self,@GetMinionAttackSpeedMultiplier));
          bFoundProperties = TRUE;
+      }
+
+      if Nth(Send(self,@GetRend),2) <> 0
+      {
+         if NOT bFoundProperties
+         {
+            AddPacket(4,system_rsc_template_23, 4,special_properties_header);
+            bFoundProperties = TRUE;
+         }
+
+         switch(Nth(Send(self,@GetRend),1))
+         {
+            case ATCK_WEAP_THRUST:
+               AddPacket(4,item_thrust_rend_mod, 4,Nth(Send(self,@GetRend),2));
+               break;
+            case -ATCK_SPELL_SHOCK:
+               AddPacket(4,item_shock_rend_mod, 4,Nth(Send(self,@GetRend),2));
+               break;
+         }
+      }
+      else if bFoundProperties
+      {
+         AddPacket(4,system_blank_resource);
       }
 
       if Send(self,@GetCurrentSlayers) <> $
