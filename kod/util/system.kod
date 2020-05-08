@@ -6888,6 +6888,20 @@ messages:
       
       plMagicMods = Cons(Create(&IndestructibleMod),plMagicMods);
       
+      plMagicMods = Cons(Create(&WeaponThrustRendMod),plMagicMods);
+      plMagicMods = Cons(Create(&WeaponPierceRendMod),plMagicMods);
+      plMagicMods = Cons(Create(&WeaponSlashRendMod),plMagicMods);
+      plMagicMods = Cons(Create(&WeaponBludgeonRendMod),plMagicMods);
+      plMagicMods = Cons(Create(&WeaponFireRendMod),plMagicMods);
+      plMagicMods = Cons(Create(&WeaponColdRendMod),plMagicMods);
+      plMagicMods = Cons(Create(&WeaponShockRendMod),plMagicMods);
+      plMagicMods = Cons(Create(&WeaponAcidRendMod),plMagicMods);
+      plMagicMods = Cons(Create(&WeaponHolyRendMod),plMagicMods);
+      plMagicMods = Cons(Create(&WeaponUnholyRendMod),plMagicMods);
+      plMagicMods = Cons(Create(&WeaponIllusionRendMod),plMagicMods);
+      plMagicMods = Cons(Create(&WeaponWeaponRendMod),plMagicMods);
+      plMagicMods = Cons(Create(&WeaponMagicRendMod),plMagicMods);
+      
       plMagicMods = Cons(Create(&FireEmpowermentMod),plMagicMods);
       plMagicMods = Cons(Create(&AcidEmpowermentMod),plMagicMods);
       plMagicMods = Cons(Create(&ShockEmpowermentMod),plMagicMods);
@@ -6961,6 +6975,23 @@ messages:
       % Here we store mod classifications for quick lookup.
       % This lets us avoid needlessly searching objects in rapid succession.
       % Cases like resistance lists would search far too many times.
+
+      if class = &WeaponThrustRendMod
+         OR class = &WeaponPierceRendMod
+         OR class = &WeaponSlashRendMod
+         OR class = &WeaponBludgeonRendMod
+         OR class = &WeaponFireRendMod
+         OR class = &WeaponColdRendMod
+         OR class = &WeaponShockRendMod
+         OR class = &WeaponAcidRendMod
+         OR class = &WeaponHolyRendMod
+         OR class = &WeaponUnholyRendMod
+         OR class = &WeaponIllusionRendMod
+         OR class = &WeaponWeaponRendMod
+         OR class = &WeaponMagicRendMod
+      {
+         return GROUP_REND;
+      }
 
       if class = &BludgeonResistanceMod
          OR class = &PierceResistanceMod

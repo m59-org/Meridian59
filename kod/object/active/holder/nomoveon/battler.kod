@@ -299,6 +299,10 @@ properties:
    
    % Attacked, Was attacked, cast on someone, was cast on someone
    piLastTimeInCombat = 0
+   
+   % What element does this battler naturally rend?
+   piRendType = 0
+   piRendAmount = 0
 
 messages:
 
@@ -627,7 +631,7 @@ messages:
    "which applies. Largest resistance plus worst weakness gives the modifier."
    {
       local j, iResType, iMaxRes, iMinRes, iResistance, resistance_list,
-         iWeaponResist, iMagicResist, iCombinedPrimaryResist, iFinalRes, bEleZero;
+         iWeaponResist, iMagicResist, iCombinedPrimaryResist, iFinalRes, bEleZero, lRend;
 
       iMaxRes = NO_RESISTANCE;
       iMinRes = NO_RESISTANCE;
@@ -644,6 +648,12 @@ messages:
       }
       
       resistance_list = Send(self,@GetCurrentResistances);
+
+      lRend = [0,0];
+      if what <> $
+      {
+         lRend = Send(what,@GetRend,#victim=self,#resistance_list=resistance_list);
+      }
 
       if Send(SETTINGS_OBJECT,@GetDirectArmorEnabled)
       {
@@ -713,12 +723,22 @@ messages:
                AND atype <> 0
             {
                iWeaponResist = Nth(j,2);
+               
+               if (iResType & Nth(lRend,1)) <> 0
+               {
+                  iWeaponResist = iWeaponResist - Nth(lRend,2);
+               }
                continue;
             }
 
             if (atype & iResType) <> 0
             {
                iResistance = Nth(j,2);
+               
+               if (iResType & Nth(lRend,1)) <> 0
+               {
+                  iResistance = iResistance - Nth(lRend,2);
+               }
 
                if iResistance > iMaxRes
                {
@@ -740,12 +760,22 @@ messages:
                AND aspell <> 0
             {
                iMagicResist = Nth(j,2);
+               
+               if (iResType & Nth(lRend,1)) <> 0
+               {
+                  iMagicResist = iMagicResist - Nth(lRend,2);
+               }
                continue;
             }
             
             if (aspell & iResType) <> 0
             {
                iResistance = Nth(j,2);
+               
+               if (iResType & Nth(lRend,1)) <> 0
+               {
+                  iResistance = iResistance - Nth(lRend,2);
+               }
 
                if bEleZero
                   AND (iResType = ATCK_SPELL_SHOCK
@@ -3727,6 +3757,95 @@ messages:
    GetLastTimeInCombat()
    {
       return piLastTimeInCombat;
+   }
+   
+   GetRend(victim=$, resistance_list=$)
+   {
+      local oHex, lResistanceTest, lRend, iRendType, iRendAmount;
+
+      if IsClass(self,&Monster)
+      {
+         iRendType = piRendType;
+         iRendAmount = piRendAmount;
+         
+         % Rend can never reduce below zero
+         iRendAmount = Send(self,@CapRendToResist,#iRendType=iRendType,#iRendAmount=iRendAmount,#resistance_list=resistance_list);
+         
+         foreach oHex in Send(victim,@GetEnchantmentsByClass,#enchClass=&AntiResistanceHex)
+         {
+            if Send(Nth(oHex,2),@GetResistanceType) = iRendType
+            {
+               lResistanceTest = Send(Nth(oHex,2),@ModifyResistance,#resistance_list=[[iRendType,0]],#iState=Nth(oHex,3));
+               
+               if iRendAmount > abs(Nth(Nth(lResistanceTest,1),2))
+               {
+                  % Rends and hexes are mutually exclusive. If the rend is greater, use the difference.
+                  return [iRendType, iRendAmount - Nth(Nth(lResistanceTest,1),2)];
+               }
+               else
+               {
+                  return [0,0];
+               }
+            }
+         }
+         return [iRendType,iRendAmount];
+      }
+      else if IsClass(self,&Player)
+      {
+         lRend = [0,0];
+         if Send(self,@GetWeapon) <> $
+         {
+            lRend = Send(Send(self,@GetWeapon),@GetRend,#victim=victim);
+         }
+
+         iRendType = Nth(lRend,1);
+         iRendAmount = Nth(lRend,2);
+         
+         % Rend can never reduce below zero
+         iRendAmount = Send(self,@CapRendToResist,#iRendType=iRendType,#iRendAmount=iRendAmount,#resistance_list=resistance_list);
+
+         foreach oHex in Send(victim,@GetEnchantmentsByClass,#enchClass=&AntiResistanceHex)
+         {
+            if Send(Nth(oHex,2),@GetResistanceType) = iRendType
+            {
+               lResistanceTest = Send(Nth(oHex,2),@ModifyResistance,#resistance_list=[[iRendType,0]],#iState=Nth(oHex,3));
+               
+               if iRendAmount > abs(Nth(Nth(lResistanceTest,1),2))
+               {
+                  % Rends and hexes are mutually exclusive. If the rend is greater, use the difference.
+                  return [iRendType, iRendAmount - Nth(Nth(lResistanceTest,1),2)];
+               }
+               else
+               {
+                  return [0,0];
+               }
+            }
+         }
+         return [iRendType,iRendAmount];
+      }
+      return [0,0];
+   }
+   
+   CapRendToResist(iRendType=0, iRendAmount=0, resistance_list=$)
+   {
+      local lResist;
+      
+      foreach lResist in resistance_list
+      {
+         if Nth(lResist,1) = iRendType
+         {
+            if iRendAmount > Nth(lResist,2)
+            {
+               return Nth(lResist,2);
+            }
+            else
+            {
+               return iRendAmount;
+            }
+         }
+      }
+      
+      return iRendAmount;
    }
 
 end

@@ -1267,7 +1267,8 @@ messages:
               [&SlashEmpowermentMod,100],
               [&BludgeonEmpowermentMod,100],
               [&PierceEmpowermentMod,100],
-              [&WeaponEmpowermentMod,1]];
+              [&WeaponEmpowermentMod,1],
+              [&WeaponThrustRendMod,5000]];
    }
    
    GetSuffixes()
@@ -1342,6 +1343,24 @@ messages:
          return MM_PROC_WEAPON;
       }
       return MM_NONE;
+   }
+
+   GetRend(victim=$)
+   {
+      local oRendMod, lRend, i;
+      
+      lRend = [0,0];
+      
+      foreach i in plEnchantmentMods
+      {
+         if Send(SYS,@GetGroupOfClassMod,#class=Nth(i,1)) = GROUP_REND
+         {
+            oRendMod = Send(SYS,@GetMagicMod,#class=Nth(i,1));
+            lRend = Send(oRendMod,@GetRend,#iState=Nth(i,2));
+         }
+      }
+
+      return lRend;
    }
 
 end

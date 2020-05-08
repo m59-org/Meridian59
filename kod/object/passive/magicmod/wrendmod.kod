@@ -1,0 +1,55 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+WeaponRendMod is MagicMod
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+classvars:
+
+   viModType = MOD_PREFIX
+   viModGroup = GROUP_REND
+
+   viModRangeMin = 1
+   viModRangeMax = 30
+   
+   viPowerDivisor = 10
+
+   viResistanceType = 0
+
+properties:
+
+   piNumerator = 1
+   piDivisor = 1
+
+messages:
+
+   GetRend(iState=0)
+   {
+      local iDivisor;
+      
+      if piDivisor = 0
+      {
+         iDivisor = 1;
+      }
+      else
+      {
+         iDivisor = piDivisor;
+      }
+      
+      return [viResistanceType,(iState*piNumerator)/iDivisor];
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
