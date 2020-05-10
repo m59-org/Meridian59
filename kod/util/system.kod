@@ -342,7 +342,7 @@ resources:
    undead_slayer_type_name = "increased damage to undead creatures"
    humanoid_slayer_type_name = "increased damage to humanoid creatures"
    intelligent_slayer_type_name = "increased damage to intelligent creatures"
-   elemental_slayer_type_name = "increased damage to elementals"
+   elemental_slayer_type_name = "increased damage to elemental creatures"
    shock_slayer_type_name = "increased damage to shock creatures"
    air_slayer_type_name = "increased damage to air creatures"
    magical_slayer_type_name = "increased damage to magical creatures"
@@ -6885,6 +6885,9 @@ messages:
       plMagicMods = Cons(Create(&KriipaSlayerMod),plMagicMods);
       plMagicMods = Cons(Create(&MagicalSlayerMod),plMagicMods);
       plMagicMods = Cons(Create(&AirSlayerMod),plMagicMods);
+      plMagicMods = Cons(Create(&PlantSlayerMod),plMagicMods);
+      plMagicMods = Cons(Create(&ElementalSlayerMod),plMagicMods);
+      plMagicMods = Cons(Create(&HumanoidSlayerMod),plMagicMods);
       
       plMagicMods = Cons(Create(&IndestructibleMod),plMagicMods);
       
@@ -7110,6 +7113,9 @@ messages:
          OR class = &KriipaSlayerMod
          OR class = &AirSlayerMod
          OR class = &MagicalSlayerMod
+         OR class = &ElementalSlayerMod
+         OR class = &PlantSlayerMod
+         OR class = &HumanoidSlayerMod
       {
          return GROUP_SLAYER;
       }
@@ -7120,6 +7126,98 @@ messages:
       }
 
       return $;
+   }
+   
+   GetModPrefixes(oItem=$)
+   {
+      local lPrefixes;
+
+      lPrefixes = $;
+      
+      if IsClass(oItem,&Weapon)
+      {
+         lPrefixes = Cons([&WeaponThrustRendMod,100],lPrefixes);
+         lPrefixes = Cons([&WeaponBludgeonRendMod,100],lPrefixes);
+         lPrefixes = Cons([&WeaponSlashRendMod,100],lPrefixes);
+         lPrefixes = Cons([&WeaponPierceRendMod,100],lPrefixes);
+         lPrefixes = Cons([&ThrustEmpowermentMod,100],lPrefixes);
+         lPrefixes = Cons([&SlashEmpowermentMod,100],lPrefixes);
+         lPrefixes = Cons([&BludgeonEmpowermentMod,100],lPrefixes);
+         lPrefixes = Cons([&PierceEmpowermentMod,100],lPrefixes);
+
+         if IsClass(oItem,&RangedWeapon)
+         {
+            lPrefixes = Cons([&RangedOffenseMod,150],lPrefixes);
+            lPrefixes = Cons([&KriipaSlayerMod,250],lPrefixes);
+            lPrefixes = Cons([&WeaponEmpowermentMod,1],lPrefixes);
+            
+            if IsClass(oItem,&NeruditeBow)
+            {
+               lPrefixes = Cons([&ElementalSlayerMod,50],lPrefixes);
+            }
+            else if IsClass(oItem,&MagicBow)
+            {
+               lPrefixes = Cons([&MagicalSlayerMod,50],lPrefixes);
+               lPrefixes = Cons([&IndestructibleMod,50],lPrefixes);
+            }
+         }
+         else
+         {
+            lPrefixes = Cons([&OffenseMod,150],lPrefixes);
+            lPrefixes = Cons([&WeaponDamageMod,100],lPrefixes);
+            
+            if IsClass(oItem,&Hammer)
+            {
+               lPrefixes = Cons([&SkeletonSlayerMod,200],lPrefixes);
+            }
+            
+            if IsClass(oItem,&Mace)
+            {
+               lPrefixes = Cons([&ZombieSlayerMod,200],lPrefixes);
+            }
+            
+            if IsClass(oItem,&Axe)
+            {
+               lPrefixes = Cons([&PlantSlayerMod,120],lPrefixes);
+            }
+            
+            if IsClass(oItem,&Scimitar)
+            {
+               lPrefixes = Cons([&HumanoidSlayerMod,25],lPrefixes);
+            }
+            
+            if IsClass(oItem,&NeruditeSword)
+            {
+               lPrefixes = Cons([&ElementalSlayerMod,50],lPrefixes);
+            }
+            
+            if IsClass(oItem,&CasterMace)
+               OR IsClass(oItem,&Scepter)
+            {
+               lPrefixes = Cons([&ManaMod,300],lPrefixes);
+               lPrefixes = Cons([&VigorMod,200],lPrefixes);
+               lPrefixes = Cons([&CharmEmpowermentMod,50],lPrefixes);
+               lPrefixes = Cons([&FireEmpowermentMod,100],lPrefixes);
+               lPrefixes = Cons([&ColdEmpowermentMod,100],lPrefixes);
+               lPrefixes = Cons([&AcidEmpowermentMod,100],lPrefixes);
+               lPrefixes = Cons([&ShockEmpowermentMod,100],lPrefixes);
+               lPrefixes = Cons([&MagicEmpowermentMod,1],lPrefixes);
+            }
+            
+            if IsClass(oItem,&Scepter)
+            {
+               lPrefixes = Cons([&MinionAttackSpeedMod,500],lPrefixes);
+               lPrefixes = Cons([&InsectSlayerMod,100],lPrefixes);
+            }
+            
+            if IsClass(oItem,&SpiritualHammer)
+               OR IsClass(oItem,&HunterSword)
+            {
+               lPrefixes = Cons([&UnholySlayerMod,500],lPrefixes);
+            }
+         }
+      }
+      return lPrefixes;
    }
 
    UnMeldAllPlayers(node_num=0)

@@ -11,6 +11,9 @@ BOFS = insectslayer.bof \
        unholyslayer.bof \
        kriipaslayer.bof \
        airslayer.bof \
-       magicalslayer.bof
+       magicalslayer.bof \
+       plantslayer.bof \
+       elementalslayer.bof \
+       humanoidslayer.bof
 
 !include $(KODDIR)\kod.mak

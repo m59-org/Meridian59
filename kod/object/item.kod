@@ -144,6 +144,9 @@ resources:
    weapon_illusion_rend_mod = "\n%i%% illusion resistance rending"
    weapon_weapon_rend_mod = "\n%i%% weapon resistance rending"
    weapon_magic_rend_mod = "\n%i%% magic resistance rending"
+   plant_slayer_mod = "\n%i%% increased damage to plants"
+   elemental_slayer_mod = "\n%i%% increased damage to elemental creatures"
+   humanoid_slayer_mod = "\n%i%% increased damage to humanoids"
    magical_slayer_mod = "\n%i%% increased damage to magical creatures"
    air_slayer_mod = "\n%i%% increased damage to air creatures"
    kriipa_slayer_mod = "\n%i%% increased damage to kriipas"
@@ -4231,6 +4234,18 @@ messages:
          else if First(lMod) = &MagicalSlayerMod
          {
             AddPacket(4,magical_slayer_mod, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
+         else if First(lMod) = &PlantSlayerMod
+         {
+            AddPacket(4,plant_slayer_mod, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
+         else if First(lMod) = &ElementalSlayerMod
+         {
+            AddPacket(4,elemental_slayer_mod, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
+         }
+         else if First(lMod) = &HumanoidSlayerMod
+         {
+            AddPacket(4,humanoid_slayer_mod, 4, Send(Send(SYS,@GetMagicMod,#class=First(lMod)),@GetNumber,#iPower=Nth(lMod,2)));
          }
          else if First(lMod) = &IndestructibleMod
          {
