@@ -380,7 +380,8 @@ messages:
          bFoundProperties = TRUE;
       }
 
-      if Nth(Send(self,@GetRend),2) <> 0
+      if IsClass(self,&Weapon)
+         AND Nth(Send(self,@GetRend),2) <> 0
       {
          if NOT bFoundProperties
          {
@@ -3843,7 +3844,7 @@ messages:
 
    GetPrefixes()
    {
-      return $;
+      return Send(SYS,@GetModPrefixes,#oItem=self);
    }
 
    GetSuffixes()

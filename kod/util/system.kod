@@ -7217,7 +7217,94 @@ messages:
             }
          }
       }
+      else if IsClass(oItem,&DefenseModifier)
+      {
+         lPrefixes = Cons([&DefenseMod,100],lPrefixes);
+         lPrefixes = Cons([&VigorMod,300],lPrefixes);
+         
+         if IsClass(oItem,&RobeBase)
+         {
+            lPrefixes = Cons([&ManaMod,600],lPrefixes);
+         }
+         else
+         {
+            lPrefixes = Cons([&ArmorMod,100],lPrefixes);
+            lPrefixes = Cons([&HealthMod,50],lPrefixes);
+            lPrefixes = Cons([&ManaMod,100],lPrefixes);
+         }
+
+         if IsClass(oItem,&Circlet)
+            OR IsClass(oItem,&DiscipleRobe)
+         {
+            lPrefixes = Cons([&ColdEmpowermentMod,100],lPrefixes);
+            lPrefixes = Cons([&FireEmpowermentMod,100],lPrefixes);
+            lPrefixes = Cons([&ShockEmpowermentMod,100],lPrefixes);
+            lPrefixes = Cons([&AcidEmpowermentMod,100],lPrefixes);
+         }
+         else if IsClass(oItem,&IvyCirclet)
+         {
+            lPrefixes = Cons([&HolyEmpowermentMod,100],lPrefixes);
+         }
+      }
+      else if IsClass(oItem,&Gauntlet)
+      {
+         lPrefixes = Cons([&DefenseMod,100],lPrefixes);
+         lPrefixes = Cons([&OffenseMod,100],lPrefixes);
+         lPrefixes = Cons([&WeaponDamageMod,100],lPrefixes);
+         lPrefixes = Cons([&ManaMod,200],lPrefixes);
+         lPrefixes = Cons([&VigorMod,300],lPrefixes);
+         
+         if IsClass(oItem,&Glove)
+         {
+            lPrefixes = Cons([&AcidEmpowermentMod,100],lPrefixes);
+            lPrefixes = Cons([&ShockEmpowermentMod,100],lPrefixes);
+            lPrefixes = Cons([&FireEmpowermentMod,100],lPrefixes);
+            lPrefixes = Cons([&ColdEmpowermentMod,100],lPrefixes);
+         }
+         else
+         {
+            lPrefixes = Cons([&BludgeonEmpowermentMod,100],lPrefixes);
+            lPrefixes = Cons([&ThrustEmpowermentMod,100],lPrefixes);
+            lPrefixes = Cons([&PierceEmpowermentMod,100],lPrefixes);
+            lPrefixes = Cons([&PunchEmpowermentMod,300],lPrefixes);
+            lPrefixes = Cons([&SlashEmpowermentMod,100],lPrefixes);
+         }
+      }
+      else if IsClass(oItem,&Ring)
+      {
+         lPrefixes = Cons([&OffenseMod,100],lPrefixes);
+         lPrefixes = Cons([&WeaponDamageMod,100],lPrefixes);
+         lPrefixes = Cons([&PunchEmpowermentMod,100],lPrefixes);
+         
+         if NOT IsClass(oItem,&BerserkerRing)
+         {
+            lPrefixes = Cons([&DefenseMod,100],lPrefixes);
+            lPrefixes = Cons([&ManaMod,100],lPrefixes);
+            lPrefixes = Cons([&VigorMod,100],lPrefixes);
+            lPrefixes = Cons([&FireEmpowermentMod,100],lPrefixes);
+            lPrefixes = Cons([&AcidEmpowermentMod,100],lPrefixes);
+            lPrefixes = Cons([&ColdEmpowermentMod,100],lPrefixes);
+            lPrefixes = Cons([&ShockEmpowermentMod,100],lPrefixes);
+            lPrefixes = Cons([&MagicEmpowermentMod,1],lPrefixes);
+            lPrefixes = Cons([&ThrustEmpowermentMod,100],lPrefixes);
+            lPrefixes = Cons([&SlashEmpowermentMod,100],lPrefixes);
+            lPrefixes = Cons([&BludgeonEmpowermentMod,100],lPrefixes);
+            lPrefixes = Cons([&PierceEmpowermentMod,100],lPrefixes);
+            lPrefixes = Cons([&WeaponEmpowermentMod,1],lPrefixes);
+         }
+      }
+      
       return lPrefixes;
+   }
+   
+   GetModSuffixes(oItem=$)
+   {
+      local lSuffixes;
+      
+      lSuffixes = $;
+      
+      
+      return lSuffixes;
    }
 
    UnMeldAllPlayers(node_num=0)
