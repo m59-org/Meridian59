@@ -3799,6 +3799,20 @@ messages:
       return FALSE;
    }
 
+   HasMagicModOfGroup(group=GROUP_REND)
+   {
+      local i;
+      
+      foreach i in plEnchantmentMods
+      {
+         if Send(SYS,@GetGroupOfClassMod,#class=Nth(i,1)) = group
+         {
+            return TRUE;
+         }
+      }
+      return FALSE;
+   }
+
    RemoveMagicModOfClass(class=&ArmorMod)
    {
       local i;
@@ -4377,6 +4391,24 @@ messages:
          }
       }
 
+      foreach i in lPrefixes
+      {
+         if Send(SYS,@GetGroupOfClassMod,#class=Nth(i,1)) = GROUP_REND
+            AND Send(oItem,@HasMagicModOfGroup,#group=Send(SYS,@GetGroupOfClassMod,#class=Nth(i,1)))
+         {
+            lPrefixes = DelListElem(lPrefixes,i);
+         }
+      }
+
+      foreach i in lSuffixes
+      {
+         if Send(SYS,@GetGroupOfClassMod,#class=Nth(i,1)) = GROUP_REND
+            AND Send(oItem,@HasMagicModOfGroup,#group=Send(SYS,@GetGroupOfClassMod,#class=Nth(i,1)))
+         {
+            lSuffixes = DelListElem(lSuffixes,i);
+         }
+      }
+
       if lPrefixes = $
          AND lSuffixes = $
       {
@@ -4399,6 +4431,7 @@ messages:
       }
 
       % We've removed all mods the item already has.
+      % We've removed all mods the item already has in terms of group restrictions.
       % We've removed all mods from bins the item is maxed out on.
       % Anything chosen now will be a mod the item doesn't have for a bin that is open.
       % Let's combine into a list for easy random selection.
