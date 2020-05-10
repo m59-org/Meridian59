@@ -124,7 +124,7 @@ resources:
    item_holy_rend_mod = "\n%i%% holy resistance rending\n"
    item_unholy_rend_mod = "\n%i%% unholy resistance rending\n"
    item_illusion_rend_mod = "\n%i%% illusion resistance rending\n"
-   item_item_rend_mod = "\n%i%% weapon resistance rending\n"
+   item_weapon_rend_mod = "\n%i%% weapon resistance rending\n"
    item_magic_rend_mod = "\n%i%% magic resistance rending\n"
    enchanted_gear_indestructible = "\nThis enchanted %s is indestructible."
    enchanted_gear_plural_indestructible = "\nThese enchanted %s are indestructible."
@@ -390,8 +390,41 @@ messages:
             case ATCK_WEAP_THRUST:
                AddPacket(4,item_thrust_rend_mod, 4,Nth(Send(self,@GetRend),2));
                break;
+            case ATCK_WEAP_SLASH:
+               AddPacket(4,item_slash_rend_mod, 4,Nth(Send(self,@GetRend),2));
+               break;
+            case ATCK_WEAP_PIERCE:
+               AddPacket(4,item_pierce_rend_mod, 4,Nth(Send(self,@GetRend),2));
+               break;
+            case ATCK_WEAP_BLUDGEON:
+               AddPacket(4,item_bludgeon_rend_mod, 4,Nth(Send(self,@GetRend),2));
+               break;
+            case ATCK_WEAP_ALL:
+               AddPacket(4,item_weapon_rend_mod, 4,Nth(Send(self,@GetRend),2));
+               break;
+            case -ATCK_SPELL_FIRE:
+               AddPacket(4,item_fire_rend_mod, 4,Nth(Send(self,@GetRend),2));
+               break;
+            case -ATCK_SPELL_COLD:
+               AddPacket(4,item_cold_rend_mod, 4,Nth(Send(self,@GetRend),2));
+               break;
             case -ATCK_SPELL_SHOCK:
                AddPacket(4,item_shock_rend_mod, 4,Nth(Send(self,@GetRend),2));
+               break;
+            case -ATCK_SPELL_ACID:
+               AddPacket(4,item_acid_rend_mod, 4,Nth(Send(self,@GetRend),2));
+               break;
+            case -ATCK_SPELL_HOLY:
+               AddPacket(4,item_holy_rend_mod, 4,Nth(Send(self,@GetRend),2));
+               break;
+            case -ATCK_SPELL_UNHOLY:
+               AddPacket(4,item_unholy_rend_mod, 4,Nth(Send(self,@GetRend),2));
+               break;
+            case -ATCK_SPELL_ILLUSION:
+               AddPacket(4,item_illusion_rend_mod, 4,Nth(Send(self,@GetRend),2));
+               break;
+            case -ATCK_SPELL_ALL:
+               AddPacket(4,item_magic_rend_mod, 4,Nth(Send(self,@GetRend),2));
                break;
          }
       }

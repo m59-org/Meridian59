@@ -164,6 +164,10 @@ properties:
    piHitBonus = 0
 
    piUsed = UNUSED
+   
+   % Resistance rending type and amount
+   piBaseRendType = 0
+   piBaseRendAmount = 0
 
 messages:
 
@@ -1352,7 +1356,7 @@ messages:
    {
       local oRendMod, lRend, i;
       
-      lRend = [0,0];
+      lRend = [piBaseRendType,piBaseRendAmount];
       
       foreach i in plEnchantmentMods
       {
@@ -1360,6 +1364,12 @@ messages:
          {
             oRendMod = Send(SYS,@GetMagicMod,#class=Nth(i,1));
             lRend = Send(oRendMod,@GetRend,#iState=Nth(i,2));
+            
+            if Nth(lRend,1) = piBaseRendType
+            {
+               SetNth(lRend,2,Nth(lRend,2)+piBaseRendAmount);
+            }
+            break;
          }
       }
 
