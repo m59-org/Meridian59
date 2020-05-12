@@ -429,6 +429,12 @@ properties:
    piMagicChance = 40000
    piRareChance = 5000
    piEpicChance = 100
+   
+   % Coefficients for how much chance to evade and chance to hit agility and aim give
+   piAgilityEvadeNumerator = 1
+   piAgilityEvadeDivisor = 1
+   piAimHitNumerator = 1
+   piAimHitDivisor = 1
 
 messages:
 
@@ -1247,5 +1253,47 @@ messages:
       return piMagicChance;
    }
 
+   GetAgilityEvadeNumerator()
+   {
+      return piAgilityEvadeNumerator;
+   }
+   
+   GetAgilityEvadeDivisor()
+   {
+      local iEvadeDivisor;
+      
+      if piAgilityEvadeDivisor < 1
+      {
+         iEvadeDivisor = 1;
+      }
+      else
+      {
+         iEvadeDivisor = piAgilityEvadeDivisor;
+      }
+      
+      return iEvadeDivisor;
+   }
+   
+   GetAimHitNumerator()
+   {
+      return piAimHitNumerator;
+   }
+   
+   GetAimHitDivisor()
+   {
+      local iHitDivisor;
+      
+      if piAimHitDivisor < 1
+      {
+         iHitDivisor = 1;
+      }
+      else
+      {
+         iHitDivisor = piAimHitDivisor;
+      }
+      
+      return iHitDivisor;
+   }
+   
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

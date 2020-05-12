@@ -1149,8 +1149,8 @@ messages:
    TryAttack(what = $,stroke_obj=$)
    {
       local iOffense, iDefense, iChanceToHit, iDamage, iScalefactor, oWeapon,
-            iBackstabDamage, bDoingBackstab, iBeatThisCheck, iTumblePercentage,
-            iWeaponmasterPercentage;
+            iBackstabDamage, bDoingBackstab, iBeatThisCheck, iIncreasedEvadeChance,
+            iIncreasedHitChance;
       
       Send(what,@MarkLastTimeInCombat);
       Send(self,@MarkLastTimeInCombat);
@@ -1189,14 +1189,16 @@ messages:
          }
       }
       
-      iTumblePercentage = Send(Send(SYS,@FindSkillByNum,#num=SKID_TUMBLE),@GetTumblePercentage,#who=what,#what=self);
-      iWeaponmasterPercentage = Send(Send(SYS,@FindSkillByNum,#num=SKID_WEAPONMASTER),@GetWeaponmasterPercentage,#who=self,#what=what);
+      iIncreasedEvadeChance = Send(Send(SYS,@FindSkillByNum,#num=SKID_TUMBLE),@GetTumblePercentage,#who=what,#what=self)
+                              + (Send(what,@GetAgility)*Send(SETTINGS_OBJECT,@GetAgilityEvadeNumerator))/Send(SETTINGS_OBJECT,@GetAgilityEvadeDivisor);
+      iIncreasedHitChance = Send(Send(SYS,@FindSkillByNum,#num=SKID_WEAPONMASTER),@GetWeaponmasterPercentage,#who=self,#what=what)
+                            + (Send(self,@GetAim)*Send(SETTINGS_OBJECT,@GetAimHitNumerator))/Send(SETTINGS_OBJECT,@GetAimHitDivisor);
 
-      iChanceToHit = iChanceToHit + iWeaponmasterPercentage;
+      iChanceToHit = iChanceToHit + iIncreasedHitChance;
 
       iBeatThisCheck = Random(1,1000);
       if iChanceToHit >= iBeatThisCheck
-         AND iChanceToHit - iTumblePercentage < iBeatThisCheck
+         AND iChanceToHit - iIncreasedEvadeChance < iBeatThisCheck
       {
          % This attack would have worked if not for our tumble percentage
          if IsClass(what,&Player)
