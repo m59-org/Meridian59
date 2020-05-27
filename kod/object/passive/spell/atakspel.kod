@@ -26,6 +26,9 @@ resources:
    attack_spell_killed_self = "You killed yourself."
    attack_spell_killed_someone = "You killed %s%s%s."
    attack_spell_cast_rsc = "You cast the spell."
+   
+   you_tumbled = "You tumble to avoid taking damage from %s%s's %s!"
+   target_tumbled = "%s%s tumbles to avoid taking damage from your %s!"
 
 classvars:
 
@@ -226,6 +229,22 @@ messages:
          if IsClass(who,&Player)
          {
             Send(who,@SetKillTarget,#target=i);
+         }
+      
+         if IsClass(i,&Battler)
+         {
+            if Random(1,1000) <= Send(Send(SYS,@FindSkillByNum,#num=SKID_TUMBLE),@GetTumblePercentage,#who=who,#what=i)
+            {
+                % The target tumbled to avoid the spell damage!
+                Send(i,@MsgSendUser,#message_rsc=you_tumbled,#parm1=Send(who,@GetDef),#parm2=Send(who,@GetName),#parm3=Send(self,@GetName));
+                Send(who,@MsgSendUser,#message_rsc=target_tumbled,#parm1=Send(i,@GetCapDef),#parm2=Send(i,@GetName),#parm3=Send(self,@GetName));
+                
+                if IsClass(i,&Player)
+                {
+                   Send(Send(SYS,@FindSkillByNum,#num=SKID_TUMBLE),@ImproveAbility,#who=i);
+                }
+                continue;
+            }
          }
 
          % Earthquake needs to deal damage based on range from caster. Any

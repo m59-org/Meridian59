@@ -198,8 +198,8 @@ resources:
    bleeded_message = \
       "~BYou begin to bleed!"
 
-   tumble_success = "You tumble out of the way of %s%s's attack!"
-   enemy_tumbled = "%s%s tumbles out of the way of your attack!"
+   agility_evade_success = "You evade %s%s's attack!"
+   enemy_evade_agility = "%s%s evades your attack!"
 
 classvars:
 
@@ -1157,10 +1157,8 @@ messages:
 
       oWeapon = Send(self,@GetWeapon);
 
-      iOffense = Send(self,@GetOffense,#what=what,#stroke_obj=stroke_obj) 
-         + Send(SETTINGS_OBJECT,@GetBaseRating);
-      iDefense = Send(what,@GetDefense,#what=self,#stroke_obj=stroke_obj) 
-         + Send(SETTINGS_OBJECT,@GetBaseRating);
+      iOffense = Send(self,@GetOffense,#what=what,#stroke_obj=stroke_obj) + Send(SETTINGS_OBJECT,@GetBaseRating);
+      iDefense = Send(what,@GetDefense,#what=self,#stroke_obj=stroke_obj) + Send(SETTINGS_OBJECT,@GetBaseRating);
       iChanceToHit = iOffense * Send(SETTINGS_OBJECT,@GetEqualChanceToHit) / iDefense;
       iChanceToHit = bound(iChanceToHit,125,2000);
 
@@ -1184,15 +1182,29 @@ messages:
          {
             % Guaranteed hit if player fails active blocking and parrying.
             % Defense + active blocking would be way too strong.
-            % However, tumbling will still allow a chance to not get hit.
-            iChanceToHit = 1000;
+            iChanceToHit = 2000;
          }
       }
       
-      iIncreasedEvadeChance = Send(Send(SYS,@FindSkillByNum,#num=SKID_TUMBLE),@GetTumblePercentage,#who=what,#what=self)
-                              + (Send(what,@GetAgility)*Send(SETTINGS_OBJECT,@GetAgilityEvadeNumerator))/Send(SETTINGS_OBJECT,@GetAgilityEvadeDivisor);
-      iIncreasedHitChance = Send(Send(SYS,@FindSkillByNum,#num=SKID_WEAPONMASTER),@GetWeaponmasterPercentage,#who=self,#what=what)
-                            + (Send(self,@GetAim)*Send(SETTINGS_OBJECT,@GetAimHitNumerator))/Send(SETTINGS_OBJECT,@GetAimHitDivisor);
+      iIncreasedEvadeChance = (Send(what,@GetAgility)*Send(SETTINGS_OBJECT,@GetAgilityEvadeNumerator))/Send(SETTINGS_OBJECT,@GetAgilityEvadeDivisor);
+      iIncreasedHitChance = (Send(self,@GetAim)*Send(SETTINGS_OBJECT,@GetAimHitNumerator))/Send(SETTINGS_OBJECT,@GetAimHitDivisor);
+      
+      if IsClass(self,&Player)
+      {
+         if Send(self,@HasSkill,#num=SKID_WEAPONMASTER)
+         {
+            iIncreasedEvadeChance = Send(Send(SYS,@FindSkillByNum,#num=SKID_WEAPONMASTER),@ReduceEvadeChance,
+                                       #iChance=iIncreasedEvadeChance,#oDefender=what,#oAttacker=self);
+         }
+      }
+      if IsClass(what,&Player)
+      {
+         if Send(what,@HasSkill,#num=SKID_WEAPONMASTER)
+         {
+            iIncreasedHitChance = Send(Send(SYS,@FindSkillByNum,#num=SKID_WEAPONMASTER),@ReduceHitChance,
+                                       #iChance=iIncreasedHitChance,#oDefender=what,#oAttacker=self);
+         }
+      }
 
       iChanceToHit = iChanceToHit + iIncreasedHitChance;
 
@@ -1200,16 +1212,15 @@ messages:
       if iChanceToHit >= iBeatThisCheck
          AND iChanceToHit - iIncreasedEvadeChance < iBeatThisCheck
       {
-         % This attack would have worked if not for our tumble percentage
+         % This attack would have worked if not for our agility boost
          if IsClass(what,&Player)
          {
-            Send(what,@MsgSendUser,#message_rsc=tumble_success,#parm1=Send(self,@GetDef),#parm2=Send(self,@GetName));
-            Send(Send(SYS,@FindSkillByNum,#num=SKID_TUMBLE),@ImproveAbility,#who=what);
+            Send(what,@MsgSendUser,#message_rsc=agility_evade_success,#parm1=Send(self,@GetDef),#parm2=Send(self,@GetName));
          }
          Send(poOwner,@SomethingWaveRoom,#what=what,#wave_rsc=Send(what,@GetTumbleSound));
          if IsClass(self,&Player)
          {
-            Send(self,@MsgSendUser,#message_rsc=enemy_tumbled,#parm1=Send(what,@GetDef),#parm2=Send(what,@GetName));
+            Send(self,@MsgSendUser,#message_rsc=enemy_evade_agility,#parm1=Send(what,@GetDef),#parm2=Send(what,@GetName));
          }
          return FALSE;
       }

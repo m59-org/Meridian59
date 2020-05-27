@@ -20,15 +20,18 @@ resources:
    Weaponmaster_name_rsc = "weapon mastery"
    Weaponmaster_icon_rsc = fenceico.bgf
    Weaponmaster_desc_rsc = \
-      "Career knights endure many campaigns, not all of which "
-      "are well supplied. Sometimes, combat comes down to "
-      "fighting with whatever makeshift weapons are on hand, "
-      "so grizzled veterans come to feel at home with any instrument "
-      "of violence. "
-      "In extreme cases, veteran knights have even been known to "
-      "resort to touch spells."
-      "\n\nWeapon masters have improved chance to hit with "
-      "all weapons and touch spells. The smarter the knight, the better the acquired career skills."
+      "Career knights endure campaigns against enemies "
+      "of many cultures. Experience teaches grizzled veterans that true "
+      "mastery of weapons comes from a choice of style that juxtaposes "
+      "that of the enemy. "
+      "\n\nIf a weapon master has chosen the correct style against his "
+      "opponent, he can mitigate the effects of their "
+      "natural agility and aim by up to half."
+      "\n\nGenerally, scimitars have the advantage against fencing weapons."
+      "\nFencing weapons have the advantage against axes."
+      "\nAxes have the advantage against daggers."
+      "\nDaggers have the advantage against hammers."
+      "\nHammers have the advantage against scimitars."
 
 classvars:
 
@@ -50,7 +53,7 @@ classvars:
 
    vbAutomatic = TRUE
    
-   viPrimaryStat = STAT_ID_INTELLECT
+   viPrimaryStat = STAT_ID_STAMINA
    viSecondaryStat = 0
 
 properties:
@@ -59,39 +62,133 @@ messages:
 
    GetRequisiteStat(who=$)
    {
-      return Send(who,@GetIntellect);
+      return Send(who,@GetStamina);
    }
 
-   GetWeaponmasterPercentage(who=$,what=$)
+   ReduceEvadeChance(iChance=0, oDefender=$, oAttacker=$)
    {
-      local iStat, iAbility;
+      local iStat, iAbility, oAttackerWeapon, oDefenderWeapon, bAdvantage,
+            iAttackerProf, iDefenderProf;
       
-      if IsClass(who,&Monster)
-      {
-         % No monster weaponmasters... for now
-         return 0;
-      }
-      
-      iStat = Send(self,@GetRequisiteStat,#who=who);
-      iAbility = Send(who,@GetSkillAbility,#skill_num=viSkill_num);
+      iStat = Send(self,@GetRequisiteStat,#who=oAttacker);
+      iAbility = Send(oAttacker,@GetSkillAbility,#skill_num=viSkill_num);
          
       if iAbility = 0
       {
-         % Player does not have the skill!
+         % Attacker does not have the skill!
          return 0;
       }
 
-      if Send(who,@GetWeapon) = $
+      oAttackerWeapon = Send(oAttacker,@GetWeapon);
+      oDefenderWeapon = Send(oDefender,@GetWeapon);
+      
+      if oAttackerWeapon = $
+         OR oDefenderWeapon = $
       {
-         % Does not help punch, but touch spells aren't $
+         return iChance;
+      }
+
+      iAttackerProf = Send(oAttackerWeapon,@GetProfNumber);
+      iDefenderProf = Send(oDefenderWeapon,@GetProfNumber);
+      
+      bAdvantage = FALSE;
+      if iAttackerProf = SKID_PROFICIENCY_SCIMITAR
+         AND iDefenderProf = SKID_PROFICIENCY_SWORD
+      {
+         bAdvantage = TRUE;
+      }
+      else if iAttackerProf = SKID_PROFICIENCY_SWORD
+         AND iDefenderProf = SKID_PROFICIENCY_AXE
+      {
+         bAdvantage = TRUE;
+      }
+      else if iAttackerProf = SKID_PROFICIENCY_AXE
+         AND iDefenderProf = SKID_PROFICIENCY_DAGGER
+      {
+         bAdvantage = TRUE;
+      }
+      else if iAttackerProf = SKID_PROFICIENCY_DAGGER
+         AND iDefenderProf = SKID_PROFICIENCY_HAMMER
+      {
+         bAdvantage = TRUE;
+      }
+      else if iAttackerProf = SKID_PROFICIENCY_HAMMER
+         AND iDefenderProf = SKID_PROFICIENCY_SCIMITAR
+      {
+         bAdvantage = TRUE;
+      }
+      
+      if bAdvantage
+      {
+         iChance = (iChance * (100 - ((iAbility+1)/4) - (iStat/4)))/100;
+
+         Send(self,@ImproveAbility,#who=oAttacker);  
+      }
+      
+      return iChance;
+   }
+
+   ReduceHitChance(iChance=0, oDefender=$, oAttacker=$)
+   {
+      local iStat, iAbility, oAttackerWeapon, oDefenderWeapon, bAdvantage,
+            iAttackerProf, iDefenderProf;
+      
+      iStat = Send(self,@GetRequisiteStat,#who=oDefender);
+      iAbility = Send(oDefender,@GetSkillAbility,#skill_num=viSkill_num);
+         
+      if iAbility = 0
+      {
+         % Attacker does not have the skill!
          return 0;
       }
 
-      Send(self,@ImproveAbility,#who=who);  
+      oAttackerWeapon = Send(oAttacker,@GetWeapon);
+      oDefenderWeapon = Send(oDefender,@GetWeapon);
+      
+      if oAttackerWeapon = $
+         OR oDefenderWeapon = $
+      {
+         return iChance;
+      }
 
-      % up to 100 from ability and up to another 100 from Intellect
-      % This adds directly to to hit, meaning 20% chance to land an attack
-      return iAbility + 1 + iStat;
+      iAttackerProf = Send(oAttackerWeapon,@GetProfNumber);
+      iDefenderProf = Send(oDefenderWeapon,@GetProfNumber);
+      
+      bAdvantage = FALSE;
+      if iDefenderProf = SKID_PROFICIENCY_SCIMITAR
+         AND iAttackerProf = SKID_PROFICIENCY_SWORD
+      {
+         bAdvantage = TRUE;
+      }
+      else if iDefenderProf = SKID_PROFICIENCY_SWORD
+         AND iAttackerProf = SKID_PROFICIENCY_AXE
+      {
+         bAdvantage = TRUE;
+      }
+      else if iDefenderProf = SKID_PROFICIENCY_AXE
+         AND iAttackerProf = SKID_PROFICIENCY_DAGGER
+      {
+         bAdvantage = TRUE;
+      }
+      else if iDefenderProf = SKID_PROFICIENCY_DAGGER
+         AND iAttackerProf = SKID_PROFICIENCY_HAMMER
+      {
+         bAdvantage = TRUE;
+      }
+      else if iDefenderProf = SKID_PROFICIENCY_HAMMER
+         AND iAttackerProf = SKID_PROFICIENCY_SCIMITAR
+      {
+         bAdvantage = TRUE;
+      }
+      
+      if bAdvantage
+      {
+         iChance = (iChance * (100 - ((iAbility+1)/4) - (iStat/4)))/100;
+
+         Send(self,@ImproveAbility,#who=oDefender);  
+      }
+      
+      return iChance;
    }
 
 end
