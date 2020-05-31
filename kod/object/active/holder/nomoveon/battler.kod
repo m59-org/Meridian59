@@ -1286,7 +1286,7 @@ messages:
             #scalefactor=iScalefactor,#precision=TRUE,
             #damaging_now=TRUE,#bDoingBackstab=bDoingBackstab);
 
-         Send(self,@AssessHit,#what=what,#stroke_obj=stroke_obj,#damage=iDamage,#iChanceToHit=iChanceToHit);
+         Send(self,@AssessHit,#what=what,#stroke_obj=stroke_obj,#damage=iDamage,#iChanceToHit=Bound(iChanceToHit,0,1000));
 
          if iDamage = $
          {
@@ -1300,7 +1300,7 @@ messages:
       else
       {
          % Oops, a miss.  See if something happens.
-         Send(self,@AssessMiss,#what=what,#stroke_obj=stroke_obj,#iChanceToHit=iChanceToHit);
+         Send(self,@AssessMiss,#what=what,#stroke_obj=stroke_obj,#iChanceToHit=Bound(iChanceToHit,0,1000));
       }
 
       if poOwner <> $
