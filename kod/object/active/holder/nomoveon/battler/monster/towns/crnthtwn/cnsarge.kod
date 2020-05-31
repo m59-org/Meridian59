@@ -27,6 +27,8 @@ resources:
       "sword are famous and unparalleled as is his love for a good drink."
       "\n\nIf you are a student with room to grow, he may help you improve "
       "your might if you ask him to 'train' you."
+      "\n\nIf you would like to see your chance to hit when you are in combat, "
+      "ask him to 'evaluate' you. Ask him again to no longer receive those messages."
 
    CnSer_forget_potion_sale = \
       "Good, no self-respecting warrior shares company with those "
@@ -54,6 +56,11 @@ resources:
    teach_might_msg = \
       "Warrior, this training is simple. Step over there and lift this heavy weight "
       "many times in succession. When you are done, wait a spell, then do it again ten more times."
+
+   turn_on_chance_to_hit_msg = \
+      "To truly master a weapon, a warrior must evaluate his ~Iown~I abilities with a keen eye."
+   turn_off_chance_to_hit_msg = \
+      "When you have truly mastered a weapon, have confidence in your own ability."
 
 classvars:
 
@@ -217,6 +224,26 @@ messages:
          else
          {
             Send(self,@SayToOne,#target=what,#message_rsc=cannot_train_might_msg);
+         }
+         return;
+      }
+
+      if what <> $
+         AND IsClass(what,&User)
+         AND StringContain(string,"evaluate")
+      {
+         
+         iResult = Send(what,@GetDisplayChanceToHit);
+
+         if iResult
+         {
+            Send(self,@SayToOne,#target=what,#message_rsc=turn_off_chance_to_hit_msg);
+            Send(what,@SetDisplayChanceToHit,#value=FALSE);
+         }
+         else
+         {
+            Send(self,@SayToOne,#target=what,#message_rsc=turn_on_chance_to_hit_msg);
+            Send(what,@SetDisplayChanceToHit,#value=TRUE);
          }
          return;
       }

@@ -47,12 +47,14 @@ resources:
 
    battler_attacker_hit = "%sYour %s %s %s%s%s for ~k~B%i~B%s damage."
    battler_attacker_slay = "%sYour %s %s %s%s%s."
-   battler_attacker_miss = "%sYour attack %s %s%s%s."
+   battler_attacker_miss = "%sYour attack %s %s%s%s. %i\%"
    battler_attacker_fail = "%sYour %s %s %s%s%s, failing to cause any real harm."
    battler_defender_hit = "%s%s%s%s's %s %s you for ~r~B%i~B%s damage."
    battler_defender_slay = "%s%s%s%s's %s %s you."
    battler_defender_miss = "%s%s%s%s's attack %s you."
    battler_defender_fail = "%s%s%s%s's %s %s you, failing to cause any real harm."
+   
+   battler_chance_to_hit_was = "Your chance to hit was %i\%."
 
    battler_punch = "punch"
    battler_attack = "attack"
@@ -306,6 +308,9 @@ properties:
    
    % How much hex boost does the battler get?
    piIncHexEffect = 0
+   
+   % Show them their chance to hit?
+   pbDisplayChanceToHit = FALSE
 
 messages:
 
@@ -1189,8 +1194,8 @@ messages:
          }
       }
       
-      iIncreasedEvadeChance = (Send(what,@GetAgility)*Send(SETTINGS_OBJECT,@GetAgilityEvadeNumerator))/Send(SETTINGS_OBJECT,@GetAgilityEvadeDivisor);
-      iIncreasedHitChance = (Send(self,@GetAim)*Send(SETTINGS_OBJECT,@GetAimHitNumerator))/Send(SETTINGS_OBJECT,@GetAimHitDivisor);
+      iIncreasedEvadeChance = (Send(what,@GetAgility)*10*Send(SETTINGS_OBJECT,@GetAgilityEvadeNumerator))/Send(SETTINGS_OBJECT,@GetAgilityEvadeDivisor);
+      iIncreasedHitChance = (Send(self,@GetAim)*10*Send(SETTINGS_OBJECT,@GetAimHitNumerator))/Send(SETTINGS_OBJECT,@GetAimHitDivisor);
       
       if IsClass(self,&Player)
       {
@@ -1223,7 +1228,7 @@ messages:
          Send(poOwner,@SomethingWaveRoom,#what=what,#wave_rsc=Send(what,@GetTumbleSound));
          if IsClass(self,&Player)
          {
-            Send(self,@MsgSendUser,#message_rsc=enemy_evade_agility,#parm1=Send(what,@GetDef),#parm2=Send(what,@GetName));
+            Send(self,@MsgSendUser,#message_rsc=enemy_evade_agility,#parm1=Send(what,@GetCapDef),#parm2=Send(what,@GetName));
          }
          return FALSE;
       }
@@ -1281,7 +1286,7 @@ messages:
             #scalefactor=iScalefactor,#precision=TRUE,
             #damaging_now=TRUE,#bDoingBackstab=bDoingBackstab);
 
-         Send(self,@AssessHit,#what=what,#stroke_obj=stroke_obj,#damage=iDamage);
+         Send(self,@AssessHit,#what=what,#stroke_obj=stroke_obj,#damage=iDamage,#iChanceToHit=iChanceToHit);
 
          if iDamage = $
          {
@@ -1295,7 +1300,7 @@ messages:
       else
       {
          % Oops, a miss.  See if something happens.
-         Send(self,@AssessMiss,#what=what,#stroke_obj=stroke_obj);
+         Send(self,@AssessMiss,#what=what,#stroke_obj=stroke_obj,#iChanceToHit=iChanceToHit);
       }
 
       if poOwner <> $
@@ -1884,7 +1889,7 @@ messages:
       return 0;
    }
 
-   AssessHit(what = $, stroke_obj = $, damage = $, use_weapon=$)
+   AssessHit(what = $, stroke_obj = $, damage = $, use_weapon=$, iChanceToHit=0)
    "This does the fallout of a hit, gives appropriate message, etc.  "
    "Called on self when hit opponent."
    {
@@ -1994,6 +1999,11 @@ messages:
                #parm1=rColor,#parm2=rWeaponName,#parm3=rDamageDesc,
                #parm4=Send(what,@GetDef),#parm5=Send(what,@GetChampString),
                #parm6=Send(what,@GetName));
+                  
+               if pbDisplayChanceToHit
+               {
+                  Send(self,@MsgSendUser,#message_rsc=battler_chance_to_hit_was,#parm1=iChanceToHit/10);
+               }
             }
             else
             {
@@ -2004,6 +2014,11 @@ messages:
                   #parm4=Send(what,@GetDef),#parm5=Send(what,@GetChampString),
                   #parm6=Send(what,@GetName),
                   #parm7=damage/100,#parm8=rColor);
+                  
+                  if pbDisplayChanceToHit
+                  {
+                     Send(self,@MsgSendUser,#message_rsc=battler_chance_to_hit_was,#parm1=iChanceToHit/10);
+                  }
                }
                else
                {
@@ -2011,6 +2026,11 @@ messages:
                   #parm1=rColor,#parm2=rWeaponName,#parm3=rDamageDesc,
                   #parm4=Send(what,@GetDef),#parm5=Send(what,@GetChampString),
                   #parm6=Send(what,@GetName));
+                  
+                  if pbDisplayChanceToHit
+                  {
+                     Send(self,@MsgSendUser,#message_rsc=battler_chance_to_hit_was,#parm1=iChanceToHit/10);
+                  }
                }
             }
          }
@@ -2060,7 +2080,7 @@ messages:
       return;
    }
 
-   AssessMiss(what = $, stroke_obj = $)
+   AssessMiss(what = $, stroke_obj = $, iChanceToHit=0)
    "This does the fallout of a miss, gives appropriate message, etc. "
    "Called on self when missing."
    {
@@ -2089,6 +2109,11 @@ messages:
          Send(stroke_obj,@SendMissMessageToAttacker,#who=self,#victim=what,
               #color_rsc=rColor,#weapon_used=Send(self,@LookupPlayerWeapon),
               #bText=FALSE);
+                  
+         if pbDisplayChanceToHit
+         {
+            Send(self,@MsgSendUser,#message_rsc=battler_chance_to_hit_was,#parm1=iChanceToHit/10);
+         }
       }
 
       if IsClass(what,&Player)
@@ -3862,6 +3887,17 @@ messages:
       }
       
       return iRendAmount;
+   }
+   
+   GetDisplayChanceToHit()
+   {
+      return pbDisplayChanceToHit;
+   }
+
+   SetDisplayChanceToHit(value=FALSE)
+   {
+      pbDisplayChanceToHit = value;
+      return;
    }
 
 end
