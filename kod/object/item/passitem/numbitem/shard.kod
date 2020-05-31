@@ -103,6 +103,8 @@ classvars:
    viWeight = 1
    
    viShardColor = 0
+   
+   viRarity = 0
 
 properties:
 
@@ -123,6 +125,7 @@ messages:
    {
       Send(what,@MsgSendUser,#message_rsc=vrApplied,
                              #parm1=Send(apply_on,@GetName));
+      Send(what,@LadderTwoChallengeCheck,#type=USED_A_SHARD,#oObject=self);
       Post(apply_on,@EvaluateNameColor);
       return;
    }
@@ -299,6 +302,11 @@ messages:
       }
 
       return UNKNOWN_ERROR;
+   }
+
+   GetRarity()
+   {
+      return viRarity;
    }
 
 end
