@@ -1,0 +1,72 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+BestiaryCrest is Crest
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   Bestiary_Crest_name_rsc = "Crest of the Beastmaster"
+   Bestiary_Crest_icon_rsc = frcharm.bgf
+   Bestiary_Crest_desc_rsc = \
+      "You are the wisest commander in the land. "
+      "This crest signifies that you are the master of men and monsters alike. "
+      "When wearing it, your Leadership is doubled."
+
+   Bestiary_Crest_animate_doubled = \
+      "You bring your knowledge of command to mind with perfect clarity, allowing you to control twice as many minions."
+   Bestiary_Crest_lost_animate_bonus = \
+      "You suddenly can't hold on to your knowledge of command quite as strongly."
+
+classvars:
+
+   vrName = Bestiary_Crest_name_rsc
+   vrIcon = Bestiary_Crest_icon_rsc
+   vrDesc = Bestiary_Crest_desc_rsc
+
+   viValue_average = 10
+
+   viBulk = 25
+   viWeight = 25
+
+   viGround_group = 2
+
+properties:
+   
+   pbIn_use = False
+
+   piItemLevel = 300
+
+messages:
+
+   NewUsed(what = $)
+   {
+      Send(what,@MsgSendUser,#message_rsc=Bestiary_Crest_animate_doubled);
+      Post(what,@DrawLeadership);
+      
+      propagate;
+   }
+
+   NewUnused(what = $)
+   {
+      Send(what,@MsgSendUser,#message_rsc=Bestiary_Crest_lost_animate_bonus);
+      Post(what,@DrawLeadership);
+
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+

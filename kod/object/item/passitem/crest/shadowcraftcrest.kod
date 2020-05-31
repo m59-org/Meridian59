@@ -1,0 +1,69 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ShadowcraftCrest is Crest
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   Shadowcraft_Crest_name_rsc = "Crest of the Monk"
+   Shadowcraft_Crest_icon_rsc = krcharm.bgf
+   Shadowcraft_Crest_desc_rsc = \
+      "You are the wisest of those who follow the way. "
+      "This crest signifies that you are the master of the spiritual martial arts. "
+      "When wearing it, you can hold twice the number of ki charges."
+
+   Shadowcraft_Crest_animate_doubled = \
+      "You focus your ki.."
+   Shadowcraft_Crest_lost_animate_bonus = \
+      "Your ki focus fades."
+
+classvars:
+
+   vrName = Shadowcraft_Crest_name_rsc
+   vrIcon = Shadowcraft_Crest_icon_rsc
+   vrDesc = Shadowcraft_Crest_desc_rsc
+
+   viValue_average = 10
+
+   viBulk = 25
+   viWeight = 25
+
+   viGround_group = 2
+
+properties:
+   
+   pbIn_use = False
+
+   piItemLevel = 300
+
+messages:
+
+   NewUsed(what = $)
+   {
+      Send(what,@MsgSendUser,#message_rsc=Shadowcraft_Crest_animate_doubled);
+      
+      propagate;
+   }
+
+   NewUnused(what = $)
+   {
+      Send(what,@MsgSendUser,#message_rsc=Shadowcraft_Crest_lost_animate_bonus);
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+

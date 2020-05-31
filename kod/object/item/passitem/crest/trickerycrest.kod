@@ -1,0 +1,69 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+TrickeryCrest is Crest
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   Trickery_Crest_name_rsc = "Crest of the Shadowmage"
+   Trickery_Crest_icon_rsc = qrcharm.bgf
+   Trickery_Crest_desc_rsc = \
+      "You are the most devious of the unscrupulous wizards. "
+      "This crest signifies that you are the master of Trickery. "
+      "When wearing it, you are able to X."
+
+   Trickery_Crest_animate_doubled = \
+      "Trickery one"
+   Trickery_Crest_lost_animate_bonus = \
+      "Trickery two"
+
+classvars:
+
+   vrName = Trickery_Crest_name_rsc
+   vrIcon = Trickery_Crest_icon_rsc
+   vrDesc = Trickery_Crest_desc_rsc
+
+   viValue_average = 10
+
+   viBulk = 25
+   viWeight = 25
+
+   viGround_group = 2
+
+properties:
+   
+   pbIn_use = False
+
+   piItemLevel = 300
+
+messages:
+
+   NewUsed(what = $)
+   {
+      Send(what,@MsgSendUser,#message_rsc=Trickery_Crest_animate_doubled);
+      
+      propagate;
+   }
+
+   NewUnused(what = $)
+   {
+      Send(what,@MsgSendUser,#message_rsc=Trickery_Crest_lost_animate_bonus);
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+

@@ -19,6 +19,9 @@ BOFS = shalcrest.bof \
        alchemycrest.bof \
        adventurercrest.bof \
        wizardcrest.bof \
-       warriorcrest.bof
+       warriorcrest.bof \
+       bestiarycrest.bof \
+       shadowcraftcrest.bof \
+       trickerycrest.bof
 
 !include $(KODDIR)\kod.mak
