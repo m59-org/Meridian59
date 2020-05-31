@@ -31,7 +31,8 @@ resources:
       "Please report it.  Have a nice day."
 
    touchattack_enchantment_rsc = \
-      "\n\nYour current %s enchantment will deal %i - %i base %s damage."
+      "\n\nYour current %s enchantment will deal %i - %i base %s damage. "
+      "It will also rend %i enemy %s resistance when striking."
 
    TouchAttack_missed1_sound = swswish1.wav
    TouchAttack_missed2_sound = swswish2.wav
@@ -110,6 +111,9 @@ properties:
    plReagents = $
 
    viPurgeFactor = 15
+   
+   piBaseRendType = 0
+   piBaseRendAmount = 0
 
 messages:
 
@@ -477,6 +481,9 @@ messages:
                 4, Send(self,@FindMinDamage,#who=who),
                 4, Send(self,@FindMaxDamage,#who=who),
                 4, Send(SYS,@GetSpellDamageTypeName,
+                        #type=(viSpellType & ~ATCK_SPELL_ALL)),
+                4, Nth(Send(self,@GetRend,#wielder=who),2),
+                4, Send(SYS,@GetSpellDamageTypeName,
                         #type=(viSpellType & ~ATCK_SPELL_ALL)));
 
       return;
@@ -510,6 +517,15 @@ messages:
          Post(victim,@ApplyBleed,#what=who,#bleed_power=Send(who,@GetBleedPower));
       }
       return;
+   }
+
+   GetRend(victim=$,wielder=$)
+   {
+      local oRendMod, lRend;
+      
+      lRend = [piBaseRendType, (piBaseRendAmount * (Send(wielder,@GetSpellAbility,#spell_num=viSpell_num)+1))/100];
+
+      return lRend;
    }
 
 end

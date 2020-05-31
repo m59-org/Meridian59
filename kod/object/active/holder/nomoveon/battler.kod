@@ -47,7 +47,7 @@ resources:
 
    battler_attacker_hit = "%sYour %s %s %s%s%s for ~k~B%i~B%s damage."
    battler_attacker_slay = "%sYour %s %s %s%s%s."
-   battler_attacker_miss = "%sYour attack %s %s%s%s. %i\%"
+   battler_attacker_miss = "%sYour attack %s %s%s%s."
    battler_attacker_fail = "%sYour %s %s %s%s%s, failing to cause any real harm."
    battler_defender_hit = "%s%s%s%s's %s %s you for ~r~B%i~B%s damage."
    battler_defender_slay = "%s%s%s%s's %s %s you."
@@ -3836,7 +3836,7 @@ messages:
          lRend = [0,0];
          if Send(self,@GetWeapon) <> $
          {
-            lRend = Send(Send(self,@GetWeapon),@GetRend,#victim=victim);
+            lRend = Send(Send(self,@GetWeapon),@GetRend,#victim=victim,#wielder=self);
          }
 
          iRendType = Nth(lRend,1);
