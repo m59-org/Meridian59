@@ -232,9 +232,9 @@ properties:
 
 messages:
 
-   Constructor(iLootSize=0,iBoxPower=20,killer=$,oCorpse=$,victim=$)
+   Constructor(iLootSize=0,iBoxPower=20,killer=$,oCorpse=$,victim=$,iChampStatus=0)
    {
-      local lPossibleTraps;
+      local lPossibleTraps, iBonusShards, oBonusShard;
 
       poKiller = killer;
       piLadderID = Send(killer,@GetLadderID);
@@ -281,7 +281,7 @@ messages:
 
       if iLootSize = 0
       {
-         iLootSize = Bound(Random(1,Bound(piBoxPower/33,1,$)),1,7);
+         iLootSize = Bound(Random(1,Bound(piBoxPower/50,1,$)),1,7);
       }
       switch(iLootSize)
       {
@@ -318,6 +318,44 @@ messages:
       piExpireChecks = piExpireChecks + iLootSize*6;
 
       piLootSize = iLootSize;
+      
+      % Add bonus shards to chests
+      iBonusShards = (piBoxPower/50) * piLootSize;
+      
+      if iChampStatus = CHAMPION_INDOMITABLE
+      {
+         iBonusShards = iBonusShards * 5;
+      }
+      else if iChampStatus = CHAMPION_LEGENDARY
+      {
+         iBonusShards = iBonusShards * 20;
+      }
+
+      while iBonusShards > 0
+      {
+         if Random(1,2) = 1
+         {
+            oBonusShard = Create(&ShardReImbueMinor);
+         }
+         else if Random(1,2) = 1
+         {
+            oBonusShard = Create(&ShardReImbueMajor);
+         }
+         else if Random(1,2) = 1
+         {
+            oBonusShard = Create(&ShardRemove);
+         }
+         else if Random(1,2) = 1
+         {
+            oBonusShard = Create(&ShardReroll);
+         }
+         else
+         {
+            oBonusShard = Create(&ShardEmpowerment);
+         }
+         Send(self,@NewHold,#what=oBonusShard);
+         iBonusShards--;
+      }
       
       % Always a chance of no trap.
       lPossibleTraps = [TRAP_NONE];
