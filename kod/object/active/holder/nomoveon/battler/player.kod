@@ -1540,6 +1540,11 @@ properties:
    % What challenges has this player completed?
    plLadderChallengeData = $
    piLadderNumChallengesCompleted = 0
+   
+   % [Elemental Imbalance on/off],
+   % [Desecration on/off],
+   % [Sanctification on/off]
+   plSkillConfig = $
 
 messages:
 
@@ -21888,6 +21893,38 @@ messages:
          Send(self,@RemoveSpell,#num=SID_PRESERVE_SPECIMEN);
          Send(self,@AddSkill,#num=SKID_PRESERVE_SPECIMEN_SKILL,#iAbility=iAbility);
       }
+      return;
+   }
+
+   GetSkillConfig(config_num=1)
+   {
+      if plSkillConfig = $
+      {
+         plSkillConfig = [1,1,1,1,1,1,1,1,1,1,1,1,1];
+      }
+      
+      if config_num > Length(plSkillConfig)
+      {
+         return 1;
+      }
+      
+      return Nth(plSkillConfig,config_num);
+   }
+   
+   SetSkillConfig(config_num=1,value=1)
+   {
+      if plSkillConfig = $
+      {
+         plSkillConfig = [1,1,1,1,1,1,1,1,1,1,1,1,1];
+      }
+      
+      if config_num > Length(plSkillConfig)
+      {
+         return;
+      }
+      
+      SetNth(plSkillConfig,config_num,value);
+   
       return;
    }
 
