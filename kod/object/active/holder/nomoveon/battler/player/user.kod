@@ -1325,11 +1325,11 @@ messages:
       foreach lMonsterData in plSavedMinions
       {
          oMonster = Create(Nth(lMonsterData,1));
+         Send(oMonster,@SetMaster,#oMaster=self,#bLoggingOn=TRUE);
          Send(poOwner,@NewHold,#what=oMonster,#new_row=Send(self,@GetRow),
                                           #new_col=Send(self,@GetCol),
                                           #fine_row=Send(self,@GetFineRow),
                                           #fine_col=Send(self,@GetFineCol));
-         Send(oMonster,@SetMaster,#oMaster=self,#bLoggingOn=TRUE);
          Send(oMonster,@GainChampionStatus,#iType=Nth(lMonsterData,5));
          Send(oMonster,@SetMaxHitPoints,#amount=Nth(lMonsterData,4));
          Send(oMonster,@SetHealth,#amount=Nth(lMonsterData,3));
