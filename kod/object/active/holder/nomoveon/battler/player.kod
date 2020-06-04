@@ -21878,5 +21878,18 @@ messages:
       return;
    }
 
+   ConvertPreserveSpecimenSpellToSkill()
+   {
+      local iAbility;
+      
+      if Send(self,@HasSpell,#num=SID_PRESERVE_SPECIMEN)
+      {
+         iAbility = Send(self,@GetSpellAbility,#spell_num=SID_PRESERVE_SPECIMEN);
+         Send(self,@RemoveSpell,#num=SID_PRESERVE_SPECIMEN);
+         Send(self,@AddSkill,#num=SKID_PRESERVE_SPECIMEN_SKILL,#iAbility=iAbility);
+      }
+      return;
+   }
+
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

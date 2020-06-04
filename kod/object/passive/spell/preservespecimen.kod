@@ -24,7 +24,8 @@ resources:
       "serve once more. You may only preserve your own minions, "
       "as the souls of wild beasts and enemies usually fully depart upon death. "
       "Better preservation techniques retain more of the loyalty the minion had in life. "
-      "Requires a fairy wing to cast."
+      "This spell is automatically triggered upon minion death, and has no need to be cast "
+      "directly."
 
    Preserve_Specimen_bad_target = "You can't preserve %s%s!"
    Preserve_Specimen_human_cast_rsc ="%s's corpse has been preserved."
@@ -176,6 +177,22 @@ messages:
       }
 
       propagate;
+   }
+
+   GetPreserveAbility(oMinion=$, oMaster=$)
+   {
+      local iAbil, iStat, iPreserveAbil;
+      
+      iAbil = Send(oMaster,@GetSpellAbility,#spell_num=viSpell_num);
+      iStat = Send(self,@GetIntellect);
+      
+      iPreserveAbil = (iAbil + iStat) / 2;
+
+      if iAbil > 0
+      {
+         Send(self,@ImproveAbility,#who=oMaster,#target=oMinion);
+      }
+      return iPreserveAbil;
    }
 
 end

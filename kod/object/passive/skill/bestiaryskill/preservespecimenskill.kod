@@ -1,0 +1,90 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+PreserveSpecimenSkill is BestiarySkill
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   Preserve_Specimen_Skill_name_rsc = "preserve specimen"
+   Preserve_Specimen_Skill_icon_rsc = ianimate.bgf
+   Preserve_Specimen_Skill_desc_rsc = \
+      "Preserves the corpse of a minion so that it may be brought back to a "
+      "monster morgue and either be dissected for research or resurrected to "
+      "serve once more. You may only preserve your own minions, "
+      "as the souls of wild beasts and enemies usually fully depart upon death. "
+      "Better preservation techniques retain more of the loyalty the minion had in life. "
+      "This skill is automatically used upon minion death."
+
+   Preserve_Specimen_Skill_mob_cast_rsc = \
+      "Your %s's remains have been preserved."
+   Preserve_Specimen_Skill_too_many_rsc = "You already have %i specimens preserved. You cannot maintain more."
+
+classvars:
+
+   vrName = Preserve_Specimen_Skill_name_rsc
+   vrIcon = Preserve_Specimen_Skill_icon_rsc
+   vrDesc = Preserve_Specimen_Skill_desc_rsc
+
+   viSkill_num = SKID_PRESERVE_SPECIMEN_SKILL
+   viSchool = SS_BESTIARY
+   viSkill_level = 1
+   viChance_To_Increase = 20
+   viMeditate_ratio = 20
+   
+   viPrimaryStat = STAT_ID_INTELLECT
+   viSecondaryStat = 0
+
+properties:
+
+   piSpecimensLimit = 40
+
+messages:
+
+   GetPreserveAbility(oMinion=$, oMaster=$)
+   {
+      local iAbil, iStat, iPreserveAbil;
+
+      if oMaster = $
+         OR oMinion = $
+      {
+         return 0;
+      }
+
+      iAbil = Send(oMaster,@GetSkillAbility,#skill_num=viSkill_num);
+      iStat = Send(oMaster,@GetIntellect);
+      
+      if iAbil <= 0
+      {
+         return 0;
+      }
+      
+      if Send(oMaster,@GetDeadMinionsList) <> $
+         AND Length(Send(oMaster,@GetDeadMinionsList)) >= piSpecimensLimit
+      {
+         Send(oMaster,@MsgSendUser,#message_rsc=Preserve_Specimen_Skill_too_many_rsc,#parm1=piSpecimensLimit);
+         return 0;
+      }
+      
+      iPreserveAbil = (iAbil + iStat) / 2;
+
+      if iAbil > 0
+      {
+         Send(oMaster,@MsgSendUser,#message_rsc=Preserve_Specimen_Skill_mob_cast_rsc,#parm1=Send(oMinion,@GetName));
+         Send(self,@ImproveAbility,#who=oMaster,#target=oMinion);
+      }
+      return iPreserveAbil;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

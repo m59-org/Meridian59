@@ -7,6 +7,7 @@
 DEPEND = ..\bestiaryskill.bof
 BOFS = clanguage.bof \
        minionlimitboost.bof \
-       minionspeed.bof
+       minionspeed.bof \
+       preservespecimenskill.bof
 
 !include $(KODDIR)\kod.mak

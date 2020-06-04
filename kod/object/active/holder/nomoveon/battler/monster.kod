@@ -5010,7 +5010,7 @@ messages:
    Killed(what=$)
    "The mob was just killed."
    {
-      local i,val,oBody,hReputation,oHighestHurtMe, each_obj, oTrappedLootBox, iLootSize;
+      local i,val,oBody,hReputation,oHighestHurtMe, each_obj, oTrappedLootBox, iLootSize, lMonsterData, iPreserveAbil;
 
       % If the monster was just killed, assume it did itself in.
       if what = $
@@ -5039,6 +5039,32 @@ messages:
 
       if poOwner <> $
       {
+         % Is this a player minion? Skip everything else.
+         if Send(self,@GetMaster) <> $
+            AND IsClass(Send(self,@GetMaster),&Player)
+         {
+            lMonsterData = [GetClass(self),
+                            Send(self,@GetLoyalty),
+                            0,
+                            Send(self,@ReturnMaxHitPoints),
+                            Send(self,@GetChampStatus),
+                            Send(self,@GetSummoned)];
+            if lMonsterData <> $
+               AND NOT Send(self,@GetSummoned)
+            {
+               iPreserveAbil = Send(Send(SYS,@FindSkillByNum,#num=SKID_PRESERVE_SPECIMEN_SKILL),@GetPreserveAbility,
+                                                             #oMinion=self,#oMaster=Send(self,@GetMaster));
+               % Take a loyalty loss based on preserve specimen ability
+               if iPreserveAbil > 0
+               {
+                  SetNth(lMonsterData,2,Bound((Nth(lMonsterData,2)*iPreserveAbil)/100,1,$));
+                  Send(Send(self,@GetMaster),@SaveToDeadMinionsList,#lMonsterData=lMonsterData);
+               }
+            }
+            Send(self,@Delete);
+            return;
+         }
+      
          % If a monster was the killer, and it has a master, set 'what'
          % to the master. This *should* be handled by the killer in
          % KilledSomething, but to be safe (and because quests are
