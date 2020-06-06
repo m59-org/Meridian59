@@ -352,6 +352,11 @@ messages:
          Send(self,@SetPlayerFlag,#flag=PFLAG_ANONYMOUS,#value=TRUE);
       }
 
+      if Send(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@IsHiding,#who=self)
+      {
+         Send(self,@SetPlayerDrawFX,#drawfx=DRAWFX_DITHERGREY);
+      }
+
       if poOwner <> $
       {
          Send(poOwner,@SomethingChanged,#what=self);
