@@ -8226,12 +8226,8 @@ messages:
       color_rsc = player_hit_color_none;
 
       % Attacks against a minion master will cause minions to defend the master.
-      if what <> $
-         AND IsClass(what,&Battler)
-      {
-         Send(self,@CommandMinionAttack,#oMaster=self,#oTarget=what);
-      }
-
+      Send(self,@CommandMinionAttack,#oMaster=self,#oTarget=what);
+      
       if what <> $ AND IsClass(what,&monster)
       {
          color_rsc = player_hit_color_blue;
@@ -19605,6 +19601,13 @@ messages:
          OR oTarget = $
          OR NOT IsClass(oTarget,&Battler)
          OR IsClass(oTarget,&Revenant)
+      {
+         return;
+      }
+      
+      % No attacking master.
+      if oTarget = oMaster
+         OR oTarget = self
       {
          return;
       }

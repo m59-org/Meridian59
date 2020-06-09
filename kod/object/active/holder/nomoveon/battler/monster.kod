@@ -8438,6 +8438,13 @@ messages:
       {
          return;
       }
+      
+      % No attacking master.
+      if oTarget = oMaster
+         OR oTarget = self
+      {
+         return;
+      }
 
       % Lets not have the minions kill each other. Check if the target is
       % a minion under our control.
@@ -8452,6 +8459,9 @@ messages:
          if IsClass(oActive,&Monster)
             AND Send(oActive,@GetMaster) = self
             AND Send(oActive,@GetTarget) <> oTarget
+            AND NOT (Send(oActive,@GetTarget) <> $
+                     AND Send(Send(oActive,@GetTarget),@IsEnchanted,#byClass=&MarkofAggression)
+                     AND NOT Send(oTarget,@IsEnchanted,#byClass=&MarkofAggression))
          {
             Send(oActive,@SetBehaviorFlag,
                   #flag=AI_MOVE_FOLLOW_MASTER,#value=FALSE);
