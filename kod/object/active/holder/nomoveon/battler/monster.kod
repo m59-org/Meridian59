@@ -703,6 +703,8 @@ properties:
    poEventSpawner = $
    
    pbDropChestOnDeath = FALSE
+   
+   piLastAutomaticCommandMinionAttackTime = 0
 
 messages:
 
@@ -8453,9 +8455,15 @@ messages:
       {
          return;
       }
+      
+      if GetTime() <= piLastAutomaticCommandMinionAttackTime + 2
+      {
+         return;
+      }
 
       foreach oActive in plControlledMinions
       {
+         piLastAutomaticCommandMinionAttackTime = GetTime();
          if IsClass(oActive,&Monster)
             AND Send(oActive,@GetMaster) = self
             AND Send(oActive,@GetTarget) <> oTarget

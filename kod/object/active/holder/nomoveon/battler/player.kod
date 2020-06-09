@@ -1545,6 +1545,8 @@ properties:
    % [Desecration on/off],
    % [Sanctification on/off]
    plSkillConfig = $
+   
+   piLastAutomaticCommandMinionAttackTime = 0
 
 messages:
 
@@ -19619,9 +19621,15 @@ messages:
       {
          return;
       }
+      
+      if GetTime() <= piLastAutomaticCommandMinionAttackTime + 2
+      {
+         return;
+      }
 
       if Send(self,@AllowPlayerAttack,#victim=oTarget)
       {
+         piLastAutomaticCommandMinionAttackTime = GetTime();
          foreach oActive in plControlledMinions
          {
             if IsClass(oActive,&Monster)
