@@ -5082,6 +5082,7 @@ messages:
             AND poMaster = $
             AND NOT Send(self,@GetSummoned)
             AND NOT pbIllusion
+            AND Send(poOwner,@ReqDropTrappedLootBox)
          {
             oTrappedLootBox = Create(&TrappedLootBox,#iBoxPower=Send(self,@GetLevel) + piBoostedLevel + piChaosLevel,
                                            #killer=what,
@@ -9552,23 +9553,34 @@ messages:
    
    GetChampionRewardMultiplier()
    {
-      local i;
+      local iNumerator, iDivisor;
+      
+      if poOwner <> $
+      {
+         iNumerator = Send(poOwner,@GetChampionRewardNumerator);
+         iDivisor = Bound(Send(poOwner,@GetChampionRewardDivisor),1,$);
+      }
+      else
+      {
+         iNumerator = 1;
+         iDivisor = 1;
+      }
 
       if piChampionStatus = CHAMPION_TOUGH
          OR piChampionStatus = CHAMPION_SWIFT
          OR piChampionStatus = CHAMPION_DEADLY
       {
-         return TIER_ONE_CHAMPION_REWARD_MULTIPLIER;
+         return (TIER_ONE_CHAMPION_REWARD_MULTIPLIER * iNumerator)/iDivisor;
       }
 
       if piChampionStatus = CHAMPION_INDOMITABLE
       {
-         return TIER_TWO_CHAMPION_REWARD_MULTIPLIER;
+         return (TIER_TWO_CHAMPION_REWARD_MULTIPLIER * iNumerator)/iDivisor;
       }
 
       if piChampionStatus = CHAMPION_LEGENDARY
       {
-         return TIER_THREE_CHAMPION_REWARD_MULTIPLIER;
+         return (TIER_THREE_CHAMPION_REWARD_MULTIPLIER * iNumerator)/iDivisor;
       }
 
       propagate;

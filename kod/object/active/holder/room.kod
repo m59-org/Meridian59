@@ -6583,5 +6583,46 @@ messages:
       return pbContainsHider;
    }
 
+   ReqDropTrappedLootBox()
+   {
+      local i;
+
+      foreach i in plObject_attributes
+      {
+         if NOT Send(i,@ReqDropTrappedLootBox)
+         {
+            return FALSE;
+         }
+      }
+
+      return TRUE;
+   }
+   
+   GetChampionRewardNumerator()
+   {
+      local i, iChampionRewardNumerator;
+      
+      iChampionRewardNumerator = 1;
+      foreach i in plObject_attributes
+      {
+         iChampionRewardNumerator = Send(i,@MultiplyChampionRewardNumerator,#iChampionRewardNumerator=iChampionRewardNumerator);
+      }
+
+      return iChampionRewardNumerator;
+   }
+
+   GetChampionRewardDivisor()
+   {
+      local i, iChampionRewardDivisor;
+      
+      iChampionRewardDivisor = 1;
+      foreach i in plObject_attributes
+      {
+         iChampionRewardDivisor = Send(i,@MultiplyChampionRewardDivisor,#iChampionRewardDivisor=iChampionRewardDivisor);
+      }
+
+      return iChampionRewardDivisor;
+   }
+
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
