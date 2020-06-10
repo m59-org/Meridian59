@@ -4418,6 +4418,8 @@ messages:
                #wave_rsc=player_logged_off_wav_rsc);
       }
 
+      Post(self,@ResetMonsterChasers);
+
       Post(self,@CancelLoggedOnRefreshPhaseTime);
       return;
    }
@@ -18807,6 +18809,16 @@ messages:
 
    ResetMonsterChasers()
    {
+      if Send(self,@IsEnchanted,#byClass=&SoothingPresence)
+      {
+         Send(self,@RemoveEnchantment,#what=Send(SYS,@FindSpellByNum,#num=SID_SOOTHING_PRESENCE));
+      }
+
+      if Send(self,@IsEnchanted,#byClass=&ToweringPresence)
+      {
+         Send(self,@RemoveEnchantment,#what=Send(SYS,@FindSpellByNum,#num=SID_TOWERING_PRESENCE));
+      }
+
       piMonsterChasers = 0;
 
       return;

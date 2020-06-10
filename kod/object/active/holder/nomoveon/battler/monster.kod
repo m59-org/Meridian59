@@ -1248,7 +1248,6 @@ messages:
       Send(self,@ClearBehavior);
       
       if poTarget <> $
-         AND Send(poTarget,@GetOwner) = poOwner
          AND isClass(poTarget,&User)
       {
          Send(poTarget,@SubtractFromMonsterChasers,
@@ -1266,7 +1265,6 @@ messages:
    EnterStateWait(actnow=FALSE,delay=MOB_MOVE_TIMER_WAIT)
    {
       if poTarget <> $
-         AND Send(poTarget,@GetOwner) = poOwner
          AND isClass(poTarget,&user)
       {
          Send(poTarget,@SubtractFromMonsterChasers,
@@ -1298,7 +1296,6 @@ messages:
       Send(self,@SetState,#bit=STATE_MOVE);
 
       if poTarget <> $
-         AND Send(poTarget,@GetOwner) = poOwner
          AND isClass(poTarget,&User)
       {
          Send(poTarget,@SubtractFromMonsterChasers,
@@ -2305,11 +2302,11 @@ messages:
       if poOwner = $
       {
          % Suppress survival mob messages. Happens sometimes.
-         if piBoostedLevel = 0
-         {
-            Debug("Unreachable. Null owner.");
-            Debug(self);
-         }
+         %if piBoostedLevel = 0
+         %{
+         %   Debug("Unreachable. Null owner.");
+         %   Debug(self);
+         %}
          Send(self,@EnterStateLimbo);
          Post(self,@Delete);
 
@@ -8821,6 +8818,7 @@ messages:
       {
          % Suppress survival messages, because this happens sometimes there.
          if piBoostedLevel = 0
+            AND poOwner <> $
          {
             Debug("BAD target we're switching to here!");
             Debug(self);
@@ -8851,7 +8849,6 @@ messages:
       piHatred = iHatred;
 
       if poTarget <> $
-         AND Send(poTarget,@GetOwner) = poOwner
          AND IsClass(poTarget,&user)
       {
          Send(poTarget,@SubtractFromMonsterChasers,

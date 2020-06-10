@@ -431,7 +431,8 @@ messages:
 
    AttackOriginal()
    {
-      if poOriginal <> poMaster
+      if poOriginal <> $
+         AND poOriginal <> poMaster
       {
          Send(self,@TargetSwitch,#what=poOriginal,#iHatred=1000);
          Send(self,@EnterStateChase);
@@ -454,6 +455,7 @@ messages:
 
             % Evil twins will go after the original target.
             if IsClass(self,&EvilTwin)
+               AND poOwner <> $
             {
                poMaster = Send(self,@GetCaster);
                Send(self,@SetBehaviorFlag,#flag=AI_MOVE_FOLLOW_MASTER,
