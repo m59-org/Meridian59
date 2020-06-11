@@ -148,8 +148,13 @@ messages:
                {
                   Send(what,@RemoveEnchantment,#what=oSpell,#report=FALSE);
                }
-               Send(oSpell,@CastSpell,#who=self,#iSpellPower=Random(60,75),#lTargets=[what],#bSeer=1);
-               Send(oMoney,@SubtractNumber,#number=iPrice);
+               
+               % Reserved spells aren't removed by the Seer, so check again.
+               if NOT Send(what,@IsEnchanted,#what=oSpell)
+               {
+                  Send(oSpell,@CastSpell,#who=self,#iSpellPower=Random(60,75),#lTargets=[what],#bSeer=1);
+                  Send(oMoney,@SubtractNumber,#number=iPrice);
+               }
             }
          }
       }
