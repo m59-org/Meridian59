@@ -55,6 +55,7 @@ resources:
    battler_defender_fail = "%s%s%s%s's %s %s you, failing to cause any real harm."
    
    battler_chance_to_hit_was = "Your chance to hit was %i\%."
+   battler_chance_to_hit_old_system = "Your chance to hit under the old system would have been %i\%."
 
    battler_punch = "punch"
    battler_attack = "attack"
@@ -1158,7 +1159,7 @@ messages:
    {
       local iOffense, iDefense, iChanceToHit, iDamage, iScalefactor, oWeapon,
             iBackstabDamage, bDoingBackstab, iBeatThisCheck, iIncreasedEvadeChance,
-            iIncreasedHitChance;
+            iIncreasedHitChance, iOrigHitChance;
       
       Send(what,@MarkLastTimeInCombat);
       Send(self,@MarkLastTimeInCombat);
@@ -1169,6 +1170,9 @@ messages:
       iDefense = Send(what,@GetDefense,#what=self,#stroke_obj=stroke_obj) + Send(SETTINGS_OBJECT,@GetBaseRating);
       iChanceToHit = iOffense * Send(SETTINGS_OBJECT,@GetEqualChanceToHit) / iDefense;
       iChanceToHit = bound(iChanceToHit,125,2000);
+
+      iOrigHitChance = (iOffense + (Send(self,@GetAim)*8)) * Send(SETTINGS_OBJECT,@GetEqualChanceToHit) / (iDefense + (Send(what,@GetAgility)*8));
+      iOrigHitChance = bound(iOrigHitChance,125,1000);
 
       if IsClass(what,&Player)
          AND NOT Send(what,@IsResting)
@@ -1229,11 +1233,21 @@ messages:
          if IsClass(self,&Player)
          {
             Send(self,@MsgSendUser,#message_rsc=enemy_evade_agility,#parm1=Send(what,@GetCapDef),#parm2=Send(what,@GetName));
+            if pbDisplayChanceToHit
+            {
+               Send(self,@MsgSendUser,#message_rsc=battler_chance_to_hit_was,#parm1=(iChanceToHit - iIncreasedEvadeChance)/10);
+               
+               if Send(SETTINGS_OBJECT,@GetDisplayOldSystemToHit)
+               {
+                  Send(self,@MsgSendUser,#message_rsc=battler_chance_to_hit_old_system,
+                                         #parm1=iOrigHitChance/10);
+               }
+            }
          }
          return FALSE;
       }
 
-      if iChanceToHit >= iBeatThisCheck
+      if iChanceToHit - iIncreasedEvadeChance >= iBeatThisCheck
          OR (IsClass(self,&Player)
              AND Send(Send(SYS,@FindSkillByNum,#num=SKID_SNEAK),
                        @IsSneaking,#who=self)
@@ -1286,7 +1300,9 @@ messages:
             #scalefactor=iScalefactor,#precision=TRUE,
             #damaging_now=TRUE,#bDoingBackstab=bDoingBackstab);
 
-         Send(self,@AssessHit,#what=what,#stroke_obj=stroke_obj,#damage=iDamage,#iChanceToHit=Bound(iChanceToHit,0,1000));
+         Send(self,@AssessHit,#what=what,#stroke_obj=stroke_obj,#damage=iDamage,
+                              #iChanceToHit=Bound(iChanceToHit - iIncreasedEvadeChance,0,1000),
+                              #iOrigHitChance=iOrigHitChance);
 
          if iDamage = $
          {
@@ -1300,7 +1316,9 @@ messages:
       else
       {
          % Oops, a miss.  See if something happens.
-         Send(self,@AssessMiss,#what=what,#stroke_obj=stroke_obj,#iChanceToHit=Bound(iChanceToHit,0,1000));
+         Send(self,@AssessMiss,#what=what,#stroke_obj=stroke_obj,
+                               #iChanceToHit=Bound(iChanceToHit - iIncreasedEvadeChance,0,1000),
+                               #iOrigHitChance=iOrigHitChance);
       }
 
       if poOwner <> $
@@ -1889,7 +1907,7 @@ messages:
       return 0;
    }
 
-   AssessHit(what = $, stroke_obj = $, damage = $, use_weapon=$, iChanceToHit=0)
+   AssessHit(what = $, stroke_obj = $, damage = $, use_weapon=$, iChanceToHit=0, iOrigHitChance=0)
    "This does the fallout of a hit, gives appropriate message, etc.  "
    "Called on self when hit opponent."
    {
@@ -2003,6 +2021,11 @@ messages:
                if pbDisplayChanceToHit
                {
                   Send(self,@MsgSendUser,#message_rsc=battler_chance_to_hit_was,#parm1=iChanceToHit/10);
+                  
+                  if Send(SETTINGS_OBJECT,@GetDisplayOldSystemToHit)
+                  {
+                     Send(self,@MsgSendUser,#message_rsc=battler_chance_to_hit_old_system,#parm1=iOrigHitChance/10);
+                  }
                }
             }
             else
@@ -2018,6 +2041,11 @@ messages:
                   if pbDisplayChanceToHit
                   {
                      Send(self,@MsgSendUser,#message_rsc=battler_chance_to_hit_was,#parm1=iChanceToHit/10);
+                     
+                     if Send(SETTINGS_OBJECT,@GetDisplayOldSystemToHit)
+                     {
+                        Send(self,@MsgSendUser,#message_rsc=battler_chance_to_hit_old_system,#parm1=iOrigHitChance/10);
+                     }
                   }
                }
                else
@@ -2030,6 +2058,11 @@ messages:
                   if pbDisplayChanceToHit
                   {
                      Send(self,@MsgSendUser,#message_rsc=battler_chance_to_hit_was,#parm1=iChanceToHit/10);
+                     
+                     if Send(SETTINGS_OBJECT,@GetDisplayOldSystemToHit)
+                     {
+                        Send(self,@MsgSendUser,#message_rsc=battler_chance_to_hit_old_system,#parm1=iOrigHitChance/10);
+                     }
                   }
                }
             }
@@ -2080,7 +2113,7 @@ messages:
       return;
    }
 
-   AssessMiss(what = $, stroke_obj = $, iChanceToHit=0)
+   AssessMiss(what = $, stroke_obj = $, iChanceToHit=0, iOrigHitChance=0)
    "This does the fallout of a miss, gives appropriate message, etc. "
    "Called on self when missing."
    {
@@ -2113,6 +2146,11 @@ messages:
          if pbDisplayChanceToHit
          {
             Send(self,@MsgSendUser,#message_rsc=battler_chance_to_hit_was,#parm1=iChanceToHit/10);
+                     
+            if Send(SETTINGS_OBJECT,@GetDisplayOldSystemToHit)
+            {
+               Send(self,@MsgSendUser,#message_rsc=battler_chance_to_hit_old_system,#parm1=iOrigHitChance/10);
+            }
          }
       }
 
@@ -2127,7 +2165,7 @@ messages:
          {
             rColor = battler_blue_text;
          }
-      
+
          Send(what,@MsgSendUser,#message_rsc=battler_defender_miss,
               #parm1=rColor,
               #parm2=Send(self,@GetCapDef),
