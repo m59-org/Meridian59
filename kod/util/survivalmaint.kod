@@ -24,6 +24,9 @@ resources:
    
    public_ended = \
       "The public co-op survival arena has ended at level %i."
+   
+   that_room_is_banned_from_survival = \
+      "That room is not accessible for a survival arena."
 
 properties:
 
@@ -117,6 +120,54 @@ messages:
 
    Recreate()
    {
+      plExcludedRoomsList = [RID_MAR_SMITHY,
+                             RID_MAR_ELDER_HUT,
+                             RID_SEWER_KING,
+                             RID_TEMPLE_RIIJA,
+                             RID_MAR_CRYPT3A,
+                             RID_FOREST4,
+                             RID_MAR_CRYPT2,
+                             RID_MAR_CRYPT1,
+                             RID_FOREST4,
+                             RID_FOREST5,
+                             RID_KOCATAN,
+                             RID_KOC_INN,
+                             RID_FOREST1,
+                             RID_FOREST2,
+                             RID_FOREST3,
+                             RID_ORC_PIT_B,
+                             RID_ORC_PIT_A,
+                             RID_ORC_CAVE5];
+      
+      plExcludedRoomsList = Cons(RID_G8,plExcludedRoomsList);
+      plExcludedRoomsList = Cons(RID_KOC_SEWER2,plExcludedRoomsList);
+      plExcludedRoomsList = Cons(RID_KOC_SEWER1,plExcludedRoomsList);
+      plExcludedRoomsList = Cons(RID_JASSEW1,plExcludedRoomsList);
+      plExcludedRoomsList = Cons(RID_JASSEW2,plExcludedRoomsList);
+      plExcludedRoomsList = Cons(RID_JASSEW3,plExcludedRoomsList);
+      plExcludedRoomsList = Cons(RID_BAR_SEWER2,plExcludedRoomsList);
+      plExcludedRoomsList = Cons(RID_BAR_SEWER3,plExcludedRoomsList);
+      plExcludedRoomsList = Cons(RID_BAR_SEWER,plExcludedRoomsList);
+      plExcludedRoomsList = Cons(RID_KC5,plExcludedRoomsList);
+      plExcludedRoomsList = Cons(RID_KA3,plExcludedRoomsList);
+      plExcludedRoomsList = Cons(RID_H9,plExcludedRoomsList);
+      plExcludedRoomsList = Cons(RID_VICTORIA,plExcludedRoomsList);
+      plExcludedRoomsList = Cons(RID_CASTLE1,plExcludedRoomsList);
+      plExcludedRoomsList = Cons(RID_CASTLE1B,plExcludedRoomsList);
+      plExcludedRoomsList = Cons(RID_NEC_PASSAGE2,plExcludedRoomsList);
+      plExcludedRoomsList = Cons(RID_MARSMITH,plExcludedRoomsList);
+      plExcludedRoomsList = Cons(RID_MARELDER,plExcludedRoomsList);
+      plExcludedRoomsList = Cons(RID_SEWKING,plExcludedRoomsList);
+      plExcludedRoomsList = Cons(RID_TEMPLE_RIIJA,plExcludedRoomsList);
+      plExcludedRoomsList = Cons(RID_PRISMLIFEFRAG,plExcludedRoomsList);
+      plExcludedRoomsList = Cons(RID_DESERTRIVER3,plExcludedRoomsList);
+      plExcludedRoomsList = Cons(RID_DESERTSTEPPES,plExcludedRoomsList);
+      plExcludedRoomsList = Cons(RID_DESERTRIVER2,plExcludedRoomsList);
+      plExcludedRoomsList = Cons(RID_DESERTRIVER1,plExcludedRoomsList);
+      plExcludedRoomsList = Cons(RID_ELEMENTAL_DUNGEON1,plExcludedRoomsList);
+      plExcludedRoomsList = Cons(RID_ELEMENTAL_DUNGEON2,plExcludedRoomsList);
+      plExcludedRoomsList = Cons(RID_ELEMENTAL_DUNGEON3,plExcludedRoomsList);
+      plExcludedRoomsList = Cons(RID_ELEMENTAL_DUNGEON4,plExcludedRoomsList);
       return;
    }
 
@@ -198,18 +249,21 @@ messages:
       {
          oBaseRoom = Nth(lAllRooms,Random(1,Length(lAllRooms)));
       }
+      
+      if (lExcludedRoomsObjs <> $
+          AND FindListElem(lExcludedRoomsObjs,oBaseRoom))
+      {
+         Send(who,@MsgSendUser,#message_rsc=that_room_is_banned_from_survival);
+         return $;
+      }
 
       % Ensure it's a monster room, and shrink the list on every failure.
       if (NOT IsClass(oBaseRoom,&MonsterRoom))
          OR IsClass(oBaseRoom,&SurvivalRoom)
-         OR (lExcludedRoomsObjs <> $
-            AND FindListElem(lExcludedRoomsObjs,oBaseRoom))
          OR (iNatural AND Send(oBaseRoom,@GetGenerators) = $)
       {
          while (NOT IsClass(oBaseRoom,&MonsterRoom))
             OR IsClass(oBaseRoom,&SurvivalRoom)
-            OR (lExcludedRoomsObjs <> $
-               AND FindListElem(lExcludedRoomsObjs,oBaseRoom))
             OR (iNatural AND Send(oBaseRoom,@GetGenerators) = $)
          {
             lAllRooms = DelListElem(lAllRooms,oBaseRoom);
