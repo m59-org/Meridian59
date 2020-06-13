@@ -18,8 +18,6 @@ constants:
    UNUSED = 2
    ATTACKING = 3
 
-   WEAPON_TAKE_DAMAGE_PCT = 75
-
    % Weapon tuning factors
    %  Edit these constants to tune weapon power
 
@@ -735,8 +733,8 @@ messages:
          return;
       }
 
-      % 75% chance to be damaged, currently.
-      if random(1,100) < WEAPON_TAKE_DAMAGE_PCT
+      % 15% chance to be damaged, currently.
+      if random(1,100) < Send(SETTINGS_OBJECT,@GetDurabilityLossChance)
       {
          if poOwner <> $
             AND IsClass(poOwner,&Player)

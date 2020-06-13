@@ -14,9 +14,6 @@ constants:
 
    include blakston.khd
 
-   % Percent chance that an item gets damaged when defending.
-   DAMAGE_CHANCE = 50
-
 resources:
 
    include defmod.lkod
@@ -248,8 +245,7 @@ messages:
          propagate;
       }
 
-      % 50% chance to get damaged.
-      if (random(1,100) < DAMAGE_CHANCE)
+      if (random(1,100) < Send(SETTINGS_OBJECT,@GetDurabilityLossChance))
       {
          propagate;
       }
