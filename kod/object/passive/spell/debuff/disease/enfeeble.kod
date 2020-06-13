@@ -62,8 +62,6 @@ classvars:
 
 properties:
 
-   poStrength_spell = $
-
    piBaseDuration = 60000
    piSpellPowerModifier = 1212
    piDeviation = 10
@@ -89,13 +87,8 @@ messages:
 
       iMightChange = Send(self,@GetAmount,#iSpellPower=iSpellPower);
 
-      if poStrength_spell = $
-      {
-         poStrength_spell = Send(SYS,@FindSpellByNum,#num=SID_SUPERSTRENGTH);
-      }
-
       %%% All super strength spells are now dispelled before palsy begins!
-      Send(oTarget,@RemoveEnchantment,#what=poStrength_spell);
+      Send(oTarget,@RemoveEnchantmentClass,#class=&SuperStrength);
 
       if IsClass(oTarget,&Player)
       {
