@@ -5074,6 +5074,20 @@ messages:
             what = Send(what,@GetMaster);
          }
 
+         oHighestHurtMe = Send(self,@GetHighestHurtMeRecentlyBattler);
+         if oHighestHurtMe <> $
+         {
+            piLadderID = Send(oHighestHurtMe,@GetLadderID);
+         }
+         else
+         {
+            piLadderID = Send(what,@GetLadderID);
+         }
+         if piLadderID = $
+         {
+            piLadderID = 0;
+         }
+
          oTrappedLootBox = $;
          oBody = Send(self,@CreateDeadBody,#killer=what);
 
@@ -5084,6 +5098,7 @@ messages:
             AND NOT pbIllusion
             AND Send(poOwner,@ReqDropTrappedLootBox)
             AND Send(SETTINGS_OBJECT,@GetDropTrappedLootBoxes)
+            AND piLadderID > 0
          {
             oTrappedLootBox = Create(&TrappedLootBox,#iBoxPower=Send(self,@GetLevel) + piBoostedLevel + piChaosLevel,
                                            #killer=what,
@@ -5198,20 +5213,6 @@ messages:
                      %#parm1=Send(self,@GetMonsterFactionRSC,#faction=i));
                   }
                }
-            }
-
-            oHighestHurtMe = Send(self,@GetHighestHurtMeRecentlyBattler);
-            if oHighestHurtMe <> $
-            {
-               piLadderID = Send(oHighestHurtMe,@GetLadderID);
-            }
-            else
-            {
-               piLadderID = Send(what,@GetLadderID);
-            }
-            if piLadderID = $
-            {
-               piLadderID = 0;
             }
             
             foreach i in Send(self,@GetHolderActive)
