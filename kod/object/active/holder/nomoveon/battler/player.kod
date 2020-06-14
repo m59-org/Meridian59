@@ -6610,16 +6610,14 @@ messages:
             OR Send(victim,@CheckPlayerFlag,#flag=PFLAG_TEMPSAFE))
          AND victim <> self
       {
-         if report
-         {
-            Send(self,@MsgSendUser,#message_rsc=player_guardian_angel,
-                  #parm1=Send(victim,@GetDef),
-                  #parm2=Send(victim,@GetName));
-         }
-
-
          if NOT IsClass(oRoom,&GuildHall)
          {
+            if report
+            {
+               Send(self,@MsgSendUser,#message_rsc=player_guardian_angel,
+                     #parm1=Send(victim,@GetDef),
+                     #parm2=Send(victim,@GetName));
+            }
             return FALSE;
          }
       }
