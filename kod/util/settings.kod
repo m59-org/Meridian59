@@ -444,6 +444,17 @@ properties:
 
    % What's the chance to lose durability on gear?
    pbDurabilityLossChance = 15
+   
+   % Monsters by default get 1/4 stat point per level
+   % Randomly distributed between the six stats.
+   % Might boosts attack damage by Might%
+   % Intellect boosts spell damage by Intellect%
+   % Stamina boosts HP by Stamina%
+   % Agility boosts chance to evade
+   % Mysticism boosts mana by Mysticism%
+   % Aim boosts chance to hit
+   piMonsterStatsPerLevelNumerator = 1
+   piMonsterStatsPerLevelDivisor = 4
 
 messages:
 
@@ -1317,6 +1328,20 @@ messages:
    GetDurabilityLossChance()
    {
       return pbDurabilityLossChance;
+   }
+   
+   GetMonsterStatsPerLevelNumerator()
+   {
+      return piMonsterStatsPerLevelNumerator;
+   }
+   
+   GetMonsterStatsPerLevelDivisor()
+   {
+      if piMonsterStatsPerLevelDivisor = 0
+      {
+         piMonsterStatsPerLevelDivisor = 1;
+      }
+      return piMonsterStatsPerLevelDivisor;
    }
 
 end

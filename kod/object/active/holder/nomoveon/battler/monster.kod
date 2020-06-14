@@ -570,9 +570,13 @@ properties:
    % Timer to expire turning.
    ptUnturn = $
    piHatred = 0
-   % Emulates agility and aim for monsters based on difficulty.
-   piAgility = 25
-   piAim = 25
+   % Emulates stats for monsters based on difficulty.
+   piMight = 5
+   piIntellect = 5
+   piStamina = 5
+   piAgility = 5
+   piMysticism = 5
+   piAim = 5
 
    % Emulates tumbling skill, 0 is no evasion, 100 is total evasion
    piTumbling = 0
@@ -711,7 +715,7 @@ messages:
    Constructor(template=FALSE, color=0, piSurvivalLevel=0, iBrain = 0, iChaosLevel = 0, oEventSpawner = $)
    "Simple enough, we create a monster. If they are questworthy, we note it."
    {
-      local iStatPoints, iMin, iMax, oChaosMaint, iChaosDiff;
+      local iStatPoints, iMin, iMax, oChaosMaint, iChaosDiff, lStatMarks, lOrderedStatMarks, iHighestValue, iCount;
 
       poEventSpawner = oEventSpawner;
 
@@ -730,20 +734,44 @@ messages:
       {
          piLevel = viLevel;
       }
-      piMax_Hit_points = Send(Self,@Fuzzy,#num=Send(self,@GetMaxHitPoints))
+      
+      iStatPoints = (piLevel * Send(SETTINGS_OBJECT,@GetMonsterStatsPerLevelNumerator))/Send(SETTINGS_OBJECT,@GetMonsterStatsPerLevelDivisor);
+      
+      lStatMarks = [Random(1,iStatPoints),
+                    Random(1,iStatPoints),
+                    Random(1,iStatPoints),
+                    Random(1,iStatPoints),
+                    Random(1,iStatPoints)];
+                    
+      iCount = 5;
+      lOrderedStatMarks = $;
+      
+      while iCount > 0
+      {
+         iHighestValue = Send(self,@GetHighestValueInList,#lList=lStatMarks);
+
+         lOrderedStatMarks = Cons(iHighestValue,lOrderedStatMarks);
+         lStatMarks = DelListElem(lStatMarks,iHighestValue);
+         
+         iCount--;
+      }
+
+      piMight = Nth(lOrderedStatMarks,1);
+      piIntellect = Nth(lOrderedStatMarks,2) - Nth(lOrderedStatMarks,1);
+      piStamina = Nth(lOrderedStatMarks,3) - Nth(lOrderedStatMarks,2);
+      piAgility = Nth(lOrderedStatMarks,4) - Nth(lOrderedStatMarks,3);
+      piMysticism = Nth(lOrderedStatMarks,5) - Nth(lOrderedStatMarks,4);
+      piAim = iStatPoints - Nth(lOrderedStatMarks,5);
+      
+      piMax_Hit_points = ((Send(Self,@Fuzzy,#num=Send(self,@GetMaxHitPoints))
                          + piSurvivalLevel*viDifficulty
-                         + (iChaosLevel * iChaosDiff);
+                         + (iChaosLevel * iChaosDiff))*(100+piStamina))/100;
       
       piHit_points = piMax_hit_points*100;
       
-      if iChaosLevel > 0
-      {
-         piMana = Bound(piMax_mana,20,$) + iChaosLevel;
-      }
-      else
-      {
-         piMana = piMax_mana;
-      }
+      piMax_mana = piMax_mana + iChaosLevel;
+      piMax_mana = (piMax_mana * (100+piMysticism))/100;
+
       piAttackRange = viAttackRange;
       piSpellChance = viSpellChance;
       piVisionDistance = viVisionDistance + piSurvivalLevel + iChaosLevel;
@@ -804,36 +832,6 @@ messages:
 
       piMood = 0;
 
-      iStatPoints = piLevel/2;
-
-      if iStatPoints - 1 > 100
-      {
-         iMax = 100;
-      }
-      else
-      {
-         iMax = iStatpoints - 1;
-      }
-
-      if iStatPoints - 100 < 1
-      {
-         iMin = 1;
-      }
-      else
-      {
-         iMin = iStatpoints - 100;
-      }
-
-      if iMin > iMax
-      {
-         piAgility = iMax;
-      }
-      else
-      {
-         piAgility = Random(iMin,iMax);
-      }
-      piAim = iStatPoints - piAgility;
-
       if piSurvivalLevel > 0
       {
          piOffense = Send(self,@GetOffense) + piSurvivalLevel*viDifficulty + piChaosLevel*iChaosDiff;
@@ -867,7 +865,23 @@ messages:
 
       propagate;
    }
-   
+
+   GetHighestValueInList(lList=$)
+   {
+      local i, iHighest;
+
+      iHighest = 0;
+      foreach i in lList
+      {
+         if i > iHighest
+         {
+            iHighest = i;
+         }
+      }
+
+      return iHighest;
+   }
+
    Constructed()
    {
       local lSpells;
@@ -3121,6 +3135,9 @@ messages:
       
       % Convert damage bonus to high precision.
       iDamage = iDamage + iDamageBonus*100;
+      
+      % Give might bonus.
+      iDamage = (iDamage * (100+piMight))/100;
 
       if piEnch_flags & ENCH_PALSY
       {
@@ -9214,9 +9231,9 @@ messages:
 
       piChampionStatus = iType;
 
-      piMax_Hit_points = Send(Self,@Fuzzy,#num=Send(self,@GetMaxHitPoints))
+      piMax_Hit_points = ((Send(Self,@Fuzzy,#num=Send(self,@GetMaxHitPoints))
                          + piBoostedLevel*viDifficulty
-                         + piChaosLevel * Send(Send(SYS,@GetChaosStrataMaintenance),@GetChaosDifficulty);
+                         + piChaosLevel * Send(Send(SYS,@GetChaosStrataMaintenance),@GetChaosDifficulty))*(100+piStamina))/100;
       piHit_points = piMax_hit_points*100;
       
       if iType = CHAMPION_SWIFT
@@ -9354,9 +9371,9 @@ messages:
       piChampionStatus = 0;
       plChampionAbilities = $;
 
-      piMax_Hit_points = Send(Self,@Fuzzy,#num=Send(self,@GetMaxHitPoints))
+      piMax_Hit_points = ((Send(Self,@Fuzzy,#num=Send(self,@GetMaxHitPoints))
                          + piBoostedLevel*viDifficulty
-                         + piChaosLevel * Send(Send(SYS,@GetChaosStrataMaintenance),@GetChaosDifficulty);
+                         + piChaosLevel * Send(Send(SYS,@GetChaosStrataMaintenance),@GetChaosDifficulty))*(100+piStamina))/100;
       piHit_points = piMax_hit_points*100;
       
       piAttackSpeed = viSpeed;
@@ -10307,12 +10324,32 @@ messages:
    {
       return poEventSpawner;
    }
+   
+   GetMight()
+   {
+      return piMight;
+   }
+
+   GetIntellect()
+   {
+      return piIntellect;
+   }
+
+   GetStamina()
+   {
+      return piStamina;
+   }
 
    GetAgility()
    {
       return piAgility;
    }
-   
+
+   GetMysticism()
+   {
+      return piMysticism;
+   }
+
    GetAim()
    {
       return piAim;

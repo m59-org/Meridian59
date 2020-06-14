@@ -157,6 +157,11 @@ messages:
       }
 
       iDamage = Random(piDamageMin*100, piDamageMax*100);
+      
+      if IsClass(who,&Monster)
+      {
+         iDamage = (iDamage * (100+Send(who,@GetIntellect)))/100;
+      }
 
       if IsClass(who,&Player)
       {
