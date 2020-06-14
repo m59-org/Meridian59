@@ -191,6 +191,9 @@ resources:
    artificing_enchantment_fades_rsc = \
       "The artificing enchantment is stripped away!"
 
+   only_killer_can_loot = \
+      "Only the adventurer who slew the monster can loot its treasure chest."
+
 classvars:
 
    viBulk_hold_max = $
@@ -1319,9 +1322,10 @@ messages:
          return FALSE;
       }
 
-      if IsClass(oTakerOwner,&GuildHall)
+      if taker <> poKiller
       {
-         return Send(oTakerOwner,@ReqUseGuildChest,#who=taker,#oBox=self);
+         Send(taker,@MsgSendUser,#message_rsc=only_killer_can_loot);
+         return FALSE;
       }
 
       propagate;
