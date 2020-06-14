@@ -21,7 +21,8 @@ BGFS = runebase.bgf \
        runescaled.bgf \
        runesea.bgf \
        runeserpent.bgf \
-       runesword.bgf
+       runesword.bgf \
+       icharminsect.bgf
        
 
 DIRS = 
