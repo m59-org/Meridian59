@@ -22,7 +22,8 @@ BGFS = runebase.bgf \
        runesea.bgf \
        runeserpent.bgf \
        runesword.bgf \
-       icharminsect.bgf
+       icharminsect.bgf \
+       isummonabomination.bgf
        
 
 DIRS = 
