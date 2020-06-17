@@ -413,7 +413,10 @@ messages:
                OR IsClass(use_weapon,&SpiritualHammer)
                OR IsClass(use_weapon,&Mace))
          {
-            Send(who,@MsgSendUser,#message_rsc=groundworm_cannot_hit);
+            if who <> $
+            {
+               Send(who,@MsgSendUser,#message_rsc=groundworm_cannot_hit);
+            }
             return FALSE;
          }
       }
