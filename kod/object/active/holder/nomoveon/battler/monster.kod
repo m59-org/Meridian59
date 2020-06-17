@@ -9426,7 +9426,8 @@ messages:
       % Petrified gives off no light
       if Send(self,@IsEnchanted,#byClass=&Petrified)
       {
-         if Send(poOwner,@LightingColorOverride)
+         if poOwner <> $
+            AND Send(poOwner,@LightingColorOverride)
          {
             AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC),1,0, 2,Send(poOwner,@GetLightingColorOverride,#what=self));
          }
@@ -9439,7 +9440,8 @@ messages:
       % Hold gives off a purple glow
       if Send(self,@IsEnchanted,#byClass=&Hold)
       {
-         if Send(poOwner,@LightingColorOverride)
+         if poOwner <> $
+            AND Send(poOwner,@LightingColorOverride)
          {
             AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC),1,100, 2,Send(poOwner,@GetLightingColorOverride,#what=self));
          }
@@ -9452,7 +9454,8 @@ messages:
       % Blind gives off a dim green glow
       if Send(self,@IsEnchanted,#byClass=&Blind)
       {
-         if Send(poOwner,@LightingColorOverride)
+         if poOwner <> $
+            AND Send(poOwner,@LightingColorOverride)
          {
             AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC),1,50, 2,Send(poOwner,@GetLightingColorOverride,#what=self));
          }
@@ -9465,7 +9468,8 @@ messages:
       % Dazzle is blazing white
       if Send(self,@IsEnchanted,#byClass=&Dazzle)
       {
-         if Send(poOwner,@LightingColorOverride)
+         if poOwner <> $
+            AND Send(poOwner,@LightingColorOverride)
          {
             AddPacket(2,(LIGHT_FLAG_ON | LIGHT_FLAG_DYNAMIC),1,255, 2,Send(poOwner,@GetLightingColorOverride,#what=self));
          }
