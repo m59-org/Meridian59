@@ -36,8 +36,16 @@ classvars:
 properties:
 
    viObject_flags = OF_NOEXAMINE
+   
+   piDestinationRID = 0
 
 messages:
+
+   Constructor(iDestinationRID = 0)
+   {
+      piDestinationRID = iDestinationRID;
+      propagate;
+   }
 
    DestroyDisposable()
    {
@@ -56,6 +64,16 @@ messages:
       AddPacket(1, ANIMATE_NONE, 2, 10);
 
       return;
+   }
+
+   GetMinimapDotFlags()
+   {
+      return MM_PROC_WEAPON;
+   }
+
+   GetDestinationRID()
+   {
+      return piDestinationRID;
    }
 
 end

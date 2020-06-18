@@ -405,6 +405,7 @@ messages:
 
       Send(self,@CreateStandardObjects);
       Send(self,@CreateStandardExits);
+      Send(self,@CreatePathMarkers);
       Send(self,@CreateYellZoneList);
       Send(self,@ComputeFarenBonus);
 
@@ -477,6 +478,7 @@ messages:
       plYell_zone = $;
       plBuilderGroup = $;
       Send(self,@CreateStandardExits);
+      Send(self,@CreatePathMarkers);
       Send(self,@CreateYellZoneList);
 
       return;
@@ -1318,6 +1320,17 @@ messages:
    "Nothing in this class.\n"
    "Subclasses should set plExits appropriately."
    {
+      return;
+   }
+
+   CreatePathMarkers()
+   {
+      local i;
+      
+%      foreach i in plExits
+%      {
+%         Send(self,@NewHold,#what=Create(&PathMarker,#iDestinationRID=Nth(i,3)),#new_row=Nth(i,1),#new_col=Nth(i,2));
+%      }
       return;
    }
 
