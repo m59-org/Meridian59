@@ -694,6 +694,9 @@ properties:
    % Keeps track of the mantras needed for stance skills.
    % [mantra, skid]
    plStanceMantras = $
+   
+   % Ladder challenges
+   plChallenges = $
 
 messages:
 
@@ -751,6 +754,8 @@ messages:
       Send(self,@recreateItemTemplates);
       Send(self,@RecreateMoneyTemplates);
       Send(self,@RecreateMagicMods);
+      
+      Send(self,@RecreateChallenges);
 
       Send(self,@RecreateLore);
       Send(self,@RecreateArtArchive);
@@ -978,6 +983,7 @@ messages:
       Send(self,@RecreateItemTemplates);
       Send(self,@RecreateMoneyTemplates);
       Send(self,@RecreateMagicMods);
+      Send(self,@RecreateChallenges);
       Send(self,@RecreateChests);
       Send(self,@RecreateLore);
       Send(self,@UpdateHallOfHeroes);
@@ -6962,6 +6968,40 @@ messages:
       plMagicMods = Cons(Create(&MobResists),plMagicMods);
 
       return;
+   }
+
+   RecreateChallenges()
+   {
+      local i;
+      foreach i in plChallenges
+      {
+         Send(i,@Delete);
+      }
+      plChallenges = $;
+      
+      plChallenges = Cons(Create(&EachShardChallenge),plChallenges);
+
+      return;
+   }
+
+   GetChallenges()
+   {
+      return plChallenges;
+   }
+
+   FindChallengeByNum(num=0)
+   {
+      local i;
+      
+      foreach i in plChallenges
+      {
+         if Send(i,@GetChallengeNum) = num
+         {
+            return i;
+         }
+      }
+
+      return $;
    }
 
    GetMagicMod(class=$)

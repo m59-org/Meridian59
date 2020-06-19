@@ -1,0 +1,166 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+EachShardChallenge is LadderChallenge
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   each_shard_challenge_name = "Use one of each shard"
+   each_shard_challenge_icon = chaosgemshard.bgf
+   each_shard_challenge_desc = \
+      "Use one of each known type of crystalline shard.\n"
+      "\nminor shard: %s"
+      "\naugmenting shard: %s"
+      "\nmajor shard: %s"
+      "\nshard of improvement: %s"
+      "\nshard of disturbance: %s"
+      "\nshard of disruption: %s"
+      "\ndraining shard: %s"
+      "\ninstilling shard: %s"
+      "\nshard of empowerment: %s"
+
+classvars:
+
+   vrName = each_shard_challenge_name
+   vrIcon = each_shard_challenge_icon
+   vrDesc = each_shard_challenge_desc
+   
+   viChallengeNum = USE_EACH_SHARD
+
+properties:
+
+
+messages:
+
+   ShowDesc(who=$)
+   {
+      local lChallengeData, lData, rOne, rTwo, rThree, rFour, rFive, rSix, rSeven, rEight, rNine;
+
+      lChallengeData = Send(who,@GetLadderChallengeData);
+      
+      lData = Nth(lChallengeData,USE_EACH_SHARD);
+      
+      if Nth(lData,1)
+      {
+         rOne = Send(self,@GetCompletedChallengeRsc);
+      }
+      else
+      {
+         rOne = Send(self,@GetNotCompletedChallengeRsc);
+      }
+      
+      if Nth(lData,2)
+      {
+         rTwo = Send(self,@GetCompletedChallengeRsc);
+      }
+      else
+      {
+         rTwo = Send(self,@GetNotCompletedChallengeRsc);
+      }
+      
+      if Nth(lData,3)
+      {
+         rThree = Send(self,@GetCompletedChallengeRsc);
+      }
+      else
+      {
+         rThree = Send(self,@GetNotCompletedChallengeRsc);
+      }
+      
+      if Nth(lData,4)
+      {
+         rFour = Send(self,@GetCompletedChallengeRsc);
+      }
+      else
+      {
+         rFour = Send(self,@GetNotCompletedChallengeRsc);
+      }
+      
+      if Nth(lData,5)
+      {
+         rFive = Send(self,@GetCompletedChallengeRsc);
+      }
+      else
+      {
+         rFive = Send(self,@GetNotCompletedChallengeRsc);
+      }
+      
+      if Nth(lData,6)
+      {
+         rSix = Send(self,@GetCompletedChallengeRsc);
+      }
+      else
+      {
+         rSix = Send(self,@GetNotCompletedChallengeRsc);
+      }
+      
+      if Nth(lData,7)
+      {
+         rSeven = Send(self,@GetCompletedChallengeRsc);
+      }
+      else
+      {
+         rSeven = Send(self,@GetNotCompletedChallengeRsc);
+      }
+      
+      if Nth(lData,8)
+      {
+         rEight = Send(self,@GetCompletedChallengeRsc);
+      }
+      else
+      {
+         rEight = Send(self,@GetNotCompletedChallengeRsc);
+      }
+      
+      if Nth(lData,9)
+      {
+         rNine = Send(self,@GetCompletedChallengeRsc);
+      }
+      else
+      {
+         rNine = Send(self,@GetNotCompletedChallengeRsc);
+      }
+
+      AddPacket(4,vrDesc, 4,rOne,
+                          4,rTwo,
+                          4,rThree,
+                          4,rFour,
+                          4,rFive,
+                          4,rSix,
+                          4,rSeven,
+                          4,rEight,
+                          4,rNine);
+
+      return;
+   }
+
+   GetCompleted(who=$)
+   {
+      local lChallengeData, lData, rOne, rTwo, rThree, rFour, rFive, rSix, rSeven, rEight, rNine;
+
+      lChallengeData = Send(who,@GetLadderChallengeData);
+      
+      lData = Nth(lChallengeData,USE_EACH_SHARD);
+
+      if lData <> $
+         AND FindListElem(lData,0) = 0
+      {
+         return TRUE;
+      }
+      
+      return FALSE;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

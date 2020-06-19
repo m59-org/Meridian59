@@ -21834,38 +21834,41 @@ messages:
       piParticipatedInLadderNumber = value;
       return;
    }
-   
+
+   InitializeAchievementData()
+   {
+      return;
+   }
+
    InitializeLadderChallengeData()
    {
-      % Not enabled yet
-      return;
-      
       % At 10 challenges, green mace
       % At 20 challenges, green KS
       % At 30 challenges, green helmets
       % At 40 challenges, green royal shirt?
       
-      % Challenge one: Use each type of shard on an item
-      % Each entry is 0 for not used, 1 for used, in order of rarity
-      plLadderChallengeData = Cons([0,0,0,0,0,0,0,0,0],plLadderChallengeData);
+      
+      % Challenge 3: Reach over 200 maximum mana
+%      plLadderChallengeData = Cons([0],plLadderChallengeData);
+      
+      % Challenge 4: 
+%      plLadderChallengeData = Cons([0],plLadderChallengeData);
+      
+      % Challenge 5: open 100 treasure chests
+%      plLadderChallengeData = Cons([0],plLadderChallengeData);
+      
+      % Challenge 10: defeat a Marauder
+%      plLadderChallengeData = Cons([0],plLadderChallengeData);
+      
+      % Challenge four: Defeat historic Bosses
+      % The lupogg king, the Ghost, the orc pit boss, 
       
       % Challenge 2: Reach maximum health
       plLadderChallengeData = Cons([0],plLadderChallengeData);
       
-      % Challenge 3: Reach over 200 maximum mana
-      plLadderChallengeData = Cons([0],plLadderChallengeData);
-      
-      % Challenge 4: 
-      plLadderChallengeData = Cons([0],plLadderChallengeData);
-      
-      % Challenge 5: open 100 treasure chests
-      plLadderChallengeData = Cons([0],plLadderChallengeData);
-      
-      % Challenge 10: defeat a Marauder
-      plLadderChallengeData = Cons([0],plLadderChallengeData);
-      
-      % Challenge four: Defeat historic Bosses
-      % The lupogg king, the Ghost, the orc pit boss, 
+      % Challenge 1: Use each type of shard on an item
+      % Each entry is 0 for not used, 1 for used, in order of rarity
+      plLadderChallengeData = Cons([0,0,0,0,0,0,0,0,0],plLadderChallengeData);
      
      
       
@@ -21877,9 +21880,6 @@ messages:
    LadderChallengeCheck(type=USED_A_SHARD,oObject=$)
    {
       local i;
-      
-      % Not enabled yet
-      return;
       
       if plLadderChallengeData = $
       {
@@ -21893,12 +21893,12 @@ messages:
                AND IsClass(oObject,&Shard)
                AND NOT IsClass(oObject,&HeartStone)
             {
-               if Nth(Nth(plLadderChallengeData,1),Send(oObject,@GetRarity)) <> 1
+               if Nth(Nth(plLadderChallengeData,USE_EACH_SHARD),Send(oObject,@GetRarity)) <> 1
                {
-                  SetNth(Nth(plLadderChallengeData,1),Send(oObject,@GetRarity),1);
+                  SetNth(Nth(plLadderChallengeData,USE_EACH_SHARD),Send(oObject,@GetRarity),1);
                   Send(self,@MsgSendUser,#message_rsc=ladder_two_challenge_used_a_shard,#parm1=Send(oObject,@GetName));
                   
-                  if FindListElem(Nth(plLadderChallengeData,1),0) = 0
+                  if FindListElem(Nth(plLadderChallengeData,USE_EACH_SHARD),0) = 0
                   {
                      Send(self,@MsgSendUser,#message_rsc=ladder_two_challenge_one_complete);
                      piLadderNumChallengesCompleted++;
@@ -21908,6 +21908,15 @@ messages:
             break;
       }
       return;
+   }
+
+   GetLadderChallengeData()
+   {
+      if plLadderChallengeData = $
+      {
+         Send(self,@InitializeLadderChallengeData);
+      }
+      return plLadderChallengeData;
    }
 
    ConvertPreserveSpecimenSpellToSkill()
