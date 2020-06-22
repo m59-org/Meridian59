@@ -1,0 +1,77 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+VitalsChallenge is LadderChallenge
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   reach_max_vitals_challenge_name = "Reach 300 max vitals"
+   reach_max_vitals_challenge_icon = imajheal.bgf
+   reach_max_vitals_challenge_desc = \
+      "Reach a combination of maximum health and maximum mana "
+      "that exceeds 300 in total: %s"
+
+classvars:
+
+   vrName = reach_max_vitals_challenge_name
+   vrIcon = reach_max_vitals_challenge_icon
+   vrDesc = reach_max_vitals_challenge_desc
+   
+   viChallengeNum = REACH_VITALS_TOTAL
+
+properties:
+
+
+messages:
+
+   ShowDesc(who=$)
+   {
+      local lChallengeData, lData, rOne, rTwo, rThree, rFour, rFive, rSix, rSeven, rEight, rNine;
+
+      lChallengeData = Send(who,@GetLadderChallengeData);
+      
+      lData = Nth(lChallengeData,REACH_VITALS_TOTAL);
+      
+      if Nth(lData,1)
+      {
+         rOne = Send(self,@GetCompletedChallengeRsc);
+      }
+      else
+      {
+         rOne = Send(self,@GetNotCompletedChallengeRsc);
+      }
+
+      AddPacket(4,vrDesc, 4,rOne);
+      return;
+   }
+
+   GetCompleted(who=$)
+   {
+      local lChallengeData, lData;
+
+      lChallengeData = Send(who,@GetLadderChallengeData);
+      
+      lData = Nth(lChallengeData,REACH_VITALS_TOTAL);
+
+      if lData <> $
+         AND FindListElem(lData,0) = 0
+      {
+         return TRUE;
+      }
+      
+      return FALSE;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

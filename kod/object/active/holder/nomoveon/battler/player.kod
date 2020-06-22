@@ -1138,6 +1138,8 @@ resources:
       "~o~B[>>>] Challenge - Use one of each shard: %s used"
    ladder_two_challenge_one_complete = \
       "~o~B[>>>] Challenge - Use one of each shard: challenge complete!"
+   challenge_max_vitals_300_complete = \
+      "~o~B[>>>] Challenge - Reach 300 total maximum health and mana: challenge complete!"
       
 classvars:
 
@@ -10207,6 +10209,11 @@ messages:
 
       Send(self,@NewHealth); % in case need heal timer
 
+      if Send(self,@GetLadderID) > 0
+      {
+         Send(self,@LadderChallengeCheck,#type=GAINED_MAX_VITAL);
+      }
+
       return piMax_health - iPrev_max;
    }
 
@@ -10417,6 +10424,11 @@ messages:
       %}
 
       piBaseMax_mana = piMax_mana;
+      
+      if Send(self,@GetLadderID) > 0
+      {
+         Send(self,@LadderChallengeCheck,#type=GAINED_MAX_VITAL);
+      }
       
       iSumPercentReduction = 0;
       foreach i in plReservedSpells
@@ -21863,7 +21875,7 @@ messages:
       % Challenge four: Defeat historic Bosses
       % The lupogg king, the Ghost, the orc pit boss, 
       
-      % Challenge 2: Reach maximum health
+      % Challenge 2: Reach 250 health + mana
       plLadderChallengeData = Cons([0],plLadderChallengeData);
       
       % Challenge 1: Use each type of shard on an item
@@ -21904,6 +21916,16 @@ messages:
                      piLadderNumChallengesCompleted++;
                   }
                }
+            }
+            break;
+         case GAINED_MAX_VITAL:
+            if Send(self,@GetMaxHealth) + Send(self,@GetMaxMana) >= 300
+               AND Nth(Nth(plLadderChallengeData,REACH_VITALS_TOTAL),1) = 0
+            {
+               SetNth(Nth(plLadderChallengeData,REACH_VITALS_TOTAL),1,1);
+
+               Send(self,@MsgSendUser,#message_rsc=challenge_max_vitals_300_complete);
+               piLadderNumChallengesCompleted++;
             }
             break;
       }

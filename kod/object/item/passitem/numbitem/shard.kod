@@ -125,7 +125,12 @@ messages:
    {
       Send(what,@MsgSendUser,#message_rsc=vrApplied,
                              #parm1=Send(apply_on,@GetName));
-      Send(what,@LadderChallengeCheck,#type=USED_A_SHARD,#oObject=self);
+
+      if Send(what,@GetLadderID) > 0
+      {
+         Send(what,@LadderChallengeCheck,#type=USED_A_SHARD,#oObject=self);
+      }
+
       Post(apply_on,@EvaluateNameColor);
       return;
    }

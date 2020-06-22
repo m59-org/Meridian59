@@ -5,6 +5,7 @@
 !include $(TOPDIR)\common.mak
 
 DEPEND = ..\challenge.bof
-BOFS = eachshardchallenge.bof
+BOFS = eachshardchallenge.bof \
+       vitalschallenge.bof
 
 !include $(KODDIR)\kod.mak
