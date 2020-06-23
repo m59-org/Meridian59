@@ -166,6 +166,11 @@ properties:
    % Resistance rending type and amount
    piBaseRendType = 0
    piBaseRendAmount = 0
+   
+   % Has this weapon had its color overridden?
+   pbColorOverridden = FALSE
+   % Save old color here
+   piOldColorUnderOverride = 0
 
 messages:
 
@@ -829,6 +834,14 @@ messages:
    NewUsed()
    {
       local oItemAtt;
+      
+      if Send(poOwner,@GetWeaponOverrideColor) <> 0
+      {
+         piOldColorUnderOverride = piItem_flags;
+         piItem_flags = Send(poOwner,@GetWeaponOverrideColor);
+         pbColorOverridden = TRUE;
+         Post(poOwner,@SomethingChanged,#what=self);
+      }
 
       % This alerts Item attributes when item is used.
       % Currently special checks for "glowing" weapon attribute.
@@ -858,6 +871,13 @@ messages:
    NewUnused()
    {
       local oItemAtt;
+      
+      if pbColorOverridden
+      {
+         pbColorOverridden = FALSE;
+         piItem_flags = piOldColorUnderOverride;
+         Post(poOwner,@SomethingChanged,#what=self);
+      }
 
       % This alerts Item attributes when item is used.
       % Currently special checks for "glowing" weapon attribute.
