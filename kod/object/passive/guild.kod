@@ -210,6 +210,13 @@ resources:
    guild_ranks_full_inductor = \
       "~B%s%s could not be accepted into %s%q because the ranks are "
       "already full."
+   
+   guild_wrong_ladder = \
+      "~BYou could not be accepted into %s%q because of ladder "
+      "competition rules."
+   guild_wrong_ladder_inductor = \
+      "~B%s%s could not be accepted into %s%q because of ladder "
+      "competition rules."
 
    guild_invitation_one = \
       "You may only have one outstanding invitation at a time."
@@ -1390,6 +1397,21 @@ messages:
    InductNewMember(who=$,inductor=$)
    {
       local i;
+
+      if who <> $
+         AND Send(who,@GetLadderID) <> Send(self,@GetLadderID)
+      {
+         Send(who,@MsgSendUser,#message_rsc=guild_wrong_ladder,
+              #parm1=Send(self,@GetDef),#parm2=vrName);
+
+         if inductor <> $
+         {
+            Send(inductor,@MsgSendUser,#message_rsc=guild_wrong_ladder_inductor,
+                  #parm1=Send(who,@getcapdef),#parm2=Send(who,@GetName),
+                  #parm3=Send(self,@GetDef),#parm4=vrName);
+         }
+         return FALSE;
+      }
 
       if length(plMembers) >= MAX_MEMBERS
       {
@@ -3251,6 +3273,14 @@ messages:
       return pbNotifyAllyLogon;
    }
 
+   GetLadderID()
+   {
+      if Send(self,@GetGuildMaster) <> $
+      {
+         return Send(Send(self,@GetGuildMaster),@GetLadderID);
+      }
+      return 0;
+   }
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

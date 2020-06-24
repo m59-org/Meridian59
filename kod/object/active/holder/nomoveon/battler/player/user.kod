@@ -8420,7 +8420,15 @@ messages:
       if pbLogged_on
          AND Send(self,@GetSession) <> $
       {
-         lHalls = Send(SYS,@GetGuildHalls);
+         if Send(self,@GetLadderID) <> 0
+         {
+            lHalls = Send(SYS,@GetLadderGuildHalls);
+         }
+         else
+         {
+            lHalls = Send(SYS,@GetGuildHalls);
+         }
+
          iAvailable = 0;
          foreach i in lHalls
          {

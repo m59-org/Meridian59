@@ -4075,13 +4075,14 @@ messages:
 
    SomethingTryGo(what = $,row = $,col = $)
    {
-      local i, iAngle, oRoom, oChaosStrata;
+      local i, iAngle, oRoom, oChaosStrata, iGoingRID;
 
       foreach i in plExits
       {
          if (row = First(i)) and (col = Nth(i,2))
          {
-            if Nth(i,3) = ROOM_LOCKED_DOOR
+            iGoingRID = Nth(i,3);
+            if iGoingRID = ROOM_LOCKED_DOOR
             {
                if length(i) = 4
                {
@@ -4096,9 +4097,63 @@ messages:
 
                return TRUE;
             }
+            
+            if Send(what,@GetLadderID) <> 0
+               AND ((iGoingRID >= RID_GUILDH1 AND iGoingRID <= RID_GUILDH14)
+                  OR iGoingRID = RID_JASPER_TOMB)
+            {
+               switch(iGoingRID)
+               {
+                  case RID_GUILDH1:
+                     iGoingRID = RID_LADDER_GUILDH1;
+                     break;
+                  case RID_GUILDH2:
+                     iGoingRID = RID_LADDER_GUILDH2;
+                     break;
+                  case RID_GUILDH3:
+                     iGoingRID = RID_LADDER_GUILDH3;
+                     break;
+                  case RID_GUILDH4:
+                     iGoingRID = RID_LADDER_GUILDH4;
+                     break;
+                  case RID_GUILDH5:
+                     iGoingRID = RID_LADDER_GUILDH5;
+                     break;
+                  case RID_GUILDH6:
+                     iGoingRID = RID_LADDER_GUILDH6;
+                     break;
+                  case RID_GUILDH7:
+                     iGoingRID = RID_LADDER_GUILDH7;
+                     break;
+                  case RID_GUILDH8:
+                     iGoingRID = RID_LADDER_GUILDH8;
+                     break;
+                  case RID_GUILDH9:
+                     iGoingRID = RID_LADDER_GUILDH9;
+                     break;
+                  case RID_GUILDH10:
+                     iGoingRID = RID_LADDER_GUILDH10;
+                     break;
+                  case RID_GUILDH11:
+                     iGoingRID = RID_LADDER_GUILDH11;
+                     break;
+                  case RID_GUILDH12:
+                     iGoingRID = RID_LADDER_GUILDH12;
+                     break;
+                  case RID_GUILDH13:
+                     iGoingRID = RID_LADDER_GUILDH13;
+                     break;
+                  case RID_GUILDH14:
+                     iGoingRID = RID_LADDER_GUILDH14;
+                     break;
+                  case RID_JASPER_TOMB:
+                     iGoingRID = RID_LADDER_JASPER_TOMB;
+                     break;
+               }
+            }
 
             if IsClass(what,&User)
-               AND NOT Send(what,@UserReqNewOwner,#RID=Nth(i,3))
+               AND NOT Send(what,@UserReqNewOwner,#RID=iGoingRID)
             {
                return TRUE;
             }
@@ -4114,7 +4169,7 @@ messages:
                Send(what,@WaveSendUser,#wave_rsc=Send(self,@GetDoorSound));
             }
 
-            oRoom = Send(SYS,@FindRoomByNum,#num=Nth(i,3));
+            oRoom = Send(SYS,@FindRoomByNum,#num=iGoingRID);
             oChaosStrata = Send(SYS,@FindRoomByNum,#num=RID_CHAOS_STRATA_START);
             if Send(oChaosStrata,@IsActive)
                AND Send(oChaosStrata,@GetBaseRoom) = oRoom

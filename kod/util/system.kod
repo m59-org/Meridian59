@@ -519,6 +519,7 @@ properties:
    plVaults = $
    plGuilds = $
    plGuild_halls = $
+   plLadderGuild_halls = $
    plBrains = $
    plAbility_totals = $
 
@@ -2848,6 +2849,22 @@ messages:
       Send(self,@CreateOneRoomIfNew,#num=RID_GUILDH15,#class=&GuildHall15);
       Send(self,@CreateOneRoomIfNew,#num=RID_JASPER_TOMB,#class=&JasperTomb);
       Send(self,@CreateOneRoomIfNew,#num=RID_ANCIENT_ZIGGURAT,#class=&AncientZiggurat);
+
+      Send(self,@CreateOneRoomIfNew,#num=RID_LADDER_GUILDH1,#class=&GuildHall1);
+      Send(self,@CreateOneRoomIfNew,#num=RID_LADDER_GUILDH2,#class=&GuildHall2);
+      Send(self,@CreateOneRoomIfNew,#num=RID_LADDER_GUILDH3,#class=&GuildHall3);
+      Send(self,@CreateOneRoomIfNew,#num=RID_LADDER_GUILDH4,#class=&GuildHall4);
+      Send(self,@CreateOneRoomIfNew,#num=RID_LADDER_GUILDH5,#class=&GuildHall5);
+      Send(self,@CreateOneRoomIfNew,#num=RID_LADDER_GUILDH6,#class=&GuildHall6);
+      Send(self,@CreateOneRoomIfNew,#num=RID_LADDER_GUILDH7,#class=&GuildHall7);
+      Send(self,@CreateOneRoomIfNew,#num=RID_LADDER_GUILDH8,#class=&GuildHall8);
+      Send(self,@CreateOneRoomIfNew,#num=RID_LADDER_GUILDH9,#class=&GuildHall9);
+      Send(self,@CreateOneRoomIfNew,#num=RID_LADDER_GUILDH10,#class=&GuildHall10);
+      Send(self,@CreateOneRoomIfNew,#num=RID_LADDER_GUILDH11,#class=&GuildHall11);
+      Send(self,@CreateOneRoomIfNew,#num=RID_LADDER_GUILDH12,#class=&GuildHall12);
+      Send(self,@CreateOneRoomIfNew,#num=RID_LADDER_GUILDH13,#class=&GuildHall13);
+      Send(self,@CreateOneRoomIfNew,#num=RID_LADDER_GUILDH14,#class=&GuildHall14);
+      Send(self,@CreateOneRoomIfNew,#num=RID_LADDER_JASPER_TOMB,#class=&JasperTomb);
 
       Send(self,@CreateOneRoomIfNew,#num=RID_TEMPLE_KRAANAN,#class=&TempleKraanan);
       Send(self,@CreateOneRoomIfNew,#num=RID_TEMPLE_QOR,#class=&TempleQor);
@@ -5305,6 +5322,11 @@ messages:
          Send(i,@Delete);
       }
 
+      foreach i in plLadderGuild_halls
+      {
+         Send(i,@Delete);
+      }
+
       Send(self,@CreateAllRoomsIfNew);
 
       return;
@@ -5344,6 +5366,11 @@ messages:
          Send(i,@defunctguild,#what=what);
       }
 
+      foreach i in plLadderGuild_halls
+      {
+         Send(i,@defunctguild,#what=what);
+      }
+
       return;
    }
 
@@ -5362,6 +5389,42 @@ messages:
       }
 
       return;
+   }
+
+   NewLadderGuildHallToList(hall=$)
+   {
+      if hall <> $ AND isClass(hall,&GuildHall)
+      {
+         plLadderGuild_halls = Cons(hall,plLadderGuild_halls);
+         return TRUE;
+      }
+
+      Debug("Tried to add a non-guildhall to the list of ladder guildhalls!");
+
+      return FALSE;
+   }
+
+   RemoveLadderGuildHallFromList(hall=$)
+   {
+      local i;
+
+      foreach i in plLadderGuild_halls
+      {
+         if i = hall
+         {
+            plLadderGuild_halls = dellistelem(plLadderGuild_halls,i);
+            return TRUE;
+         }
+      }
+
+      Debug("Tried to remove a guild hall that was not in plLadderGuild_halls!");
+
+      return FALSE;
+   }
+
+   GetLadderGuildHalls()
+   {
+      return plLadderGuild_halls;
    }
 
    NewGuildHallToList(hall=$)

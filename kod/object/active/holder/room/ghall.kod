@@ -360,14 +360,25 @@ properties:
 
 messages:
 
-   Constructor()
+   Constructor(iRID=0)
    {
       local lGuilds, i;
 
       prNewsBall = vrName;
 
-      % Hall adds itself to a list in system for the UI to use.
-      Send(SYS,@NewGuildHallToList,#hall=self);
+      
+      if iRID >= RID_LADDER_GUILDH_MIN
+         AND iRID <= RID_LADDER_GUILDH_MAX
+      {
+         piRoom_num = iRID;
+         % Hall adds itself to a list in system for the UI to use.
+         Send(SYS,@NewLadderGuildHallToList,#hall=self);
+      }
+      else
+      {
+         % Hall adds itself to a list in system for the UI to use.
+         Send(SYS,@NewGuildHallToList,#hall=self);
+      }
 
       % Must prevent a recreated guild hall from forgetting it's guild owner.
       lGuilds = Send(SYS,@GetGuilds);

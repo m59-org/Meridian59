@@ -261,7 +261,7 @@ messages:
    "This is hacky--user.kod:UserBuy() aborts if it gets $ returned from here, "
    "so we can use it as a hook."
    {
-      local oGuild,i,iAvailable;
+      local oGuild,i,iAvailable,lHalls;
       
       oGuild = Send(who,@GetGuild);
       if oGuild <> $
@@ -283,8 +283,17 @@ messages:
                   return;
                }
 
+               if Send(who,@GetLadderID) <> 0
+               {
+                  lHalls = Send(SYS,@GetLadderGuildHalls);
+               }
+               else
+               {
+                  lHalls = Send(SYS,@GetGuildHalls);
+               }
+
                iAvailable = 0;
-               foreach i in Send(SYS,@GetGuildHalls)
+               foreach i in lHalls
                {
                   if Send(i,@GetPurchaseValue,#who=who) <> -1
                   {
