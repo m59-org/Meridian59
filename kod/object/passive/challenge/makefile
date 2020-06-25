@@ -6,6 +6,7 @@
 
 DEPEND = ..\challenge.bof
 BOFS = eachshardchallenge.bof \
-       vitalschallenge.bof
+       vitalschallenge.bof \
+       reincarnatechallenge.bof
 
 !include $(KODDIR)\kod.mak

@@ -1495,7 +1495,14 @@ messages:
 
    Delete()
    {
-      Send(SYS,@RemoveGuildHallFromList,#hall=self);
+      if piRoom_num >= RID_LADDER_GUILDH_MIN AND piRoom_num <= RID_LADDER_GUILDH_MAX
+      {
+         Send(SYS,@RemoveLadderGuildHallFromList,#hall=self);
+      }
+      else
+      {
+         Send(SYS,@RemoveGuildHallFromList,#hall=self);
+      }
 
       poGuild_owner = $;
       poConquerer = $;

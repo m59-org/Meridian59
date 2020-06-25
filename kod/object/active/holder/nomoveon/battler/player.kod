@@ -1140,6 +1140,8 @@ resources:
       "~o~B[>>>] Challenge - Use one of each shard: challenge complete!"
    challenge_max_vitals_300_complete = \
       "~o~B[>>>] Challenge - Reach 300 total maximum health and mana: challenge complete!"
+   challenge_reincarnate_at_max_hp_complete = \
+      "~o~B[>>>] Challenge - Reincarnate at maximum health: challenge complete!"
       
 classvars:
 
@@ -1703,6 +1705,11 @@ messages:
 
    Reincarnate(race=0)
    {
+      if Send(self,@GetLadderID) > 0
+      {
+         Send(self,@LadderChallengeCheck,#type=LADDER_REINCARNATED);
+      }
+
       Send(SYS,@UserReincarnated,#what=self);
       Send(self,@ReincarnateCharacter);
       Send(self,@SetPlayerRace,#race=race);
@@ -21849,8 +21856,6 @@ messages:
       % At 40 challenges, green royal shirt?
       
       
-      % Challenge 3: Reach over 200 maximum mana
-%      plLadderChallengeData = Cons([0],plLadderChallengeData);
       
       % Challenge 4: 
 %      plLadderChallengeData = Cons([0],plLadderChallengeData);
@@ -21863,6 +21868,9 @@ messages:
       
       % Challenge four: Defeat historic Bosses
       % The lupogg king, the Ghost, the orc pit boss, 
+      
+      % Challenge 3: Reincarnate at maximum health
+      plLadderChallengeData = Cons([0],plLadderChallengeData);
       
       % Challenge 2: Reach 250 health + mana
       plLadderChallengeData = Cons([0],plLadderChallengeData);
@@ -21902,7 +21910,7 @@ messages:
                   if FindListElem(Nth(plLadderChallengeData,USE_EACH_SHARD),0) = 0
                   {
                      Send(self,@MsgSendUser,#message_rsc=ladder_two_challenge_one_complete);
-                     piLadderNumChallengesCompleted++;
+                     Send(self,@IncrementNumChallengesCompleted);
                   }
                }
             }
@@ -21914,10 +21922,27 @@ messages:
                SetNth(Nth(plLadderChallengeData,REACH_VITALS_TOTAL),1,1);
 
                Send(self,@MsgSendUser,#message_rsc=challenge_max_vitals_300_complete);
-               piLadderNumChallengesCompleted++;
+               Send(self,@IncrementNumChallengesCompleted);
+            }
+            break;
+         case LADDER_REINCARNATED:
+            if Send(self,@GetBaseMaxHealth) >= 100 + Send(self,@GetStamina)
+               AND Nth(Nth(plLadderChallengeData,REINCARNATE_AT_MAX),1) = 0
+            {
+               SetNth(Nth(plLadderChallengeData,REINCARNATE_AT_MAX),1,1);
+
+               Send(self,@MsgSendUser,#message_rsc=challenge_reincarnate_at_max_hp_complete);
+               Send(self,@IncrementNumChallengesCompleted);
             }
             break;
       }
+      return;
+   }
+
+   IncrementNumChallengesCompleted()
+   {
+      piLadderNumChallengesCompleted++;
+      Post(self,@ToCliStats,#group=5);
       return;
    }
 

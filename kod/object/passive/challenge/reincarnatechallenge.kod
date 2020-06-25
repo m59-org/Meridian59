@@ -1,0 +1,76 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ReincarnateChallenge is LadderChallenge
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   reincarnate_at_max_challenge_name = "Reincarnate at max health"
+   reincarnate_at_max_challenge_icon = skull.bgf
+   reincarnate_at_max_challenge_desc = \
+      "Reincarnate while at maximum health: %s"
+
+classvars:
+
+   vrName = reincarnate_at_max_challenge_name
+   vrIcon = reincarnate_at_max_challenge_icon
+   vrDesc = reincarnate_at_max_challenge_desc
+   
+   viChallengeNum = REINCARNATE_AT_MAX
+
+properties:
+
+
+messages:
+
+   ShowDesc(who=$)
+   {
+      local lChallengeData, lData, rOne, rTwo, rThree, rFour, rFive, rSix, rSeven, rEight, rNine;
+
+      lChallengeData = Send(who,@GetLadderChallengeData);
+      
+      lData = Nth(lChallengeData,REINCARNATE_AT_MAX);
+      
+      if Nth(lData,1)
+      {
+         rOne = Send(self,@GetCompletedChallengeRsc);
+      }
+      else
+      {
+         rOne = Send(self,@GetNotCompletedChallengeRsc);
+      }
+
+      AddPacket(4,vrDesc, 4,rOne);
+      return;
+   }
+
+   GetCompleted(who=$)
+   {
+      local lChallengeData, lData;
+
+      lChallengeData = Send(who,@GetLadderChallengeData);
+      
+      lData = Nth(lChallengeData,REINCARNATE_AT_MAX);
+
+      if lData <> $
+         AND FindListElem(lData,0) = 0
+      {
+         return TRUE;
+      }
+      
+      return FALSE;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
