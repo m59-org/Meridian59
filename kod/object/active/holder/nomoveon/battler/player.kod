@@ -1142,6 +1142,10 @@ resources:
       "~o~B[>>>] Challenge - Reach 300 total maximum health and mana: challenge complete!"
    challenge_reincarnate_at_max_hp_complete = \
       "~o~B[>>>] Challenge - Reincarnate at maximum health: challenge complete!"
+   challenge_open_treasure_chests_opened_a_treasure_chest = \
+      "~o~B[>>>] Challenge - Open 300 treasure chests: %i opened"
+   challenge_open_treasure_chests_complete = \
+      "~o~B[>>>] Challenge - Open 300 treasure chests: challenge complete!"
       
 classvars:
 
@@ -1551,6 +1555,11 @@ properties:
    plSkillConfig = $
    
    piLastAutomaticCommandMinionAttackTime = 0
+   
+   pbLadderPrizeOneAwarded = FALSE
+   pbLadderPrizeTwoAwarded = FALSE
+   pbLadderPrizeThreeAwarded = FALSE
+   pbLadderPrizeFourAwarded = FALSE
 
 messages:
 
@@ -21848,14 +21857,21 @@ messages:
       return;
    }
 
-   InitializeLadderChallengeData()
+   InitializeLadderChallengeData(bForceReset=FALSE)
    {
       % At 10 challenges, green mace
       % At 20 challenges, green KS
       % At 30 challenges, green helmets
       % At 40 challenges, green royal shirt?
       
-      
+      if bForceReset
+      {
+         plLadderChallengeData = $;
+      }
+      else if plLadderChallengeData <> $
+      {
+         return;
+      }
       
       % Challenge 4: 
 %      plLadderChallengeData = Cons([0],plLadderChallengeData);
@@ -21868,6 +21884,9 @@ messages:
       
       % Challenge four: Defeat historic Bosses
       % The lupogg king, the Ghost, the orc pit boss, 
+      
+      % Challenge 4: Open 300 treasure chests
+      plLadderChallengeData = Cons([0,0],plLadderChallengeData);
       
       % Challenge 3: Reincarnate at maximum health
       plLadderChallengeData = Cons([0],plLadderChallengeData);
@@ -21910,7 +21929,7 @@ messages:
                   if FindListElem(Nth(plLadderChallengeData,USE_EACH_SHARD),0) = 0
                   {
                      Send(self,@MsgSendUser,#message_rsc=ladder_two_challenge_one_complete);
-                     Send(self,@IncrementNumChallengesCompleted);
+                     Send(self,@CompletedAChallenge);
                   }
                }
             }
@@ -21922,7 +21941,7 @@ messages:
                SetNth(Nth(plLadderChallengeData,REACH_VITALS_TOTAL),1,1);
 
                Send(self,@MsgSendUser,#message_rsc=challenge_max_vitals_300_complete);
-               Send(self,@IncrementNumChallengesCompleted);
+               Send(self,@CompletedAChallenge);
             }
             break;
          case LADDER_REINCARNATED:
@@ -21932,16 +21951,52 @@ messages:
                SetNth(Nth(plLadderChallengeData,REINCARNATE_AT_MAX),1,1);
 
                Send(self,@MsgSendUser,#message_rsc=challenge_reincarnate_at_max_hp_complete);
-               Send(self,@IncrementNumChallengesCompleted);
+               Send(self,@CompletedAChallenge);
+            }
+            break;
+         case OPENED_A_CHEST:
+            SetNth(Nth(plLadderChallengeData,OPEN_TREASURE_CHESTS),2,Nth(Nth(plLadderChallengeData,OPEN_TREASURE_CHESTS),2)+1);
+
+            if Nth(Nth(plLadderChallengeData,OPEN_TREASURE_CHESTS),1) = 0
+               AND Nth(Nth(plLadderChallengeData,OPEN_TREASURE_CHESTS),2) >= 300
+            {
+               SetNth(Nth(plLadderChallengeData,OPEN_TREASURE_CHESTS),1,1);
+
+               Send(self,@MsgSendUser,#message_rsc=challenge_open_treasure_chests_complete);
+               Send(self,@CompletedAChallenge);
+            }
+            else if Nth(Nth(plLadderChallengeData,OPEN_TREASURE_CHESTS),1) = 0
+            {
+               Send(self,@MsgSendUser,#message_rsc=challenge_open_treasure_chests_opened_a_treasure_chest,#parm1=Nth(Nth(plLadderChallengeData,OPEN_TREASURE_CHESTS),2));
             }
             break;
       }
       return;
    }
 
-   IncrementNumChallengesCompleted()
+   CompletedAChallenge()
    {
-      piLadderNumChallengesCompleted++;
+      local i, iChallengeCount;
+
+      iChallengeCount = 0;
+      foreach i in Send(SYS,@GetChallenges)
+      {
+         if Send(i,@GetCompleted,#who=self)
+         {
+            iChallengeCount++;
+         }
+      }
+
+      if iChallengeCount > piLadderNumChallengesCompleted
+      {
+         piLadderNumChallengesCompleted = iChallengeCount;
+         
+         if piLadderNumChallengesCompleted >= 10
+            AND NOT pbLadderPrizeOneAwarded
+         {
+            % Prize #1
+         }
+      }
       Post(self,@ToCliStats,#group=5);
       return;
    }
