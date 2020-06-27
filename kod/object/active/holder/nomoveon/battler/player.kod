@@ -1146,6 +1146,10 @@ resources:
       "~o~B[>>>] Challenge - Open 300 treasure chests: %i opened"
    challenge_open_treasure_chests_complete = \
       "~o~B[>>>] Challenge - Open 300 treasure chests: challenge complete!"
+   challenge_slay_ghost_slew_a_ghost = \
+      "~o~B[>>>] Challenge - Slay 100 ghosts: %i slain"
+   challenge_slay_ghosts_complete = \
+      "~o~B[>>>] Challenge - Slay 100 ghosts: challenge complete!"
       
 classvars:
 
@@ -9045,12 +9049,16 @@ messages:
          AND NOT bReflection
          AND NOT Send(what,@IsIllusion)
          AND oMinionKiller = $
-         AND NOT IsClass(what,&Marauder)
       {
-         Send(self,@AddKarma,#amount=Send(self,@CalculateKarmaChangeFromKill,
-               #karma_victim=Send(what,@GetKarma),
-               #karma_killer=Send(self,@GetKarma)),
-               #bIsMob=TRUE);
+         if NOT IsClass(what,&Marauder)
+         {
+            Send(self,@AddKarma,#amount=Send(self,@CalculateKarmaChangeFromKill,
+                  #karma_victim=Send(what,@GetKarma),
+                  #karma_killer=Send(self,@GetKarma)),
+                  #bIsMob=TRUE);
+         }
+
+         Send(self,@LadderChallengeCheck,#type=SLEW_A_MONSTER,#oObject=what);
       }
 
       Send(what,@Killed,#what=self,#stroke_obj=stroke_obj,#bDoingBackstab=bDoingBackstab);
@@ -21885,6 +21893,9 @@ messages:
       % Challenge four: Defeat historic Bosses
       % The lupogg king, the Ghost, the orc pit boss, 
       
+      % Challenge 5: Slay 100 ghosts
+      plLadderChallengeData = Cons([0,0],plLadderChallengeData);
+      
       % Challenge 4: Open 300 treasure chests
       plLadderChallengeData = Cons([0,0],plLadderChallengeData);
       
@@ -21968,6 +21979,26 @@ messages:
             else if Nth(Nth(plLadderChallengeData,OPEN_TREASURE_CHESTS),1) = 0
             {
                Send(self,@MsgSendUser,#message_rsc=challenge_open_treasure_chests_opened_a_treasure_chest,#parm1=Nth(Nth(plLadderChallengeData,OPEN_TREASURE_CHESTS),2));
+            }
+            break;
+         case SLEW_A_MONSTER:
+            if IsClass(oObject,&Ghost)
+            {
+               SetNth(Nth(plLadderChallengeData,SLAY_GHOSTS),2,Nth(Nth(plLadderChallengeData,SLAY_GHOSTS),2)+1);
+
+               if Nth(Nth(plLadderChallengeData,SLAY_GHOSTS),1) = 0
+                  AND Nth(Nth(plLadderChallengeData,SLAY_GHOSTS),2) >= 100
+               {
+                  SetNth(Nth(plLadderChallengeData,SLAY_GHOSTS),1,1);
+
+                  Send(self,@MsgSendUser,#message_rsc=challenge_slay_ghosts_complete);
+                  Send(self,@CompletedAChallenge);
+               }
+               else if Nth(Nth(plLadderChallengeData,SLAY_GHOSTS),1) = 0
+               {
+                  Send(self,@MsgSendUser,#message_rsc=challenge_slay_ghost_slew_a_ghost,#parm1=Nth(Nth(plLadderChallengeData,SLAY_GHOSTS),2));
+               }
+               break;
             }
             break;
       }

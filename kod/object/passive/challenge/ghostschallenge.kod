@@ -1,0 +1,78 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+GhostsChallenge is LadderChallenge
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   kill_ghosts_challenge_name = "Slay 100 ghosts"
+   kill_ghosts_challenge_icon = ghost.bgf
+   kill_ghosts_challenge_desc = \
+      "Slay 100 ghosts: %s"
+      "\n\nGhosts slain: %i"
+
+classvars:
+
+   vrName = kill_ghosts_challenge_name
+   vrIcon = kill_ghosts_challenge_icon
+   vrDesc = kill_ghosts_challenge_desc
+   
+   viChallengeNum = SLAY_GHOSTS
+
+properties:
+
+
+messages:
+
+   ShowDesc(who=$)
+   {
+      local lChallengeData, lData, rOne, rTwo, rThree, rFour, rFive, rSix, rSeven, rEight, rNine;
+
+      lChallengeData = Send(who,@GetLadderChallengeData);
+      
+      lData = Nth(lChallengeData,SLAY_GHOSTS);
+      
+      if lData <> $
+         AND Nth(lData,1)
+      {
+         rOne = Send(self,@GetCompletedChallengeRsc);
+      }
+      else
+      {
+         rOne = Send(self,@GetNotCompletedChallengeRsc);
+      }
+
+      AddPacket(4,vrDesc, 4,rOne, 4, Nth(lData,2));
+      return;
+   }
+
+   GetCompleted(who=$)
+   {
+      local lChallengeData, lData;
+
+      lChallengeData = Send(who,@GetLadderChallengeData);
+      
+      lData = Nth(lChallengeData,SLAY_GHOSTS);
+
+      if lData <> $
+         AND Nth(lData,1)
+      {
+         return TRUE;
+      }
+      
+      return FALSE;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
