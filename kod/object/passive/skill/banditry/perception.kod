@@ -30,6 +30,8 @@ resources:
    Perception_herself = "herself"
    Perception_itself = "itself"
    Perception_you = "you"
+   
+   Perception_nothing = ""
 
 classvars:
 
@@ -67,7 +69,7 @@ messages:
    
    DoSkill(who=$, caster=$, oSpell=$, lItems=$)
    {
-      local chance, iIntellect, iAbility, rTarget;
+      local chance, iIntellect, iAbility, rTarget, rTargetIndef;
       
       iIntellect = Send(self,@GetRequisiteStat,#who=who);
       iAbility = Send(who,@GetSkillAbility,#skill_num=viSkill_num);
@@ -120,9 +122,18 @@ messages:
                   rTarget = Perception_itself;
                }
             }
+            
+            if First(lItems) <> $
+            {
+               rTargetIndef = Send(First(lItems),@GetIndef);
+            }
+            else
+            {
+               rTargetIndef = Perception_nothing;
+            }
 
             Send(who,@MsgSendUser,#message_rsc=Perception_detect_complete,#parm1=Send(caster,@GetName),
-                                  #parm2=Send(oSpell,@GetName),#parm3=Send(rTarget,@GetIndef),#parm4=rTarget);
+                                  #parm2=Send(oSpell,@GetName),#parm3=rTargetIndef,#parm4=rTarget);
          }
       }
       

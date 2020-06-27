@@ -1150,6 +1150,10 @@ resources:
       "~o~B[>>>] Challenge - Slay 100 ghosts: %i slain"
    challenge_slay_ghosts_complete = \
       "~o~B[>>>] Challenge - Slay 100 ghosts: challenge complete!"
+   ladder_two_challenge_slew_evil_contributor = \
+      "~o~B[>>>] Challenge - Slay evil contributors: %s slain"
+   ladder_two_challenge_slay_evil_contributors = \
+      "~o~B[>>>] Challenge - Slay evil contributors: challenge complete!"
       
 classvars:
 
@@ -21893,6 +21897,9 @@ messages:
       % Challenge four: Defeat historic Bosses
       % The lupogg king, the Ghost, the orc pit boss, 
       
+      % Challenge 6: Slay evil contributors
+      plLadderChallengeData = Cons([0,0,0],plLadderChallengeData);
+      
       % Challenge 5: Slay 100 ghosts
       plLadderChallengeData = Cons([0,0],plLadderChallengeData);
       
@@ -21918,7 +21925,7 @@ messages:
 
    LadderChallengeCheck(type=USED_A_SHARD,oObject=$)
    {
-      local i;
+      local i, bIndex;
       
       if plLadderChallengeData = $
       {
@@ -21999,6 +22006,34 @@ messages:
                   Send(self,@MsgSendUser,#message_rsc=challenge_slay_ghost_slew_a_ghost,#parm1=Nth(Nth(plLadderChallengeData,SLAY_GHOSTS),2));
                }
                break;
+            }
+            else if IsClass(oObject,&Marauder)
+            {
+               bIndex = 0;
+               if IsClass(oObject,&MarauderEvilSunnyCatt)
+               {
+                  bIndex = 1;
+               }
+               else if IsClass(oObject,&MarauderEvilGar)
+               {
+                  bIndex = 2;
+               }
+               else if IsClass(oObject,&MarauderEvilChrisChan)
+               {
+                  bIndex = 3;
+               }
+               if bIndex <> 0
+                  AND Nth(Nth(plLadderChallengeData,SLAY_EVIL_CONTRIBUTORS),bIndex) <> 1
+               {
+                  SetNth(Nth(plLadderChallengeData,SLAY_EVIL_CONTRIBUTORS),bIndex,1);
+                  Send(self,@MsgSendUser,#message_rsc=ladder_two_challenge_slew_evil_contributor,#parm1=Send(oObject,@GetName));
+                  
+                  if FindListElem(Nth(plLadderChallengeData,SLAY_EVIL_CONTRIBUTORS),0) = 0
+                  {
+                     Send(self,@MsgSendUser,#message_rsc=ladder_two_challenge_slay_evil_contributors);
+                     Send(self,@CompletedAChallenge);
+                  }
+               }
             }
             break;
       }

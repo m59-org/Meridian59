@@ -9,6 +9,7 @@ BOFS = eachshardchallenge.bof \
        vitalschallenge.bof \
        reincarnatechallenge.bof \
        treasurechestschallenge.bof \
-       ghostschallenge.bof
+       ghostschallenge.bof \
+       marauderchallenge.bof
 
 !include $(KODDIR)\kod.mak

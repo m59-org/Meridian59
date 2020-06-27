@@ -1,0 +1,102 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+MarauderChallenge is LadderChallenge
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   kill_marauders_challenge_name = "Slay evil contributors"
+   kill_marauders_challenge_icon = sword.bgf
+   kill_marauders_challenge_desc = \
+      "Slay the evil versions of 103 contributors, "
+      "and put a stop to their nefarious Marauding."
+      "\n"
+      "\nSlay Evil Sunnycatt: %s"
+      "\nSlay Evil Gar: %s"
+      "\nSlay Evil ChrisChan: %s"
+
+classvars:
+
+   vrName = kill_marauders_challenge_name
+   vrIcon = kill_marauders_challenge_icon
+   vrDesc = kill_marauders_challenge_desc
+   
+   viChallengeNum = SLAY_EVIL_CONTRIBUTORS
+
+properties:
+
+
+messages:
+
+   ShowDesc(who=$)
+   {
+      local lChallengeData, lData, rOne, rTwo, rThree;
+
+      lChallengeData = Send(who,@GetLadderChallengeData);
+      
+      lData = Nth(lChallengeData,SLAY_EVIL_CONTRIBUTORS);
+      
+      if Nth(lData,1)
+      {
+         rOne = Send(self,@GetCompletedChallengeRsc);
+      }
+      else
+      {
+         rOne = Send(self,@GetNotCompletedChallengeRsc);
+      }
+      
+      if Nth(lData,2)
+      {
+         rTwo = Send(self,@GetCompletedChallengeRsc);
+      }
+      else
+      {
+         rTwo = Send(self,@GetNotCompletedChallengeRsc);
+      }
+      
+      if Nth(lData,3)
+      {
+         rThree = Send(self,@GetCompletedChallengeRsc);
+      }
+      else
+      {
+         rThree = Send(self,@GetNotCompletedChallengeRsc);
+      }
+
+      AddPacket(4,vrDesc, 4,rOne,
+                          4,rTwo,
+                          4,rThree);
+
+      return;
+   }
+
+   GetCompleted(who=$)
+   {
+      local lChallengeData, lData;
+
+      lChallengeData = Send(who,@GetLadderChallengeData);
+      
+      lData = Nth(lChallengeData,SLAY_EVIL_CONTRIBUTORS);
+
+      if lData <> $
+         AND FindListElem(lData,0) = 0
+      {
+         return TRUE;
+      }
+      
+      return FALSE;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
