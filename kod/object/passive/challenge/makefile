@@ -10,6 +10,7 @@ BOFS = eachshardchallenge.bof \
        reincarnatechallenge.bof \
        treasurechestschallenge.bof \
        ghostschallenge.bof \
-       marauderchallenge.bof
+       marauderchallenge.bof \
+       eachtownchallenge.bof
 
 !include $(KODDIR)\kod.mak

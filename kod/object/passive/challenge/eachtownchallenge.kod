@@ -1,0 +1,144 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+EachTownChallenge is LadderChallenge
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   each_town_challenge_name = "Visit each town"
+   each_town_challenge_icon = treeoak.bgf
+   each_town_challenge_desc = \
+      "Visit each known town.\n"
+      "\nTos: %s"
+      "\nCor Noth: %s"
+      "\nBarloque: %s"
+      "\nMarion: %s"
+      "\nJasper: %s"
+      "\nKo'catan: %s"
+      "\nBiskalane: %s"
+
+classvars:
+
+   vrName = each_town_challenge_name
+   vrIcon = each_town_challenge_icon
+   vrDesc = each_town_challenge_desc
+   
+   viChallengeNum = VISIT_EACH_TOWN
+
+properties:
+
+
+messages:
+
+   ShowDesc(who=$)
+   {
+      local lChallengeData, lData, rOne, rTwo, rThree, rFour, rFive, rSix, rSeven;
+
+      lChallengeData = Send(who,@GetLadderChallengeData);
+      
+      lData = Nth(lChallengeData,VISIT_EACH_TOWN);
+      
+      if Nth(lData,1)
+      {
+         rOne = Send(self,@GetCompletedChallengeRsc);
+      }
+      else
+      {
+         rOne = Send(self,@GetNotCompletedChallengeRsc);
+      }
+      
+      if Nth(lData,2)
+      {
+         rTwo = Send(self,@GetCompletedChallengeRsc);
+      }
+      else
+      {
+         rTwo = Send(self,@GetNotCompletedChallengeRsc);
+      }
+      
+      if Nth(lData,3)
+      {
+         rThree = Send(self,@GetCompletedChallengeRsc);
+      }
+      else
+      {
+         rThree = Send(self,@GetNotCompletedChallengeRsc);
+      }
+      
+      if Nth(lData,4)
+      {
+         rFour = Send(self,@GetCompletedChallengeRsc);
+      }
+      else
+      {
+         rFour = Send(self,@GetNotCompletedChallengeRsc);
+      }
+      
+      if Nth(lData,5)
+      {
+         rFive = Send(self,@GetCompletedChallengeRsc);
+      }
+      else
+      {
+         rFive = Send(self,@GetNotCompletedChallengeRsc);
+      }
+      
+      if Nth(lData,6)
+      {
+         rSix = Send(self,@GetCompletedChallengeRsc);
+      }
+      else
+      {
+         rSix = Send(self,@GetNotCompletedChallengeRsc);
+      }
+      
+      if Nth(lData,7)
+      {
+         rSeven = Send(self,@GetCompletedChallengeRsc);
+      }
+      else
+      {
+         rSeven = Send(self,@GetNotCompletedChallengeRsc);
+      }
+
+      AddPacket(4,vrDesc, 4,rOne,
+                          4,rTwo,
+                          4,rThree,
+                          4,rFour,
+                          4,rFive,
+                          4,rSix,
+                          4,rSeven);
+
+      return;
+   }
+
+   GetCompleted(who=$)
+   {
+      local lChallengeData, lData;
+
+      lChallengeData = Send(who,@GetLadderChallengeData);
+      
+      lData = Nth(lChallengeData,VISIT_EACH_TOWN);
+
+      if lData <> $
+         AND FindListElem(lData,0) = 0
+      {
+         return TRUE;
+      }
+      
+      return FALSE;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

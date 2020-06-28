@@ -1154,7 +1154,10 @@ resources:
       "~o~B[>>>] Challenge - Slay evil contributors: %s slain"
    ladder_two_challenge_slay_evil_contributors = \
       "~o~B[>>>] Challenge - Slay evil contributors: challenge complete!"
-      
+   ladder_two_challenge_visited_a_town = \
+      "~o~B[>>>] Challenge - Visit each town: %s visited"
+   ladder_two_visited_each_town_complete = \
+      "~o~B[>>>] Challenge - Visit each town: challenge complete!"
 classvars:
 
    viHand_space = 2
@@ -3567,6 +3570,12 @@ messages:
          AND IsClass(poStance,&DefiantStandStance)
       {
          Send(self,@ClearStance);
+      }
+
+      if Send(self,@GetLadderID) > 0
+         AND what <> $
+      {
+         Send(self,@LadderChallengeCheck,#type=VISITED_AN_AREA,#oObject=what);
       }
 
       return;
@@ -21897,6 +21906,9 @@ messages:
       % Challenge four: Defeat historic Bosses
       % The lupogg king, the Ghost, the orc pit boss, 
       
+      % Challenge 7: Visit each town
+      plLadderChallengeData = Cons([0,0,0,0,0,0,0],plLadderChallengeData);
+      
       % Challenge 6: Slay evil contributors
       plLadderChallengeData = Cons([0,0,0],plLadderChallengeData);
       
@@ -21925,7 +21937,7 @@ messages:
 
    LadderChallengeCheck(type=USED_A_SHARD,oObject=$)
    {
-      local i, bIndex;
+      local i, iIndex;
       
       if plLadderChallengeData = $
       {
@@ -21934,6 +21946,54 @@ messages:
 
       switch(type)
       {
+         case VISITED_AN_AREA:
+            if oObject <> $
+               AND IsClass(oObject,&Room)
+            {
+               iIndex = 0;
+               if IsClass(oObject,&TosRoom)
+               {
+                  iIndex = 1;
+               }
+               else if IsClass(oObject,&CorNothRoom)
+               {
+                  iIndex = 2;
+               }
+               else if IsClass(oObject,&BarloqueRoom)
+               {
+                  iIndex = 3;
+               }
+               else if IsClass(oObject,&MarionRoom)
+               {
+                  iIndex = 4;
+               }
+               else if IsClass(oObject,&JasperRoom)
+               {
+                  iIndex = 5;
+               }
+               else if IsClass(oObject,&KocatanRoom)
+               {
+                  iIndex = 6;
+               }
+               else if IsClass(oObject,&WaylayOasis)
+               {
+                  iIndex = 7;
+               }
+
+               if iIndex <> 0
+                  AND Nth(Nth(plLadderChallengeData,VISIT_EACH_TOWN),iIndex) <> 1
+               {
+                  SetNth(Nth(plLadderChallengeData,VISIT_EACH_TOWN),iIndex,1);
+                  Send(self,@MsgSendUser,#message_rsc=ladder_two_challenge_visited_a_town,#parm1=Send(oObject,@GetName));
+                  
+                  if FindListElem(Nth(plLadderChallengeData,VISIT_EACH_TOWN),0) = 0
+                  {
+                     Send(self,@MsgSendUser,#message_rsc=ladder_two_visited_each_town_complete);
+                     Send(self,@CompletedAChallenge);
+                  }
+               }
+            }
+            break;
          case USED_A_SHARD:
             if oObject <> $
                AND IsClass(oObject,&Shard)
@@ -22009,23 +22069,23 @@ messages:
             }
             else if IsClass(oObject,&Marauder)
             {
-               bIndex = 0;
+               iIndex = 0;
                if IsClass(oObject,&MarauderEvilSunnyCatt)
                {
-                  bIndex = 1;
+                  iIndex = 1;
                }
                else if IsClass(oObject,&MarauderEvilGar)
                {
-                  bIndex = 2;
+                  iIndex = 2;
                }
                else if IsClass(oObject,&MarauderEvilChrisChan)
                {
-                  bIndex = 3;
+                  iIndex = 3;
                }
-               if bIndex <> 0
-                  AND Nth(Nth(plLadderChallengeData,SLAY_EVIL_CONTRIBUTORS),bIndex) <> 1
+               if iIndex <> 0
+                  AND Nth(Nth(plLadderChallengeData,SLAY_EVIL_CONTRIBUTORS),iIndex) <> 1
                {
-                  SetNth(Nth(plLadderChallengeData,SLAY_EVIL_CONTRIBUTORS),bIndex,1);
+                  SetNth(Nth(plLadderChallengeData,SLAY_EVIL_CONTRIBUTORS),iIndex,1);
                   Send(self,@MsgSendUser,#message_rsc=ladder_two_challenge_slew_evil_contributor,#parm1=Send(oObject,@GetName));
                   
                   if FindListElem(Nth(plLadderChallengeData,SLAY_EVIL_CONTRIBUTORS),0) = 0
