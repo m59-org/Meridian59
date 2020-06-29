@@ -192,9 +192,9 @@ resources:
       "The artificing enchantment is stripped away!"
 
    only_killer_can_loot = \
-      "Only the adventurer who slew the monster may loot its treasure chest."
+      "Only the adventurers who slew the monster may loot its treasure chest."
    only_killer_can_disarm = \
-      "Only the adventurer who slew the monster may open its treasure chest."
+      "Only the adventurers who slew the monster may open its treasure chest."
 
 classvars:
 
@@ -224,6 +224,7 @@ properties:
    pbArtificed = FALSE
    
    poKiller = $
+   plAssists = $
    
    piExpireChecks = 12
    ptExpireTimer = $
@@ -237,14 +238,22 @@ properties:
 
 messages:
 
-   Constructor(iLootSize=0,iBoxPower=20,killer=$,oCorpse=$,victim=$,iChampStatus=0)
+   Constructor(iLootSize=0,iBoxPower=20,killer=$,lAssists=$,oCorpse=$,victim=$,iChampStatus=0)
    {
-      local lPossibleTraps, iBonusShards, oBonusShard;
+      local lPossibleTraps, iBonusShards, oBonusShard, i;
 
       poKiller = killer;
       piLadderID = Send(killer,@GetLadderID);
       piBoxPower = Bound((iBoxPower * Random(80,150))/100,20,$);
       poCorpse = oCorpse;
+
+      foreach i in lAssists
+      {
+         if IsClass(First(i),&Player)
+         {
+            plAssists = Cons(First(i),lAssists);
+         }
+      }
       
       if oCorpse <> $
       {
@@ -504,15 +513,30 @@ messages:
       }
       return FALSE;
    }
+   
+   AssistedKill(who=$)
+   {
+      if Send(who,@GetLadderID) > 0
+      {
+         if (plAssists <> $
+            AND FindListElem(plAssists,who) <> 0)
+            OR who = poKiller
+         {
+            return TRUE;
+         }
+      }
+      return FALSE;
+   }
 
    TryActivate(who=$)
    {
       local bTrapSprung;
       
-      if who <> $ poKiller
+      if NOT Send(self,@AssistedKill,#who=who)
       {
+         % We send true to avoid an extraneous message
          Send(who,@MsgSendUser,#message_rsc=only_killer_can_disarm);
-         return FALSE;
+         return TRUE;
       }
 
       bTrapSprung = FALSE;
@@ -1335,7 +1359,7 @@ messages:
          return FALSE;
       }
 
-      if taker <> poKiller
+      if NOT Send(self,@AssistedKill,#who=taker)
       {
          Send(taker,@MsgSendUser,#message_rsc=only_killer_can_loot);
          return FALSE;
