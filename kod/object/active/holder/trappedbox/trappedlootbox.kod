@@ -192,7 +192,9 @@ resources:
       "The artificing enchantment is stripped away!"
 
    only_killer_can_loot = \
-      "Only the adventurer who slew the monster can loot its treasure chest."
+      "Only the adventurer who slew the monster may loot its treasure chest."
+   only_killer_can_disarm = \
+      "Only the adventurer who slew the monster may open its treasure chest."
 
 classvars:
 
@@ -507,6 +509,12 @@ messages:
    {
       local bTrapSprung;
       
+      if who <> $ poKiller
+      {
+         Send(who,@MsgSendUser,#message_rsc=only_killer_can_disarm);
+         return FALSE;
+      }
+
       bTrapSprung = FALSE;
       if NOT pbMagicallyLocked
       {
