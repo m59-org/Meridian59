@@ -407,6 +407,13 @@ messages:
       oTreasure = Create(&NeruditeArrow,#corpse=corpse,#ladderID=ladderID);
       iNumber = Random(25,45);
       Send(oTreasure,@AddNumber,#number=iNumber);
+      
+      if corpse <> $
+         AND IsClass(corpse,&TrappedLootBox)
+      {
+         Send(corpse,@NewHold,#what=oTreasure);
+         propagate;
+      }
 
       if Send(poOwner,@ReqNewHold,#what=oTreasure,#new_row=piRow,#new_col=piCol)
       {

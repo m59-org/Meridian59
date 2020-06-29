@@ -1158,6 +1158,11 @@ resources:
       "~o~B[>>>] Challenge - Visit each town: %s visited"
    ladder_two_visited_each_town_complete = \
       "~o~B[>>>] Challenge - Visit each town: challenge complete!"
+   challenge_slay_lupogg_king_slew_a_king = \
+      "~o~B[>>>] Challenge - Slay 40 lupogg kings: %i slain"
+   challenge_slay_lupogg_kings_complete = \
+      "~o~B[>>>] Challenge - Slay 40 lupogg kings: challenge complete!"
+
 classvars:
 
    viHand_space = 2
@@ -21905,6 +21910,11 @@ messages:
       
       % Challenge four: Defeat historic Bosses
       % The lupogg king, the Ghost, the orc pit boss, 
+      %
+      %
+      
+      % Challenge 8: Slay 40 lupogg kings
+      plLadderChallengeData = Cons([0,0],plLadderChallengeData);
       
       % Challenge 7: Visit each town
       plLadderChallengeData = Cons([0,0,0,0,0,0,0],plLadderChallengeData);
@@ -22064,6 +22074,24 @@ messages:
                else if Nth(Nth(plLadderChallengeData,SLAY_GHOSTS),1) = 0
                {
                   Send(self,@MsgSendUser,#message_rsc=challenge_slay_ghost_slew_a_ghost,#parm1=Nth(Nth(plLadderChallengeData,SLAY_GHOSTS),2));
+               }
+               break;
+            }
+            else if IsClass(oObject,&LupoggKing)
+            {
+               SetNth(Nth(plLadderChallengeData,SLAY_LUPOGG_KINGS),2,Nth(Nth(plLadderChallengeData,SLAY_LUPOGG_KINGS),2)+1);
+
+               if Nth(Nth(plLadderChallengeData,SLAY_LUPOGG_KINGS),1) = 0
+                  AND Nth(Nth(plLadderChallengeData,SLAY_LUPOGG_KINGS),2) >= 40
+               {
+                  SetNth(Nth(plLadderChallengeData,SLAY_LUPOGG_KINGS),1,1);
+
+                  Send(self,@MsgSendUser,#message_rsc=challenge_slay_lupogg_kings_complete);
+                  Send(self,@CompletedAChallenge);
+               }
+               else if Nth(Nth(plLadderChallengeData,SLAY_LUPOGG_KINGS),1) = 0
+               {
+                  Send(self,@MsgSendUser,#message_rsc=challenge_slay_lupogg_king_slew_a_king,#parm1=Nth(Nth(plLadderChallengeData,SLAY_LUPOGG_KINGS),2));
                }
                break;
             }

@@ -11,6 +11,7 @@ BOFS = eachshardchallenge.bof \
        treasurechestschallenge.bof \
        ghostschallenge.bof \
        marauderchallenge.bof \
-       eachtownchallenge.bof
+       eachtownchallenge.bof \
+       lupoggkingchallenge.bof
 
 !include $(KODDIR)\kod.mak

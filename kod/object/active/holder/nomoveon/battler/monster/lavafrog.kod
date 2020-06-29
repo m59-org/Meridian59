@@ -93,6 +93,8 @@ properties:
    piMeleeSpellChance = 40
    piRangedSpellChance = 5
    
+   pbDropChestOnDeath = TRUE
+   
 messages:
 
    Constructed()
@@ -205,6 +207,13 @@ messages:
       oTreasure = Create(&FireFragment,#corpse=corpse,#ladderID=ladderID);
       iNumber = Random(15,80);
       Send(oTreasure,@AddNumber,#number=iNumber);
+      
+      if corpse <> $
+         AND IsClass(corpse,&TrappedLootBox)
+      {
+         Send(corpse,@NewHold,#what=oTreasure);
+         propagate;
+      }
 
       if Send(poOwner,@ReqNewHold,#what=oTreasure,#new_row=piRow,#new_col=piCol)
       {

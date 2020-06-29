@@ -134,6 +134,8 @@ properties:
    piGoingToHeight = 300
    
    piCurrentChangingHeightsFrame = 1
+   
+   pbDropChestOnDeath = TRUE
 
 messages:
 
@@ -627,31 +629,47 @@ messages:
       oTreasure = Create(&IceDragonScale,#corpse=corpse,#ladderID=ladderID);
       iNumber = Random(15,80);
       Send(oTreasure,@AddNumber,#number=iNumber);
-
-      if Send(poOwner,@ReqNewHold,#what=oTreasure,#new_row=piRow,#new_col=piCol)
+      
+      if corpse <> $
+         AND IsClass(corpse,&TrappedLootBox)
       {
-         Send(poOwner,@NewHold,#what=oTreasure,
-               #new_row=piRow,#new_col=piCol,
-               #fine_row=piFine_row,#fine_col=piFine_col);
+         Send(corpse,@NewHold,#what=oTreasure);
       }
       else
       {
-         Send(oTreasure,@Delete);
+         if Send(poOwner,@ReqNewHold,#what=oTreasure,#new_row=piRow,#new_col=piCol)
+         {
+            Send(poOwner,@NewHold,#what=oTreasure,
+                  #new_row=piRow,#new_col=piCol,
+                  #fine_row=piFine_row,#fine_col=piFine_col);
+         }
+         else
+         {
+            Send(oTreasure,@Delete);
+         }
       }
 
       oTreasure = Create(&ColdFragment,#corpse=corpse,#ladderID=ladderID);
       iNumber = Random(10,60);
       Send(oTreasure,@AddNumber,#number=iNumber);
 
-      if Send(poOwner,@ReqNewHold,#what=oTreasure,#new_row=piRow,#new_col=piCol)
+      if corpse <> $
+         AND IsClass(corpse,&TrappedLootBox)
       {
-         Send(poOwner,@NewHold,#what=oTreasure,
-               #new_row=piRow,#new_col=piCol,
-               #fine_row=piFine_row,#fine_col=piFine_col);
+         Send(corpse,@NewHold,#what=oTreasure);
       }
       else
       {
-         Send(oTreasure,@Delete);
+         if Send(poOwner,@ReqNewHold,#what=oTreasure,#new_row=piRow,#new_col=piCol)
+         {
+            Send(poOwner,@NewHold,#what=oTreasure,
+                  #new_row=piRow,#new_col=piCol,
+                  #fine_row=piFine_row,#fine_col=piFine_col);
+         }
+         else
+         {
+            Send(oTreasure,@Delete);
+         }
       }
 
       propagate;
