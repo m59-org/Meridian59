@@ -1162,6 +1162,10 @@ resources:
       "~o~B[>>>] Challenge - Slay 40 lupogg kings: %i slain"
    challenge_slay_lupogg_kings_complete = \
       "~o~B[>>>] Challenge - Slay 40 lupogg kings: challenge complete!"
+   ladder_two_challenge_defeated_a_prism = \
+      "~o~B[>>>] Challenge - Defeat each Prism: new Prism defeated!"
+   ladder_two_challenge_defeated_all_prisms = \
+      "~o~B[>>>] Challenge - Defeat each Prism: challenge complete!"
 
 classvars:
 
@@ -20680,6 +20684,8 @@ messages:
          Post(self,@MsgSendUser,#message_rsc=all_six_prisms_defeated_msg);
       }
       
+      Post(self,@LadderChallengeCheck,#type=DEFEATED_A_PRISM,#num=num);
+      
       Post(self,@DrawResistances);
 
       return;
@@ -21822,7 +21828,13 @@ messages:
       pbMarauderAntagonist = value;
       return;
    }
-   
+
+   EndNotifyLadderEnded()
+   {
+      pbNotifyLadderEnded = FALSE;
+      return;
+   }
+
    RevertToNonLadder()
    {
       local i, each_obj;
@@ -21861,12 +21873,7 @@ messages:
    }
 
    InitializeLadderChallengeData(bForceReset=FALSE)
-   {
-      % At 10 challenges, green mace
-      % At 20 challenges, green KS
-      % At 30 challenges, green helmets
-      % At 40 challenges, green royal shirt?
-      
+   {  
       if bForceReset
       {
          plLadderChallengeData = $;
@@ -21880,7 +21887,7 @@ messages:
       
       % Challenge 23: Control 500 Leadership of minions
       
-      % Challenge 22: Slay 400 skeletons
+      % Challenge 22: Slay 300 skeletons
       
       % Challenge 21: Fully feed a soth and ao3 at the same time
       
@@ -21907,6 +21914,7 @@ messages:
       % Challenge 10: Slay 3 ice dragons
       
       % Challenge 9: Complete each prism
+      plLadderChallengeData = Cons([0,0,0,0,0,0],plLadderChallengeData);
       
       % Challenge 8: Slay 40 lupogg kings
       plLadderChallengeData = Cons([0,0],plLadderChallengeData);
@@ -21933,14 +21941,11 @@ messages:
       % Each entry is 0 for not used, 1 for used, in order of rarity
       plLadderChallengeData = Cons([0,0,0,0,0,0,0,0,0],plLadderChallengeData);
      
-     
-      
-      % Challenge forty: reach the end of the Endless Sea Palace
       
       return;
    }
 
-   LadderChallengeCheck(type=USED_A_SHARD,oObject=$)
+   LadderChallengeCheck(type=USED_A_SHARD,oObject=$,num=0)
    {
       local i, iIndex;
       
@@ -21951,6 +21956,22 @@ messages:
 
       switch(type)
       {
+         case DEFEATED_A_PRISM:
+            if num <> 0
+            {
+               if Nth(Nth(plLadderChallengeData,DEFEAT_EACH_PRISM),num) <> 1
+               {
+                  SetNth(Nth(plLadderChallengeData,DEFEAT_EACH_PRISM),num,1);
+                  Send(self,@MsgSendUser,#message_rsc=ladder_two_challenge_defeated_a_prism);
+                  
+                  if FindListElem(Nth(plLadderChallengeData,DEFEAT_EACH_PRISM),0) = 0
+                  {
+                     Send(self,@MsgSendUser,#message_rsc=ladder_two_challenge_defeated_all_prisms);
+                     Send(self,@CompletedAChallenge);
+                  }
+               }
+            }
+            break;
          case VISITED_AN_AREA:
             if oObject <> $
                AND IsClass(oObject,&Room)
