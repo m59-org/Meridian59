@@ -78,7 +78,7 @@ messages:
          if new_row=24 and new_col=8
          {
             pbTemple_Made_Scepter = TRUE;
-            send(self,@NewHold,#what=Create(&Scepter),#new_row=23,#new_col=8);
+            send(self,@NewHold,#what=Create(&RelicOfQor),#new_row=23,#new_col=8);
          }
       }
  
@@ -92,7 +92,7 @@ messages:
    
    LeaveHold(what=$)
    {
-      if isClass(what,&Scepter)
+      if isClass(what,&RelicOfQor)
       {
          if send(what,@GetRow) = 23 and send(what,@GetCol) = 8
          {
@@ -114,7 +114,7 @@ messages:
       {
          each_obj = send(self,@HolderExtractObject,#data=i);
          
-         if isClass(each_obj,&Scepter)
+         if isClass(each_obj,&RelicOfQor)
          {
             send(each_obj,@delete);
          }
