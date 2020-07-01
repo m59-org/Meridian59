@@ -314,10 +314,14 @@ properties:
    pbDisplayChanceToHit = FALSE
    
    % What color translations does this battler have for their items?
-   piWeaponOverrideColor = 0
-   piShieldOverrideColor = 0
-   piHelmetOverrideColor = 0
-   piArmorOverrideColor = 0
+   plWeaponOverrideColors = $
+   piWeaponOverrideColorIndex = 0
+   plShieldOverrideColors = $
+   piShieldOverrideColorIndex = 0
+   plHelmetOverrideColors = $
+   piHelmetOverrideColorIndex = 0
+   plArmorOverrideColors = $
+   piArmorOverrideColorIndex = 0
 
 messages:
 
@@ -3952,48 +3956,180 @@ messages:
       return;
    }
 
-   SetWeaponOverrideColor(iColor=0)
+   AddWeaponOverrideColor(iColor=0)
    {
-      piWeaponOverrideColor = iColor;
+      if plWeaponOverrideColors = $
+         OR FindListElem(plWeaponOverrideColors,iColor) = 0
+      {
+         plWeaponOverrideColors = Cons(iColor,plWeaponOverrideColors);
+      }
+      return;
+   }
+
+   RemoveWeaponOverrideColor(iColor=0)
+   {
+      if plWeaponOverrideColors <> $
+         AND FindListElem(plWeaponOverrideColors,iColor) <> 0
+      {
+         plWeaponOverrideColors = DelListElem(plWeaponOverrideColors,iColor);
+      }
+      return;
+   }
+
+   NextWeaponOverrideColor()
+   {
+      if plWeaponOverrideColors <> $
+      {
+         piWeaponOverrideColorIndex++;
+         if piWeaponOverrideColorIndex > Length(plWeaponOverrideColors)
+         {
+            piWeaponOverrideColorIndex = 0;
+         }
+      }
       return;
    }
 
    GetWeaponOverrideColor()
    {
-      return piWeaponOverrideColor;
+      if plWeaponOverrideColors <> $
+         AND piWeaponOverrideColorIndex <= Length(plWeaponOverrideColors)
+         AND piWeaponOverrideColorIndex > 0
+      {
+         return Nth(plWeaponOverrideColors,piWeaponOverrideColorIndex);
+      }
+      return 0;
    }
 
-   SetShieldOverrideColor(iColor=0)
+   AddShieldOverrideColor(iColor=0)
    {
-      piShieldOverrideColor = iColor;
+      if plShieldOverrideColors = $
+         OR FindListElem(plShieldOverrideColors,iColor) = 0
+      {
+         plShieldOverrideColors = Cons(iColor,plShieldOverrideColors);
+      }
+      return;
+   }
+
+   RemoveShieldOverrideColor(iColor=0)
+   {
+      if plShieldOverrideColors <> $
+         AND FindListElem(plShieldOverrideColors,iColor) <> 0
+      {
+         plShieldOverrideColors = DelListElem(plShieldOverrideColors,iColor);
+      }
+      return;
+   }
+
+   NextShieldOverrideColor()
+   {
+      if plShieldOverrideColors <> $
+      {
+         piShieldOverrideColorIndex++;
+         if piShieldOverrideColorIndex > Length(plShieldOverrideColors)
+         {
+            piShieldOverrideColorIndex = 0;
+         }
+      }
       return;
    }
 
    GetShieldOverrideColor()
    {
-      return piShieldOverrideColor;
+      if plShieldOverrideColors <> $
+         AND piShieldOverrideColorIndex <= Length(plShieldOverrideColors)
+         AND piShieldOverrideColorIndex > 0
+      {
+         return Nth(plShieldOverrideColors,piShieldOverrideColorIndex);
+      }
+      return 0;
    }
 
-   SetHelmetOverrideColor(iColor=0)
+   AddHelmetOverrideColor(iColor=0)
    {
-      piHelmetOverrideColor = iColor;
+      if plHelmetOverrideColors = $
+         OR FindListElem(plHelmetOverrideColors,iColor) = 0
+      {
+         plHelmetOverrideColors = Cons(iColor,plHelmetOverrideColors);
+      }
+      return;
+   }
+
+   RemoveHelmetOverrideColor(iColor=0)
+   {
+      if plHelmetOverrideColors <> $
+         AND FindListElem(plHelmetOverrideColors,iColor) <> 0
+      {
+         plHelmetOverrideColors = DelListElem(plHelmetOverrideColors,iColor);
+      }
+      return;
+   }
+
+   NextHelmetOverrideColor()
+   {
+      if plHelmetOverrideColors <> $
+      {
+         piHelmetOverrideColorIndex++;
+         if piHelmetOverrideColorIndex > Length(plHelmetOverrideColors)
+         {
+            piHelmetOverrideColorIndex = 0;
+         }
+      }
       return;
    }
 
    GetHelmetOverrideColor()
    {
-      return piHelmetOverrideColor;
+      if plHelmetOverrideColors <> $
+         AND piHelmetOverrideColorIndex <= Length(plHelmetOverrideColors)
+         AND piHelmetOverrideColorIndex > 0
+      {
+         return Nth(plHelmetOverrideColors,piHelmetOverrideColorIndex);
+      }
+      return 0;
    }
 
-   SetArmorOverrideColor(iColor=0)
+   AddArmorOverrideColor(iColor=0)
    {
-      piArmorOverrideColor = iColor;
+      if plArmorOverrideColors = $
+         OR FindListElem(plArmorOverrideColors,iColor) = 0
+      {
+         plArmorOverrideColors = Cons(iColor,plArmorOverrideColors);
+      }
+      return;
+   }
+
+   RemoveArmorOverrideColor(iColor=0)
+   {
+      if plArmorOverrideColors <> $
+         AND FindListElem(plArmorOverrideColors,iColor) <> 0
+      {
+         plArmorOverrideColors = DelListElem(plArmorOverrideColors,iColor);
+      }
+      return;
+   }
+
+   NextArmorOverrideColor()
+   {
+      if plArmorOverrideColors <> $
+      {
+         piArmorOverrideColorIndex++;
+         if piArmorOverrideColorIndex > Length(plArmorOverrideColors)
+         {
+            piArmorOverrideColorIndex = 0;
+         }
+      }
       return;
    }
 
    GetArmorOverrideColor()
    {
-      return piArmorOverrideColor;
+      if plArmorOverrideColors <> $
+         AND piArmorOverrideColorIndex <= Length(plArmorOverrideColors)
+         AND piArmorOverrideColorIndex > 0
+      {
+         return Nth(plArmorOverrideColors,piArmorOverrideColorIndex);
+      }
+      return 0;
    }
 
 end
