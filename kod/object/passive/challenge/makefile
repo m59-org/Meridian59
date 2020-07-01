@@ -14,6 +14,7 @@ BOFS = eachshardchallenge.bof \
        eachtownchallenge.bof \
        lupoggkingchallenge.bof \
        eachprismchallenge.bof \
-       sellanicegolemchallenge.bof
+       sellanicegolemchallenge.bof \
+       skeletonchallenge.bof
 
 !include $(KODDIR)\kod.mak

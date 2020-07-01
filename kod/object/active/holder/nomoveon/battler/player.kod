@@ -1168,6 +1168,10 @@ resources:
       "~o~B[>>>] Challenge - Defeat each Prism: challenge complete!"
    challenge_sell_an_ice_golem_complete = \
       "~o~B[>>>] Challenge - Sell an Ice Golem: challenge complete!"
+   challenge_slay_skeleton_slew_a_skeleton = \
+      "~o~B[>>>] Challenge - Slay 600 skeletons: %i slain"
+   challenge_slay_skeletons_complete = \
+      "~o~B[>>>] Challenge - Slay 600 skeletons: challenge complete!"
 
 classvars:
 
@@ -21888,9 +21892,9 @@ messages:
       
       % Challenge 24: Slay 3 ice dragons
       
-      % Challenge 23: Control 500 Leadership of minions
-      
-      % Challenge 22: Slay 300 skeletons
+      % Challenge 23: Control 600 Leadership of minions
+
+      % Challenge 22: Slay 5 lava frogs
       
       % Challenge 21: Fully feed a soth and ao3 at the same time
       
@@ -21912,7 +21916,9 @@ messages:
       
       % Challenge 12: Save Biskalane, defeat the high sorcerers
       
-      % Challenge 11: Slay 5 lava frogs
+      
+      % Challenge 22: Slay 600 skeletons
+      plLadderChallengeData = Cons([0,0],plLadderChallengeData);
       
       % Challenge 10: Sell an Ice Golem
       plLadderChallengeData = Cons([0],plLadderChallengeData);
@@ -22089,7 +22095,25 @@ messages:
             }
             break;
          case SLEW_A_MONSTER:
-            if IsClass(oObject,&Ghost)
+            if IsClass(oObject,&Skeleton)
+            {
+               SetNth(Nth(plLadderChallengeData,SLAY_SKELETONS),2,Nth(Nth(plLadderChallengeData,SLAY_SKELETONS),2)+1);
+
+               if Nth(Nth(plLadderChallengeData,SLAY_SKELETONS),1) = 0
+                  AND Nth(Nth(plLadderChallengeData,SLAY_SKELETONS),2) >= 600
+               {
+                  SetNth(Nth(plLadderChallengeData,SLAY_SKELETONS),1,1);
+
+                  Send(self,@MsgSendUser,#message_rsc=challenge_slay_skeletons_complete);
+                  Send(self,@CompletedAChallenge);
+               }
+               else if Nth(Nth(plLadderChallengeData,SLAY_SKELETONS),1) = 0
+               {
+                  Send(self,@MsgSendUser,#message_rsc=challenge_slay_skeleton_slew_a_skeleton,#parm1=Nth(Nth(plLadderChallengeData,SLAY_SKELETONS),2));
+               }
+               break;
+            }
+            else if IsClass(oObject,&Ghost)
             {
                SetNth(Nth(plLadderChallengeData,SLAY_GHOSTS),2,Nth(Nth(plLadderChallengeData,SLAY_GHOSTS),2)+1);
 

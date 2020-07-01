@@ -1,0 +1,78 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+SkeletonChallenge is LadderChallenge
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   kill_skeletons_challenge_name = "Slay 600 skeletons"
+   kill_skeletons_challenge_icon = skelhed2.bgf
+   kill_skeletons_challenge_desc = \
+      "Slay 600 skeletons of any type: %s"
+      "\n\nSkeletons slain: %i"
+
+classvars:
+
+   vrName = kill_skeletons_challenge_name
+   vrIcon = kill_skeletons_challenge_icon
+   vrDesc = kill_skeletons_challenge_desc
+   
+   viChallengeNum = SLAY_SKELETONS
+
+properties:
+
+
+messages:
+
+   ShowDesc(who=$)
+   {
+      local lChallengeData, lData, rOne, rTwo, rThree, rFour, rFive, rSix, rSeven, rEight, rNine;
+
+      lChallengeData = Send(who,@GetLadderChallengeData);
+      
+      lData = Nth(lChallengeData,SLAY_SKELETONS);
+      
+      if lData <> $
+         AND Nth(lData,1)
+      {
+         rOne = Send(self,@GetCompletedChallengeRsc);
+      }
+      else
+      {
+         rOne = Send(self,@GetNotCompletedChallengeRsc);
+      }
+
+      AddPacket(4,vrDesc, 4,rOne, 4, Nth(lData,2));
+      return;
+   }
+
+   GetCompleted(who=$)
+   {
+      local lChallengeData, lData;
+
+      lChallengeData = Send(who,@GetLadderChallengeData);
+      
+      lData = Nth(lChallengeData,SLAY_SKELETONS);
+
+      if lData <> $
+         AND Nth(lData,1)
+      {
+         return TRUE;
+      }
+      
+      return FALSE;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
