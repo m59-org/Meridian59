@@ -1176,6 +1176,8 @@ resources:
       "~o~B[>>>] Challenge - Reach 600 Leadership capacity: challenge complete!"
    challenge_reincarnate_veteran_race_complete = \
       "~o~B[>>>] Challenge - Reincarnate in the maze: challenge complete!"
+   challenge_feed_soth_and_amulet_complete = \
+      "~o~B[>>>] Challenge - Feed an equipped Sword of the Hunt and Amulet of the Three at the same time: challenge complete!"
 
 classvars:
 
@@ -21905,7 +21907,7 @@ messages:
 
       % Challenge 22: Slay 5 lava frogs
       
-      % Challenge 21: Fully feed a soth and ao3 at the same time
+      % Challenge 21: Complete the Endless Sea Palace any difficulty
       
       % Challenge 20: Get a crest of any type
       
@@ -21919,7 +21921,11 @@ messages:
       
       % Challenge 15: Do an Endless Sea Palace run with every crystal type
       
-      % Challenge 14: Complete the Endless Sea Palace any difficulty
+      % Challenge 15: Reach -100 karma and 100 karma
+      plLadderChallengeData = Cons([0,0],plLadderChallengeData);
+      
+      % Challenge 14: Feed a soth and ao3 at the same time
+      plLadderChallengeData = Cons([0],plLadderChallengeData);
       
       % Challenge 13: Reincarnate into a veteran race from the Maze
       plLadderChallengeData = Cons([0],plLadderChallengeData);
@@ -21981,6 +21987,17 @@ messages:
 
       switch(type)
       {
+         case FULLY_FED_AN_ITEM:
+            if Send(self,@IsUsingA,#class=&NecromancerAmulet)
+               AND Send(self,@IsUsingA,#class=&HunterSword)
+               AND Nth(Nth(plLadderChallengeData,FULLY_FEED_SOTH_AND_AMULET),1) = 0
+            {
+               SetNth(Nth(plLadderChallengeData,FULLY_FEED_SOTH_AND_AMULET),1,1);
+
+               Send(self,@MsgSendUser,#message_rsc=challenge_feed_soth_and_amulet_complete);
+               Send(self,@CompletedAChallenge);
+            }
+            break;
          case GAINED_LEADERSHIP:
             if num >= 600
                AND Nth(Nth(plLadderChallengeData,REACH_LEADERSHIP_TOTAL),1) = 0

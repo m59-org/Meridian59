@@ -1,0 +1,76 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+DualFullyFeedChallenge is LadderChallenge
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   dual_fully_feed_challenge_name = "Assuage hungers"
+   dual_fully_feed_challenge_icon = necamlet.bgf
+   dual_fully_feed_challenge_desc = \
+      "Feed an equipped Sword of the Hunt and an Amulet of the Three at the same time: %s"
+
+classvars:
+
+   vrName = dual_fully_feed_challenge_name
+   vrIcon = dual_fully_feed_challenge_icon
+   vrDesc = dual_fully_feed_challenge_desc
+   
+   viChallengeNum = FULLY_FEED_SOTH_AND_AMULET
+
+properties:
+
+
+messages:
+
+   ShowDesc(who=$)
+   {
+      local lChallengeData, lData, rOne, rTwo, rThree, rFour, rFive, rSix, rSeven, rEight, rNine;
+
+      lChallengeData = Send(who,@GetLadderChallengeData);
+      
+      lData = Nth(lChallengeData,FULLY_FEED_SOTH_AND_AMULET);
+      
+      if Nth(lData,1)
+      {
+         rOne = Send(self,@GetCompletedChallengeRsc);
+      }
+      else
+      {
+         rOne = Send(self,@GetNotCompletedChallengeRsc);
+      }
+
+      AddPacket(4,vrDesc, 4,rOne);
+      return;
+   }
+
+   GetCompleted(who=$)
+   {
+      local lChallengeData, lData;
+
+      lChallengeData = Send(who,@GetLadderChallengeData);
+      
+      lData = Nth(lChallengeData,FULLY_FEED_SOTH_AND_AMULET);
+
+      if lData <> $
+         AND FindListElem(lData,0) = 0
+      {
+         return TRUE;
+      }
+      
+      return FALSE;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

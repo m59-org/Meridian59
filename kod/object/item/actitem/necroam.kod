@@ -800,6 +800,11 @@ messages:
          iGain = Send(Send(SYS,@GetNecromancerBalance),@CalculateAmuletHungerSatisfied,
                      #NecAm=self,#killer=what,#victim=victim);
          Send(self,@SatisfyHunger,#amount=iGain);
+         
+         if Send(poOwner,@GetLadderID) > 0
+         {
+            Send(poOwner,@LadderChallengeCheck,#type=FULLY_FED_AN_ITEM);
+         }
       }
 
       return;
