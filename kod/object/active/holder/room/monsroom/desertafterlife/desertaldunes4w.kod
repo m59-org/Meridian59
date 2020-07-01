@@ -22,6 +22,10 @@ resources:
    prism_of_life_defeated = \
       "~BThe Prism of Life in the Eternal Wastes has been defeated by a band of brave spirits. "
       "For a time, it will be possible to escape the Eternal Wastes by ascending the Prism of Life."
+      
+   prism_of_life_reset = \
+      "~BThe Prism of Life in the Eternal Wastes has regenerated its guardian. "
+      "It is no longer possible to escape death by ascending that holy passage."
 
 classvars:
 
@@ -186,6 +190,11 @@ messages:
          --piHoursLeftReset;
          ptPrismOfLifeReset = CreateTimer(self,@PrismOfLifeReset,60000 * 60); % 1 hour, counts down 72 times
          return;
+      }
+
+      foreach i in Send(SYS,@GetUsersLoggedOn)
+      {
+         Send(i,@MsgSendUser,#message_rsc=prism_of_life_reset);
       }
 
       pbPrismOpen = TRUE;

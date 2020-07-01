@@ -38,6 +38,9 @@ resources:
    prism_of_acid_defeated_msg = \
       "~BThe Prism of Acid in Biskalane has been defeated! Until the corrosive tide regenerates, "
       "the element of acid will be an ally instead of an enemy."
+   prism_of_acid_reset = \
+      "~BThe Prism of Acid in Biskalane spills forth corrosion once more. The element of acid "
+      "rains down from the skies."
 
    inform_raft = \
       "This raft is timeworn beyond compare, clearly heralding from a time when wood still existed "
@@ -508,6 +511,11 @@ messages:
          --piHoursLeftReset;
          ptPrismOfAcidReset = CreateTimer(self,@PrismOfAcidReset,60000 * 60); % 1 hour, counts down 48 times
          return;
+      }
+
+      foreach i in Send(SYS,@GetUsersLoggedOn)
+      {
+         Send(i,@MsgSendUser,#message_rsc=prism_of_acid_reset);
       }
       
       piHoursLeftReset = 47;

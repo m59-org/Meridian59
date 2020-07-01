@@ -28,6 +28,9 @@ resources:
       "~BThe Prism of Ice near Biskalane has been defeated by a band of "
       "intrepid adventurers! Until it surges back, the element of ice "
       "will be helpful rather than harmful."
+   prism_of_ice_reset = \
+      "~BThe Prism of Ice near Biskalane has begun emitting tremendous "
+      "cold once more. The element of ice has become enemy to man."
 
 classvars:
 
@@ -253,6 +256,11 @@ messages:
          --piHoursLeftReset;
          ptPrismOfIceReset = CreateTimer(self,@PrismOfIceReset,60000 * 60); % 1 hour, counts down 48 times
          return;
+      }
+
+      foreach i in Send(SYS,@GetUsersLoggedOn)
+      {
+         Send(i,@MsgSendUser,#message_rsc=prism_of_ice_reset);
       }
       
       piHoursLeftReset = 47;

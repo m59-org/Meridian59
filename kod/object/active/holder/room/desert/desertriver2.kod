@@ -125,6 +125,9 @@ resources:
    prism_of_fire_defeated = \
       "~BA band of brave warriors have sealed the Prism of Fire in Biskalane! "
       "For a time, the element of fire will be ally instead of foe."
+   prism_of_fire_reset = \
+      "~BThe Prism of Fire in Biskalane has begun to roar with the fury of a volcano "
+      "once more. The element of fire sears the land."
 
    cannot_proceed_wallhack = \
       "This water is on the verge of boiling. You cannot proceed while the Prism of Fire "
@@ -762,6 +765,11 @@ messages:
             Send(First(i),@MsgSendUser,#message_rsc=booted_for_reset_msg);
             Send(Send(SYS,@FindRoomByNum,#num=RID_WAYLAYOASIS),@Teleport,#what=First(i));
          }
+      }
+
+      foreach i in Send(SYS,@GetUsersLoggedOn)
+      {
+         Send(i,@MsgSendUser,#message_rsc=prism_of_fire_reset);
       }
 
       Send(Send(SYS,@FindRoomByNum,#num=RID_MAZE_EXIT_ROOM),@CloseFireWall);
