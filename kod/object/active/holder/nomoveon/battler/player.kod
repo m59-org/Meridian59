@@ -1179,6 +1179,11 @@ resources:
    challenge_feed_soth_and_amulet_complete = \
       "~o~B[>>>] Challenge - Feed an equipped Sword of the Hunt and Amulet of the Three at the same time: challenge complete!"
 
+   ladder_two_prize_one_awarded = \
+      "~o~B[>>>>>>] 7 challenges completed! You have received a shield Color Skin! Re-equip a shield if necessary, and say 'next shield color' to turn it off and on!"
+   ladder_two_prize_two_awarded = \
+      "~o~B[>>>>>>] 14 challenges completed! You have received a helmet Color Skin! Re-equip a helmet if necessary, and say 'next helmet color' to turn it off and on!"
+      
 classvars:
 
    viHand_space = 2
@@ -22234,7 +22239,7 @@ messages:
 
    CompletedAChallenge()
    {
-      local i, iChallengeCount, iAddResult;
+      local i, iChallengeCount, iAddResult, oItem;
 
       iChallengeCount = 0;
       foreach i in Send(SYS,@GetChallenges)
@@ -22249,13 +22254,26 @@ messages:
       {
          piLadderNumChallengesCompleted = iChallengeCount;
          
-         if piLadderNumChallengesCompleted >= 10
+         if piLadderNumChallengesCompleted >= 7
             AND NOT pbLadderPrizeOneAwarded
          {
             % Prize #1
             if Send(self,@AddShieldOverrideColor,#iColor=78)
             {
                Send(self,@SetShieldOverrideColorIndex,#value=1);
+               pbLadderPrizeOneAwarded = TRUE;
+               Send(self,@MsgSendUser,#message_rsc=ladder_two_prize_one_awarded);
+            }
+         }
+         if piLadderNumChallengesCompleted >= 14
+            AND NOT pbLadderPrizeTwoAwarded
+         {
+            % Prize #2
+            if Send(self,@AddHelmetOverrideColor,#iColor=78)
+            {
+               Send(self,@SetHelmetOverrideColorIndex,#value=1);
+               pbLadderPrizeTwoAwarded = TRUE;
+               Send(self,@MsgSendUser,#message_rsc=ladder_two_prize_two_awarded);
             }
          }
       }
