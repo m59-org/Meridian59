@@ -1172,6 +1172,8 @@ resources:
       "~o~B[>>>] Challenge - Slay 600 skeletons: %i slain"
    challenge_slay_skeletons_complete = \
       "~o~B[>>>] Challenge - Slay 600 skeletons: challenge complete!"
+   challenge_max_leadership_600_complete = \
+      "~o~B[>>>] Challenge - Reach 600 Leadership capacity: challenge complete!"
 
 classvars:
 
@@ -21700,6 +21702,11 @@ messages:
          % Double again for Beastmaster
          iLeadership = iLeadership * 2;
       }
+      
+      if Send(self,@GetLadderID) > 0
+      {
+         Send(self,@LadderChallengeCheck,#type=GAINED_LEADERSHIP,#num=iLeadership);
+      }
 
       return iLeadership;
    }
@@ -21892,7 +21899,7 @@ messages:
       
       % Challenge 24: Slay 3 ice dragons
       
-      % Challenge 23: Control 600 Leadership of minions
+      % Challenge 23: Save Biskalane, defeat the high sorcerers
 
       % Challenge 22: Slay 5 lava frogs
       
@@ -21914,10 +21921,11 @@ messages:
       
       % Challenge 13: Do each type of room in the Endless Sea Palace
       
-      % Challenge 12: Save Biskalane, defeat the high sorcerers
       
+      % Challenge 12: Control 600 Leadership of minions
+      plLadderChallengeData = Cons([0],plLadderChallengeData);
       
-      % Challenge 22: Slay 600 skeletons
+      % Challenge 11: Slay 600 skeletons
       plLadderChallengeData = Cons([0,0],plLadderChallengeData);
       
       % Challenge 10: Sell an Ice Golem
@@ -21959,6 +21967,11 @@ messages:
    {
       local i, iIndex;
       
+      if Send(self,@GetLadderID) = 0
+      {
+         return;
+      }
+      
       if plLadderChallengeData = $
       {
          Send(self,@InitializeLadderChallengeData);
@@ -21966,6 +21979,16 @@ messages:
 
       switch(type)
       {
+         case GAINED_LEADERSHIP:
+            if num >= 600
+               AND Nth(Nth(plLadderChallengeData,REACH_LEADERSHIP_TOTAL),1) = 0
+            {
+               SetNth(Nth(plLadderChallengeData,REACH_LEADERSHIP_TOTAL),1,1);
+
+               Send(self,@MsgSendUser,#message_rsc=challenge_max_leadership_600_complete);
+               Send(self,@CompletedAChallenge);
+            }
+            break;
          case SOLD_A_MONSTER:
             if IsClass(oObject,&IceElemental)
                AND Nth(Nth(plLadderChallengeData,SELL_AN_ICE_GOLEM),1) = 0
