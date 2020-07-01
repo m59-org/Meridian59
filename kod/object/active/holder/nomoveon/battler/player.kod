@@ -1166,6 +1166,8 @@ resources:
       "~o~B[>>>] Challenge - Defeat each Prism: new Prism defeated!"
    ladder_two_challenge_defeated_all_prisms = \
       "~o~B[>>>] Challenge - Defeat each Prism: challenge complete!"
+   challenge_sell_an_ice_golem_complete = \
+      "~o~B[>>>] Challenge - Sell an Ice Golem: challenge complete!"
 
 classvars:
 
@@ -21883,7 +21885,8 @@ messages:
          return;
       }
       
-      % Challenge 24: Charm an Ice Golem
+      
+      % Challenge 24: Slay 3 ice dragons
       
       % Challenge 23: Control 500 Leadership of minions
       
@@ -21911,7 +21914,8 @@ messages:
       
       % Challenge 11: Slay 5 lava frogs
       
-      % Challenge 10: Slay 3 ice dragons
+      % Challenge 10: Sell an Ice Golem
+      plLadderChallengeData = Cons([0],plLadderChallengeData);
       
       % Challenge 9: Complete each prism
       plLadderChallengeData = Cons([0,0,0,0,0,0],plLadderChallengeData);
@@ -21956,6 +21960,16 @@ messages:
 
       switch(type)
       {
+         case SOLD_A_MONSTER:
+            if IsClass(oObject,&IceElemental)
+               AND Nth(Nth(plLadderChallengeData,SELL_AN_ICE_GOLEM),1) = 0
+            {
+               SetNth(Nth(plLadderChallengeData,SELL_AN_ICE_GOLEM),1,1);
+
+               Send(self,@MsgSendUser,#message_rsc=challenge_sell_an_ice_golem_complete);
+               Send(self,@CompletedAChallenge);
+            }
+            break;
          case DEFEATED_A_PRISM:
             if num <> 0
             {

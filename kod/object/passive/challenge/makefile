@@ -13,6 +13,7 @@ BOFS = eachshardchallenge.bof \
        marauderchallenge.bof \
        eachtownchallenge.bof \
        lupoggkingchallenge.bof \
-       eachprismchallenge.bof
+       eachprismchallenge.bof \
+       sellanicegolemchallenge.bof
 
 !include $(KODDIR)\kod.mak
