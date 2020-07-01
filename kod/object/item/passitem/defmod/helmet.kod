@@ -45,8 +45,35 @@ classvars:
 
 properties:
 
+   piOldColorUnderOverride = 0
+   pbColorOverridden = FALSE
 
 messages:
+
+   NewUsed()
+   {
+      if Send(poOwner,@GetHelmetOverrideColor) <> 0
+      {
+         piOldColorUnderOverride = piItem_flags;
+         piItem_flags = Send(poOwner,@GetHelmetOverrideColor);
+         pbColorOverridden = TRUE;
+         Post(poOwner,@SomethingChanged,#what=self);
+      }
+
+      propagate;
+   }
+
+   NewUnused()
+   {
+      if pbColorOverridden
+      {
+         pbColorOverridden = FALSE;
+         piItem_flags = piOldColorUnderOverride;
+         Post(poOwner,@SomethingChanged,#what=self);
+      }
+
+      propagate;
+   }
    
    DoPlayerArt()
    {

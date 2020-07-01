@@ -58,6 +58,9 @@ properties:
    % The bonus to block afforded by the shield.
    piBlockBonus = 0
 
+   piOldColorUnderOverride = 0
+   pbColorOverridden = FALSE
+
 messages:
 
    % General Combat messages:
@@ -108,6 +111,15 @@ messages:
 
    NewUsed()
    {
+      if Send(poOwner,@GetShieldOverrideColor) <> 0
+         AND NOT IsClass(self,&SoldierShield)
+      {
+         piOldColorUnderOverride = piItem_flags;
+         piItem_flags = Send(poOwner,@GetShieldOverrideColor);
+         pbColorOverridden = TRUE;
+         Post(poOwner,@SomethingChanged,#what=self);
+      }
+
       piUsed = USED;
 
       % do first person overlay if we have one
@@ -127,6 +139,14 @@ messages:
 
    NewUnused()
    {
+      if pbColorOverridden
+         AND NOT IsClass(self,&SoldierShield)
+      {
+         pbColorOverridden = FALSE;
+         piItem_flags = piOldColorUnderOverride;
+         Post(poOwner,@SomethingChanged,#what=self);
+      }
+
       piUsed = UNUSED;
       if vrShield_window_overlay <> $
       {

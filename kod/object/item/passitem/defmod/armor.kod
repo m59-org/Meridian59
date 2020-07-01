@@ -56,7 +56,38 @@ properties:
    % If set to true, armor can be colored.
    pbColored = FALSE
 
+   piOldColorUnderOverride = 0
+   pbColorOverridden = FALSE
+
 messages:
+
+   NewUsed()
+   {
+      if Send(poOwner,@GetArmorOverrideColor) <> 0
+         AND NOT pbColored
+      {
+         pbColored = TRUE;
+         piOldColorUnderOverride = piItem_flags;
+         piItem_flags = Send(poOwner,@GetArmorOverrideColor);
+         pbColorOverridden = TRUE;
+         Post(poOwner,@SomethingChanged,#what=self);
+      }
+
+      propagate;
+   }
+
+   NewUnused()
+   {
+      if pbColorOverridden
+      {
+         pbColored = FALSE;
+         pbColorOverridden = FALSE;
+         piItem_flags = piOldColorUnderOverride;
+         Post(poOwner,@SomethingChanged,#what=self);
+      }
+
+      propagate;
+   }
 
    ReqRepair()
    {
