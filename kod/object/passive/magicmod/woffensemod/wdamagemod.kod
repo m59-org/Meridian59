@@ -42,8 +42,7 @@ messages:
 
       if who = $
       {
-         % No conditions, so just return the bonus
-         return damage + iState;
+         return damage + Bound((iState*piNumerator)/piDivisor,1,$);
       }
 
       oWeapon = Send(who,@GetWeapon);
@@ -51,7 +50,7 @@ messages:
          AND IsClass(oWeapon,&Weapon)
          AND NOT IsClass(oWeapon,&RangedWeapon)
       {
-         return damage + iState;
+         return damage + Bound((iState*piNumerator)/piDivisor,1,$);
       }
 
       return damage;

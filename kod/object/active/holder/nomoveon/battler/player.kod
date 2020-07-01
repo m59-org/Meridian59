@@ -4870,7 +4870,10 @@ messages:
       }
       
       % THIS IS NOW WHERE WE GIVE BONUS TP / AW BASED ON HP
-      Send(self,@AddAccumulatedWisdom,#amount=((Send(self,@GetAccumulatedWisdom)/100) * Bound((piBase_Max_Health-75)/5,0,25)));
+      if Send(self,@GetLadderID) = 0
+      {
+         Send(self,@AddAccumulatedWisdom,#amount=((Send(self,@GetAccumulatedWisdom)/100) * Bound((piBase_Max_Health-75)/5,0,25)));
+      }
 
       % Setup some stats
       piBase_max_health = 20;
