@@ -546,6 +546,8 @@ resources:
 
    donate_spell_given = \
       "~B~r[###] You have been given the spell 'Donate' because your character did not have it."
+   dispel_magical_lock_spell_given = \
+      "~B~r[###] You have been given the spell 'Dispel Magical Lock' because your character did not have it."
    master_while_offline = \
       "~B~r[###] You have been recognized as a person of renown! Check your inventory for a special crest that will tell you more. "
       "Equip it to gain supreme abilities!"
@@ -1072,6 +1074,11 @@ messages:
       {
          Send(self,@AddSpell,#num=SID_DONATE,#initial=TRUE);
          Send(self,@MsgSendUser,#message_rsc=donate_spell_given);
+      }
+      if NOT Send(self,@HasSpell,#num=SID_DISPEL_MAGICAL_LOCK)
+      {
+         Send(self,@AddSpell,#num=SID_DISPEL_MAGICAL_LOCK,#initial=TRUE);
+         Send(self,@MsgSendUser,#message_rsc=dispel_magical_lock_spell_given);
       }
       
       if Send(self,@FindHolding,#class=&Crest) <> $
