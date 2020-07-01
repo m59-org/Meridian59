@@ -26,8 +26,6 @@ resources:
       "will appear rapidly at an enemy's weak points and obliterate them."
       "\n\nAttacking in the blink of an eye is only possible with "
       "a free hand. Weapons would only slow down a master martial artist."
-      "\n\nHowever, it is sometimes possible to throw daggers instead of punch, "
-      "assuming one finds suitable small knives."
    
    Shadowstep_begin = "You angle your hands and prepare to strike quickly."
    Shadowstep_end = "You return your hands to a normal angle."
@@ -72,28 +70,6 @@ messages:
    GetRequisiteStat(who=$)
    {
       return Send(who,@GetAgility);
-   }
-
-   ModifyAttackDamage(who=$, what=$, damage=0, stroke_obj=$)
-   {
-      local iShadowstepAbility, iStat, iDamagePercentage;
-
-      if Send(who,@GetWeapon) <> $
-      {
-         return damage;
-      }
-
-      iShadowstepAbility = Send(who,@GetSkillAbility,#skill_num=viSkill_num);
-      iStat = Send(self,@GetRequisiteStat,#who=who);
-
-      % Shadowstep starts low but works up to 60 percent damage.
-
-      iDamagePercentage = (damage * ((((iShadowstepAbility+1)*3)/4)+((iStat*3)/4)))/100;
-      iDamagePercentage = Bound(iDamagePercentage,25,60);
-
-      Send(self,@ImproveAbility,#who=who);
-
-      return (damage * iDamagePercentage)/100;
    }
 
    DoTeleport(who = $, lTargets = $)
