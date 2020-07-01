@@ -22100,7 +22100,7 @@ messages:
 
    CompletedAChallenge()
    {
-      local i, iChallengeCount;
+      local i, iChallengeCount, iAddResult;
 
       iChallengeCount = 0;
       foreach i in Send(SYS,@GetChallenges)
@@ -22119,6 +22119,10 @@ messages:
             AND NOT pbLadderPrizeOneAwarded
          {
             % Prize #1
+            if Send(self,@AddShieldOverrideColor,#iColor=78)
+            {
+               Send(self,@SetShieldOverrideColorIndex,#value=1);
+            }
          }
       }
       Post(self,@ToCliStats,#group=5);
