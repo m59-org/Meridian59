@@ -565,6 +565,22 @@ resources:
    turn_off_notify_ally_logon_keyword = \
       "-notifyallylogon"
 
+   increment_weapon_color_override_command = \
+      "next weapon color"
+   increment_shield_color_override_command = \
+      "next shield color"
+   increment_helmet_color_override_command = \
+      "next helmet color"
+   increment_armor_color_override_command = \
+      "next armor color"
+   
+   increment_color_success = \
+      "You switch to the next color for that slot."
+   turn_off_color_msg = \
+      "You stop using color for that slot."
+   increment_color_failure = \
+      "You don't have any colors for that slot."
+
 classvars:
 
    viIndefinite = ARTICLE_NONE
@@ -5731,7 +5747,7 @@ messages:
 
    UserSay(type=$,string=$)
    {
-      local i, oSpell, lEnchantData, bTranceBlocksSay, oPrey, iSpellNum;
+      local i, oSpell, lEnchantData, bTranceBlocksSay, oPrey, iSpellNum, iResult;
 
       % A room can completely block a piece of communication if it chooses.
       % An excellent example is Out Of Grace, which blocks all tells to 
@@ -5766,6 +5782,43 @@ messages:
 
       if type = SAY_NORMAL
       {
+         if StringEqual(String,increment_weapon_color_override_command)
+            OR StringEqual(String,increment_shield_color_override_command)
+            OR StringEqual(String,increment_helmet_color_override_command)
+            OR StringEqual(String,increment_armor_color_override_command)
+         {
+            iResult = -1;
+            if StringEqual(String,increment_weapon_color_override_command)
+            {
+               iResult = Send(self,@NextWeaponOverrideColor);
+            }
+            else if StringEqual(String,increment_shield_color_override_command)
+            {
+               iResult = Send(self,@NextShieldOverrideColor);
+            }
+            else if StringEqual(String,increment_helmet_color_override_command)
+            {
+               iResult = Send(self,@NextHelmetOverrideColor);
+            }
+            else if StringEqual(String,increment_armor_color_override_command)
+            {
+               iResult = Send(self,@NextArmorOverrideColor);
+            }
+            
+            if iResult = -1
+            {
+               Send(self,@MsgSendUser,#message_rsc=increment_color_failure);
+            }
+            else if iResult = 0
+            {
+               Send(self,@MsgSendUser,#message_rsc=turn_off_color_msg);
+            }
+            else
+            {
+               Send(self,@MsgSendUser,#message_rsc=increment_color_success);
+            }
+            return;
+         }
          if StringContain(String,"I wish my noxious strikes to hex my enemy with ")
             AND Send(self,@HasSkill,#num=SKID_VILE_TOUCH)
          {
