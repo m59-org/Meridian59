@@ -7488,6 +7488,9 @@ messages:
       
       if poStance <> $
          AND IsClass(poStance,&ShadowstepStance)
+         AND (stroke_obj <> $
+            AND IsClass(stroke_obj,&Punch))
+         AND iRange <= 64 * 5
       {
          if Send(Send(SYS,@FindSkillByNum,#num=SKID_SHADOWSTEP),@DoTeleport,#who=self,#lTargets=[oFinalTarget])
          {
