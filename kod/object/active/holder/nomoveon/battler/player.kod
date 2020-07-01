@@ -1174,6 +1174,8 @@ resources:
       "~o~B[>>>] Challenge - Slay 600 skeletons: challenge complete!"
    challenge_max_leadership_600_complete = \
       "~o~B[>>>] Challenge - Reach 600 Leadership capacity: challenge complete!"
+   challenge_reincarnate_veteran_race_complete = \
+      "~o~B[>>>] Challenge - Reincarnate in the maze: challenge complete!"
 
 classvars:
 
@@ -1744,7 +1746,7 @@ messages:
    {
       if Send(self,@GetLadderID) > 0
       {
-         Send(self,@LadderChallengeCheck,#type=LADDER_REINCARNATED);
+         Send(self,@LadderChallengeCheck,#type=LADDER_REINCARNATED,#num=race);
       }
 
       Send(SYS,@UserReincarnated,#what=self);
@@ -21911,7 +21913,7 @@ messages:
       
       % Challenge 18: Get a skill or spell mastery
       
-      % Challenge 17: Reincarnate into a veteran race from the Maze
+      % Challenge 17: Do each type of room in the Endless Sea Palace
       
       % Challenge 16: Have level 6 in four schools at the same time
       
@@ -21919,8 +21921,8 @@ messages:
       
       % Challenge 14: Complete the Endless Sea Palace any difficulty
       
-      % Challenge 13: Do each type of room in the Endless Sea Palace
-      
+      % Challenge 13: Reincarnate into a veteran race from the Maze
+      plLadderChallengeData = Cons([0],plLadderChallengeData);
       
       % Challenge 12: Control 600 Leadership of minions
       plLadderChallengeData = Cons([0],plLadderChallengeData);
@@ -22098,6 +22100,14 @@ messages:
                SetNth(Nth(plLadderChallengeData,REINCARNATE_AT_MAX),1,1);
 
                Send(self,@MsgSendUser,#message_rsc=challenge_reincarnate_at_max_hp_complete);
+               Send(self,@CompletedAChallenge);
+            }
+            if (num=RACE_DRACONIAN OR num=RACE_DROW OR num=RACE_GNOME OR num=RACE_AUTOMATON)
+               AND Nth(Nth(plLadderChallengeData,REINCARNATE_VETERAN_RACE),1) = 0
+            {
+               SetNth(Nth(plLadderChallengeData,REINCARNATE_VETERAN_RACE),1,1);
+
+               Send(self,@MsgSendUser,#message_rsc=challenge_reincarnate_veteran_race_complete);
                Send(self,@CompletedAChallenge);
             }
             break;
