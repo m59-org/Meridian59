@@ -75,11 +75,8 @@ messages:
    {
       if isClass(what,&User) and pbTemple_Made_Scepter = FALSE
       {
-         if new_row=24 and new_col=8
-         {
-            pbTemple_Made_Scepter = TRUE;
-            send(self,@NewHold,#what=Create(&RelicOfQor),#new_row=23,#new_col=8);
-         }
+         pbTemple_Made_Scepter = TRUE;
+         send(self,@NewHold,#what=Create(&RelicOfQor),#new_row=23,#new_col=8);
       }
  
       if IsClass(what,&Player)
@@ -96,8 +93,10 @@ messages:
       {
          if send(what,@GetRow) = 23 and send(what,@GetCol) = 8
          {
-            send(self,@SetSector,#sector=SECTOR_DOOR,#animation=ANIMATE_CEILING_LIFT,
-                 #height=188,#speed=20);
+            % Closes
+            send(self,@setsector,#sector=SECTOR_DOOR,#animation=ANIMATE_CEILING_LIFT,
+                 #height=64,#speed=20);
+            % Lowers
             send(self,@SetSector,#sector=SECTOR_PILLAR,#animation=ANIMATE_FLOOR_LIFT,
                  #height=72,#speed=10);
          }
@@ -119,11 +118,14 @@ messages:
             send(each_obj,@delete);
          }
       }
-      
-      send(self,@setsector,#sector=SECTOR_DOOR,#animation=ANIMATE_CEILING_LIFT,
-           #height=64,#speed=20);
+
+      % Opens
+      send(self,@SetSector,#sector=SECTOR_DOOR,#animation=ANIMATE_CEILING_LIFT,
+            #height=188,#speed=20);
+      % Lifts
       send(self,@setsector,#sector=SECTOR_PILLAR,#animation=ANIMATE_FLOOR_LIFT,
-           #height=96,#speed=10);
+            #height=96,#speed=10);
+      
       pbTemple_made_scepter = FALSE;
       
       propagate;
