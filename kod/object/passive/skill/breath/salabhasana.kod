@@ -75,8 +75,7 @@ messages:
    {
       local iSalabhasanaAbility, iStat;
 
-      if NOT Send(who,@IsResting)
-         OR Send(who,@WasHitRecently)
+      if Send(who,@WasHitRecently)
       {
          return iAmount;
       }
@@ -84,10 +83,7 @@ messages:
       iSalabhasanaAbility = Send(who,@GetSkillAbility,#skill_num=viSkill_num);
       iStat = Send(self,@GetRequisiteStat,#who=who);
 
-      if Send(who,@GetVigor) < Send(who,@CalculateVigorThreshold)
-      {
-         Send(self,@ImproveAbility,#who=who);
-      }
+      Send(self,@ImproveAbility,#who=who);
 
       return iAmount + (iAmount*2*(iSalabhasanaAbility+(iStat/4)))/100;
    }

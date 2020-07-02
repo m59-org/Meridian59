@@ -3382,7 +3382,7 @@ messages:
       return;
    }
 
-   RestAddExertion(amount = 0)
+   RestAddExertion(amount = 0, bActual = FALSE)
    "Gives inns a bonus as resting places."
    {
       local iAmount;
@@ -3411,8 +3411,9 @@ messages:
       {
          iAmount = 3 * Amount;
       }
-      
+
       if Send(self,@HasSkill,#num=SKID_SALABHASANA)
+         AND bActual
       {
          iAmount = Send(Send(SYS,@FindSkillByNum,#num=SKID_SALABHASANA),@ModifyRestAddExertion,#who=self,#iAmount=iAmount);
       }
@@ -15482,7 +15483,7 @@ messages:
 
       if piVigor < piVigor_rest_threshold
       {
-         Send(self,@RestAddExertion,#amount=-10000);
+         Send(self,@RestAddExertion,#amount=-10000,#bActual=TRUE);
       }
 
       ptRest = CreateTimer(self,@RestTimer,Send(self,@GetRestTime));
