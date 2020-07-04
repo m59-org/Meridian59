@@ -13,13 +13,16 @@ HuntNormalsBounty is PersonalBounty
 constants:
 
    include blakston.khd
+   
+   REWARD_EXPERIENCE = 1
 
 resources:
 
    hunt_normals_bounty_name = "Cull monsters"
    hunt_normals_bounty_experience_reward_desc = \
-      "Certain parties have mandated the culling of %i %s. "
-      "Doing so will earn you %i experience."
+      "Certain parties have mandated the culling of %i monsters. "
+      "To be specific, each kill must be of a %s. "
+      "Completing the cull will earn you %i experience."
       "\n\nYou have slain %i so far."
    hunt_normals_bounty_wisdom_reward_desc = \
       "test"
@@ -107,6 +110,11 @@ messages:
          Send(who,@MsgSendUser,#message_rsc=wisdom_reward_from_normals_bounty,#parm1=piExperienceRewardAmount);
       }
       propagate;
+   }
+   
+   GetRewardType()
+   {
+      return REWARD_EXPERIENCE;
    }
 
 end
