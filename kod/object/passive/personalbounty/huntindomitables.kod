@@ -8,7 +8,7 @@
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-HuntALegendaryBounty is PersonalBounty
+HuntIndomitablesBounty is PersonalBounty
 
 constants:
 
@@ -16,34 +16,34 @@ constants:
 
 resources:
 
-   hunt_a_legendary_bounty_name = "Battle a legend"
-   hunt_a_legendary_bounty_experience_reward_desc = \
+   hunt_indomitables_bounty_name = "Face an indomitable pair"
+   hunt_indomitables_bounty_experience_reward_desc = \
       "Rumor has it that a legendary %s was seen in the vicinity of %s. "
       "Overflowing with strange vitality, defeating it would bring its slayer %i experience."
-   hunt_a_legendary_bounty_wisdom_reward_desc = \
-      "An ancient threat has returned. A legendary %s, recently seen at %s, "
-      "endangers the land once more. Its long and storied past would surely "
-      "grant its slayer %i accumulated wisdom."
-   hunt_a_legendary_bounty_item_reward_desc = \
+   hunt_indomitables_bounty_wisdom_reward_desc = \
+      "One %s is bad enough, but a pair of them have recently ravaged %s. "
+      "Both are indomitable, so the fight will be difficult, but doing so "
+      "will earn you %i accumulated wisdom."
+   hunt_indomitables_bounty_item_reward_desc = \
       "%s has placed a bounty on the head of a legendary %s that has been ravaging the countryside "
       "from its haunt at %s. Slaying this monster will earn the bounty of %i %ss."
    
-   wisdom_reward_from_legendary_bounty = \
-      "~BHaving battled a legend and succeeded, your mind floods with %i newfound wisdom!"
+   wisdom_reward_from_indomitables_bounty = \
+      "~BHaving defeated both indomitable enemies, your mind floods with %i newfound wisdom!"
 
 classvars:
 
-   vrName = hunt_a_legendary_bounty_name
+   vrName = hunt_indomitables_bounty_name
    
-   viChallengeNum = HUNT_A_LEGENDARY
-   viWisdomMultiplier = 30
-   viExperienceMultiplier = 100
+   viChallengeNum = HUNT_TWO_INDOMITABLES
+   viWisdomMultiplier = 20
+   viExperienceMultiplier = 40
    
-   viPriceMultiplier = 325
+   viPriceMultiplier = 175
 
 properties:
 
-   vrDesc = hunt_a_legendary_bounty_experience_reward_desc
+   vrDesc = hunt_indomitables_bounty_experience_reward_desc
 
    pcOfferingNPCClass = $
 
@@ -58,6 +58,8 @@ properties:
    piExperienceRewardAmount = 0
    
    pbSpawnedMob = FALSE
+   
+   piKilledCount = 0
 
 messages:
    
@@ -70,11 +72,11 @@ messages:
    {
       if piWisdomRewardAmount <> 0
       {
-         vrDesc = hunt_a_legendary_bounty_wisdom_reward_desc;
+         vrDesc = hunt_indomitables_bounty_wisdom_reward_desc;
       }
       else if pcRewardClass <> $
       {
-         vrDesc = hunt_a_legendary_bounty_item_reward_desc;
+         vrDesc = hunt_indomitables_bounty_item_reward_desc;
       }
       propagate;
    }
@@ -93,7 +95,12 @@ messages:
    SlewAMonster(who=$, what=$)
    {
       if GetClass(what) = pcTargetClass
-         AND Send(what,@GetChampStatus) = CHAMPION_LEGENDARY
+         AND Send(what,@GetChampStatus) = CHAMPION_INDOMITABLE
+      {
+         piKilledCount++;
+      }
+      
+      if piKilledCount >= 2
       {
          Send(self,@CompleteBounty,#who=who);
       }
@@ -108,7 +115,10 @@ messages:
       {
          oMob = Create(pcTargetClass);
          Send(where,@NewHold,#what=oMob,#new_row=Send(where,@GetTeleportRow),#new_col=Send(where,@GetTeleportCol));
-         Post(oMob,@GainChampionStatus,#iType=CHAMPION_LEGENDARY);
+         Post(oMob,@GainChampionStatus,#iType=CHAMPION_INDOMITABLE);
+         oMob = Create(pcTargetClass);
+         Send(where,@NewHold,#what=oMob,#new_row=Send(where,@GetTeleportRow),#new_col=Send(where,@GetTeleportCol));
+         Post(oMob,@GainChampionStatus,#iType=CHAMPION_INDOMITABLE);
          pbSpawnedMob = TRUE;
       }
       return;
@@ -118,7 +128,7 @@ messages:
    {
       if piWisdomRewardAmount <> 0
       {
-         Send(who,@MsgSendUser,#message_rsc=wisdom_reward_from_legendary_bounty,#parm1=piWisdomRewardAmount);
+         Send(who,@MsgSendUser,#message_rsc=wisdom_reward_from_indomitables_bounty,#parm1=piWisdomRewardAmount);
       }
       propagate;
    }
