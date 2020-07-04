@@ -5,6 +5,7 @@
 !include $(TOPDIR)\common.mak
 
 DEPEND = ..\personalbounty.bof
-BOFS = huntalegendarybounty.bof
+BOFS = huntalegendarybounty.bof \
+       huntamarauderbounty.bof
 
 !include $(KODDIR)\kod.mak

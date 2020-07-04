@@ -14,8 +14,8 @@ constants:
 
    include blakston.khd
    
-   FIRST_RANDOM_GENERATE_BOUNTY_TIME = 60000
-   RANDOM_GENERATE_BOUNTY_TIME = 120000
+   FIRST_RANDOM_GENERATE_BOUNTY_TIME = 3000
+   RANDOM_GENERATE_BOUNTY_TIME = 5000
    MAX_RANDOM_FILL_BOUNTIES = 50
    MAX_BOUNTIES_ON_LIST = 50
 
@@ -50,7 +50,8 @@ messages:
 
    Constructed()
    {
-      plBountyClasses = [&HuntALegendaryBounty];
+      plBountyClasses = [&HuntALegendaryBounty,
+                         &HuntAMarauderBounty];
       ptGenerateNewBountyTimer = CreateTimer(self,@GenerateNewBountyForSale,FIRST_RANDOM_GENERATE_BOUNTY_TIME);
       propagate;
    }

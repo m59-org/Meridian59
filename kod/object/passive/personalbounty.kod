@@ -34,6 +34,8 @@ resources:
    completed_bounty = "completed"
    not_completed_bounty = "not completed"
    
+   marauder_bounty_icon = sword.bgf
+   
    bounty_expired_msg = \
       "Your %s bounty has expired."
 
@@ -46,7 +48,7 @@ classvars:
 
 properties:
 
-   vrIcon = hunt_a_legendary_bounty_icon
+   vrIcon = marauder_bounty_icon
 
    pcOfferingNPCClass = $
 
@@ -74,9 +76,17 @@ messages:
    {
       local lNPCs, lTargets, iReward, lDestinationRIDs, oTargetMonster;
 
-      lTargets = Send(SYS,@GetChampionMonsterTemplates);
+      lTargets = Send(self,@GetPossibleTargets);
       oTargetMonster = Nth(lTargets,Random(1,Length(lTargets)));
-      vrIcon = Send(oTargetMonster,@GetIcon);
+      
+      if IsClass(self,&HuntAMarauderBounty)
+      {
+         vrIcon = marauder_bounty_icon;
+      }
+      else
+      {
+         vrIcon = Send(oTargetMonster,@GetIcon);
+      }
       pcTargetClass = GetClass(oTargetMonster);
       
       if iBountyLevel = 0
