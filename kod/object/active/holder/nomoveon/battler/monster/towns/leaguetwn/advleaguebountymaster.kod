@@ -1,0 +1,180 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+AdventurersLeagueBountyMaster is LeagueTown
+
+constants:
+
+   include blakston.khd
+   
+   FIRST_RANDOM_GENERATE_BOUNTY_TIME = 60000
+   RANDOM_GENERATE_BOUNTY_TIME = 120000
+   MAX_RANDOM_FILL_BOUNTIES = 50
+   MAX_BOUNTIES_ON_LIST = 50
+
+resources:
+
+   adventurers_league_bounty_master_name_rsc = "Brimik D'xor"
+   adventurers_league_bounty_master_icon_rsc = jselder.bgf
+   adventurers_league_bounty_master_desc_rsc = \
+      "The cousin of the Jasper Elder has seen more of the world "
+      "than most born in a mining town. Now, he runs the "
+      "bounty business for the Adventurer's League of Meridian. "
+      "\n\nPurchase a bounty to undertake the task in question. "
+      "You will generally have twelve Meridian days to complete the job."
+
+classvars:
+
+   vrName = adventurers_league_bounty_master_name_rsc
+   vrIcon = adventurers_league_bounty_master_icon_rsc
+   vrDesc = adventurers_league_bounty_master_desc_rsc
+   viAttributes = \
+      MOB_NOFIGHT | MOB_SELLER | MOB_BUYER | MOB_NOMOVE \
+      | MOB_RANDOM | MOB_LISTEN | MOB_COND_SELLER
+   viOccupation = MOB_ROLE_MERCHANT
+   viMerchant_markup = MERCHANT_RIPOFF
+
+properties:
+
+   plBountyClasses = $
+   ptGenerateNewBountyTimer = $
+
+messages:
+
+   Constructed()
+   {
+      plBountyClasses = [&HuntALegendaryBounty];
+      ptGenerateNewBountyTimer = CreateTimer(self,@GenerateNewBountyForSale,FIRST_RANDOM_GENERATE_BOUNTY_TIME);
+      propagate;
+   }
+
+   AffectMood(what=$,why=$)
+   {
+
+      return;
+   }
+
+   SetForSale()
+   {
+      plFor_sale = [$,$,$,$];
+
+      return;
+   }
+   
+   GenerateNewBountyForSale()
+   {
+      local oBounty, cClass;
+      
+      ptGenerateNewBountyTimer = $;
+      
+      if plFor_Sale = $
+      {
+         Send(self,@SetForSale);
+         ptGenerateNewBountyTimer = CreateTimer(self,@GenerateNewBountyForSale,RANDOM_GENERATE_BOUNTY_TIME);
+         return;
+      }
+      
+      if Nth(plFor_sale,1) = $
+         OR Length(Nth(plFor_sale,1)) < MAX_RANDOM_FILL_BOUNTIES
+      {
+         cClass = Nth(plBountyClasses,Random(1,Length(plBountyClasses)));
+         oBounty = Create(cClass);
+         SetNth(plFor_sale,1,Cons(oBounty,Nth(plFor_sale,1)));
+      }
+      
+      ptGenerateNewBountyTimer = CreateTimer(self,@GenerateNewBountyForSale,RANDOM_GENERATE_BOUNTY_TIME);
+      return;
+   }
+
+   ObjectDesired(what=$)
+   {
+      return FALSE;
+   }
+
+   InitCondSale()
+   {
+      return;
+   }
+
+   UserEntered(who=$)
+   {
+      propagate;
+   }
+   
+   ClearBountyList()
+   {
+      local i;
+
+      if plFor_Sale <> $
+         AND First(plFor_Sale) <> $
+      {
+         foreach i in First(plFor_Sale)
+         {
+            Send(i,@Delete);
+         }
+         SetNth(plFor_Sale,1,$);
+      }
+      return;
+   }
+   
+   GetPrice(what = $, who = $)
+   "Custom for a mob bounty master"
+   {
+      local i, x, y;
+
+      if plFor_sale <> $ AND Length(plFor_sale) = 4
+      {
+         foreach i in Nth(plFor_sale,4)
+         {
+            if what=First(i)
+            {
+               return Nth(i,2);
+            }
+         }
+      }
+
+      if IsClass(what,&Item) 
+      {
+         x = Send(what,@GetInitValue) * (100 + 20*viMerchant_markup) / 100;
+         y = Send(Send(SYS,@GetParliament),@GetFactionPriceBonus,#who=who,
+                  #buying=TRUE);
+         return Bound(x*y/100, 1, $);
+      }
+
+      if IsClass(what,&Spell) OR IsClass(what,&Skill)
+      {
+         return Send(what,@GetValue);
+      }
+
+      if IsClass(what,&PersonalBounty)
+      {
+         return Send(what,@GetBountyPrice);
+      }
+      Debug("Strange item",what,":",Send(what,@GetName),"in GetPrice");
+
+      return 0;
+   }
+   
+   Delete()
+   {
+      Send(self,@ClearBountyList);
+      
+      if ptGenerateNewBountyTimer <> $
+      {
+         DeleteTimer(ptGenerateNewBountyTimer);
+         ptGenerateNewBountyTimer = $;
+      }
+      
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+

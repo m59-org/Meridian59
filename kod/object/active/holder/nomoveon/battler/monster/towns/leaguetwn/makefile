@@ -6,6 +6,7 @@
 
 DEPEND = ..\leaguetwn.bof
 BOFS  = advleaguejailer.bof advleagueseer.bof advleaguemonk.bof \
-        advleaguemortician.bof
+        advleaguemortician.bof \
+        advleaguebountymaster.bof
 
 !include $(KODDIR)\kod.mak

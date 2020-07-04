@@ -205,10 +205,19 @@ messages:
 
    CheckForNextFundingLevel()
    {
-      % 200 million for Morgue
-      % 100 million for seer
-      if piFundingLevel = 3
+      % 200 million for Bounty Board
+      if piFundingLevel = 4
          AND piHundredMillions >= 2
+      {
+         piFundingLevel = 5;
+         Send(Send(SYS,@FindRoomByNum,#num=RID_ADVENTURERS_GUILD),@UpgradeBuilding);
+         return;
+      }
+      % 150 million for Morgue
+      if piFundingLevel = 3
+         AND ((piHundredMillions >= 1
+            AND piTotalDonatedShillings >= 50000000)
+            OR piHundredMillions >= 2)
       {
          piFundingLevel = 4;
          Send(Send(SYS,@FindRoomByNum,#num=RID_ADVENTURERS_GUILD),@UpgradeBuilding);

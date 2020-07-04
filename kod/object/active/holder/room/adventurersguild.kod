@@ -43,6 +43,7 @@ resources:
    room_adventurers_guild_with_ad_hall = adventurersguildwithadhall.roo
    room_adventurers_guild_with_seer = adventurersguildwithseer.roo
    room_adventurers_guild_with_morgue = adventurersguildwithmorgue.roo
+   room_adventurers_guild_with_bounties = adventurersguildwithbounties.roo
    room_name_adventurers_guild = "Adventurer's League of Meridian"
    adventurers_guild_music = bridge.mp3
 
@@ -80,7 +81,7 @@ resources:
       "~BWe've reached a new funding level, and it's time to upgrade! Mind waiting "
       "in the Adventurer's Hall? Thanks!"
    server_we_are_upgrading = \
-      "~BThe Adventurer's Hall in Cor Noth has reached a new level of construction."
+      "~BThe Adventurer's League in Cor Noth has reached a new level of construction."
 
    news_adv_guild = "League Link"
    news_adv_guild_desc = "Watch the world go by from League headquarters!"
@@ -134,6 +135,9 @@ messages:
             break;
          case 4:
             prRoom = room_adventurers_guild_with_morgue;
+            break;
+         case 5:
+            prRoom = room_adventurers_guild_with_bounties;
             break;
       }
 
@@ -348,6 +352,12 @@ messages:
               
          Send(self,@NewHold,#what=Create(&AdventurersLeagueMortician),
               #new_row=5,#new_col=25,#fine_row=0,#fine_col=0,#new_angle=ANGLE_SOUTH);
+      }
+      
+      if iFundingLevel >= 5
+      {
+         Send(self,@NewHold,#what=Create(&AdventurersLeagueBountyMaster),
+              #new_row=18,#new_col=33,#fine_row=32,#fine_col=32,#new_angle=ANGLE_SOUTH_WEST);
       }
 
       propagate;

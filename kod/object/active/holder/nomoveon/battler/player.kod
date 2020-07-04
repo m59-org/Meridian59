@@ -22356,11 +22356,29 @@ messages:
       return;
    }
 
+   CanAddNewBounty(oBounty=$,bBuying=FALSE)
+   {
+      if plBounties = $
+         OR Length(plBounties) < 5
+      {
+         return TRUE;
+      }
+      
+      if NOT bBuying
+         AND (plBounties = $
+            OR Length(plBounties) < 20)
+      {
+         return TRUE;
+      }
+      return FALSE;
+   }
+
    AddBounty(oBounty=$)
    {
       if oBounty <> $
       {
          plBounties = Cons(oBounty,plBounties);
+         Send(oBounty,@NewPlayerOwner,#who=self);
          Post(self,@ToCliStats,#group=5);
       }
       return;
@@ -22374,6 +22392,19 @@ messages:
          plBounties = DelListElem(plBounties,oBounty);
          Post(self,@ToCliStats,#group=5);
       }
+      return;
+   }
+
+   ClearBounties()
+   {
+      local i;
+      
+      foreach i in plBounties
+      {
+         Send(i,@Delete);
+      }
+      plBounties = $;
+      Post(self,@ToCliStats,#group=5);
       return;
    }
 

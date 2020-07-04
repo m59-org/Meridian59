@@ -18,6 +18,8 @@ PersonalBounty is PassiveObject
 %
 % Sometimes it's hunt an indomitable
 % Sometimes it's hunt a legendary
+%
+% RETURN WITH A MONSTER SOMETIMES
 
 constants:
 
@@ -31,14 +33,20 @@ resources:
 
    completed_bounty = "completed"
    not_completed_bounty = "not completed"
+   
+   bounty_expired_msg = \
+      "Your %s bounty has expired."
 
 classvars:
 
    viBountyType = 0
    viWisdomMultiplier = 1
    viExperienceMultiplier = 1
+   viPriceMultiplier = 1
 
 properties:
+
+   vrIcon = hunt_a_legendary_bounty_icon
 
    pcOfferingNPCClass = $
 
@@ -53,6 +61,12 @@ properties:
    piExperienceRewardAmount = 0
    
    pbSpawnedMob = FALSE
+   
+   piBountyPrice = 0
+   
+   ptBountyExpireTimer = $
+   
+   poPlayerOwner = $
 
 messages:
 
@@ -62,6 +76,7 @@ messages:
 
       lTargets = Send(SYS,@GetChampionMonsterTemplates);
       oTargetMonster = Nth(lTargets,Random(1,Length(lTargets)));
+      vrIcon = Send(oTargetMonster,@GetIcon);
       pcTargetClass = GetClass(oTargetMonster);
       
       if iBountyLevel = 0
@@ -77,6 +92,7 @@ messages:
             break;
          case 2:
             piWisdomRewardAmount = iBountyLevel * viWisdomMultiplier;
+            piBountyPrice = iBountyLevel * viPriceMultiplier;
             break;
          case 3:
             pcRewardClass = &ShardRemove;
@@ -113,7 +129,7 @@ messages:
                           RID_ORC_CAVE1_EXT];
                           
       piTargetRID = Nth(lDestinationRIDs,Random(1,Length(lDestinationRIDs)));
-                          
+
       propagate;
    }
 
@@ -154,6 +170,46 @@ messages:
       }
       Post(who,@RemoveBounty,#oBounty=self);
       return;
+   }
+
+   GetBountyPrice()
+   {
+      return piBountyPrice;
+   }
+
+   NewPlayerOwner(who=$)
+   {
+      if ptBountyExpireTimer <> $
+      {
+         DeleteTimer(ptBountyExpireTimer);
+         ptBountyExpireTimer = $;
+      }
+      poPlayerOwner = who;
+      ptBountyExpireTimer = CreateTimer(self,@BountyExpire,1000 * 60 * 60 * 24);
+      return;
+   }
+
+   BountyExpire(timer=$)
+   {
+      ptBountyExpireTimer = $;
+      
+      if poPlayerOwner <> $
+      {
+         Send(poPlayerOwner,@MsgSendUser,#message_rsc=bounty_expired_msg,#parm1=Send(self,@GetName));
+         Send(poPlayerOwner,@ToCliStats,#group=5);
+      }
+      Post(self,@Delete);
+      return;
+   }
+   
+   Delete()
+   {
+      if ptBountyExpireTimer <> $
+      {
+         DeleteTimer(ptBountyExpireTimer);
+         ptBountyExpireTimer = $;
+      }
+      propagate;
    }
 
 end

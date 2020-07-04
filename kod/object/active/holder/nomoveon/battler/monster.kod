@@ -366,6 +366,11 @@ resources:
    monster_jailer_sold_to_you = \
       "Good luck with that one... we gave it a complementary creature binding for you, but you never know..."
    
+   monster_bounty_master_sold_to_you = \
+      "Careful with that one. It's always the job you least expect that does you in."
+   monster_bounty_master_at_limit = \
+      "You've already got your hands full with your current bounties. Try completing some of those first."
+   
 classvars:
 
    vrKocName = monster_koc_name
@@ -6262,6 +6267,20 @@ messages:
                else
                {
                   Post(poOwner,@SomeoneSaid,#what=self,#string=monster_jailer_you_cannot_control_it,#type=SAY_RESOURCE);
+               }
+            }
+            else if IsClass(i,&PersonalBounty)
+            {
+               if Send(what,@CanAddNewBounty,#oBounty=i,#bBuying=TRUE)
+               {
+                  SetNth(plFor_Sale,1,DelListElem(First(plFor_Sale),i));
+                  Send(what,@AddBounty,#oBounty=i);
+                  Send(oMoney,@SubtractNumber,#number=iPrice);
+                  Post(poOwner,@SomeoneSaid,#what=self,#string=monster_bounty_master_sold_to_you,#type=SAY_RESOURCE);
+               }
+               else
+               {
+                  Post(poOwner,@SomeoneSaid,#what=self,#string=monster_bounty_master_at_limit,#type=SAY_RESOURCE);
                }
             }
          }
