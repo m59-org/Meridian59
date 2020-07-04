@@ -105,8 +105,12 @@ messages:
       return 0;
    }
 
-   ReqDropTrappedLootBox()
+   ReqDropTrappedLootBox(what=$)
    {
+      if Send(what,@GetExemptFromChampionAlteration)
+      {
+         return TRUE;
+      }
       % Eliminates loot box drops.
       return FALSE;
    }

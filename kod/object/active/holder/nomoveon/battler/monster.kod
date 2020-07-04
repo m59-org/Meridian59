@@ -714,15 +714,20 @@ properties:
    pbDropChestOnDeath = FALSE
    
    piLastAutomaticCommandMinionAttackTime = 0
+   
+   % Are we exempt from the jungle night type effects?
+   pbExemptFromChampionAlteration = FALSE
 
 messages:
 
-   Constructor(template=FALSE, color=0, piSurvivalLevel=0, iBrain = 0, iChaosLevel = 0, oEventSpawner = $)
+   Constructor(template=FALSE, color=0, piSurvivalLevel=0, iBrain = 0, iChaosLevel = 0, oEventSpawner = $, bExemptFromChampionAlteration=FALSE)
    "Simple enough, we create a monster. If they are questworthy, we note it."
    {
       local iStatPoints, iMin, iMax, oChaosMaint, iChaosDiff, lStatMarks, lOrderedStatMarks, iHighestValue, iCount;
 
       poEventSpawner = oEventSpawner;
+      
+      pbExemptFromChampionAlteration = bExemptFromChampionAlteration;
 
       iChaosDiff = 0;
       if iChaosLevel > 0
@@ -5118,7 +5123,7 @@ messages:
             AND poMaster = $
             AND NOT Send(self,@GetSummoned)
             AND NOT pbIllusion
-            AND Send(poOwner,@ReqDropTrappedLootBox)
+            AND Send(poOwner,@ReqDropTrappedLootBox,#what=self)
             AND Send(SETTINGS_OBJECT,@GetDropTrappedLootBoxes)
             AND piLadderID > 0
          {
@@ -9601,6 +9606,7 @@ messages:
       local iNumerator, iDivisor;
       
       if poOwner <> $
+         AND NOT Send(self,@GetExemptFromChampionAlteration)
       {
          iNumerator = Send(poOwner,@GetChampionRewardNumerator);
          iDivisor = Bound(Send(poOwner,@GetChampionRewardDivisor),1,$);
@@ -10379,6 +10385,11 @@ messages:
    GetAim()
    {
       return piAim;
+   }
+
+   GetExemptFromChampionAlteration()
+   {
+      return pbExemptFromChampionAlteration;
    }
 
 end
