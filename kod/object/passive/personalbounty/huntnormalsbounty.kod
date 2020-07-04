@@ -1,0 +1,113 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+HuntNormalsBounty is PersonalBounty
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   hunt_normals_bounty_name = "Cull monsters"
+   hunt_normals_bounty_experience_reward_desc = \
+      "Certain parties have mandated the culling of %i %s. "
+      "Doing so will earn you %i experience."
+      "\n\nYou have slain %i so far."
+   hunt_normals_bounty_wisdom_reward_desc = \
+      "test"
+   hunt_normals_bounty_item_reward_desc = \
+      "test"
+   
+   wisdom_reward_from_normals_bounty = \
+      "~BYou gain %i experience from finishing your culling bounty!"
+
+classvars:
+
+   vrName = hunt_normals_bounty_name
+   
+   viChallengeNum = HUNT_NORMALS
+   viWisdomMultiplier = 10
+   viExperienceMultiplier = 100
+   
+   viPriceMultiplier = 40
+
+properties:
+
+   vrDesc = hunt_normals_bounty_experience_reward_desc
+
+   pcOfferingNPCClass = $
+
+   piTargetRID = 0
+   pcTargetClass = $
+   
+   piRewardAmount = 0
+   pcRewardClass = $
+   
+   piWisdomRewardAmount = 0
+
+   piExperienceRewardAmount = 0
+   
+   pbSpawnedMob = FALSE
+   
+   piKilledCount = 0
+   piKillsNeeded = 100
+
+messages:
+   
+   GetPossibleTargets()
+   {
+      return Send(SYS,@GetChampionMonsterTemplates);
+   }
+
+   Constructed()
+   {
+      piKillsNeeded = Random(10,105);
+      
+      propagate;
+   }
+
+   ShowDesc(who=$)
+   {
+      if piExperienceRewardAmount <> 0
+      {
+         AddPacket(4,vrDesc, 4,piKillsNeeded,
+                             4,Send(Send(SYS,@FindMonsterByClass,#cClass=pcTargetClass),@GetName),
+                             4,piExperienceRewardAmount,
+                             4,piKilledCount);
+      }
+      return;
+   }
+   
+   SlewAMonster(who=$, what=$)
+   {
+      if GetClass(what) = pcTargetClass
+      {
+         piKilledCount++;
+      }
+      
+      if piKillsNeeded >= 2
+      {
+         Send(self,@CompleteBounty,#who=who);
+      }
+      return;
+   }
+
+   CompleteBounty(who=$)
+   {
+      if piExperienceRewardAmount <> 0
+      {
+         Send(who,@MsgSendUser,#message_rsc=wisdom_reward_from_normals_bounty,#parm1=piExperienceRewardAmount);
+      }
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
