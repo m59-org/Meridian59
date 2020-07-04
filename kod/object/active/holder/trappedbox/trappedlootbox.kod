@@ -238,7 +238,7 @@ properties:
 
 messages:
 
-   Constructor(iLootSize=0,iBoxPower=20,killer=$,lAssists=$,oCorpse=$,victim=$,iChampStatus=0)
+   Constructor(iLootSize=0,iBoxPower=20,killer=$,lAssists=$,oCorpse=$,victim=$,iChampStatus=0,bDropChestOnDeath=FALSE)
    {
       local lPossibleTraps, iBonusShards, oBonusShard, i;
 
@@ -330,6 +330,12 @@ messages:
       }
       
       piExpireChecks = piExpireChecks + iLootSize*6;
+      
+      if bDropChestOnDeath
+      {
+         % Extend boss chest life
+         piExpireChecks = piExpireChecks + 72;
+      }
 
       piLootSize = iLootSize;
       
