@@ -211,6 +211,8 @@ resources:
    user_group_skills = "Skills"
    user_group_quests = "Quests"
 
+   user_bounties_header = "Bounties:"
+   user_no_bounties_header = "No Bounties"
    user_achievements_header = "Achievements:"
    user_achievements_completed_header = "Completed Achievements:"
    user_challenges_header = "Challenges:"
@@ -3691,7 +3693,7 @@ messages:
 
    ToCliStats(group = $)
    {
-      local i, oSpell, oSkill, iCount, lCurrentResistances, iQLength, iChallengesLength;
+      local i, oSpell, oSkill, iCount, lCurrentResistances, iQLength, iChallengesLength, iBountiesLength;
 
       if NOT pbLogged_on
          OR Send(self,@GetSession) = $
@@ -3793,7 +3795,22 @@ messages:
             iChallengesLength = Length(iChallengesLength);
          }
          
-         AddPacket(1,BP_STAT_GROUP, 1,group, 1,Length(plPassiveQuests) + Length(plActiveQuests) + iQLength + iChallengesLength + 7);
+         AddPacket(1,BP_STAT_GROUP, 1,group, 1,Length(plPassiveQuests) + Length(plActiveQuests)
+                                               + iQLength + iChallengesLength + 7
+                                               + Length(plBounties) + 1);
+         
+         if plBounties <> $
+         {
+            % Send the "Bounties" header
+            AddPacket(1,0, 4,user_bounties_header,1,STAT_LIST, 4,0, 4,0, 4,0);
+            % Followed by all the bounties.
+            iCount = Send(self,@SendBountyData,#iCount=iCount);
+         }
+         else
+         {
+            % Send the "No Bounties" header.
+            AddPacket(1,0, 4,user_no_bounties_header,1,STAT_LIST, 4,0, 4,0, 4,0);
+         }
          
          % Send passive quests.
          if plPassiveQuests <> $
@@ -3913,6 +3930,27 @@ messages:
       }
 
       foreach i in plPassiveQuests
+      {
+         rQuestName = Send(i,@GetName);
+         % List index, quest name, statistic type, quest object, value (%), icon.
+         AddPacket(1,iCount, 4,rQuestName, 1,STAT_LIST, 4, i, 4,12, 4,Send(i,@GetIcon));
+         iCount = iCount + 1;
+      }
+
+      % Need to return the current count.
+      return iCount;
+   }
+   
+   SendBountyData(iCount=1)
+   {
+      local i, iQTemplate, oQE, oQObj, rQuestName;
+      
+      if Send(self,@GetSession) = $
+      {
+         return;
+      }
+
+      foreach i in plBounties
       {
          rQuestName = Send(i,@GetName);
          % List index, quest name, statistic type, quest object, value (%), icon.

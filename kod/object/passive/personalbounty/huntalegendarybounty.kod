@@ -1,0 +1,122 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+HuntALegendaryBounty is PersonalBounty
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   hunt_a_legendary_bounty_name = "Hunt a legendary monster"
+   hunt_a_legendary_bounty_icon = sword.bgf
+   hunt_a_legendary_bounty_experience_reward_desc = \
+      "Rumor has it that a legendary %s was seen in the vicinity of %s. "
+      "Overflowing with strange vitality, defeating it would bring its slayer %i experience."
+   hunt_a_legendary_bounty_wisdom_reward_desc = \
+      "An ancient threat has returned. A legendary %s, recently seen at %s, "
+      "endangers the land once more. Its long and storied past would surely "
+      "grant its slayer %i accumulated wisdom."
+   hunt_a_legendary_bounty_item_reward_desc = \
+      "%s has placed a bounty on the head of a legendary %s that has been ravaging the countryside "
+      "from its haunt at %s. Slaying this monster will earn the bounty of %i %ss."
+   
+   wisdom_reward_from_legendary_bounty = \
+      "~BHaving completed your bounty, your mind floods with %i newfound wisdom!"
+
+classvars:
+
+   vrName = hunt_a_legendary_bounty_name
+   vrIcon = hunt_a_legendary_bounty_icon
+   
+   viChallengeNum = HUNT_A_LEGENDARY
+   viWisdomMultiplier = 30
+   viExperienceMultiplier = 100
+
+properties:
+
+   vrDesc = hunt_a_legendary_bounty_experience_reward_desc
+
+   pcOfferingNPCClass = $
+
+   piTargetRID = 0
+   pcTargetClass = $
+   
+   piRewardAmount = 0
+   pcRewardClass = $
+   
+   piWisdomRewardAmount = 0
+
+   piExperienceRewardAmount = 0
+   
+   pbSpawnedMob = FALSE
+
+messages:
+
+   Constructed()
+   {
+      if piWisdomRewardAmount <> 0
+      {
+         vrDesc = hunt_a_legendary_bounty_wisdom_reward_desc;
+      }
+      else if pcRewardClass <> $
+      {
+         vrDesc = hunt_a_legendary_bounty_item_reward_desc;
+      }
+      propagate;
+   }
+
+   ShowDesc(who=$)
+   {
+      if piWisdomRewardAmount <> 0
+      {
+         AddPacket(4,vrDesc, 4,Send(Send(SYS,@FindMonsterByClass,#cClass=pcTargetClass),@GetName),
+                             4,Send(Send(SYS,@FindRoomByNum,#num=piTargetRID),@GetName),
+                             4,piWisdomRewardAmount);
+      }
+      return;
+   }
+   
+   SlewAMonster(who=$, what=$)
+   {
+      if GetClass(what) = pcTargetClass
+         AND Send(what,@GetChampStatus) = CHAMPION_LEGENDARY
+      {
+         Send(self,@CompleteBounty,#who=who);
+      }
+      return;
+   }
+   
+   VisitedAnArea(who=$,where=$)
+   {
+      local oMob;
+      if NOT pbSpawnedMob
+         AND Send(where,@GetRoomNum) = piTargetRID
+      {
+         oMob = Create(pcTargetClass);
+         Send(where,@NewHold,#what=oMob,#new_row=Send(where,@GetTeleportRow),#new_col=Send(where,@GetTeleportCol));
+         Post(oMob,@GainChampionStatus,#iType=CHAMPION_LEGENDARY);
+         pbSpawnedMob = TRUE;
+      }
+      return;
+   }
+
+   CompleteBounty(who=$)
+   {
+      if piWisdomRewardAmount <> 0
+      {
+         Send(who,@MsgSendUser,#message_rsc=wisdom_reward_from_legendary_bounty,#parm1=piWisdomRewardAmount);
+      }
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

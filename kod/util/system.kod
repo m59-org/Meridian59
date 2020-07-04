@@ -1947,6 +1947,23 @@ messages:
       return $;
    }
 
+   FindNPCByClass(cClass = $)
+   {
+      local i, lNPCs;
+
+      lNPCs = Send(Send(SYS,@GetLibrary),@GetNPCs);
+
+      foreach i in lNPCs
+      {
+         if cClass = GetClass(i)
+         {
+            return i;
+         }
+      }
+
+      return $;
+   }
+
    FindNPCByString(string = $)
    {
       local i, lNPCs;
@@ -6340,6 +6357,23 @@ messages:
       
       plMonsterTemplates = cons(create(&ShadowMummy),plMonsterTemplates);
       return;
+   }
+
+   GetChampionMonsterTemplates()
+   {
+      local i, lChampionMonsterTemplates;
+      
+      lChampionMonsterTemplates = $;
+      foreach i in plMonsterTemplates
+      {
+         if Send(i,@GetCanSpawnAsChampion)
+            AND Send(i,@CanMonsterFight)
+         {
+            lChampionMonsterTemplates = Cons(i,lChampionMonsterTemplates);
+         }
+      }
+      
+      return lChampionMonsterTemplates;
    }
 
    GetMonsterTemplates()

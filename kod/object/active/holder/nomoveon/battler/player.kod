@@ -1597,6 +1597,9 @@ properties:
    pbLadderPrizeTwoAwarded = FALSE
    pbLadderPrizeThreeAwarded = FALSE
    pbLadderPrizeFourAwarded = FALSE
+   
+   % What personal bounties has the player taken?
+   plBounties = $
 
 messages:
 
@@ -3603,6 +3606,8 @@ messages:
       {
          Send(self,@LadderChallengeCheck,#type=VISITED_AN_AREA,#oObject=what);
       }
+      
+      Send(self,@BountyCheck,#type=VISITED_AN_AREA,#oObject=what);
 
       return;
    }
@@ -9069,6 +9074,8 @@ messages:
                   #karma_killer=Send(self,@GetKarma)),
                   #bIsMob=TRUE);
          }
+         
+         Send(self,@BountyCheck,#type=SLEW_A_MONSTER,#oObject=what);
 
          Send(self,@LadderChallengeCheck,#type=SLEW_A_MONSTER,#oObject=what);
       }
@@ -22335,6 +22342,60 @@ messages:
       
       SetNth(plSkillConfig,config_num,value);
    
+      return;
+   }
+
+   GetBounties()
+   {
+      return plBounties;
+   }
+
+   GenerateBounty()
+   {
+      Send(self,@AddBounty,#oBounty=Create(&HuntALegendaryBounty));
+      return;
+   }
+
+   AddBounty(oBounty=$)
+   {
+      if oBounty <> $
+      {
+         plBounties = Cons(oBounty,plBounties);
+         Post(self,@ToCliStats,#group=5);
+      }
+      return;
+   }
+
+   RemoveBounty(oBounty=$)
+   {
+      if plBounties <> $
+         AND FindListElem(plBounties,oBounty) <> 0
+      {
+         plBounties = DelListElem(plBounties,oBounty);
+         Post(self,@ToCliStats,#group=5);
+      }
+      return;
+   }
+
+   BountyCheck(type=SLEW_A_MONSTER,oObject=$,num=0)
+   {
+      local i, iIndex;
+
+      switch(type)
+      {
+         case SLEW_A_MONSTER:
+            foreach i in plBounties
+            {
+               Send(i,@SlewAMonster,#who=self,#what=oObject);
+            }
+            break;
+         case VISITED_AN_AREA:
+            foreach i in plBounties
+            {
+               Send(i,@VisitedAnArea,#who=self,#where=oObject);
+            }
+            break;
+      }
       return;
    }
 

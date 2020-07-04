@@ -1,0 +1,160 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+PersonalBounty is PassiveObject
+
+% Bounty taken by an individual player
+%
+% Has specifics like
+% Go to The shores of the Great Ocean and slay 3 bandits
+% Bandits appear when the player enters
+%
+% Sometimes it's hunt an indomitable
+% Sometimes it's hunt a legendary
+
+constants:
+
+   include blakston.khd
+
+   REWARD_EXPERIENCE = 0
+   REWARD_WISDOM = 1
+   REWARD_ITEM = 2
+
+resources:
+
+   completed_bounty = "completed"
+   not_completed_bounty = "not completed"
+
+classvars:
+
+   viBountyType = 0
+   viWisdomMultiplier = 1
+   viExperienceMultiplier = 1
+
+properties:
+
+   pcOfferingNPCClass = $
+
+   piTargetRID = 0
+   pcTargetClass = $
+   
+   piRewardAmount = 0
+   pcRewardClass = $
+   
+   piWisdomRewardAmount = 0
+
+   piExperienceRewardAmount = 0
+   
+   pbSpawnedMob = FALSE
+
+messages:
+
+   Constructor(iBountyLevel=0)
+   {
+      local lNPCs, lTargets, iReward, lDestinationRIDs, oTargetMonster;
+
+      lTargets = Send(SYS,@GetChampionMonsterTemplates);
+      oTargetMonster = Nth(lTargets,Random(1,Length(lTargets)));
+      pcTargetClass = GetClass(oTargetMonster);
+      
+      if iBountyLevel = 0
+      {
+         iBountyLevel = (Send(oTargetMonster,@GetLevel)*Random(80,150))/100;
+      }
+      
+      iReward = 2;
+      switch(iReward)
+      {
+         case 1:
+            piExperienceRewardAmount = iBountyLevel * viExperienceMultiplier;
+            break;
+         case 2:
+            piWisdomRewardAmount = iBountyLevel * viWisdomMultiplier;
+            break;
+         case 3:
+            pcRewardClass = &ShardRemove;
+            piRewardAmount = iBountyLevel / 10;
+
+            lNPCs = Send(Send(SYS,@GetLibrary),@GetNPCs);
+            pcOfferingNPCClass = GetClass(Nth(lNPCs,Random(1,Length(lNPCs))));
+            break;
+      }
+
+      lDestinationRIDs = [RID_CAVE2,
+                          RID_NEST1,
+                          RID_A5,
+                          RID_C2,
+                          RID_D3,
+                          RID_E1,
+                          RID_ICE_CAVE1,
+                          RID_BRAX_MAZE,
+                          RID_BRAX,
+                          RID_BOURGEOIS,
+                          RID_MOCKERS_ROOM,
+                          RID_DESERTBRIDGE,
+                          RID_DESERTBRIDGE2,
+                          RID_DESERTCANAL,
+                          RID_KOC_SEWER1,
+                          RID_KA1,
+                          RID_KA3,
+                          RID_KB2,
+                          RID_KB3,
+                          RID_KC2,
+                          RID_KD1,
+                          RID_KE2,
+                          RID_KE4,
+                          RID_ORC_CAVE1_EXT];
+                          
+      piTargetRID = Nth(lDestinationRIDs,Random(1,Length(lDestinationRIDs)));
+                          
+      propagate;
+   }
+
+   GetCompletedBountyRsc()
+   {
+      return completed_bounty;
+   }
+
+   GetNotCompletedBountyRsc()
+   {
+      return not_completed_bounty;
+   }
+
+   GetBountyType()
+   {
+      return viBountyType;
+   }
+   
+   SlewAMonster(who=$, what=$)
+   {
+      if GetClass(what) = pcTargetClass
+      {
+         Send(self,@CompleteBounty,#who=who);
+      }
+      return;
+   }
+   
+   VisitedAnArea(who=$, where=$)
+   {
+      return;
+   }
+
+   CompleteBounty(who=$)
+   {
+      if piWisdomRewardAmount <> 0
+      {
+         Send(who,@AddAccumulatedWisdom,#amount=piWisdomRewardAmount);
+      }
+      Post(who,@RemoveBounty,#oBounty=self);
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
