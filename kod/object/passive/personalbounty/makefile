@@ -7,6 +7,7 @@
 DEPEND = ..\personalbounty.bof
 BOFS = huntalegendarybounty.bof \
        huntamarauderbounty.bof \
-       huntindomitables.bof
+       huntindomitables.bof \
+       huntchampionbounty.bof
 
 !include $(KODDIR)\kod.mak

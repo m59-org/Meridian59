@@ -25,9 +25,9 @@ constants:
 
    include blakston.khd
 
-   REWARD_EXPERIENCE = 0
-   REWARD_WISDOM = 1
-   REWARD_ITEM = 2
+   REWARD_EXPERIENCE = 1
+   REWARD_WISDOM = 2
+   REWARD_ITEM = 3
 
 resources:
 
@@ -94,17 +94,18 @@ messages:
          iBountyLevel = (Send(oTargetMonster,@GetLevel)*Random(80,150))/100;
       }
       
-      iReward = 2;
+      iReward = Send(self,@GetRewardType);
       switch(iReward)
       {
-         case 1:
+         case REWARD_EXPERIENCE:
             piExperienceRewardAmount = iBountyLevel * viExperienceMultiplier;
+            piBountyPrice = iBountyLevel * viPriceMultiplier;
             break;
-         case 2:
+         case REWARD_WISDOM:
             piWisdomRewardAmount = iBountyLevel * viWisdomMultiplier;
             piBountyPrice = iBountyLevel * viPriceMultiplier;
             break;
-         case 3:
+         case REWARD_ITEM:
             pcRewardClass = &ShardRemove;
             piRewardAmount = iBountyLevel / 10;
 
@@ -174,6 +175,10 @@ messages:
 
    CompleteBounty(who=$)
    {
+      if piExperienceRewardAmount <> 0
+      {
+         Send(who,@AddExperience,#iAmount=piExperienceRewardAmount);
+      }
       if piWisdomRewardAmount <> 0
       {
          Send(who,@AddAccumulatedWisdom,#amount=piWisdomRewardAmount);
@@ -220,6 +225,11 @@ messages:
          ptBountyExpireTimer = $;
       }
       propagate;
+   }
+   
+   GetRewardType()
+   {
+      return REWARD_WISDOM;
    }
 
 end

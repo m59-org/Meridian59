@@ -1,0 +1,131 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+HuntChampionBounty is PersonalBounty
+
+constants:
+
+   include blakston.khd
+   
+   REWARD_EXPERIENCE = 1
+
+resources:
+
+   hunt_a_champion_bounty_name = "Defeat a champion"
+   hunt_a_champion_bounty_experience_reward_desc = \
+      "A minor champion %s has been sighted at %s. "
+      "Take them down and earn yourself %i experience."
+   hunt_a_champion_bounty_wisdom_reward_desc = \
+      "test"
+   hunt_a_champion_bounty_item_reward_desc = \
+      "test"
+   
+   experience_reward_from_champion_bounty = \
+      "~BHaving defeated the champion, you gain %i experience!"
+
+classvars:
+
+   vrName = hunt_a_champion_bounty_name
+   
+   viChallengeNum = HUNT_CHAMPION
+   viWisdomMultiplier = 5
+   viExperienceMultiplier = 30
+   
+   viPriceMultiplier = 50
+
+properties:
+
+   vrDesc = hunt_a_champion_bounty_experience_reward_desc
+
+   pcOfferingNPCClass = $
+
+   piTargetRID = 0
+   pcTargetClass = $
+   
+   piRewardAmount = 0
+   pcRewardClass = $
+   
+   piWisdomRewardAmount = 0
+
+   piExperienceRewardAmount = 0
+   
+   pbSpawnedMob = FALSE
+
+messages:
+   
+   GetPossibleTargets()
+   {
+      return Send(SYS,@GetChampionMonsterTemplates);
+   }
+
+   Constructed()
+   {
+      if piWisdomRewardAmount <> 0
+      {
+         vrDesc = hunt_a_champion_bounty_wisdom_reward_desc;
+      }
+      else if pcRewardClass <> $
+      {
+         vrDesc = hunt_a_champion_bounty_item_reward_desc;
+      }
+      propagate;
+   }
+
+   ShowDesc(who=$)
+   {
+      if piExperienceRewardAmount <> 0
+      {
+         AddPacket(4,vrDesc, 4,Send(Send(SYS,@FindMonsterByClass,#cClass=pcTargetClass),@GetName),
+                             4,Send(Send(SYS,@FindRoomByNum,#num=piTargetRID),@GetName),
+                             4,piExperienceRewardAmount);
+      }
+      return;
+   }
+   
+   SlewAMonster(who=$, what=$)
+   {
+      if GetClass(what) = pcTargetClass
+         AND Send(what,@GetChampStatus) = CHAMPION_TOUGH
+      {
+         Send(self,@CompleteBounty,#who=who);
+      }
+      return;
+   }
+   
+   VisitedAnArea(who=$,where=$)
+   {
+      local oMob;
+      if NOT pbSpawnedMob
+         AND Send(where,@GetRoomNum) = piTargetRID
+      {
+         oMob = Create(pcTargetClass,#bExemptFromChampionAlteration=TRUE);
+         Send(where,@NewHold,#what=oMob,#new_row=Send(where,@GetTeleportRow),#new_col=Send(where,@GetTeleportCol));
+         Post(oMob,@GainChampionStatus,#iType=CHAMPION_TOUGH);
+         pbSpawnedMob = TRUE;
+      }
+      return;
+   }
+
+   CompleteBounty(who=$)
+   {
+      if piWisdomRewardAmount <> 0
+      {
+         Send(who,@MsgSendUser,#message_rsc=wisdom_reward_from_indomitables_bounty,#parm1=piWisdomRewardAmount);
+      }
+      propagate;
+   }
+   
+   GetRewardType()
+   {
+      return REWARD_EXPERIENCE;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

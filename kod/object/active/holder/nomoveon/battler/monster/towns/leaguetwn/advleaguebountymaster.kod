@@ -15,7 +15,7 @@ constants:
    include blakston.khd
    
    FIRST_RANDOM_GENERATE_BOUNTY_TIME = 3000
-   RANDOM_GENERATE_BOUNTY_TIME = 5000
+   RANDOM_GENERATE_BOUNTY_TIME = 1000
    MAX_RANDOM_FILL_BOUNTIES = 50
    MAX_BOUNTIES_ON_LIST = 50
 
@@ -51,8 +51,31 @@ messages:
    Constructed()
    {
       plBountyClasses = [&HuntALegendaryBounty,
+                         &HuntIndomitablesBounty,
+                         &HuntIndomitablesBounty,
                          &HuntAMarauderBounty,
-                         &HuntIndomitablesBounty];
+                         &HuntAMarauderBounty,
+                         &HuntAMarauderBounty,
+                         &HuntChampionBounty,
+                         &HuntChampionBounty,
+                         &HuntChampionBounty,
+                         &HuntChampionBounty,
+                         &HuntChampionBounty,
+                         &HuntChampionBounty,
+                         &HuntChampionBounty,
+                         &HuntChampionBounty,
+                         &HuntChampionBounty,
+                         &HuntChampionBounty,
+                         &HuntChampionBounty,
+                         &HuntChampionBounty,
+                         &HuntChampionBounty,
+                         &HuntChampionBounty,
+                         &HuntChampionBounty,
+                         &HuntChampionBounty,
+                         &HuntChampionBounty,
+                         &HuntChampionBounty,
+                         &HuntChampionBounty,
+                         &HuntChampionBounty];
       ptGenerateNewBountyTimer = CreateTimer(self,@GenerateNewBountyForSale,FIRST_RANDOM_GENERATE_BOUNTY_TIME);
       propagate;
    }
@@ -81,6 +104,16 @@ messages:
          Send(self,@SetForSale);
          ptGenerateNewBountyTimer = CreateTimer(self,@GenerateNewBountyForSale,RANDOM_GENERATE_BOUNTY_TIME);
          return;
+      }
+      
+      if Length(Nth(plFor_sale,1)) >= MAX_RANDOM_FILL_BOUNTIES
+      {
+         if Nth(plFor_sale,1) <> $
+            AND Length(Nth(plFor_sale,1)) >= MAX_BOUNTIES_ON_LIST
+         {
+            % Delete oldest bounty
+            SetNth(plFor_sale,1,DelListElem(First(plFor_Sale),Nth(First(plFor_Sale),MAX_BOUNTIES_ON_LIST)));
+         }
       }
       
       if Nth(plFor_sale,1) = $
