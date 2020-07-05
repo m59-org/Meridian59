@@ -39,6 +39,9 @@ resources:
    bounty_expired_msg = \
       "Your %s bounty has expired."
 
+   target_escaped_bounty_msg = \
+      "Your target has escaped, and you have failed your bounty."
+
 classvars:
 
    viBountyType = 0
@@ -69,6 +72,7 @@ properties:
    ptBountyExpireTimer = $
    
    poPlayerOwner = $
+   pbBountyCompleted = FALSE
 
 messages:
 
@@ -166,10 +170,6 @@ messages:
    
    SlewAMonster(who=$, what=$)
    {
-      if GetClass(what) = pcTargetClass
-      {
-         Send(self,@CompleteBounty,#who=who);
-      }
       return;
    }
    
@@ -177,22 +177,46 @@ messages:
    {
       return;
    }
-
-   CompleteBounty(who=$)
+   
+   TargetKilled(what=$)
    {
-      if piExperienceRewardAmount <> 0
+      return;
+   }
+   
+   TargetDeleted()
+   {
+      if NOT pbBountyCompleted
       {
-         Send(who,@AddExperience,#iAmount=piExperienceRewardAmount);
+         Post(self,@FailBounty);
       }
-      if piWisdomRewardAmount <> 0
+      return;
+   }
+
+   CompleteBounty()
+   {
+      if pbBountyCompleted
       {
-         Send(who,@AddAccumulatedWisdom,#amount=piWisdomRewardAmount);
+         return;
       }
-      if pcRewardClass <> $
+      pbBountyCompleted = TRUE;
+
+      if poPlayerOwner <> $
       {
-         Send(who,@NewHold,#what=Create(pcRewardClass,#number=piRewardAmount));
+         if piExperienceRewardAmount <> 0
+         {
+            Send(poPlayerOwner,@AddExperience,#iAmount=piExperienceRewardAmount);
+         }
+         if piWisdomRewardAmount <> 0
+         {
+            Send(poPlayerOwner,@AddAccumulatedWisdom,#amount=piWisdomRewardAmount);
+         }
+         if pcRewardClass <> $
+         {
+            Send(poPlayerOwner,@NewHold,#what=Create(pcRewardClass,#number=piRewardAmount));
+         }
+         Post(poPlayerOwner,@RemoveBounty,#oBounty=self);
       }
-      Post(who,@RemoveBounty,#oBounty=self);
+      Send(self,@Delete);
       return;
    }
 
@@ -210,6 +234,16 @@ messages:
       }
       poPlayerOwner = who;
       ptBountyExpireTimer = CreateTimer(self,@BountyExpire,1000 * 60 * 60 * 24);
+      return;
+   }
+
+   FailBounty()
+   {
+      if poPlayerOwner <>$
+      {
+         Send(poPlayerOwner,@MsgSendUser,#message_rsc=target_escaped_bounty_msg);
+      }
+      Send(self,@Delete);
       return;
    }
 
@@ -233,6 +267,12 @@ messages:
          DeleteTimer(ptBountyExpireTimer);
          ptBountyExpireTimer = $;
       }
+      
+      if poPlayerOwner <> $
+      {
+         Send(poPlayerOwner,@RemoveBounty,#oBounty=self);
+      }
+      poPlayerOwner = $;
       propagate;
    }
    

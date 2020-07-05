@@ -717,10 +717,15 @@ properties:
    
    % Are we exempt from the jungle night type effects?
    pbExemptFromChampionAlteration = FALSE
+   
+   % Are we the target of a bounty?
+   poBounty = $
 
 messages:
 
-   Constructor(template=FALSE, color=0, piSurvivalLevel=0, iBrain = 0, iChaosLevel = 0, oEventSpawner = $, bExemptFromChampionAlteration=FALSE)
+   Constructor(template=FALSE, color=0, piSurvivalLevel=0, iBrain = 0,
+               iChaosLevel = 0, oEventSpawner = $, bExemptFromChampionAlteration=FALSE,
+               oBounty=$)
    "Simple enough, we create a monster. If they are questworthy, we note it."
    {
       local iStatPoints, iMin, iMax, oChaosMaint, iChaosDiff, lStatMarks, lOrderedStatMarks, iHighestValue, iCount;
@@ -728,6 +733,8 @@ messages:
       poEventSpawner = oEventSpawner;
       
       pbExemptFromChampionAlteration = bExemptFromChampionAlteration;
+      
+      poBounty = oBounty;
 
       iChaosDiff = 0;
       if iChaosLevel > 0
@@ -1029,6 +1036,12 @@ messages:
       {
          Send(poMaster,@RemoveControlledMinion,#what=self);
       }
+      
+      if poBounty <> $
+      {
+         %Post(poBounty,@TargetDeleted);
+      }
+      poBounty = $;
 
       % If this monster is an Apparition, tell the original it was deleted.
       if poApparitionOriginal <> $
@@ -1460,6 +1473,7 @@ messages:
          AND Send(self,@GetMaster) = $
          AND NOT pbIllusion
          AND NOT vbSummoned
+         AND NOT pbExemptFromChampionAlteration
       {
          iRand = Random(0,9999);
          
@@ -5042,6 +5056,11 @@ messages:
       if what = $
       {
          what = self;
+      }
+      
+      if poBounty <> $
+      {
+         Send(poBounty,@TargetKilled,#what=what,#oTarget=self);
       }
 
       Send(self,@ClearAllStatusEffects);

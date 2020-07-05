@@ -94,16 +94,17 @@ messages:
       
       if piKilledCount >= piKillsNeeded
       {
-         Send(self,@CompleteBounty,#who=who);
+         Send(self,@CompleteBounty);
       }
       return;
    }
 
-   CompleteBounty(who=$)
+   CompleteBounty()
    {
       if pcRewardClass <> $
+         AND poPlayerOwner <> $
       {
-         Send(who,@MsgSendUser,#message_rsc=item_reward_from_trinket_bounty);
+         Send(poPlayerOwner,@MsgSendUser,#message_rsc=item_reward_from_trinket_bounty);
       }
       propagate;
    }

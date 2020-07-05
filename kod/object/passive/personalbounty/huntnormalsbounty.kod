@@ -98,16 +98,17 @@ messages:
       
       if piKilledCount >= piKillsNeeded
       {
-         Send(self,@CompleteBounty,#who=who);
+         Send(self,@CompleteBounty);
       }
       return;
    }
 
-   CompleteBounty(who=$)
+   CompleteBounty()
    {
       if piExperienceRewardAmount <> 0
+         AND poPlayerOwner <> $
       {
-         Send(who,@MsgSendUser,#message_rsc=wisdom_reward_from_normals_bounty,#parm1=piExperienceRewardAmount);
+         Send(poPlayerOwner,@MsgSendUser,#message_rsc=wisdom_reward_from_normals_bounty,#parm1=piExperienceRewardAmount);
       }
       propagate;
    }

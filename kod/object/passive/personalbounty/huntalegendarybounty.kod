@@ -89,13 +89,13 @@ messages:
       }
       return;
    }
-   
-   SlewAMonster(who=$, what=$)
+
+   TargetKilled(what=$,oTarget=$)
    {
-      if GetClass(what) = pcTargetClass
-         AND Send(what,@GetChampStatus) = CHAMPION_LEGENDARY
+      if what = poPlayerOwner
+         OR Send(oTarget,@GetHighestHurtMeRecentlyBattler) = poPlayerOwner
       {
-         Send(self,@CompleteBounty,#who=who);
+         Send(self,@CompleteBounty);
       }
       return;
    }
@@ -106,7 +106,7 @@ messages:
       if NOT pbSpawnedMob
          AND Send(where,@GetRoomNum) = piTargetRID
       {
-         oMob = Create(pcTargetClass,#bExemptFromChampionAlteration=TRUE);
+         oMob = Create(pcTargetClass,#bExemptFromChampionAlteration=TRUE,#oBounty=self);
          Post(where,@NewHold,#what=oMob,#new_row=Send(where,@GetTeleportRow),#new_col=Send(where,@GetTeleportCol));
          Post(oMob,@GainChampionStatus,#iType=CHAMPION_LEGENDARY);
          pbSpawnedMob = TRUE;
@@ -114,11 +114,12 @@ messages:
       return;
    }
 
-   CompleteBounty(who=$)
+   CompleteBounty()
    {
       if piWisdomRewardAmount <> 0
+         AND poPlayerOwner <> $
       {
-         Send(who,@MsgSendUser,#message_rsc=wisdom_reward_from_legendary_bounty,#parm1=piWisdomRewardAmount);
+         Send(poPlayerOwner,@MsgSendUser,#message_rsc=wisdom_reward_from_legendary_bounty,#parm1=piWisdomRewardAmount);
       }
       propagate;
    }
