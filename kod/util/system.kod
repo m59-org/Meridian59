@@ -6375,6 +6375,24 @@ messages:
       return lMarauderMonsterTemplates;
    }
 
+   GetLowLevelChampionMonsterTemplates()
+   {
+      local i, lChampionMonsterTemplates;
+      
+      lChampionMonsterTemplates = $;
+      foreach i in plMonsterTemplates
+      {
+         if Send(i,@GetCanSpawnAsChampion)
+            AND Send(i,@CanMonsterFight)
+            AND Send(i,@GetLevel) <= 110
+         {
+            lChampionMonsterTemplates = Cons(i,lChampionMonsterTemplates);
+         }
+      }
+      
+      return lChampionMonsterTemplates;
+   }
+
    GetChampionMonsterTemplates()
    {
       local i, lChampionMonsterTemplates;
