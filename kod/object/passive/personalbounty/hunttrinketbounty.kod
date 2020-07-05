@@ -1,0 +1,117 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+HuntTrinketBounty is PersonalBounty
+
+constants:
+
+   include blakston.khd
+   
+   REWARD_ITEM = 3
+
+resources:
+
+   hunt_trinket_bounty_name = "Find an ancient trinket"
+   hunt_trinket_bounty_experience_reward_desc = \
+      "test"
+   hunt_trinket_bounty_wisdom_reward_desc = \
+      "test"
+   hunt_trinket_bounty_item_reward_desc = \
+      "The Adventurer's League Seer has detect the energies of an "
+      "ancient trinket on a %s. Slay their kind until you find "
+      "the artifact, then do with it as you will."
+   
+   item_reward_from_trinket_bounty = \
+      "~BYou've found the ancient trinket for your bounty!"
+
+classvars:
+
+   vrName = hunt_trinket_bounty_name
+   
+   viChallengeNum = HUNT_TRINKET
+   viWisdomMultiplier = 1
+   viExperienceMultiplier = 1
+   
+   viPriceMultiplier = 200
+
+properties:
+
+   vrDesc = hunt_trinket_bounty_item_reward_desc
+
+   pcOfferingNPCClass = $
+
+   piTargetRID = 0
+   pcTargetClass = $
+   
+   piRewardAmount = 1
+   pcRewardClass = &StatsResetToken
+   
+   piWisdomRewardAmount = 0
+
+   piExperienceRewardAmount = 0
+   
+   pbSpawnedMob = FALSE
+   
+   piKilledCount = 0
+   piKillsNeeded = 21
+
+messages:
+   
+   GetPossibleTargets()
+   {
+      return Send(SYS,@GetChampionMonsterTemplates);
+   }
+
+   Constructed()
+   {
+      piKillsNeeded = Random(2,21);
+      
+      propagate;
+   }
+
+   ShowDesc(who=$)
+   {
+      if pcRewardClass <> $
+      {
+         AddPacket(4,vrDesc, 4,Send(Send(SYS,@FindMonsterByClass,#cClass=pcTargetClass),@GetName));
+      }
+      return;
+   }
+   
+   SlewAMonster(who=$, what=$)
+   {
+      if GetClass(what) = pcTargetClass
+      {
+         piKilledCount++;
+      }
+      
+      if piKilledCount >= piKillsNeeded
+      {
+         Send(self,@CompleteBounty,#who=who);
+      }
+      return;
+   }
+
+   CompleteBounty(who=$)
+   {
+      if pcRewardClass <> $
+      {
+         Send(who,@MsgSendUser,#message_rsc=item_reward_from_trinket_bounty);
+      }
+      propagate;
+   }
+   
+   GetRewardType()
+   {
+      return REWARD_ITEM;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -106,11 +106,11 @@ messages:
             piBountyPrice = iBountyLevel * viPriceMultiplier;
             break;
          case REWARD_ITEM:
-            pcRewardClass = &ShardRemove;
-            piRewardAmount = iBountyLevel / 10;
+            Send(self,@SetRewardItems);
+            piBountyPrice = iBountyLevel * viPriceMultiplier;
 
-            lNPCs = Send(Send(SYS,@GetLibrary),@GetNPCs);
-            pcOfferingNPCClass = GetClass(Nth(lNPCs,Random(1,Length(lNPCs))));
+         %   lNPCs = Send(Send(SYS,@GetLibrary),@GetNPCs);
+         %   pcOfferingNPCClass = GetClass(Nth(lNPCs,Random(1,Length(lNPCs))));
             break;
       }
 
@@ -142,6 +142,11 @@ messages:
       piTargetRID = Nth(lDestinationRIDs,Random(1,Length(lDestinationRIDs)));
 
       propagate;
+   }
+
+   SetRewardItems()
+   {
+      return;
    }
 
    GetCompletedBountyRsc()
@@ -182,6 +187,10 @@ messages:
       if piWisdomRewardAmount <> 0
       {
          Send(who,@AddAccumulatedWisdom,#amount=piWisdomRewardAmount);
+      }
+      if pcRewardClass <> $
+      {
+         Send(who,@NewHold,#what=Create(pcRewardClass,#number=piRewardAmount));
       }
       Post(who,@RemoveBounty,#oBounty=self);
       return;
