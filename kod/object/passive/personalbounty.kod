@@ -39,6 +39,8 @@ resources:
    bounty_expired_msg = \
       "Your %s bounty has expired."
 
+   incomplete_bounty_msg = \
+      "Your target was defeated, but not primarily by you. You receive no reward."
    target_escaped_bounty_msg = \
       "Your target has escaped, and you have failed your bounty."
 
@@ -219,7 +221,22 @@ messages:
          {
             Send(poPlayerOwner,@NewHold,#what=Create(pcRewardClass,#number=piRewardAmount));
          }
-         Post(poPlayerOwner,@RemoveBounty,#oBounty=self);
+      }
+      Send(self,@Delete);
+      return;
+   }
+
+   IncompleteBounty()
+   {
+      if pbBountyCompleted
+      {
+         return;
+      }
+      pbBountyCompleted = TRUE;
+
+      if poPlayerOwner <> $
+      {
+         Send(poPlayerOwner,@MsgSendUser,#message_rsc=incomplete_bounty_msg);
       }
       Send(self,@Delete);
       return;
