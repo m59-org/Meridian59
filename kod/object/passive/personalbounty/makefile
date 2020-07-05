@@ -10,6 +10,7 @@ BOFS = huntalegendarybounty.bof \
        huntindomitables.bof \
        huntchampionbounty.bof \
        huntnormalsbounty.bof \
-       hunttrinketbounty.bof
+       hunttrinketbounty.bof \
+       returnwithmonsterbounty.bof
 
 !include $(KODDIR)\kod.mak

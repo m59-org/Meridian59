@@ -1,0 +1,122 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ReturnWithMonsterBounty is PersonalBounty
+
+constants:
+
+   include blakston.khd
+   
+   REWARD_ITEM = 3
+
+resources:
+
+   return_with_monster_bounty_name = "Capture a monster"
+   return_with_monster_bounty_experience_reward_desc = \
+      "test"
+   return_with_monster_bounty_wisdom_reward_desc = \
+      "test"
+   return_with_monster_bounty_item_reward_desc = \
+      "Torin B'hob has put out a requisition order for a %s to populate the Adventurer's League monster jail. "
+      "Return with it as a minion and release it to his custody."
+      "\n\nThe reward shall be %i %s."
+   
+   wisdom_reward_from_capture_bounty = \
+      "~BTorin B'hob hands you his promised bounty reward."
+
+classvars:
+
+   vrName = return_with_monster_bounty_name
+   
+   viChallengeNum = RETURN_WITH_MONSTER
+   viWisdomMultiplier = 5
+   viExperienceMultiplier = 5
+   
+   viPriceMultiplier = 10
+
+properties:
+
+   vrDesc = return_with_monster_bounty_item_reward_desc
+
+   pcOfferingNPCClass = $
+
+   piTargetRID = 0
+   pcTargetClass = $
+   
+   piRewardAmount = 0
+   pcRewardClass = $
+   
+   piWisdomRewardAmount = 0
+
+   piExperienceRewardAmount = 0
+   
+   pbSpawnedMob = FALSE
+
+messages:
+   
+   GetPossibleTargets()
+   {
+      return Send(SYS,@GetLowLevelChampionMonsterTemplates);
+   }
+
+   ShowDesc(who=$)
+   {
+      if pcRewardClass <> 0
+      {
+         AddPacket(4,vrDesc, 4,Send(Send(SYS,@FindMonsterByClass,#cClass=pcTargetClass),@GetName),
+                             4,piRewardAmount,
+                             4,Send(Send(SYS,@FindTemplateItemByClass,#cClass=pcRewardClass),@GetName));
+      }
+      return;
+   }
+
+   SetRewardItems()
+   {
+      pcRewardClass = &ShardRemove;
+      piRewardAmount = Random(4,12);
+      return;
+   }
+
+   TargetKilled(what=$,oTarget=$)
+   {
+      return;
+   }
+   
+   VisitedAnArea(who=$,where=$)
+   {
+      return;
+   }
+   
+   SoldAMonster(who=$,oObject=$)
+   {
+      if IsClass(oObject,pcTargetClass)
+      {
+         Send(self,@CompleteBounty);
+      }
+      return;
+   }
+
+   CompleteBounty()
+   {
+      if pcRewardClass <> 0
+         AND poPlayerOwner <> $
+      {
+         Send(poPlayerOwner,@MsgSendUser,#message_rsc=wisdom_reward_from_capture_bounty,#parm1=piRewardAmount);
+      }
+      propagate;
+   }
+   
+   GetRewardType()
+   {
+      return REWARD_ITEM;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

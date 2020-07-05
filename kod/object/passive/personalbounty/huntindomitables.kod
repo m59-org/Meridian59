@@ -94,17 +94,14 @@ messages:
 
    TargetKilled(what=$,oTarget=$)
    {
-      Debug("reached targetkilled");
       if what = poPlayerOwner
          OR Send(oTarget,@GetHighestHurtMeRecentlyBattler) = poPlayerOwner
       {
-         Debug("kill count incremented");
          piKilledCount++;
       }
       
       if piKilledCount >= 2
       {
-         Debug("completing bounty");
          Send(self,@CompleteBounty);
       }
       return;
