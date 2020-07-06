@@ -29,6 +29,11 @@ resources:
       "bounty business for the Adventurer's League of Meridian. "
       "\n\nPurchase a bounty to undertake the task in question. "
       "You will generally have twelve Meridian days to complete the job."
+      "\n\nIf you need to abandon your current bounties, ask for a "
+      "'writ of abandonment'. This will clear all of your bounties."
+
+   bounty_master_clear_bounties = \
+      "No shame. Some targets simply elude us."
 
 classvars:
 
@@ -199,6 +204,28 @@ messages:
       Debug("Strange item",what,":",Send(what,@GetName),"in GetPrice");
 
       return 0;
+   }
+
+   SomeoneSaid(what=$,type=$,string=$)
+   {
+      local oCorpse;
+
+      if type = SAY_YELL OR NOT IsClass(what,&User)
+      {
+          propagate;
+      }
+
+      if StringContain(string,"writ of abandonment")
+         AND what <> $
+         AND IsClass(what,&User)
+      {
+         Send(what,@ClearBounties);
+      
+         Send(poOwner,@SomeoneSaid,#what=self,#type=SAY_RESOURCE,
+		       #string=bounty_master_clear_bounties);
+      }
+
+      propagate;
    }
    
    Delete()
