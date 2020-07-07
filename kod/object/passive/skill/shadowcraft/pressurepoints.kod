@@ -67,8 +67,8 @@ messages:
       iStat = Send(self,@GetRequisiteStat,#who=who);
       iAbility = Send(who,@GetSkillAbility,#skill_num=viSkill_num);
 
-      % Up to 5% from skill and another 5% from stat to bring punch up to 10% crit rate
-      return (iAbility+1)*5 + iStat*5;
+      % Up to 2.5% from skill and another 2.5% from stat to bring punch up to 5% crit rate
+      return ((iAbility+1)*5)/2 + (iStat*5)/2;
    }
 
    AttemptCriticalHit(who=$,target=$)
