@@ -754,6 +754,11 @@ messages:
       
       iStatPoints = (piLevel * Send(SETTINGS_OBJECT,@GetMonsterStatsPerLevelNumerator))/Send(SETTINGS_OBJECT,@GetMonsterStatsPerLevelDivisor);
       
+      if IsClass(self,&Marauder)
+      {
+         iStatPoints = iStatPoints*2;
+      }
+      
       lStatMarks = [Random(1,iStatPoints),
                     Random(1,iStatPoints),
                     Random(1,iStatPoints),
@@ -10413,6 +10418,15 @@ messages:
    GetExemptFromChampionAlteration()
    {
       return pbExemptFromChampionAlteration;
+   }
+
+   GetStunPercentage()
+   {
+      local iLevelBonus;
+      
+      iLevelBonus = Send(self,@GetLevel)/4;
+
+      return Bound(viBaseStunPercentage - Send(self,@GetStamina)/2 - iLevelBonus,0,$);
    }
 
 end

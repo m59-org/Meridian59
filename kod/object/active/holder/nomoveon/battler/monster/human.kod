@@ -2194,5 +2194,20 @@ messages:
       return;
    }
 
+   GetStunPercentage()
+   {
+      local i, iGearBonus, iLevelBonus;
+      
+      iGearBonus = 0;
+      foreach i in plUsing
+      {
+         iGearBonus = iGearBonus + Send(i,@GetStunResistance);
+      }
+      
+      iLevelBonus = Send(self,@GetLevel)/5;
+
+      return Bound(viBaseStunPercentage - Send(self,@GetStamina)/2 - iGearBonus - iLevelBonus,0,$);
+   }
+
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
