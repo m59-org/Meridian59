@@ -370,7 +370,9 @@ messages:
    CheckForMarauderSpawnOnKill(who=$)
    {
       if NOT Send(who,@HasMovedRecentlyLong)
+         AND Send(who,@CheckPlayerFlag,#flag=PFLAG_TEMPSAFE)
       {
+         % Opt out is not for botting
          Post(self,@SpawnMarauders,#who=who,#bAmbush=TRUE);
          return;
       }

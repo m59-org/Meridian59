@@ -6658,13 +6658,13 @@ messages:
       return pbContainsHider;
    }
 
-   ReqDropTrappedLootBox()
+   ReqDropTrappedLootBox(what=$)
    {
       local i;
 
       foreach i in plObject_attributes
       {
-         if NOT Send(i,@ReqDropTrappedLootBox)
+         if NOT Send(i,@ReqDropTrappedLootBox,#what=what)
          {
             return FALSE;
          }
