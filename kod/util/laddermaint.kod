@@ -369,6 +369,12 @@ messages:
    
    CheckForMarauderSpawnOnKill(who=$)
    {
+      if NOT Send(who,@HasMovedRecentlyLong)
+      {
+         Post(self,@SpawnMarauders,#who=who,#bAmbush=TRUE);
+         return;
+      }
+
       if Send(who,@GetMarauderAntagonist)
       {
          if Random(1,(piMarauderOnKillSpawnChanceOutOf/3)) = 1
@@ -401,7 +407,7 @@ messages:
       return;
    }
 
-   SpawnMarauders(who=$)
+   SpawnMarauders(who=$,bAmbush=FALSE)
    {
       local iRID, oRoom, oBaseRoom, iBaseRID, iRegion, i, n, lNeighborRooms, lEntrances, bSpawned, lChosenEntrance, 
             iMarauderCount, iHealth, lFinalList, iEnlightenments, bChaosStratum;
@@ -464,8 +470,9 @@ messages:
       iHealth = Send(who,@GetBaseMaxHealth);
       iMarauderCount = iHealth/50;
       
-      if iRegion = RID_KOCATAN
-         AND pbSpawnIslandMaraudersOnPlayers
+      if (iRegion = RID_KOCATAN
+         AND pbSpawnIslandMaraudersOnPlayers)
+         OR bAmbush
       {
          lChosenEntrance = [Send(who,@GetRow), Send(who,@GetCol)];
       }

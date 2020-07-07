@@ -11771,6 +11771,18 @@ messages:
       return;
    }
 
+   HasMovedRecentlyLong()
+   "Checks if user is mobile and has moved in the last hour."
+   {
+      % We're not moving if it's been more than 3600 seconds since we moved
+      if (GetTime() - piLastMoveUpdateTime) > 3600
+      {
+         return FALSE;
+      }
+
+      return TRUE;
+   }
+
    HasMovedRecently()
    "Checks if user is mobile and has moved in the last few seconds."
    {
