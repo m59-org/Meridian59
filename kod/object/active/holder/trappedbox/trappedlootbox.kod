@@ -544,6 +544,9 @@ messages:
          Send(who,@MsgSendUser,#message_rsc=only_killer_can_disarm);
          return TRUE;
       }
+      
+      % Limit shillings, since some were dropping 40 million
+      Send(self,@CapShillings);
 
       bTrapSprung = FALSE;
       if NOT pbMagicallyLocked
@@ -1591,6 +1594,22 @@ messages:
    IsEnchanted()
    {
       return FALSE;
+   }
+   
+   CapShillings()
+   {
+      local i;
+
+      foreach i in plPassive
+      {
+         if IsClass(i,&Money)
+            AND Send(i,@GetNumber) >= 60000
+         {
+            Send(i,@FixMoney,#amount=Random(42000,56000));
+            return;
+         }
+      }
+      return;
    }
 
 end
