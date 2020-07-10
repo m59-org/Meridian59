@@ -21,7 +21,6 @@ UnderseaPalace is Room
 %
 %
 % Runes -
-%  - Need Art
 %  - Need better descriptions
 %  - Drop locs
 %
@@ -41,6 +40,8 @@ UnderseaPalace is Room
 %  - BGF?
 %  - KOD
 %
+% Questions:
+%  - What happens at 300 rooms
 
 constants:
 
@@ -75,6 +76,8 @@ properties:
    
    plChambersCreated = $
    poLever = $
+   
+   poVisualTimer = $
 
 messages:
 
@@ -129,6 +132,8 @@ messages:
 
       % Add it to the room enter count statistics.
       Send(Send(SYS,@GetStatistics),@AddToRoomCount,#iNum=iRID);
+      
+      poVisualTimer = Create(&VisualTimer,#iTime=1800,#oTargetRoom=self,#lTargetRooms=plChambersCreated);
 
       return TRUE;
    }
@@ -198,6 +203,12 @@ messages:
          Send(Send(SYS,@FindRoomByNum,#num=i),@Delete);
       }
       
+      if poVisualTimer <> $
+      {
+         Send(poVisualTimer,@Delete);
+         poVisualTimer = $;
+      }
+      
       return;
    }
 
@@ -248,6 +259,11 @@ messages:
    {
       poLever = $;
       plChambersCreated = $;
+      if poVisualTimer <> $
+      {
+         Send(poVisualTimer,@Delete);
+         poVisualTimer = $;
+      }
       propagate;
    }
    

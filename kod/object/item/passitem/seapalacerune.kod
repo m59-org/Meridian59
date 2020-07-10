@@ -31,6 +31,20 @@ SeaPalaceRune is PassiveItem
 constants:
 
    include blakston.khd
+   
+   % Oceanic Rune Types from Blakod
+   % OCEANIC_RUNE_DEATH = 1
+   % OCEANIC_RUNE_JUNGLE = 2
+   % OCEANIC_RUNE_SKY = 3
+   % OCEANIC_RUNE_FRACTURED = 4
+   % OCEANIC_RUNE_HEXED = 5
+   % OCEANIC_RUNE_SERPENT = 6
+   % OCEANIC_RUNE_SEA = 7
+   % OCEANIC_RUNE_CHAINED = 8
+   % OCEANIC_RUNE_SWORD = 9
+   % OCEANIC_RUNE_HAMMER = 10
+   % OCEANIC_RUNE_MOUNTAIN = 11
+   % OCEANIC_RUNE_SCALED = 12
 
 resources:
 
@@ -39,11 +53,24 @@ resources:
    Sea_Palace_Rune_desc_base_rsc = \
       "This delicate metal carving is all that survived "
       "centuries of sea currents."
+
+   rune_death_name = "death rune"
+   rune_jungle_name = "jungle rune"
+   rune_sky_name = "sky rune"
+   rune_fractured_name = "fractured rune"
+   rune_hexed_name = "hexed rune"
+   rune_serpent_name = "serpent rune"
+   rune_sea_name = "sea rune"
+   rune_chained_name = "chained rune"
+   rune_sword_name = "sword rune"
+   rune_hammer_name = "hammer rune"
+   rune_mountain_name = "mountain rune"
+   rune_scaled_name = "scaled rune"
       
    rune_base_rsc = runebase.bgf
    rune_chained_rsc = runechained.bgf
    rune_death_rsc = runedeath.bgf
-   rune_feather_rsc = runefeather.bgf
+   rune_sky_rsc = runefeather.bgf
    rune_fractured_rsc = runefractured.bgf
    rune_hammer_rsc = runehammer.bgf
    rune_hexed_rsc = runehexed.bgf
@@ -56,8 +83,6 @@ resources:
 
 classvars:
    
-   vrName = Sea_Palace_Rune_name_rsc
-   vrDesc = Sea_Palace_Rune_desc_base_rsc
 
    viValue_average = 1500
    viWeight = 50
@@ -65,52 +90,66 @@ classvars:
 
 properties:
 
+   vrName = Sea_Palace_Rune_name_rsc
+   vrDesc = Sea_Palace_Rune_desc_base_rsc
    vrIcon = Sea_Palace_Rune_icon_rsc
 
    piRuneNumber = OCEANIC_RUNE_DEATH
 
 messages:
 
-   Constructor()
+   Constructor(level=20)
    {
       piRuneNumber = Random(OCEANIC_RUNE_DEATH,OCEANIC_RUNE_SCALED);
       
       Switch(piRuneNumber)
       {
          case OCEANIC_RUNE_DEATH:
+            vrName = rune_death_name;
             vrIcon = rune_death_rsc;
             break;
          case OCEANIC_RUNE_CHAINED:
+            vrName = rune_chained_name;
             vrIcon = rune_chained_rsc;
             break;
          case OCEANIC_RUNE_SKY:
-            vrIcon = rune_feather_rsc;
+            vrName = rune_sky_name;
+            vrIcon = rune_sky_rsc;
             break;
          case OCEANIC_RUNE_FRACTURED:
+            vrName = rune_fractured_name;
             vrIcon = rune_fractured_rsc;
             break;
          case OCEANIC_RUNE_HAMMER:
+            vrName = rune_hammer_name;
             vrIcon = rune_hammer_rsc;
             break;
          case OCEANIC_RUNE_HEXED:
+            vrName = rune_hexed_name;
             vrIcon = rune_hexed_rsc;
             break;
          case OCEANIC_RUNE_JUNGLE:
+            vrName = rune_jungle_name;
             vrIcon = rune_jungle_rsc;
             break;
          case OCEANIC_RUNE_MOUNTAIN:
+            vrName = rune_mountain_name;
             vrIcon = rune_mountain_rsc;
             break;
          case OCEANIC_RUNE_SCALED:
+            vrName = rune_scaled_name;
             vrIcon = rune_scaled_rsc;
             break;
          case OCEANIC_RUNE_SEA:
+            vrName = rune_sea_name;
             vrIcon = rune_sea_rsc;
             break;
          case OCEANIC_RUNE_SERPENT:
+            vrName = rune_serpent_name;
             vrIcon = rune_serpent_rsc;
             break;
          case OCEANIC_RUNE_SWORD:
+            vrName = rune_sword_name;
             vrIcon = rune_sword_rsc;
             break;
       }

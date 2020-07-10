@@ -2949,7 +2949,7 @@ messages:
       return vrWading_Sound;
    }
 
-   LeaveHold(what = $)
+   LeaveHold(what = $, oNewOwner = $)
    {
       local i,each_obj;
 
@@ -2963,7 +2963,11 @@ messages:
       
       if poVisualTimer <> $
       {
-         Send(poVisualTimer,@RemoveVisualTimerForOne,#oPlayer=what);
+         if oNewOwner = $
+            OR Send(oNewOwner,@GetVisualTimer) <> poVisualTimer
+         {
+            Send(poVisualTimer,@RemoveVisualTimerForOne,#oPlayer=what);
+         }
       }
       
       if Send(Send(SYS,@FindSkillByNum,#num=SKID_HIDE),@IsHiding,#who=what)
@@ -6611,7 +6615,13 @@ messages:
       poVisualTimer = Create(&VisualTimer,#iTime=70,#oTargetRoom=self);
       return;
    }
-   
+
+   SetVisualTimer(oTimer=$)
+   {
+      poVisualTimer = oTimer;
+      return;
+   }
+
    GetVisualTimer()
    {
       return poVisualTimer;

@@ -88,6 +88,39 @@ messages:
       propagate;
    }
 
+   SomethingTryGo(what = $,row = $,col = $)
+   {
+      local iSectorID, i;
+
+      iSectorID = Send(self,@GetSectorID,#who=what,
+                              #iRow=Send(what,@GetRow),
+                              #iCol=Send(what,@GetCol),
+                              #iFineRow=Send(what,@GetFineRow),
+                              #iFineCol=Send(what,@GetFineCol));
+      
+      if iSectorID = 50
+      {
+         Post(Send(SYS,@FindRoomByNum,#num=RID_UNDERSEA_PALACE),@Teleport,#what=what);
+         return TRUE;
+      }
+
+      propagate;
+   }
+
+   GetSectorID(who=$,iRow=$,iCol=$,iFineRow=$,iFineCol=$)
+   {
+      local iQflags, iRflags, iHeightF, iHeightFWD, iHeightC, iServerID;
+
+      iQflags = LIQ_GET_SECTORINFO;
+      if GetLocationInfoBSP(
+                      prmRoom, iQflags, iRow, iCol, iFineRow, iFineCol,
+                      *iRflags, *iHeightF, *iHeightFWD, *iHeightC, *iServerID)
+      {
+         return iServerID;
+      }
+
+      return 0;
+   }
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

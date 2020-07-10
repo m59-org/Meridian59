@@ -30,14 +30,23 @@ properties:
    ptMinuteUpdate = $
    
    poTargetRoom = $
+   plTargetRooms = $
 
 messages:
 
-   Constructor(iTime=0, oTargetRoom=$)
+   Constructor(iTime=0, oTargetRoom=$, lTargetRooms=$)
    {
+      local iRID;
+
       poTargetRoom = oTargetRoom;
+      plTargetRooms = lTargetRooms;
       piMinutesRemaining = Bound(iTime / 60,0,60);
       piSecondsRemaining = Bound(iTime MOD 60,0,59);
+      
+      foreach iRID in plTargetRooms
+      {
+         Send(Send(SYS,@FindRoomByNum,#num=iRID),@SetVisualTimer,#oTimer=self);
+      }
 
       ptMinuteUpdate = CreateTimer(self,@UpdateMinutesTimer,(piSecondsRemaining+1) * 1000);
 
@@ -114,12 +123,21 @@ messages:
    
    DisplayVisualTimerForRoom()
    {
-      local oPlayer;
+      local oPlayer, iRID;
       
       foreach oPlayer in Send(poTargetRoom,@GetPlayersInRoom)
       {
          Send(self,@DisplayVisualTimerForOne,#oPlayer=oPlayer);
       }
+      
+      foreach iRID in plTargetRooms
+      {
+         foreach oPlayer in Send(Send(SYS,@FindRoomByNum,#num=iRID),@GetPlayersInRoom)
+         {
+            Send(self,@DisplayVisualTimerForOne,#oPlayer=oPlayer);
+         }
+      }
+      
       return;
    }
    
@@ -160,11 +178,19 @@ messages:
    
    RemoveVisualTimerInRoom()
    {
-      local oPlayer;
+      local oPlayer, iRID;
       
       foreach oPlayer in Send(poTargetRoom,@GetPlayersInRoom)
       {
          Send(self,@RemoveVisualTimerForOne,#oPlayer=oPlayer);
+      }
+
+      foreach iRID in plTargetRooms
+      {
+         foreach oPlayer in Send(Send(SYS,@FindRoomByNum,#num=iRID),@GetPlayersInRoom)
+         {
+            Send(self,@RemoveVisualTimerForOne,#oPlayer=oPlayer);
+         }
       }
       return;
    }
@@ -182,6 +208,8 @@ messages:
 
    Delete()
    {
+      local iRID;
+
       Send(self,@RemoveVisualTimerInRoom);
 
       if poTargetRoom <> $
@@ -195,6 +223,12 @@ messages:
          DeleteTimer(ptMinuteUpdate);
       }
       ptMinuteUpdate = $;
+      
+      foreach iRID in plTargetRooms
+      {
+         Send(Send(SYS,@FindRoomByNum,#num=iRID),@VisualTimerDeleted);
+      }
+      plTargetRooms = $;
       
       propagate;
    }

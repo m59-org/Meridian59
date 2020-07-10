@@ -25,6 +25,13 @@ constants:
 
    include blakston.khd
 
+   % OCEANIC_CRYSTAL_DAMAGE = 77
+   % OCEANIC_CRYSTAL_SPEED = 57
+   % OCEANIC_CRYSTAL_HEALTH = 115
+   % OCEANIC_CRYSTAL_ELEMENTS = 78
+   % OCEANIC_CRYSTAL_RENDING = 79
+   % OCEANIC_CRYSTAL_RESISTS = 97
+
 resources:
 
    Sea_Palace_crystal_icon_rsc = oceancrystalbase.bgf
@@ -48,6 +55,8 @@ classvars:
 
 properties:
 
+   piCrystalType = 0
+
 messages:
 
    Constructor()
@@ -62,8 +71,9 @@ messages:
       lColors = Cons(79,lColors);
       lColors = Cons(97,lColors);
 
-      piItem_flags = Nth(lColors,Random(1,Length(lColors)));
-      
+      piCrystalType = Nth(lColors,Random(1,Length(lColors)));
+      piItem_flags = piCrystalType;
+
       propagate;
    }
    
@@ -76,6 +86,11 @@ messages:
    DestroyDisposable()
    {
       return FALSE;
+   }
+   
+   GetCrystalType()
+   {
+      return piCrystalType;
    }
 
 end
