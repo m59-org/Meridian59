@@ -48,7 +48,7 @@ messages:
          Send(Send(SYS,@FindRoomByNum,#num=iRID),@SetVisualTimer,#oTimer=self);
       }
 
-      ptMinuteUpdate = CreateTimer(self,@UpdateMinutesTimer,(piSecondsRemaining+1) * 1000);
+      ptMinuteUpdate = CreateTimer(self,@UpdateMinutesTimer,990 + (piSecondsRemaining) * 1000);
 
       Send(self,@DisplayVisualTimerForRoom);
       
@@ -201,7 +201,6 @@ messages:
       {
          Send(poTargetRoom,@VisualTimerTrigger);
       }
-      Send(self,@RemoveVisualTimerInRoom);
       Send(self,@Delete);
       return;
    }
