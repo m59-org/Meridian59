@@ -6362,6 +6362,39 @@ messages:
       return lPlayers;
    }
 
+   GetHostileMonstersInRoom()
+   {
+      local i, lMonsters;
+      
+      lMonsters = $;
+      foreach i in plActive
+      {
+         if IsClass(First(i),&Monster)
+            AND (Send(First(i),@GetMaster) = $
+               OR IsClass(Send(First(i),@GetMaster),&Monster))
+         {
+            lMonsters = Cons(First(i),lMonsters);
+         }
+      }
+      return lMonsters;
+   }
+
+   IsHostileMonsterInRoom()
+   {
+      local i;
+
+      foreach i in plActive
+      {
+         if IsClass(First(i),&Monster)
+            AND (Send(First(i),@GetMaster) = $
+               OR IsClass(Send(First(i),@GetMaster),&Monster))
+         {
+            return TRUE;
+         }
+      }
+      return FALSE;
+   }
+
    GetLootChestsInRoom()
    {
       local i, lLootChests;

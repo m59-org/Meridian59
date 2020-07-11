@@ -23,6 +23,8 @@ resources:
    
    Undersea_Chamber_next_locked = \
       "The gate to the next chamber is locked!"
+   door_to_next_undersea_chamber_opens = \
+      "The gears behind the walls go silent."
 
 classvars:
 
@@ -44,6 +46,8 @@ properties:
    % Of the form [CLASS, #] [CLASS, #]
    plChamberSpawns = $
    plSpawnPoints = $
+   
+   ptSpawnTimer = $
    
    pbNextDoorOpen = FALSE
 
@@ -93,12 +97,49 @@ messages:
 
       return;
    }
+   
+   FirstUserEntered()
+   {
+      ptSpawnTimer = CreateTimer(self,@SpawnMobs,500);
+      propagate;
+   }
+
+   LastUserLeft()
+   {
+      if ptSpawnTimer <> $
+      {
+         DeleteTimer(ptSpawnTimer);
+         ptSpawnTimer = $;
+      }
+      propagate;
+   }
 
    SpawnMobs()
    {
-      local i, oMonster;
+      local i, oMonster, iChoice;
       
-      %foreach i in plChamberSpawns
+      ptSpawnTimer = $;
+      
+      if plChamberSpawns = $
+      {
+         return;
+      }
+      
+      iChoice = Random(1,Length(plChamberSpawns));
+      Send(self,@NewHold,#what=Create(Nth(Nth(plChamberSpawns,iChoice),1)),#new_row=Random(1,Send(self,@GetRoomRows)),#new_col=Random(1,Send(self,@GetRoomCols)),#fine_row=Random(1,63),#fine_col=Random(1,63));
+      SetNth(Nth(plChamberSpawns,iChoice),2,Nth(Nth(plChamberSpawns,iChoice),2)-1);
+      
+      if Nth(Nth(plChamberSpawns,iChoice),2) <= 0
+      {
+         plChamberSpawns = DelListElem(plChamberSpawns,Nth(plChamberSpawns,iChoice));
+      }
+      
+      if plChamberSpawns = $
+      {
+         return;
+      }
+      
+      ptSpawnTimer = CreateTimer(self,@SpawnMobs,500);
       
       return;
    }
@@ -143,6 +184,44 @@ messages:
          }
       }
 
+      propagate;
+   }
+
+   SomethingKilled(what=$,victim=$)
+   {
+      if NOT pbNextDoorOpen
+         AND IsClass(victim,&Monster)
+         AND plChamberSpawns = $
+      {
+         Post(self,@CheckMonstersCleared);
+      }
+      propagate;
+   }
+   
+   CheckMonstersCleared()
+   {
+      local oBattler;
+
+      if NOT Send(self,@IsHostileMonsterInRoom)
+         AND NOT pbNextDoorOpen
+      {
+         foreach oBattler in Send(self,@GetPlayersInRoom)
+         {
+            Send(oBattler,@MsgSendUser,#message_rsc=door_to_next_undersea_chamber_opens);
+         }
+         pbNextDoorOpen = TRUE;
+      }
+
+      return;
+   }
+
+   Delete()
+   {
+      if ptSpawnTimer <> $
+      {
+         DeleteTimer(ptSpawnTimer);
+         ptSpawnTimer = $;
+      }
       propagate;
    }
 
