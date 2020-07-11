@@ -49,18 +49,21 @@ constants:
 
 resources:
   
-   room_name_Undersea_Palace = "Small Remnant of an Undersea Palace"
-   room_Undersea_Palace = underseapalace.roo
+   room_name_Undersea_Palace = "Small Remnant of a Sea Palace"
+   room_Undersea_Palace = underseachamberdeath.roo
    Undersea_Palace_music = aamusic2.mp3
    
    Undersea_Palace_lever_desc = "Pull this lever."
+   
+   Undersea_Palace_not_begun_yet = \
+      "The endless sea palace does not permit you entrance..."
 
 classvars:
 
    vrName = room_name_Undersea_Palace
 
-   viTeleport_row = 3
-   viTeleport_col = 3
+   viTeleport_row = 13
+   viTeleport_col = 7
 
    viTerrain_Type = TERRAIN_CITY
 
@@ -274,19 +277,45 @@ messages:
 
    SomethingTryGo(what=$, row=$, col=$)
    {
+      local oRoom;
+
       if what <> $
          AND IsClass(what,&Player)
          AND row < 2
-         AND col > 4
-         AND col < 9
+         AND col > 6
+         AND col < 8
       {
-         if plChambersCreated <> $
+         if plChambersCreated = $
          {
-            Send(Send(SYS,@FindRoomByNum,#num=First(plChambersCreated)),@NewHold,#what=what,#new_row=5,#new_col=5);
+            Send(what,@MsgSendUser,#message_rsc=Undersea_Palace_not_begun_yet);
+            return TRUE;
+         }
+
+         oRoom = Send(self,@GetCurrentUnfinishedRoom);
+            
+         if oRoom <> $
+         {
+            Send(oRoom,@NewHold,#what=what,#new_row=13,#new_col=7,#new_angle=Send(what,@GetAngle));
+            return TRUE;
          }
       }
 
       propagate;
+   }
+
+   GetCurrentUnfinishedRoom()
+   {
+      local iRID, oRoom;
+      
+      foreach iRID in plChambersCreated
+      {
+         if Send(Send(SYS,@FindRoomByNum,#num=iRID),@GetNextDoorOpen) = FALSE
+         {
+            return Send(SYS,@FindRoomByNum,#num=iRID);
+         }
+      }
+      
+      return $;
    }
    
    VisualTimerTrigger()
