@@ -26,6 +26,9 @@ resources:
    door_to_next_undersea_boss_room_opens = \
       "A great wrenching sound echoes through the air."
 
+   get_your_share_of_reward_sea_palace = \
+      "~BYou find %i sea-worn coins in the sea palace treasure!"
+
 classvars:
 
    vrName = undersea_boss_room_name
@@ -123,7 +126,7 @@ messages:
       }
       
       iChoice = Random(1,Length(plChamberSpawns));
-      Send(self,@NewHold,#what=Create(Nth(Nth(plChamberSpawns,iChoice),1),#iSeaPalaceLevel=piMonsterLevel),
+      Send(self,@NewHold,#what=Create(Nth(Nth(plChamberSpawns,iChoice),1),#iSeaPalaceLevel=Send(Send(SYS,@FindRoomByNum,#num=RID_UNDERSEA_PALACE),@GetAverageLevel)),
                          #new_row=Random(1,Send(self,@GetRoomRows)-1),
                          #new_col=Random(1,Send(self,@GetRoomCols)-1),
                          #fine_row=Random(1,63),#fine_col=Random(1,63));
@@ -211,8 +214,27 @@ messages:
             Send(Send(SYS,@FindRoomByNum,#num=RID_UNDERSEA_PALACE),@ChambersCompleted);
          }
          pbNextDoorOpen = TRUE;
+         
+         Post(self,@DistributeSeaCoins);
       }
 
+      return;
+   }
+
+   DistributeSeaCoins()
+   {
+      local oPlayer, iTotalCoins, lPlayers, oCoins;
+      
+      iTotalCoins = Send(Send(SYS,@FindRoomByNum,#num=RID_UNDERSEA_PALACE),@GetNumberOfRooms) * 
+                    Send(Send(SYS,@FindRoomByNum,#num=RID_UNDERSEA_PALACE),@GetNumberOfRooms) * 
+                    Send(Send(SYS,@FindRoomByNum,#num=RID_UNDERSEA_PALACE),@GetAverageLevel);
+      lPlayers = Send(self,@GetPlayersInRoom);
+      foreach oPlayer in lPlayers
+      {
+         oCoins = Create(&SeaCoins,#number=iTotalCoins/Length(lPlayers));
+         Send(oPlayer,@NewHold,#what=oCoins);
+         Send(oPlayer,@MsgSendUser,#message_rsc=get_your_share_of_reward_sea_palace,#parm1=iTotalCoins/Length(lPlayers));
+      }
       return;
    }
 
@@ -224,6 +246,11 @@ messages:
          ptSpawnTimer = $;
       }
       propagate;
+   }
+   
+   GetMonsterLevel()
+   {
+      return 200;
    }
 
 end

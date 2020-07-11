@@ -58,6 +58,8 @@ resources:
    
    Undersea_Palace_not_begun_yet = \
       "The endless sea palace does not permit you entrance..."
+   tower_created_msg = \
+      "The sound of massive gears rumbles through the area."
 
 classvars:
 
@@ -236,7 +238,7 @@ messages:
    
    BuildTower()
    {
-      local lContents, i, each_obj, oSeaPalaceDevice, iRID;
+      local lContents, i, each_obj, oSeaPalaceDevice, iRID, oPlayer;
       
       foreach i in Send(self,@GetHolderActive)
       {
@@ -249,6 +251,9 @@ messages:
       }
       
       if oSeaPalaceDevice <> $
+         AND plChambersCreated = $
+         AND Send(oSeaPalaceDevice,@GetRuneCount) >= 5
+         AND Send(oSeaPalaceDevice,@GetRuneCount) <= 300
       {
          % Set up the room
          iRID = Send(self,@GetNextAvailableRID);
@@ -275,6 +280,11 @@ messages:
             {
                Send(i,@Delete);
             }
+         }
+         
+         foreach oPlayer in Send(self,@GetPlayersInRoom)
+         {
+            Send(oPlayer,@MsgSendUser,#message_rsc=tower_created_msg);
          }
       }
       return;
@@ -339,7 +349,31 @@ messages:
       
       return $;
    }
-   
+
+   GetNumberOfRooms()
+   {
+      if plChambersCreated <> $
+      {
+         return Length(plChambersCreated);
+      }
+      return 0;
+   }
+
+   GetAverageLevel()
+   {
+      local iRID, iSum;
+      
+      iSum = 0;
+      foreach iRID in plChambersCreated
+      {
+         iSum = iSum + Send(Send(SYS,@FindRoomByNum,#Num=iRID),@GetMonsterLevel);
+      }
+      
+      iSum = Bound(iSum,20,$);
+      
+      return iSum;
+   }
+
    VisualTimerTrigger()
    {
       % Time's up.

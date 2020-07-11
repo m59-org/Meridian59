@@ -88,7 +88,8 @@ BGFS = igreyinvis.bgf isitting.bgf itransferitem.bgf iexplosion.bgf irift.bgf \
        voidsteptabi.bgf \
        scepterov.bgf \
        scepter.bgf \
-       povscepter.bgf
+       povscepter.bgf \
+       seacoins.bgf
        
 
 DIRS = 

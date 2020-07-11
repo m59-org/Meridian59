@@ -1,0 +1,71 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+SeaCoins is NumberItem
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   sea_coins_name_one_rsc = "sea-worn coin"
+   sea_coins_name_many_rsc = "sea-worn coins"
+   
+   sea_coins_icon_rsc = seacoins.bgf
+   sea_coins_desc_rsc = \
+      "Worn by time and subtly iridescent from centuries under "
+      "the sea, these coins were once the currency of the Merchant Princes "
+      "of Biskalane."
+
+classvars:
+
+   vrName = sea_coins_name_one_rsc
+   vrIcon = sea_coins_icon_rsc
+   vrDesc = sea_coins_desc_rsc
+
+   vrName_plural = sea_coins_name_many_rsc
+
+   viBulk = 0
+   viWeight = 0
+
+   viValue_average = 1
+
+   viUse_type = ITEM_CANT_USE
+   viItem_type = ITEMTYPE_MONEY
+
+   viGround_group = 2
+   viInventory_group = 1
+
+properties:
+
+   viObject_flags = OF_GETTABLE
+
+messages:
+
+   GetValue()
+   {
+      return piNumber * Send(self,@GetInitValue);
+   }
+
+   FixMoney(amount = $)
+   "Bounds money to the upper limit of 'amount'."
+   {
+      if amount <> $
+      {
+         piNumber = Bound(piNumber,0,amount);
+      }
+
+      return;
+   }
+
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

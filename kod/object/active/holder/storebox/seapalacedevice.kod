@@ -101,6 +101,23 @@ messages:
    {
       propagate;
    }
+   
+   GetRuneCount()
+   {
+      local iCount, oObject;
+      
+      iCount = 0;
+      
+      foreach oObject in Send(self,@GetHolderPassive)
+      {
+         if IsClass(oObject,&SeaPalaceRune)
+         {
+            iCount++;
+         }
+      }
+
+      return iCount;
+   }
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
