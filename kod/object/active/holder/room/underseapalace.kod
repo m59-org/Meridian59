@@ -202,19 +202,23 @@ messages:
    
    ChambersCompleted()
    {
-      local i;
-      
-      foreach i in plChambersCreated
-      {
-         Send(Send(SYS,@FindRoomByNum,#num=i),@Delete);
-      }
-      
       if poVisualTimer <> $
       {
          Send(poVisualTimer,@Delete);
          poVisualTimer = $;
       }
       
+      return;
+   }
+
+   DestroyChambers()
+   {
+      local i;
+      
+      foreach i in plChambersCreated
+      {
+         Send(Send(SYS,@FindRoomByNum,#num=i),@Delete);
+      }
       return;
    }
 
@@ -231,7 +235,7 @@ messages:
    
    BuildTower()
    {
-      local lContents, i, each_obj, oSeaPalaceDevice;
+      local lContents, i, each_obj, oSeaPalaceDevice, iRID;
       
       foreach i in Send(self,@GetHolderActive)
       {
@@ -245,6 +249,20 @@ messages:
       
       if oSeaPalaceDevice <> $
       {
+         % Set up the room
+         iRID = Send(self,@GetNextAvailableRID);
+      
+         if iRID = 0
+         {
+            return FALSE;
+         }
+      
+         Send(SYS,@CreateOneRoomIfNew,#num=iRID,#class=&UnderseaPalaceBossRoom);
+         plChambersCreated = Cons(iRID,plChambersCreated);
+
+         % Add it to the room enter count statistics.
+         Send(Send(SYS,@GetStatistics),@AddToRoomCount,#iNum=iRID);
+            
          foreach i in Send(oSeaPalaceDevice,@GetHolderPassive)
          {
             if IsClass(i,&SeaPalaceRune)
@@ -324,6 +342,7 @@ messages:
    VisualTimerTrigger()
    {
       % Time's up.
+      Send(self,@DestroyChambers);
       return;
    }
 

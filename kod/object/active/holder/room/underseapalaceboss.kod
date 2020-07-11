@@ -1,0 +1,230 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+UnderseaPalaceBossRoom is Room
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   room_undersea_boss_room = underseapalaceboss.roo
+   
+   undersea_boss_room_name = "The Sea Palace Guardian Chamber"
+   undersea_boss_room_music = aamusic2.mp3
+   
+   undersea_boss_room_next_locked = \
+      "The exit gate is locked!"
+   door_to_next_undersea_boss_room_opens = \
+      "A great wrenching sound echoes through the air."
+
+classvars:
+
+   vrName = undersea_boss_room_name
+
+   viTeleport_row = 23
+   viTeleport_col = 8
+   
+   viLongitude = 5000
+   viLatitude = 5000
+
+properties:
+
+   prMusic = undersea_boss_room_music
+   prRoom = room_undersea_boss_room
+   
+   plMonsterTypes = $
+   
+   % Of the form [CLASS, #] [CLASS, #]
+   plChamberSpawns = $
+   plSpawnPoints = $
+   
+   ptSpawnTimer = $
+   
+   pbNextDoorOpen = FALSE
+   
+   piMonsterLevel = 20
+   
+   piRuneNum = 0
+
+messages:
+
+   Constructor(iRID=RID_UNDERSEA_PALACE_START,oRune=$)
+   {
+      piRoom_num = iRID;
+      
+      if oRune <> $
+      {
+         piMonsterLevel = Send(oRune,@GetItemLevel);
+         piRuneNum = Send(oRune,@GetRuneNumber);
+      }
+
+      Send(self,@RecalcLightAndWeather);
+      
+      Send(self,@BuildSpawnList,#oRune=oRune);
+
+      propagate;
+   }
+
+   CanHavePlayerPortal()
+   {
+      return FALSE;
+   }
+
+   GetNextDoorOpen()
+   {
+      return pbNextDoorOpen;
+   }
+
+   BuildSpawnList(oRune=$)
+   {
+      plChamberSpawns = Cons([&EarthDragon,1],plChamberSpawns);
+
+      return;
+   }
+   
+   FirstUserEntered()
+   {
+      ptSpawnTimer = CreateTimer(self,@SpawnMobs,500);
+      propagate;
+   }
+
+   LastUserLeft()
+   {
+      if ptSpawnTimer <> $
+      {
+         DeleteTimer(ptSpawnTimer);
+         ptSpawnTimer = $;
+      }
+      if pbNextDoorOpen
+      {
+         Post(Send(SYS,@FindRoomByNum,#num=RID_UNDERSEA_PALACE),@DestroyChambers);
+      }
+      propagate;
+   }
+
+   SpawnMobs()
+   {
+      local i, oMonster, iChoice;
+      
+      ptSpawnTimer = $;
+      
+      if plChamberSpawns = $
+      {
+         return;
+      }
+      
+      iChoice = Random(1,Length(plChamberSpawns));
+      Send(self,@NewHold,#what=Create(Nth(Nth(plChamberSpawns,iChoice),1),#iSeaPalaceLevel=piMonsterLevel),
+                         #new_row=Random(1,Send(self,@GetRoomRows)-1),
+                         #new_col=Random(1,Send(self,@GetRoomCols)-1),
+                         #fine_row=Random(1,63),#fine_col=Random(1,63));
+      SetNth(Nth(plChamberSpawns,iChoice),2,Nth(Nth(plChamberSpawns,iChoice),2)-1);
+      
+      if Nth(Nth(plChamberSpawns,iChoice),2) <= 0
+      {
+         plChamberSpawns = DelListElem(plChamberSpawns,Nth(plChamberSpawns,iChoice));
+      }
+      
+      if plChamberSpawns = $
+      {
+         return;
+      }
+      
+      ptSpawnTimer = CreateTimer(self,@SpawnMobs,500);
+      
+      return;
+   }
+
+   SomethingTryGo(what=$, row=$, col=$)
+   {
+      local oRoom;
+
+      if what <> $
+         AND IsClass(what,&Player)
+         AND row < 2
+         AND col >= 6
+         AND col <= 8
+      {
+         if NOT pbNextDoorOpen
+         {
+            Send(what,@MsgSendUser,#message_rsc=undersea_boss_room_next_locked);
+            return TRUE;
+         }
+
+         oRoom = Send(SYS,@FindRoomByNum,#num=RID_UNDERSEA_PALACE);
+            
+         if oRoom <> $
+         {
+            Send(oRoom,@NewHold,#what=what,#new_row=13,#new_col=7,#new_angle=Send(what,@GetAngle));
+            return TRUE;
+         }
+      }
+
+      if what <> $
+         AND IsClass(what,&Player)
+         AND row > 23
+         AND col >= 6
+         AND col <= 8
+      {
+         oRoom = Send(SYS,@FindRoomByNum,#num=RID_UNDERSEA_PALACE);
+            
+         if oRoom <> $
+         {
+            Send(oRoom,@NewHold,#what=what,#new_row=2,#new_col=7,#new_angle=Send(what,@GetAngle));
+            return TRUE;
+         }
+      }
+
+      propagate;
+   }
+
+   SomethingKilled(what=$,victim=$)
+   {
+      if NOT pbNextDoorOpen
+         AND IsClass(victim,&Monster)
+         AND plChamberSpawns = $
+      {
+         Post(self,@CheckMonstersCleared);
+      }
+      propagate;
+   }
+   
+   CheckMonstersCleared()
+   {
+      local oBattler;
+
+      if NOT Send(self,@IsHostileMonsterInRoom)
+         AND NOT pbNextDoorOpen
+      {
+         foreach oBattler in Send(self,@GetPlayersInRoom)
+         {
+            Send(oBattler,@MsgSendUser,#message_rsc=door_to_next_undersea_boss_room_opens);
+            Send(Send(SYS,@FindRoomByNum,#num=RID_UNDERSEA_PALACE),@ChambersCompleted);
+         }
+         pbNextDoorOpen = TRUE;
+      }
+
+      return;
+   }
+
+   Delete()
+   {
+      if ptSpawnTimer <> $
+      {
+         DeleteTimer(ptSpawnTimer);
+         ptSpawnTimer = $;
+      }
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
