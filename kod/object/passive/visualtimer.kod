@@ -187,9 +187,12 @@ messages:
 
       foreach iRID in plTargetRooms
       {
-         foreach oPlayer in Send(Send(SYS,@FindRoomByNum,#num=iRID),@GetPlayersInRoom)
+         if Send(SYS,@FindRoomByNum,#num=iRID) <> $
          {
-            Send(self,@RemoveVisualTimerForOne,#oPlayer=oPlayer);
+            foreach oPlayer in Send(Send(SYS,@FindRoomByNum,#num=iRID),@GetPlayersInRoom)
+            {
+               Send(self,@RemoveVisualTimerForOne,#oPlayer=oPlayer);
+            }
          }
       }
       return;
@@ -225,7 +228,10 @@ messages:
       
       foreach iRID in plTargetRooms
       {
-         Send(Send(SYS,@FindRoomByNum,#num=iRID),@VisualTimerDeleted);
+         if Send(SYS,@FindRoomByNum,#num=iRID) <> $
+         {
+            Send(Send(SYS,@FindRoomByNum,#num=iRID),@VisualTimerDeleted);
+         }
       }
       plTargetRooms = $;
       
