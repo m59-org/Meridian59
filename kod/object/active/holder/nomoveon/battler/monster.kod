@@ -725,7 +725,7 @@ messages:
 
    Constructor(template=FALSE, color=0, piSurvivalLevel=0, iBrain = 0,
                iChaosLevel = 0, oEventSpawner = $, bExemptFromChampionAlteration=FALSE,
-               oBounty=$)
+               oBounty=$, iSeaPalaceLevel=0)
    "Simple enough, we create a monster. If they are questworthy, we note it."
    {
       local iStatPoints, iMin, iMax, oChaosMaint, iChaosDiff, lStatMarks, lOrderedStatMarks, iHighestValue, iCount;
@@ -751,7 +751,12 @@ messages:
       {
          piLevel = viLevel;
       }
-      
+
+      if iSeaPalaceLevel > 0
+      {
+         piLevel = iSeaPalaceLevel;
+      }
+
       iStatPoints = (piLevel * Send(SETTINGS_OBJECT,@GetMonsterStatsPerLevelNumerator))/Send(SETTINGS_OBJECT,@GetMonsterStatsPerLevelDivisor);
       
       if IsClass(self,&Marauder)

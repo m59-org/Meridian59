@@ -53,7 +53,8 @@ resources:
    room_Undersea_Palace = underseachamberdeath.roo
    Undersea_Palace_music = aamusic2.mp3
    
-   Undersea_Palace_lever_desc = "Pull this lever."
+   Undersea_Palace_lever_desc = \
+      "Covered in gnomish runes, this lever looks to be the central activation of some tremendous mechanism."
    
    Undersea_Palace_not_begun_yet = \
       "The endless sea palace does not permit you entrance..."
@@ -102,9 +103,9 @@ messages:
 %      plExits = Cons([ 3, 7, ROOM_LOCKED_DOOR, Undersea_Palace_locked],plExits);
 
       %% to sea
-      plExits = Cons([ 11, 2, RID_OPEN_WATER, 36, 26, ROTATE_NONE ],plExits);
-      plExits = Cons([ 11, 3, RID_OPEN_WATER, 36, 26, ROTATE_NONE ],plExits);
-      plExits = Cons([ 11, 4, RID_OPEN_WATER, 36, 26, ROTATE_NONE ],plExits);
+      plExits = Cons([ 14, 6, RID_OPEN_WATER, 36, 26, ROTATE_NONE ],plExits);
+      plExits = Cons([ 14, 7, RID_OPEN_WATER, 36, 26, ROTATE_NONE ],plExits);
+      plExits = Cons([ 14, 8, RID_OPEN_WATER, 36, 26, ROTATE_NONE ],plExits);
   
       propagate;
    }
@@ -120,7 +121,7 @@ messages:
       propagate;
    }
 
-   CreateChamber(iRune=OCEANIC_RUNE_DEATH)
+   CreateChamber(oRune=$)
    {
       local iRID;
 
@@ -132,7 +133,7 @@ messages:
          return FALSE;
       }
       
-      Send(SYS,@CreateOneRoomIfNew,#num=iRID,#class=Send(self,@GetRoomClassByRune,#iRune=iRune));
+      Send(SYS,@CreateOneRoomIfNew,#num=iRID,#class=Send(self,@GetRoomClassByRune,#iRune=Send(oRune,@GetRuneNumber)),#oRune=oRune);
       plChambersCreated = Cons(iRID,plChambersCreated);
 
       % Add it to the room enter count statistics.
@@ -248,7 +249,7 @@ messages:
          {
             if IsClass(i,&SeaPalaceRune)
             {
-               Send(self,@CreateChamber,#iRune=Send(i,@GetRuneNumber));
+               Send(self,@CreateChamber,#oRune=i);
                Send(i,@Delete);
             }
             else if IsClass(i,&SeaPalaceCrystal)

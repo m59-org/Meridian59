@@ -50,12 +50,19 @@ properties:
    ptSpawnTimer = $
    
    pbNextDoorOpen = FALSE
+   
+   piMonsterLevel = 20
 
 messages:
 
-   Constructor(iRID=RID_UNDERSEA_PALACE_START)
+   Constructor(iRID=RID_UNDERSEA_PALACE_START,oRune=$)
    {
       piRoom_num = iRID;
+      
+      if oRune <> $
+      {
+         piMonsterLevel = Send(oRune,@GetItemLevel);
+      }
 
       Send(self,@RecalcLightAndWeather);
       
@@ -126,7 +133,10 @@ messages:
       }
       
       iChoice = Random(1,Length(plChamberSpawns));
-      Send(self,@NewHold,#what=Create(Nth(Nth(plChamberSpawns,iChoice),1)),#new_row=Random(1,Send(self,@GetRoomRows)),#new_col=Random(1,Send(self,@GetRoomCols)),#fine_row=Random(1,63),#fine_col=Random(1,63));
+      Send(self,@NewHold,#what=Create(Nth(Nth(plChamberSpawns,iChoice),1),#iSeaPalaceLevel=piMonsterLevel),
+                         #new_row=Random(1,Send(self,@GetRoomRows)),
+                         #new_col=Random(1,Send(self,@GetRoomCols)),
+                         #fine_row=Random(1,63),#fine_col=Random(1,63));
       SetNth(Nth(plChamberSpawns,iChoice),2,Nth(Nth(plChamberSpawns,iChoice),2)-1);
       
       if Nth(Nth(plChamberSpawns,iChoice),2) <= 0

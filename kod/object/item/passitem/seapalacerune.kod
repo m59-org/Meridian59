@@ -53,6 +53,8 @@ resources:
    Sea_Palace_Rune_desc_base_rsc = \
       "This delicate metal carving is all that survived "
       "centuries of sea currents."
+      "\n\nThis rune will generate a room of monsters of level %i "
+      "if used in mechanisms in the sea palace."
 
    rune_death_name = "death rune"
    rune_jungle_name = "jungle rune"
@@ -171,6 +173,13 @@ messages:
    GetRuneNumber()
    {
       return piRuneNumber;
+   }
+
+   ShowDesc()
+   {
+      AddPacket(4,vrDesc, 4,Send(self,@GetItemLevel));
+
+      return;
    }
 
 end
