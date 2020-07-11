@@ -52,6 +52,8 @@ properties:
    pbNextDoorOpen = FALSE
    
    piMonsterLevel = 20
+   
+   piRuneNum = 0
 
 messages:
 
@@ -62,11 +64,12 @@ messages:
       if oRune <> $
       {
          piMonsterLevel = Send(oRune,@GetItemLevel);
+         piRuneNum = Send(oRune,@GetRuneNumber);
       }
 
       Send(self,@RecalcLightAndWeather);
       
-      Send(self,@BuildSpawnList);
+      Send(self,@BuildSpawnList,#oRune=oRune);
 
       propagate;
    }
@@ -81,13 +84,80 @@ messages:
       return pbNextDoorOpen;
    }
 
-   BuildSpawnList()
+   BuildSpawnList(oRune=$)
    {
-      local i, iSpawnRate;
-
-      plMonsterTypes = Cons(&Skeleton,plMonsterTypes);
-      plMonsterTypes = Cons(&Zombie,plMonsterTypes);
-      plMonsterTypes = Cons(&GiantRat,plMonsterTypes);
+      local i, iSpawnRate, iRuneNumber;
+      
+      iRuneNumber = Send(oRune,@GetRuneNumber);
+      plMonsterTypes = $;
+      
+      Switch(iRuneNumber)
+      {
+         case OCEANIC_RUNE_DEATH:
+            plMonsterTypes = Cons(&DaemonSkeleton,plMonsterTypes);
+            plMonsterTypes = Cons(&Zombie,plMonsterTypes);
+            plMonsterTypes = Cons(&ShadowMummy,plMonsterTypes);
+            break;
+         case OCEANIC_RUNE_CHAINED:
+            plMonsterTypes = Cons(&DaemonSkeleton,plMonsterTypes);
+            plMonsterTypes = Cons(&Zombie,plMonsterTypes);
+            plMonsterTypes = Cons(&SpectralMummy,plMonsterTypes);
+            break;
+         case OCEANIC_RUNE_SKY:
+            plMonsterTypes = Cons(&AvarChieftain,plMonsterTypes);
+            plMonsterTypes = Cons(&AirElemental,plMonsterTypes);
+            plMonsterTypes = Cons(&XeoAir,plMonsterTypes);
+            break;
+         case OCEANIC_RUNE_FRACTURED:
+            plMonsterTypes = Cons(&XeoNeru,plMonsterTypes);
+            plMonsterTypes = Cons(&XeoIll,plMonsterTypes);
+            plMonsterTypes = Cons(&XeoHoly,plMonsterTypes);
+            break;
+         case OCEANIC_RUNE_HAMMER:
+            plMonsterTypes = Cons(&Slime,plMonsterTypes);
+            plMonsterTypes = Cons(&Scorpion,plMonsterTypes);
+            plMonsterTypes = Cons(&RedAnt,plMonsterTypes);
+            break;
+         case OCEANIC_RUNE_HEXED:
+            plMonsterTypes = Cons(&Shadowbeast,plMonsterTypes);
+            plMonsterTypes = Cons(&Zombie,plMonsterTypes);
+            plMonsterTypes = Cons(&ShadowMummy,plMonsterTypes);
+            break;
+         case OCEANIC_RUNE_JUNGLE:
+            plMonsterTypes = Cons(&AvarChieftain,plMonsterTypes);
+            plMonsterTypes = Cons(&Kriipa,plMonsterTypes);
+            plMonsterTypes = Cons(&DragonFly,plMonsterTypes);
+            break;
+         case OCEANIC_RUNE_MOUNTAIN:
+            plMonsterTypes = Cons(&Troll,plMonsterTypes);
+            plMonsterTypes = Cons(&SnowRat,plMonsterTypes);
+            plMonsterTypes = Cons(&OrcWizard,plMonsterTypes);
+            break;
+         case OCEANIC_RUNE_SCALED:
+            plMonsterTypes = Cons(&Lupogg,plMonsterTypes);
+            plMonsterTypes = Cons(&NeruElemental,plMonsterTypes);
+            plMonsterTypes = Cons(&GroundWormQueen,plMonsterTypes);
+            break;
+         case OCEANIC_RUNE_SEA:
+            plMonsterTypes = Cons(&WaterCentipede,plMonsterTypes);
+            plMonsterTypes = Cons(&WaterCentipede,plMonsterTypes);
+            plMonsterTypes = Cons(&WaterCentipede,plMonsterTypes);
+            %plMonsterTypes = Cons(&Slime,plMonsterTypes);
+            %plMonsterTypes = Cons(&FungusBeast,plMonsterTypes);
+            pbRoomHasAir = FALSE;
+            pbIsUnderwater = TRUE;
+            break;
+         case OCEANIC_RUNE_SERPENT:
+            plMonsterTypes = Cons(&NarthylWorm,plMonsterTypes);
+            plMonsterTypes = Cons(&Chupacabra,plMonsterTypes);
+            plMonsterTypes = Cons(&EarthElemental,plMonsterTypes);
+            break;
+         case OCEANIC_RUNE_SWORD:
+            plMonsterTypes = Cons(&DaemonSkeleton,plMonsterTypes);
+            plMonsterTypes = Cons(&Orc,plMonsterTypes);
+            plMonsterTypes = Cons(&Thrasher,plMonsterTypes);
+            break;
+      }
 
       iSpawnRate = 100;
       %iSpawnRate = Send(Send(SYS,@FindRoomByNum,#num=RID_UNDERSEA_PALACE),@GetSpawnBoost);
@@ -103,6 +173,22 @@ messages:
       %}
 
       return;
+   }
+   
+   GetPhaseThreats()
+   {
+      switch(piRuneNum)
+      {
+%         case OCEANIC_RUNE_DEATH:
+%            return [&DeathPrismThreat];
+         case OCEANIC_RUNE_MOUNTAIN:
+            return [&HeatThreat];
+         case OCEANIC_RUNE_SWORD:
+            return [&VigorThreat];
+         case OCEANIC_RUNE_SEA:
+            return [&UnderwaterThreat];
+      }
+      return $;
    }
    
    FirstUserEntered()
@@ -134,8 +220,8 @@ messages:
       
       iChoice = Random(1,Length(plChamberSpawns));
       Send(self,@NewHold,#what=Create(Nth(Nth(plChamberSpawns,iChoice),1),#iSeaPalaceLevel=piMonsterLevel),
-                         #new_row=Random(1,Send(self,@GetRoomRows)),
-                         #new_col=Random(1,Send(self,@GetRoomCols)),
+                         #new_row=Random(1,Send(self,@GetRoomRows)-1),
+                         #new_col=Random(1,Send(self,@GetRoomCols)-1),
                          #fine_row=Random(1,63),#fine_col=Random(1,63));
       SetNth(Nth(plChamberSpawns,iChoice),2,Nth(Nth(plChamberSpawns,iChoice),2)-1);
       
