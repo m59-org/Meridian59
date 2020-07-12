@@ -369,6 +369,14 @@ messages:
          iSum = iSum + Send(Send(SYS,@FindRoomByNum,#Num=iRID),@GetMonsterLevel);
       }
       
+      if plChambersCreated <> $
+         AND Length(plChambersCreated) <> 0
+      {
+         iSum = iSum/Length(plChambersCreated);
+      
+         iSum = iSum + Length(plChambersCreated);
+      }
+      
       iSum = Bound(iSum,20,$);
       
       return iSum;
