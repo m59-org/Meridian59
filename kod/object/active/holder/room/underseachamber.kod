@@ -313,6 +313,28 @@ messages:
 
    Delete()
    {
+      local i, oPlayer, oThing;
+      
+      foreach i in Send(self,@GetHolderActive)
+      {
+         if IsClass(First(i),&LogoffGhost)
+         {
+            Send(Send(First(i),@GetGhostedPlayer),@AdminGoToUnderseaPalaceWhileOffline);
+            Send(Send(SYS,@FindRoomByNum,#num=RID_UNDERSEA_PALACE),@Teleport,#what=First(i));
+         }
+      }
+
+      foreach i in Send(self,@GetHolderPassive)
+      {
+         oThing = Send(self,@HolderExtractObject,#data=i);
+         if IsClass(oThing,&DeadBody)
+            AND NOT Send(oThing,@GetPbMob)
+         {
+            % is a player corpse! Let's move it.
+            Send(Send(SYS,@FindRoomByNum,#num=RID_UNDERSEA_PALACE),@Teleport,#what=oThing);
+         }
+      }
+
       if ptSpawnTimer <> $
       {
          DeleteTimer(ptSpawnTimer);

@@ -10871,6 +10871,22 @@ messages:
 
       return;
    }
+   
+   AdminGoToUnderseaPalaceWhileOffline()
+   {
+      local oNew_Room,iRow,iCol,oRoom;
+
+      if NOT Send(self,@IsLoggedOn)
+      {
+         oRoom = Send(SYS,@FindRoomByNum,#num=RID_UNDERSEA_PALACE);
+         piSave_room = RID_UNDERSEA_PALACE;
+         piSave_row = Send(oRoom,@GetTeleportRow);
+         piSave_col = Send(oRoom,@GetTeleportCol);
+         piSave_fine_row = 32;
+         piSave_fine_col = 32;
+      }
+      return;
+   }
 
    AdminGoToDesertShore2WhileOffline()
    {
