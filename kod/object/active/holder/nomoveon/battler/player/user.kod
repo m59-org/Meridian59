@@ -594,6 +594,10 @@ resources:
       "You enable %s."
    configured_skill_success_off = \
       "You disable %s."
+   configure_skill_cannot_be_configured = \
+      "The art of %s cannot be enabled or disabled."
+   configure_skill_requires_safety = \
+      "You must be in a safe location to enable or disable skills."
 
 classvars:
 
@@ -5842,13 +5846,25 @@ messages:
       {
          if StringContain(String,config_skill_cmd_on)
          {
+            if Send(self,@GetOwner) <> $
+               AND NOT Send(Send(self,@GetOwner),@CheckRoomFlag,#flag=ROOM_NO_COMBAT)
+            {
+               Send(self,@MsgSendUser,#message_rsc=configure_skill_requires_safety);
+               return;
+            }
+            
             foreach i in Send(SYS,@GetSkills)
             {
                if StringContain(String,Send(i,@GetName))
-                  AND Send(i,@CanBeDisabledByPlayer)
                   AND Send(self,@HasSkill,#num=Send(i,@GetSkillNum))
                   AND Send(self,@GetSkillConfig,#config_num=Send(i,@GetConfigNum)) = 0
                {
+                  if NOT Send(i,@CanBeDisabledByPlayer)
+                  {
+                     Send(self,@MsgSendUser,#message_rsc=configure_skill_cannot_be_configured,#parm1=Send(i,@GetName));
+                     return;
+                  }
+
                   Send(self,@SetSkillConfig,#config_num=Send(i,@GetConfigNum),#value=1);
                   Send(self,@MsgSendUser,#message_rsc=configured_skill_success_on,#parm1=Send(i,@GetName));
                }
@@ -5858,13 +5874,25 @@ messages:
          
          if StringContain(String,config_skill_cmd_off)
          {
+            if Send(self,@GetOwner) <> $
+               AND NOT Send(Send(self,@GetOwner),@CheckRoomFlag,#flag=ROOM_NO_COMBAT)
+            {
+               Send(self,@MsgSendUser,#message_rsc=configure_skill_requires_safety);
+               return;
+            }
+
             foreach i in Send(SYS,@GetSkills)
             {
                if StringContain(String,Send(i,@GetName))
-                  AND Send(i,@CanBeDisabledByPlayer)
                   AND Send(self,@HasSkill,#num=Send(i,@GetSkillNum))
                   AND Send(self,@GetSkillConfig,#config_num=Send(i,@GetConfigNum)) = 1
                {
+                  if NOT Send(i,@CanBeDisabledByPlayer)
+                  {
+                     Send(self,@MsgSendUser,#message_rsc=configure_skill_cannot_be_configured,#parm1=Send(i,@GetName));
+                     return;
+                  }
+
                   Send(self,@SetSkillConfig,#config_num=Send(i,@GetConfigNum),#value=0);
                   Send(self,@MsgSendUser,#message_rsc=configured_skill_success_off,#parm1=Send(i,@GetName));
                }
