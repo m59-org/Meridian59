@@ -307,6 +307,9 @@ properties:
    
    % Was this item used in the forge?
    pbForgedItem = FALSE
+   
+   % Is this item exempt from ladder restrictions? I.e. quest items
+   bLadderException = FALSE
 
 messages:
 
@@ -1905,6 +1908,7 @@ messages:
       if what <> $
          AND poOwner <> $
          AND IsClass(what,&Player)
+         AND NOT bLadderException
       {
          if Send(what,@GetLadderID) <> Send(self,@GetLadderID)
             AND NOT IsClass(poOwner,&SafetyDepositBox)
