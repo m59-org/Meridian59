@@ -220,7 +220,8 @@ resources:
    player_temp_safe_end = \
       "~I~BYou feel your guardian angel has departed once more."
 
-   player_improved = "~I~BYou have improved in the art of %s."
+   player_improved = "~I~BYou have improved in the art of %s, achieving an ability of %i\%."
+   player_improved_fully = "~I~BYou have fully mastered the art of %s."
    player_improved_wav_rsc = imp.wav
    player_aggressor = "Shal'ille frowns upon your unprovoked attack."
    player_aggressor_minion = \
@@ -11128,8 +11129,16 @@ messages:
       {
          if poOwner <> $
          {
-            Post(self,@MsgSendUser,#message_rsc=player_improved,
-                  #parm1=spellName);
+            if Send(self,@GetSpellAbility,#spell_num=spell_num) < 99
+            {
+               Post(self,@MsgSendUser,#message_rsc=player_improved,
+                     #parm1=spellName,#parm2=Send(self,@GetSpellAbility,#spell_num=spell_num));
+            }
+            else
+            {
+               Post(self,@MsgSendUser,#message_rsc=player_improved_fully,#parm1=spellName);
+            }
+            
             Send(poOwner,@SomethingWaveRoom,#what=self,
                   #wave_rsc=player_improved_wav_rsc);
 
@@ -11198,7 +11207,7 @@ messages:
       lOldList = plSchools;
 
       % 18 elements right now.
-      plSchools = [ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+      plSchools = [ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
 
       foreach i in plSpells
       {
@@ -11766,8 +11775,16 @@ messages:
       {
          if poOwner <> $
          {
-            Post(self,@MsgSendUser,#message_rsc=player_improved,
-                  #parm1=skillName);
+            if Send(self,@GetSkillAbility,#Skill_num=skill_num) < 99
+            {
+               Post(self,@MsgSendUser,#message_rsc=player_improved,
+                     #parm1=skillName,#parm2=Send(self,@GetSkillAbility,#Skill_num=skill_num));
+            }
+            else
+            {
+               Post(self,@MsgSendUser,#message_rsc=player_improved_fully,#parm1=skillName);
+            }
+
             Send(poOwner,@SomethingWaveRoom,#what=self,
                   #wave_rsc=player_improved_wav_rsc);
          }
@@ -12207,6 +12224,50 @@ messages:
       Send(self,@SetPlayerFlag,#flag=PFLAG_DODGED, #value=FALSE);
 
       return;
+   }
+
+   DoXPTest()
+   {
+      Send(self,@CalculateExperienceReward,#iTargetLevel=20);
+      Send(self,@CalculateExperienceReward,#iTargetLevel=30);
+      Send(self,@CalculateExperienceReward,#iTargetLevel=40);
+      Send(self,@CalculateExperienceReward,#iTargetLevel=50);
+      Send(self,@CalculateExperienceReward,#iTargetLevel=60);
+      Send(self,@CalculateExperienceReward,#iTargetLevel=70);
+      Send(self,@CalculateExperienceReward,#iTargetLevel=80);
+      Send(self,@CalculateExperienceReward,#iTargetLevel=90);
+      Send(self,@CalculateExperienceReward,#iTargetLevel=100);
+      Send(self,@CalculateExperienceReward,#iTargetLevel=110);
+      Send(self,@CalculateExperienceReward,#iTargetLevel=120);
+      Send(self,@CalculateExperienceReward,#iTargetLevel=130);
+      Send(self,@CalculateExperienceReward,#iTargetLevel=140);
+      Send(self,@CalculateExperienceReward,#iTargetLevel=150);
+      Send(self,@CalculateExperienceReward,#iTargetLevel=160);
+      Send(self,@CalculateExperienceReward,#iTargetLevel=170);
+      Send(self,@CalculateExperienceReward,#iTargetLevel=180);
+      Send(self,@CalculateExperienceReward,#iTargetLevel=190);
+      Send(self,@CalculateExperienceReward,#iTargetLevel=200);
+      return;
+   }
+   
+   CalculateExperienceReward(what=$, iTargetLevel=20)
+   {
+      local iExperience, iLevelDifference, iSelfLevel;
+
+      % iTargetLevel = Send(what,@GetLevel);
+      iLevelDifference = abs(iTargetLevel - Send(self,@GetLevel));
+
+      % This one hits 0 at about 25ish away in either direction
+%      iExperience = (-1 * Sqrt(iLevelDifference * iLevelDifference * iLevelDifference)) + iTargetLevel;
+
+      % This one gives a smooth rising curve from below to above, higher above      
+%      iExperience = (-1 * Sqrt(iLevelDifference)) + iTargetLevel;
+
+      iExperience = (-1 * Sqrt(Sqrt(iLevelDifference * iLevelDifference * iLevelDifference))) + iTargetLevel;
+      
+      Debug(iExperience);
+      
+      return iExperience;
    }
 
    AdvancementCheck(what=$,killing_blow=TRUE,group_member_kill=FALSE,group_member=$)
