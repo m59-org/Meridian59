@@ -67,11 +67,10 @@ classvars:
    
    viPrimaryStat = STAT_ID_INTELLECT
    viSecondaryStat = 0
-   
-   % Players can turn this skill off and on
-   viConfig_num = 1
 
 properties:
+
+   piConfigNum = ELEMENTAL_IMBALANCE_SKILL_CONFIG
 
 messages:
 
@@ -83,6 +82,11 @@ messages:
    GetElementalImbalancePower(who=$, aspell=0)
    {
       local iAbility, iStat, iElementalImbalancePower;
+      
+      if NOT Send(who,@GetSkillConfig,#config_num=piConfigNum)
+      {
+         return FALSE;
+      }
 
       iAbility = Send(who,@GetSkillAbility,#Skill_num=viSkill_num);
       iStat = Send(self,@GetRequisiteStat,#who=who);
@@ -124,17 +128,6 @@ messages:
       }
 
       return iElementalImbalancePower;
-   }
-   
-   GetConfigNum()
-   {
-      return viConfig_num;
-   }
-   
-   TurnOff(who=$)
-   {
-      
-      return;
    }
 
 end

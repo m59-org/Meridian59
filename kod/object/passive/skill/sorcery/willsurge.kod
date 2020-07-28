@@ -50,6 +50,8 @@ classvars:
 
 properties:
 
+   piConfigNum = WILL_SURGE_SKILL_CONFIG
+
 messages:
 
    GetRequisiteStat(who=$)
@@ -61,6 +63,11 @@ messages:
    {
       local iAbility, iStat, iSpellAbility, iSacrifice, iCoefficient,
             iInitialCost;
+      
+      if NOT Send(who,@GetSkillConfig,#config_num=piConfigNum)
+      {
+         return FALSE;
+      }
 
       iAbility = Send(who,@GetSkillAbility,#Skill_num=viSkill_num);
       iSpellAbility = Send(who,@GetSpellAbility,

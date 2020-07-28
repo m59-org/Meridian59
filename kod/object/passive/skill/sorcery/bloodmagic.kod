@@ -60,6 +60,8 @@ classvars:
 
 properties:
 
+   piConfigNum = BLOOD_MAGIC_SKILL_CONFIG
+
 messages:
 
    GetRequisiteStat(who=$)
@@ -70,6 +72,11 @@ messages:
    AttemptBloodSacrifice(who=$,oSpell=$,iSpellPower=0)
    {
       local iAbility, iStat, iSpellAbility, iSacrifice, iCoefficient;
+      
+      if NOT Send(who,@GetSkillConfig,#config_num=piConfigNum)
+      {
+         return FALSE;
+      }
 
       iAbility = Send(who,@GetSkillAbility,#Skill_num=viSkill_num);
       iSpellAbility = Send(who,@GetSpellAbility,

@@ -61,6 +61,8 @@ classvars:
 
 properties:
 
+   piConfigNum = RING_SUSTAINMENT_SKILL_CONFIG
+
 messages:
 
    GetRequisiteStat(who=$)
@@ -71,6 +73,11 @@ messages:
    DoSkill(who=$, oEquipment=$)
    {
       local iAbility, iStat, iDurability, iChance, oMoney, iCash, iFee;
+      
+      if NOT Send(who,@GetSkillConfig,#config_num=piConfigNum)
+      {
+         return FALSE;
+      }
 
       iAbility = Send(who,@GetSkillAbility,#Skill_num=viSkill_num);
       iStat = Send(self,@GetRequisiteStat,#who=who);

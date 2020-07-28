@@ -68,6 +68,8 @@ classvars:
 
 properties:
 
+   piConfigNum = MECHANIZED_AMMUNITION_SKILL_CONFIG
+
 messages:
 
    GetRequisiteStat(who=$)
@@ -78,6 +80,11 @@ messages:
    DoSkill(who=$, oAmmo=$)
    {
       local iAbility, iStat, iAmmoAmount, iChance, oMoney, iCash, iFee;
+      
+      if NOT Send(who,@GetSkillConfig,#config_num=piConfigNum)
+      {
+         return FALSE;
+      }
 
       iAbility = Send(who,@GetSkillAbility,#Skill_num=viSkill_num);
       iStat = Send(self,@GetRequisiteStat,#who=who);

@@ -58,6 +58,8 @@ classvars:
 
 properties:
 
+   piConfigNum = TRANSMOGRIFICATION_SKILL_CONFIG
+
 messages:
 
    GetRequisiteStat(who=$)
@@ -68,6 +70,11 @@ messages:
    DoSkill(who=$, oReagent=$)
    {
       local iAbility, iStat, iReagentCount, iChance, oMoney, iCash, iFee;
+      
+      if NOT Send(who,@GetSkillConfig,#config_num=piConfigNum)
+      {
+         return FALSE;
+      }
 
       iAbility = Send(who,@GetSkillAbility,#Skill_num=viSkill_num);
       iStat = Send(self,@GetRequisiteStat,#who=who);

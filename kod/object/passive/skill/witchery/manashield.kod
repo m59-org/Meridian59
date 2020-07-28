@@ -54,6 +54,8 @@ properties:
    
    piBaseEffect = 10
 
+   piConfigNum = MANA_SHIELD_SKILL_CONFIG
+
 messages:
 
    GetRequisiteStat(who=$)
@@ -97,10 +99,14 @@ messages:
       return damage - iDamageRedirected;
    }
 
-
    DoSkill(who=$)
    {
       local iAbility, iStat;
+      
+      if NOT Send(who,@GetSkillConfig,#config_num=piConfigNum)
+      {
+         return FALSE;
+      }
       
       iAbility = Send(who,@GetSkillAbility,#Skill_num=viSkill_num);
       iStat = Send(self,@GetRequisiteStat,#who=who);

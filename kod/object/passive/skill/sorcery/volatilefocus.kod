@@ -51,6 +51,8 @@ classvars:
 
 properties:
 
+   piConfigNum = VOLATILE_FOCUS_SKILL_CONFIG
+
 messages:
 
    GetRequisiteStat(who=$)
@@ -62,6 +64,11 @@ messages:
    {
       local iAbility, iStat, iSpellAbility, iSacrifice, iAdjustedManaSacrifice, iCoefficient,
             iInitialManaCost, iInitialTimeCost, iTimeProgress, iEventCoefficient;
+      
+      if NOT Send(who,@GetSkillConfig,#config_num=piConfigNum)
+      {
+         return FALSE;
+      }
 
       if time_remaining = $
       {

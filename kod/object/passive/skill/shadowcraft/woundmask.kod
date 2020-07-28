@@ -63,6 +63,7 @@ messages:
       iStat = Send(self,@GetRequisiteStat,#who=who);
 
       if iAbility + iStat/10 > Random(1,100)
+         AND Send(who,@GetSkillConfig,#config_num=piConfigNum)
       {
          Send(self,@DoSkill,#who=who);
          return TRUE;
@@ -73,6 +74,11 @@ messages:
    DoSkill(who=$)
    {
       propagate;
+   }
+
+   CanBeDisabledByPlayer()
+   {
+      return TRUE;
    }
 
 end

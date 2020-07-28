@@ -585,6 +585,16 @@ resources:
    increment_color_failure = \
       "You don't have any colors for that slot."
 
+   config_skill_cmd_on = \
+      "enable skill"
+   config_skill_cmd_off = \
+      "disable skill"
+      
+   configured_skill_success_on = \
+      "You enable %s."
+   configured_skill_success_off = \
+      "You disable %s."
+
 classvars:
 
    viIndefinite = ARTICLE_NONE
@@ -5830,6 +5840,38 @@ messages:
 
       if type = SAY_NORMAL
       {
+         if StringContain(String,config_skill_cmd_on)
+         {
+            foreach i in Send(SYS,@GetSkills)
+            {
+               if StringContain(String,Send(i,@GetName))
+                  AND Send(i,@CanBeDisabledByPlayer)
+                  AND Send(self,@HasSkill,#num=Send(i,@GetSkillNum))
+                  AND Send(self,@GetSkillConfig,#config_num=Send(i,@GetConfigNum)) = 0
+               {
+                  Send(self,@SetSkillConfig,#config_num=Send(i,@GetConfigNum),#value=1);
+                  Send(self,@MsgSendUser,#message_rsc=configured_skill_success_on,#parm1=Send(i,@GetName));
+               }
+            }
+            return;
+         }
+         
+         if StringContain(String,config_skill_cmd_off)
+         {
+            foreach i in Send(SYS,@GetSkills)
+            {
+               if StringContain(String,Send(i,@GetName))
+                  AND Send(i,@CanBeDisabledByPlayer)
+                  AND Send(self,@HasSkill,#num=Send(i,@GetSkillNum))
+                  AND Send(self,@GetSkillConfig,#config_num=Send(i,@GetConfigNum)) = 1
+               {
+                  Send(self,@SetSkillConfig,#config_num=Send(i,@GetConfigNum),#value=0);
+                  Send(self,@MsgSendUser,#message_rsc=configured_skill_success_off,#parm1=Send(i,@GetName));
+               }
+            }
+            return;
+         }
+         
          if StringEqual(String,increment_weapon_color_override_command)
             OR StringEqual(String,increment_shield_color_override_command)
             OR StringEqual(String,increment_helmet_color_override_command)

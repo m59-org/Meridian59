@@ -52,6 +52,8 @@ classvars:
 
 properties:
 
+   piConfigNum = SANCTIFICATION_SKILL_CONFIG
+
 messages:
 
    GetRequisiteStat(who=$)
@@ -69,6 +71,7 @@ messages:
       Send(self,@ImproveAbility,#who=who);
 
       if iAbility + iStat/10 > Random(1,100)
+         AND Send(who,@GetSkillConfig,#config_num=piConfigNum)
       {
          bFound = FALSE;
          if aspell & ATCK_SPELL_UNHOLY
