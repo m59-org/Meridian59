@@ -149,24 +149,8 @@ messages:
    "Murderers and Outlaws may not use.  In fact, they are wounded "
    "if they even try."
    {
-      local lUsing, bUsingAmulet, oUsedItem;
-
-      lUsing = Send(oPlayer,@GetPlayerUsing);
-      bUsingAmulet = FALSE;
-
-      foreach oUsedItem in lUsing
-      {
-         if IsClass(oUsedItem,&NecromancerAmulet)
-         {
-            bUsingAmulet = TRUE;
-
-            break;
-         }
-      }
-
       if Send(oPlayer,@CheckPlayerFlag,#flag = PFLAG_MURDERER)
          OR send(oPlayer,@CheckPlayerFlag,#flag = PFLAG_OUTLAW)
-         OR bUsingAmulet
       {
          Send(oPlayer, @MsgSendUser, #message_rsc = punisher_fail_use,
               #parm1=send(oItem,@GetDef),#parm2=send(oItem,@GetName));
